@@ -396,6 +396,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         for (const page of pages) {
             await page.waitForExpense(expenseDescription);
             await page.waitForPage(groupId, memberCount);
+            // Enable "Show all balances" to see all debts, not just current user's
+            await page.toggleShowAllBalances(true);
             await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
             await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
@@ -417,6 +419,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         for (const page of pages) {
             await page.verifySettlementDetails({ note: settlementNote1 });
             await page.waitForPage(groupId, memberCount);
+            // Ensure "Show all balances" is enabled (should already be from earlier, but be explicit)
+            await page.toggleShowAllBalances(true);
             await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10'); // 40 - 30 = 10
             await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // unchanged
         }
@@ -438,6 +442,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         for (const page of pages) {
             await page.verifySettlementDetails({ note: settlementNote2 });
             await page.waitForPage(groupId, memberCount);
+            // Ensure "Show all balances" is enabled
+            await page.toggleShowAllBalances(true);
             await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 fully settled
             await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // User3 still owes
         }
@@ -459,6 +465,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         for (const page of pages) {
             await page.verifySettlementDetails({ note: settlementNote3 });
             await page.waitForPage(groupId, memberCount);
+            // Ensure "Show all balances" is enabled
+            await page.toggleShowAllBalances(true);
             await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 still fully settled
             await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥15'); // 40 - 25 = 15
         }
@@ -900,6 +908,8 @@ simpleTest.describe('Copy Expense Feature', () => {
         // Copied: User1 paid ¥90, split 3 ways (¥30 each) -> User2 owes ¥30, User3 owes ¥30
         // Net: User1 owes User2 ¥50-¥30=¥20, User3 owes User1 ¥30, User3 owes User2 ¥50
         // But let's verify what the actual balances show first
+        // Enable "Show all balances" to see debts not involving current user (user1)
+        await groupDetailPage1.toggleShowAllBalances(true);
         await groupDetailPage1.verifyDebtRelationship(user3DisplayName, user2DisplayName, '¥70');
         await groupDetailPage1.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥10');
     });

@@ -27,6 +27,7 @@ describe('Input Component', () => {
             expect(input).toBeInTheDocument();
             expect(input).toHaveAttribute('type', 'text');
             expect(input).toHaveValue('');
+            expect(input).toHaveAttribute('autocomplete', 'off');
         });
 
         it('should render with specified type', () => {
@@ -44,6 +45,7 @@ describe('Input Component', () => {
             const input = screen.getByDisplayValue('');
             expect(input).toBeInTheDocument();
             expect(input).toHaveAttribute('type', 'password');
+            expect(input).toHaveAttribute('autocomplete', 'off');
         });
 
         it('should render number input', () => {
@@ -52,6 +54,7 @@ describe('Input Component', () => {
             const input = screen.getByRole('spinbutton');
             expect(input).toBeInTheDocument();
             expect(input).toHaveAttribute('type', 'number');
+            expect(input).toHaveAttribute('autocomplete', 'off');
         });
     });
 
@@ -280,10 +283,10 @@ describe('Input Component', () => {
         });
 
         it('should render with autoComplete', () => {
-            render(<Input autoComplete='email' />);
+            render(<Input autoComplete='off' />);
 
             const input = screen.getByRole('textbox');
-            expect(input).toHaveAttribute('autocomplete', 'email');
+            expect(input).toHaveAttribute('autocomplete', 'off');
         });
 
         it('should render with custom data-testid', () => {

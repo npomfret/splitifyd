@@ -97,7 +97,7 @@ export class SettlementFormPage extends BaseSettlementFormPage {
         // Verify the form is open and in create mode
         const modal = this.getModal();
         await expect(modal).toBeVisible({ timeout: 1000 });
-        await expect(modal.getByRole('heading', { name: /Record Payment|Settle Up/i })).toBeVisible();
+        await expect(modal.getByRole('heading', { name: /Record Settlement/i })).toBeVisible();
 
         // Verify payer dropdown has all members
         const payerSelect = this.getPayerSelect();
@@ -213,7 +213,7 @@ export class SettlementFormPage extends BaseSettlementFormPage {
         // Submit the form
         const submitButton = this.getRecordPaymentButton();
         await expect(submitButton).toBeEnabled();
-        await this.clickButton(submitButton, { buttonName: 'Record Payment' });
+        await this.clickButton(submitButton, { buttonName: 'Record Settlement' });
 
         // Wait for modal to close with increased timeout for settlement processing
         await expect(modal).not.toBeVisible({ timeout: 5000 });

@@ -659,6 +659,8 @@
   "settlementForm": {
     "updatePayment": "Update Payment",
     "recordPayment": "Record Payment",
+    "updateSettlement": "Update Settlement",
+    "recordSettlement": "Record Settlement",
     "closeModal": "Close modal",
     "whoPaidLabel": "Who paid?",
     "whoReceivedPaymentLabel": "Who received the payment?",
@@ -712,7 +714,11 @@
     "title": "Balances",
     "loadingBalances": "Loading balances...",
     "allSettledUp": "All settled up!",
-    "debtArrow": " → "
+    "debtArrow": " → ",
+    "showOnlyMyBalances": "Show only my balances",
+    "showAll": "Show all",
+    "settleUp": "Settle",
+    "settleUpButton": "Record settlement for this debt"
   },
   "emptyGroupsState": {
     "title": "No groups yet",

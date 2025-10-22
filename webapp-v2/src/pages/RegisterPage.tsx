@@ -160,7 +160,7 @@ export function RegisterPage() {
                         placeholder={t('registerPage.fullNamePlaceholder')}
                         required
                         disabled={isSubmitting}
-                        autoComplete='name'
+                        autoComplete='off'
                         aria-label={t('registerPage.fullNameLabel')}
                         class='block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500'
                     />
@@ -193,7 +193,6 @@ export function RegisterPage() {
                     placeholder={t('registerPage.passwordPlaceholder')}
                     disabled={isSubmitting}
                     showStrength
-                    autoComplete='new-password'
                 />
 
                 <PasswordInput
@@ -205,7 +204,6 @@ export function RegisterPage() {
                     label={t('registerPage.confirmPasswordLabel')}
                     placeholder={t('registerPage.confirmPasswordPlaceholder')}
                     disabled={isSubmitting}
-                    autoComplete='new-password'
                 />
 
                 <div class='space-y-3'>
@@ -226,6 +224,7 @@ export function RegisterPage() {
                             class='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 flex-shrink-0'
                             disabled={isSubmitting}
                             required
+                            autoComplete='off'
                         />
                         <span class='ml-2 block text-sm text-gray-700'>
                             {t('registerPage.acceptTerms')}{' '}
@@ -252,6 +251,7 @@ export function RegisterPage() {
                             class='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 flex-shrink-0'
                             disabled={isSubmitting}
                             required
+                            autoComplete='off'
                         />
                         <span class='ml-2 block text-sm text-gray-700'>
                             {t('registerPage.acceptTerms')}{' '}

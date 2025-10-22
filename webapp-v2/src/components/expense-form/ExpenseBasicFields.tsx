@@ -41,6 +41,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                     </label>
                     <input
                         type='text'
+                        name='expense-description'
                         value={description}
                         onInput={(e) => updateField('description', (e.target as HTMLInputElement).value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
@@ -48,6 +49,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                         }`}
                         placeholder={t('expenseBasicFields.descriptionPlaceholder')}
                         required
+                        autoComplete='off'
                     />
                     {validationErrors.description && (
                         <p className='text-sm text-red-600 dark:text-red-400 mt-1' role='alert' data-testid='validation-error-description'>
@@ -130,6 +132,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                                 validationErrors.date ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                             }`}
                             required
+                            autoComplete='off'
                         />
                         {validationErrors.date && (
                             <p className='text-sm text-red-600 dark:text-red-400 mt-1' role='alert' data-testid='validation-error-date'>

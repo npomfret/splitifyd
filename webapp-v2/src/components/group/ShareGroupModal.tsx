@@ -218,6 +218,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                         class='w-full pl-3 pr-12 py-3 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'
                                         onClick={(e) => (e.target as HTMLInputElement).select()}
                                         data-testid='share-link-input'
+                                        autoComplete='off'
                                     />
                                     <Tooltip content={copied ? t('shareGroupModal.linkCopied') : t('shareGroupModal.copyLinkTitle')}>
                                         <button

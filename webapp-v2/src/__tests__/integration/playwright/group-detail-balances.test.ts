@@ -308,6 +308,9 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
+        // Enable "Show all" filter since the current user is not involved in this debt
+        await groupDetailPage.toggleShowAllBalances(true);
+
         // Verify specific optimized debt relationship
         await groupDetailPage.verifyDebtRelationship('Bob', 'Alice', '$10.00');
     });

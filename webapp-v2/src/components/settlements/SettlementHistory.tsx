@@ -125,12 +125,14 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                             checked={showDeletedSettlements}
                             onChange={(e) => onShowDeletedChange(e.currentTarget.checked)}
                             class='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                            autoComplete='off'
                         />
                         <span class='text-gray-700'>{t('settlementHistory.showDeletedSettlements')}</span>
                     </label>
                 </div>
             )}
 
+            <div class='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400'>
             {settlements.value.map((settlement) => {
                 const isCurrentUserPayer = settlement.payer.uid === currentUser?.uid;
                 const isCurrentUserPayee = settlement.payee.uid === currentUser?.uid;
@@ -262,6 +264,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                     </div>
                 );
             })}
+            </div>
 
             {hasMore.value && (
                 <div class='text-center pt-4'>

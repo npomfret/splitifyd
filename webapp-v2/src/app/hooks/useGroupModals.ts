@@ -1,5 +1,5 @@
 import { useSignal } from '@preact/signals';
-import type { SettlementWithMembers } from '@splitifyd/shared';
+import type { SettlementWithMembers, SimplifiedDebt } from '@splitifyd/shared';
 
 /**
  * Custom hook to manage all modals used in the Group Detail page
@@ -14,6 +14,7 @@ export function useGroupModals() {
 
     // Modal data states
     const settlementToEdit = useSignal<SettlementWithMembers | null>(null);
+    const preselectedDebt = useSignal<SimplifiedDebt | null>(null);
 
     // Modal actions
     const openShareModal = () => {
@@ -24,14 +25,16 @@ export function useGroupModals() {
         showShareModal.value = false;
     };
 
-    const openSettlementForm = (settlement?: SettlementWithMembers) => {
+    const openSettlementForm = (settlement?: SettlementWithMembers, debt?: SimplifiedDebt) => {
         settlementToEdit.value = settlement || null;
+        preselectedDebt.value = debt || null;
         showSettlementForm.value = true;
     };
 
     const closeSettlementForm = () => {
         showSettlementForm.value = false;
         settlementToEdit.value = null;
+        preselectedDebt.value = null;
     };
 
     const openGroupSettingsModal = (tab: 'identity' | 'general' | 'security' = 'general') => {
@@ -52,6 +55,7 @@ export function useGroupModals() {
 
         // Modal data (reactive signal)
         settlementToEdit,
+        preselectedDebt,
 
         // Modal actions
         openShareModal,

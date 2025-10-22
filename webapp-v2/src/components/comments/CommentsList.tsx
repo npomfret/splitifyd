@@ -36,7 +36,7 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
     }
 
     return (
-        <div className={`overflow-y-auto ${className}`} style={{ maxHeight }}>
+        <div className={`overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 ${className}`} style={{ maxHeight }}>
             <div className='space-y-4 px-1'>
                 {comments.map((comment) => <CommentItem key={comment.id} comment={comment} className='pb-4 border-b border-gray-100 dark:border-gray-800 last:border-0' />)}
             </div>

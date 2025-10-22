@@ -167,6 +167,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                         onBlur={handleBlur}
                         onKeyDown={handleKeyDown}
                         placeholder={t('uiComponents.timeInput.placeholder')}
+                        autoComplete='off'
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
                             error ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                         }`}

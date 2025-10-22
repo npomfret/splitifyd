@@ -316,7 +316,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             >
                 <div class='flex justify-between items-center mb-4'>
                     <h2 id='settlement-form-title' class='text-xl font-semibold text-gray-900'>
-                        {editMode ? t('settlementForm.updatePayment') : t('settlementForm.recordPayment')}
+                        {editMode ? t('settlementForm.updateSettlement') : t('settlementForm.recordSettlement')}
                     </h2>
                     <Tooltip content={t('settlementForm.closeModal')}>
                         <button onClick={onClose} class='text-gray-400 hover:text-gray-500' aria-label={t('settlementForm.closeModal')}>
@@ -413,6 +413,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 disabled={isSubmitting}
                                 required
                                 class='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                autoComplete='off'
                             />
                         </div>
 
@@ -431,6 +432,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 disabled={isSubmitting}
                                 maxLength={500}
                                 class='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                autoComplete='off'
                             />
                         </div>
 
@@ -483,8 +485,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                         ? t('settlementForm.updatingButton')
                                         : t('settlementForm.recordingButton')
                                     : editMode
-                                    ? t('settlementForm.updatePayment')
-                                    : t('settlementForm.recordPayment')}
+                                    ? t('settlementForm.updateSettlement')
+                                    : t('settlementForm.recordSettlement')}
                             </Button>
                         </div>
                     </div>

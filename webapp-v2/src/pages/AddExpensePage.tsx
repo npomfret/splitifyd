@@ -119,7 +119,14 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 <ExpenseFormHeader isEditMode={isEditMode} isCopyMode={isCopyMode} groupName={formState.group.name} onCancel={formState.handleCancel} />
 
                 <div className='max-w-3xl mx-auto px-4 py-6'>
-                    <form onSubmit={formState.handleSubmit}>
+                    <form onSubmit={formState.handleSubmit} autoComplete='off'>
+                        <div
+                            aria-hidden='true'
+                            style={{ position: 'absolute', left: '-9999px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}
+                        >
+                            <input type='text' name='expense-form-username' autoComplete='off' tabIndex={-1} />
+                            <input type='password' name='expense-form-password' autoComplete='off' tabIndex={-1} />
+                        </div>
                         <Stack spacing='md'>
                             {/* Error message */}
                             {formState.formError && <ErrorState error={formState.formError} className='mb-4' />}

@@ -24,7 +24,7 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
                         }
           `}
                     >
-                        <input type='radio' name='splitType' value='equal' checked={splitType === 'equal'} onChange={() => updateField('splitType', 'equal')} className='sr-only' />
+                        <input type='radio' name='splitType' value='equal' checked={splitType === 'equal'} onChange={() => updateField('splitType', 'equal')} className='sr-only' autoComplete='off' />
                         <span className='text-sm font-medium text-gray-900 dark:text-white'>{t('expenseComponents.splitTypeSelector.equal')}</span>
                     </label>
 
@@ -38,7 +38,7 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
                         }
           `}
                     >
-                        <input type='radio' name='splitType' value='exact' checked={splitType === 'exact'} onChange={() => updateField('splitType', 'exact')} className='sr-only' />
+                        <input type='radio' name='splitType' value='exact' checked={splitType === 'exact'} onChange={() => updateField('splitType', 'exact')} className='sr-only' autoComplete='off' />
                         <span className='text-sm font-medium text-gray-900 dark:text-white'>{t('expenseComponents.splitTypeSelector.exactAmounts')}</span>
                     </label>
 
@@ -52,7 +52,7 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
                         }
           `}
                     >
-                        <input type='radio' name='splitType' value='percentage' checked={splitType === 'percentage'} onChange={() => updateField('splitType', 'percentage')} className='sr-only' />
+                        <input type='radio' name='splitType' value='percentage' checked={splitType === 'percentage'} onChange={() => updateField('splitType', 'percentage')} className='sr-only' autoComplete='off' />
                         <span className='text-sm font-medium text-gray-900 dark:text-white'>{t('expenseComponents.splitTypeSelector.percentage')}</span>
                     </label>
                 </div>

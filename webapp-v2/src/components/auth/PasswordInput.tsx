@@ -26,7 +26,7 @@ export function PasswordInput({
     required = true,
     disabled = false,
     showStrength = false,
-    autoComplete = 'current-password',
+    autoComplete = 'off',
     id = 'password-input',
 }: PasswordInputProps) {
     const { t } = useTranslation();
@@ -118,7 +118,7 @@ export function PasswordInput({
                     placeholder={placeholder || t('auth.passwordInput.placeholder')}
                     required={required}
                     disabled={disabled}
-                    autocomplete={autoComplete}
+                    autoComplete={autoComplete}
                     aria-label={label || t('auth.passwordInput.label')}
                     aria-required={required}
                     aria-invalid={hasError}

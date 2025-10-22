@@ -35,7 +35,7 @@ export function Input({
     id,
     autoFocus = false,
     className = '',
-    autoComplete,
+    autoComplete = 'off',
     'data-testid': dataTestId,
     inputRef,
 }: InputProps) {

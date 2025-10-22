@@ -214,7 +214,6 @@ export function SettingsPage() {
                                             value={passwordData.currentPassword}
                                             onChange={(value) => setPasswordData((prev) => ({ ...prev, currentPassword: value }))}
                                             disabled={isLoading}
-                                            autoComplete='current-password'
                                             id='current-password-input'
                                             data-testid='current-password-input'
                                         />
@@ -226,7 +225,6 @@ export function SettingsPage() {
                                             value={passwordData.newPassword}
                                             onChange={(value) => setPasswordData((prev) => ({ ...prev, newPassword: value }))}
                                             disabled={isLoading}
-                                            autoComplete='new-password'
                                             id='new-password-input'
                                             data-testid='new-password-input'
                                         />
@@ -238,7 +236,6 @@ export function SettingsPage() {
                                             value={passwordData.confirmNewPassword}
                                             onChange={(value) => setPasswordData((prev) => ({ ...prev, confirmNewPassword: value }))}
                                             disabled={isLoading}
-                                            autoComplete='new-password'
                                             id='confirm-password-input'
                                             data-testid='confirm-password-input'
                                         />

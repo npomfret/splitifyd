@@ -171,8 +171,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         navigationService.goToAddExpense(groupId!);
     };
 
-    const handleSettleUp = () => {
-        modals.openSettlementForm();
+    const handleSettleUp = (preselectedDebt?: any) => {
+        modals.openSettlementForm(undefined, preselectedDebt);
     };
 
     const handleEditSettlement = (settlement: SettlementWithMembers) => {
@@ -279,13 +279,13 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Mobile-only balance summary */}
                         <div className='lg:hidden'>
-                            <BalanceSummary />
+                            <BalanceSummary onSettleUp={handleSettleUp} />
                         </div>
                     </Stack>
                 }
                 rightSidebar={
                     <>
-                        <BalanceSummary variant='sidebar' />
+                        <BalanceSummary variant='sidebar' onSettleUp={handleSettleUp} />
 
                         {/* Settlement History Section */}
                         <SidebarCard
@@ -357,6 +357,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 groupId={groupId!}
                 editMode={!!modals.settlementToEdit.value}
                 settlementToEdit={modals.settlementToEdit.value || undefined}
+                preselectedDebt={modals.preselectedDebt.value || undefined}
                 onSuccess={() => {
                     // Refresh all data after successful settlement
                     enhancedGroupDetailStore.refreshAll();

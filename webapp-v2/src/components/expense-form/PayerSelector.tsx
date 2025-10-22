@@ -43,6 +43,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                 checked={paidBy === member.uid}
                                 onChange={() => updateField('paidBy', member.uid)}
                                 className='text-blue-600 focus:ring-blue-500'
+                                autoComplete='off'
                             />
                             <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
                             <span className='text-sm font-medium text-gray-900 dark:text-white'>{getGroupDisplayName(member)}</span>

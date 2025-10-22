@@ -60,6 +60,7 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                                     onChange={() => handleParticipantToggle(member.uid)}
                                     disabled={isPayer}
                                     className='text-blue-600 focus:ring-blue-500 disabled:opacity-50'
+                                    autoComplete='off'
                                 />
                                 <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
                                 <span className='text-sm font-medium text-gray-900 dark:text-white flex-1'>

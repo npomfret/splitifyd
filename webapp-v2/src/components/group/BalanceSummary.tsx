@@ -1,20 +1,27 @@
+import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
+import { themeStore } from '@/app/stores/theme-store';
 import { SidebarCard } from '@/components/ui';
+import { Avatar } from '@/components/ui/Avatar';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { useComputed } from '@preact/signals';
+import { useComputed, useSignal } from '@preact/signals';
 import type { SimplifiedDebt } from '@splitifyd/shared';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { ScaleIcon } from '@heroicons/react/24/outline';
+import { BanknotesIcon, ScaleIcon } from '@heroicons/react/24/outline';
 import { Card } from '../ui/Card';
 
 interface BalanceSummaryProps {
     variant?: 'default' | 'sidebar';
+    onSettleUp?: (debt: SimplifiedDebt) => void;
 }
 
-export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
+export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSummaryProps) {
     const { t } = useTranslation();
+    const authStore = useAuthRequired();
+    const currentUser = authStore.user;
+    const showAllBalances = useSignal(false);
 
     // Fetch data directly from the store
     const balances = useComputed(() => enhancedGroupDetailStore.balances);
@@ -29,11 +36,18 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
         return getGroupDisplayName(member);
     };
 
-    // Group debts by currency for proper display - memoized to avoid recalculation
+    // Filter and group debts by currency - memoized to avoid recalculation
     const groupedDebts = useMemo(() => {
         if (!balances.value?.simplifiedDebts) return [];
 
-        const grouped = balances.value.simplifiedDebts.reduce(
+        // Filter debts based on user preference - show only user's debts by default
+        const filteredDebts = !showAllBalances.value && currentUser
+            ? balances.value.simplifiedDebts.filter(debt =>
+                debt.from.uid === currentUser.uid || debt.to.uid === currentUser.uid
+              )
+            : balances.value.simplifiedDebts;
+
+        const grouped = filteredDebts.reduce(
             (acc, debt) => {
                 const currency = debt.currency;
                 if (!acc[currency]) {
@@ -56,62 +70,109 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
             currency,
             debts: grouped[currency],
         }));
-    }, [balances.value?.simplifiedDebts]);
+    }, [balances.value?.simplifiedDebts, showAllBalances.value, currentUser]);
 
     const testIdPrefix = variant === 'sidebar' ? 'sidebar-' : '';
+
     const content = !balances.value
         ? <p className='text-gray-600 text-sm' data-testid={`${testIdPrefix}balance-loading`}>{t('balanceSummary.loadingBalances')}</p>
-        : balances.value.simplifiedDebts.length === 0
+        : groupedDebts.length === 0 || groupedDebts.every(g => g.debts.length === 0)
         ? <p className='text-gray-600 text-sm' data-testid={`${testIdPrefix}balance-settled-up`}>{t('balanceSummary.allSettledUp')}</p>
         : (
-            <div className={variant === 'sidebar' ? 'space-y-4' : 'space-y-6'} data-testid={`${testIdPrefix}balance-debts-list`}>
-                {groupedDebts.map(({ currency, debts }, groupIndex) => (
-                    <div key={currency} className={variant === 'sidebar' ? 'border-l-2 border-gray-200 pl-3' : `border-b border-gray-200 pb-4 last:border-0 ${groupIndex > 0 ? 'pt-4' : ''}`}>
-                        {groupedDebts
-                                    .length > 1 && (
-                            <h3 className={variant === 'sidebar' ? 'text-xs font-bold text-gray-600 mb-2 uppercase tracking-wider' : 'text-base font-bold text-gray-800 mb-3 flex items-center gap-2'}>
-                                <span className={variant === 'sidebar' ? '' : 'bg-gray-100 px-2 py-1 rounded'}>{currency}</span>
-                            </h3>
-                        )}
-                        <div className={variant === 'sidebar' ? 'space-y-2' : 'space-y-3'}>
-                            {debts
-                                .map((debt, index) => (
-                                    <div
-                                        key={`${currency}-${index}`}
-                                        data-testid='debt-item'
-                                        className={variant === 'sidebar'
-                                            ? 'border-b border-gray-50 pb-2 last:border-0'
-                                            : 'flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors'}
-                                    >
-                                        <div className={variant === 'sidebar' ? 'flex flex-col gap-1' : 'flex justify-between items-center w-full'}>
-                                            <span
-                                                className={variant === 'sidebar' ? 'text-xs text-gray-600' : 'font-medium text-gray-700'}
-                                                data-testid={`debt-relationship-${debt.from.uid}-${debt.to.uid}`}
-                                            >
-                                                {getUserName(
-                                                    debt
-                                                        .from
-                                                        .uid,
-                                                )}
-                                                {t('balanceSummary.debtArrow')}
-                                                {getUserName(
-                                                    debt
-                                                        .to
-                                                        .uid,
-                                                )}
-                                            </span>
-                                            <span className={variant === 'sidebar' ? 'text-sm font-bold text-red-600' : 'text-lg font-bold text-red-600'} data-financial-amount='debt'>
-                                                {formatCurrency(
-                                                    debt.amount,
-                                                    debt
-                                                        .currency,
-                                                )}
-                                            </span>
+            <div className='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400' data-testid={`${testIdPrefix}balance-debts-list`}>
+                {groupedDebts.map(({ currency, debts }) => (
+                    debts.map((debt) => {
+                        const isCurrentUserFrom = currentUser && debt.from.uid === currentUser.uid;
+                        const isCurrentUserTo = currentUser && debt.to.uid === currentUser.uid;
+                        const isCurrentUserInvolved = isCurrentUserFrom || isCurrentUserTo;
+
+                        // Get members for theme colors
+                        const fromMember = members.value.find((m) => m.uid === debt.from.uid);
+                        const toMember = members.value.find((m) => m.uid === debt.to.uid);
+
+                        // Get theme color for the payer (from person)
+                        const payerTheme = fromMember?.themeColor || themeStore.getThemeForUser(debt.from.uid);
+                        const payeeTheme = toMember?.themeColor || themeStore.getThemeForUser(debt.to.uid);
+                        const isDark = themeStore.isDarkMode;
+                        const themeColor = payerTheme ? (isDark ? payerTheme.dark : payerTheme.light) : '#6B7280';
+
+                        return (
+                            <div
+                                key={`${debt.from.uid}-${debt.to.uid}-${currency}`}
+                                data-testid='debt-item'
+                                className='group border-b last:border-0 pb-3 last:pb-0 -mx-2 px-2 py-2 rounded relative hover:bg-gray-50'
+                                style={{
+                                    borderLeftWidth: '4px',
+                                    borderLeftColor: themeColor,
+                                    backgroundColor: isCurrentUserInvolved ? `${themeColor}08` : 'transparent',
+                                }}
+                            >
+                                <div className='grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 items-start'>
+                                    {/* Row 1: From person avatar and name */}
+                                    <div className='row-start-1 flex items-center'>
+                                        <Avatar
+                                            displayName={getUserName(debt.from.uid)}
+                                            userId={debt.from.uid}
+                                            size='sm'
+                                            themeColor={payerTheme || undefined}
+                                        />
+                                    </div>
+                                    <div className='row-start-1 col-start-2 flex items-center gap-2 min-w-0'>
+                                        <span className='text-sm font-semibold truncate' style={{ color: themeColor }}>
+                                            {getUserName(debt.from.uid)}
+                                        </span>
+                                    </div>
+
+                                    {/* Row 2: Down arrow only */}
+                                    <div className='row-start-2 flex items-center justify-center self-stretch'>
+                                        <div className='flex items-center justify-center w-6 h-full text-gray-400'>
+                                            <svg className='w-3 h-3 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M19 14l-7 7m0 0l-7-7m7 7V3' />
+                                            </svg>
                                         </div>
                                     </div>
-                                ))}
-                        </div>
-                    </div>
+                                    <div className='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
+                                        <div className='flex items-center gap-1 flex-1'>
+                                            <span className='text-xs text-gray-500'>owes</span>
+                                            <span className='text-lg font-bold tabular-nums text-gray-900' data-financial-amount='debt'>
+                                                {formatCurrency(debt.amount, debt.currency)}
+                                            </span>
+                                            <span className='text-xs text-gray-500'>to</span>
+                                        </div>
+                                        {/* Settlement button - only show if current user owes this debt and onSettleUp is provided */}
+                                        {isCurrentUserFrom && onSettleUp && (
+                                            <button
+                                                type='button'
+                                                onClick={() => onSettleUp(debt)}
+                                                className='p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors flex-shrink-0 flex items-center gap-1'
+                                                aria-label={t('balanceSummary.settleUpButton')}
+                                            >
+                                                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true'>
+                                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M13 7l5 5m0 0l-5 5m5-5H6' />
+                                                </svg>
+                                                <BanknotesIcon className='w-4 h-4' aria-hidden='true' />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Row 3: To person avatar and name */}
+                                    <div className='row-start-3 flex items-center'>
+                                        <Avatar
+                                            displayName={getUserName(debt.to.uid)}
+                                            userId={debt.to.uid}
+                                            size='sm'
+                                            themeColor={payeeTheme || undefined}
+                                        />
+                                    </div>
+                                    <div className='row-start-3 col-start-2 flex items-center gap-2 min-w-0'>
+                                        <span className='text-sm font-semibold text-gray-900 truncate'>
+                                            {getUserName(debt.to.uid)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })
                 ))}
             </div>
         );
@@ -127,10 +188,22 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
                 }
                 data-testid='balance-summary-sidebar'
                 collapsible
-                defaultCollapsed
                 collapseToggleTestId='toggle-balance-section'
                 collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('balanceSummary.title') })}
             >
+                {/* Filter toggle */}
+                <div className='pb-2 border-b border-gray-200 mb-2'>
+                    <label className='flex items-center space-x-2 text-sm cursor-pointer'>
+                        <input
+                            type='checkbox'
+                            checked={showAllBalances.value}
+                            onChange={(e) => showAllBalances.value = e.currentTarget.checked}
+                            className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                            autoComplete='off'
+                        />
+                        <span className='text-gray-700'>{t('balanceSummary.showAll')}</span>
+                    </label>
+                </div>
                 {content}
             </SidebarCard>
         );
@@ -138,7 +211,20 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
 
     return (
         <Card className='p-6' data-testid='balance-summary-main'>
-            <h2 className='text-lg font-semibold mb-4'>{t('balanceSummary.title')}</h2>
+            <div className='flex items-center justify-between mb-4'>
+                <h2 className='text-lg font-semibold'>{t('balanceSummary.title')}</h2>
+                {/* Filter toggle for non-sidebar variant */}
+                <label className='flex items-center space-x-2 text-sm cursor-pointer'>
+                    <input
+                        type='checkbox'
+                        checked={showAllBalances.value}
+                        onChange={(e) => showAllBalances.value = e.currentTarget.checked}
+                        className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                        autoComplete='off'
+                    />
+                    <span className='text-gray-700'>{t('balanceSummary.showAll')}</span>
+                </label>
+            </div>
             {content}
         </Card>
     );

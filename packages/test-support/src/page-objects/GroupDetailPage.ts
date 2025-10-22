@@ -228,6 +228,11 @@ export class GroupDetailPage extends BasePage {
         await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     }
 
+    async expectBalancesExpanded(): Promise<void> {
+        const toggle = this.getBalanceToggle();
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    }
+
     async ensureCommentsSectionExpanded(): Promise<void> {
         await this.ensureToggleExpanded(this.getCommentsToggle());
         await expect(this.getCommentsSection()).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
@@ -711,6 +716,34 @@ export class GroupDetailPage extends BasePage {
             .or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
     }
 
+    /**
+     * Get settlement button for a specific debt item
+     * The button appears within debt items where the current user is the payer
+     */
+    getSettlementButtonForDebt(debtorName: string, creditorName: string): Locator {
+        const balancesSection = this.getBalanceContainer();
+        // Find the debt item containing the debtor and creditor names
+        const debtItem = balancesSection.locator('[data-testid="debt-item"]').filter({
+            hasText: new RegExp(`${debtorName}.*owes.*${creditorName}`),
+        });
+        // Find the button with aria-label containing "Record settlement"
+        return debtItem.locator('button[aria-label*="settlement"]');
+    }
+
+    /**
+     * Toggle the "Show all" balances filter
+     * @param checked - true to show all balances, false to show only user's balances
+     */
+    async toggleShowAllBalances(checked: boolean): Promise<void> {
+        const balancesSection = this.getBalanceContainer();
+        const checkbox = balancesSection.getByRole('checkbox');
+        const isChecked = await checkbox.isChecked();
+
+        if (isChecked !== checked) {
+            await checkbox.click();
+        }
+    }
+
     // ============================================================================
     // MODALS
     // ============================================================================
@@ -1036,12 +1069,14 @@ export class GroupDetailPage extends BasePage {
                 throw new Error('Balance section not visible yet');
             }
 
-            // Find all debt relationship spans with the expected text pattern
-            const debtRelationshipSpans = balancesSection.locator('span').filter({
-                hasText: new RegExp(`${debtorName}\\s*→\\s*${creditorName}`),
+            // Find debt items containing both names - supports both old (→) and new (owes...to) format
+            const debtItems = balancesSection.locator('[data-testid="debt-item"]').filter({
+                hasText: debtorName,
+            }).filter({
+                hasText: creditorName,
             });
 
-            const count = await debtRelationshipSpans.count();
+            const count = await debtItems.count();
             if (count === 0) {
                 // Get all debt items for better error message
                 const allDebtItems = balancesSection.locator('[data-testid="debt-item"]');
@@ -1061,15 +1096,14 @@ export class GroupDetailPage extends BasePage {
                 );
             }
 
-            // Check each relationship to find one with the matching amount
+            // Check each debt item to find one with the matching amount
             let foundMatchingAmount = false;
             let actualAmounts: string[] = [];
 
             for (let i = 0; i < count; i++) {
-                const relationshipSpan = debtRelationshipSpans.nth(i);
-                // Find the parent container and look for the amount span
-                const parentContainer = relationshipSpan.locator('..');
-                const amountSpan = parentContainer.locator('[data-financial-amount="debt"]');
+                const debtItem = debtItems.nth(i);
+                // Find the amount span within this debt item
+                const amountSpan = debtItem.locator('[data-financial-amount="debt"]');
 
                 const actualAmount = await amountSpan.textContent().catch(() => null);
                 if (actualAmount) {
@@ -1181,7 +1215,7 @@ export class GroupDetailPage extends BasePage {
         await expect(modal).toBeVisible({ timeout: 3000 });
 
         if (options.ensureUpdateHeading !== false) {
-            await expect(modal.getByRole('heading', { name: /Update Payment/i })).toBeVisible();
+            await expect(modal.getByRole('heading', { name: /Update Settlement/i })).toBeVisible();
         }
 
         const createFormPage =

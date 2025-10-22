@@ -430,11 +430,12 @@ test.describe('Group Detail - Sidebar Sections', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
-        await groupDetailPage.expectBalancesCollapsed();
+        // Balance section should be expanded by default, but Comments and Settlements should be collapsed
+        await groupDetailPage.expectBalancesExpanded();
         await groupDetailPage.expectCommentsCollapsed();
         await groupDetailPage.expectSettlementsCollapsed();
 
-        await groupDetailPage.ensureBalancesSectionExpanded();
+        // Verify balance content is visible
         await expect(groupDetailPage.getDebtItems()).toHaveCount(1);
 
         await groupDetailPage.ensureCommentsSectionExpanded();

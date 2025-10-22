@@ -180,6 +180,7 @@ export function CurrencyAmountInput({
                         disabled={disabled}
                         placeholder={placeholder || t('uiComponents.currencyAmountInput.placeholder')}
                         required={required}
+                        autoComplete='off'
                         className={`
               flex-1 px-3 py-2
               border rounded-r-md

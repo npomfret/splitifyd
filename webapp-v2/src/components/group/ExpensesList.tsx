@@ -41,7 +41,7 @@ export function ExpensesList({ onExpenseClick, onExpenseCopy, showDeletedExpense
                 <h2 className='text-lg font-semibold'>{t('expensesList.title')}</h2>
                 {isGroupOwner.value && onShowDeletedChange && (
                     <label className='flex items-center space-x-2 text-sm'>
-                        <input type='checkbox' checked={showDeletedExpenses} onChange={(e) => onShowDeletedChange(e.currentTarget.checked)} className='rounded' />
+                        <input type='checkbox' checked={showDeletedExpenses} onChange={(e) => onShowDeletedChange(e.currentTarget.checked)} className='rounded' autoComplete='off' />
                         <span>{t('expensesList.showDeletedExpenses')}</span>
                     </label>
                 )}

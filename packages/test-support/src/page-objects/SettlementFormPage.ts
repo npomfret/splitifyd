@@ -1,6 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import {GroupId} from "@splitifyd/shared";
+import { translationEn } from '../translations/translation-en';
+
+const translation = translationEn;
 
 /**
  * Shared base class for Settlement Form page object.
@@ -40,11 +43,11 @@ export class SettlementFormPage extends BasePage {
 
     // Button selectors
     getRecordPaymentButton(): Locator {
-        return this.getModal().getByRole('button', { name: /record payment/i });
+        return this.getModal().getByRole('button', { name: translation.settlementForm.recordSettlement });
     }
 
     getUpdatePaymentButton(): Locator {
-        return this.getModal().getByRole('button', { name: /update payment/i });
+        return this.getModal().getByRole('button', { name: translation.settlementForm.updateSettlement });
     }
 
     getCancelButton(): Locator {
@@ -192,7 +195,7 @@ export class SettlementFormPage extends BasePage {
     async verifyUpdateMode(): Promise<void> {
         const modal = this.getModal();
         await expect(modal).toBeVisible();
-        await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
+        await expect(modal.getByRole('heading', { name: translation.settlementForm.updateSettlement })).toBeVisible();
     }
 
     /**

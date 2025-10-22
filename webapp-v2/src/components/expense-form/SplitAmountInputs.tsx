@@ -72,6 +72,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                         updateSplitAmount(participantId, value);
                                     }}
                                     className='w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right'
+                                    autoComplete='off'
                                 />
                             </div>
                         </div>
@@ -131,6 +132,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                         updateSplitPercentage(participantId, value);
                                     }}
                                     className='w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right'
+                                    autoComplete='off'
                                 />
                                 <span className='text-gray-500'>{t('expenseComponents.splitAmountInputs.percentSign')}</span>
                                 <span className='text-xs text-gray-500 w-16 text-right'>{formatCurrency(split?.amount ?? ZERO, currency)}</span>
