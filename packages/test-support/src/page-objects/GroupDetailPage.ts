@@ -195,8 +195,57 @@ export class GroupDetailPage extends BasePage {
             .first();
     }
 
-    private getSettlementHistoryToggle(): Locator {
-        return this.getSettlementContainer().getByRole('button', { name: /history/i });
+    private getBalanceToggle(): Locator {
+        return this.getBalanceContainer().getByTestId('toggle-balance-section');
+    }
+
+    private getCommentsToggle(): Locator {
+        return this.page.getByTestId('toggle-comments-section');
+    }
+
+    private getSettlementsToggle(): Locator {
+        return this.getSettlementContainer().getByTestId('toggle-settlements-section');
+    }
+
+    private async ensureToggleExpanded(toggle: Locator): Promise<void> {
+        await expect(toggle).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+
+        const expanded = await toggle.getAttribute('aria-expanded');
+        if (expanded === 'true') {
+            return;
+        }
+
+        await toggle.click();
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    }
+
+    async ensureBalancesSectionExpanded(): Promise<void> {
+        await this.ensureToggleExpanded(this.getBalanceToggle());
+    }
+
+    async expectBalancesCollapsed(): Promise<void> {
+        const toggle = this.getBalanceToggle();
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    }
+
+    async ensureCommentsSectionExpanded(): Promise<void> {
+        await this.ensureToggleExpanded(this.getCommentsToggle());
+        await expect(this.getCommentsSection()).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+    }
+
+    async expectCommentsCollapsed(): Promise<void> {
+        const toggle = this.getCommentsToggle();
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    }
+
+    async ensureSettlementsSectionExpanded(): Promise<void> {
+        await this.ensureToggleExpanded(this.getSettlementsToggle());
+        await expect(this.getSettlementContainer()).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+    }
+
+    async expectSettlementsCollapsed(): Promise<void> {
+        const toggle = this.getSettlementsToggle();
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     }
 
     private getSettlementItems(): Locator {
@@ -553,6 +602,8 @@ export class GroupDetailPage extends BasePage {
      * Add a comment using the UI controls
      */
     async addComment(text: string): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+
         const input = this.getCommentInput();
         const sendButton = this.getSendCommentButton();
 
@@ -574,6 +625,8 @@ export class GroupDetailPage extends BasePage {
      * Wait for a comment containing specific text to become visible
      */
     async waitForCommentToAppear(text: string, timeout: number = 5000): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+
         const comment = this.getCommentByText(text);
         await expect(comment).toBeVisible({ timeout });
     }
@@ -582,6 +635,8 @@ export class GroupDetailPage extends BasePage {
      * Wait for the comment count to reach the expected value
      */
     async waitForCommentCount(expectedCount: number, timeout: number = 5000): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+
         await expect(async () => {
             const count = await this.getCommentItems().count();
             expect(count).toBe(expectedCount);
@@ -592,6 +647,8 @@ export class GroupDetailPage extends BasePage {
      * Verify the comments section renders with expected controls
      */
     async verifyCommentsSection(): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+
         await expect(this.getCommentsSection()).toBeVisible();
 
         const input = this.getCommentInput();
@@ -607,6 +664,8 @@ export class GroupDetailPage extends BasePage {
      * Verify a comment with given text is visible
      */
     async verifyCommentVisible(text: string): Promise<void> {
+        await this.ensureCommentsSectionExpanded();
+
         await expect(this.getCommentByText(text)).toBeVisible();
     }
 
@@ -885,6 +944,7 @@ export class GroupDetailPage extends BasePage {
      * Verify balances are settled up
      */
     async verifySettledUp(): Promise<void> {
+        await this.ensureBalancesSectionExpanded();
         await expect(this.getSettledUpMessage()).toBeVisible();
     }
 
@@ -892,6 +952,7 @@ export class GroupDetailPage extends BasePage {
      * Verify user has debts
      */
     async verifyHasDebts(): Promise<void> {
+        await this.ensureBalancesSectionExpanded();
         await expect(this.getDebtItems().first()).toBeVisible();
     }
 
@@ -927,6 +988,8 @@ export class GroupDetailPage extends BasePage {
      * Verify that a specific debt relationship is no longer visible.
      */
     async verifyNoDebtRelationship(debtorName: string, creditorName: string, timeout: number = 5000): Promise<void> {
+        await this.ensureBalancesSectionExpanded();
+
         await expect(async () => {
             const debtInfo = this.getDebtInfo(debtorName, creditorName);
             const count = await debtInfo.count();
@@ -949,6 +1012,7 @@ export class GroupDetailPage extends BasePage {
             }
         }
 
+        await this.ensureBalancesSectionExpanded();
         await expect(this.getSettledUpMessage()).toBeVisible({ timeout });
 
         const debtElements = this.getBalanceContainer().locator('[data-financial-amount="debt"]');
@@ -963,6 +1027,8 @@ export class GroupDetailPage extends BasePage {
      * @param expectedAmount - Expected debt amount as formatted string (e.g., "$25.00")
      */
     async verifyDebtRelationship(debtorName: string, creditorName: string, expectedAmount: string): Promise<void> {
+        await this.ensureBalancesSectionExpanded();
+
         await expect(async () => {
             // Wait for balance container to be visible first
             const balancesSection = this.getBalanceContainer();
@@ -1043,20 +1109,7 @@ export class GroupDetailPage extends BasePage {
      * Idempotent: if history is already visible, nothing happens.
      */
     async ensureSettlementHistoryOpen(): Promise<void> {
-        const showHistoryButton = this.page.getByRole('button', { name: /show history/i });
-        const hideHistoryButton = this.page.getByRole('button', { name: /hide history/i });
-
-        const historyAlreadyOpen = await hideHistoryButton.isVisible().catch(() => false);
-        if (historyAlreadyOpen) {
-            return;
-        }
-
-        const canOpen = await showHistoryButton.isVisible().catch(() => false);
-        if (canOpen) {
-            await showHistoryButton.click();
-            await expect(hideHistoryButton).toBeVisible();
-            await expect(this.getSettlementContainer()).toBeVisible();
-        }
+        await this.ensureSettlementsSectionExpanded();
     }
 
     /**

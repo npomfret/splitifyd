@@ -106,6 +106,8 @@ test.describe('Group Detail - Comment Pagination', () => {
 
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
+        await groupDetailPage.expectCommentsCollapsed();
+        await groupDetailPage.ensureCommentsSectionExpanded();
 
         await expect(page.getByText('First page welcome comment')).toBeVisible();
         await expect(page.getByText('First page reminder comment')).toBeVisible();

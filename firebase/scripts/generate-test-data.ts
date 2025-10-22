@@ -991,8 +991,8 @@ async function createCommentsForGroups(groups: GroupWithInvite[], groupMembershi
         let expenseCommentsToCreate = 0;
 
         if (group.name === 'Large Group') {
-            // Lots of group comments for Large Group (40-60)
-            groupCommentsToCreate = Math.floor(Math.random() * 21) + 40;
+            // Enough group comments for Large Group to test pagination (10-15, UI shows 4 per page)
+            groupCommentsToCreate = Math.floor(Math.random() * 6) + 10;
             // Also lots of expense comments (50-80)
             expenseCommentsToCreate = Math.floor(Math.random() * 31) + 50;
         } else if (group.name === 'Empty Group') {

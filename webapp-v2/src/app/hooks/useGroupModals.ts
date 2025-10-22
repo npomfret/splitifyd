@@ -9,7 +9,6 @@ export function useGroupModals() {
     // Modal visibility states
     const showShareModal = useSignal(false);
     const showSettlementForm = useSignal(false);
-    const showSettlementHistory = useSignal(false);
     const showGroupSettingsModal = useSignal(false);
     const groupSettingsInitialTab = useSignal<'general' | 'security'>('general');
 
@@ -35,10 +34,6 @@ export function useGroupModals() {
         settlementToEdit.value = null;
     };
 
-    const toggleSettlementHistory = () => {
-        showSettlementHistory.value = !showSettlementHistory.value;
-    };
-
     const openGroupSettingsModal = (tab: 'general' | 'security' = 'general') => {
         groupSettingsInitialTab.value = tab;
         showGroupSettingsModal.value = true;
@@ -52,7 +47,6 @@ export function useGroupModals() {
         // Modal visibility states (reactive signals)
         showShareModal,
         showSettlementForm,
-        showSettlementHistory,
         showGroupSettingsModal,
         groupSettingsInitialTab,
 
@@ -64,7 +58,6 @@ export function useGroupModals() {
         closeShareModal,
         openSettlementForm,
         closeSettlementForm,
-        toggleSettlementHistory,
         openGroupSettingsModal,
         closeGroupSettingsModal,
     };

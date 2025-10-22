@@ -288,28 +288,34 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         <BalanceSummary variant='sidebar' />
 
                         {/* Comments Section */}
-                        <SidebarCard title={t('pages.groupDetailPage.comments')} className='flex-1'>
+                        <SidebarCard
+                            title={t('pages.groupDetailPage.comments')}
+                            className='flex-1'
+                            collapsible
+                            defaultCollapsed
+                            collapseToggleTestId='toggle-comments-section'
+                            collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.comments') })}
+                        >
                             <CommentsSection targetType='group' targetId={groupId!} maxHeight='300px' initialData={commentsResponse.value} />
                         </SidebarCard>
 
                         {/* Settlement History Section */}
-                        <SidebarCard title={t('pages.groupDetailPage.paymentHistory')}>
-                            <div className='space-y-3'>
-                                <Button variant='secondary' size='sm' className='w-full' onClick={() => modals.toggleSettlementHistory()}>
-                                    {modals.showSettlementHistory.value ? t('pages.groupDetailPage.hideHistory') : t('pages.groupDetailPage.showHistory')}
-                                </Button>
-                                {modals.showSettlementHistory.value && (
-                                    <SettlementHistory
-                                        groupId={groupId!}
-                                        onEditSettlement={handleEditSettlement}
-                                        showDeletedSettlements={enhancedGroupDetailStore.showDeletedSettlements}
-                                        onShowDeletedChange={(show) => {
-                                            enhancedGroupDetailStore.setShowDeletedSettlements(show);
-                                            enhancedGroupDetailStore.refreshAll();
-                                        }}
-                                    />
-                                )}
-                            </div>
+                        <SidebarCard
+                            title={t('pages.groupDetailPage.paymentHistory')}
+                            collapsible
+                            defaultCollapsed
+                            collapseToggleTestId='toggle-settlements-section'
+                            collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.paymentHistory') })}
+                        >
+                            <SettlementHistory
+                                groupId={groupId!}
+                                onEditSettlement={handleEditSettlement}
+                                showDeletedSettlements={enhancedGroupDetailStore.showDeletedSettlements}
+                                onShowDeletedChange={(show) => {
+                                    enhancedGroupDetailStore.setShowDeletedSettlements(show);
+                                    enhancedGroupDetailStore.refreshAll();
+                                }}
+                            />
                         </SidebarCard>
                     </>
                 }

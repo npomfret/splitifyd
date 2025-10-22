@@ -1348,8 +1348,7 @@
       "backToDashboard": "Back to Dashboard",
       "comments": "Comments",
       "paymentHistory": "Settlements",
-      "hideHistory": "Hide History",
-      "showHistory": "Show History",
+      "toggleSection": "Toggle {{section}} section",
       "titleSuffix": " - Splitifyd",
       "manageExpensesFor": "Manage expenses for "
     },

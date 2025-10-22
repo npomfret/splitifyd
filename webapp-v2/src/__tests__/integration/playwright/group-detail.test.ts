@@ -1,4 +1,4 @@
-import { CommentBuilder, ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { CommentBuilder, ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockApplySecurityPresetApi, mockGroupCommentsApi, mockGroupDetailApi, mockPendingMembersApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 import { createJsonHandler } from '@/test/msw/handlers.ts';
@@ -343,6 +343,90 @@ test.describe('Group Detail - Comments', () => {
         expect(commentRequest.postDataJSON()).toEqual({ text: newCommentText });
 
         await expect(page.locator('[data-testid="comment-error-message"]')).toHaveCount(0);
+    });
+});
+
+test.describe('Group Detail - Sidebar Sections', () => {
+    test('should collapse sidebar sections by default and expand on toggle', async ({ authenticatedPage }) => {
+        const { page, user: testUser } = authenticatedPage;
+        const groupDetailPage = new GroupDetailPage(page);
+        const groupId = 'group-sidebar-collapsed';
+
+        const group = GroupDTOBuilder
+            .groupForUser(testUser.uid)
+            .withId(groupId)
+            .withName('Sidebar Sections Group')
+            .build();
+
+        const memberSelf = new GroupMemberBuilder()
+            .withUid(testUser.uid)
+            .withDisplayName(testUser.displayName)
+            .withGroupDisplayName(testUser.displayName)
+            .withTheme(
+                ThemeBuilder
+                    .blue()
+                    .build(),
+            )
+            .build();
+
+        const memberTwo = new GroupMemberBuilder()
+            .withUid('member-two')
+            .withDisplayName('Member Two')
+            .withGroupDisplayName('Member Two')
+            .withTheme(
+                ThemeBuilder
+                    .red()
+                    .build(),
+            )
+            .build();
+
+        const balances = new GroupBalancesBuilder()
+            .withGroupId(groupId)
+            .withSimpleTwoPersonDebt(memberSelf.uid, memberSelf.displayName ?? 'Member One', memberTwo.uid, memberTwo.displayName ?? 'Member Two', 42)
+            .build();
+
+        const sidebarComment = new CommentBuilder()
+            .withId('comment-sidebar')
+            .withAuthor(memberTwo.uid, memberTwo.displayName ?? 'Member Two')
+            .withText('Sidebar comment content')
+            .build();
+
+        const sidebarSettlement = new SettlementWithMembersBuilder()
+            .withId('settlement-sidebar')
+            .withGroupId(groupId)
+            .withPayer(memberSelf)
+            .withPayee(memberTwo)
+            .withAmount(18, 'USD')
+            .withNote('Sidebar settlement')
+            .build();
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers([memberSelf, memberTwo], false)
+            .withBalances(balances)
+            .withExpenses([], false)
+            .withSettlements([sidebarSettlement], false)
+            .withComments({ comments: [sidebarComment], hasMore: false })
+            .build();
+
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId, [sidebarComment]);
+
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupToLoad();
+
+        await groupDetailPage.expectBalancesCollapsed();
+        await groupDetailPage.expectCommentsCollapsed();
+        await groupDetailPage.expectSettlementsCollapsed();
+
+        await groupDetailPage.ensureBalancesSectionExpanded();
+        await expect(groupDetailPage.getDebtItems()).toHaveCount(1);
+
+        await groupDetailPage.ensureCommentsSectionExpanded();
+        await groupDetailPage.waitForCommentCount(1);
+
+        await groupDetailPage.ensureSettlementHistoryOpen();
+        await expect(page.getByTestId('settlement-item')).toHaveCount(1);
     });
 });
 

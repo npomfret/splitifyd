@@ -116,7 +116,18 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
         );
 
     if (variant === 'sidebar') {
-        return <SidebarCard title={t('balanceSummary.title')} data-testid='balance-summary-sidebar'>{content}</SidebarCard>;
+        return (
+            <SidebarCard
+                title={t('balanceSummary.title')}
+                data-testid='balance-summary-sidebar'
+                collapsible
+                defaultCollapsed
+                collapseToggleTestId='toggle-balance-section'
+                collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('balanceSummary.title') })}
+            >
+                {content}
+            </SidebarCard>
+        );
     }
 
     return (
