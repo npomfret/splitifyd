@@ -3,7 +3,7 @@ import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Group Detail - Settlement Pagination', () => {
-    test('should load additional settlements when Load more payments is clicked', async ({ authenticatedPage }) => {
+    test('should load additional settlements when Load More is clicked', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
         const groupId = 'group-settlement-pagination';
