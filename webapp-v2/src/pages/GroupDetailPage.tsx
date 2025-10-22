@@ -9,6 +9,7 @@ import { useComputed, useSignal } from '@preact/signals';
 import type { SettlementWithMembers } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { BanknotesIcon, ChatBubbleLeftIcon, ScaleIcon } from '@heroicons/react/24/outline';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { useGroupModals } from '../app/hooks/useGroupModals';
 import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
@@ -286,21 +287,14 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                     <>
                         <BalanceSummary variant='sidebar' />
 
-                        {/* Comments Section */}
-                        <SidebarCard
-                            title={t('pages.groupDetailPage.comments')}
-                            className='flex-1'
-                            collapsible
-                            defaultCollapsed
-                            collapseToggleTestId='toggle-comments-section'
-                            collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.comments') })}
-                        >
-                            <CommentsSection targetType='group' targetId={groupId!} maxHeight='300px' initialData={commentsResponse.value} />
-                        </SidebarCard>
-
                         {/* Settlement History Section */}
                         <SidebarCard
-                            title={t('pages.groupDetailPage.paymentHistory')}
+                            title={
+                                <div className='flex items-center gap-2'>
+                                    <BanknotesIcon className='h-5 w-5 text-gray-600' aria-hidden='true' />
+                                    <span>{t('pages.groupDetailPage.paymentHistory')}</span>
+                                </div>
+                            }
                             collapsible
                             defaultCollapsed
                             collapseToggleTestId='toggle-settlements-section'
@@ -315,6 +309,23 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                                     enhancedGroupDetailStore.refreshAll();
                                 }}
                             />
+                        </SidebarCard>
+
+                        {/* Comments Section */}
+                        <SidebarCard
+                            title={
+                                <div className='flex items-center gap-2'>
+                                    <ChatBubbleLeftIcon className='h-5 w-5 text-gray-600' aria-hidden='true' />
+                                    <span>{t('pages.groupDetailPage.comments')}</span>
+                                </div>
+                            }
+                            className='flex-1'
+                            collapsible
+                            defaultCollapsed
+                            collapseToggleTestId='toggle-comments-section'
+                            collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.comments') })}
+                        >
+                            <CommentsSection targetType='group' targetId={groupId!} maxHeight='300px' initialData={commentsResponse.value} />
                         </SidebarCard>
                     </>
                 }

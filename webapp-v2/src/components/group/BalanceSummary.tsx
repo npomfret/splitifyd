@@ -6,6 +6,7 @@ import { useComputed } from '@preact/signals';
 import type { SimplifiedDebt } from '@splitifyd/shared';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { ScaleIcon } from '@heroicons/react/24/outline';
 import { Card } from '../ui/Card';
 
 interface BalanceSummaryProps {
@@ -118,7 +119,12 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
     if (variant === 'sidebar') {
         return (
             <SidebarCard
-                title={t('balanceSummary.title')}
+                title={
+                    <div className='flex items-center gap-2'>
+                        <ScaleIcon className='h-5 w-5 text-gray-600' aria-hidden='true' />
+                        <span>{t('balanceSummary.title')}</span>
+                    </div>
+                }
                 data-testid='balance-summary-sidebar'
                 collapsible
                 defaultCollapsed

@@ -2,8 +2,8 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { ComponentChildren, JSX } from 'preact';
 import { useState } from 'preact/hooks';
 
-interface SidebarCardProps extends Omit<JSX.HTMLAttributes<HTMLDivElement>, 'children'> {
-    title?: string;
+interface SidebarCardProps extends Omit<JSX.HTMLAttributes<HTMLDivElement>, 'children' | 'title'> {
+    title?: ComponentChildren;
     children: ComponentChildren;
     className?: string;
     collapsible?: boolean;
@@ -26,7 +26,7 @@ export function SidebarCard({
 
     const rootClassName = ['bg-white', 'rounded-lg', 'shadow-sm', 'border', 'border-gray-200', 'p-4', className].filter(Boolean).join(' ');
     const headerClasses = ['flex', 'items-center', 'justify-between', 'gap-2', !collapsed ? 'mb-3' : ''].filter(Boolean).join(' ');
-    const toggleAriaLabel = collapseToggleLabel || (title ? `Toggle ${title} section` : 'Toggle section');
+    const toggleAriaLabel = collapseToggleLabel || (typeof title === 'string' ? `Toggle ${title} section` : 'Toggle section');
 
     const handleToggle = () => {
         if (!collapsible) return;
@@ -37,7 +37,7 @@ export function SidebarCard({
         <div {...divProps} className={rootClassName}>
             {title && (
                 <div className={headerClasses}>
-                    <h3 className='text-base font-semibold text-gray-900 flex-1'>{title}</h3>
+                    <div className='text-base font-semibold text-gray-900 flex-1'>{title}</div>
                     {collapsible && (
                         <button
                             type='button'
