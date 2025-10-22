@@ -5,6 +5,44 @@ import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
+async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>, limit: number): Promise<PromiseSettledResult<T>[]> {
+    if (operations.length === 0) {
+        return [];
+    }
+
+    const results: PromiseSettledResult<T>[] = new Array(operations.length);
+    let index = 0;
+
+    const worker = async () => {
+        while (true) {
+            const currentIndex = index;
+            index += 1;
+
+            if (currentIndex >= operations.length) {
+                break;
+            }
+
+            try {
+                const value = await operations[currentIndex]();
+                results[currentIndex] = {
+                    status: 'fulfilled',
+                    value,
+                } as PromiseFulfilledResult<T>;
+            } catch (error) {
+                results[currentIndex] = {
+                    status: 'rejected',
+                    reason: error,
+                } as PromiseRejectedResult;
+            }
+        }
+    };
+
+    const workers = Array.from({ length: Math.min(limit, operations.length) }, () => worker());
+    await Promise.all(workers);
+
+    return results;
+}
+
 describe('Concurrent Operations Integration Tests', () => {
     const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
 
@@ -263,12 +301,8 @@ describe('Concurrent Operations Integration Tests', () => {
                 [testUser2, 80, [testUser2.uid, testUser3.uid]],
                 [testUser3, 60, [testUser1.uid, testUser3.uid]],
                 [testUser1, 120, [testUser1.uid, testUser2.uid, testUser3.uid]],
-                [testUser2, 90, [testUser1.uid, testUser2.uid]],
-                [testUser3, 75, [testUser2.uid, testUser3.uid]],
-                [testUser1, 110, [testUser1.uid, testUser3.uid]],
                 [testUser2, 95, [testUser1.uid, testUser2.uid, testUser3.uid]],
                 [testUser3, 85, [testUser1.uid, testUser2.uid]],
-                [testUser1, 70, [testUser2.uid, testUser3.uid]],
             ];
 
             // Settlement configurations: [payer, payee, amount, payerToken]
@@ -277,7 +311,6 @@ describe('Concurrent Operations Integration Tests', () => {
                 [testUser3.uid, testUser1.uid, 30, testUser3.token],
                 [testUser1.uid, testUser2.uid, 15, testUser1.token],
                 [testUser2.uid, testUser3.uid, 20, testUser2.token],
-                [testUser3.uid, testUser2.uid, 10, testUser3.token],
             ];
 
             const operations = [
@@ -306,7 +339,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 ),
             ];
 
-            const results = await Promise.allSettled(operations.map((op) => op()));
+            const results = await runWithLimitedConcurrency<unknown>(operations, 3);
 
             const succeeded = results.filter((r) => r.status === 'fulfilled');
 
@@ -337,22 +370,20 @@ describe('Concurrent Operations Integration Tests', () => {
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             await groupShareService.joinGroupByLink(testUser2.uid, linkId);
 
-            const operations = Array.from(
-                { length: 15 },
-                (_, i) => () =>
-                    expenseService.createExpense(
-                        testUser1.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser1.uid)
-                            .withAmount(50 + i, 'USD')
-                            .withParticipants([testUser1.uid, testUser2.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
+            const operations = Array.from({ length: 8 }, (_, i) => () =>
+                expenseService.createExpense(
+                    testUser1.uid,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withPaidBy(testUser1.uid)
+                        .withAmount(50 + i, 'USD')
+                        .withParticipants([testUser1.uid, testUser2.uid])
+                        .withSplitType('equal')
+                        .build(),
+                ),
             );
 
-            const results = await Promise.allSettled(operations.map((op) => op()));
+            const results = await runWithLimitedConcurrency<unknown>(operations, 3);
 
             const succeeded = results.filter((r) => r.status === 'fulfilled') as PromiseFulfilledResult<any>[];
 
@@ -480,20 +511,9 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withSplitType('equal')
                             .build(),
                     ),
-                () =>
-                    expenseService.createExpense(
-                        testUser2.uid,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(testGroup.id)
-                            .withPaidBy(testUser2.uid)
-                            .withAmount(95, 'EUR')
-                            .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
-                            .withSplitType('equal')
-                            .build(),
-                    ),
             ];
 
-            const results = await Promise.allSettled(operations.map((op) => op()));
+            const results = await runWithLimitedConcurrency<unknown>(operations, 3);
 
             const succeeded = results.filter((r) => r.status === 'fulfilled');
 

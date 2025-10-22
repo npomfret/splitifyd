@@ -37,7 +37,7 @@ export function SidebarCard({
         <div {...divProps} className={rootClassName}>
             {title && (
                 <div className={headerClasses}>
-                    <div className='text-base font-semibold text-gray-900 flex-1'>{title}</div>
+                    <h3 className='text-base font-semibold text-gray-900 flex-1'>{title}</h3>
                     {collapsible && (
                         <button
                             type='button'

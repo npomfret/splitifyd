@@ -1034,12 +1034,13 @@ describe('app tests', () => {
                 .toMatchObject({ code: 'INVALID_COMMENT_TEXT' });
         });
 
-        it('should allow expense full details access for non-participants', async () => {
+        it('should deny expense full details access for non-participants', async () => {
             const group = await appDriver.createGroup(user1);
 
             const groupId = group.id;
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
+            await appDriver.joinGroupByLink(user4, linkId); // user4 is group member but not expense participant
 
             const participants = [user1, user2];
             const expense = await appDriver.createExpense(
@@ -1055,10 +1056,10 @@ describe('app tests', () => {
                     .build(),
             );
 
-            const expenseDetails = await appDriver.getExpenseFullDetails(user4, expense.id);
-
-            expect(expenseDetails.expense.id).toBe(expense.id);
-            expect(expenseDetails.group.id).toBe(groupId);
+            // user4 is a group member but NOT an expense participant - should be denied
+            await expect(appDriver.getExpenseFullDetails(user4, expense.id))
+                .rejects
+                .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject share link previews with invalid tokens', async () => {

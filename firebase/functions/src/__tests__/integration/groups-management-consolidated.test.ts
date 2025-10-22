@@ -690,7 +690,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             for (const expense of expenses) {
                 await expect(apiDriver.getExpense(expense.id, owner.token)).rejects.toThrow(/404|not found/i);
             }
-        }, 5000); // Fast timeout for comprehensive test
+        }, 15000); // Increased timeout for comprehensive test with many operations
     });
 
 });

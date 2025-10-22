@@ -648,6 +648,11 @@ export class ExpenseService {
         timer.startPhase('query');
         const expense = await this.fetchExpense(expenseId);
 
+        // Permission check: User must be a participant in the expense
+        if (!expense.participants.includes(userId)) {
+            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'FORBIDDEN', 'You are not a participant in this expense');
+        }
+
         // Get group document for permission check and data
         const groupData = await this.firestoreReader.getGroup(expense.groupId);
         if (!groupData) {

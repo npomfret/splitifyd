@@ -310,12 +310,11 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Member count display - finds count near the Members heading
-     * Scoped to the header area to avoid matching member lists
+     * Member count display - finds count in the group header card
      */
     getMemberCount(): Locator {
-        // Look for text containing digits and "member" word in the Members section
-        return this.getMembersContainer().locator('text=/\\d+\\s*members?/i').first();
+        // Use the data-testid from GroupHeader component
+        return this.page.locator('[data-testid="member-count"]');
     }
 
     /**

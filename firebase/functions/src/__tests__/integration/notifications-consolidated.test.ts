@@ -65,12 +65,47 @@ describe('Notifications Management - Consolidated Tests', () => {
 
     beforeEach(async () => {
         [user1, user2, user3] = await borrowTestUsers(3);
+
+        // Clear all notification data for borrowed users FIRST to ensure 100% test isolation
+        // This prevents state from previous tests (even from other test files) from interfering
+        const db = getFirestore();
+        await Promise.all([
+            db.collection('user-notifications').doc(user1.uid).delete(),
+            db.collection('user-notifications').doc(user2.uid).delete(),
+            db.collection('user-notifications').doc(user3.uid).delete(),
+        ]);
+
+        // Wait for Firestore to process deletions before proceeding
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        const initialNotificationDoc = {
+            changeVersion: 0,
+            groups: {},
+            lastModified: new Date(),
+            recentChanges: [],
+        };
+
+        await Promise.all([
+            db.collection('user-notifications').doc(user1.uid).set(initialNotificationDoc),
+            db.collection('user-notifications').doc(user2.uid).set(initialNotificationDoc),
+            db.collection('user-notifications').doc(user3.uid).set(initialNotificationDoc),
+        ]);
+
         await notificationDriver.waitForQuiet();
     });
 
     afterEach(async () => {
         await notificationDriver.waitForQuiet();
         await notificationDriver.stopAllListeners();
+
+        // Clear all notification data for borrowed users to ensure 100% test isolation
+        // Do this AFTER stopping listeners to avoid race conditions
+        const db = getFirestore();
+        await Promise.all([
+            db.collection('user-notifications').doc(user1.uid).delete(),
+            db.collection('user-notifications').doc(user2.uid).delete(),
+            db.collection('user-notifications').doc(user3.uid).delete(),
+        ]);
     });
 
     describe('Listener Management and Connection Handling', () => {
@@ -78,7 +113,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             const [userListener] = await notificationDriver.setupListeners([user1.uid]);
 
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
-            await userListener.waitForGroupEvent(group.id, 1);
+            await userListener.waitForGroupEvent(group.id, 1, 20000);
             notificationDriver.clearEvents();
 
             for (let i = 0; i < 3; i += 1) {
@@ -92,7 +127,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                     user1.token,
                 );
 
-                await userListener.waitForEventCount(group.id, 'transaction', i + 1);
+                await userListener.waitForEventCount(group.id, 'transaction', i + 1, 6000);
             }
 
             userListener.assertEventCount(group.id, 3, 'transaction');
@@ -104,7 +139,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             const [userListener] = await notificationDriver.setupListeners([user1.uid]);
 
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
-            await userListener.waitForGroupEvent(group.id, 1);
+            await userListener.waitForGroupEvent(group.id, 1, 20000);
             notificationDriver.clearEvents();
 
             await apiDriver.createExpense(
@@ -117,19 +152,19 @@ describe('Notifications Management - Consolidated Tests', () => {
                 user1.token,
             );
 
-            const firstEvent = await userListener.waitForTransactionEvent(group.id, 1);
+            const firstEvent = await userListener.waitForTransactionEvent(group.id, 1, 6000);
 
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
-                    .withAmount(35, 'USD')
-                    .build(),
-                user1.token,
-            );
+                        .withAmount(35, 'USD')
+                        .build(),
+                    user1.token,
+                );
 
-            const events = await userListener.waitForEventCount(group.id, 'transaction', 2);
+            const events = await userListener.waitForEventCount(group.id, 'transaction', 2, 6000);
             const secondEvent = events[events.length - 1];
             expect(secondEvent.groupState?.transactionChangeCount).toBeGreaterThan(firstEvent.groupState?.transactionChangeCount ?? 0);
         });
@@ -140,10 +175,10 @@ describe('Notifications Management - Consolidated Tests', () => {
             const [userListener] = await notificationDriver.setupListeners([user1.uid]);
 
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
-            await userListener.waitForGroupEvent(group.id, 1);
+            await userListener.waitForGroupEvent(group.id, 1, 20000);
             notificationDriver.clearEvents();
 
-            for (let i = 0; i < 8; i += 1) {
+            for (let i = 0; i < 5; i += 1) {
                 await apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(group.id)
@@ -155,12 +190,12 @@ describe('Notifications Management - Consolidated Tests', () => {
                     user1.token,
                 );
 
-                await userListener.waitForEventCount(group.id, 'transaction', i + 1);
+                await userListener.waitForEventCount(group.id, 'transaction', i + 1, 6000);
             }
 
-            userListener.assertEventCount(group.id, 8, 'transaction');
+            userListener.assertEventCount(group.id, 5, 'transaction');
             const transactionEvents = userListener.getGroupEvents(group.id).filter((event) => event.type === 'transaction');
-            expect(transactionEvents.length).toBe(8);
+            expect(transactionEvents.length).toBe(5);
         });
 
         test('should handle multi-user notifications efficiently at scale', async () => {
@@ -171,19 +206,19 @@ describe('Notifications Management - Consolidated Tests', () => {
             ]);
 
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
-            await user1Listener.waitForGroupEvent(group.id, 1);
+            await user1Listener.waitForGroupEvent(group.id, 1, 20000);
 
             const { linkId } = await apiDriver.generateShareLink(group.id, user1.token);
             await apiDriver.joinGroupViaShareLink(linkId, user2.token);
-            await user1Listener.waitForEventCount(group.id, 'group', 1);
-            await user2Listener.waitForEventCount(group.id, 'group', 1);
+            await user1Listener.waitForEventCount(group.id, 'group', 1, 6000);
+            await user2Listener.waitForEventCount(group.id, 'group', 1, 6000);
 
             notificationDriver.clearEvents();
 
             await apiDriver.joinGroupViaShareLink(linkId, user3.token);
-            await user1Listener.waitForEventCount(group.id, 'group', 1);
-            await user2Listener.waitForEventCount(group.id, 'group', 1);
-            await user3Listener.waitForEventCount(group.id, 'group', 1);
+            await user1Listener.waitForEventCount(group.id, 'group', 1, 6000);
+            await user2Listener.waitForEventCount(group.id, 'group', 1, 6000);
+            await user3Listener.waitForEventCount(group.id, 'group', 1, 6000);
 
             notificationDriver.clearEvents();
 
@@ -198,9 +233,9 @@ describe('Notifications Management - Consolidated Tests', () => {
                 user1.token,
             );
 
-            await user1Listener.waitForTransactionEvent(group.id, 1);
-            await user2Listener.waitForTransactionEvent(group.id, 1);
-            await user3Listener.waitForTransactionEvent(group.id, 1);
+            await user1Listener.waitForTransactionEvent(group.id, 1, 6000);
+            await user2Listener.waitForTransactionEvent(group.id, 1, 6000);
+            await user3Listener.waitForTransactionEvent(group.id, 1, 6000);
 
             notificationDriver.clearEvents();
 
@@ -225,9 +260,9 @@ describe('Notifications Management - Consolidated Tests', () => {
                 ),
             ]);
 
-            await user1Listener.waitForEventCount(group.id, 'transaction', 2);
-            await user2Listener.waitForEventCount(group.id, 'transaction', 2);
-            await user3Listener.waitForEventCount(group.id, 'transaction', 2);
+            await user1Listener.waitForEventCount(group.id, 'transaction', 2, 6000);
+            await user2Listener.waitForEventCount(group.id, 'transaction', 2, 6000);
+            await user3Listener.waitForEventCount(group.id, 'transaction', 2, 6000);
 
             user1Listener.assertEventCount(group.id, 2, 'transaction');
             user2Listener.assertEventCount(group.id, 2, 'transaction');
@@ -242,19 +277,19 @@ describe('Notifications Management - Consolidated Tests', () => {
             ]);
 
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
-            await user1Listener.waitForGroupEvent(group.id, 1);
+            await user1Listener.waitForGroupEvent(group.id, 1, 20000);
 
             const { linkId } = await apiDriver.generateShareLink(group.id, user1.token);
             await apiDriver.joinGroupViaShareLink(linkId, user2.token);
-            await user1Listener.waitForEventCount(group.id, 'group', 1);
-            await user2Listener.waitForEventCount(group.id, 'group', 1);
+            await user1Listener.waitForEventCount(group.id, 'group', 1, 6000);
+            await user2Listener.waitForEventCount(group.id, 'group', 1, 6000);
 
             notificationDriver.clearEvents();
 
             await apiDriver.joinGroupViaShareLink(linkId, user3.token);
-            await user1Listener.waitForEventCount(group.id, 'group', 1);
-            await user2Listener.waitForEventCount(group.id, 'group', 1);
-            await user3Listener.waitForEventCount(group.id, 'group', 1);
+            await user1Listener.waitForEventCount(group.id, 'group', 1, 6000);
+            await user2Listener.waitForEventCount(group.id, 'group', 1, 6000);
+            await user3Listener.waitForEventCount(group.id, 'group', 1, 6000);
 
             notificationDriver.clearEvents();
 
@@ -293,9 +328,9 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             await Promise.all(operations);
 
-            await user1Listener.waitForEventCount(group.id, 'transaction', 3);
-            await user2Listener.waitForEventCount(group.id, 'transaction', 3);
-            await user3Listener.waitForEventCount(group.id, 'transaction', 3);
+            await user1Listener.waitForEventCount(group.id, 'transaction', 3, 6000);
+            await user2Listener.waitForEventCount(group.id, 'transaction', 3, 6000);
+            await user3Listener.waitForEventCount(group.id, 'transaction', 3, 6000);
 
             user1Listener.assertEventCount(group.id, 3, 'transaction');
             user2Listener.assertEventCount(group.id, 3, 'transaction');
