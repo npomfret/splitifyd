@@ -138,15 +138,22 @@ export class ExpenseFormPage extends BasePage {
      * Expense Details section - contains description, amount, currency, date, time, category
      * Uses semantic test ID for reliable targeting
      */
-    getExpenseDetailsSection(): Locator {
+    private getExpenseDetailsSection(): Locator {
         return this.page.getByTestId('expense-details-section');
+    }
+
+    /**
+     * Amount field validation error message
+     */
+    getAmountErrorMessage(): Locator {
+        return this.page.getByTestId('currency-input-error-message');
     }
 
     /**
      * Who Paid section - contains payer radio buttons
      * Uses semantic test ID for reliable targeting
      */
-    getWhoPaidSection(): Locator {
+    private getWhoPaidSection(): Locator {
         return this.page.getByTestId('who-paid-section');
     }
 
@@ -154,7 +161,7 @@ export class ExpenseFormPage extends BasePage {
      * Split Between section - contains participant checkboxes
      * Uses semantic test ID for reliable targeting
      */
-    getSplitBetweenSection(): Locator {
+    private getSplitBetweenSection(): Locator {
         return this.page.getByTestId('split-between-section');
     }
 
@@ -162,7 +169,7 @@ export class ExpenseFormPage extends BasePage {
      * How to Split section - contains split type radios
      * Uses semantic test ID for reliable targeting
      */
-    getHowToSplitSection(): Locator {
+    private getHowToSplitSection(): Locator {
         return this.page.getByTestId('how-to-split-section');
     }
 
@@ -173,42 +180,42 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Description input field (scoped to Expense Details section)
      */
-    getDescriptionInput(): Locator {
+    private getDescriptionInput(): Locator {
         return this.getExpenseDetailsSection().getByPlaceholder(/what was this expense for/i);
     }
 
     /**
      * Amount input field (scoped to Expense Details section)
      */
-    getAmountInput(): Locator {
+    private getAmountInput(): Locator {
         return this.getExpenseDetailsSection().getByRole('spinbutton', { name: /amount/i });
     }
 
     /**
      * Currency select field (scoped to Expense Details section)
      */
-    getCurrencySelect(): Locator {
+    private getCurrencySelect(): Locator {
         return this.getExpenseDetailsSection().getByLabel(/currency/i);
     }
 
     /**
      * Get payer radio button by display name (scoped to Who Paid section)
      */
-    getPayerRadio(displayName: string): Locator {
+    private getPayerRadio(displayName: string): Locator {
         return this.getWhoPaidSection().getByRole('radio', { name: displayName });
     }
 
     /**
      * Get participant checkbox by display name (scoped to Split Between section)
      */
-    getParticipantCheckbox(displayName: string): Locator {
+    private getParticipantCheckbox(displayName: string): Locator {
         return this.getSplitBetweenSection().getByRole('checkbox', { name: new RegExp(displayName, 'i') });
     }
 
     /**
      * Get split type radio by visible label (scoped to How to Split section)
      */
-    getSplitTypeRadio(splitTypeLabel: string): Locator {
+    private getSplitTypeRadio(splitTypeLabel: string): Locator {
         return this.getHowToSplitSection().getByRole('radio', { name: new RegExp(splitTypeLabel, 'i') });
     }
 
@@ -359,7 +366,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Expense Details heading (used for blur actions).
      */
-    getExpenseDetailsHeading(): Locator {
+    private getExpenseDetailsHeading(): Locator {
         return this.page.getByRole('heading', { name: /expense details/i });
     }
 
@@ -417,6 +424,15 @@ export class ExpenseFormPage extends BasePage {
         const input = this.getAmountInput();
         await input.fill(amount);
         await input.blur();
+    }
+
+    async expectAmountValue(value: string): Promise<void> {
+        const input = this.getAmountInput();
+        await expect(input).toHaveValue(value);
+    }
+
+    async expectFormOpen(): Promise<void> {
+        await expect(this.page.getByRole('form')).toBeVisible();
     }
 
     /**
@@ -602,6 +618,14 @@ export class ExpenseFormPage extends BasePage {
     async submitForm(): Promise<void> {
         const button = this.getSubmitButton();
         await this.clickButton(button, { buttonName: 'Submit Expense' });
+    }
+
+    async expectSaveButtonEnabled(): Promise<void> {
+        await expect(this.getSubmitButton()).toBeEnabled();
+    }
+
+    async expectSaveButtonDisabled(): Promise<void> {
+        await expect(this.getSubmitButton()).toBeDisabled();
     }
 
     /**
@@ -812,6 +836,13 @@ export class ExpenseFormPage extends BasePage {
         }
     }
 
+    async setExactSplitAmount(index: number, value: string): Promise<void> {
+        const inputs = this.getExactSplitInputs();
+        await expect(inputs.nth(index)).toBeVisible();
+        await inputs.nth(index).fill(value);
+        await inputs.nth(index).blur();
+    }
+
     /**
      * Verify exact split inputs exist and count matches expected
      */
@@ -892,5 +923,41 @@ export class ExpenseFormPage extends BasePage {
             const value = await this.getDateInput().inputValue();
             expect(value).toMatch(pattern);
         }).toPass({ timeout: 5000 });
+    }
+
+    async setDate(value: string): Promise<void> {
+        const dateInput = this.getDateInput();
+        await dateInput.fill(value);
+        await dateInput.blur();
+    }
+
+    async expectParticipantsErrorContains(text: string): Promise<void> {
+        const error = this.page.getByTestId('validation-error-participants');
+        await expect(error).toBeVisible();
+        await expect(error).toContainText(text);
+    }
+
+    async verifyAmountErrorMessageContains(text: string): Promise<void> {
+        const errorMessage = this.page.getByTestId('currency-input-error-message');
+        await expect(errorMessage).toBeVisible();
+        await expect(errorMessage).toContainText(text);
+    }
+
+    async verifyDescriptionErrorMessageContains(text: string): Promise<void> {
+        const errorMessage = this.page.getByTestId('validation-error-description');
+        await expect(errorMessage).toBeVisible();
+        await expect(errorMessage).toContainText(text);
+    }
+
+    async verifyDateErrorMessageContains(text: string): Promise<void> {
+        const errorMessage = this.page.getByTestId('validation-error-date');
+        await expect(errorMessage).toBeVisible();
+        await expect(errorMessage).toContainText(text);
+    }
+
+    async verifySplitErrorMessageContains(text: string): Promise<void> {
+        const errorMessage = this.page.getByTestId('validation-error-splits');
+        await expect(errorMessage).toBeVisible();
+        await expect(errorMessage).toContainText(text);
     }
 }

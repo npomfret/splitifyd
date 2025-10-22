@@ -2,7 +2,7 @@ import { CurrencyService } from '@/app/services/currencyService.ts';
 import { formatCurrency } from '@/utils/currency';
 import { getLastNight, getThisMorning, getToday, getYesterday } from '@/utils/dateUtils.ts';
 import { ClockIcon } from '@heroicons/react/24/outline';
-import { Amount, ExpenseCategory, ZERO } from '@splitifyd/shared';
+import { Amount, ExpenseCategory } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, CategorySuggestionInput, CurrencyAmountInput, TimeInput } from '../ui';
 import { Stack } from '../ui/Stack';
@@ -16,11 +16,12 @@ interface ExpenseBasicFieldsProps {
     category: string;
     validationErrors: Record<string, string>;
     updateField: (field: string, value: any) => void;
+    validateOnBlur: (field: string) => void;
     getRecentAmounts: () => Amount[];
     PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[];
 }
 
-export function ExpenseBasicFields({ description, amount, currency, date, time, category, validationErrors, updateField, getRecentAmounts, PREDEFINED_EXPENSE_CATEGORIES }: ExpenseBasicFieldsProps) {
+export function ExpenseBasicFields({ description, amount, currency, date, time, category, validationErrors, updateField, validateOnBlur, getRecentAmounts, PREDEFINED_EXPENSE_CATEGORIES }: ExpenseBasicFieldsProps) {
     const { t } = useTranslation();
     const recentAmounts = getRecentAmounts();
     const currencyService = CurrencyService.getInstance();
@@ -63,12 +64,12 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                     {/* Combined Amount and Currency */}
                     <div>
                         <CurrencyAmountInput
-                            amount={amount || ZERO}
+                            amount={amount ?? ''}
                             currency={currency}
                             onAmountChange={(value) => {
-                                const normalized = value.trim() === '' ? ZERO : value;
-                                updateField('amount', normalized);
+                                updateField('amount', value);
                             }}
+                            onAmountBlur={() => validateOnBlur('amount')}
                             onCurrencyChange={(value) => {
                                 updateField('currency', value);
                                 currencyService.addToRecentCurrencies(value);

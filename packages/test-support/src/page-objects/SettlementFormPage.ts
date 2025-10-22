@@ -20,6 +20,10 @@ export class SettlementFormPage extends BasePage {
         return this.page.getByRole('dialog');
     }
 
+    private getForm(): Locator {
+        return this.getModal().locator('form');
+    }
+
     // Protected selectors - accessible to subclasses but not exposed to tests
     protected getPayerSelect(): Locator {
         return this.getModal().getByRole('combobox', { name: /who paid/i });
@@ -67,6 +71,8 @@ export class SettlementFormPage extends BasePage {
     async navigateAndOpen(groupId: GroupId): Promise<void> {
         await this.page.goto(`/groups/${groupId}`);
         const openButton = this.page.getByRole('button', { name: /settle up/i });
+        await expect(openButton).toBeVisible();
+        await expect(openButton).toBeEnabled();
         await openButton.click();
         await expect(this.getModal()).toBeVisible();
     }
@@ -94,6 +100,10 @@ export class SettlementFormPage extends BasePage {
         const input = this.getAmountInput();
         await input.fill(amount);
         await input.blur();
+    }
+
+    async expectAmountValue(value: string): Promise<void> {
+        await expect(this.getAmountInput()).toHaveValue(value);
     }
 
     /**
@@ -158,6 +168,19 @@ export class SettlementFormPage extends BasePage {
         await expect(this.getModal()).not.toBeVisible({ timeout: 5000 });
     }
 
+    async expectSubmitDisabled(): Promise<void> {
+        await expect(this.getRecordPaymentButton()).toBeDisabled();
+    }
+
+    async expectSubmitEnabled(): Promise<void> {
+        await expect(this.getRecordPaymentButton()).toBeEnabled();
+    }
+
+    async clickSubmitButton(): Promise<void> {
+        const button = this.getRecordPaymentButton();
+        await this.clickButton(button, { buttonName: 'Record Payment' });
+    }
+
     /**
      * Wait for modal to close
      */
@@ -166,12 +189,40 @@ export class SettlementFormPage extends BasePage {
         await expect(modal).not.toBeVisible({ timeout: 3000 });
     }
 
+    async expectModalClosed(): Promise<void> {
+        await expect(this.getModal()).not.toBeVisible();
+    }
+
     /**
      * Click the close (X) button
      */
     async clickCloseButton(): Promise<void> {
         const closeButton = this.getCloseButton();
         await closeButton.click();
+    }
+
+    async setDate(value: string): Promise<void> {
+        const dateInput = this.getModal().getByTestId('settlement-date-input');
+        await dateInput.fill(value);
+        await dateInput.blur();
+    }
+
+    async requestSubmit(): Promise<void> {
+        const form = this.getForm();
+        await expect(form).toBeVisible();
+        await form.evaluate((el) => (el as HTMLFormElement).requestSubmit());
+        await this.waitForDomContentLoaded();
+    }
+
+    async expectValidationErrorContains(text: string): Promise<void> {
+        const error = this.page.getByTestId('settlement-validation-error');
+        await expect(error).toBeVisible();
+        await expect(error).toContainText(text);
+    }
+
+    async submitExpectValidationError(text: string): Promise<void> {
+        await this.requestSubmit();
+        await this.expectValidationErrorContains(text);
     }
 
     /**

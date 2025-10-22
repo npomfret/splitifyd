@@ -1,6 +1,5 @@
 import { useComputed } from '@preact/signals';
 import { Amount } from '@splitifyd/shared';
-import { ZERO } from '@splitifyd/shared';
 import { expenseFormStore } from '../stores/expense-form-store';
 
 /**
@@ -35,8 +34,8 @@ export function useFormState() {
     const handleAmountChange = (e: Event) => {
         const input = e.target as HTMLInputElement;
         // Parse string input to number at the UI boundary
-        // Convert empty string to 0, preserve user decimals during typing
-        const nonEmptyValue = input.value.trim() === '' ? ZERO : input.value;
+        // Allow empty string so users can clear the field before typing a new value
+        const nonEmptyValue = input.value.trim() === '' ? '' : input.value;
         expenseFormStore.updateField('amount', nonEmptyValue);
     };
 
@@ -68,6 +67,7 @@ export function useFormState() {
         updateField,
         handleAmountChange,
         handleParticipantToggle,
+        validateOnBlur: (field: string) => expenseFormStore.validateOnBlur(field as any),
         updateSplitAmount: (userId: string, amount: Amount) => expenseFormStore.updateSplitAmount(userId, amount),
         updateSplitPercentage: (userId: string, percentage: number) => expenseFormStore.updateSplitPercentage(userId, percentage),
     };

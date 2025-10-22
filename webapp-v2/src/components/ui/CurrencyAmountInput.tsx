@@ -9,6 +9,7 @@ interface CurrencyAmountInputProps {
     currency: string;
     onAmountChange: (amount: string) => void;
     onCurrencyChange: (currency: string) => void;
+    onAmountBlur?: () => void;
     label?: string;
     error?: string;
     required?: boolean;
@@ -23,6 +24,7 @@ export function CurrencyAmountInput({
     currency,
     onAmountChange,
     onCurrencyChange,
+    onAmountBlur,
     label,
     error,
     required = false,
@@ -176,6 +178,7 @@ export function CurrencyAmountInput({
                         step={stepValue}
                         value={amount}
                         onChange={handleAmountChange}
+                        onBlur={onAmountBlur}
                         onKeyDown={handleKeyDown}
                         disabled={disabled}
                         placeholder={placeholder || t('uiComponents.currencyAmountInput.placeholder')}

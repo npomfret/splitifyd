@@ -37,9 +37,19 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
         {} as Record<string, Member>,
     );
 
-    const totalUnits = currency ? amountToSmallestUnit(amount, currency) : 0;
+    const normalizedAmount = typeof amount === 'string' ? amount.trim() : amount;
+    if (!currency || normalizedAmount === '') {
+        return null;
+    }
 
-    if (totalUnits <= 0 || !currency) {
+    let totalUnits: number;
+    try {
+        totalUnits = amountToSmallestUnit(normalizedAmount, currency);
+    } catch {
+        return null;
+    }
+
+    if (totalUnits <= 0) {
         return null;
     }
 

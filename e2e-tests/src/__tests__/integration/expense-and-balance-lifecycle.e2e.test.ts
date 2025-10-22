@@ -702,8 +702,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         await settlementForm.clearAndFillAmount('-50');
         await settlementForm.verifyUpdateButtonDisabled();
 
-        // Test valid amount and cancel without saving
-        await settlementForm.clearAndFillAmount('75.50');
+        // Test valid amount and cancel without saving (JPY has 0 decimal places)
+        await settlementForm.clearAndFillAmount('75');
         await settlementForm.verifyUpdateButtonEnabled();
         await settlementForm.closeModal();
         await settlementForm.waitForModalClosed();

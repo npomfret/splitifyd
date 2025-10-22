@@ -65,6 +65,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
         handleAmountChange: formState.handleAmountChange,
         handleParticipantToggle: formState.handleParticipantToggle,
         updateField: formState.updateField,
+        validateOnBlur: formState.validateOnBlur,
         updateSplitAmount: formState.updateSplitAmount,
         updateSplitPercentage: formState.updateSplitPercentage,
 

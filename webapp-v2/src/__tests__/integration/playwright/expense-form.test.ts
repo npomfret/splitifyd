@@ -1,6 +1,56 @@
+import type { Page } from '@playwright/test';
 import { ExpenseFormPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
-import { test } from '../../utils/console-logging-fixture';
+import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
+
+type MemberSeed = {
+    uid: string;
+    displayName: string;
+    groupDisplayName?: string;
+};
+
+async function expectNoGlobalError(page: Page) {
+    await expect(page.getByText('Something went wrong')).toHaveCount(0);
+    await expect(page.getByText(/ErrorBoundary caught an error/i)).toHaveCount(0);
+}
+
+async function openExpenseFormForTest(
+    authenticatedPage: { page: Page; user: { uid: string; displayName: string; }; },
+    groupId: string,
+    additionalMembers: MemberSeed[] = [],
+) {
+    const { page, user: testUser } = authenticatedPage;
+
+    const group = GroupDTOBuilder
+        .groupForUser(testUser.uid)
+        .withId(groupId)
+        .build();
+
+    const members = [
+        new GroupMemberBuilder()
+            .withUid(testUser.uid)
+            .withDisplayName(testUser.displayName)
+            .withGroupDisplayName(testUser.displayName)
+            .build(),
+        ...additionalMembers.map((member) =>
+            new GroupMemberBuilder()
+                .withUid(member.uid)
+                .withDisplayName(member.displayName)
+                .withGroupDisplayName(member.groupDisplayName ?? member.displayName)
+                .build(),
+        ),
+    ];
+
+    const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();
+
+    await mockGroupDetailApi(page, groupId, fullDetails);
+    await mockGroupCommentsApi(page, groupId);
+
+    const expenseFormPage = new ExpenseFormPage(page);
+    await expenseFormPage.navigateToAddExpense(groupId);
+
+    return { expenseFormPage, page, testUser };
+}
 
 test.describe('Expense Form', () => {
     test.describe('Page Loading', () => {
@@ -1046,6 +1096,141 @@ test.describe('Expense Form', () => {
 
             await expenseFormPage.selectCurrency('EUR');
             await expenseFormPage.verifyExactSplitTotal('€200.00', '€200.00');
+        });
+    });
+
+    test.describe('Validation', () => {
+        test('should surface precision errors inline without crashing the form', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-precision-validation';
+            const { expenseFormPage, page } = await openExpenseFormForTest(authenticatedPage, groupId, [
+                { uid: 'user-2', displayName: 'User 2' },
+            ]);
+
+            await expenseFormPage.fillDescription('Invalid precision');
+            await expenseFormPage.selectCurrency('EUR');
+            await expenseFormPage.fillAmount('3.333');
+
+            await expenseFormPage.verifyAmountErrorMessageContains('decimal place');
+            await expenseFormPage.expectAmountValue('3.333');
+            await expenseFormPage.expectFormOpen();
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expectNoGlobalError(page);
+        });
+
+        test('should require description when field is cleared', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-validation-description';
+            const { expenseFormPage, page } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.fillDescription('Dinner with friends');
+            await expenseFormPage.fillDescription('');
+            await expenseFormPage.clickExpenseDetailsHeading();
+            await expenseFormPage.verifyDescriptionErrorMessageContains('Description is required');
+            await expenseFormPage.expectFormOpen();
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expectNoGlobalError(page);
+        });
+
+        test('should require amount when cleared after entry', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-validation-amount-required';
+            const { expenseFormPage, page, testUser } = await openExpenseFormForTest(authenticatedPage, groupId, [
+                { uid: 'user-2', displayName: 'User 2' },
+            ]);
+
+            await expenseFormPage.fillDescription('Amount required');
+            await expenseFormPage.selectCurrency('USD');
+            await expenseFormPage.fillAmount('45');
+            await expenseFormPage.selectPayer(testUser.displayName);
+            await expenseFormPage.selectSplitParticipants(['User 2']);
+            await expenseFormPage.fillAmount('');
+            await expenseFormPage.verifyAmountErrorMessageContains('Amount is required');
+            await expenseFormPage.expectAmountValue('');
+            await expenseFormPage.expectFormOpen();
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expectNoGlobalError(page);
+        });
+
+        test('should require amount greater than zero', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-validation-amount-positive';
+            const { expenseFormPage, page } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.fillDescription('Zero amount');
+            await expenseFormPage.selectCurrency('USD');
+            await expenseFormPage.fillAmount('0');
+            await expenseFormPage.verifyAmountErrorMessageContains('Amount must be greater than 0');
+            await expenseFormPage.expectAmountValue('0');
+            await expenseFormPage.expectFormOpen();
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expectNoGlobalError(page);
+        });
+
+        test('should require currency selection before submitting', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-validation-currency-required';
+            const { expenseFormPage, page, testUser } = await openExpenseFormForTest(authenticatedPage, groupId, [
+                { uid: 'user-2', displayName: 'User 2' },
+            ]);
+
+            await expenseFormPage.fillDescription('Currency required');
+            await expenseFormPage.fillAmount('25');
+            await expenseFormPage.selectPayer(testUser.displayName);
+            await expenseFormPage.selectSplitParticipants(['User 2']);
+            await expenseFormPage.expectSaveButtonEnabled();
+            await expenseFormPage.submitForm();
+            await expenseFormPage.verifyAmountErrorMessageContains('Currency is required');
+            await expenseFormPage.expectFormOpen();
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expectNoGlobalError(page);
+        });
+
+        test('should reject future dates with inline error', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-validation-date';
+            const { expenseFormPage, page } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            await expenseFormPage.setDate(tomorrow);
+            await expenseFormPage.clickExpenseDetailsHeading();
+            await expenseFormPage.verifyDateErrorMessageContains('Date cannot be in the future');
+            await expenseFormPage.expectFormOpen();
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expectNoGlobalError(page);
+        });
+
+        test('should validate exact split totals without crashing', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-validation-splits';
+            const { expenseFormPage, page, testUser } = await openExpenseFormForTest(authenticatedPage, groupId, [
+                { uid: 'user-2', displayName: 'User 2' },
+            ]);
+
+            await expenseFormPage.fillDescription('Exact split mismatch');
+            await expenseFormPage.selectCurrency('USD');
+            await expenseFormPage.fillAmount('100');
+            await expenseFormPage.selectPayer(testUser.displayName);
+            await expenseFormPage.selectSplitParticipants(['User 2']);
+            await expenseFormPage.switchToExactAmounts();
+            await expenseFormPage.setExactSplitAmount(0, '60');
+            await expenseFormPage.setExactSplitAmount(1, '60');
+            await expenseFormPage.verifySplitErrorMessageContains('Split amounts must equal the total expense amount');
+            await expenseFormPage.expectFormOpen();
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expectNoGlobalError(page);
+        });
+
+        test('should flag excessively large amounts inline', async ({ authenticatedPage }) => {
+            const groupId = 'test-group-validation-amount-max';
+            const { expenseFormPage, page, testUser } = await openExpenseFormForTest(authenticatedPage, groupId, [
+                { uid: 'user-2', displayName: 'User 2' },
+            ]);
+
+            await expenseFormPage.fillDescription('Large amount');
+            await expenseFormPage.selectCurrency('USD');
+            await expenseFormPage.fillAmount('1000001');
+            await expenseFormPage.selectPayer(testUser.displayName);
+            await expenseFormPage.selectSplitParticipants(['User 2']);
+
+            await expenseFormPage.verifyAmountErrorMessageContains('Amount seems too large');
+            await expenseFormPage.expectAmountValue('1000001');
+            await expenseFormPage.expectFormOpen();
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
+            await expectNoGlobalError(page);
         });
     });
 });

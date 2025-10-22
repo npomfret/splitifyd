@@ -3,6 +3,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { CurrencyService } from '@/app/services/currencyService.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { formatCurrency } from '@/utils/currency';
+import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
 import { amountToSmallestUnit, CreateSettlementRequest, getCurrencyDecimals, GroupMember, isZeroAmount, normalizeAmount, SettlementWithMembers, SimplifiedDebt, ZERO } from '@splitifyd/shared';
@@ -292,13 +293,19 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return false;
         }
 
+        // Check for precision errors BEFORE normalizing
+        const precisionError = getAmountPrecisionError(amount, currency);
+        if (precisionError) {
+            return false;
+        }
+
         try {
             const normalizedAmount = normalizeAmount(amount, currency);
             const amountUnits = amountToSmallestUnit(normalizedAmount, currency);
             const maxUnits = amountToSmallestUnit(getMaxAmountForCurrency(currency), currency);
             return amountUnits > 0 && amountUnits <= maxUnits;
         } catch (error) {
-            // If amount validation fails (e.g., too many decimals), form is invalid
+            // If amount validation fails, form is invalid
             return false;
         }
     })();

@@ -18,7 +18,7 @@
 
 # edit these to pick your test cases
 TEST_FILE="src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts"
-TEST_FILTER="should handle copy expense for multi-user scenarios with real-time updates"
+TEST_FILTER="should edit settlements with comprehensive validation and form handling"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

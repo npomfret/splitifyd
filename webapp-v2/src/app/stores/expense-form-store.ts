@@ -14,7 +14,6 @@ import {
     ExpenseSplit,
     smallestUnitToAmountString,
     SplitTypes,
-    ZERO,
 } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
@@ -58,6 +57,7 @@ interface ExpenseFormStore {
 
     // Actions
     updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void;
+    validateOnBlur(field: keyof ExpenseFormData): void;
     setParticipants(participants: string[]): void;
     toggleParticipant(uid: string): void;
     calculateEqualSplits(): void;
@@ -221,7 +221,7 @@ export function getRecentAmounts(): Amount[] {
 class ExpenseFormStoreImpl implements ExpenseFormStore {
     // Private signals - encapsulated within the class
     readonly #descriptionSignal = signal<string>('');
-    readonly #amountSignal = signal<string>(ZERO);
+    readonly #amountSignal = signal<string>('');
     readonly #currencySignal = signal<string>(''); // Force user to select currency - detected from group data or left empty
     readonly #dateSignal = signal<string>(getTodayDate());
     readonly #timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
@@ -243,6 +243,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     }
 
     private toUnits(amount: Amount): number {
+        if (typeof amount === 'string' && amount.trim() === '') {
+            return 0;
+        }
         const currency = this.getActiveCurrency();
         if (!currency) {
             const parsed = parseFloat(amount);
@@ -422,7 +425,18 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
                 this.#amountSignal.value = amountValue;
 
+                if (amountValue.trim() === '') {
+                    this.#splitsSignal.value = [];
+                    break;
+                }
+
                 if (!currency) {
+                    break;
+                }
+
+                const precisionError = getAmountPrecisionError(amountValue, currency);
+                if (precisionError) {
+                    this.#splitsSignal.value = [];
                     break;
                 }
 
@@ -474,9 +488,14 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
                 // Revalidate amount when currency changes (precision rules depend on currency)
                 const currentErrors = { ...this.#validationErrorsSignal.value };
-                const amountError = this.validateField('amount');
-                if (amountError) {
-                    currentErrors.amount = amountError;
+                const amountIsEmpty = this.#amountSignal.value.trim() === '';
+                if (!amountIsEmpty) {
+                    const amountError = this.validateField('amount');
+                    if (amountError) {
+                        currentErrors.amount = amountError;
+                    } else {
+                        delete currentErrors.amount;
+                    }
                 } else {
                     delete currentErrors.amount;
                 }
@@ -518,7 +537,13 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
         // Perform real-time validation for the field
         // Skip validation for currency if it's empty (user hasn't selected one yet)
-        const shouldValidate = field !== 'currency' || (value as string) !== '';
+        const valueAsString = typeof value === 'string' ? value : undefined;
+        const isAmountCleared = field === 'amount' && valueAsString === '';
+        let shouldValidate = field !== 'currency' || (value as string) !== '';
+
+        if (isAmountCleared) {
+            shouldValidate = false;
+        }
 
         const errors = { ...this.#validationErrorsSignal.value };
         if (shouldValidate) {
@@ -541,6 +566,23 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             } else {
                 delete errors.splits;
             }
+        }
+
+        this.#validationErrorsSignal.value = errors;
+    }
+
+    /**
+     * Validate a field on blur event (when user leaves the field).
+     * This ensures validation runs even for empty fields that were skipped during onChange.
+     */
+    validateOnBlur(field: keyof ExpenseFormData): void {
+        const errors = { ...this.#validationErrorsSignal.value };
+        const fieldError = this.validateField(field);
+
+        if (fieldError) {
+            errors[field] = fieldError;
+        } else {
+            delete errors[field];
         }
 
         this.#validationErrorsSignal.value = errors;
@@ -591,6 +633,12 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         const currency = this.#currencySignal.value;
 
         if (participants.length === 0 || this.toUnits(amount) <= 0 || !currency) {
+            this.#splitsSignal.value = [];
+            return;
+        }
+
+        const precisionError = getAmountPrecisionError(amount, currency);
+        if (precisionError) {
             this.#splitsSignal.value = [];
             return;
         }
@@ -673,6 +721,12 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             return;
         }
 
+        const precisionError = getAmountPrecisionError(amount, currency);
+        if (precisionError) {
+            this.#splitsSignal.value = [];
+            return;
+        }
+
         switch (newType) {
             case SplitTypes.EQUAL:
                 // Use shared currency-aware equal split calculation
@@ -704,6 +758,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             case 'amount':
                 const amountValue = this.normalizeAmountInput((value ?? this.#amountSignal.value) as Amount | number);
+                if (amountValue.trim() === '') {
+                    return 'Amount is required';
+                }
                 const numericAmount = parseFloat(amountValue);
                 if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
                     return 'Amount must be greater than 0';
@@ -935,7 +992,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
     reset(): void {
         this.#descriptionSignal.value = '';
-        this.#amountSignal.value = ZERO;
+        this.#amountSignal.value = '';
         this.#currencySignal.value = ''; // Force user to select currency
         this.#dateSignal.value = getTodayDate();
         this.#timeSignal.value = '12:00'; // Default to noon
@@ -1007,7 +1064,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             // Restore form data
             this.#descriptionSignal.value = draftData.description || '';
-            this.#amountSignal.value = draftData.amount ?? ZERO;
+            this.#amountSignal.value = draftData.amount ?? '';
             this.#currencySignal.value = draftData.currency || ''; // Force user to select if draft has none
             this.#dateSignal.value = draftData.date || getTodayDate();
             this.#timeSignal.value = draftData.time || '12:00'; // Default to noon

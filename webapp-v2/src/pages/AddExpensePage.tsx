@@ -119,7 +119,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 <ExpenseFormHeader isEditMode={isEditMode} isCopyMode={isCopyMode} groupName={formState.group.name} onCancel={formState.handleCancel} />
 
                 <div className='max-w-3xl mx-auto px-4 py-6'>
-                    <form onSubmit={formState.handleSubmit} autoComplete='off'>
+                    <form role='form' onSubmit={formState.handleSubmit} autoComplete='off'>
                         <div
                             aria-hidden='true'
                             style={{ position: 'absolute', left: '-9999px', top: 'auto', width: '1px', height: '1px', overflow: 'hidden' }}
@@ -141,6 +141,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 category={formState.category}
                                 validationErrors={formState.validationErrors}
                                 updateField={formState.updateField}
+                                validateOnBlur={formState.validateOnBlur}
                                 getRecentAmounts={formState.getRecentAmounts}
                                 PREDEFINED_EXPENSE_CATEGORIES={formState.PREDEFINED_EXPENSE_CATEGORIES}
                             />
