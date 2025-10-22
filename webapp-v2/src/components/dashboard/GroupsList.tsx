@@ -35,7 +35,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
         return (
             <div class='text-center py-8'>
                 <div class='text-red-600 mb-4'>
-                    <svg class='w-12 h-12 mx-auto mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <svg class='w-12 h-12 mx-auto mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                         <path
                             stroke-linecap='round'
                             stroke-linejoin='round'

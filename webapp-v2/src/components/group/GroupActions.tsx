@@ -30,19 +30,19 @@ export function GroupActions({
         <>
             <Button variant='primary' onClick={onAddExpense} className={variant === 'vertical' ? 'w-full' : ''} data-testid='add-expense-button'>
                 <>
-                    <PlusIcon className='h-4 w-4 mr-2' />
+                    <PlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                     {t('groupActions.addExpense')}
                 </>
             </Button>
             <Button variant='primary' onClick={onSettleUp} className={variant === 'vertical' ? 'w-full' : ''} data-testid='settle-up-button'>
                 <>
-                    <BanknotesIcon className='h-4 w-4 mr-2' />
+                    <BanknotesIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                     {t('groupActions.settleUp')}
                 </>
             </Button>
             <Button variant='primary' onClick={onShare} className={variant === 'vertical' ? 'w-full' : ''} data-testid='invite-others-button'>
                 <>
-                    <UserPlusIcon className='h-4 w-4 mr-2' />
+                    <UserPlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                     {t('groupActions.inviteOthers')}
                 </>
             </Button>
@@ -53,7 +53,7 @@ export function GroupActions({
         showSettingsButton && onSettings ? (
             <Button variant='primary' onClick={onSettings} className={variant === 'vertical' ? 'w-full' : ''} data-testid='group-settings-button'>
                 <>
-                    <CogIcon className='h-4 w-4 mr-2' />
+                    <CogIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                     {t('groupActions.settings')}
                 </>
             </Button>
@@ -63,7 +63,7 @@ export function GroupActions({
         ? (
             <Button variant='secondary' onClick={onLeaveGroup} className={variant === 'vertical' ? 'w-full' : ''} data-testid='leave-group-button'>
                 <>
-                    <ArrowLeftStartOnRectangleIcon className='h-4 w-4 mr-2' />
+                    <ArrowLeftStartOnRectangleIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                     {t('groupActions.leaveGroup')}
                 </>
             </Button>

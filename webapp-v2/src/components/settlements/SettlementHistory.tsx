@@ -129,7 +129,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
     if (totalSettlements === 0) {
         return (
             <div class='text-center py-8'>
-                <svg class='mx-auto h-12 w-12 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <svg class='mx-auto h-12 w-12 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                     <path
                         stroke-linecap='round'
                         stroke-linejoin='round'
@@ -221,7 +221,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                                     {/* Row 2: Arrow, amount, and date */}
                                     <div class='row-start-2 flex items-center justify-center self-stretch'>
                                         <div class='flex items-center justify-center w-6 h-full text-gray-400'>
-                                            <svg class='w-3 h-3 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <svg class='w-3 h-3 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                                 <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 14l-7 7m0 0l-7-7m7 7V3' />
                                             </svg>
                                         </div>

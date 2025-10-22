@@ -9,7 +9,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
     return (
         <div class='text-center py-12'>
             <div class='text-gray-400 mb-4'>
-                <svg class='w-16 h-16 mx-auto mb-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <svg class='w-16 h-16 mx-auto mb-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                     <path
                         stroke-linecap='round'
                         stroke-linejoin='round'
@@ -32,7 +32,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                 <div class='grid md:grid-cols-3 gap-4'>
                     <div class='bg-purple-50 p-4 rounded-lg'>
                         <div class='text-purple-600 mb-2'>
-                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                 <path
                                     stroke-linecap='round'
                                     stroke-linejoin='round'
@@ -47,7 +47,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
 
                     <div class='bg-green-50 p-4 rounded-lg'>
                         <div class='text-green-600 mb-2'>
-                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                 <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 6v6m0 0v6m0-6h6m-6 0H6' />
                             </svg>
                         </div>
@@ -57,7 +57,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
 
                     <div class='bg-blue-50 p-4 rounded-lg'>
                         <div class='text-blue-600 mb-2'>
-                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                 <path
                                     stroke-linecap='round'
                                     stroke-linejoin='round'

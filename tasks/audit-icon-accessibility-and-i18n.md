@@ -2,8 +2,8 @@
 
 ## Summary
 - Completed a pass over every TSX component in `webapp-v2` with a focus on icon usage, icon-only controls, and related i18n coverage.
-- Recurrent issues remain around decorative icons (status glyphs, empty-state art) that lack `aria-hidden`, so assistive tech still gets extra noise.
-- Introduced a shared `Tooltip` primitive and converted high-traffic icon-only controls to use translated `aria-label`s plus hover/focus copy instead of raw `title`.
+- Added tooltips + translated `aria-label`s to the remaining icon-only actions (GroupCard quick actions, BalanceSummary settle button, modal close affordances, password visibility toggle, etc.).
+- Swept decorative/static glyphs across dashboard, policy, pricing, and auth screens to hide them from screen readers (`aria-hidden`/`focusable='false'`) while leaving purposeful spinners exposed.
 - Positive counterexamples (e.g. `ExpenseBasicFields` clock button, `Pagination` nav) continue to serve as patterns to mirror.
 
 ## Detailed Findings
@@ -24,13 +24,18 @@
 | `webapp-v2/src/components/settlements/SettlementForm.tsx:321` | ✅ Updated | Close button matches shared modal pattern. |
 | `webapp-v2/src/components/ui/Alert.tsx:90` | ✅ Updated | Dismiss action gets tooltip and hides icon from screen readers. |
 | `webapp-v2/src/components/group/ExpenseItem.tsx:99` | ✅ Updated | Row-level copy shortcut uses tooltip + translation; icon hidden. |
+| `webapp-v2/src/components/dashboard/GroupCard.tsx:88` | ✅ Updated | Dropdown actions now use Tooltip helper; icons hidden. |
+| `webapp-v2/src/components/group/BalanceSummary.tsx:156` | ✅ Updated | Settlement CTA wrapped with tooltip; arrow icon hidden. |
+| `webapp-v2/src/components/expense-form/ExpenseBasicFields.tsx:225` | ✅ Updated | Clock reveal button now uses tooltip and hides icon. |
+| `webapp-v2/src/components/auth/PasswordInput.tsx:134` | ✅ Updated | Visibility toggle wrapped with tooltip; glyphs aria-hidden. |
+| `webapp-v2/src/pages/ExpenseDetailPage.tsx:360` | ✅ Updated | Receipt-close affordance uses tooltip with hidden icon. |
 
 ### Tooltip & Hover Copy Gaps
-- Shared `Tooltip` helper (`webapp-v2/src/components/ui/Tooltip.tsx`) now covers the high-priority icon-only buttons. Remaining raw `title` usage is limited to informational context (e.g. the paid-by theme dot in `ExpenseItem`), but we should sweep again after upcoming feature work.
+- Shared `Tooltip` helper (`webapp-v2/src/components/ui/Tooltip.tsx`) now covers high-priority icon-only buttons. Remaining raw `title` usage is limited to informational context (e.g. the paid-by theme dot in `ExpenseItem`), but we should sweep again after upcoming feature work.
 
 ### Decorative Icons Announcing to Screen Readers
-- Empty-state icons and inline glyphs (e.g. `CommentsList`, `ConfirmDialog`, status icon in `GroupCard`) still omit `aria-hidden='true'`.
-- These SVGs sit next to real text, so screen readers hear "graphic" before the actual message. Add `aria-hidden` (or `role='presentation'`) where the icon is purely decorative.
+- Empty-state icons and inline glyphs across dashboard, comments, auth, static pages, and policy flows now have `aria-hidden='true'` + `focusable='false'`.
+- Loading spinners remain exposed intentionally where they communicate live status (e.g. buttons reporting progress).
 
 ### Positive Patterns Worth Reusing
 - `ExpenseBasicFields.tsx:228-235` handles the clock button correctly: translated `aria-label`, `title`, and an obvious affordance.

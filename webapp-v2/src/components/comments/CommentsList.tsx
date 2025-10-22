@@ -28,7 +28,7 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
     if (!loading && comments.length === 0) {
         return (
             <div className='flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500'>
-                <ChatBubbleLeftRightIcon className='w-12 h-12 mb-2 opacity-50' />
+                <ChatBubbleLeftRightIcon className='w-12 h-12 mb-2 opacity-50' aria-hidden='true' focusable='false' />
                 <p className='text-sm'>{t('comments.commentsList.empty')}</p>
                 <p className='text-xs mt-1'>{t('comments.commentsList.emptySubtext')}</p>
             </div>

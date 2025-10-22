@@ -54,7 +54,7 @@ export function PricingPage() {
                         <ul class='space-y-3 mb-8'>
                             {(t('pricing.plans.starter.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
                                 <li key={index} class='flex items-start'>
-                                    <svg class='w-5 h-5 text-green-500 mr-3 mt-0.5' fill='currentColor' viewBox='0 0 20 20'>
+                                    <svg class='w-5 h-5 text-green-500 mr-3 mt-0.5' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                                         <path
                                             fill-rule='evenodd'
                                             d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
@@ -86,7 +86,7 @@ export function PricingPage() {
                         <ul class='space-y-3 mb-8'>
                             {(t('pricing.plans.pro.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
                                 <li key={index} class='flex items-start'>
-                                    <svg class='w-5 h-5 text-green-500 mr-3 mt-0.5' fill='currentColor' viewBox='0 0 20 20'>
+                                    <svg class='w-5 h-5 text-green-500 mr-3 mt-0.5' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                                         <path
                                             fill-rule='evenodd'
                                             d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
@@ -117,7 +117,7 @@ export function PricingPage() {
                         <ul class='space-y-3 mb-8'>
                             {(t('pricing.plans.philanthropist.features', { returnObjects: true }) as string[]).map((feature: string, index: number) => (
                                 <li key={index} class='flex items-start'>
-                                    <svg class='w-5 h-5 text-green-500 mr-3 mt-0.5' fill='currentColor' viewBox='0 0 20 20'>
+                                    <svg class='w-5 h-5 text-green-500 mr-3 mt-0.5' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                                         <path
                                             fill-rule='evenodd'
                                             d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'

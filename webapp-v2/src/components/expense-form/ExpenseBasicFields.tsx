@@ -4,7 +4,7 @@ import { getLastNight, getThisMorning, getToday, getYesterday } from '@/utils/da
 import { ClockIcon } from '@heroicons/react/24/outline';
 import { Amount, ExpenseCategory } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, CategorySuggestionInput, CurrencyAmountInput, TimeInput } from '../ui';
+import { Button, Card, CategorySuggestionInput, CurrencyAmountInput, TimeInput, Tooltip } from '../ui';
 import { Stack } from '../ui/Stack';
 
 interface ExpenseBasicFieldsProps {
@@ -222,22 +222,23 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                             : (
                                 /* Show clock icon button when time field is hidden */
                                 <div className='flex items-center h-[68px]'>
-                                    <button
-                                        type='button'
-                                        onClick={() => {
-                                            // Set a non-noon time to trigger field visibility
-                                            // Use current time as a sensible default
-                                            const now = new Date();
-                                            const hours = now.getHours().toString().padStart(2, '0');
-                                            const minutes = now.getMinutes().toString().padStart(2, '0');
-                                            updateField('time', `${hours}:${minutes}`);
-                                        }}
-                                        className='p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors'
-                                        title={t('expenseBasicFields.addSpecificTime')}
-                                        aria-label={t('expenseBasicFields.addSpecificTime')}
-                                    >
-                                        <ClockIcon className='h-5 w-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' />
-                                    </button>
+                                    <Tooltip content={t('expenseBasicFields.addSpecificTime')}>
+                                        <button
+                                            type='button'
+                                            onClick={() => {
+                                                // Set a non-noon time to trigger field visibility
+                                                // Use current time as a sensible default
+                                                const now = new Date();
+                                                const hours = now.getHours().toString().padStart(2, '0');
+                                                const minutes = now.getMinutes().toString().padStart(2, '0');
+                                                updateField('time', `${hours}:${minutes}`);
+                                            }}
+                                            className='p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors'
+                                            aria-label={t('expenseBasicFields.addSpecificTime')}
+                                        >
+                                            <ClockIcon className='h-5 w-5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' aria-hidden='true' />
+                                        </button>
+                                    </Tooltip>
                                 </div>
                             )}
                     </div>

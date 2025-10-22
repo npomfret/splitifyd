@@ -1,7 +1,7 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { themeStore } from '@/app/stores/theme-store';
-import { SidebarCard } from '@/components/ui';
+import { SidebarCard, Tooltip } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
@@ -138,7 +138,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                     {/* Row 2: Down arrow only */}
                                     <div className='row-start-2 flex items-center justify-center self-stretch'>
                                         <div className='flex items-center justify-center w-6 h-full text-gray-400'>
-                                            <svg className='w-3 h-3 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <svg className='w-3 h-3 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M19 14l-7 7m0 0l-7-7m7 7V3' />
                                             </svg>
                                         </div>
@@ -153,17 +153,19 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                         </div>
                                         {/* Settlement button - only show if current user owes this debt and onSettleUp is provided */}
                                         {isCurrentUserFrom && onSettleUp && (
-                                            <button
-                                                type='button'
-                                                onClick={() => onSettleUp(debt)}
-                                                className='p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors flex-shrink-0 flex items-center gap-1'
-                                                aria-label={t('balanceSummary.settleUpButton')}
-                                            >
-                                                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true'>
-                                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M13 7l5 5m0 0l-5 5m5-5H6' />
-                                                </svg>
-                                                <BanknotesIcon className='w-4 h-4' aria-hidden='true' />
-                                            </button>
+                                            <Tooltip content={t('balanceSummary.settleUpButton')}>
+                                                <button
+                                                    type='button'
+                                                    onClick={() => onSettleUp(debt)}
+                                                    className='p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors flex-shrink-0 flex items-center gap-1'
+                                                    aria-label={t('balanceSummary.settleUpButton')}
+                                                >
+                                                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M13 7l5 5m0 0l-5 5m5-5H6' />
+                                                    </svg>
+                                                    <BanknotesIcon className='w-4 h-4' aria-hidden='true' />
+                                                </button>
+                                            </Tooltip>
                                         )}
                                     </div>
 

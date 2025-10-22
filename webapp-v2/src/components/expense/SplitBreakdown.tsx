@@ -80,7 +80,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                         <Avatar displayName={memberName} userId={split.uid} size='md' />
                                         {isPayer && (
                                             <div className='absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-0.5'>
-                                                <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
+                                                <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                                                     <path
                                                         fillRule='evenodd'
                                                         d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 1.414L10.586 9.5 8.707 7.621a1 1 0 00-1.414 1.414l2.5 2.5a1 1 0 001.414 0l4-4a1 1 0 000-1.414z'

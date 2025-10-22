@@ -1,5 +1,5 @@
 import { CommentsSection } from '@/components/comments';
-import { Avatar, Button, Card, LoadingSpinner } from '@/components/ui';
+import { Avatar, Button, Card, LoadingSpinner, Tooltip } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { formatCurrency } from '@/utils/currency';
@@ -357,15 +357,17 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         tabIndex={-1}
                     >
                         <div className='relative max-w-4xl max-h-full'>
-                            <button
-                                onClick={() => setShowReceiptModal(false)}
-                                className='absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-white'
-                                aria-label={t('pages.expenseDetailPage.closeReceiptViewer')}
-                            >
-                                <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                                </svg>
-                            </button>
+                            <Tooltip content={t('pages.expenseDetailPage.closeReceiptViewer')}>
+                                <button
+                                    onClick={() => setShowReceiptModal(false)}
+                                    className='absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-white'
+                                    aria-label={t('pages.expenseDetailPage.closeReceiptViewer')}
+                                >
+                                    <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                                    </svg>
+                                </button>
+                            </Tooltip>
                             <img
                                 src={expense.value.receiptUrl}
                                 alt={t('pages.expenseDetailPage.receiptFullSize')}

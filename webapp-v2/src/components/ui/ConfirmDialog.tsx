@@ -74,7 +74,7 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
                 <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full ${styles.iconBg} mb-4`}>
                     {variant === 'danger'
                         ? (
-                            <svg className={`h-6 w-6 ${styles.icon}`} fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                            <svg className={`h-6 w-6 ${styles.icon}`} fill='none' viewBox='0 0 24 24' stroke='currentColor' aria-hidden='true' focusable='false'>
                                 <path
                                     strokeLinecap='round'
                                     strokeLinejoin='round'
@@ -85,12 +85,12 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
                         )
                         : variant === 'warning'
                         ? (
-                            <svg className={`h-6 w-6 ${styles.icon}`} fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                            <svg className={`h-6 w-6 ${styles.icon}`} fill='none' viewBox='0 0 24 24' stroke='currentColor' aria-hidden='true' focusable='false'>
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                             </svg>
                         )
                         : (
-                            <svg className={`h-6 w-6 ${styles.icon}`} fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                            <svg className={`h-6 w-6 ${styles.icon}`} fill='none' viewBox='0 0 24 24' stroke='currentColor' aria-hidden='true' focusable='false'>
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                             </svg>
                         )}

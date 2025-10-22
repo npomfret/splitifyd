@@ -1,7 +1,7 @@
 import { formatCurrency } from '@/utils/currency';
 import { absAmount, amountToSmallestUnit, GroupDTO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
-import { Card } from '../ui';
+import { Card, Tooltip } from '../ui';
 
 interface GroupCardProps {
     group: GroupDTO;
@@ -85,28 +85,30 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
                 {(onInvite || onAddExpense) && (
                     <div class='absolute top-0 right-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
                         {onAddExpense && (
-                            <button
-                                onClick={(e) => handleActionClick(e, () => onAddExpense(group.id))}
-                                class='p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors'
-                                title={t('groupCard.addExpenseTooltip', { groupName: group.name })}
-                                aria-label={t('groupCard.addExpenseTooltip', { groupName: group.name })}
-                            >
-                                <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 6v6m0 0v6m0-6h6m-6 0H6' />
-                                </svg>
-                            </button>
+                            <Tooltip content={t('groupCard.addExpenseTooltip', { groupName: group.name })}>
+                                <button
+                                    onClick={(e) => handleActionClick(e, () => onAddExpense(group.id))}
+                                    class='p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors'
+                                    aria-label={t('groupCard.addExpenseTooltip', { groupName: group.name })}
+                                >
+                                    <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 6v6m0 0v6m0-6h6m-6 0H6' />
+                                    </svg>
+                                </button>
+                            </Tooltip>
                         )}
                         {onInvite && (
-                            <button
-                                onClick={(e) => handleActionClick(e, () => onInvite(group.id))}
-                                class='p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors'
-                                title={t('groupCard.inviteTooltip', { groupName: group.name })}
-                                aria-label={t('groupCard.inviteTooltip', { groupName: group.name })}
-                            >
-                                <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' />
-                                </svg>
-                            </button>
+                            <Tooltip content={t('groupCard.inviteTooltip', { groupName: group.name })}>
+                                <button
+                                    onClick={(e) => handleActionClick(e, () => onInvite(group.id))}
+                                    class='p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors'
+                                    aria-label={t('groupCard.inviteTooltip', { groupName: group.name })}
+                                >
+                                    <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' />
+                                    </svg>
+                                </button>
+                            </Tooltip>
                         )}
                     </div>
                 )}
@@ -122,7 +124,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
                 {/* GroupDTO stats */}
                 <div class='space-y-2 text-sm text-gray-600'>
                     <div class='flex items-center'>
-                        <svg class='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <svg class='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                         </svg>
                         {group.lastActivity || t('groupCard.noRecentActivity')}
