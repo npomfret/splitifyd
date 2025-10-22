@@ -120,4 +120,95 @@ test.describe('Group Detail - Expense Pagination', () => {
         await groupDetailPage.verifyExpenseDisplayed('Dinner Split Page 2');
         await expect(loadMoreButton).toBeHidden();
     });
+
+    test('should render all expenses returned in the first page', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const groupDetailPage = new GroupDetailPage(page);
+        const groupId = 'group-expense-initial-page-size';
+
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId(groupId)
+            .withName('Expense Initial Page Size Group')
+            .build();
+
+        const memberSelf = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(user.displayName)
+            .withGroupDisplayName(user.displayName)
+            .withTheme(ThemeBuilder.blue().build())
+            .build();
+
+        const memberTwo = new GroupMemberBuilder()
+            .withUid('member-two')
+            .withDisplayName('Member Two')
+            .withGroupDisplayName('Member Two')
+            .withTheme(ThemeBuilder.red().build())
+            .build();
+
+        const memberThree = new GroupMemberBuilder()
+            .withUid('member-three')
+            .withDisplayName('Member Three')
+            .withGroupDisplayName('Member Three')
+            .withTheme(
+                new ThemeBuilder()
+                    .withLight('#10B981')
+                    .withDark('#047857')
+                    .withName('green')
+                    .withColorIndex(4)
+                    .build(),
+            )
+            .build();
+
+        const members = [memberSelf, memberTwo, memberThree];
+
+        const balances = new GroupBalancesBuilder()
+            .withGroupId(groupId)
+            .withNoDebts(
+                { uid: memberSelf.uid, displayName: memberSelf.displayName! },
+                { uid: memberTwo.uid, displayName: memberTwo.displayName! },
+                { uid: memberThree.uid, displayName: memberThree.displayName! },
+            )
+            .build();
+
+        const expenses = Array.from({ length: 8 }, (_, index) => {
+            const payer = [memberSelf, memberTwo, memberThree][index % members.length];
+            const description = `Expense Item ${index + 1}`;
+
+            return new ExpenseDTOBuilder()
+                .withId(`expense-initial-${index + 1}`)
+                .withGroupId(groupId)
+                .withDescription(description)
+                .withAmount(10 + index, 'USD')
+                .withPaidBy(payer.uid)
+                .withCreatedBy(payer.uid)
+                .withParticipants(members.map((member) => member.uid))
+                .build();
+        });
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members, false)
+            .withBalances(balances)
+            .withExpenses(expenses, true, 'cursor-expense-page-2')
+            .withSettlements([], false)
+            .build();
+
+        await mockGroupCommentsApi(page, groupId);
+
+        await page.route(`**/api/groups/${groupId}/full-details**`, async (route) => {
+            await fulfillWithSerialization(route, { body: fullDetails });
+        });
+
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupToLoad();
+
+        await groupDetailPage.verifyExpensesDisplayed(expenses.length);
+        for (const expense of expenses) {
+            await groupDetailPage.verifyExpenseDisplayed(expense.description);
+        }
+
+        const loadMoreButton = page.getByRole('button', { name: 'Load More' });
+        await expect(loadMoreButton).toBeVisible();
+    });
 });

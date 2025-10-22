@@ -5,6 +5,7 @@ import { batch, signal } from '@preact/signals';
 import { ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 
+const GROUP_EXPENSE_PAGE_SIZE = 8;
 const GROUP_SETTLEMENT_PAGE_SIZE = 8;
 const GROUP_COMMENT_PAGE_SIZE = 8;
 
@@ -153,6 +154,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
         try {
             const fullDetails = await apiClient.getGroupFullDetails(groupId, {
+                expenseLimit: GROUP_EXPENSE_PAGE_SIZE,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
                 settlementLimit: GROUP_SETTLEMENT_PAGE_SIZE,
                 commentLimit: GROUP_COMMENT_PAGE_SIZE,
@@ -351,6 +353,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
+                expenseLimit: GROUP_EXPENSE_PAGE_SIZE,
                 expenseCursor: this.expenseCursor,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
             });
@@ -386,6 +389,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
+                expenseLimit: GROUP_EXPENSE_PAGE_SIZE,
                 settlementCursor: this.settlementCursor,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
                 settlementLimit: GROUP_SETTLEMENT_PAGE_SIZE,
@@ -417,6 +421,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
+                expenseLimit: GROUP_EXPENSE_PAGE_SIZE,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
                 settlementLimit: GROUP_SETTLEMENT_PAGE_SIZE,
                 commentLimit: GROUP_COMMENT_PAGE_SIZE,
