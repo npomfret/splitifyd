@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
-import { DashboardStats } from '../components/dashboard/DashboardStats';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
 import { BaseLayout } from '../components/layout/BaseLayout';
@@ -102,7 +101,6 @@ export function DashboardPage() {
                         <div class='hidden lg:block'>
                             <QuickActionsCard onCreateGroup={() => setIsCreateModalOpen(true)} />
                         </div>
-                        <DashboardStats />
                     </div>
                 }
             />

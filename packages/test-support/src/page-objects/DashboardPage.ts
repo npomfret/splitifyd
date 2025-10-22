@@ -76,19 +76,6 @@ export class DashboardPage extends BasePage {
             .first();
     }
 
-    /**
-     * Dashboard stats container
-     */
-    getStatsContainer(): Locator {
-        // Find the stats container by heading
-        return this
-            .page
-            .locator('div')
-            .filter({
-                has: this.page.getByRole('heading', { name: translation.dashboardStats.title, exact: true }),
-            })
-            .first();
-    }
 
     /**
      * Welcome section for new users
@@ -359,42 +346,6 @@ export class DashboardPage extends BasePage {
         return this.getQuickActionsContainer().getByRole('button', { name: /view.*expenses/i });
     }
 
-    /**
-     * Dashboard Stats - Total groups value
-     * Finds the numeric value in the stat item containing "Total Groups" text
-     */
-    getStatsTotalGroups(): Locator {
-        // Find the stat item by its label, then get the visible number
-        return this
-            .getStatsContainer()
-            .locator('div, li')
-            .filter({ hasText: /total.*groups/i })
-            .first()
-            .getByText(/^\d+$/)
-            .first();
-    }
-
-    /**
-     * Dashboard Stats - Active groups value
-     * Finds the numeric value in the stat item containing "Active Groups" text
-     */
-    getStatsActiveGroups(): Locator {
-        // Find the stat item by its label, then get the visible number
-        return this
-            .getStatsContainer()
-            .locator('div, li')
-            .filter({ hasText: /active.*groups/i })
-            .first()
-            .getByText(/^\d+$/)
-            .first();
-    }
-
-    /**
-     * Dashboard Stats - Loading skeleton
-     */
-    getStatsLoadingSkeleton(): Locator {
-        return this.getStatsContainer().locator('.animate-pulse');
-    }
 
     /**
      * Group Card - Invite button (hover action)
@@ -947,27 +898,6 @@ export class DashboardPage extends BasePage {
         }
     }
 
-    /**
-     * Verify dashboard stats display
-     */
-    async verifyStatsDisplayed(expectedTotalGroups?: number, expectedActiveGroups?: number): Promise<void> {
-        await expect(this.getStatsContainer()).toBeVisible();
-
-        if (expectedTotalGroups !== undefined) {
-            await expect(this.getStatsTotalGroups()).toContainText(expectedTotalGroups.toString());
-        }
-
-        if (expectedActiveGroups !== undefined) {
-            await expect(this.getStatsActiveGroups()).toContainText(expectedActiveGroups.toString());
-        }
-    }
-
-    /**
-     * Verify stats show loading skeleton
-     */
-    async verifyStatsLoading(): Promise<void> {
-        await expect(this.getStatsLoadingSkeleton()).toBeVisible();
-    }
 
     /**
      * Verify quick actions card is displayed

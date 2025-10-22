@@ -744,13 +744,6 @@
     "members": "members",
     "noRecentActivity": "No recent activity"
   },
-  "dashboardStats": {
-    "title": "Statistics",
-    "totalGroups": "Total Groups",
-    "activeGroups": "Active Groups",
-    "totalMembers": "Total Members",
-    "avgMembersPerGroup": "Avg. Members/Group"
-  },
   "quickActions": {
     "title": "Quick Actions",
     "createNewGroup": "Create New Group",
