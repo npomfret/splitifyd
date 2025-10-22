@@ -155,6 +155,8 @@ export function CurrencyAmountInput({
                             xmlns='http://www.w3.org/2000/svg'
                             viewBox='0 0 20 20'
                             fill='currentColor'
+                            aria-hidden='true'
+                            focusable='false'
                         >
                             <path
                                 fillRule='evenodd'
@@ -204,7 +206,7 @@ export function CurrencyAmountInput({
                                 onKeyDown={handleKeyDown}
                                 placeholder={t('uiComponents.currencyAmountInput.searchPlaceholder')}
                                 className='w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600'
-                                aria-label='Search currencies'
+                                aria-label={t('uiComponents.currencyAmountInput.searchAriaLabel')}
                             />
                         </div>
 

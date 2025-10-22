@@ -2,6 +2,7 @@ import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { useSignal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { Tooltip } from '../ui';
 
 interface CommentInputProps {
     onSubmit: (text: string) => Promise<void>;
@@ -114,14 +115,14 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                     `}
                     rows={1}
                     style={{ minHeight: '38px', maxHeight: '120px' }}
-                    aria-label='Comment text'
+                    aria-label={t('comments.input.ariaLabel')}
                     aria-invalid={isOverLimit}
                 />
-                <button
-                    type='submit'
-                    disabled={!text.value.trim() || isOverLimit || (disabled && !isEditing.value) || isSubmitting}
-                    className={`
-                        absolute right-2 bottom-2
+                <Tooltip content={t('comments.input.sendAriaLabel')} className='absolute right-2 bottom-2'>
+                    <button
+                        type='submit'
+                        disabled={!text.value.trim() || isOverLimit || (disabled && !isEditing.value) || isSubmitting}
+                        className={`
                         p-1.5 rounded-lg
                         transition-colors
                         ${
@@ -130,10 +131,11 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                             : 'text-gray-400 cursor-not-allowed'
                     }
                     `}
-                    aria-label='Send comment'
-                >
-                    {isSubmitting ? <div className='w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin' /> : <PaperAirplaneIcon className='w-4 h-4' />}
-                </button>
+                        aria-label={t('comments.input.sendAriaLabel')}
+                    >
+                        {isSubmitting ? <div className='w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin' /> : <PaperAirplaneIcon className='w-4 h-4' aria-hidden='true' />}
+                    </button>
+                </Tooltip>
             </div>
 
             <div className='flex items-center justify-between text-xs'>

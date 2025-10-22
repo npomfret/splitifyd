@@ -2,42 +2,45 @@
 
 ## Summary
 - Completed a pass over every TSX component in `webapp-v2` with a focus on icon usage, icon-only controls, and related i18n coverage.
-- Recurrent issues: missing `aria-label` on icon-only buttons, reliance on `title` attributes as the only user-facing copy, and hard-coded English strings in accessibility attributes.
-- Decorative icons (status glyphs, empty-state art) rarely set `aria-hidden`, so screen readers get extra noise.
-- There is still no shared tooltip primitive; several places lean on `title`, which is inconsistent for both accessibility and UX.
-- Positive counterexamples exist (e.g. `ExpenseBasicFields` clock button, `CurrencyAmountInput` trigger), so we have patterns worth standardising.
+- Recurrent issues remain around decorative icons (status glyphs, empty-state art) that lack `aria-hidden`, so assistive tech still gets extra noise.
+- Introduced a shared `Tooltip` primitive and converted high-traffic icon-only controls to use translated `aria-label`s plus hover/focus copy instead of raw `title`.
+- Positive counterexamples (e.g. `ExpenseBasicFields` clock button, `Pagination` nav) continue to serve as patterns to mirror.
 
 ## Detailed Findings
 
-### Missing Accessible Labels or Non-i18n Labels
-| Location | Issue | Notes |
+### Progress On Icon-Only Controls
+| Location | Status | Notes |
 | --- | --- | --- |
-| `webapp-v2/src/components/group/MembersListWithManagement.tsx:157` | Remove-member button renders `<UserMinusIcon>` inside `<Button>` without `ariaLabel` or tooltip text. | Screen readers announce "button" with no context; needs translation-backed `ariaLabel` (and likely a tooltip). |
-| `webapp-v2/src/components/settlements/SettlementHistory.tsx:170-188` | Edit/Delete buttons rely solely on `title`. | Add `aria-label={t(...)}` for both states; keep or replace the tooltip behaviour once we have a proper component. |
-| `webapp-v2/src/components/group/ShareGroupModal.tsx:174-235` | Close button and copy-to-clipboard button have no `aria-label`. Copy button only has a `title`. | Add translated `aria-label`s (close, copy link) and align tooltip behaviour with whatever standard we land on. |
-| `webapp-v2/src/components/dashboard/CreateGroupModal.tsx:128-136` | Dialog close button lacks `aria-label`. | Should mirror other modals (`GroupSettingsModal`, `SettlementForm`) that already expose translated labels. |
-| `webapp-v2/src/components/comments/CommentInput.tsx:117-135` | `aria-label` values are hard-coded English strings (`'Comment text'`, `'Send comment'`). | Replace with existing translation keys (`comments.input.ariaLabel`, `comments.input.sendAriaLabel`). |
-| `webapp-v2/src/components/expense/ExpenseActions.tsx:56` | Copy button passes `ariaLabel='Copy expense'` literal. | Use the `expenseComponents.expenseActions.copy`/`copyExpense` translation instead of a hand-written string. |
-| `webapp-v2/src/components/ui/CurrencyAmountInput.tsx:136-208` | Currency search input uses `aria-label='Search currencies'` literal. | Either add a new key (e.g. `uiComponents.currencyAmountInput.searchAriaLabel`) or reuse an existing one. |
+| `webapp-v2/src/components/group/MembersListWithManagement.tsx:153` | ✅ Updated | Uses shared tooltip + `membersList.removeMemberAriaLabel`; icon marked `aria-hidden`. |
+| `webapp-v2/src/components/settlements/SettlementHistory.tsx:169` | ✅ Updated | Edit/delete actions wrap the tooltip helper with translated labels (locked vs editable states). |
+| `webapp-v2/src/components/group/ShareGroupModal.tsx:175` | ✅ Updated | Close + copy buttons expose translated `aria-label`s and tooltip copy; decorative SVGs hidden. |
+| `webapp-v2/src/components/dashboard/CreateGroupModal.tsx:128` | ✅ Updated | Close button matches modal pattern with tooltip + `aria-hidden` glyph. |
+| `webapp-v2/src/components/comments/CommentInput.tsx:118` | ✅ Updated | Textarea and send button now consume translation keys, with tooltip for icon-only submit. |
+| `webapp-v2/src/components/expense/ExpenseActions.tsx:56` | ✅ Updated | Copy action pulls `copyExpense` translation; decorative SVG hidden. |
+| `webapp-v2/src/components/ui/CurrencyAmountInput.tsx:148` | ✅ Updated | Search field now uses new `uiComponents.currencyAmountInput.searchAriaLabel` key. |
+| `webapp-v2/src/components/group/GroupHeader.tsx:26` | ✅ Updated | Settings cog wrapped in tooltip for parity with other icon-only controls. |
+| `webapp-v2/src/components/join-group/DisplayNameConflictModal.tsx:139` | ✅ Updated | Modal close button uses tooltip helper and translation-backed label. |
+| `webapp-v2/src/components/policy/PolicyAcceptanceModal.tsx:129` | ✅ Updated | Close affordance gains tooltip and hidden decorative icon. |
+| `webapp-v2/src/components/settlements/SettlementForm.tsx:321` | ✅ Updated | Close button matches shared modal pattern. |
+| `webapp-v2/src/components/ui/Alert.tsx:90` | ✅ Updated | Dismiss action gets tooltip and hides icon from screen readers. |
+| `webapp-v2/src/components/group/ExpenseItem.tsx:99` | ✅ Updated | Row-level copy shortcut uses tooltip + translation; icon hidden. |
 
 ### Tooltip & Hover Copy Gaps
-- `SettlementHistory` and `ShareGroupModal` are the most obvious cases relying on `title`. Users on touch devices or screen readers get little value from this.
-- `GroupHeader`’s cog button exposes an `ariaLabel` but no visible hover help; UX team may want parity with other icon-only controls.
-- We still do not have a shared Tooltip component. If we plan to require tooltips for icon-only buttons, we should build one instead of repeating `title`.
+- Shared `Tooltip` helper (`webapp-v2/src/components/ui/Tooltip.tsx`) now covers the high-priority icon-only buttons. Remaining raw `title` usage is limited to informational context (e.g. the paid-by theme dot in `ExpenseItem`), but we should sweep again after upcoming feature work.
 
 ### Decorative Icons Announcing to Screen Readers
-- Empty-state icons and inline glyphs (e.g. `CommentsList`, `Alert`, `ConfirmDialog`, header icon in `ShareGroupModal`, status icon in `GroupCard`) omit `aria-hidden='true'`.
+- Empty-state icons and inline glyphs (e.g. `CommentsList`, `ConfirmDialog`, status icon in `GroupCard`) still omit `aria-hidden='true'`.
 - These SVGs sit next to real text, so screen readers hear "graphic" before the actual message. Add `aria-hidden` (or `role='presentation'`) where the icon is purely decorative.
 
 ### Positive Patterns Worth Reusing
 - `ExpenseBasicFields.tsx:228-235` handles the clock button correctly: translated `aria-label`, `title`, and an obvious affordance.
 - `GroupCard.tsx:91-108` sets both translated `aria-label`s and hover copy for icon-only quick actions.
-- `GroupSettingsModal.tsx:813-821` shows the expected modal-close pattern that other dialogs should follow.
+- `GroupSettingsModal.tsx:813-821` now leverages the tooltip helper for the modal-close pattern we expect other dialogs to follow.
 - `Pagination.tsx:54-82` uses visually hidden labels (`sr-only`) combined with `aria-hidden` icons, a solid example for any next/previous controls.
 
 ## Recommendations
 1. **Standardise icon-only controls**: Require a translated `aria-label` and visible helper text (tooltip or inline) for any button without textual children.
-2. **Introduce an accessible Tooltip primitive**: Wrap the hover/focus copy instead of sprinkling `title`. Something small (e.g. headless + portal) is enough.
+2. **Adopt the shared Tooltip helper** everywhere: eliminate lingering `title` attributes in interactive contexts and ensure translated copy flows through the component.
 3. **Enforce translation use in accessibility attributes**: add ESLint rule or review checklist flagging raw strings in `aria-label`/`aria-labelledby`.
 4. **Mark decorative SVGs as hidden**: Add `aria-hidden='true'` (and optionally `focusable='false'`) to icons whose meaning is already conveyed by nearby text.
 5. **Document the patterns**: capture the good examples above in our component guidelines so new work follows the same recipe.
@@ -45,5 +48,7 @@
 Once these items are addressed we should re-run a targeted audit (or add automated checks) to keep icon accessibility and i18n from drifting again.
 
 ## Next Steps
-1. **Add the missing labels/tooltips**: Update the flagged components so every icon-only control uses translation-backed `aria-label`s and, where appropriate, the forthcoming tooltip helper (e.g. remove-member button, settlement edit/delete, share modal close/copy, create group close, comment input send button, expense copy button, currency search input).
-2. **Introduce the shared tooltip component**: Implement an accessible tooltip primitive and roll it out to icon-only controls across the app, replacing raw `title` attributes for a consistent experience.
+1. **Sweep decorative/static icons**: Track remaining non-interactive icons and add `aria-hidden`/`role='presentation'` where meaning is duplicated by text.
+2. **Replace residual `title` usage**: Identify remaining interactive controls still relying on `title` (e.g. theme dots, legacy components) and migrate them to the tooltip helper with translated content.
+3. **Codify lint guardrails**: Add ESLint/custom rule to flag literal strings in `aria-*` props and missing `aria-hidden` on SVGs nested beside textual content.
+4. **Update design/system docs**: Publish the tooltip + aria-label patterns in the component guidelines so new work defaults to the accessible approach.

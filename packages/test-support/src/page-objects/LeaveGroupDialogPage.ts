@@ -2,6 +2,9 @@ import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
 import { DashboardPage } from './DashboardPage';
+import { translationEn } from '../translations/translation-en';
+
+const translation = translationEn;
 
 /**
  * Leave Group Dialog Page Object Model for Playwright tests
@@ -136,7 +139,7 @@ export class LeaveGroupDialogPage extends BasePage {
      */
     async clickConfirm(): Promise<void> {
         const button = this.getConfirmButton();
-        await this.clickButton(button, { buttonName: 'Confirm Leave' });
+        await this.clickButton(button, { buttonName: translation.membersList.leaveGroupDialog.confirmText });
     }
 
     /**

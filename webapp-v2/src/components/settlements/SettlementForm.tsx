@@ -8,7 +8,7 @@ import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
 import { amountToSmallestUnit, CreateSettlementRequest, getCurrencyDecimals, GroupMember, isZeroAmount, normalizeAmount, SettlementWithMembers, SimplifiedDebt, ZERO } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, CurrencyAmountInput, Form } from '../ui';
+import { Button, CurrencyAmountInput, Form, Tooltip } from '../ui';
 
 /**
  * Get the maximum allowed amount string for a given currency
@@ -318,11 +318,13 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                     <h2 id='settlement-form-title' class='text-xl font-semibold text-gray-900'>
                         {editMode ? t('settlementForm.updatePayment') : t('settlementForm.recordPayment')}
                     </h2>
-                    <button onClick={onClose} class='text-gray-400 hover:text-gray-500' aria-label={t('settlementForm.closeModal')}>
-                        <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <Tooltip content={t('settlementForm.closeModal')}>
+                        <button onClick={onClose} class='text-gray-400 hover:text-gray-500' aria-label={t('settlementForm.closeModal')}>
+                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                        </svg>
-                    </button>
+                            </svg>
+                        </button>
+                    </Tooltip>
                 </div>
 
                 <Form onSubmit={handleSubmit}>

@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { Tooltip } from './Tooltip';
 
 interface AlertProps {
     type: 'info' | 'success' | 'warning' | 'error';
@@ -86,19 +87,21 @@ export function Alert({ type, title, message, dismissible = false, onDismiss }: 
                     <p className='text-sm'>{message}</p>
                 </div>
                 {dismissible && (
-                    <button
-                        onClick={handleDismiss}
-                        className={`ml-4 ${styles.text} hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current`}
-                        aria-label={t('ui.alert.dismiss')}
-                    >
-                        <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 20 20'>
-                            <path
-                                fillRule='evenodd'
-                                d='M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z'
-                                clipRule='evenodd'
-                            />
-                        </svg>
-                    </button>
+                    <Tooltip content={t('ui.alert.dismiss')}>
+                        <button
+                            onClick={handleDismiss}
+                            className={`ml-4 ${styles.text} hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current`}
+                            aria-label={t('ui.alert.dismiss')}
+                        >
+                            <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
+                                <path
+                                    fillRule='evenodd'
+                                    d='M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z'
+                                    clipRule='evenodd'
+                                />
+                            </svg>
+                        </button>
+                    </Tooltip>
                 )}
             </div>
         </div>

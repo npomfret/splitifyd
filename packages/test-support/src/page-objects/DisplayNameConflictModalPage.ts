@@ -45,7 +45,7 @@ export class DisplayNameConflictModalPage extends BasePage {
     }
 
     private getCloseButton(): Locator {
-        return this.getModalContainer().getByLabel('Close');
+        return this.getModalContainer().getByLabel(translationEn.common.close);
     }
 
     private getValidationError(): Locator {
@@ -83,11 +83,11 @@ export class DisplayNameConflictModalPage extends BasePage {
     }
 
     async submit(): Promise<void> {
-        await this.clickButton(this.getSubmitButton(), { buttonName: 'Save display name' });
+        await this.clickButton(this.getSubmitButton(), { buttonName: translationEn.joinGroupPage.displayNameConflict.submit });
     }
 
     async clickCancel(): Promise<void> {
-        await this.clickButton(this.getCancelButton(), { buttonName: 'Cancel display name change' });
+        await this.clickButton(this.getCancelButton(), { buttonName: translationEn.joinGroupPage.displayNameConflict.cancel });
     }
 
     async clickClose(): Promise<void> {

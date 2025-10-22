@@ -3,7 +3,7 @@ import { signal } from '@preact/signals';
 import { CreateGroupRequest } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Form, Input } from '../ui';
+import { Button, Form, Input, Tooltip } from '../ui';
 import { logInfo } from '@/utils/browser-logger';
 
 interface CreateGroupModalProps {
@@ -125,16 +125,24 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     <h3 id='create-group-modal-title' class='text-lg font-semibold text-gray-900'>
                         {t('createGroupModal.title')}
                     </h3>
-                    <button onClick={() => {
-                        logInfo('[CreateGroupModal] Closing modal: X button clicked', {
-                            isSubmitting
-                        });
-                        onClose();
-                    }} class='text-gray-400 hover:text-gray-600 transition-colors' disabled={isSubmitting}>
-                        <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                        </svg>
-                    </button>
+                    <Tooltip content={t('createGroupModal.closeButtonAriaLabel')}>
+                        <button
+                            type='button'
+                            onClick={() => {
+                                logInfo('[CreateGroupModal] Closing modal: X button clicked', {
+                                    isSubmitting,
+                                });
+                                onClose();
+                            }}
+                            class='text-gray-400 hover:text-gray-600 transition-colors'
+                            disabled={isSubmitting}
+                            aria-label={t('createGroupModal.closeButtonAriaLabel')}
+                        >
+                            <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
+                            </svg>
+                        </button>
+                    </Tooltip>
                 </div>
 
                 {/* Modal Content */}

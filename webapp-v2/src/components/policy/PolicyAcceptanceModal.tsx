@@ -1,6 +1,5 @@
 import { apiClient, type PolicyAcceptanceStatusDTO } from '@/app/apiClient.ts';
-import { LoadingSpinner } from '@/components/ui';
-import { ErrorState } from '@/components/ui';
+import { ErrorState, LoadingSpinner, Tooltip } from '@/components/ui';
 import { logError } from '@/utils/browser-logger.ts';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -128,11 +127,13 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                         </p>
                     </div>
                     {onClose && (
-                        <button onClick={onClose} className='text-gray-400 hover:text-gray-600 transition-colors' aria-label={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}>
-                            <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                            </svg>
-                        </button>
+                        <Tooltip content={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}>
+                            <button onClick={onClose} className='text-gray-400 hover:text-gray-600 transition-colors' aria-label={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}>
+                                <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                                </svg>
+                            </button>
+                        </Tooltip>
                     )}
                 </div>
 

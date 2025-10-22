@@ -53,9 +53,9 @@ export function ExpenseActions({ expense, onEdit, onDelete, onShare, onCopy, dis
                     </Button>
                 </div>
 
-                <Button variant='secondary' onClick={onCopy} ariaLabel='Copy expense'>
+                <Button variant='secondary' onClick={onCopy} ariaLabel={t('expenseComponents.expenseActions.copyExpense')}>
                     <>
-                        <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path
                                 strokeLinecap='round'
                                 strokeLinejoin='round'
@@ -69,7 +69,7 @@ export function ExpenseActions({ expense, onEdit, onDelete, onShare, onCopy, dis
 
                 <Button variant='secondary' onClick={onShare}>
                     <>
-                        <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path
                                 strokeLinecap='round'
                                 strokeLinejoin='round'
@@ -83,7 +83,7 @@ export function ExpenseActions({ expense, onEdit, onDelete, onShare, onCopy, dis
 
                 <Button variant='danger' onClick={handleDeleteClick}>
                     <>
-                        <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path
                                 strokeLinecap='round'
                                 strokeLinejoin='round'

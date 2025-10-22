@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Button, Input, Tooltip } from '@/components/ui';
 
 interface DisplayNameConflictModalProps {
     isOpen: boolean;
@@ -137,17 +136,19 @@ export function DisplayNameConflictModal({
                             {t('joinGroupPage.displayNameConflict.description', { currentName, groupName })}
                         </p>
                     </div>
-                    <button
-                        type='button'
-                        class='text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-100'
-                        onClick={onCancel}
-                        aria-label={t('common.close')}
-                        disabled={loading}
-                    >
-                        <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                        </svg>
-                    </button>
+                    <Tooltip content={t('common.close')}>
+                        <button
+                            type='button'
+                            class='text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-100'
+                            onClick={onCancel}
+                            aria-label={t('common.close')}
+                            disabled={loading}
+                        >
+                            <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
+                            </svg>
+                        </button>
+                    </Tooltip>
                 </div>
 
                 <form onSubmit={handleSubmit} class='px-6 py-5 space-y-4'>

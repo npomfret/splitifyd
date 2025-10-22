@@ -13,5 +13,6 @@ export { LoadingState } from './LoadingState';
 export { Pagination } from './Pagination';
 export { SidebarCard } from './SidebarCard';
 export { Stack } from './Stack';
+export { Tooltip } from './Tooltip';
 export { TimeInput } from './TimeInput';
 export { WarningBanner } from './WarningBanner';

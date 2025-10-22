@@ -14,7 +14,7 @@ import {
 } from '@splitifyd/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Form, Input, LoadingSpinner } from '../ui';
+import { Button, Form, Input, LoadingSpinner, Tooltip } from '../ui';
 
 const PRESET_PERMISSIONS: Record<Exclude<SecurityPreset, 'custom'>, GroupPermissions> = {
     open: {
@@ -810,16 +810,18 @@ export function GroupSettingsModal({
                                 {t('groupSettingsModal.title')}
                             </h2>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className='text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100'
-                            aria-label={t('groupHeader.groupSettingsAriaLabel')}
-                            data-testid='close-group-settings-button'
-                        >
-                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                            </svg>
-                        </button>
+                        <Tooltip content={t('groupHeader.groupSettingsAriaLabel')}>
+                            <button
+                                onClick={onClose}
+                                className='text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100'
+                                aria-label={t('groupHeader.groupSettingsAriaLabel')}
+                                data-testid='close-group-settings-button'
+                            >
+                                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
+                                </svg>
+                            </button>
+                        </Tooltip>
                     </div>
 
                     {availableTabs.length > 1 && (

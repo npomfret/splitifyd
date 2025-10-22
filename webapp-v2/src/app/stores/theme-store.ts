@@ -17,10 +17,17 @@ interface ThemeActions {
 
 interface ThemeStore extends ThemeState, ThemeActions {}
 
+const prefersDarkScheme = (): boolean => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+        return false;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+};
+
 class ThemeStoreImpl implements ThemeStore {
     // Private signals - encapsulated within the class
     readonly #userThemesSignal = signal<Map<string, UserThemeColor>>(new Map());
-    readonly #isDarkModeSignal = signal<boolean>(typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)').matches : false);
+    readonly #isDarkModeSignal = signal<boolean>(prefersDarkScheme());
     readonly #currentUserThemeSignal = signal<UserThemeColor | null>(null);
 
     // State getters - readonly values for external consumers
@@ -43,12 +50,20 @@ class ThemeStoreImpl implements ThemeStore {
     }
 
     private initializeDarkModeListener() {
-        if (typeof window !== 'undefined') {
-            // Listen for system dark mode changes
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                this.#isDarkModeSignal.value = e.matches;
-                this.updateCSSVariables();
-            });
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+            return;
+        }
+
+        const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = (event: MediaQueryListEvent) => {
+            this.#isDarkModeSignal.value = event.matches;
+            this.updateCSSVariables();
+        };
+
+        if (typeof mediaQueryList.addEventListener === 'function') {
+            mediaQueryList.addEventListener('change', handleChange);
+        } else if (typeof mediaQueryList.addListener === 'function') {
+            mediaQueryList.addListener(handleChange);
         }
     }
 

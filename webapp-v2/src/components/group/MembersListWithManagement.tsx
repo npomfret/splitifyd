@@ -1,8 +1,7 @@
 import { apiClient } from '@/app/apiClient';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
-import { LoadingSpinner } from '@/components/ui';
-import { ConfirmDialog } from '@/components/ui';
+import { Avatar, Button, Card, ConfirmDialog, LoadingSpinner, Tooltip } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
 import { getGroupDisplayName } from '@/utils/displayName';
@@ -11,9 +10,6 @@ import { useComputed, useSignal } from '@preact/signals';
 import { GroupMember } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Avatar } from '../ui/Avatar';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
 
 interface MembersListWithManagementProps {
     groupId: string;
@@ -153,27 +149,34 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     </div>
                     {/* Show actions only if current user is owner */}
                     {isOwner && member.uid !== currentUserId
-                        ? (
-                            <Button
-                                variant='ghost'
-                                size='sm'
-                                onClick={() => {
-                                    memberToRemove.value = member;
-                                    showRemoveConfirm.value = true;
-                                }}
-                                disabled={memberHasOutstandingBalance(member.uid)}
-                                data-testid='remove-member-button'
-                            >
-                                <UserMinusIcon className='h-4 w-4' />
-                            </Button>
-                        )
+                        ? (() => {
+                            const removeMemberLabel = t('membersList.removeMemberAriaLabel', { name: getGroupDisplayName(member) });
+
+                            return (
+                                <Tooltip content={removeMemberLabel}>
+                                    <Button
+                                        variant='ghost'
+                                        size='sm'
+                                        onClick={() => {
+                                            memberToRemove.value = member;
+                                            showRemoveConfirm.value = true;
+                                        }}
+                                        disabled={memberHasOutstandingBalance(member.uid)}
+                                        data-testid='remove-member-button'
+                                        ariaLabel={removeMemberLabel}
+                                    >
+                                        <UserMinusIcon className='h-4 w-4' aria-hidden='true' />
+                                    </Button>
+                                </Tooltip>
+                            );
+                        })()
                         : null}
                 </div>
             ))}
             {onInviteClick && (
                 <Button variant='secondary' size='sm' onClick={onInviteClick} className='w-full'>
                     <>
-                        <UserPlusIcon className='h-4 w-4 mr-1' />
+                        <UserPlusIcon className='h-4 w-4 mr-1' aria-hidden='true' />
                         {t('membersList.inviteOthers')}
                     </>
                 </Button>

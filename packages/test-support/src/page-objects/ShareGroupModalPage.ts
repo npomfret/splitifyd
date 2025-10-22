@@ -159,7 +159,7 @@ export class ShareGroupModalPage extends BasePage {
      */
     async clickCopyLink(): Promise<void> {
         const button = this.getCopyLinkButton();
-        await this.clickButton(button, { buttonName: 'Copy Link' });
+        await this.clickButton(button, { buttonName: translation.shareGroupModal.copyLinkAriaLabel });
     }
 
     /**
@@ -167,7 +167,7 @@ export class ShareGroupModalPage extends BasePage {
      */
     async clickGenerateNewLink(): Promise<void> {
         const button = this.getGenerateNewLinkButton();
-        await this.clickButton(button, { buttonName: 'Generate New Link' });
+        await this.clickButton(button, { buttonName: translation.shareGroupModal.generateNew });
     }
 
     /**

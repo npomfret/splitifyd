@@ -131,6 +131,7 @@
     "groupDescriptionLabel": "Description (optional)",
     "groupDescriptionPlaceholder": "Add any details about this group...",
     "groupDescriptionHelpText": "Optional description to help members understand the group's purpose.",
+    "closeButtonAriaLabel": "Close modal",
     "cancelButton": "Cancel",
     "submitButton": "Create Group",
     "validation": {
@@ -993,7 +994,7 @@
     "inviteOthers": "Invite Others",
     "inviteOthersAriaLabel": "Invite Others",
     "leaveGroupAriaLabel": "Leave Group",
-    "removeMemberAriaLabel": "Remove {{name}}",
+    "removeMemberAriaLabel": "Remove member",
     "leaveGroupDialog": {
       "title": "Leave Group?",
       "messageWithBalance": "You have an outstanding balance in this group. Please settle up before leaving.",
@@ -1012,7 +1013,9 @@
   "shareGroupModal": {
     "title": "Invite Others",
     "description": "Share this link with anyone you want to join this group.",
+    "closeButtonAriaLabel": "Close modal",
     "copyLinkTitle": "Copy link",
+    "copyLinkAriaLabel": "Copy group invite link",
     "qrCodeDescription": "Or scan this code",
     "expiration": "Expiration: 1 day",
     "generateNew": "Generate New",
@@ -1263,6 +1266,7 @@
     "currencyAmountInput": {
       "selectCurrency": "Select currency",
       "searchPlaceholder": "Search by symbol, code, or country...",
+      "searchAriaLabel": "Search currencies",
       "loading": "Loading currencies...",
       "noCurrencies": "No currencies found",
       "recent": "Recent",

@@ -11,7 +11,7 @@ import type { SettlementWithMembers } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui/Avatar';
-import { ConfirmDialog, LoadingSpinner } from '../ui';
+import { ConfirmDialog, LoadingSpinner, Tooltip } from '../ui';
 
 interface SettlementHistoryProps {
     groupId: string;
@@ -192,25 +192,41 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
 
                                 {/* Action buttons */}
                                 <div class='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-auto'>
-                                    {onEditSettlement && (
-                                        <button
-                                            onClick={() => !settlement.isLocked && onEditSettlement(settlement)}
-                                            disabled={settlement.isLocked}
-                                            class='p-1 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-400'
-                                            title={settlement.isLocked ? t('settlementHistory.cannotEditTooltip') : t('settlementHistory.editPaymentTooltip')}
-                                            data-testid='edit-settlement-button'
-                                        >
-                                            <PencilIcon class='h-4 w-4' />
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={() => handleDeleteClick(settlement)}
-                                        class='p-1 text-gray-400 hover:text-red-600 transition-colors'
-                                        title={t('settlementHistory.deletePaymentTooltip')}
-                                        data-testid='delete-settlement-button'
-                                    >
-                                        <TrashIcon class='h-4 w-4' />
-                                    </button>
+                                    {onEditSettlement && (() => {
+                                        const editTooltip = settlement.isLocked ? t('settlementHistory.cannotEditTooltip') : t('settlementHistory.editPaymentTooltip');
+
+                                        return (
+                                            <Tooltip content={editTooltip}>
+                                                <button
+                                                    type='button'
+                                                    onClick={() => !settlement.isLocked && onEditSettlement(settlement)}
+                                                    disabled={settlement.isLocked}
+                                                    class='p-1 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-400'
+                                                    aria-label={editTooltip}
+                                                    data-testid='edit-settlement-button'
+                                                >
+                                                    <PencilIcon class='h-4 w-4' aria-hidden='true' />
+                                                </button>
+                                            </Tooltip>
+                                        );
+                                    })()}
+                                    {(() => {
+                                        const deleteTooltip = t('settlementHistory.deletePaymentTooltip');
+
+                                        return (
+                                            <Tooltip content={deleteTooltip}>
+                                                <button
+                                                    type='button'
+                                                    onClick={() => handleDeleteClick(settlement)}
+                                                    class='p-1 text-gray-400 hover:text-red-600 transition-colors'
+                                                    aria-label={deleteTooltip}
+                                                    data-testid='delete-settlement-button'
+                                                >
+                                                    <TrashIcon class='h-4 w-4' aria-hidden='true' />
+                                                </button>
+                                            </Tooltip>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 

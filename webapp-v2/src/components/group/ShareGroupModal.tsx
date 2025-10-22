@@ -1,5 +1,6 @@
 import { apiClient } from '@/app/apiClient.ts';
 import { logError } from '@/utils/browser-logger.ts';
+import { Tooltip } from '@/components/ui';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
@@ -158,7 +159,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                         <div class='flex items-center justify-between'>
                             <div class='flex flex-col space-y-1'>
                                 <div class='flex items-center space-x-2'>
-                                    <svg class='w-5 h-5 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                    <svg class='w-5 h-5 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                         <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' />
                                     </svg>
                                     <h3 id='share-modal-title' class='text-lg font-semibold text-gray-900'>
@@ -171,11 +172,19 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                     </p>
                                 )}
                             </div>
-                            <button onClick={onClose} class='text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-100' data-testid='close-share-modal-button'>
-                                <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                                </svg>
-                            </button>
+                            <Tooltip content={t('shareGroupModal.closeButtonAriaLabel')}>
+                                <button
+                                    type='button'
+                                    onClick={onClose}
+                                    class='text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-100'
+                                    data-testid='close-share-modal-button'
+                                    aria-label={t('shareGroupModal.closeButtonAriaLabel')}
+                                >
+                                    <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
+                                    </svg>
+                                </button>
+                            </Tooltip>
                         </div>
                     </div>
 
@@ -210,29 +219,32 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                         onClick={(e) => (e.target as HTMLInputElement).select()}
                                         data-testid='share-link-input'
                                     />
-                                    <button
-                                        onClick={copyToClipboard}
-                                        class='absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-all duration-200'
-                                        title={t('shareGroupModal.copyLinkTitle')}
-                                        data-testid='copy-link-button'
-                                    >
-                                        {copied
-                                            ? (
-                                                <svg class='w-5 h-5 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />
-                                                </svg>
-                                            )
-                                            : (
-                                                <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                                    <path
-                                                        stroke-linecap='round'
-                                                        stroke-linejoin='round'
-                                                        stroke-width='2'
-                                                        d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
-                                                    />
-                                                </svg>
-                                            )}
-                                    </button>
+                                    <Tooltip content={copied ? t('shareGroupModal.linkCopied') : t('shareGroupModal.copyLinkTitle')}>
+                                        <button
+                                            type='button'
+                                            onClick={copyToClipboard}
+                                            class='absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-all duration-200'
+                                            data-testid='copy-link-button'
+                                            aria-label={t('shareGroupModal.copyLinkAriaLabel')}
+                                        >
+                                            {copied
+                                                ? (
+                                                    <svg class='w-5 h-5 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />
+                                                    </svg>
+                                                )
+                                                : (
+                                                    <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                                        <path
+                                                            stroke-linecap='round'
+                                                            stroke-linejoin='round'
+                                                            stroke-width='2'
+                                                            d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
+                                                        />
+                                                    </svg>
+                                                )}
+                                        </button>
+                                    </Tooltip>
                                 </div>
 
                                 {/* QR Code section */}

@@ -6,7 +6,7 @@ import { ExpenseDTO, GroupMember } from '@splitifyd/shared';
 import { DELETED_AT_FIELD } from '@splitifyd/shared';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Avatar } from '../ui/Avatar';
+import { Avatar, Tooltip } from '../ui';
 
 interface ExpenseItemProps {
     expense: ExpenseDTO;
@@ -98,21 +98,22 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
                     {/* Copy button - only show if not deleted and onCopy is provided */}
                     {!isDeleted && onCopy && (
-                        <button
-                            onClick={handleCopyClick}
-                            className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-200 rounded text-gray-600 hover:text-gray-800'
-                            title={t('expenseItem.copyExpense')}
-                            aria-label={t('expenseItem.copyExpense')}
-                        >
-                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                    strokeWidth={2}
-                                    d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
-                                />
-                            </svg>
-                        </button>
+                        <Tooltip content={t('expenseItem.copyExpense')}>
+                            <button
+                                onClick={handleCopyClick}
+                                className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-200 rounded text-gray-600 hover:text-gray-800'
+                                aria-label={t('expenseItem.copyExpense')}
+                            >
+                                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                    <path
+                                        strokeLinecap='round'
+                                        strokeLinejoin='round'
+                                        strokeWidth={2}
+                                        d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
+                                    />
+                                </svg>
+                            </button>
+                        </Tooltip>
                     )}
                 </div>
             </div>

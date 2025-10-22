@@ -14,6 +14,7 @@ interface ButtonProps {
     id?: string;
     ariaLabel?: string;
     'data-testid'?: string;
+    'aria-describedby'?: string;
 }
 
 export function Button({
@@ -29,6 +30,7 @@ export function Button({
     id,
     ariaLabel,
     'data-testid': dataTestId,
+    'aria-describedby': ariaDescribedBy,
 }: ButtonProps) {
     const isDisabled = disabled || loading;
 
@@ -91,7 +93,18 @@ export function Button({
     const buttonClasses = [...baseClasses, sizeClasses[size], ...variantClasses[variant], className].filter(Boolean).join(' ');
 
     return (
-        <button id={id} type={type} onClick={handleClick} disabled={isDisabled} className={buttonClasses} aria-label={ariaLabel} aria-busy={loading} data-testid={dataTestId} data-logged='true'>
+        <button
+            id={id}
+            type={type}
+            onClick={handleClick}
+            disabled={isDisabled}
+            className={buttonClasses}
+            aria-label={ariaLabel}
+            aria-busy={loading}
+            aria-describedby={ariaDescribedBy}
+            data-testid={dataTestId}
+            data-logged='true'
+        >
             {loading && (
                 <svg className='animate-spin -ml-1 mr-2 h-4 w-4' fill='none' viewBox='0 0 24 24'>
                     <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />

@@ -2,8 +2,7 @@ import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 import { CogIcon } from '@heroicons/react/24/outline';
 import { GroupDTO, GroupMember } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
+import { Button, Card, Tooltip } from '../ui';
 
 interface GroupHeaderProps {
     group: GroupDTO;
@@ -24,16 +23,18 @@ export function GroupHeader({ group, members, expenseCount = 0, onSettings, show
                 </div>
                 <div className='flex gap-2'>
                     {showSettingsButton && onSettings && (
-                        <Button
-                            variant='ghost'
-                            size='sm'
-                            onClick={onSettings}
-                            className='p-2'
-                            ariaLabel={t('groupHeader.groupSettingsAriaLabel')}
-                            data-testid='group-settings-button'
-                        >
-                            <CogIcon className='h-5 w-5' />
-                        </Button>
+                        <Tooltip content={t('groupHeader.groupSettingsAriaLabel')}>
+                            <Button
+                                variant='ghost'
+                                size='sm'
+                                onClick={onSettings}
+                                className='p-2'
+                                ariaLabel={t('groupHeader.groupSettingsAriaLabel')}
+                                data-testid='group-settings-button'
+                            >
+                                <CogIcon className='h-5 w-5' aria-hidden='true' />
+                            </Button>
+                        </Tooltip>
                     )}
                 </div>
             </div>

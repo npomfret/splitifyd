@@ -1141,7 +1141,7 @@ export class GroupDetailPage extends BasePage {
         await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await expect(button).toBeDisabled();
         if (expectedTooltip) {
-            await expect(button).toHaveAttribute('title', expectedTooltip);
+            await expect(button).toHaveAttribute('aria-label', expectedTooltip);
         }
     }
 
@@ -1153,7 +1153,7 @@ export class GroupDetailPage extends BasePage {
         await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await expect(button).toBeEnabled();
         if (expectedTooltip) {
-            await expect(button).toHaveAttribute('title', expectedTooltip);
+            await expect(button).toHaveAttribute('aria-label', expectedTooltip);
         }
     }
 
@@ -1419,7 +1419,7 @@ export class GroupDetailPage extends BasePage {
      */
     async clickShareGroup(): Promise<void> {
         const button = this.getShareGroupButton();
-        await this.clickButton(button, { buttonName: 'Share Group' });
+        await this.clickButton(button, { buttonName: translation.groupActions.inviteOthers });
     }
 
     /**
