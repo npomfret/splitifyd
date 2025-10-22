@@ -124,6 +124,14 @@ This provides a cleaner UI for the common single-currency case while ensuring cl
 - All unit and E2E tests that assert currency strings will need to be updated.
 - A thorough visual review of all 12+ affected components is required to check for layout issues due to the longer currency string.
 
+## Evaluation Notes
+
+- Verified the regression in `webapp-v2/src/components/dashboard/GroupCard.tsx`: the helper currently returns a single `{text,color}` tuple derived from the first non-zero balance. Refactoring will require restructuring this block (and the JSX) to support rendering a list of balances with per-entry styling, plus new i18n strings for the pluralised cases (`youAreOwed`/`youOwe`) so we can avoid reusing the badge copy in a loop.
+- Adding `currencyCode` to every `formatCurrency` result is directionally correct, but we should guard against double-labeling in views that already print the ISO code alongside `formatCurrency` (e.g. headers in `BalanceSummary`). Consider either adding an `includeCode` option that defaults to `true` or introducing a lightweight formatter helper for contexts that need symbol-only output (invoice PDFs, CSV exports, etc.).
+- When reworking `GroupCard`, remember that balances can mix positive and negative values; UX should make it obvious which amounts are owed vs. owing, potentially by separating “owed to you” and “you owe” groupings rather than a single flat list.
+- Before rolling out the formatter change, inventory the 30+ call-sites for visual regressions (truncation in narrow layouts, tooltip copy, notification strings). Several components right-align amounts (`tabular-nums`); plan to validate responsive breakpoints once the extra code suffix is present.
+- Tests that snapshot strings (Vitest, RTL, Playwright) will need coordinated updates. Capture this in the implementation checklist so we do not miss `ExpenseItem` and dashboard snapshot expectations.
+
 ## Testing Requirements
 
 ### Unit Tests
