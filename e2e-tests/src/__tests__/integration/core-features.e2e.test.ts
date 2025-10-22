@@ -497,8 +497,6 @@ simpleTest.describe('Group Comments - Real-time Communication', () => {
     simpleTest('should support real-time group-level comments between multiple users', async ({ createLoggedInBrowsers }, testInfo) => {
         const [{ dashboardPage: aliceDashboardPage }, { dashboardPage: bobDashboardPage }] = await createLoggedInBrowsers(2);
 
-        testInfo.setTimeout(20000); // 20 seconds for multi-user test
-
         // Create a group with Alice as owner and Bob as member
         const [aliceGroupDetailPage, bobGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), bobDashboardPage);
 

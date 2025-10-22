@@ -215,10 +215,10 @@ export function calculatePercentageSplits(
 
     // Convert to smallest currency unit (integer arithmetic to avoid floating point errors)
     const totalUnits = amountToSmallestUnit(normalizedTotal, currencyCode);
+    if (totalUnits === 0) {
+        return [];
+    }
     const numParticipants = participantIds.length;
-
-    // Calculate base percentage
-    const basePercentage = 100 / numParticipants;
 
     // Calculate base split in smallest units (integer division)
     const baseUnits = Math.floor(totalUnits / numParticipants);
@@ -230,18 +230,53 @@ export function calculatePercentageSplits(
     const recipientIndex = seed % numParticipants;
 
     // Calculate splits: distribute base + remainder to designated participant
-    const splits: ExpenseSplit[] = participantIds.map((uid, index) => {
+    const splitsWithUnits = participantIds.map((uid, index) => {
         const getsRemainder = index === recipientIndex;
         const amountUnits = baseUnits + (getsRemainder ? remainder : 0);
-        const percentage = getsRemainder ? 100 - basePercentage * (numParticipants - 1) : basePercentage;
         return {
             uid,
-            percentage,
+            amountUnits,
             amount: smallestUnitToAmountString(amountUnits, currencyCode),
         };
     });
 
-    return splits;
+    // Calculate ideal percentages based on share of total units
+    const idealPercentages = splitsWithUnits.map((split) => (split.amountUnits / totalUnits) * 100);
+    const basePercentages = idealPercentages.map((value) => Math.floor(value));
+    const assignedPercentage = basePercentages.reduce((sum, value) => sum + value, 0);
+    let remainingPercentage = 100 - assignedPercentage;
+    if (remainingPercentage < 0) {
+        remainingPercentage = 0;
+    }
+
+    const percentageAdjustments = new Array(numParticipants).fill(0);
+
+    if (remainingPercentage > 0) {
+        const fractionalOrder = idealPercentages
+            .map((value, index) => ({
+                index,
+                fraction: value - basePercentages[index],
+            }))
+            .sort((a, b) => {
+                if (b.fraction !== a.fraction) {
+                    return b.fraction - a.fraction;
+                }
+                const offsetA = (a.index - recipientIndex + numParticipants) % numParticipants;
+                const offsetB = (b.index - recipientIndex + numParticipants) % numParticipants;
+                return offsetA - offsetB;
+            });
+
+        for (let i = 0; i < remainingPercentage && i < fractionalOrder.length; i += 1) {
+            const targetIndex = fractionalOrder[i].index;
+            percentageAdjustments[targetIndex] += 1;
+        }
+    }
+
+    return splitsWithUnits.map((split, index) => ({
+        uid: split.uid,
+        percentage: basePercentages[index] + percentageAdjustments[index],
+        amount: split.amount,
+    }));
 }
 
 /**

@@ -298,10 +298,14 @@ describe('Split Utils', () => {
 
                 // Each gets ~33.33%, amounts add up to 90
                 expect(splits).toHaveLength(3);
-                expect(splits[0].percentage).toBeCloseTo(33.33, 1);
-                expect(splits[1].percentage).toBeCloseTo(33.33, 1);
-                // Last participant percentage is calculated from actual remainder amount
-                expect(splits[2].percentage).toBeCloseTo(33.33, 1);
+                const percentages = splits.map((split) => split.percentage!);
+                percentages.forEach((percentage) => {
+                    expect(Number.isInteger(percentage)).toBe(true);
+                });
+                expect(percentages.reduce((sum, percentage) => sum + percentage, 0)).toBe(100);
+                const maxPercentage = Math.max(...percentages);
+                const minPercentage = Math.min(...percentages);
+                expect(maxPercentage - minPercentage).toBeLessThanOrEqual(1);
 
                 expect(splits[0].amount).toBe('30.00');
                 expect(splits[1].amount).toBe('30.00');
@@ -316,6 +320,14 @@ describe('Split Utils', () => {
 
                 // 100 / 3 = 33.333...%
                 expect(splits).toHaveLength(3);
+                const percentages = splits.map((split) => split.percentage!);
+                percentages.forEach((percentage) => {
+                    expect(Number.isInteger(percentage)).toBe(true);
+                });
+                expect(percentages.reduce((sum, percentage) => sum + percentage, 0)).toBe(100);
+                const maxPercentage = Math.max(...percentages);
+                const minPercentage = Math.min(...percentages);
+                expect(maxPercentage - minPercentage).toBeLessThanOrEqual(1);
 
                 // Amounts should be rounded and total should equal 100
                 const totalAmount = splits.reduce((sum, s) => sum + Number(s.amount), 0);
@@ -338,6 +350,9 @@ describe('Split Utils', () => {
 
                     // Percentages must sum to EXACTLY 100, not 100.0066 or similar
                     expect(totalPercentage).toBe(100);
+                    splits.forEach((split) => {
+                        expect(Number.isInteger(split.percentage)).toBe(true);
+                    });
                 });
             });
         });
@@ -406,8 +421,9 @@ describe('Split Utils', () => {
             it('should accept zero as rotationSeed', () => {
                 const splits = calculatePercentageSplits(100, 'USD', ['user1', 'user2', 'user3'], 0);
                 expect(splits[0].amount).toBe('33.34'); // First gets remainder
-                // Percentage is still 100/3 even though amount is 33.34 due to rounding
-                expect(splits[0].percentage).toBeCloseTo(33.33, 2);
+                expect(splits[0].percentage).toBe(34);
+                expect(splits[1].percentage).toBe(33);
+                expect(splits[2].percentage).toBe(33);
             });
         });
     });
@@ -518,6 +534,9 @@ describe('Split Utils', () => {
                     // Verify percentages sum to exactly 100%
                     const totalPercentage = splits.reduce((sum, split) => split.percentage! + sum, 0);
                     expect(totalPercentage).toBe(100);
+                    splits.forEach((split) => {
+                        expect(Number.isInteger(split.percentage)).toBe(true);
+                    });
 
                     // Verify no split has more precision than currency allows
                     splits.forEach((split) => {
