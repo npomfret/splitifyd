@@ -423,9 +423,9 @@ export class GroupDetailPage extends BasePage {
      */
     getMemberCards(): Locator {
         // Members have data-testid="member-item" attribute
-        // The members list is in a div.space-y-3 container within the Members section
+        // The members list is in a div.space-y-0.5 container within the Members section (updated for compact design)
         // Use .first() to get only the sidebar version (not the mobile duplicate)
-        return this.getMembersContainer().locator('.space-y-3').first().locator('[data-testid="member-item"]');
+        return this.getMembersContainer().locator('.space-y-0\\.5').first().locator('[data-testid="member-item"]');
     }
 
     /**
@@ -433,7 +433,7 @@ export class GroupDetailPage extends BasePage {
      * Uses .first() to get only the sidebar version (not the mobile duplicate)
      */
     getMemberCard(memberName: string): Locator {
-        return this.getMembersContainer().locator('.space-y-3').first().getByText(memberName, { exact: false });
+        return this.getMembersContainer().locator('.space-y-0\\.5').first().getByText(memberName, { exact: false });
     }
 
     /**

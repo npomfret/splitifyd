@@ -71,7 +71,8 @@ export class ApiDriver {
             await this.apiRequest('/register', 'POST', userRegistration);
         } catch (error) {
             // Ignore "already exists" errors
-            if (!(error instanceof Error && error.message.includes('EMAIL_EXISTS'))) {
+            const isAlreadyExistsError = error instanceof Error && (error.message.includes('EMAIL_EXISTS') || error.message.includes('AUTH_EMAIL_ALREADY_EXISTS'));
+            if (!isAlreadyExistsError) {
                 throw error;
             }
         }

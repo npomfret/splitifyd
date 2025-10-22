@@ -1,7 +1,7 @@
 export interface AvatarProps {
     displayName: string;
     userId: string;
-    size?: 'sm' | 'md' | 'lg';
+    size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 // Generate initials from display name
@@ -17,6 +17,8 @@ export function getInitials(displayName: string): string {
 // Get size classes for avatars
 export function getAvatarSize(size: AvatarProps['size'] = 'md'): { container: string; text: string; } {
     switch (size) {
+        case 'xs':
+            return { container: 'w-5 h-5', text: 'text-[10px]' };
         case 'sm':
             return { container: 'w-6 h-6', text: 'text-xs' };
         case 'lg':

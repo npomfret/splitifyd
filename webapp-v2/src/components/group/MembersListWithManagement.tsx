@@ -1,15 +1,15 @@
-import { apiClient } from '@/app/apiClient';
-import { useAuthRequired } from '@/app/hooks/useAuthRequired';
-import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
-import { Avatar, Button, Card, ConfirmDialog, LoadingSpinner, Tooltip } from '@/components/ui';
-import { navigationService } from '@/services/navigation.service';
-import { logError } from '@/utils/browser-logger';
-import { getGroupDisplayName } from '@/utils/displayName';
-import { UserMinusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
-import { useComputed, useSignal } from '@preact/signals';
-import { GroupMember } from '@splitifyd/shared';
-import { useEffect } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
+import {apiClient} from '@/app/apiClient';
+import {useAuthRequired} from '@/app/hooks/useAuthRequired';
+import {enhancedGroupDetailStore} from '@/app/stores/group-detail-store-enhanced';
+import {Avatar, Button, Card, ConfirmDialog, LoadingSpinner, Tooltip} from '@/components/ui';
+import {navigationService} from '@/services/navigation.service';
+import {logError} from '@/utils/browser-logger';
+import {getGroupDisplayName} from '@/utils/displayName';
+import {UserMinusIcon, UserPlusIcon} from '@heroicons/react/24/outline';
+import {useComputed, useSignal} from '@preact/signals';
+import {GroupMember} from '@splitifyd/shared';
+import {useEffect} from 'preact/hooks';
+import {useTranslation} from 'react-i18next';
 
 interface MembersListWithManagementProps {
     groupId: string;
@@ -19,8 +19,8 @@ interface MembersListWithManagementProps {
     onLeaveGroupClick?: () => void;
 }
 
-export function MembersListWithManagement({ groupId, variant = 'default', onInviteClick, onMemberChange, onLeaveGroupClick }: MembersListWithManagementProps) {
-    const { t } = useTranslation();
+export function MembersListWithManagement({groupId, variant = 'default', onInviteClick, onMemberChange, onLeaveGroupClick}: MembersListWithManagementProps) {
+    const {t} = useTranslation();
     const showLeaveConfirm = useSignal(false);
     const showRemoveConfirm = useSignal(false);
     const memberToRemove = useSignal<GroupMember | null>(null);
@@ -131,73 +131,79 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
     if (loading.value) {
         return (
             <Card className='p-6'>
-                <LoadingSpinner />
+                <LoadingSpinner/>
             </Card>
         );
     }
 
     const membersList = (
-        <div className='space-y-3'>
-            {members.value.map((member) => (
-                <div
-                    key={member.uid}
-                    className='flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50'
-                    data-testid='member-item'
-                    data-member-name={getGroupDisplayName(member)}
-                    data-member-id={member.uid}
-                >
-                    <div className='flex items-center gap-3'>
-                        <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
-                        <div className='flex flex-col'>
-                            <span className='font-medium text-gray-900 text-sm'>
-                                {getGroupDisplayName(member)}
-                                {member.uid === currentUserId && <span className='text-gray-500 ml-1'>({t('common.you')})</span>}
-                            </span>
-                            {getMemberRole(member) && <span className='text-xs text-gray-500'>{getMemberRole(member)}</span>}
-                        </div>
-                    </div>
-                    {/* Show actions only if current user is owner */}
-                    {isOwner && member.uid !== currentUserId
-                        ? (() => {
-                            const removeMemberLabel = t('membersList.removeMemberAriaLabel', { name: getGroupDisplayName(member) });
+        <>
+            <div className='space-y-0.5 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400'>
+                {members.value.map((member) => {
+                    const memberTheme = member.themeColor;
+                    return (
+                        <div
+                            key={member.uid}
+                            className='flex items-center justify-between py-1.5 px-1.5 rounded-md hover:bg-gray-50 transition-colors'
+                            data-testid='member-item'
+                            data-member-name={getGroupDisplayName(member)}
+                            data-member-id={member.uid}
+                        >
+                            <div className='flex items-center gap-2 min-w-0 flex-1'>
+                                <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' themeColor={memberTheme}/>
+                                <div className='flex flex-col min-w-0 flex-1'>
+                                    <span className='font-medium text-gray-900 text-sm truncate leading-tight'>
+                                        {getGroupDisplayName(member)}
+                                        {member.uid === currentUserId && <span className='text-gray-500 ml-1'>({t('common.you')})</span>}
+                                    </span>
+                                    {getMemberRole(member) && <span className='text-xs text-gray-500 leading-tight'>{getMemberRole(member)}</span>}
+                                </div>
+                            </div>
+                            {/* Show actions only if current user is owner */}
+                            {isOwner && member.uid !== currentUserId
+                                ? (() => {
+                                    const removeMemberLabel = t('membersList.removeMemberAriaLabel', {name: getGroupDisplayName(member)});
 
-                            return (
-                                <Tooltip content={removeMemberLabel}>
-                                    <Button
-                                        variant='ghost'
-                                        size='sm'
-                                        onClick={() => {
-                                            memberToRemove.value = member;
-                                            showRemoveConfirm.value = true;
-                                        }}
-                                        disabled={memberHasOutstandingBalance(member.uid)}
-                                        data-testid='remove-member-button'
-                                        ariaLabel={removeMemberLabel}
-                                    >
-                                        <UserMinusIcon className='h-4 w-4' aria-hidden='true' />
-                                    </Button>
-                                </Tooltip>
-                            );
-                        })()
-                        : null}
-                </div>
-            ))}
+                                    return (
+                                        <Tooltip content={removeMemberLabel}>
+                                            <Button
+                                                variant='ghost'
+                                                size='sm'
+                                                onClick={() => {
+                                                    memberToRemove.value = member;
+                                                    showRemoveConfirm.value = true;
+                                                }}
+                                                disabled={memberHasOutstandingBalance(member.uid)}
+                                                data-testid='remove-member-button'
+                                                ariaLabel={removeMemberLabel}
+                                                className='flex-shrink-0'
+                                            >
+                                                <UserMinusIcon className='h-4 w-4' aria-hidden='true'/>
+                                            </Button>
+                                        </Tooltip>
+                                    );
+                                })()
+                                : null}
+                        </div>
+                    );
+                })}
+            </div>
             {onInviteClick && (
-                <Button variant='secondary' size='sm' onClick={onInviteClick} className='w-full'>
+                <Button variant='secondary' size='sm' onClick={onInviteClick} className='w-full mt-2'>
                     <>
-                        <UserPlusIcon className='h-4 w-4 mr-1' aria-hidden='true' />
-                        {t('membersList.inviteOthers')}
+                        <UserPlusIcon className='h-4 w-4 mr-1.5' aria-hidden='true'/>
+                        <span className='text-sm'>{t('membersList.inviteOthers')}</span>
                     </>
                 </Button>
             )}
-        </div>
+        </>
     );
 
     const content = variant === 'sidebar'
         ? (
-            <div className='border rounded-lg bg-white p-4 space-y-4'>
-                <div className='flex justify-between items-center'>
-                    <h3 className='font-semibold text-gray-900'>{t('membersList.title')}</h3>
+            <div className='border rounded-lg bg-white p-3'>
+                <div className='flex justify-between items-center mb-2'>
+                    <h3 className='font-semibold text-gray-900 text-sm'>{t('membersList.title')}</h3>
                 </div>
                 {membersList}
             </div>
@@ -240,8 +246,8 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                 title={t('membersList.removeMemberDialog.title')}
                 message={memberToRemove.value
                     ? (memberHasOutstandingBalance(memberToRemove.value.uid)
-                        ? t('membersList.removeMemberDialog.messageWithBalance', { name: getGroupDisplayName(memberToRemove.value) })
-                        : t('membersList.removeMemberDialog.messageConfirm', { name: getGroupDisplayName(memberToRemove.value) }))
+                        ? t('membersList.removeMemberDialog.messageWithBalance', {name: getGroupDisplayName(memberToRemove.value)})
+                        : t('membersList.removeMemberDialog.messageConfirm', {name: getGroupDisplayName(memberToRemove.value)}))
                     : ''}
                 confirmText={memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid) ? t('common.understood') : t('membersList.removeMemberDialog.confirmText')}
                 cancelText={t('membersList.leaveGroupDialog.cancelText')}

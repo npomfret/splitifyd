@@ -1,6 +1,6 @@
 import { SidebarCard } from '@/components/ui';
 import { Stack } from '@/components/ui';
-import { ArrowLeftStartOnRectangleIcon, CogIcon, CreditCardIcon, PlusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftStartOnRectangleIcon, BanknotesIcon, CogIcon, PlusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 
@@ -36,7 +36,7 @@ export function GroupActions({
             </Button>
             <Button variant='primary' onClick={onSettleUp} className={variant === 'vertical' ? 'w-full' : ''} data-testid='settle-up-button'>
                 <>
-                    <CreditCardIcon className='h-4 w-4 mr-2' />
+                    <BanknotesIcon className='h-4 w-4 mr-2' />
                     {t('groupActions.settleUp')}
                 </>
             </Button>
