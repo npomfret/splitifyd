@@ -1,4 +1,4 @@
-import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId } from '@splitifyd/test-support';
+import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId, JoinGroupPage } from '@splitifyd/test-support';
 import { DashboardPage as E2EDashboardPage } from '../../pages/dashboard.page';
 import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
 import { expect, simpleTest } from '../../fixtures';
@@ -435,6 +435,81 @@ simpleTest.describe('Group Settings & Management', () => {
         // Verify both can see the group name
         await ownerGroupDetailPage.verifyGroupNameText(groupName);
         await memberGroupDetailPage.verifyGroupNameText(groupName);
+    });
+
+    simpleTest('admins can approve and reject pending members from the security settings modal', async ({ createLoggedInBrowsers }) => {
+        const [
+            { dashboardPage: ownerDashboardPage },
+            { dashboardPage: approverDashboardPage, user: approverUser },
+            { dashboardPage: rejectDashboardPage, user: rejectUser },
+        ] = await createLoggedInBrowsers(3);
+
+        const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate();
+        const groupName = await ownerGroupDetailPage.getGroupNameText();
+        const groupId = ownerGroupDetailPage.inferGroupId();
+
+        // Owner switches the group to the managed preset so that admin approval is required
+        let settingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
+        await settingsModal.selectPreset('managed');
+        await expect(settingsModal.getSecurityUnsavedBanner()).toBeVisible();
+        await settingsModal.saveSecuritySettings();
+        await expect(settingsModal.getSecuritySuccessAlert()).toBeVisible();
+        await settingsModal.clickFooterClose();
+
+        // Share the invite link with other members
+        const shareModal = await ownerGroupDetailPage.clickShareGroupAndOpenModal();
+        await shareModal.waitForShareLink();
+        const shareLink = await shareModal.getShareLink();
+        await shareModal.closeModal();
+
+        // First additional user joins and waits for approval
+        const approverJoinPage = new JoinGroupPage(approverDashboardPage.page);
+        await approverJoinPage.navigateToShareLink(shareLink);
+        await approverJoinPage.verifyJoinGroupHeadingVisible();
+        await approverJoinPage.verifyJoinButtonEnabled();
+        await approverJoinPage.clickJoinGroupButton();
+        await approverJoinPage.verifyPendingApprovalAlertVisible(groupName);
+        await approverJoinPage.verifyJoinButtonDisabled();
+
+        // Owner reviews pending list and approves the user
+        settingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
+        await settingsModal.waitForPendingMember(approverUser.uid);
+        await settingsModal.approvePendingMember(approverUser.uid); // This waits for button to disappear
+        await expect(settingsModal.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
+        await settingsModal.clickFooterClose();
+
+        // Approved user can now see the group on their dashboard
+        await approverDashboardPage.navigate();
+        await approverDashboardPage.waitForGroupToAppear(groupName);
+
+        // Second additional user requests to join and gets rejected
+        const rejectJoinPage = new JoinGroupPage(rejectDashboardPage.page);
+        await rejectJoinPage.navigateToShareLink(shareLink);
+        await rejectJoinPage.verifyJoinGroupHeadingVisible();
+        await rejectJoinPage.verifyJoinButtonEnabled();
+        await rejectJoinPage.clickJoinGroupButton();
+        await rejectJoinPage.verifyPendingApprovalAlertVisible(groupName);
+        await rejectJoinPage.verifyJoinButtonDisabled();
+
+        settingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
+        await settingsModal.waitForPendingMember(rejectUser.uid);
+        await settingsModal.rejectPendingMember(rejectUser.uid); // This waits for button to disappear
+        await expect(settingsModal.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
+        await settingsModal.clickFooterClose();
+
+        // Rejected user can attempt to join again (no longer pending) and sees enabled join button
+        await rejectJoinPage.navigateToShareLink(shareLink);
+        await rejectJoinPage.verifyJoinButtonEnabled();
+
+        // Owner confirms approved user is listed as admin and group remains accessible
+        const refreshedSettingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
+        await refreshedSettingsModal.waitForSecurityTab();
+        await expect(refreshedSettingsModal.getPendingApproveButton(approverUser.uid)).toHaveCount(0);
+        await refreshedSettingsModal.clickFooterClose();
+
+        await approverDashboardPage.navigate();
+        const approverGroupDetailPage = await approverDashboardPage.clickGroupCardAndNavigateToDetail(groupName);
+        await approverGroupDetailPage.waitForPage(groupId, 2);
     });
 });
 

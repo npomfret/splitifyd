@@ -12,7 +12,7 @@ export const TEST_TIMEOUTS = {
     INPUT_UPDATE: 1000, // Reduced from 3000ms - mocks respond instantly
 
     /** Modal/dialog open/close animations and visibility */
-    MODAL_TRANSITION: 500, // Reduced from 2000ms - CSS transitions are fast
+    MODAL_TRANSITION: 1000, // Slightly higher to account for dashboard refresh work
 
     /** API response timeout - waiting for mocked API responses */
     API_RESPONSE: 1000, // Reduced from 3000ms - mocked APIs are instant

@@ -395,10 +395,17 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     async clickFooterClose(): Promise<void> {
-        if (await this.getFooterCloseButton().count()) {
-            await this.getFooterCloseButton().click();
-        } else {
-            await this.clickClose();
+        // Wait for either the footer close button or the X close button to be visible
+        const footerCloseButton = this.getFooterCloseButton();
+        const xCloseButton = this.getCloseButton();
+
+        // Try footer close button first (preferred), fall back to X button
+        try {
+            await expect(footerCloseButton).toBeVisible({ timeout: 2000 });
+            await footerCloseButton.click();
+        } catch {
+            await expect(xCloseButton).toBeVisible({ timeout: 2000 });
+            await xCloseButton.click();
         }
     }
 
@@ -468,6 +475,17 @@ export class GroupSettingsModalPage extends BasePage {
         await this.ensureSecurityTab();
     }
 
+    async waitForPendingMember(memberId: string, timeout: number = 15000): Promise<void> {
+        // Use toPass() to retry both ensuring the tab and waiting for the button
+        // This handles race conditions where the tab might not be fully loaded or
+        // the pending member data hasn't been fetched yet
+        await expect(async () => {
+            await this.ensureSecurityTab();
+            const button = this.getPendingApproveButton(memberId);
+            await expect(button).toBeVisible({ timeout: 2000 });
+        }).toPass({ timeout });
+    }
+
     async selectPreset(preset: string): Promise<void> {
         await this.ensureSecurityTab();
         await this.getPresetButton(preset).click();
@@ -476,7 +494,11 @@ export class GroupSettingsModalPage extends BasePage {
     async saveSecuritySettings(): Promise<void> {
         await this.ensureSecurityTab();
         const saveButton = this.getSecuritySaveButton();
-        await this.clickButton(saveButton, { buttonName: translation.common.save });
+        // Retry clicking the save button if it becomes disabled due to real-time updates
+        await expect(async () => {
+            await expect(saveButton).toBeEnabled();
+            await this.clickButton(saveButton, { buttonName: translation.common.save });
+        }).toPass({ timeout: 8000 });
     }
 
     async selectPermission(key: string, option: string): Promise<void> {
@@ -488,11 +510,15 @@ export class GroupSettingsModalPage extends BasePage {
     async approvePendingMember(memberId: string): Promise<void> {
         await this.ensureSecurityTab();
         await this.getPendingApproveButton(memberId).click();
+        // Wait for the pending members list to update after approval
+        await expect(this.getPendingApproveButton(memberId)).toHaveCount(0, { timeout: 5000 });
     }
 
     async rejectPendingMember(memberId: string): Promise<void> {
         await this.ensureSecurityTab();
         await this.getPendingRejectButton(memberId).click();
+        // Wait for the pending members list to update after rejection
+        await expect(this.getPendingRejectButton(memberId)).toHaveCount(0, { timeout: 5000 });
     }
 
     // ============================================================================

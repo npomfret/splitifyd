@@ -165,17 +165,22 @@ export class UserNotificationDetector {
                 return;
             }
 
+            // CRITICAL: Update lastVersion BEFORE processing to prevent race condition
+            // If we update after processing, concurrent snapshots can both see the old
+            // lastVersion and process the same changeVersion multiple times
+            const previousVersion = this.lastVersion;
+            this.lastVersion = data.changeVersion;
+
             logInfo('UserNotificationDetector: processing changes', {
                 changeVersion: data.changeVersion,
-                lastVersion: this.lastVersion,
+                lastVersion: previousVersion,
                 groupCount: Object.keys(data.groups || {}).length,
             });
 
-            // Process changes
+            // Process changes (can take time, other snapshots might arrive during this)
             this.processChanges(data);
 
-            // Update version and mark that we've processed at least one document
-            this.lastVersion = data.changeVersion;
+            // Mark that we've processed at least one document
             this.isFirstDocument = false;
 
             // Reset retry count on successful update
