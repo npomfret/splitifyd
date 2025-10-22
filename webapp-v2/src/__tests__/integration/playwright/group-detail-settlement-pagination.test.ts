@@ -1,6 +1,7 @@
 import { GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
-import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
+import { fulfillWithSerialization, mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
 test.describe('Group Detail - Settlement Pagination', () => {
     test('should load additional settlements when Load More is clicked', async ({ authenticatedPage }) => {
@@ -120,5 +121,88 @@ test.describe('Group Detail - Settlement Pagination', () => {
         await expect(page.getByTestId('settlement-item').nth(2)).toContainText('$20.00');
         await expect(page.getByTestId('settlement-item').nth(3)).toContainText('$15.00');
         await expect(loadMoreButton).not.toBeVisible();
+    });
+
+    test('should filter settlements to current user by default and show all when toggled', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const groupDetailPage = new GroupDetailPage(page);
+        const groupId = 'group-settlement-filter';
+
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId(groupId)
+            .withName('Settlement Filter Group')
+            .build();
+
+        const memberSelf = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(user.displayName)
+            .withGroupDisplayName(user.displayName)
+            .withTheme(ThemeBuilder.blue().build())
+            .build();
+
+        const memberTwo = new GroupMemberBuilder()
+            .withUid('member-filter-2')
+            .withDisplayName('Member Filter Two')
+            .withGroupDisplayName('Member Filter Two')
+            .withTheme(ThemeBuilder.red().build())
+            .build();
+
+        const memberThree = new GroupMemberBuilder()
+            .withUid('member-filter-3')
+            .withDisplayName('Member Filter Three')
+            .withGroupDisplayName('Member Filter Three')
+            .withTheme(
+                new ThemeBuilder()
+                    .withLight('#22C55E')
+                    .withDark('#15803D')
+                    .withName('green')
+                    .build(),
+            )
+            .build();
+
+        const members = [memberSelf, memberTwo, memberThree];
+
+        const balances = new GroupBalancesBuilder()
+            .withGroupId(groupId)
+            .withNoDebts(
+                { uid: memberSelf.uid, displayName: memberSelf.displayName! },
+                { uid: memberTwo.uid, displayName: memberTwo.displayName! },
+                { uid: memberThree.uid, displayName: memberThree.displayName! },
+            )
+            .build();
+
+        const settlementOthersOnly = new SettlementWithMembersBuilder()
+            .withId('settlement-others-only')
+            .withGroupId(groupId)
+            .withPayer(memberTwo)
+            .withPayee(memberThree)
+            .withAmount(45, 'USD')
+            .withNote('Other members only')
+            .build();
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members, false)
+            .withBalances(balances)
+            .withSettlements([settlementOthersOnly])
+            .withComments({ comments: [], hasMore: false })
+            .build();
+
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId);
+
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupToLoad();
+        await groupDetailPage.ensureSettlementHistoryOpen();
+
+        await expect(page.getByText(translationEn.settlementHistory.noPaymentsForYou)).toBeVisible();
+        await expect(page.getByTestId('settlement-item')).toHaveCount(0);
+
+        await groupDetailPage.toggleShowAllSettlements(true);
+
+        await expect(page.getByText(translationEn.settlementHistory.noPaymentsForYou)).not.toBeVisible();
+        await expect(page.getByTestId('settlement-item')).toHaveCount(1);
+        await expect(page.getByTestId('settlement-item').first()).toContainText('$45.00');
     });
 });

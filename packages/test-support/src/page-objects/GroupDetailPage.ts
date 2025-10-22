@@ -207,6 +207,10 @@ export class GroupDetailPage extends BasePage {
         return this.getSettlementContainer().getByTestId('toggle-settlements-section');
     }
 
+    private getShowAllSettlementsCheckbox(): Locator {
+        return this.getSettlementContainer().getByTestId('show-all-settlements-checkbox');
+    }
+
     private async ensureToggleExpanded(toggle: Locator): Promise<void> {
         await expect(toggle).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
@@ -737,6 +741,16 @@ export class GroupDetailPage extends BasePage {
     async toggleShowAllBalances(checked: boolean): Promise<void> {
         const balancesSection = this.getBalanceContainer();
         const checkbox = balancesSection.getByRole('checkbox');
+        const isChecked = await checkbox.isChecked();
+
+        if (isChecked !== checked) {
+            await checkbox.click();
+        }
+    }
+
+    async toggleShowAllSettlements(checked: boolean): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        const checkbox = this.getShowAllSettlementsCheckbox();
         const isChecked = await checkbox.isChecked();
 
         if (isChecked !== checked) {

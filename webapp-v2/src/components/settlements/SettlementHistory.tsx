@@ -6,9 +6,9 @@ import { formatCurrency } from '@/utils/currency';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useComputed } from '@preact/signals';
-import type { SettlementWithMembers } from '@splitifyd/shared';
-import { useEffect, useState } from 'preact/hooks';
+import { useComputed, useSignal } from '@preact/signals';
+import type { GroupMember, SettlementWithMembers } from '@splitifyd/shared';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui/Avatar';
 import { ConfirmDialog, LoadingSpinner, Tooltip } from '../ui';
@@ -25,6 +25,8 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
     const { t } = useTranslation();
     const authStore = useAuthRequired();
     const currentUser = authStore.user;
+    const currentUserId = currentUser?.uid;
+    const showAllSettlements = useSignal(false);
     const [settlementToDelete, setSettlementToDelete] = useState<SettlementWithMembers | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -37,6 +39,32 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
 
     // Check if current user is group owner
     const isGroupOwner = currentUser && group.value && group.value.createdBy === currentUser.uid;
+
+    const renderMemberName = (member: GroupMember) => {
+        const displayName = getGroupDisplayName(member);
+        const isCurrentUser = currentUserId === member.uid;
+
+        return (
+            <>
+                {displayName}
+                {isCurrentUser && <span class='text-gray-500 ml-1'>({t('common.you')})</span>}
+            </>
+        );
+    };
+
+    const visibleSettlements = useMemo(() => {
+        const settlementList = settlements.value ?? [];
+
+        if (showAllSettlements.value || !currentUserId) {
+            return settlementList;
+        }
+
+        return settlementList.filter(
+            (settlement) => settlement.payer.uid === currentUserId || settlement.payee.uid === currentUserId,
+        );
+    }, [settlements.value, showAllSettlements.value, currentUserId]);
+
+    const totalSettlements = settlements.value.length;
 
     useEffect(() => {
         // Always load settlements when component mounts or parameters change
@@ -88,7 +116,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
         setSettlementToDelete(null);
     };
 
-    if (isLoading.value && settlements.value.length === 0) {
+    if (isLoading.value && totalSettlements === 0) {
         return (
             <div class='flex justify-center items-center py-8'>
                 <LoadingSpinner />
@@ -98,7 +126,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
 
     // Remove error handling - the store manages errors now
 
-    if (settlements.value.length === 0) {
+    if (totalSettlements === 0) {
         return (
             <div class='text-center py-8'>
                 <svg class='mx-auto h-12 w-12 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -116,9 +144,19 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
 
     return (
         <div class='space-y-2'>
-            {/* Admin toggle for deleted settlements */}
-            {isGroupOwner && onShowDeletedChange && (
-                <div class='pb-2 border-b border-gray-200'>
+            <div class='pb-2 border-b border-gray-200 space-y-2'>
+                <label class='flex items-center space-x-2 text-sm cursor-pointer'>
+                    <input
+                        type='checkbox'
+                        checked={showAllSettlements.value}
+                        onChange={(e) => (showAllSettlements.value = e.currentTarget.checked)}
+                        class='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                        data-testid='show-all-settlements-checkbox'
+                        autoComplete='off'
+                    />
+                    <span class='text-gray-700'>{t('settlementHistory.showAll')}</span>
+                </label>
+                {isGroupOwner && onShowDeletedChange && (
                     <label class='flex items-center space-x-2 text-sm cursor-pointer'>
                         <input
                             type='checkbox'
@@ -129,142 +167,148 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                         />
                         <span class='text-gray-700'>{t('settlementHistory.showDeletedSettlements')}</span>
                     </label>
+                )}
+            </div>
+
+            {visibleSettlements.length === 0 ? (
+                <div class='text-center py-6 text-sm text-gray-500'>
+                    {t('settlementHistory.noPaymentsForYou')}
+                </div>
+            ) : (
+                <div class='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400'>
+                    {visibleSettlements.map((settlement) => {
+                        const isCurrentUserPayer = settlement.payer.uid === currentUserId;
+                        const isCurrentUserPayee = settlement.payee.uid === currentUserId;
+                        const isDeleted = settlement.deletedAt !== null && settlement.deletedAt !== undefined;
+                        const deletedByUser = settlement.deletedBy ? members.value.find((m) => m.uid === settlement.deletedBy) : null;
+                        const deletedByContent = deletedByUser ? renderMemberName(deletedByUser) : t('common.unknown');
+
+                        // Get theme colors
+                        const payerTheme = settlement.payer.themeColor || themeStore.getThemeForUser(settlement.payer.uid);
+                        const isDark = themeStore.isDarkMode;
+                        const themeColor = payerTheme ? (isDark ? payerTheme.dark : payerTheme.light) : '#6B7280';
+
+                        // Determine if current user is involved
+                        const isCurrentUserInvolved = isCurrentUserPayer || isCurrentUserPayee;
+
+                        return (
+                            <div
+                                key={settlement.id}
+                                class={`group border-b last:border-0 pb-3 last:pb-0 -mx-2 px-2 py-2 rounded relative ${isDeleted ? 'opacity-60 bg-gray-50' : isCurrentUserInvolved ? 'hover:bg-blue-50' : 'hover:bg-gray-50'}`}
+                                style={{
+                                    borderLeftWidth: '4px',
+                                    borderLeftColor: isDeleted ? '#9CA3AF' : themeColor,
+                                    backgroundColor: isDeleted ? '' : isCurrentUserInvolved ? `${themeColor}12` : `${themeColor}08`,
+                                }}
+                                data-testid='settlement-item'
+                            >
+                                <div class='grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 items-start'>
+                                    {/* Row 1: Payer avatar and name */}
+                                    <div class='row-start-1 flex items-center'>
+                                        <Avatar
+                                            displayName={getGroupDisplayName(settlement.payer)}
+                                            userId={settlement.payer.uid}
+                                            size='sm'
+                                            themeColor={payerTheme}
+                                        />
+                                    </div>
+                                    <div class='row-start-1 col-start-2 flex items-center gap-2 min-w-0'>
+                                        <span class='text-sm font-semibold truncate' style={{ color: isDeleted ? '' : themeColor }}>
+                                            {renderMemberName(settlement.payer)}
+                                        </span>
+                                    </div>
+
+                                    {/* Row 2: Arrow, amount, and date */}
+                                    <div class='row-start-2 flex items-center justify-center self-stretch'>
+                                        <div class='flex items-center justify-center w-6 h-full text-gray-400'>
+                                            <svg class='w-3 h-3 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                                <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 14l-7 7m0 0l-7-7m7 7V3' />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
+                                        <div class='flex items-center gap-2'>
+                                            <span class={`text-lg font-bold tabular-nums ${isDeleted ? 'text-gray-500' : isCurrentUserPayee ? 'text-green-600' : ''}`} data-financial-amount='settlement'>
+                                                {isCurrentUserPayee && '+'}
+                                                {formatCurrency(settlement.amount, settlement.currency)}
+                                            </span>
+                                            <span class='text-xs text-gray-600'>{formatDate(settlement.date)}</span>
+                                        </div>
+
+                                        {/* Action buttons */}
+                                        <div class='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-auto'>
+                                            {onEditSettlement && (() => {
+                                                const editTooltip = settlement.isLocked ? t('settlementHistory.cannotEditTooltip') : t('settlementHistory.editPaymentTooltip');
+
+                                                return (
+                                                    <Tooltip content={editTooltip}>
+                                                        <button
+                                                            type='button'
+                                                            onClick={() => !settlement.isLocked && onEditSettlement(settlement)}
+                                                            disabled={settlement.isLocked}
+                                                            class='p-1 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-400'
+                                                            aria-label={editTooltip}
+                                                            data-testid='edit-settlement-button'
+                                                        >
+                                                            <PencilIcon class='h-4 w-4' aria-hidden='true' />
+                                                        </button>
+                                                    </Tooltip>
+                                                );
+                                            })()}
+                                            {(() => {
+                                                const deleteTooltip = t('settlementHistory.deletePaymentTooltip');
+
+                                                return (
+                                                    <Tooltip content={deleteTooltip}>
+                                                        <button
+                                                            type='button'
+                                                            onClick={() => handleDeleteClick(settlement)}
+                                                            class='p-1 text-gray-400 hover:text-red-600 transition-colors'
+                                                            aria-label={deleteTooltip}
+                                                            data-testid='delete-settlement-button'
+                                                        >
+                                                            <TrashIcon class='h-4 w-4' aria-hidden='true' />
+                                                        </button>
+                                                    </Tooltip>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>
+
+                                    {/* Row 3: Payee avatar and name */}
+                                    <div class='row-start-3 flex items-center'>
+                                        <Avatar
+                                            displayName={getGroupDisplayName(settlement.payee)}
+                                            userId={settlement.payee.uid}
+                                            size='sm'
+                                            themeColor={settlement.payee.themeColor || themeStore.getThemeForUser(settlement.payee.uid)}
+                                        />
+                                    </div>
+                                    <div class='row-start-3 col-start-2 flex items-center gap-2 min-w-0'>
+                                        <span class='text-sm font-semibold text-gray-900 truncate'>
+                                            {renderMemberName(settlement.payee)}
+                                        </span>
+                                    </div>
+
+                                    {/* Row 4: Note if present (spans full width) */}
+                                    {settlement.note && (
+                                        <div class='row-start-4 col-span-2 text-xs text-gray-600 mt-0.5 truncate'>
+                                            {settlement.note}
+                                        </div>
+                                    )}
+
+                                    {/* Deleted info if present */}
+                                    {isDeleted && settlement.deletedAt && (
+                                        <div class={`${settlement.note ? 'row-start-5' : 'row-start-4'} col-start-2 text-red-600 text-xs mt-1`} data-financial-amount='deleted'>
+                                            {t('settlementHistory.deletedBy')} {deletedByContent} {formatDistanceToNow(new Date(settlement.deletedAt))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
-
-            <div class='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400'>
-            {settlements.value.map((settlement) => {
-                const isCurrentUserPayer = settlement.payer.uid === currentUser?.uid;
-                const isCurrentUserPayee = settlement.payee.uid === currentUser?.uid;
-                const isDeleted = settlement.deletedAt !== null && settlement.deletedAt !== undefined;
-                const deletedByUser = settlement.deletedBy ? members.value.find((m) => m.uid === settlement.deletedBy) : null;
-                const deletedByName = deletedByUser ? getGroupDisplayName(deletedByUser) : t('common.unknown');
-
-                // Get theme colors
-                const payerTheme = settlement.payer.themeColor || themeStore.getThemeForUser(settlement.payer.uid);
-                const isDark = themeStore.isDarkMode;
-                const themeColor = payerTheme ? (isDark ? payerTheme.dark : payerTheme.light) : '#6B7280';
-
-                // Determine if current user is involved
-                const isCurrentUserInvolved = isCurrentUserPayer || isCurrentUserPayee;
-
-                return (
-                    <div
-                        key={settlement.id}
-                        class={`group border-b last:border-0 pb-3 last:pb-0 -mx-2 px-2 py-2 rounded relative ${isDeleted ? 'opacity-60 bg-gray-50' : isCurrentUserInvolved ? 'hover:bg-blue-50' : 'hover:bg-gray-50'}`}
-                        style={{
-                            borderLeftWidth: '4px',
-                            borderLeftColor: isDeleted ? '#9CA3AF' : themeColor,
-                            backgroundColor: isDeleted ? '' : isCurrentUserInvolved ? `${themeColor}12` : `${themeColor}08`,
-                        }}
-                        data-testid='settlement-item'
-                    >
-                        <div class='grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 items-start'>
-                            {/* Row 1: Payer avatar and name */}
-                            <div class='row-start-1 flex items-center'>
-                                <Avatar
-                                    displayName={getGroupDisplayName(settlement.payer)}
-                                    userId={settlement.payer.uid}
-                                    size='sm'
-                                    themeColor={payerTheme}
-                                />
-                            </div>
-                            <div class='row-start-1 col-start-2 flex items-center gap-2 min-w-0'>
-                                <span class='text-sm font-semibold truncate' style={{ color: isDeleted ? '' : themeColor }}>
-                                    {getGroupDisplayName(settlement.payer)}
-                                </span>
-                            </div>
-
-                            {/* Row 2: Arrow, amount, and date */}
-                            <div class='row-start-2 flex items-center justify-center self-stretch'>
-                                <div class='flex items-center justify-center w-6 h-full text-gray-400'>
-                                    <svg class='w-3 h-3 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 14l-7 7m0 0l-7-7m7 7V3' />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div class='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
-                                <div class='flex items-center gap-2'>
-                                    <span class={`text-lg font-bold tabular-nums ${isDeleted ? 'text-gray-500' : isCurrentUserPayee ? 'text-green-600' : ''}`} data-financial-amount='settlement'>
-                                        {isCurrentUserPayee && '+'}
-                                        {formatCurrency(settlement.amount, settlement.currency)}
-                                    </span>
-                                    <span class='text-xs text-gray-600'>{formatDate(settlement.date)}</span>
-                                </div>
-
-                                {/* Action buttons */}
-                                <div class='flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-auto'>
-                                    {onEditSettlement && (() => {
-                                        const editTooltip = settlement.isLocked ? t('settlementHistory.cannotEditTooltip') : t('settlementHistory.editPaymentTooltip');
-
-                                        return (
-                                            <Tooltip content={editTooltip}>
-                                                <button
-                                                    type='button'
-                                                    onClick={() => !settlement.isLocked && onEditSettlement(settlement)}
-                                                    disabled={settlement.isLocked}
-                                                    class='p-1 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-400'
-                                                    aria-label={editTooltip}
-                                                    data-testid='edit-settlement-button'
-                                                >
-                                                    <PencilIcon class='h-4 w-4' aria-hidden='true' />
-                                                </button>
-                                            </Tooltip>
-                                        );
-                                    })()}
-                                    {(() => {
-                                        const deleteTooltip = t('settlementHistory.deletePaymentTooltip');
-
-                                        return (
-                                            <Tooltip content={deleteTooltip}>
-                                                <button
-                                                    type='button'
-                                                    onClick={() => handleDeleteClick(settlement)}
-                                                    class='p-1 text-gray-400 hover:text-red-600 transition-colors'
-                                                    aria-label={deleteTooltip}
-                                                    data-testid='delete-settlement-button'
-                                                >
-                                                    <TrashIcon class='h-4 w-4' aria-hidden='true' />
-                                                </button>
-                                            </Tooltip>
-                                        );
-                                    })()}
-                                </div>
-                            </div>
-
-                            {/* Row 3: Payee avatar and name */}
-                            <div class='row-start-3 flex items-center'>
-                                <Avatar
-                                    displayName={getGroupDisplayName(settlement.payee)}
-                                    userId={settlement.payee.uid}
-                                    size='sm'
-                                    themeColor={settlement.payee.themeColor || themeStore.getThemeForUser(settlement.payee.uid)}
-                                />
-                            </div>
-                            <div class='row-start-3 col-start-2 flex items-center gap-2 min-w-0'>
-                                <span class='text-sm font-semibold text-gray-900 truncate'>
-                                    {getGroupDisplayName(settlement.payee)}
-                                </span>
-                            </div>
-
-                            {/* Row 4: Note if present (spans full width) */}
-                            {settlement.note && (
-                                <div class='row-start-4 col-span-2 text-xs text-gray-600 mt-0.5 truncate'>
-                                    {settlement.note}
-                                </div>
-                            )}
-
-                            {/* Deleted info if present */}
-                            {isDeleted && settlement.deletedAt && (
-                                <div class={`${settlement.note ? 'row-start-5' : 'row-start-4'} col-start-2 text-red-600 text-xs mt-1`} data-financial-amount='deleted'>
-                                    {t('settlementHistory.deletedBy')} {deletedByName} {formatDistanceToNow(new Date(settlement.deletedAt))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                );
-            })}
-            </div>
 
             {hasMore.value && (
                 <div class='text-center pt-4'>

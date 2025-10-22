@@ -1,4 +1,5 @@
 import { ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
@@ -308,8 +309,14 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
+        // Default view should hide debts that don't involve the current user
+        await expect(groupDetailPage.getSettledUpMessage()).toBeVisible();
+        await expect(groupDetailPage.getDebtItems()).toHaveCount(0);
+
         // Enable "Show all" filter since the current user is not involved in this debt
         await groupDetailPage.toggleShowAllBalances(true);
+
+        await expect(groupDetailPage.getSettledUpMessage()).not.toBeVisible();
 
         // Verify specific optimized debt relationship
         await groupDetailPage.verifyDebtRelationship('Bob', 'Alice', '$10.00');

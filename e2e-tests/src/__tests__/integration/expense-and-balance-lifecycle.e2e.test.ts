@@ -417,6 +417,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Verify real-time updates for partial settlement
         for (const page of pages) {
+            // Enable "Show all settlements" to see all settlements, not just current user's
+            await page.toggleShowAllSettlements(true);
             await page.verifySettlementDetails({ note: settlementNote1 });
             await page.waitForPage(groupId, memberCount);
             // Ensure "Show all balances" is enabled (should already be from earlier, but be explicit)
@@ -440,6 +442,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Verify real-time updates for final settlement
         for (const page of pages) {
+            // Enable "Show all settlements" to see all settlements, not just current user's
+            await page.toggleShowAllSettlements(true);
             await page.verifySettlementDetails({ note: settlementNote2 });
             await page.waitForPage(groupId, memberCount);
             // Ensure "Show all balances" is enabled
@@ -463,6 +467,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Verify final real-time state
         for (const page of pages) {
+            // Enable "Show all settlements" to see all settlements, not just current user's
+            await page.toggleShowAllSettlements(true);
             await page.verifySettlementDetails({ note: settlementNote3 });
             await page.waitForPage(groupId, memberCount);
             // Ensure "Show all balances" is enabled
@@ -473,6 +479,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Verify all settlements appear in history
         for (const page of pages) {
+            // Enable "Show all settlements" to see all settlements, not just current user's
+            await page.toggleShowAllSettlements(true);
             await page.verifySettlementDetails({ note: settlementNote1 });
             await page.verifySettlementDetails({ note: settlementNote2 });
             await page.verifySettlementDetails({ note: settlementNote3 });

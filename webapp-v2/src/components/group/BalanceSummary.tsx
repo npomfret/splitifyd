@@ -36,6 +36,18 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
         return getGroupDisplayName(member);
     };
 
+    const renderMemberName = (userId: string) => {
+        const name = getUserName(userId);
+        const isCurrentUser = currentUser?.uid === userId;
+
+        return (
+            <>
+                {name}
+                {isCurrentUser && <span className='text-gray-500 ml-1'>({t('common.you')})</span>}
+            </>
+        );
+    };
+
     // Filter and group debts by currency - memoized to avoid recalculation
     const groupedDebts = useMemo(() => {
         if (!balances.value?.simplifiedDebts) return [];
@@ -119,7 +131,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                     </div>
                                     <div className='row-start-1 col-start-2 flex items-center gap-2 min-w-0'>
                                         <span className='text-sm font-semibold truncate' style={{ color: themeColor }}>
-                                            {getUserName(debt.from.uid)}
+                                            {renderMemberName(debt.from.uid)}
                                         </span>
                                     </div>
 
@@ -166,7 +178,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                     </div>
                                     <div className='row-start-3 col-start-2 flex items-center gap-2 min-w-0'>
                                         <span className='text-sm font-semibold text-gray-900 truncate'>
-                                            {getUserName(debt.to.uid)}
+                                            {renderMemberName(debt.to.uid)}
                                         </span>
                                     </div>
                                 </div>
