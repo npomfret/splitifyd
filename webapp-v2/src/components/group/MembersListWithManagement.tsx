@@ -116,7 +116,16 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
     };
 
     const getMemberRole = (member: GroupMember): string => {
-        return member.uid === createdBy ? t('membersList.admin') : '';
+        switch (member.memberRole) {
+            case 'admin':
+                return t('membersList.admin');
+            case 'member':
+                return t('membersList.member');
+            case 'viewer':
+                return t('membersList.viewer');
+            default:
+                return '';
+        }
     };
 
     if (loading.value) {

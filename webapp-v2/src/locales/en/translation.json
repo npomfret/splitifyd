@@ -988,7 +988,8 @@
   "membersList": {
     "title": "Members",
     "admin": "Admin",
-    "member": "member",
+    "member": "Member",
+    "viewer": "Viewer",
     "thisMember": "This member",
     "leaveGroup": "Leave Group",
     "inviteOthers": "Invite Others",
