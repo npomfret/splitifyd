@@ -6,6 +6,13 @@ import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support'
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
 
+const randomInt = (min: number, max: number): number => {
+    if (max < min) {
+        throw new Error(`Invalid range for randomInt: min (${min}) must be <= max (${max})`);
+    }
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
 class TaskQueue {
     private running = 0;
     private readonly waiting: Array<{
@@ -111,6 +118,8 @@ interface TestDataConfig {
     groupCount: number;
     regularExpensesPerUser: { min: number; max: number; };
     largeGroupExpenseCount: number;
+    largeGroupGroupComments: { min: number; max: number; };
+    largeGroupExpenseCommentsPerExpense: { min: number; max: number; };
     mode: 'fast' | 'full';
 }
 
@@ -121,6 +130,8 @@ const TEST_CONFIGS: Record<string, TestDataConfig> = {
         groupCount: 5,
         regularExpensesPerUser: { min: 1, max: 1 },
         largeGroupExpenseCount: 25,
+        largeGroupGroupComments: { min: 15, max: 20 },
+        largeGroupExpenseCommentsPerExpense: { min: 0, max: 2 },
         mode: 'fast',
     },
     full: {
@@ -128,6 +139,8 @@ const TEST_CONFIGS: Record<string, TestDataConfig> = {
         groupCount: 10,
         regularExpensesPerUser: { min: 1, max: 2 },
         largeGroupExpenseCount: 60,
+        largeGroupGroupComments: { min: 30, max: 45 },
+        largeGroupExpenseCommentsPerExpense: { min: 0, max: 3 },
         mode: 'full',
     },
 };
@@ -1116,8 +1129,8 @@ async function createCommentsForGroups(groups: GroupWithInvite[], groupMembershi
         let expenseCommentsToCreate = 0;
 
         if (group.name === 'Large Group') {
-            // Keep large group focused but bounded
-            groupCommentsToCreate = Math.floor(Math.random() * 5) + 8; // 8-12
+            const { largeGroupGroupComments } = config;
+            groupCommentsToCreate = randomInt(largeGroupGroupComments.min, largeGroupGroupComments.max);
             expenseCommentsToCreate = 0; // Calculated after fetching expenses
         } else if (group.name === 'Empty Group') {
             // Just group-level comments for Empty Group (3-5)
@@ -1137,7 +1150,8 @@ async function createCommentsForGroups(groups: GroupWithInvite[], groupMembershi
         const expenseCommentTargets: string[] = [];
         if (group.name === 'Large Group') {
             for (const expense of expenses) {
-                const count = Math.floor(Math.random() * 4); // 0-3 comments per expense
+                const { largeGroupExpenseCommentsPerExpense } = config;
+                const count = randomInt(largeGroupExpenseCommentsPerExpense.min, largeGroupExpenseCommentsPerExpense.max);
                 expenseCommentsToCreate += count;
                 for (let i = 0; i < count; i++) {
                     expenseCommentTargets.push(expense.id);
