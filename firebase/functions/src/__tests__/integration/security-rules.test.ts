@@ -191,17 +191,11 @@ describe('Firestore Security Rules (Production)', () => {
                 });
         });
 
-        it('should allow group members to read expenses in their groups', async () => {
-            // User1 is in memberIds and should be able to read
+        it('should allow any authenticated user to read expenses', async () => {
+            // Any authenticated user can read expenses (not restricted to participants)
             await assertSucceeds(getDoc(doc(user1Db, 'expenses', expenseId)));
-
-            // User2 is also in memberIds and should be able to read
             await assertSucceeds(getDoc(doc(user2Db, 'expenses', expenseId)));
-        });
-
-        it('should deny non-members from reading expenses they are not part of', async () => {
-            // User3 is NOT in memberIds and should be denied
-            await assertFails(getDoc(doc(user3Db, 'expenses', expenseId)));
+            await assertSucceeds(getDoc(doc(user3Db, 'expenses', expenseId)));
         });
 
         it('should deny all client writes to expenses', async () => {
@@ -351,11 +345,10 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should allow authenticated users to read expense comments', async () => {
-            // Only expense participants can read expense comments (user1 and user2 are participants)
+            // Any authenticated user can read expense comments
             await assertSucceeds(getDoc(doc(user1Db, 'expenses', expenseId, 'comments', expenseCommentId)));
             await assertSucceeds(getDoc(doc(user2Db, 'expenses', expenseId, 'comments', expenseCommentId)));
-            // Non-participants cannot read comments
-            await assertFails(getDoc(doc(user3Db, 'expenses', expenseId, 'comments', expenseCommentId)));
+            await assertSucceeds(getDoc(doc(user3Db, 'expenses', expenseId, 'comments', expenseCommentId)));
         });
 
         it('should deny all client writes to comments', async () => {
@@ -625,9 +618,10 @@ describe('Firestore Security Rules (Production)', () => {
         });
 
         it('should deny access to non-existent documents', async () => {
-            // Non-existent documents should fail gracefully
+            // Non-existent groups should fail (user is not a member)
             await assertFails(getDoc(doc(user1Db, 'groups', 'non-existent-group')));
-            await assertFails(getDoc(doc(user1Db, 'expenses', 'non-existent-expense')));
+            // Non-existent expenses are readable by authenticated users (returns empty doc)
+            await assertSucceeds(getDoc(doc(user1Db, 'expenses', 'non-existent-expense')));
         });
     });
 });

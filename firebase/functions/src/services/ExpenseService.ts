@@ -163,18 +163,12 @@ export class ExpenseService {
         return measure.measureDb('ExpenseService.getExpense', async () => this._getExpense(expenseId, userId));
     }
 
-    private async _getExpense(expenseId: ExpenseId, userId: string): Promise<ExpenseDTO> {
+    private async _getExpense(expenseId: ExpenseId, _userId: string): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         timer.startPhase('query');
         const expense = await this.fetchExpense(expenseId);
         timer.endPhase();
-
-        // Verify user has access to view this expense
-        // Check if user is a participant in this expense
-        if (!expense.participants || !expense.participants.includes(userId)) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense');
-        }
 
         const isLocked = await this.isExpenseLocked(expense);
 
@@ -641,17 +635,12 @@ export class ExpenseService {
      * Get consolidated expense details (expense + group + members)
      * Eliminates race conditions by providing all needed data in one request
      */
-    async getExpenseFullDetails(expenseId: ExpenseId, userId: string): Promise<ExpenseFullDetailsDTO> {
+    async getExpenseFullDetails(expenseId: ExpenseId, _userId: string): Promise<ExpenseFullDetailsDTO> {
         const timer = new PerformanceTimer();
 
         // Fetch the expense
         timer.startPhase('query');
         const expense = await this.fetchExpense(expenseId);
-
-        // Permission check: User must be a participant in the expense
-        if (!expense.participants.includes(userId)) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'FORBIDDEN', 'You are not a participant in this expense');
-        }
 
         // Get group document for permission check and data
         const groupData = await this.firestoreReader.getGroup(expense.groupId);

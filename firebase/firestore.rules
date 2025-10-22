@@ -38,18 +38,16 @@ service cloud.firestore {
 
     // Expenses collection - production security rules
     match /expenses/{expenseId} {
-      // Allow read only for authenticated users who are participants
-      allow read: if request.auth != null &&
-        request.auth.uid in resource.data.participants;
+      // Allow read for any authenticated user
+      allow read: if request.auth != null;
 
       // Deny all direct writes - only server functions can write to expenses
       allow write: if false;
-      
+
       // Comments subcollection - for expense discussions
       match /comments/{commentId} {
-        // Allow read only for expense participants
-        allow read: if request.auth != null &&
-          request.auth.uid in get(/databases/$(database)/documents/expenses/$(expenseId)).data.participants;
+        // Allow read for any authenticated user
+        allow read: if request.auth != null;
         // Only server functions can write comments
         allow write: if false;
       }

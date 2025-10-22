@@ -821,7 +821,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             expect(fullDetails.expense.splits.find((s) => s.uid === user3)?.amount).toBe('30');
         });
 
-        it('should deny non-participants from viewing full details', async () => {
+        it('should allow non-participants to view full details', async () => {
             const user1 = 'user-1';
             const user2 = 'user-2';
 
@@ -839,10 +839,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
                     .build(),
             );
 
-            // Non-participant (user2) should be denied access - matches Firestore security rules
-            await expect(appDriver.getExpenseFullDetails(user2, expense.id))
-                .rejects
-                .toMatchObject({ code: 'FORBIDDEN' });
+            const fullDetailsForNonParticipant = await appDriver.getExpenseFullDetails(user2, expense.id);
+            expect(fullDetailsForNonParticipant.expense.id).toBe(expense.id);
+            expect(fullDetailsForNonParticipant.expense.participants).toEqual([user1]);
 
             // Invalid expense should return 404
             await expect(appDriver.getExpenseFullDetails(user1, 'invalid-expense-id')).rejects.toThrow();

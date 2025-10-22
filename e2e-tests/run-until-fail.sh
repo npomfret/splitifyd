@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-output/ad-hoc/report/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts"
-TEST_FILTER="should edit settlements with comprehensive validation and form handling"
+TEST_FILE="src/__tests__/integration/user-and-access.e2e.test.ts"
+TEST_FILTER="comprehensive profile and password management with validation and real-time updates"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
