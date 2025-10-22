@@ -654,11 +654,6 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
-        // Check if user is a participant in this expense (only participants can view expense details)
-        if (!expense.participants || !expense.participants.includes(userId)) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
-        }
-
         if (!groupData?.name) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Invalid group data');
         }

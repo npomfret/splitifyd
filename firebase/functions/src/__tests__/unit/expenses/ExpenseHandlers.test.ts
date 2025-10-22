@@ -821,7 +821,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             expect(fullDetails.expense.splits.find((s) => s.uid === user3)?.amount).toBe('30');
         });
 
-        it('should enforce access control for full details endpoint', async () => {
+        it('should allow non-participants to view full details', async () => {
             const user1 = 'user-1';
             const user2 = 'user-2';
 
@@ -839,8 +839,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
                     .build(),
             );
 
-            // Non-group member should be denied
-            await expect(appDriver.getExpenseFullDetails(user2, expense.id)).rejects.toThrow();
+            // Non-group member should still be able to view the expense
+            const fullDetails = await appDriver.getExpenseFullDetails(user2, expense.id);
+            expect(fullDetails.expense.id).toBe(expense.id);
 
             // Invalid expense should return 404
             await expect(appDriver.getExpenseFullDetails(user1, 'invalid-expense-id')).rejects.toThrow();

@@ -1034,7 +1034,7 @@ describe('app tests', () => {
                 .toMatchObject({ code: 'INVALID_COMMENT_TEXT' });
         });
 
-        it('should reject expense full details access for non-participants', async () => {
+        it('should allow expense full details access for non-participants', async () => {
             const group = await appDriver.createGroup(user1);
 
             const groupId = group.id;
@@ -1055,9 +1055,10 @@ describe('app tests', () => {
                     .build(),
             );
 
-            await expect(appDriver.getExpenseFullDetails(user4, expense.id))
-                .rejects
-                .toMatchObject({ code: 'NOT_AUTHORIZED' });
+            const expenseDetails = await appDriver.getExpenseFullDetails(user4, expense.id);
+
+            expect(expenseDetails.expense.id).toBe(expense.id);
+            expect(expenseDetails.group.id).toBe(groupId);
         });
 
         it('should reject share link previews with invalid tokens', async () => {
