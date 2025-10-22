@@ -9,7 +9,7 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
-import { generateTestData } from './generate-test-data';
+import { generateBillSplitterUser } from './generate-test-data';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
@@ -28,18 +28,18 @@ async function runSeedPoliciesStep(): Promise<void> {
     logger.info('📋 Privacy policy, terms, and cookie policy are now available');
 }
 
-async function runGenerateTestDataStep(): Promise<void> {
+async function runEnsureBillSplitterUserStep(): Promise<void> {
     logger.info('');
     logger.info('═══════════════════════════════════════════════════════');
-    logger.info('📊 STARTING TEST DATA GENERATION...');
+    logger.info('👤 ENSURING DEFAULT TEST USER...');
     logger.info('═══════════════════════════════════════════════════════');
     logger.info('');
 
-    await generateTestData();
+    await generateBillSplitterUser();
 
     logger.info('');
-    logger.info('✅ Test data generation completed successfully!');
-    logger.info('🎲 Groups now contain expenses and payments for testing');
+    logger.info('✅ Default Bill Splitter user is ready!');
+    logger.info('🔑 Sign in with test1@test.com to access the emulator');
 }
 
 // Get Firebase configuration using centralized loader
@@ -70,7 +70,7 @@ const PROJECT_ID = getProjectId();
 // sanity check
 assert(PROJECT_ID === process.env.GCLOUD_PROJECT, `PROJECT_ID=${PROJECT_ID} but GCLOUD_PROJECT=${process.env.GCLOUD_PROJECT}`);
 
-logger.info('🚀 Starting Firebase emulator with test data generation...', {
+logger.info('🚀 Starting Firebase emulator with default user setup...', {
     projectId: PROJECT_ID,
     uiPort: UI_PORT,
     functionsPort: FUNCTIONS_PORT,
@@ -93,8 +93,8 @@ const main = async () => {
         // Step 2: Seed policies
         await runSeedPoliciesStep();
 
-        // Step 3: Generate test data
-        await runGenerateTestDataStep();
+        // Step 3: Ensure default test user exists
+        await runEnsureBillSplitterUserStep();
 
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');

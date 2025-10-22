@@ -14,6 +14,7 @@
     "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../scripts/test-wrapper.js",
     "link-webapp": "rm -rf public && ln -sf ../webapp-v2/dist public",
     "start-emulators": "npm run kill-emulators && tsx scripts/generate-firebase-config.ts && export GCLOUD_PROJECT=splitifyd && tsx scripts/start-with-data.ts",
+    "generate:test-data": "tsx scripts/generate-test-data.ts",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:prod for production deployment'",
     "deploy:prod": "tsx scripts/switch-instance.ts prod && cd .. && NODE_ENV=production npm run build && cd firebase && firebase deploy --only functions,firestore:rules,hosting && rm functions/.env",

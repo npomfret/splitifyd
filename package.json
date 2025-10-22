@@ -15,6 +15,7 @@
     "dev:prep": "npm run clean:logs && npm run build:packages && cd firebase && npm run clean && npm run build",
     "dev": "npm run dev:prep && concurrently \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
     "build": "npm run build:packages && npm run build -ws --if-present",
+    "generate:test-data": "cd firebase && npm run generate:test-data",
     "webapp-v2:build": "cd webapp-v2 && npm run build",
     "build:all": "npm run build -w webapp-v2",
     "watch": "npm run watch -ws --if-present",
