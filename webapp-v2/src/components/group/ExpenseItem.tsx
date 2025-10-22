@@ -85,15 +85,6 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                     <div>
                         <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`}>{formattedAmount}</p>
                         <p className='text-xs text-gray-500'>{expense.category}</p>
-
-                        {/* Theme color indicator dot */}
-                        {!isDeleted && paidByTheme && (
-                            <div
-                                className='w-2 h-2 rounded-full mt-1 ml-auto'
-                                style={{ backgroundColor: themeColor }}
-                                title={`${payerName} (${paidByTheme.name})`}
-                            />
-                        )}
                     </div>
 
                     {/* Copy button - only show if not deleted and onCopy is provided */}
