@@ -158,7 +158,7 @@ describe('Comments Validation', () => {
 
             const result = validateListCommentsQuery(query);
 
-            expect(result.limit).toBe(20); // Default limit
+            expect(result.limit).toBe(8); // Default limit
             expect(result.cursor).toBeUndefined();
         });
 

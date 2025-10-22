@@ -911,7 +911,7 @@ describe('CommentService - Consolidated Tests', () => {
 
                 it('should allow missing cursor parameter', () => {
                     const result = validateListCommentsQuery({});
-                    expect(result).toEqual({ limit: 20 }); // default limit
+                    expect(result).toEqual({ limit: 8 }); // default limit
                 });
             });
 
@@ -948,7 +948,7 @@ describe('CommentService - Consolidated Tests', () => {
 
                 it('should use default limit when not provided', () => {
                     const result = validateListCommentsQuery({});
-                    expect(result.limit).toBe(20);
+                    expect(result.limit).toBe(8);
                 });
 
                 it('should preserve provided valid limit', () => {

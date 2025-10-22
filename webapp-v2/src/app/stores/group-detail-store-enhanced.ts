@@ -5,6 +5,9 @@ import { batch, signal } from '@preact/signals';
 import { ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 
+const GROUP_SETTLEMENT_PAGE_SIZE = 8;
+const GROUP_COMMENT_PAGE_SIZE = 8;
+
 interface EnhancedGroupDetailStore {
     // State accessors (wrap these in useComputed() in components)
     readonly group: GroupDTO | null;
@@ -151,6 +154,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         try {
             const fullDetails = await apiClient.getGroupFullDetails(groupId, {
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
+                settlementLimit: GROUP_SETTLEMENT_PAGE_SIZE,
+                commentLimit: GROUP_COMMENT_PAGE_SIZE,
             });
 
             batch(() => {
@@ -383,6 +388,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
                 settlementCursor: this.settlementCursor,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
+                settlementLimit: GROUP_SETTLEMENT_PAGE_SIZE,
             });
 
             const nextCursor = fullDetails.settlements.nextCursor ?? null;
@@ -412,6 +418,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
+                settlementLimit: GROUP_SETTLEMENT_PAGE_SIZE,
+                commentLimit: GROUP_COMMENT_PAGE_SIZE,
             });
 
             // Update only settlements (not the whole store)

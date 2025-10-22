@@ -187,7 +187,6 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
 
         // VERIFY SETTLEMENT LOCK
         // The settlement edit button should be disabled
-        // Note: We'll add a POM method to verify this
         await aliceGroupDetailPage.verifySettlementEditButtonDisabled(settlementNote);
     });
 

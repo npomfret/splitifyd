@@ -25,7 +25,7 @@ const createCommentSchema = Joi.object({
 // Joi validation schema for listing comments query parameters
 const listCommentsQuerySchema = Joi.object({
     cursor: Joi.string().optional(),
-    limit: Joi.number().integer().min(1).max(100).default(20).optional(),
+    limit: Joi.number().integer().min(1).max(100).default(8).optional(),
 });
 
 /**

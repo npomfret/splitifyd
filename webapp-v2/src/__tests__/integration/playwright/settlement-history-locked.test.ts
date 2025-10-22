@@ -50,8 +50,9 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
         await groupDetailPage.verifyGroupDetailPageLoaded('Test Group');
         await groupDetailPage.openSettlementHistory();
-        await groupDetailPage.verifySettlementVisible('Test Payment');
-        await groupDetailPage.verifySettlementEditDisabled('Test Payment', translationEn.settlementHistory.cannotEditTooltip);
+        // Verify settlement by amount (escaping $ for regex)
+        await groupDetailPage.verifySettlementVisible(/\$50\.00/);
+        await groupDetailPage.verifySettlementEditDisabled(/\$50\.00/, translationEn.settlementHistory.cannotEditTooltip);
     });
 
     test('should enable edit button when settlement is not locked', async ({ authenticatedPage }) => {
@@ -99,8 +100,9 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
         await groupDetailPage.verifyGroupDetailPageLoaded('Test Group');
         await groupDetailPage.openSettlementHistory();
-        await groupDetailPage.verifySettlementVisible('Normal Payment');
-        await groupDetailPage.verifySettlementEditEnabled('Normal Payment', translationEn.settlementHistory.editPaymentTooltip);
+        // Verify settlement by amount (escaping $ for regex)
+        await groupDetailPage.verifySettlementVisible(/\$30\.00/);
+        await groupDetailPage.verifySettlementEditEnabled(/\$30\.00/, translationEn.settlementHistory.editPaymentTooltip);
     });
 
     test('should reactively update when settlement lock status changes', async ({ authenticatedPage }) => {
@@ -151,8 +153,9 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
         await groupDetailPage.verifyGroupDetailPageLoaded('Test Group');
         await groupDetailPage.openSettlementHistory();
-        await groupDetailPage.verifySettlementVisible('Reactive Test Payment');
-        await groupDetailPage.verifySettlementEditEnabled('Reactive Test Payment', translationEn.settlementHistory.editPaymentTooltip);
+        // Verify settlement by amount (escaping $ for regex)
+        await groupDetailPage.verifySettlementVisible(/\$25\.00/);
+        await groupDetailPage.verifySettlementEditEnabled(/\$25\.00/, translationEn.settlementHistory.editPaymentTooltip);
 
         const lockedSettlement = { ...initialSettlement, isLocked: true };
         await mockGroupDetailApi(
@@ -169,7 +172,8 @@ test.describe('Settlement History - Locked Settlement UI', () => {
         await page.goto(`/groups/${groupId}`, { waitUntil: 'domcontentloaded', timeout: 10000 });
         await groupDetailPage.verifyGroupDetailPageLoaded('Test Group');
         await groupDetailPage.openSettlementHistory();
-        await groupDetailPage.verifySettlementVisible('Reactive Test Payment');
-        await groupDetailPage.verifySettlementEditDisabled('Reactive Test Payment', translationEn.settlementHistory.cannotEditTooltip);
+        // Verify settlement by amount (escaping $ for regex)
+        await groupDetailPage.verifySettlementVisible(/\$25\.00/);
+        await groupDetailPage.verifySettlementEditDisabled(/\$25\.00/, translationEn.settlementHistory.cannotEditTooltip);
     });
 });

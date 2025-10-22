@@ -62,9 +62,10 @@ export class CommentService {
     ): Promise<ListCommentsResponse> {
         const timer = new PerformanceTimer();
 
-        loggerContext.LoggerContext.update({ targetType, targetId, userId, operation: 'list-comments', limit: options.limit || 50 });
+        const defaultLimit = Math.min(options.limit ?? 8, 100);
+        loggerContext.LoggerContext.update({ targetType, targetId, userId, operation: 'list-comments', limit: defaultLimit });
 
-        const limit = options.limit || 50;
+        const limit = defaultLimit;
         const { cursor } = options;
 
         // Verify user has access to view comments on this target

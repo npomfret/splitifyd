@@ -106,17 +106,19 @@ test.describe('Group Detail - Settlement Pagination', () => {
         await groupDetailPage.ensureSettlementHistoryOpen();
 
         await expect(page.getByTestId('settlement-item')).toHaveCount(2);
-        await expect(page.getByText('Rent payment page 1')).toBeVisible();
-        await expect(page.getByText('Utilities payment page 1')).toBeVisible();
+        // Verify first page settlements by checking amounts
+        await expect(page.getByTestId('settlement-item').first()).toContainText('$50.00');
+        await expect(page.getByTestId('settlement-item').nth(1)).toContainText('$35.00');
 
         const loadMoreButton = page.getByTestId('load-more-settlements-button');
         await expect(loadMoreButton).toBeVisible();
 
         await loadMoreButton.click();
 
-        await expect(page.getByText('Groceries payment page 2')).toBeVisible();
-        await expect(page.getByText('Internet payment page 2')).toBeVisible();
+        // Verify second page settlements loaded by checking new amounts
         await expect(page.getByTestId('settlement-item')).toHaveCount(4);
+        await expect(page.getByTestId('settlement-item').nth(2)).toContainText('$20.00');
+        await expect(page.getByTestId('settlement-item').nth(3)).toContainText('$15.00');
         await expect(loadMoreButton).not.toBeVisible();
     });
 });

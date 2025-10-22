@@ -74,7 +74,7 @@ export class CommentHandlers {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_GROUP_ID', 'Group ID is required');
             }
 
-            const { cursor, limit = 20 } = req.query;
+            const { cursor, limit = 8 } = req.query;
 
             const comments = await this.commentService.listComments(
                 CommentTargetTypes.GROUP,
@@ -82,7 +82,7 @@ export class CommentHandlers {
                 userId,
                 {
                     cursor: cursor as string,
-                    limit: parseInt(limit as string, 10) || 20,
+                    limit: parseInt(limit as string, 10) || 8,
                 },
             );
 
@@ -116,7 +116,7 @@ export class CommentHandlers {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_ID', 'Expense ID is required');
             }
 
-            const { cursor, limit = 20 } = req.query;
+            const { cursor, limit = 8 } = req.query;
 
             const comments = await this.commentService.listComments(
                 CommentTargetTypes.EXPENSE,
@@ -124,7 +124,7 @@ export class CommentHandlers {
                 userId,
                 {
                     cursor: cursor as string,
-                    limit: parseInt(limit as string, 10) || 20,
+                    limit: parseInt(limit as string, 10) || 8,
                 },
             );
 
