@@ -55,7 +55,7 @@ export class ApiInterceptor {
         const { userIndex = 0, testInfo } = this.options;
 
         // Create log file path
-        const testDir = testInfo?.outputDir || path.join(process.cwd(), 'e2e-tests', 'playwright-report', 'output');
+        const testDir = testInfo?.outputDir || path.join(process.cwd(), 'e2e-tests', 'playwright-output', 'integration', 'data');
         const browserSuffix = `browser-${userIndex + 1}`;
         this.logFile = path.join(testDir, `${browserSuffix}-api.log`);
 

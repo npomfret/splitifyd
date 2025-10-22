@@ -173,7 +173,7 @@ The application has robust real-time data synchronization. Tests **must rely on 
 
 The tests are split into 3 group; normal flow (happy path), error testing, and edge cases).
 
-When debugging test failures, first ALWAYS look in `e2e-tests/playwright-report` for the failure report, console logs, screenshots etc.
+When debugging test failures, first ALWAYS look in `e2e-tests/playwright-output` for the failure report, console logs, screenshots etc.
 
 ### Fixtures Hierarchy
 
@@ -244,7 +244,7 @@ Follow the existing structure for clarity and consistency. A test should clearly
 
 ### Debugging
 
-1.  **Start with the Playwright HTML Report**: Always check `e2e-tests/playwright-report/` first. It contains traces, console logs, network requests, and screenshots.
+1.  **Start with the Playwright HTML Report**: Always check `e2e-tests/playwright-output/` first. It contains traces, console logs, network requests, and screenshots.
 2.  **Use the `run-until-fail.sh` script** to reliably reproduce flaky test failures.
 3.  **Leverage Enhanced Error Messages**: The `synchronizeMultiUserState` and `clickButton` helpers are designed to provide detailed context when they fail. Read the error messages carefully.
 
@@ -296,7 +296,7 @@ src/tests/
 
 - **Browser**: Chromium only (for consistency)
 - **Retries**: 2 retries on CI, none locally
-- **Reports**: HTML reports in `playwright-report/`
+- **Reports**: HTML reports in `playwright-output/`
 
 ## Best Practices
 
@@ -782,7 +782,7 @@ src/tests/
 
 - **Browser**: Chromium only (for consistency)
 - **Retries**: 2 retries on CI, none locally
-- **Reports**: HTML reports in `playwright-report/`
+- **Reports**: HTML reports in `playwright-output/`
 
 ## Best Practices
 
@@ -881,7 +881,7 @@ When adding new tests:
 
 ### Screenshot and Report Locations
 
-- Playwright HTML reports are saved to `e2e-tests/playwright-report/<type>/` (where type is typically `ad-hoc`, `normal`, `errors` or `edge` depending on the test group being run)
+- Playwright HTML reports are saved to `e2e-tests/playwright-output/<type>/report/` with associated data in `e2e-tests/playwright-output/<type>/data/` (where type is typically `ad-hoc`, `normal`, `errors` or `edge` depending on the test group being run)
 - The main report file is `index.html` in the specified directory
 - Screenshots and other assets are automatically organized in subdirectories (e.g., `data/`)
 - This is Playwright's default behavior for HTML reports
@@ -921,7 +921,7 @@ The `synchronizeMultiUserState` method:
 
 To debug navigation issues:
 
-1. Check screenshots in `playwright-report/ad-hoc/data/` to see actual page state
+1. Check screenshots in `playwright-output/ad-hoc/data/` to see actual page state
 2. Look for user identification in error messages
 3. Review console logs for API errors or unexpected redirects
 4. Consider whether real-time updates are causing navigation issues

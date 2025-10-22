@@ -6,8 +6,8 @@ import { EMULATOR_URL } from './src/helpers';
  */
 export default defineConfig({
     testDir: './src/__tests__/integration',
-    /* Output directory for test results - must be inside e2e-tests for HTML report to find attachments */
-    outputDir: './playwright-report/output',
+    /* Output directory for test results - default to integration data path */
+    outputDir: './playwright-output/integration/data',
     /* Global setup and teardown for user pool management */
     globalSetup: './src/fixtures/global-setup.ts',
     /* Global test timeout - some are slow */

@@ -25,7 +25,7 @@
     "e2e-tests": {
       "entry": ["src/**/*.test.ts", "playwright.config.ts"],
       "project": ["src/**/*.ts", "playwright.config.ts"],
-      "ignore": ["node_modules/**/*", "test-results/**/*", "playwright-report/**/*"]
+      "ignore": ["node_modules/**/*", "test-results/**/*", "playwright-output/**/*"]
     }
   },
   "ignore": ["**/*.d.ts", "**/node_modules/**", "**/dist/**", "**/lib/**", "**/build/**", "**/coverage/**"],

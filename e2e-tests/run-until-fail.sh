@@ -14,7 +14,7 @@
 #
 # This script generates a Playwright trace file for each run, which can be
 # used to analyze test performance. To view the trace, open the report in Chrome:
-#   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
+#   open -a "Google Chrome" "e2e-tests/playwright-output/ad-hoc/report/index.html"
 
 # edit these to pick your test cases
 TEST_FILE="src/__tests__/integration/core-features.e2e.test.ts"
@@ -24,6 +24,9 @@ TEST_FILTER="should support real-time group-level comments between multiple user
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 E2E_TESTS_DIR="$SCRIPT_DIR"
+AD_HOC_ROOT="$E2E_TESTS_DIR/playwright-output/ad-hoc"
+AD_HOC_REPORT_DIR="$AD_HOC_ROOT/report"
+AD_HOC_DATA_DIR="$AD_HOC_ROOT/data"
 
 # Change to project root if we're not already there
 if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
@@ -57,14 +60,15 @@ else
 fi
 
 # Clean up any existing artifacts in the ad-hoc folders
-rm -rf "$E2E_TESTS_DIR/playwright-report/ad-hoc-report" "$E2E_TESTS_DIR/playwright-report/ad-hoc-output" 2>/dev/null
+rm -rf "$AD_HOC_REPORT_DIR" "$AD_HOC_DATA_DIR" 2>/dev/null
+mkdir -p "$AD_HOC_REPORT_DIR" "$AD_HOC_DATA_DIR"
 
 echo "🚀 Starting repeated test runs for: $TEST_FILE"
 if [ -n "$TEST_FILTER" ]; then
     echo "🎯 Test filter: '$TEST_FILTER'"
 fi
-echo "📊 HTML report will be stored in: $E2E_TESTS_DIR/playwright-report/ad-hoc-report/"
-echo "📸 Screenshots and artifacts: $E2E_TESTS_DIR/playwright-report/ad-hoc-output/"
+echo "📊 HTML report will be stored in: $AD_HOC_REPORT_DIR/"
+echo "📸 Screenshots and artifacts: $AD_HOC_DATA_DIR/"
 echo ""
 
 while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
@@ -78,9 +82,9 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
     
     # Run the test
     if [ -n "$TEST_FILTER" ]; then
-        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT="$E2E_TESTS_DIR/playwright-report/ad-hoc-report" PLAYWRIGHT_TEST_OUTPUT_DIR="$E2E_TESTS_DIR/playwright-report/ad-hoc-output" npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE" --grep "$TEST_FILTER"
+        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT="$AD_HOC_REPORT_DIR" PLAYWRIGHT_TEST_OUTPUT_DIR="$AD_HOC_DATA_DIR" npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE" --grep "$TEST_FILTER"
     else
-        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT="$E2E_TESTS_DIR/playwright-report/ad-hoc-report" PLAYWRIGHT_TEST_OUTPUT_DIR="$E2E_TESTS_DIR/playwright-report/ad-hoc-output" npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE"
+        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT="$AD_HOC_REPORT_DIR" PLAYWRIGHT_TEST_OUTPUT_DIR="$AD_HOC_DATA_DIR" npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE"
     fi
 
     # Check exit code
@@ -94,7 +98,7 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
         echo "🏁 Stopped at: $(date)"
         echo ""
         echo "To view the report and trace, run the following command:"
-        echo "open -a \"Google Chrome\" \"$E2E_TESTS_DIR/playwright-report/ad-hoc-report/index.html\""
+        echo "open -a \"Google Chrome\" \"$AD_HOC_REPORT_DIR/index.html\""
         exit 1
     fi
     
@@ -112,7 +116,7 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
         echo "🏁 Stopped at: $(date)"
         echo ""
         echo "To view the report and trace of the last successful run, run the following command:"
-        echo "open -a \"Google Chrome\" \"$E2E_TESTS_DIR/playwright-report/ad-hoc-report/index.html\""
+        echo "open -a \"Google Chrome\" \"$AD_HOC_REPORT_DIR/index.html\""
         exit 0
     fi
     
@@ -121,4 +125,3 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
     # Small delay to avoid overwhelming the system
     sleep 2
 done
-
