@@ -6,7 +6,7 @@ import { DashboardPage } from './DashboardPage';
 
 const translation = translationEn;
 
-type GroupSettingsTab = 'general' | 'security';
+type GroupSettingsTab = 'identity' | 'general' | 'security';
 
 /**
  * Page object for the unified Group Settings modal.
@@ -46,23 +46,47 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     async ensureGeneralTab(): Promise<void> {
-        const nameInput = this.getModalContainer().getByTestId('group-name-input');
-        if (await nameInput.count()) {
+        const groupNameInput = this.getGroupNameInput();
+
+        if ((await groupNameInput.count()) > 0) {
             try {
-                if (await nameInput.isVisible()) {
+                if (await groupNameInput.isVisible()) {
                     return;
                 }
             } catch {
-                // fall through and click tab
+                // ignore visibility race, fall through to tab click when possible
             }
         }
 
-        if (!(await this.hasTab('general'))) {
-            throw new Error('General tab is not available in the Group Settings modal for this user.');
+        if (await this.hasTab('general')) {
+            await this.getTabButton('general').click();
+        } else if ((await groupNameInput.count()) === 0) {
+            throw new Error('General tab content was not found in the Group Settings modal.');
         }
 
-        await this.getTabButton('general').click();
-        await expect(nameInput).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+        await expect(groupNameInput).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+    }
+
+    async ensureIdentityTab(): Promise<void> {
+        const displayNameInput = this.getDisplayNameInput();
+
+        if ((await displayNameInput.count()) > 0) {
+            try {
+                if (await displayNameInput.isVisible()) {
+                    return;
+                }
+            } catch {
+                // ignore and fall through to tab navigation
+            }
+        }
+
+        if (await this.hasTab('identity')) {
+            await this.getTabButton('identity').click();
+        } else if ((await displayNameInput.count()) === 0) {
+            throw new Error('Identity tab content was not found in the Group Settings modal.');
+        }
+
+        await expect(displayNameInput).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
     }
 
     async ensureSecurityTab(): Promise<void> {
@@ -94,6 +118,30 @@ export class GroupSettingsModalPage extends BasePage {
 
     getGroupDescriptionInput(): Locator {
         return this.getModalContainer().getByTestId('group-description-input');
+    }
+
+    // ============================================================================
+    // GENERAL TAB - DISPLAY NAME SELECTORS
+    // ============================================================================
+
+    getDisplayNameSection(): Locator {
+        return this.getModalContainer().getByTestId('group-display-name-settings');
+    }
+
+    getDisplayNameInput(): Locator {
+        return this.getModalContainer().getByTestId('group-display-name-input');
+    }
+
+    getDisplayNameSaveButton(): Locator {
+        return this.getModalContainer().getByTestId('group-display-name-save-button');
+    }
+
+    getDisplayNameError(): Locator {
+        return this.getModalContainer().getByTestId('group-display-name-error');
+    }
+
+    getDisplayNameSuccess(): Locator {
+        return this.getModalContainer().getByTestId('group-display-name-success');
     }
 
     // ============================================================================
@@ -174,11 +222,20 @@ export class GroupSettingsModalPage extends BasePage {
             return;
         }
 
-        // Default: prefer general tab when available, otherwise security.
+        if (tab === 'identity') {
+            await this.ensureIdentityTab();
+            return;
+        }
+
+        // Default: prefer identity, then general, then security.
         try {
-            await this.ensureGeneralTab();
+            await this.ensureIdentityTab();
         } catch {
-            await this.ensureSecurityTab();
+            try {
+                await this.ensureGeneralTab();
+            } catch {
+                await this.ensureSecurityTab();
+            }
         }
     }
 
@@ -270,6 +327,32 @@ export class GroupSettingsModalPage extends BasePage {
         await this.ensureGeneralTab();
         const saveButton = this.getSaveButton();
         await this.clickButton(saveButton, { buttonName: translation.editGroupModal.saveChangesButton });
+    }
+
+    async fillDisplayName(name: string): Promise<void> {
+        await this.ensureIdentityTab();
+        const input = this.getDisplayNameInput();
+        await expect(input).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+
+        await input.click();
+        await input.fill('');
+        await input.dispatchEvent('input');
+
+        await input.fill(name);
+        await input.dispatchEvent('input');
+
+        await expect(input).toHaveValue(name, { timeout: TEST_TIMEOUTS.INPUT_UPDATE });
+    }
+
+    async saveDisplayName(): Promise<void> {
+        await this.ensureIdentityTab();
+        const saveButton = this.getDisplayNameSaveButton();
+        await this.clickButton(saveButton, { buttonName: translation.groupDisplayNameSettings.save });
+    }
+
+    async updateDisplayName(name: string): Promise<void> {
+        await this.fillDisplayName(name);
+        await this.saveDisplayName();
     }
 
     async saveChanges(): Promise<void> {

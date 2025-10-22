@@ -1,6 +1,8 @@
-import { apiClient } from '@/app/apiClient.ts';
+import { apiClient, ApiError } from '@/app/apiClient.ts';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { logError } from '@/utils/browser-logger.ts';
+import { useComputed } from '@preact/signals';
 import {
     GroupDTO,
     GroupMember,
@@ -10,7 +12,7 @@ import {
     PermissionLevels,
     SecurityPreset,
 } from '@splitifyd/shared';
-import { useCallback, useEffect, useMemo, useState } from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, LoadingSpinner } from '../ui';
 
@@ -49,7 +51,7 @@ const permissionOptions: Record<keyof GroupPermissions, string[]> = {
     settingsManagement: [PermissionLevels.ANYONE, PermissionLevels.ADMIN_ONLY],
 };
 
-type GroupSettingsTab = 'general' | 'security';
+type GroupSettingsTab = 'identity' | 'general' | 'security';
 
 interface GroupSettingsModalProps {
     isOpen: boolean;
@@ -90,11 +92,20 @@ export function GroupSettingsModal({
 }: GroupSettingsModalProps) {
     const { t } = useTranslation();
 
-    const generalTabAvailable = isGroupOwner;
+    const authStore = useAuthRequired();
+    const currentUser = useComputed(() => authStore.user);
+    const loadingMembers = useComputed(() => enhancedGroupDetailStore.loadingMembers);
+
+    const canManageGeneralSettings = isGroupOwner;
+    const generalTabAvailable = canManageGeneralSettings;
+    const identityTabAvailable = true;
     const securityTabAvailable = isGroupOwner || canManageMembers || canApproveMembers;
 
     const availableTabs = useMemo(() => {
         const tabs: GroupSettingsTab[] = [];
+        if (identityTabAvailable) {
+            tabs.push('identity');
+        }
         if (generalTabAvailable) {
             tabs.push('general');
         }
@@ -102,7 +113,7 @@ export function GroupSettingsModal({
             tabs.push('security');
         }
         return tabs;
-    }, [generalTabAvailable, securityTabAvailable]);
+    }, [identityTabAvailable, generalTabAvailable, securityTabAvailable]);
 
     const defaultTab = useMemo(() => {
         if (initialTab && availableTabs.includes(initialTab)) {
@@ -125,6 +136,15 @@ export function GroupSettingsModal({
     const [confirmationText, setConfirmationText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // Display name settings state
+    const [displayName, setDisplayName] = useState('');
+    const [initialDisplayName, setInitialDisplayName] = useState('');
+    const [displayNameValidationError, setDisplayNameValidationError] = useState<string | null>(null);
+    const [displayNameServerError, setDisplayNameServerError] = useState<string | null>(null);
+    const [displayNameSuccessMessage, setDisplayNameSuccessMessage] = useState<string | null>(null);
+    const [isSavingDisplayName, setIsSavingDisplayName] = useState(false);
+    const displayNameSuccessTimerRef = useRef<number | null>(null);
+
     // Security settings state
     const [permissionDraft, setPermissionDraft] = useState<GroupPermissions>(group.permissions);
     const [selectedPreset, setSelectedPreset] = useState<ManagedPreset | 'custom'>(determinePreset(group.permissions));
@@ -144,7 +164,49 @@ export function GroupSettingsModal({
     }, [isOpen, defaultTab]);
 
     useEffect(() => {
-        if (!isOpen || !generalTabAvailable) {
+        return () => {
+            if (displayNameSuccessTimerRef.current) {
+                window.clearTimeout(displayNameSuccessTimerRef.current);
+                displayNameSuccessTimerRef.current = null;
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        const uid = currentUser.value?.uid;
+        if (!uid) {
+            return;
+        }
+
+        const member = members.find((m) => m.uid === uid);
+        if (!member) {
+            return;
+        }
+
+        const fallbackName = (member.groupDisplayName ?? '').trim() || member.displayName || currentUser.value?.displayName || '';
+
+        setDisplayName(fallbackName);
+        setInitialDisplayName(fallbackName);
+        setDisplayNameValidationError(null);
+        setDisplayNameServerError(null);
+    }, [isOpen, members, currentUser.value]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            if (displayNameSuccessTimerRef.current) {
+                window.clearTimeout(displayNameSuccessTimerRef.current);
+                displayNameSuccessTimerRef.current = null;
+            }
+            return;
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (!isOpen || !canManageGeneralSettings) {
             return;
         }
 
@@ -157,7 +219,7 @@ export function GroupSettingsModal({
         setShowDeleteConfirm(false);
         setConfirmationText('');
         setIsDeleting(false);
-    }, [isOpen, generalTabAvailable, group.name, group.description]);
+    }, [isOpen, canManageGeneralSettings, group.name, group.description]);
 
     const loadPendingMembers = useCallback(async () => {
         if (!canApproveMembers) {
@@ -209,7 +271,7 @@ export function GroupSettingsModal({
         return () => window.removeEventListener('keydown', handleEscape, { capture: true });
     }, [isOpen, onClose, showDeleteConfirm]);
 
-    if (!isOpen || availableTabs.length === 0) {
+    if (!isOpen) {
         return null;
     }
 
@@ -239,6 +301,72 @@ export function GroupSettingsModal({
 
     const hasGeneralChanges = groupName !== initialName || groupDescription !== initialDescription;
     const isGeneralFormValid = groupName.trim().length >= 2;
+    const handleDisplayNameChange = (value: string) => {
+        setDisplayName(value);
+        if (displayNameValidationError) {
+            setDisplayNameValidationError(null);
+        }
+        if (displayNameServerError) {
+            setDisplayNameServerError(null);
+        }
+        if (displayNameSuccessMessage) {
+            setDisplayNameSuccessMessage(null);
+        }
+    };
+
+    const handleDisplayNameSubmit = async (event: Event) => {
+        event.preventDefault();
+
+        const trimmedName = displayName.trim();
+
+        if (!trimmedName) {
+            setDisplayNameValidationError(t('groupDisplayNameSettings.errors.required'));
+            return;
+        }
+
+        if (trimmedName.length > 50) {
+            setDisplayNameValidationError(t('groupDisplayNameSettings.errors.tooLong'));
+            return;
+        }
+
+        if (trimmedName === initialDisplayName) {
+            setDisplayNameValidationError(t('groupDisplayNameSettings.errors.notChanged'));
+            return;
+        }
+
+        setIsSavingDisplayName(true);
+        setDisplayNameValidationError(null);
+        setDisplayNameServerError(null);
+        setDisplayNameSuccessMessage(null);
+
+        try {
+            await apiClient.updateGroupMemberDisplayName(group.id, trimmedName);
+            await enhancedGroupDetailStore.refreshAll();
+            await onGroupUpdated?.();
+
+            setInitialDisplayName(trimmedName);
+            setDisplayNameSuccessMessage(t('groupDisplayNameSettings.success'));
+
+            if (displayNameSuccessTimerRef.current) {
+                window.clearTimeout(displayNameSuccessTimerRef.current);
+            }
+
+            displayNameSuccessTimerRef.current = window.setTimeout(() => {
+                setDisplayNameSuccessMessage(null);
+                displayNameSuccessTimerRef.current = null;
+            }, 4000);
+        } catch (error: unknown) {
+            if (error instanceof ApiError && error.code === 'DISPLAY_NAME_TAKEN') {
+                setDisplayNameServerError(t('groupDisplayNameSettings.errors.taken'));
+            } else if (error instanceof ApiError) {
+                setDisplayNameServerError(error.message || t('groupDisplayNameSettings.errors.unknown'));
+            } else {
+                setDisplayNameServerError(t('groupDisplayNameSettings.errors.unknown'));
+            }
+        } finally {
+            setIsSavingDisplayName(false);
+        }
+    };
 
     const handleGeneralSubmit = async (event: Event) => {
         event.preventDefault();
@@ -382,77 +510,146 @@ export function GroupSettingsModal({
         }
     };
 
-    const renderGeneralTab = () => (
-        <Form onSubmit={handleGeneralSubmit}>
+    const renderIdentityTab = () => {
+        const user = currentUser.value;
+        if (!user) {
+            return null;
+        }
+
+        const groupMember = members.find((member) => member.uid === user.uid);
+        if (!groupMember) {
+            if (loadingMembers.value) {
+                return (
+                    <section className='border border-gray-200 rounded-lg p-5 space-y-3 bg-gray-50/60' data-testid='group-display-name-settings'>
+                        <div className='h-4 bg-gray-100 animate-pulse rounded' aria-hidden='true'></div>
+                        <div className='h-10 bg-gray-100 animate-pulse rounded' aria-hidden='true'></div>
+                    </section>
+                );
+            }
+            return null;
+        }
+
+        const isDirty = displayName.trim() !== initialDisplayName;
+
+        return (
             <div className='space-y-4'>
-                <Input
-                    label={t('editGroupModal.groupNameLabel')}
-                    type='text'
-                    placeholder={t('editGroupModal.groupNamePlaceholder')}
-                    value={groupName}
-                    onChange={(value) => {
-                        setGroupName(value);
-                        setValidationError(null);
-                    }}
-                    required
-                    disabled={isSubmitting}
-                    error={validationError || undefined}
-                    data-testid='group-name-input'
-                />
+                <section className='border border-gray-200 rounded-lg p-5 space-y-4 bg-gray-50/60' data-testid='group-display-name-settings'>
+                    <div>
+                        <h3 className='text-sm font-semibold text-gray-900'>{t('groupDisplayNameSettings.title')}</h3>
+                        <p className='text-sm text-gray-600 mt-1'>{t('groupDisplayNameSettings.description')}</p>
+                    </div>
 
-                <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-2'>{t('editGroupModal.descriptionLabel')}</label>
-                    <textarea
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none'
-                        rows={3}
-                        placeholder={t('editGroupModal.descriptionPlaceholder')}
-                        value={groupDescription}
-                        onInput={(event) => {
-                            setGroupDescription((event.target as HTMLTextAreaElement).value);
-                        }}
-                        disabled={isSubmitting}
-                        maxLength={200}
-                        data-testid='group-description-input'
-                    />
-                </div>
+                    <form onSubmit={handleDisplayNameSubmit} className='space-y-4'>
+                        <Input
+                            label={t('groupDisplayNameSettings.inputLabel')}
+                            placeholder={t('groupDisplayNameSettings.inputPlaceholder')}
+                            value={displayName}
+                            onChange={handleDisplayNameChange}
+                            disabled={isSavingDisplayName}
+                            error={displayNameValidationError || undefined}
+                            data-testid='group-display-name-input'
+                        />
 
-                {validationError && (
-                    <div className='bg-red-50 border border-red-200 rounded-md p-3'>
-                        <div className='flex'>
-                            <div className='flex-shrink-0'>
-                                <svg className='h-5 w-5 text-red-400' fill='currentColor' viewBox='0 0 20 20'>
-                                    <path
-                                        fill-rule='evenodd'
-                                        d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
-                                        clip-rule='evenodd'
-                                    />
-                                </svg>
+                        {displayNameServerError && (
+                            <div className='bg-red-50 border border-red-200 rounded-md px-3 py-2 text-sm text-red-800' role='alert' data-testid='group-display-name-error'>
+                                {displayNameServerError}
                             </div>
-                            <div className='ml-3'>
-                                <p className='text-sm text-red-800' role='alert' data-testid='edit-group-validation-error'>
-                                    {validationError}
-                                </p>
+                        )}
+
+                        {displayNameSuccessMessage && (
+                            <div className='bg-green-50 border border-green-200 rounded-md px-3 py-2 text-sm text-green-800' role='status' data-testid='group-display-name-success'>
+                                {displayNameSuccessMessage}
+                            </div>
+                        )}
+
+                        <Button type='submit' loading={isSavingDisplayName} disabled={isSavingDisplayName || !isDirty} fullWidth data-testid='group-display-name-save-button'>
+                            {isSavingDisplayName ? t('groupDisplayNameSettings.saving') : t('groupDisplayNameSettings.save')}
+                        </Button>
+                    </form>
+                </section>
+            </div>
+        );
+    };
+
+    const renderGeneralTab = () => {
+        if (!canManageGeneralSettings) {
+            return null;
+        }
+
+        return (
+            <div className='space-y-8'>
+                <Form onSubmit={handleGeneralSubmit}>
+                    <div className='space-y-4'>
+                    <Input
+                        label={t('editGroupModal.groupNameLabel')}
+                        type='text'
+                        placeholder={t('editGroupModal.groupNamePlaceholder')}
+                        value={groupName}
+                        onChange={(value) => {
+                            setGroupName(value);
+                            setValidationError(null);
+                        }}
+                        required
+                        disabled={isSubmitting}
+                        error={validationError || undefined}
+                        data-testid='group-name-input'
+                    />
+
+                    <div>
+                        <label className='block text-sm font-medium text-gray-700 mb-2'>{t('editGroupModal.descriptionLabel')}</label>
+                        <textarea
+                            className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none'
+                            rows={3}
+                            placeholder={t('editGroupModal.descriptionPlaceholder')}
+                            value={groupDescription}
+                            onInput={(event) => {
+                                setGroupDescription((event.target as HTMLTextAreaElement).value);
+                            }}
+                            disabled={isSubmitting}
+                            maxLength={200}
+                            data-testid='group-description-input'
+                        />
+                    </div>
+
+                    {validationError && (
+                        <div className='bg-red-50 border border-red-200 rounded-md p-3'>
+                            <div className='flex'>
+                                <div className='flex-shrink-0'>
+                                    <svg className='h-5 w-5 text-red-400' fill='currentColor' viewBox='0 0 20 20'>
+                                        <path
+                                            fill-rule='evenodd'
+                                            d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
+                                            clip-rule='evenodd'
+                                        />
+                                    </svg>
+                                </div>
+                                <div className='ml-3'>
+                                    <p className='text-sm text-red-800' role='alert' data-testid='edit-group-validation-error'>
+                                        {validationError}
+                                    </p>
+                                </div>
                             </div>
                         </div>
+                    )}
                     </div>
-                )}
-            </div>
 
-            <div className='flex items-center justify-between mt-6 pt-4 border-t border-gray-200'>
-                <Button type='button' variant='danger' onClick={handleDeleteClick} disabled={isSubmitting} data-testid='delete-group-button'>
-                    {t('editGroupModal.deleteGroupButton')}
-                </Button>
-                <div className='flex items-center space-x-3'>
-                    <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting} data-testid='cancel-edit-group-button'>
-                        {t('editGroupModal.cancelButton')}
-                    </Button>
-                    <Button type='submit' loading={isSubmitting} disabled={!isGeneralFormValid || !hasGeneralChanges} data-testid='save-changes-button'>
-                        {t('editGroupModal.saveChangesButton')}
-                    </Button>
-                </div>
+                    <div className='flex items-center justify-between mt-6 pt-4 border-t border-gray-200'>
+                        <Button type='button' variant='danger' onClick={handleDeleteClick} disabled={isSubmitting} data-testid='delete-group-button'>
+                            {t('editGroupModal.deleteGroupButton')}
+                        </Button>
+                        <div className='flex items-center space-x-3'>
+                            <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting} data-testid='cancel-edit-group-button'>
+                                {t('editGroupModal.cancelButton')}
+                            </Button>
+                            <Button type='submit' loading={isSubmitting} disabled={!isGeneralFormValid || !hasGeneralChanges} data-testid='save-changes-button'>
+                                {t('editGroupModal.saveChangesButton')}
+                            </Button>
+                        </div>
+                    </div>
+                </Form>
             </div>
-        </Form>
-    );
+        );
+    };
 
     const renderSecurityTab = () => (
         <div className='space-y-6'>
@@ -647,6 +844,7 @@ export function GroupSettingsModal({
                     )}
 
                     <div className='max-h-[70vh] overflow-y-auto px-6 py-5'>
+                        {activeTab === 'identity' && identityTabAvailable && renderIdentityTab()}
                         {activeTab === 'general' && generalTabAvailable && renderGeneralTab()}
                         {activeTab === 'security' && securityTabAvailable && renderSecurityTab()}
                     </div>

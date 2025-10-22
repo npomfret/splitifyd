@@ -1,5 +1,5 @@
 import { CommentsSection } from '@/components/comments';
-import { BalanceSummary, ExpensesList, GroupActions, GroupHeader, GroupDisplayNameSettings, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
+import { BalanceSummary, ExpensesList, GroupActions, GroupHeader, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { Button, Card, LoadingSpinner } from '@/components/ui';
 import { Stack } from '@/components/ui';
@@ -46,7 +46,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const userPermissions = useComputed(() => permissionsStore.permissions.value || {});
     const canManageSecurity = useComputed(() => Boolean(userPermissions.value.canManageSettings));
     const canApproveMembers = useComputed(() => Boolean(userPermissions.value.canApproveMembers));
-    const canShowSettingsButton = useComputed(() => Boolean(isGroupOwner.value || canManageSecurity.value || canApproveMembers.value));
+    const isGroupMember = useComputed(() => members.value.some((member) => member.uid === currentUser.value?.uid));
+    const canShowSettingsButton = useComputed(() => Boolean(isGroupOwner.value || canManageSecurity.value || canApproveMembers.value || isGroupMember.value));
 
     // Check if user can leave group (not the owner and not the last member)
     const isLastMember = useComputed(() => members.value.length === 1);
@@ -182,7 +183,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     };
 
     const handleSettings = () => {
-        const defaultTab = isGroupOwner.value ? 'general' : 'security';
+        const defaultTab = isGroupOwner.value ? 'general' : 'identity';
         modals.openGroupSettingsModal(defaultTab);
     };
 
@@ -283,8 +284,6 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 }
                 rightSidebar={
                     <>
-                        <GroupDisplayNameSettings groupId={groupId!} />
-
                         <BalanceSummary variant='sidebar' />
 
                         {/* Comments Section */}

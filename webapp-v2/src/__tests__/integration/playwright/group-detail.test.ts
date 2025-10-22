@@ -749,7 +749,7 @@ test.describe('Group Detail - Permission Checks', () => {
             .withName('Member Group')
             .withCreatedBy('other-user-id')
             .withPermissions({
-                memberApproval: 'admin-required', // Regular members shouldn't see Settings button
+                memberApproval: 'admin-required',
             })
             .build();
 
@@ -787,7 +787,7 @@ test.describe('Group Detail - Permission Checks', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
-        // Verify member actions are available (cannot edit, can leave)
+        // Verify member actions are available (can access Settings for Identity tab, can leave group)
         await groupDetailPage.verifyMemberActions();
     });
 

@@ -963,6 +963,7 @@
   "groupSettingsModal": {
     "title": "Group Settings",
     "tabs": {
+      "identity": "Display name",
       "general": "General",
       "security": "Security & Permissions"
     }

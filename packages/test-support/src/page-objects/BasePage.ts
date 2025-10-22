@@ -142,8 +142,10 @@ export abstract class BasePage {
     async clearPreactInput(selector: string | Locator) {
         const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
 
+        await input.waitFor({ state: 'visible', timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+
         const inputIdentifier = await this.getInputIdentifier(input);
-        const initialValue = await input.inputValue();
+        const initialValue = await input.inputValue({ timeout: TEST_TIMEOUTS.INPUT_UPDATE });
 
         if (initialValue === '') {
             return;

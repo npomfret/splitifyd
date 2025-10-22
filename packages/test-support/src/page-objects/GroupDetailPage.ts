@@ -1405,7 +1405,7 @@ export class GroupDetailPage extends BasePage {
      * Click Settings button and open group settings modal
      * Fluent version - verifies modal opens and returns GroupSettingsModalPage
      */
-    async clickEditGroupAndOpenModal(tab: 'general' | 'security' = 'general'): Promise<GroupSettingsModalPage> {
+    async clickEditGroupAndOpenModal(tab: 'identity' | 'general' | 'security' = 'general'): Promise<GroupSettingsModalPage> {
         await this.clickEditGroup();
 
         const modalPage = new GroupSettingsModalPage(this.page);
@@ -1509,9 +1509,10 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Verify user can only perform member actions
+     * Note: With Identity tab, all members can access Settings to update their display name
      */
     async verifyMemberActions(): Promise<void> {
-        await expect(this.getEditGroupButton()).not.toBeVisible();
+        await expect(this.getEditGroupButton()).toBeVisible(); // All members can access Settings for Identity tab
         await expect(this.getLeaveGroupButton()).toBeVisible();
     }
 

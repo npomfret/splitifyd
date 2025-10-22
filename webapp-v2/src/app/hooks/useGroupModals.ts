@@ -10,7 +10,7 @@ export function useGroupModals() {
     const showShareModal = useSignal(false);
     const showSettlementForm = useSignal(false);
     const showGroupSettingsModal = useSignal(false);
-    const groupSettingsInitialTab = useSignal<'general' | 'security'>('general');
+    const groupSettingsInitialTab = useSignal<'identity' | 'general' | 'security'>('general');
 
     // Modal data states
     const settlementToEdit = useSignal<SettlementWithMembers | null>(null);
@@ -34,7 +34,7 @@ export function useGroupModals() {
         settlementToEdit.value = null;
     };
 
-    const openGroupSettingsModal = (tab: 'general' | 'security' = 'general') => {
+    const openGroupSettingsModal = (tab: 'identity' | 'general' | 'security' = 'general') => {
         groupSettingsInitialTab.value = tab;
         showGroupSettingsModal.value = true;
     };
