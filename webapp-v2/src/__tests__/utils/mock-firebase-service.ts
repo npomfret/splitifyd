@@ -654,6 +654,20 @@ export async function mockApplySecurityPresetApi(
     );
 }
 
+export async function mockUpdateGroupPermissionsApi(
+    page: Page,
+    groupId: GroupId,
+    response: any = { message: 'Permissions updated.' },
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('PATCH', `/api/groups/${groupId}/security/permissions`, response, { delayMs: delay }),
+    );
+}
+
 /**
  * Mock group preview API failure
  * @param status - HTTP status code for the failure

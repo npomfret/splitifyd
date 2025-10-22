@@ -66,12 +66,12 @@ export class DashboardPage extends BasePage {
      * Quick actions sidebar/card container
      */
     getQuickActionsContainer(): Locator {
-        // Find the container with Quick Actions heading
+        // Find the container with Quick Actions text (title is now a div, not a heading)
         return this
             .page
             .locator('div')
             .filter({
-                has: this.page.getByRole('heading', { name: translation.quickActions.title, exact: true }),
+                has: this.page.getByText(translation.quickActions.title, { exact: true }),
             })
             .first();
     }

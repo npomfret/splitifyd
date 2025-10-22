@@ -1,6 +1,6 @@
 import { CommentBuilder, ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockApiFailure, mockApplySecurityPresetApi, mockGroupCommentsApi, mockGroupDetailApi, mockPendingMembersApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
+import { mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi, mockPendingMembersApi, mockUpdateGroupPermissionsApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 import { createJsonHandler } from '@/test/msw/handlers.ts';
 
 test.describe('Group Detail - Authentication and Navigation', () => {
@@ -220,7 +220,7 @@ test.describe('Group Detail - Security Settings', () => {
         await mockGroupDetailApi(page, groupId, fullDetails);
         await mockGroupCommentsApi(page, groupId);
         await mockPendingMembersApi(page, groupId, []);
-        await mockApplySecurityPresetApi(page, groupId, { message: 'Preset applied' });
+        await mockUpdateGroupPermissionsApi(page, groupId, { message: 'Security settings updated.' });
 
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
@@ -230,10 +230,25 @@ test.describe('Group Detail - Security Settings', () => {
         const settingsModal = await groupDetailPage.openSecuritySettings();
         await settingsModal.waitForSecurityTab();
 
-        await Promise.all([
-            page.waitForRequest((request) => request.url().includes(`/api/groups/${groupId}/security/apply-preset`) && request.method() === 'POST'),
-            settingsModal.selectPreset('managed'),
-        ]);
+        await settingsModal.selectPreset('managed');
+        await expect(settingsModal.getSecurityUnsavedBanner()).toBeVisible();
+
+        const permissionsRequestPromise = page.waitForRequest(
+            (request) => request.url().includes(`/api/groups/${groupId}/security/permissions`) && request.method() === 'PATCH',
+        );
+
+        await settingsModal.saveSecuritySettings();
+
+        const permissionRequest = await permissionsRequestPromise;
+        expect(permissionRequest.postDataJSON()).toEqual({
+            expenseEditing: 'owner-and-admin',
+            expenseDeletion: 'owner-and-admin',
+            memberInvitation: 'admin-only',
+            memberApproval: 'admin-required',
+            settingsManagement: 'admin-only',
+        });
+        await expect(settingsModal.getSecuritySuccessAlert()).toBeVisible();
+        await expect(settingsModal.getSecurityUnsavedBanner()).not.toBeVisible();
 
         await settingsModal.clickFooterClose();
         await expect(page.getByTestId('group-settings-modal-title')).toBeHidden();

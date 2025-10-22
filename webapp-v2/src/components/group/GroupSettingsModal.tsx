@@ -135,6 +135,8 @@ export function GroupSettingsModal({
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const [confirmationText, setConfirmationText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
+    const [generalSuccessMessage, setGeneralSuccessMessage] = useState<string | null>(null);
+    const generalSuccessTimerRef = useRef<number | null>(null);
 
     // Display name settings state
     const [displayName, setDisplayName] = useState('');
@@ -146,16 +148,59 @@ export function GroupSettingsModal({
     const displayNameSuccessTimerRef = useRef<number | null>(null);
 
     // Security settings state
-    const [permissionDraft, setPermissionDraft] = useState<GroupPermissions>(group.permissions);
+    const [permissionDraft, setPermissionDraft] = useState<GroupPermissions>({ ...group.permissions });
     const [selectedPreset, setSelectedPreset] = useState<ManagedPreset | 'custom'>(determinePreset(group.permissions));
-    const [savingPermissions, setSavingPermissions] = useState(false);
-    const [presetApplying, setPresetApplying] = useState<ManagedPreset | null>(null);
+    const [isSavingSecurity, setIsSavingSecurity] = useState(false);
     const [pendingMembers, setPendingMembers] = useState<GroupMembershipDTO[]>([]);
     const [loadingPending, setLoadingPending] = useState(false);
     const [pendingError, setPendingError] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
-    const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
     const [pendingActionMember, setPendingActionMember] = useState<string | null>(null);
+    const [initialPermissions, setInitialPermissions] = useState<GroupPermissions>({ ...group.permissions });
+    const [permissionsSuccessMessage, setPermissionsSuccessMessage] = useState<string | null>(null);
+    const permissionsSuccessTimerRef = useRef<number | null>(null);
+    const [memberRoleDrafts, setMemberRoleDrafts] = useState<Record<string, MemberRole>>({});
+    const [initialMemberRoles, setInitialMemberRoles] = useState<Record<string, MemberRole>>({});
+
+    const clearGeneralSuccessMessage = useCallback(() => {
+        if (generalSuccessTimerRef.current) {
+            window.clearTimeout(generalSuccessTimerRef.current);
+            generalSuccessTimerRef.current = null;
+        }
+        setGeneralSuccessMessage(null);
+    }, []);
+
+    const showGeneralSuccess = useCallback(
+        (message: string) => {
+            clearGeneralSuccessMessage();
+            setGeneralSuccessMessage(message);
+            generalSuccessTimerRef.current = window.setTimeout(() => {
+                setGeneralSuccessMessage(null);
+                generalSuccessTimerRef.current = null;
+            }, 4000);
+        },
+        [clearGeneralSuccessMessage],
+    );
+
+    const clearPermissionsSuccessMessage = useCallback(() => {
+        if (permissionsSuccessTimerRef.current) {
+            window.clearTimeout(permissionsSuccessTimerRef.current);
+            permissionsSuccessTimerRef.current = null;
+        }
+        setPermissionsSuccessMessage(null);
+    }, []);
+
+    const showPermissionsSuccess = useCallback(
+        (message: string) => {
+            clearPermissionsSuccessMessage();
+            setPermissionsSuccessMessage(message);
+            permissionsSuccessTimerRef.current = window.setTimeout(() => {
+                setPermissionsSuccessMessage(null);
+                permissionsSuccessTimerRef.current = null;
+            }, 4000);
+        },
+        [clearPermissionsSuccessMessage],
+    );
 
     useEffect(() => {
         if (isOpen) {
@@ -168,6 +213,14 @@ export function GroupSettingsModal({
             if (displayNameSuccessTimerRef.current) {
                 window.clearTimeout(displayNameSuccessTimerRef.current);
                 displayNameSuccessTimerRef.current = null;
+            }
+            if (generalSuccessTimerRef.current) {
+                window.clearTimeout(generalSuccessTimerRef.current);
+                generalSuccessTimerRef.current = null;
+            }
+            if (permissionsSuccessTimerRef.current) {
+                window.clearTimeout(permissionsSuccessTimerRef.current);
+                permissionsSuccessTimerRef.current = null;
             }
         };
     }, []);
@@ -201,14 +254,19 @@ export function GroupSettingsModal({
                 window.clearTimeout(displayNameSuccessTimerRef.current);
                 displayNameSuccessTimerRef.current = null;
             }
+            clearGeneralSuccessMessage();
+            clearPermissionsSuccessMessage();
             return;
         }
-    }, [isOpen]);
+    }, [isOpen, clearGeneralSuccessMessage, clearPermissionsSuccessMessage]);
 
     useEffect(() => {
         if (!isOpen || !canManageGeneralSettings) {
             return;
         }
+
+        // Don't clear success message - let it auto-dismiss via timer
+        // This prevents race condition where group refresh clears the message
 
         setInitialName(group.name);
         setInitialDescription(group.description || '');
@@ -244,16 +302,27 @@ export function GroupSettingsModal({
             return;
         }
 
-        setPermissionDraft(group.permissions);
+        // Don't clear success message - let it auto-dismiss via timer
+        // This prevents race condition where group refresh clears the message
+
+        const roleMap: Record<string, MemberRole> = {};
+        members.forEach((member) => {
+            roleMap[member.uid] = member.memberRole;
+        });
+
+        setPermissionDraft({ ...group.permissions });
+        setInitialPermissions({ ...group.permissions });
         setSelectedPreset(determinePreset(group.permissions));
         setActionError(null);
+        setMemberRoleDrafts(roleMap);
+        setInitialMemberRoles(roleMap);
 
         if (canApproveMembers) {
             loadPendingMembers();
         } else {
             setPendingMembers([]);
         }
-    }, [isOpen, securityTabAvailable, group.permissions, canApproveMembers, loadPendingMembers]);
+    }, [isOpen, securityTabAvailable, group.permissions, members, canApproveMembers, loadPendingMembers]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -378,7 +447,6 @@ export function GroupSettingsModal({
         }
 
         if (!hasGeneralChanges) {
-            onClose();
             return;
         }
 
@@ -386,13 +454,20 @@ export function GroupSettingsModal({
         setValidationError(null);
 
         try {
+            const trimmedName = groupName.trim();
+            const trimmedDescription = groupDescription.trim();
+
             await apiClient.updateGroup(group.id, {
-                name: groupName.trim(),
-                description: groupDescription.trim() || undefined,
+                name: trimmedName,
+                description: trimmedDescription ? trimmedDescription : undefined,
             });
 
+            setInitialName(trimmedName);
+            setInitialDescription(trimmedDescription);
+            setGroupName(trimmedName);
+            setGroupDescription(trimmedDescription);
+            showGeneralSuccess(t('editGroupModal.success.updated'));
             await onGroupUpdated?.();
-            onClose();
         } catch (error) {
             const message = error instanceof Error ? error.message : t('editGroupModal.validation.updateFailed');
             setValidationError(message);
@@ -435,41 +510,69 @@ export function GroupSettingsModal({
     };
 
     const hasPermissionChanges = useMemo(() => {
-        return permissionOrder.some((key) => permissionDraft[key] !== group.permissions[key]);
-    }, [permissionDraft, group.permissions]);
+        return permissionOrder.some((key) => permissionDraft[key] !== initialPermissions[key]);
+    }, [permissionDraft, initialPermissions]);
 
-    const applyPreset = async (preset: ManagedPreset) => {
-        setPresetApplying(preset);
+    const hasRoleChanges = useMemo(() => {
+        return members.some((member) => memberRoleDrafts[member.uid] !== undefined && memberRoleDrafts[member.uid] !== initialMemberRoles[member.uid]);
+    }, [members, memberRoleDrafts, initialMemberRoles]);
+
+    const hasSecurityChanges = hasPermissionChanges || hasRoleChanges;
+
+    const applyPreset = (preset: ManagedPreset) => {
+        clearPermissionsSuccessMessage();
         setActionError(null);
-        try {
-            await apiClient.applySecurityPreset(group.id, preset);
-            setPermissionDraft(PRESET_PERMISSIONS[preset]);
-            setSelectedPreset(preset);
-            await onGroupUpdated?.();
-        } catch (error) {
-            logError('Failed to apply security preset', error, { preset, groupId: group.id });
-            setActionError(t('securitySettingsModal.errors.updatePermissions'));
-        } finally {
-            setPresetApplying(null);
-        }
+        const updatedPermissions = { ...PRESET_PERMISSIONS[preset] };
+        setPermissionDraft(updatedPermissions);
+        setSelectedPreset(preset);
     };
 
-    const saveCustomPermissions = async () => {
-        setSavingPermissions(true);
+    const saveSecuritySettings = async () => {
+        if (!hasSecurityChanges) {
+            return;
+        }
+
+        setIsSavingSecurity(true);
         setActionError(null);
         try {
-            await apiClient.updateGroupPermissions(group.id, permissionDraft);
+            const updatedPermissions = { ...permissionDraft };
+            if (hasPermissionChanges) {
+                await apiClient.updateGroupPermissions(group.id, updatedPermissions);
+            }
+
+            if (hasRoleChanges) {
+                for (const member of members) {
+                    const draftRole = memberRoleDrafts[member.uid];
+                    if (draftRole && draftRole !== initialMemberRoles[member.uid]) {
+                        await apiClient.updateMemberRole(group.id, member.uid, draftRole);
+                    }
+                }
+            }
+
             await onGroupUpdated?.();
-            setSelectedPreset(determinePreset(permissionDraft));
+
+            setInitialPermissions(updatedPermissions);
+            setSelectedPreset(determinePreset(updatedPermissions));
+
+            const nextRoleState: Record<string, MemberRole> = {};
+            members.forEach((member) => {
+                const draftRole = memberRoleDrafts[member.uid];
+                nextRoleState[member.uid] = draftRole ?? member.memberRole;
+            });
+            setInitialMemberRoles(nextRoleState);
+            setMemberRoleDrafts(nextRoleState);
+
+            showPermissionsSuccess(t('securitySettingsModal.success.updated'));
         } catch (error) {
-            logError('Failed to update group permissions', error, { groupId: group.id });
+            logError('Failed to update security settings', error, { groupId: group.id });
             setActionError(t('securitySettingsModal.errors.updatePermissions'));
         } finally {
-            setSavingPermissions(false);
+            setIsSavingSecurity(false);
         }
     };
 
     const handlePermissionChange = (key: keyof GroupPermissions, value: string) => {
+        clearPermissionsSuccessMessage();
         setPermissionDraft((previous) => ({
             ...previous,
             [key]: value,
@@ -477,18 +580,12 @@ export function GroupSettingsModal({
         setSelectedPreset('custom');
     };
 
-    const updateMemberRole = async (memberId: string, newRole: MemberRole) => {
-        setUpdatingMemberId(memberId);
-        setActionError(null);
-        try {
-            await apiClient.updateMemberRole(group.id, memberId, newRole);
-            await onGroupUpdated?.();
-        } catch (error) {
-            logError('Failed to update member role', error, { memberId, groupId: group.id });
-            setActionError(t('securitySettingsModal.errors.updateRole'));
-        } finally {
-            setUpdatingMemberId(null);
-        }
+    const updateMemberRoleDraft = (memberId: string, newRole: MemberRole) => {
+        clearPermissionsSuccessMessage();
+        setMemberRoleDrafts((previous) => ({
+            ...previous,
+            [memberId]: newRole,
+        }));
     };
 
     const handlePendingAction = async (memberId: string, action: 'approve' | 'reject') => {
@@ -563,7 +660,7 @@ export function GroupSettingsModal({
                         )}
 
                         <Button type='submit' loading={isSavingDisplayName} disabled={isSavingDisplayName || !isDirty} fullWidth data-testid='group-display-name-save-button'>
-                            {isSavingDisplayName ? t('groupDisplayNameSettings.saving') : t('groupDisplayNameSettings.save')}
+                            {isSavingDisplayName ? t('groupDisplayNameSettings.saving') : t('common.save')}
                         </Button>
                     </form>
                 </section>
@@ -580,57 +677,65 @@ export function GroupSettingsModal({
             <div className='space-y-8'>
                 <Form onSubmit={handleGeneralSubmit}>
                     <div className='space-y-4'>
-                    <Input
-                        label={t('editGroupModal.groupNameLabel')}
-                        type='text'
-                        placeholder={t('editGroupModal.groupNamePlaceholder')}
-                        value={groupName}
-                        onChange={(value) => {
-                            setGroupName(value);
-                            setValidationError(null);
-                        }}
-                        required
-                        disabled={isSubmitting}
-                        error={validationError || undefined}
-                        data-testid='group-name-input'
-                    />
-
-                    <div>
-                        <label className='block text-sm font-medium text-gray-700 mb-2'>{t('editGroupModal.descriptionLabel')}</label>
-                        <textarea
-                            className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none'
-                            rows={3}
-                            placeholder={t('editGroupModal.descriptionPlaceholder')}
-                            value={groupDescription}
-                            onInput={(event) => {
-                                setGroupDescription((event.target as HTMLTextAreaElement).value);
+                        {generalSuccessMessage && (
+                            <div className='bg-green-50 border border-green-200 rounded-md px-3 py-2 text-sm text-green-800' role='status' data-testid='group-general-success'>
+                                {generalSuccessMessage}
+                            </div>
+                        )}
+                        <Input
+                            label={t('editGroupModal.groupNameLabel')}
+                            type='text'
+                            placeholder={t('editGroupModal.groupNamePlaceholder')}
+                            value={groupName}
+                            onChange={(value) => {
+                                setGroupName(value);
+                                setValidationError(null);
+                                clearGeneralSuccessMessage();
                             }}
+                            required
                             disabled={isSubmitting}
-                            maxLength={200}
-                            data-testid='group-description-input'
+                            error={validationError || undefined}
+                            data-testid='group-name-input'
                         />
-                    </div>
 
-                    {validationError && (
-                        <div className='bg-red-50 border border-red-200 rounded-md p-3'>
-                            <div className='flex'>
-                                <div className='flex-shrink-0'>
-                                    <svg className='h-5 w-5 text-red-400' fill='currentColor' viewBox='0 0 20 20'>
-                                        <path
-                                            fill-rule='evenodd'
-                                            d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
-                                            clip-rule='evenodd'
-                                        />
-                                    </svg>
-                                </div>
-                                <div className='ml-3'>
-                                    <p className='text-sm text-red-800' role='alert' data-testid='edit-group-validation-error'>
-                                        {validationError}
-                                    </p>
+                        <div>
+                            <label className='block text-sm font-medium text-gray-700 mb-2'>{t('editGroupModal.descriptionLabel')}</label>
+                            <textarea
+                                className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none'
+                                rows={3}
+                                placeholder={t('editGroupModal.descriptionPlaceholder')}
+                                value={groupDescription}
+                                onInput={(event) => {
+                                    setGroupDescription((event.target as HTMLTextAreaElement).value);
+                                    setValidationError(null);
+                                    clearGeneralSuccessMessage();
+                                }}
+                                disabled={isSubmitting}
+                                maxLength={200}
+                                data-testid='group-description-input'
+                            />
+                        </div>
+
+                        {validationError && (
+                            <div className='bg-red-50 border border-red-200 rounded-md p-3'>
+                                <div className='flex'>
+                                    <div className='flex-shrink-0'>
+                                        <svg className='h-5 w-5 text-red-400' fill='currentColor' viewBox='0 0 20 20'>
+                                            <path
+                                                fill-rule='evenodd'
+                                                d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
+                                                clip-rule='evenodd'
+                                            />
+                                        </svg>
+                                    </div>
+                                    <div className='ml-3'>
+                                        <p className='text-sm text-red-800' role='alert' data-testid='edit-group-validation-error'>
+                                            {validationError}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                     </div>
 
                     <div className='flex items-center justify-between mt-6 pt-4 border-t border-gray-200'>
@@ -642,7 +747,7 @@ export function GroupSettingsModal({
                                 {t('editGroupModal.cancelButton')}
                             </Button>
                             <Button type='submit' loading={isSubmitting} disabled={!isGeneralFormValid || !hasGeneralChanges} data-testid='save-changes-button'>
-                                {t('editGroupModal.saveChangesButton')}
+                                {t('common.save')}
                             </Button>
                         </div>
                     </div>
@@ -653,6 +758,16 @@ export function GroupSettingsModal({
 
     const renderSecurityTab = () => (
         <div className='space-y-6'>
+            {hasSecurityChanges && !permissionsSuccessMessage && (
+                <div className='bg-purple-50 border border-purple-200 text-purple-800 text-sm rounded-md p-3' role='status' data-testid='security-unsaved-banner'>
+                    {t('securitySettingsModal.unsavedChanges')}
+                </div>
+            )}
+            {permissionsSuccessMessage && (
+                <div className='bg-green-50 border border-green-200 text-green-800 text-sm rounded-md p-3' role='status' data-testid='security-permissions-success'>
+                    {permissionsSuccessMessage}
+                </div>
+            )}
             {actionError && (
                 <div className='bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3' role='alert'>
                     {actionError}
@@ -671,12 +786,10 @@ export function GroupSettingsModal({
                                 type='button'
                                 onClick={() => applyPreset(preset)}
                                 className={`border rounded-lg px-4 py-3 text-left transition ${isActive ? 'border-purple-500 bg-purple-50 shadow-sm' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/40'}`}
-                                disabled={presetApplying === preset}
                                 data-testid={`preset-button-${preset}`}
                             >
                                 <div className='flex items-center justify-between'>
                                     <span className='font-medium text-gray-900'>{t(`securitySettingsModal.presets.${preset}.label`)}</span>
-                                    {presetApplying === preset && <LoadingSpinner size='sm' />}
                                 </div>
                                 <p className='text-sm text-gray-600 mt-1'>{t(`securitySettingsModal.presets.${preset}.description`)}</p>
                                 {isActive && <span className='text-xs text-purple-600 font-medium mt-2 block'>{t('securitySettingsModal.presets.activeBadge')}</span>}
@@ -713,11 +826,7 @@ export function GroupSettingsModal({
                         </label>
                     ))}
                 </div>
-                <div className='mt-3 flex justify-end'>
-                    <Button variant='primary' onClick={saveCustomPermissions} disabled={!hasPermissionChanges || savingPermissions} data-testid='save-permissions-button'>
-                        {savingPermissions ? t('securitySettingsModal.custom.saving') : t('securitySettingsModal.custom.save')}
-                    </Button>
-                </div>
+                <p className='text-xs text-gray-500 text-right mt-2'>{t('securitySettingsModal.custom.saveHelper')}</p>
             </section>
 
             {canManageMembers && (
@@ -728,13 +837,13 @@ export function GroupSettingsModal({
                             <div key={member.uid} className='flex items-center justify-between border border-gray-200 rounded-lg px-4 py-2'>
                                 <div>
                                     <div className='font-medium text-gray-900 text-sm'>{member.groupDisplayName || member.displayName || member.uid}</div>
-                                    <div className='text-xs text-gray-500'>{t(`securitySettingsModal.memberRoles.${member.memberRole}`)}</div>
+                                    <div className='text-xs text-gray-500'>{t(`securitySettingsModal.memberRoles.${memberRoleDrafts[member.uid] ?? member.memberRole}`)}</div>
                                 </div>
                                 <select
                                     className='border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500'
-                                    value={member.memberRole}
-                                    onChange={(event) => updateMemberRole(member.uid, event.currentTarget.value as MemberRole)}
-                                    disabled={updatingMemberId === member.uid || member.uid === group.createdBy}
+                                    value={memberRoleDrafts[member.uid] ?? member.memberRole}
+                                    onChange={(event) => updateMemberRoleDraft(member.uid, event.currentTarget.value as MemberRole)}
+                                    disabled={member.uid === group.createdBy}
                                     data-testid={`member-role-select-${member.uid}`}
                                 >
                                     {(['admin', 'member', 'viewer'] as MemberRole[]).map((role) => (
@@ -792,9 +901,12 @@ export function GroupSettingsModal({
                 </section>
             )}
 
-            <div className='border-t border-gray-200 pt-4 flex justify-end'>
+            <div className='border-t border-gray-200 pt-4 flex justify-end gap-3'>
                 <Button variant='secondary' onClick={onClose} data-testid='group-settings-close-button'>
                     {t('common.close')}
+                </Button>
+                <Button variant='primary' onClick={saveSecuritySettings} disabled={!hasSecurityChanges || isSavingSecurity} loading={isSavingSecurity} data-testid='save-security-button'>
+                    {t('common.save')}
                 </Button>
             </div>
         </div>

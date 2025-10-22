@@ -176,8 +176,8 @@ export class GroupSettingsModalPage extends BasePage {
         return this.getModalContainer().getByTestId(`preset-button-${preset}`);
     }
 
-    getSavePermissionsButton(): Locator {
-        return this.getModalContainer().getByTestId('save-permissions-button');
+    getSecuritySaveButton(): Locator {
+        return this.getModalContainer().getByTestId('save-security-button');
     }
 
     getPermissionSelect(key: string): Locator {
@@ -323,10 +323,22 @@ export class GroupSettingsModalPage extends BasePage {
         }
     }
 
+    getGeneralSuccessAlert(): Locator {
+        return this.getModalContainer().getByTestId('group-general-success');
+    }
+
+    getSecuritySuccessAlert(): Locator {
+        return this.getModalContainer().getByTestId('security-permissions-success');
+    }
+
+    getSecurityUnsavedBanner(): Locator {
+        return this.getModalContainer().getByTestId('security-unsaved-banner');
+    }
+
     async submitForm(): Promise<void> {
         await this.ensureGeneralTab();
         const saveButton = this.getSaveButton();
-        await this.clickButton(saveButton, { buttonName: translation.editGroupModal.saveChangesButton });
+        await this.clickButton(saveButton, { buttonName: translation.common.save });
     }
 
     async fillDisplayName(name: string): Promise<void> {
@@ -347,7 +359,7 @@ export class GroupSettingsModalPage extends BasePage {
     async saveDisplayName(): Promise<void> {
         await this.ensureIdentityTab();
         const saveButton = this.getDisplayNameSaveButton();
-        await this.clickButton(saveButton, { buttonName: translation.groupDisplayNameSettings.save });
+        await this.clickButton(saveButton, { buttonName: translation.common.save });
     }
 
     async updateDisplayName(name: string): Promise<void> {
@@ -358,11 +370,9 @@ export class GroupSettingsModalPage extends BasePage {
     async saveChanges(): Promise<void> {
         await this.ensureGeneralTab();
         const nameInput = this.getGroupNameInput();
-        const descriptionInput = this.getGroupDescriptionInput();
         const saveButton = this.getSaveButton();
 
         const finalName = await nameInput.inputValue();
-        const finalDesc = await descriptionInput.inputValue();
 
         if (!finalName || finalName.trim().length < 2) {
             throw new Error(
@@ -371,31 +381,7 @@ export class GroupSettingsModalPage extends BasePage {
         }
 
         await expect(saveButton).toBeEnabled({ timeout: 2000 });
-
-        await expect(async () => {
-            if (!(await saveButton.isEnabled())) {
-                throw new Error('Save button became disabled - race condition detected');
-            }
-        }).toPass({ timeout: 200, intervals: [25, 50] });
-
-        if (!(await saveButton.isEnabled())) {
-            throw new Error(
-                `Save button became disabled after stability check. This indicates a race condition. Form values at time of failure: name="${finalName}", description="${finalDesc}"`,
-            );
-        }
-
-        await saveButton.click();
-
-        const modal = this.getModalContainer();
-        await expect(modal).not.toBeVisible({ timeout: 2000 });
-        await this.waitForDomContentLoaded();
-
-        const spinner = this.page.locator('.animate-spin');
-        if ((await spinner.count()) > 0) {
-            await expect(spinner.first()).not.toBeVisible({ timeout: 5000 });
-        }
-
-        await expect(modal).not.toBeVisible({ timeout: 1000 });
+        await this.clickButton(saveButton, { buttonName: translation.common.save });
     }
 
     async clickCancel(): Promise<void> {
@@ -487,9 +473,10 @@ export class GroupSettingsModalPage extends BasePage {
         await this.getPresetButton(preset).click();
     }
 
-    async savePermissions(): Promise<void> {
+    async saveSecuritySettings(): Promise<void> {
         await this.ensureSecurityTab();
-        await this.getSavePermissionsButton().click();
+        const saveButton = this.getSecuritySaveButton();
+        await this.clickButton(saveButton, { buttonName: translation.common.save });
     }
 
     async selectPermission(key: string, option: string): Promise<void> {

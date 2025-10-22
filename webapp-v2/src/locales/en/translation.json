@@ -817,6 +817,7 @@
   "securitySettingsModal": {
     "title": "Security & Permissions",
     "description": "Configure presets, manage permissions, and control member access for this group.",
+    "unsavedChanges": "You have unsaved changes. Review everything, then press Save to apply them.",
     "presets": {
       "heading": "Presets",
       "description": "Apply a recommended permission set with a single click.",
@@ -832,9 +833,12 @@
     },
     "custom": {
       "heading": "Custom permissions",
-      "unsaved": "You have unsaved permission changes.",
-      "save": "Save permissions",
-      "saving": "Saving permissions..."
+      "unsaved": "Custom permissions changed.",
+      "saveHelper": "Changes are queued until you press Save."
+    },
+    "success": {
+      "updated": "Security settings updated.",
+      "presetApplied": "Applied the {{preset}} preset."
     },
     "permissions": {
       "expenseEditing": {
@@ -880,7 +884,7 @@
     },
     "errors": {
       "loadPending": "Unable to load pending members. Please try again.",
-      "updatePermissions": "We couldn't update the permissions. Please try again.",
+      "updatePermissions": "We couldn't update the security settings. Please try again.",
       "updateRole": "Updating the member's role failed.",
       "pendingAction": "We couldn't process that request. Please try again."
     }
@@ -933,6 +937,9 @@
       "nameTooShort": "Group name must be at least 2 characters long.",
       "nameTooLong": "Group name must be less than 50 characters.",
       "updateFailed": "Failed to update group"
+    },
+    "success": {
+      "updated": "Group details updated."
     },
     "deleteConfirmDialog": {
       "title": "Permanently Delete Group",

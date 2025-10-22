@@ -356,8 +356,10 @@ simpleTest.describe('Group Settings & Management', () => {
         await editModal.editGroupName('Updated Group Name');
         await editModal.editDescription('Updated description text');
 
-        // Save changes (this will wait for modal to close)
+        // Save changes (modal stays open until we close it)
         await editModal.saveChanges();
+        await expect(editModal.getGeneralSuccessAlert()).toBeVisible();
+        await editModal.clickClose();
 
         // Wait for save to complete and real-time updates to propagate
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
