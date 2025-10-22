@@ -827,15 +827,13 @@
     "description": "Configure presets, manage permissions, and control member access for this group.",
     "unsavedChanges": "You have unsaved changes. Review everything, then press Save to apply them.",
     "presets": {
-      "heading": "Presets",
-      "description": "Apply a recommended permission set with a single click.",
       "activeBadge": "Active",
       "open": {
-        "label": "Open collaboration",
+        "label": "Preset: Open collaboration",
         "description": "Everyone can invite members and manage expenses without restrictions."
       },
       "managed": {
-        "label": "Managed group",
+        "label": "Preset: Managed group",
         "description": "Admins approve invites and control who can edit or delete expenses."
       }
     },

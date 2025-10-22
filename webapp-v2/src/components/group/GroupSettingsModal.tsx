@@ -775,9 +775,7 @@ export function GroupSettingsModal({
             )}
 
             <section>
-                <h3 className='text-base font-semibold text-gray-900 mb-2'>{t('securitySettingsModal.presets.heading')}</h3>
-                <p className='text-sm text-gray-600 mb-4'>{t('securitySettingsModal.presets.description')}</p>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-3 items-start'>
                     {(Object.keys(PRESET_PERMISSIONS) as ManagedPreset[]).map((preset) => {
                         const isActive = selectedPreset === preset;
                         return (
@@ -785,7 +783,7 @@ export function GroupSettingsModal({
                                 key={preset}
                                 type='button'
                                 onClick={() => applyPreset(preset)}
-                                className={`border rounded-lg px-4 py-3 text-left transition ${isActive ? 'border-purple-500 bg-purple-50 shadow-sm' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/40'}`}
+                                className={`h-full border rounded-lg px-4 py-3 text-left transition ${isActive ? 'border-purple-500 bg-purple-50 shadow-sm' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/40'}`}
                                 data-testid={`preset-button-${preset}`}
                             >
                                 <div className='flex items-center justify-between'>
