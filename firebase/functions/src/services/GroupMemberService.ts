@@ -314,4 +314,67 @@ export class GroupMemberService {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
         return member?.memberRole === MemberRoles.ADMIN || false;
     }
+
+    /**
+     * Archive a group for the current user (user-specific view control)
+     * This hides the group from the user's dashboard without leaving or deleting it
+     */
+    async archiveGroupForUser(groupId: GroupId, userId: string): Promise<MessageResponse> {
+        const member = await this.firestoreReader.getGroupMember(groupId, userId);
+
+        if (!member) {
+            throw Errors.NOT_FOUND('Group membership');
+        }
+
+        if (member.memberStatus !== MemberStatuses.ACTIVE) {
+            throw Errors.INVALID_INPUT({
+                message: 'Can only archive active group memberships',
+            });
+        }
+
+        const now = new Date().toISOString();
+        const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
+        const documentPath = `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`;
+
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            this.firestoreWriter.updateInTransaction(transaction, documentPath, {
+                memberStatus: MemberStatuses.ARCHIVED,
+                updatedAt: now,
+            });
+        });
+
+        logger.info('group-archived-for-user', { groupId, userId });
+        return { message: 'Group archived successfully' };
+    }
+
+    /**
+     * Unarchive a group for the current user (restore to active view)
+     */
+    async unarchiveGroupForUser(groupId: GroupId, userId: string): Promise<MessageResponse> {
+        const member = await this.firestoreReader.getGroupMember(groupId, userId);
+
+        if (!member) {
+            throw Errors.NOT_FOUND('Group membership');
+        }
+
+        if (member.memberStatus !== MemberStatuses.ARCHIVED) {
+            throw Errors.INVALID_INPUT({
+                message: 'Can only unarchive archived group memberships',
+            });
+        }
+
+        const now = new Date().toISOString();
+        const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
+        const documentPath = `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`;
+
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            this.firestoreWriter.updateInTransaction(transaction, documentPath, {
+                memberStatus: MemberStatuses.ACTIVE,
+                updatedAt: now,
+            });
+        });
+
+        logger.info('group-unarchived-for-user', { groupId, userId });
+        return { message: 'Group unarchived successfully' };
+    }
 }

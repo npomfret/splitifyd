@@ -24,6 +24,7 @@ import type {
     JoinGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
+    MemberStatus,
     MemberRole,
     MessageResponse,
     PolicyAcceptanceStatusDTO,
@@ -610,13 +611,20 @@ class ApiClient {
     }
 
     // Convenience methods for common endpoints (using enhanced RequestConfig internally)
-    async getGroups(options?: { includeMetadata?: boolean; page?: number; limit?: number; order?: 'asc' | 'desc'; cursor?: string; }): Promise<ListGroupsResponse> {
+    async getGroups(options?: { includeMetadata?: boolean; page?: number; limit?: number; order?: 'asc' | 'desc'; cursor?: string; statusFilter?: MemberStatus | MemberStatus[]; }): Promise<ListGroupsResponse> {
         const query: Record<string, string> = {};
         if (options?.includeMetadata) query.includeMetadata = 'true';
         if (options?.page) query.page = options.page.toString();
         if (options?.limit) query.limit = options.limit.toString();
         if (options?.order) query.order = options.order;
         if (options?.cursor) query.cursor = options.cursor;
+        if (options?.statusFilter) {
+            if (Array.isArray(options.statusFilter)) {
+                query.statusFilter = options.statusFilter.join(',');
+            } else {
+                query.statusFilter = options.statusFilter;
+            }
+        }
 
         return this.request({
             endpoint: '/groups',
@@ -672,6 +680,22 @@ class ApiClient {
     async leaveGroup(groupId: GroupId): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/leave',
+            method: 'POST',
+            params: { id: groupId },
+        });
+    }
+
+    async archiveGroup(groupId: GroupId): Promise<MessageResponse> {
+        return this.request({
+            endpoint: '/groups/:id/archive',
+            method: 'POST',
+            params: { id: groupId },
+        });
+    }
+
+    async unarchiveGroup(groupId: GroupId): Promise<MessageResponse> {
+        return this.request({
+            endpoint: '/groups/:id/unarchive',
             method: 'POST',
             params: { id: groupId },
         });

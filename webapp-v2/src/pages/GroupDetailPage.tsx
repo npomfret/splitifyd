@@ -9,14 +9,16 @@ import { permissionsStore } from '@/stores/permissions-store.ts';
 import { BanknotesIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import type { SettlementWithMembers } from '@splitifyd/shared';
+import { MemberStatuses } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { useGroupModals } from '../app/hooks/useGroupModals';
 import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
+import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
-import { logError, logInfo } from '../utils/browser-logger';
+import { logError, logInfo, logWarning } from '../utils/browser-logger';
 
 interface GroupDetailPageProps {
     id?: string;
@@ -27,6 +29,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const isInitialized = useSignal(false);
     const showDeletedExpenses = useSignal(false);
     const showLeaveGroupDialog = useSignal(false);
+    const membershipActionInFlight = useSignal(false);
 
     // Use the modal management hook
     const modals = useGroupModals();
@@ -39,6 +42,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const balances = useComputed(() => enhancedGroupDetailStore.balances);
     const expenses = useComputed(() => enhancedGroupDetailStore.expenses);
     const commentsResponse = useComputed(() => enhancedGroupDetailStore.commentsResponse);
+    const currentMembership = useComputed(() => members.value.find((member) => member.uid === currentUser.value?.uid) ?? null);
+    const membershipStatus = useComputed(() => currentMembership.value?.memberStatus ?? MemberStatuses.ACTIVE);
+    const isArchivedMembership = useComputed(() => membershipStatus.value === MemberStatuses.ARCHIVED);
 
     // Auth store via hook
     const authStore = useAuthRequired();
@@ -200,6 +206,33 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         navigationService.goToDashboard();
     };
 
+    const runMembershipMutation = async (mutation: () => Promise<void>) => {
+        if (membershipActionInFlight.value) {
+            return;
+        }
+
+        membershipActionInFlight.value = true;
+        try {
+            await mutation();
+            await enhancedGroupsStore.refreshGroups();
+        } catch (error) {
+            logWarning('Failed to update membership archive status', {
+                groupId,
+                error: error instanceof Error ? error.message : String(error),
+            });
+        } finally {
+            membershipActionInFlight.value = false;
+        }
+    };
+
+    const handleArchiveGroup = () => runMembershipMutation(async () => {
+        await enhancedGroupDetailStore.archiveGroup();
+    });
+
+    const handleUnarchiveGroup = () => runMembershipMutation(async () => {
+        await enhancedGroupDetailStore.unarchiveGroup();
+    });
+
     const handleLeaveGroup = () => {
         showLeaveGroupDialog.value = true;
     };
@@ -231,6 +264,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             showSettingsButton={canShowSettingsButton.value}
                             canLeaveGroup={canLeaveGroup.value}
                             variant='vertical'
+                            onArchive={!isArchivedMembership.value ? handleArchiveGroup : undefined}
+                            onUnarchive={isArchivedMembership.value ? handleUnarchiveGroup : undefined}
+                            isArchived={isArchivedMembership.value}
+                            membershipActionDisabled={membershipActionInFlight.value}
                         />
                     </>
                 }
@@ -254,6 +291,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                                 onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
                                 showSettingsButton={canShowSettingsButton.value}
                                 canLeaveGroup={canLeaveGroup.value}
+                                onArchive={!isArchivedMembership.value ? handleArchiveGroup : undefined}
+                                onUnarchive={isArchivedMembership.value ? handleUnarchiveGroup : undefined}
+                                isArchived={isArchivedMembership.value}
+                                membershipActionDisabled={membershipActionInFlight.value}
                             />
                         </div>
 

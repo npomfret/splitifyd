@@ -172,7 +172,7 @@ const GroupMemberDTOSchema = z.object({
 
     // Group membership metadata (required for permissions)
     memberRole: z.enum(['admin', 'member', 'viewer']),
-    memberStatus: z.enum(['active', 'pending']),
+    memberStatus: z.enum(['active', 'pending', 'archived']),
     joinedAt: z.union([z.string().datetime(), z.literal('')]), // Allow empty string for departed members
     invitedBy: z.string().optional(),
 
@@ -198,7 +198,7 @@ const JoinGroupResponseSchema = z.object({
     groupName: z.string(),
     success: z.boolean(),
     displayNameConflict: z.boolean(),
-    memberStatus: z.enum(['active', 'pending']),
+    memberStatus: z.enum(['active', 'pending', 'archived']),
 });
 
 // Health check schemas
@@ -274,7 +274,7 @@ const SettlementMemberSchema = z.object({
     groupDisplayName: z.string().min(1),
     // Optional membership fields that may or may not be present
     memberRole: z.enum(['admin', 'member', 'viewer']).optional(),
-    memberStatus: z.enum(['active', 'pending']).optional(),
+    memberStatus: z.enum(['active', 'pending', 'archived']).optional(),
     joinedAt: z.union([z.string().datetime(), z.literal('')]).optional(), // Allow empty string or datetime - may be empty for departed members
     invitedBy: z.string().optional(),
 });

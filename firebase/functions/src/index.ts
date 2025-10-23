@@ -11,7 +11,7 @@ import { HTTP_STATUS, SYSTEM } from './constants';
 import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
 import { getAuth } from './firebase';
 import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
-import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
+import { archiveGroupForUser, leaveGroup, removeGroupMember, unarchiveGroupForUser } from './groups/memberHandlers';
 import { approveMember, getPendingMembers, rejectMember, updateGroupPermissions, updateMemberRole } from './groups/security';
 import { generateShareableLink, joinGroupByLink, previewGroupByLink } from './groups/shareHandlers';
 import { logger } from './logger';
@@ -351,6 +351,8 @@ function setupRoutes(app: express.Application): void {
     app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
     app.patch(`/${FirestoreCollections.GROUPS}/:id/security/permissions`, authenticate, asyncHandler(updateGroupPermissions));
     app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
+    app.post(`/${FirestoreCollections.GROUPS}/:id/archive`, authenticate, asyncHandler(archiveGroupForUser));
+    app.post(`/${FirestoreCollections.GROUPS}/:id/unarchive`, authenticate, asyncHandler(unarchiveGroupForUser));
     app.put(`/${FirestoreCollections.GROUPS}/:id/members/display-name`, authenticate, asyncHandler(updateGroupMemberDisplayName));
     app.get(`/${FirestoreCollections.GROUPS}/:id/members/pending`, authenticate, asyncHandler(getPendingMembers));
     app.patch(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/role`, authenticate, asyncHandler(updateMemberRole));

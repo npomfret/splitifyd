@@ -1,5 +1,6 @@
 import { ShareGroupModal } from '@/components/group';
 import { navigationService } from '@/services/navigation.service';
+import { logWarning } from '@/utils/browser-logger.ts';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -19,6 +20,23 @@ export function DashboardPage() {
         groupId: '',
         groupName: '',
     });
+    const showArchived = enhancedGroupsStore.showArchived;
+    const filterLoading = enhancedGroupsStore.loading;
+
+    const changeGroupFilter = (showArchivedGroups: boolean) => {
+        if (enhancedGroupsStore.showArchived === showArchivedGroups && enhancedGroupsStore.initialized) {
+            return;
+        }
+
+        enhancedGroupsStore
+            .setShowArchived(showArchivedGroups)
+            .catch((error) => {
+                logWarning('Failed to change groups filter', {
+                    target: showArchivedGroups ? 'archived' : 'active',
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            });
+    };
 
     // Component should only render if user is authenticated (handled by ProtectedRoute)
     if (!authStore.user) {
@@ -80,14 +98,40 @@ export function DashboardPage() {
 
                         {/* Groups Section */}
                         <div class='bg-white rounded-lg shadow-sm border border-gray-200 p-6' data-testid='groups-container'>
-                            <div class='flex items-center justify-between mb-6'>
+                            <div class='flex flex-col gap-3 mb-6 lg:flex-row lg:items-center lg:justify-between'>
                                 <h3 class='text-lg font-semibold text-gray-900'>{t('dashboard.yourGroups')}</h3>
-                                <button
-                                    class='bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors text-sm font-medium hidden lg:block'
-                                    onClick={() => setIsCreateModalOpen(true)}
-                                >
-                                    {t('dashboard.createGroup')}
-                                </button>
+                                <div class='flex flex-wrap items-center gap-3 justify-between lg:justify-end'>
+                                    <div
+                                        class='inline-flex rounded-md border border-gray-200 overflow-hidden'
+                                        role='group'
+                                        aria-label={t('dashboard.groupsFilter.label')}
+                                    >
+                                        <button
+                                            type='button'
+                                            aria-pressed={!showArchived}
+                                            disabled={filterLoading}
+                                            onClick={() => changeGroupFilter(false)}
+                                            class={`px-4 py-2 text-sm font-medium transition-colors focus:outline-none ${!showArchived ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                        >
+                                            {t('dashboard.groupsFilter.active')}
+                                        </button>
+                                        <button
+                                            type='button'
+                                            aria-pressed={showArchived}
+                                            disabled={filterLoading}
+                                            onClick={() => changeGroupFilter(true)}
+                                            class={`px-4 py-2 text-sm font-medium transition-colors focus:outline-none border-l border-gray-200 ${showArchived ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                        >
+                                            {t('dashboard.groupsFilter.archived')}
+                                        </button>
+                                    </div>
+                                    <button
+                                        class='bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors text-sm font-medium hidden lg:block'
+                                        onClick={() => setIsCreateModalOpen(true)}
+                                    >
+                                        {t('dashboard.createGroup')}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Groups Content */}

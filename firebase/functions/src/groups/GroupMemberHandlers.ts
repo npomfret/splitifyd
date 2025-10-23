@@ -49,4 +49,36 @@ export class GroupMemberHandlers {
             throw error;
         }
     };
+
+    archiveGroupForUser = async (req: AuthenticatedRequest, res: Response) => {
+        const userId = req.user?.uid;
+        const groupId = validateGroupId(req.params.id);
+
+        try {
+            const result = await this.groupMemberService.archiveGroupForUser(groupId, userId!);
+            res.json(result);
+        } catch (error) {
+            logger.error('Error in archiveGroupForUser', error, {
+                groupId,
+                userId,
+            });
+            throw error;
+        }
+    };
+
+    unarchiveGroupForUser = async (req: AuthenticatedRequest, res: Response) => {
+        const userId = req.user?.uid;
+        const groupId = validateGroupId(req.params.id);
+
+        try {
+            const result = await this.groupMemberService.unarchiveGroupForUser(groupId, userId!);
+            res.json(result);
+        } catch (error) {
+            logger.error('Error in unarchiveGroupForUser', error, {
+                groupId,
+                userId,
+            });
+            throw error;
+        }
+    };
 }

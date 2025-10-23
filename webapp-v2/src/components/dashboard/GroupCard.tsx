@@ -8,9 +8,10 @@ interface GroupCardProps {
     onClick: () => void;
     onInvite?: (groupId: string) => void;
     onAddExpense?: (groupId: string) => void;
+    isArchivedView?: boolean;
 }
 
-export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardProps) {
+export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedView = false }: GroupCardProps) {
     const { t } = useTranslation();
 
     const renderBalanceMessage = (translationKey: 'youAreOwed' | 'youOwe', amount: Amount, currency: string): JSX.Element => {
@@ -93,11 +94,13 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
         action();
     };
 
+    const showQuickActions = !isArchivedView && (onInvite || onAddExpense);
+
     return (
         <Card onClick={onClick} className='hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border-gray-200 h-full flex flex-col group' padding='md' data-testid='group-card'>
             <div class='flex-1 relative'>
                 {/* Action buttons - positioned absolutely in top right */}
-                {(onInvite || onAddExpense) && (
+                {showQuickActions && (
                     <div class='absolute top-0 right-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
                         {onAddExpense && (
                             <Tooltip content={t('groupCard.addExpenseTooltip', { groupName: group.name })}>
@@ -135,7 +138,14 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
 
                 {/* GroupDTO header */}
                 <div class='mb-3 pr-12'>
-                    <h4 class='font-semibold text-gray-900 text-lg mb-1'>{group.name}</h4>
+                    <div class='flex items-start justify-between gap-2'>
+                        <h4 class='font-semibold text-gray-900 text-lg mb-1'>{group.name}</h4>
+                        {isArchivedView && (
+                            <span class='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700' data-testid='archived-badge'>
+                                {t('dashboard.groupCard.archivedBadge')}
+                            </span>
+                        )}
+                    </div>
                     <div class='flex flex-col gap-1'>
                         {balanceDisplays.map((display) => (
                             <div

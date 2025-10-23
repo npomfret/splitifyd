@@ -13,6 +13,7 @@ interface GroupsListProps {
 
 export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsListProps) {
     const { t } = useTranslation();
+    const showArchived = enhancedGroupsStore.showArchived;
 
     const handleNextPage = async () => {
         await enhancedGroupsStore.loadNextPage();
@@ -64,6 +65,19 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
     }
 
     if (enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized) {
+        if (showArchived) {
+            return (
+                <div class='text-center py-12 text-gray-600' data-testid='archived-groups-empty-state'>
+                    <div class='text-gray-300 mb-4'>
+                        <svg class='w-16 h-16 mx-auto' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='1' d='M12 8v8m0 0l-3-3m3 3l3-3M5 13a7 7 0 0114 0' />
+                        </svg>
+                    </div>
+                    <h4 class='text-lg font-medium text-gray-900 mb-2'>{t('dashboardComponents.groupsList.noArchivedTitle')}</h4>
+                    <p class='text-gray-600 max-w-md mx-auto'>{t('dashboardComponents.groupsList.noArchivedDescription')}</p>
+                </div>
+            );
+        }
         return <EmptyGroupsState onCreateGroup={onCreateGroup} />;
     }
 
@@ -90,6 +104,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
                             }}
                             onInvite={onInvite}
                             onAddExpense={onAddExpense}
+                            isArchivedView={showArchived}
                         />
                     </div>
                 ))}

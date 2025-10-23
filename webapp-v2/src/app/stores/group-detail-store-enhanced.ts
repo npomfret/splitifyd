@@ -48,6 +48,10 @@ interface EnhancedGroupDetailStore {
     setDeletingGroup(value: boolean): void;
 
     setShowDeletedSettlements(value: boolean): void;
+
+    archiveGroup(): Promise<void>;
+
+    unarchiveGroup(): Promise<void>;
 }
 
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
@@ -233,6 +237,30 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             }
 
             logError('RefreshAll: Failed to refresh all data', { error, groupId: this.currentGroupId });
+            throw error;
+        }
+    }
+
+    async archiveGroup(): Promise<void> {
+        if (!this.currentGroupId) return;
+        this.#errorSignal.value = null;
+        try {
+            await apiClient.archiveGroup(this.currentGroupId);
+            await this.refreshAll();
+        } catch (error: any) {
+            this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to archive group';
+            throw error;
+        }
+    }
+
+    async unarchiveGroup(): Promise<void> {
+        if (!this.currentGroupId) return;
+        this.#errorSignal.value = null;
+        try {
+            await apiClient.unarchiveGroup(this.currentGroupId);
+            await this.refreshAll();
+        } catch (error: any) {
+            this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to unarchive group';
             throw error;
         }
     }

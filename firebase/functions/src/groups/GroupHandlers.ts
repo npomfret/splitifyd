@@ -1,5 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { MemberStatuses } from '@splitifyd/shared';
+import type { MemberStatus } from '@splitifyd/shared';
 import { getIdentityToolkitConfig } from '../client-config';
 import { DOCUMENT_CONFIG, HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
@@ -94,6 +96,23 @@ export class GroupHandlers {
         const limit = Math.min(parseInt(req.query.limit as string) || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
         const cursor = req.query.cursor as string;
         const direction = (req.query.order as 'asc' | 'desc') ?? 'desc';
+        const statusFilterParam = typeof req.query.statusFilter === 'string' ? req.query.statusFilter : undefined;
+
+        let statusFilter: MemberStatus | MemberStatus[] | undefined;
+        if (statusFilterParam) {
+            const allowedStatuses = new Set<string>(Object.values(MemberStatuses));
+            const requestedStatuses = statusFilterParam
+                .split(',')
+                .map((status) => status.trim().toLowerCase())
+                .filter((status) => status.length > 0 && allowedStatuses.has(status));
+            const uniqueStatuses = Array.from(new Set(requestedStatuses)) as MemberStatus[];
+
+            if (uniqueStatuses.length === 1) {
+                statusFilter = uniqueStatuses[0];
+            } else if (uniqueStatuses.length > 1) {
+                statusFilter = uniqueStatuses;
+            }
+        }
 
         const response = await this.groupService.listGroups(userId, {
             limit,
@@ -102,6 +121,7 @@ export class GroupHandlers {
                 field: 'updatedAt',
                 direction,
             },
+            statusFilter,
         });
 
         res.json(response);

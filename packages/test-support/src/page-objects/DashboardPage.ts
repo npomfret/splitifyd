@@ -173,6 +173,39 @@ export class DashboardPage extends BasePage {
         await card.hover();
     }
 
+    async showActiveGroups(): Promise<void> {
+        const button = this.getGroupsFilterButton('active');
+        await this.clickButton(button, { buttonName: translation.dashboard.groupsFilter.active });
+        await this.waitForGroupsToLoad();
+    }
+
+    async showArchivedGroups(): Promise<void> {
+        const button = this.getGroupsFilterButton('archived');
+        await this.clickButton(button, { buttonName: translation.dashboard.groupsFilter.archived });
+        await this.waitForGroupsToLoad();
+    }
+
+    async verifyGroupHasArchivedBadge(groupName: string): Promise<void> {
+        const badge = this.getGroupCard(groupName).getByTestId('archived-badge');
+        await expect(badge).toBeVisible();
+    }
+
+    async verifyGroupHasNoArchiveQuickActions(groupName: string): Promise<void> {
+        const groupCard = this.getGroupCard(groupName);
+        await expect(groupCard).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+
+        const quickActions = groupCard.getByRole('button', { name: /Archive Group|Unarchive Group/ });
+        await expect(async () => {
+            const count = await quickActions.count();
+            if (count !== 0) {
+                throw new Error(`Expected no archive or unarchive quick actions for "${groupName}", but found ${count}.`);
+            }
+        }).toPass({
+            timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
+            intervals: [250, 500, 750],
+        });
+    }
+
     private getPaginationContainer(): Locator {
         return this.page.getByRole('navigation', { name: 'Pagination' });
     }
@@ -290,12 +323,21 @@ export class DashboardPage extends BasePage {
         return this.page.getByText('No groups yet').locator('..');
     }
 
+    getArchivedEmptyState(): Locator {
+        return this.getGroupsContainer().getByTestId('archived-groups-empty-state');
+    }
+
     /**
      * Loading spinner for groups
      * Uses role="status" for semantic loading indicators
      */
     getGroupsLoadingSpinner(): Locator {
         return this.getGroupsContainer().getByRole('status');
+    }
+
+    getGroupsFilterButton(filter: 'active' | 'archived'): Locator {
+        const label = translation.dashboard.groupsFilter[filter];
+        return this.getGroupsContainer().getByRole('button', { name: label, exact: true });
     }
 
     // ============================================================================
@@ -739,12 +781,13 @@ export class DashboardPage extends BasePage {
     async waitForGroupsToLoad(timeout = TEST_TIMEOUTS.LOADING_COMPLETE): Promise<void> {
         try {
             await expect(this.getGroupsLoadingSpinner()).not.toBeVisible({ timeout });
-            await expect(this.getGroupCards().first().or(this.getEmptyGroupsState())).toBeVisible({ timeout });
+            await expect(this.getGroupCards().first().or(this.getEmptyGroupsState()).or(this.getArchivedEmptyState())).toBeVisible({ timeout });
         } catch (error) {
             const spinnerVisible = await this.getGroupsLoadingSpinner().isVisible();
             const groupsVisible = await this.getGroupCards().first().isVisible();
             const emptyStateVisible = await this.getEmptyGroupsState().isVisible();
-            throw new Error(`Groups failed to load within ${timeout}ms. ` + `Spinner visible: ${spinnerVisible}, Groups visible: ${groupsVisible}, Empty state visible: ${emptyStateVisible}`);
+            const archivedEmptyStateVisible = await this.getArchivedEmptyState().isVisible();
+            throw new Error(`Groups failed to load within ${timeout}ms. ` + `Spinner visible: ${spinnerVisible}, Groups visible: ${groupsVisible}, Empty state visible: ${emptyStateVisible}, Archived empty state visible: ${archivedEmptyStateVisible}`);
         }
     }
 
@@ -769,6 +812,10 @@ export class DashboardPage extends BasePage {
         } catch (error) {
             throw new Error(`Group "${groupName}" did not disappear within ${timeout}ms. It is still visible.`);
         }
+    }
+
+    async waitForArchivedGroupsEmptyState(timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+        await expect(this.getArchivedEmptyState()).toBeVisible({ timeout });
     }
 
     /**

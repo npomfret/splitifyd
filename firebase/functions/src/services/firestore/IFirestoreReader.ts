@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { ExpenseId, ISOString } from '@splitifyd/shared';
+import type { ExpenseId, ISOString, MemberStatus } from '@splitifyd/shared';
 import type { IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
@@ -67,7 +67,9 @@ export interface GroupsPaginationCursor {
 
 export interface BatchGroupFetchOptions extends Required<Pick<PaginationOptions, 'limit' | 'orderBy'>> {}
 
-export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit' | 'cursor' | 'orderBy'> {}
+export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit' | 'cursor' | 'orderBy'> {
+    statusFilter?: MemberStatus | MemberStatus[];
+}
 
 // Import parsed types from schemas
 import { CommentTargetType } from '@splitifyd/shared';

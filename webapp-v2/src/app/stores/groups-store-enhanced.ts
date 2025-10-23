@@ -2,7 +2,7 @@ import { logInfo, logWarning } from '@/utils/browser-logger.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
 import { UserNotificationDetector, userNotificationDetector } from '@/utils/user-notification-detector.ts';
 import { batch, computed, ReadonlySignal, signal } from '@preact/signals';
-import { CreateGroupRequest, GroupDTO } from '@splitifyd/shared';
+import { CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 
 interface EnhancedGroupsStore {
@@ -17,6 +17,7 @@ interface EnhancedGroupsStore {
     currentPage: number;
     hasMore: boolean;
     pageSize: number;
+    showArchived: boolean;
 
     // Readonly signal accessors for reactive components
     readonly groupsSignal: ReadonlySignal<GroupDTO[]>;
@@ -30,6 +31,7 @@ interface EnhancedGroupsStore {
     readonly currentPageSignal: ReadonlySignal<number>;
     readonly hasMoreSignal: ReadonlySignal<boolean>;
     readonly pageSizeSignal: ReadonlySignal<number>;
+    readonly showArchivedSignal: ReadonlySignal<boolean>;
 
     fetchGroups(limit?: number, cursor?: string): Promise<void>;
     loadNextPage(): Promise<void>;
@@ -37,7 +39,11 @@ interface EnhancedGroupsStore {
     setPageSize(size: number): Promise<void>;
     createGroup(data: CreateGroupRequest): Promise<GroupDTO>;
     updateGroup(id: string, updates: Partial<GroupDTO>): Promise<void>;
+    archiveGroup(groupId: string): Promise<void>;
+    unarchiveGroup(groupId: string): Promise<void>;
     refreshGroups(): Promise<void>;
+    setShowArchived(showArchived: boolean): Promise<void>;
+    toggleShowArchived(): Promise<void>;
     clearError(): void;
     clearValidationError(): void;
     reset(): void;
@@ -62,6 +68,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #currentPageSignal = signal<number>(1);
     readonly #hasMoreSignal = signal<boolean>(false);
     readonly #pageSizeSignal = signal<number>(8);
+    readonly #showArchivedSignal = signal<boolean>(false);
 
     private notificationUnsubscribe: (() => void) | null = null;
     private nextCursor: string | null = null;
@@ -118,6 +125,9 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     get pageSize() {
         return this.#pageSizeSignal.value;
     }
+    get showArchived() {
+        return this.#showArchivedSignal.value;
+    }
 
     // Signal accessors for reactive components - return readonly signals
     get groupsSignal(): ReadonlySignal<GroupDTO[]> {
@@ -154,6 +164,9 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     get pageSizeSignal(): ReadonlySignal<number> {
         return this.#pageSizeSignal;
     }
+    get showArchivedSignal(): ReadonlySignal<boolean> {
+        return this.#showArchivedSignal;
+    }
 
     async fetchGroups(limit?: number, cursor?: string): Promise<void> {
         this.#loadingSignal.value = true;
@@ -168,6 +181,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                 includeMetadata: true,
                 limit: pageSize,
                 cursor,
+                statusFilter: this.resolveStatusFilter(),
             });
 
             // Track REST refresh metrics
@@ -321,6 +335,33 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             newUpdatingIds.delete(id);
             this.#updatingGroupIdsSignal.value = newUpdatingIds;
         }
+    }
+
+    async archiveGroup(groupId: string): Promise<void> {
+        await this.updateMembershipStatus(groupId, () => apiClient.archiveGroup(groupId));
+    }
+
+    async unarchiveGroup(groupId: string): Promise<void> {
+        await this.updateMembershipStatus(groupId, () => apiClient.unarchiveGroup(groupId));
+    }
+
+    async setShowArchived(showArchived: boolean): Promise<void> {
+        if (this.#showArchivedSignal.value === showArchived && this.#initializedSignal.value) {
+            return;
+        }
+
+        this.#showArchivedSignal.value = showArchived;
+        this.#currentPageSignal.value = 1;
+        this.previousCursors = [];
+        this.nextCursor = null;
+        this.#validationErrorSignal.value = null;
+        this.#networkErrorSignal.value = null;
+
+        await this.fetchGroups(this.#pageSizeSignal.value);
+    }
+
+    async toggleShowArchived(): Promise<void> {
+        await this.setShowArchived(!this.#showArchivedSignal.value);
     }
 
     async refreshGroups(): Promise<void> {
@@ -552,6 +593,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             this.#currentPageSignal.value = 1;
             this.#hasMoreSignal.value = false;
             this.#pageSizeSignal.value = 8;
+            this.#showArchivedSignal.value = false;
         });
 
         this.dispose();
@@ -576,6 +618,31 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             return error.message;
         }
         return 'An unexpected error occurred';
+    }
+
+    private resolveStatusFilter(): MemberStatus {
+        return this.#showArchivedSignal.value ? MemberStatuses.ARCHIVED : MemberStatuses.ACTIVE;
+    }
+
+    private async updateMembershipStatus(groupId: string, operation: () => Promise<unknown>): Promise<void> {
+        const updatingIds = new Set(this.#updatingGroupIdsSignal.value);
+        updatingIds.add(groupId);
+        this.#updatingGroupIdsSignal.value = updatingIds;
+        this.#networkErrorSignal.value = null;
+
+        const cursor = this.#currentPageSignal.value > 1 ? this.previousCursors[this.previousCursors.length - 1] : undefined;
+
+        try {
+            await operation();
+            await this.fetchGroups(this.#pageSizeSignal.value, cursor);
+        } catch (error) {
+            this.#networkErrorSignal.value = this.getErrorMessage(error);
+            throw error;
+        } finally {
+            const updatedIds = new Set(this.#updatingGroupIdsSignal.value);
+            updatedIds.delete(groupId);
+            this.#updatingGroupIdsSignal.value = updatedIds;
+        }
     }
 }
 

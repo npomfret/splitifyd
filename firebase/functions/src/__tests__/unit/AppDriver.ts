@@ -15,6 +15,7 @@ import {
     JoinGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
+    MemberStatus,
     MessageResponse,
     PreviewGroupResponse,
     PublishPolicyResponse,
@@ -119,6 +120,7 @@ export class AppDriver {
             cursor?: string;
             order?: 'asc' | 'desc';
             includeMetadata?: boolean;
+            statusFilter?: MemberStatus | MemberStatus[];
         } = {},
     ) {
         const req = createStubRequest(userId1, {});
@@ -135,6 +137,9 @@ export class AppDriver {
         }
         if (options.includeMetadata !== undefined) {
             query.includeMetadata = String(options.includeMetadata);
+        }
+        if (options.statusFilter) {
+            query.statusFilter = Array.isArray(options.statusFilter) ? options.statusFilter.join(',') : options.statusFilter;
         }
 
         req.query = query;
@@ -266,6 +271,24 @@ export class AppDriver {
         const res = createStubResponse();
 
         await this.groupMemberHandlers.removeGroupMember(req, res);
+
+        return (res as any).getJson() as MessageResponse;
+    }
+
+    async archiveGroupForUser(userId: string, groupId: GroupId): Promise<MessageResponse> {
+        const req = createStubRequest(userId, {}, { id: groupId });
+        const res = createStubResponse();
+
+        await this.groupMemberHandlers.archiveGroupForUser(req, res);
+
+        return (res as any).getJson() as MessageResponse;
+    }
+
+    async unarchiveGroupForUser(userId: string, groupId: GroupId): Promise<MessageResponse> {
+        const req = createStubRequest(userId, {}, { id: groupId });
+        const res = createStubResponse();
+
+        await this.groupMemberHandlers.unarchiveGroupForUser(req, res);
 
         return (res as any).getJson() as MessageResponse;
     }

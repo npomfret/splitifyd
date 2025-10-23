@@ -9,3 +9,5 @@ const groupMemberHandlers = GroupMemberHandlers.createGroupMemberHandlers(getApp
 
 export const leaveGroup = groupMemberHandlers.leaveGroup;
 export const removeGroupMember = groupMemberHandlers.removeGroupMember;
+export const archiveGroupForUser = groupMemberHandlers.archiveGroupForUser;
+export const unarchiveGroupForUser = groupMemberHandlers.unarchiveGroupForUser;

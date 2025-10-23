@@ -378,6 +378,14 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByRole('button', { name: translation.groupActions.leaveGroup });
     }
 
+    private getArchiveGroupButton(): Locator {
+        return this.page.getByRole('button', { name: translation.groupActions.archive });
+    }
+
+    private getUnarchiveGroupButton(): Locator {
+        return this.page.getByRole('button', { name: translation.groupActions.unarchive });
+    }
+
     /**
      * Settle Up button
      */
@@ -1429,6 +1437,83 @@ export class GroupDetailPage extends BasePage {
         const button = this.getAddExpenseButton();
         await this.clickButton(button, { buttonName: 'Add Expense' });
         // Note: No waitForNetworkIdle() here - the form's waitForFormReady() handles page load
+    }
+
+    async clickArchiveGroup(options: { expectedGroupId?: GroupId; } = {}): Promise<void> {
+        let groupId = options.expectedGroupId;
+        if (!groupId) {
+            try {
+                groupId = this.inferGroupId();
+            } catch (error) {
+                throw new Error(`Cannot archive group: expected to be on a group detail page. Current URL: ${this.page.url()}. Original error: ${error}`);
+            }
+        }
+
+        await this.expectUrl(GroupDetailPage.groupDetailUrlPattern(groupId));
+        const button = this.getArchiveGroupButton();
+        await this.clickButton(button, { buttonName: translation.groupActions.archive });
+        await this.expectUrl(GroupDetailPage.groupDetailUrlPattern(groupId));
+    }
+
+    async clickUnarchiveGroup(options: { expectedGroupId?: GroupId; } = {}): Promise<void> {
+        let groupId = options.expectedGroupId;
+        if (!groupId) {
+            try {
+                groupId = this.inferGroupId();
+            } catch (error) {
+                throw new Error(`Cannot unarchive group: expected to be on a group detail page. Current URL: ${this.page.url()}. Original error: ${error}`);
+            }
+        }
+
+        const button = this.getUnarchiveGroupButton();
+        await this.clickButton(button, { buttonName: translation.groupActions.unarchive });
+        await this.expectUrl(GroupDetailPage.groupDetailUrlPattern(groupId));
+    }
+
+    async ensureArchiveActionVisible(options: { expectedGroupId?: GroupId; timeoutMs?: number; } = {}): Promise<void> {
+        let groupId = options.expectedGroupId;
+        if (!groupId) {
+            try {
+                groupId = this.inferGroupId();
+            } catch (error) {
+                throw new Error(`Cannot verify archive action: expected to be on a group detail page. Current URL: ${this.page.url()}. Original error: ${error}`);
+            }
+        }
+
+        const button = this.getArchiveGroupButton();
+        await expect(async () => {
+            await this.expectUrl(GroupDetailPage.groupDetailUrlPattern(groupId));
+            const isVisible = await button.isVisible();
+            if (!isVisible) {
+                throw new Error('Archive group action is still hidden.');
+            }
+        }).toPass({
+            timeout: options.timeoutMs ?? TEST_TIMEOUTS.ELEMENT_VISIBLE,
+            intervals: [250, 500, 750, 1000],
+        });
+    }
+
+    async ensureUnarchiveActionVisible(options: { expectedGroupId?: GroupId; timeoutMs?: number; } = {}): Promise<void> {
+        let groupId = options.expectedGroupId;
+        if (!groupId) {
+            try {
+                groupId = this.inferGroupId();
+            } catch (error) {
+                throw new Error(`Cannot verify unarchive action: expected to be on a group detail page. Current URL: ${this.page.url()}. Original error: ${error}`);
+            }
+        }
+
+        const button = this.getUnarchiveGroupButton();
+        await expect(async () => {
+            await this.expectUrl(GroupDetailPage.groupDetailUrlPattern(groupId));
+            const isVisible = await button.isVisible();
+            if (!isVisible) {
+                throw new Error('Unarchive group action is still hidden.');
+            }
+        }).toPass({
+            timeout: options.timeoutMs ?? TEST_TIMEOUTS.ELEMENT_VISIBLE,
+            intervals: [250, 500, 750, 1000],
+        });
     }
 
     /**

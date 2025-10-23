@@ -1,6 +1,6 @@
 import { SidebarCard } from '@/components/ui';
 import { Stack } from '@/components/ui';
-import { ArrowLeftStartOnRectangleIcon, BanknotesIcon, CogIcon, PlusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { ArchiveBoxArrowDownIcon, ArrowLeftStartOnRectangleIcon, ArrowPathIcon, BanknotesIcon, CogIcon, PlusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 
@@ -13,6 +13,10 @@ interface GroupActionsProps {
     showSettingsButton?: boolean; // To conditionally show settings button
     canLeaveGroup?: boolean; // Whether leave group button should be enabled
     variant?: 'horizontal' | 'vertical';
+    onArchive?: () => void;
+    onUnarchive?: () => void;
+    isArchived?: boolean;
+    membershipActionDisabled?: boolean;
 }
 
 export function GroupActions({
@@ -24,6 +28,10 @@ export function GroupActions({
     showSettingsButton,
     canLeaveGroup,
     variant = 'horizontal',
+    onArchive,
+    onUnarchive,
+    isArchived,
+    membershipActionDisabled,
 }: GroupActionsProps) {
     const { t } = useTranslation();
     const commonButtons = (
@@ -60,6 +68,40 @@ export function GroupActions({
         )
         : null;
 
+    const archiveButton = onArchive
+        ? (
+            <Button
+                variant='secondary'
+                onClick={onArchive}
+                disabled={membershipActionDisabled}
+                className={variant === 'vertical' ? 'w-full' : ''}
+                data-testid='archive-group-button'
+            >
+                <>
+                    <ArchiveBoxArrowDownIcon className='h-4 w-4 mr-2' aria-hidden='true' />
+                    {t('groupActions.archive')}
+                </>
+            </Button>
+        )
+        : null;
+
+    const unarchiveButton = onUnarchive
+        ? (
+            <Button
+                variant='secondary'
+                onClick={onUnarchive}
+                disabled={membershipActionDisabled}
+                className={variant === 'vertical' ? 'w-full' : ''}
+                data-testid='unarchive-group-button'
+            >
+                <>
+                    <ArrowPathIcon className='h-4 w-4 mr-2' aria-hidden='true' />
+                    {t('groupActions.unarchive')}
+                </>
+            </Button>
+        )
+        : null;
+
     const leaveGroupButton = onLeaveGroup && canLeaveGroup
         ? (
             <Button variant='secondary' onClick={onLeaveGroup} className={variant === 'vertical' ? 'w-full' : ''} data-testid='leave-group-button'>
@@ -77,6 +119,7 @@ export function GroupActions({
                 <Stack spacing='sm'>
                     {commonButtons}
                     {settingsButton}
+                    {isArchived ? unarchiveButton : archiveButton}
                     {leaveGroupButton}
                 </Stack>
             </SidebarCard>
@@ -87,6 +130,7 @@ export function GroupActions({
         <div className='flex gap-4'>
             {commonButtons}
             {settingsButton}
+            {isArchived ? unarchiveButton : archiveButton}
             {leaveGroupButton}
         </div>
     );

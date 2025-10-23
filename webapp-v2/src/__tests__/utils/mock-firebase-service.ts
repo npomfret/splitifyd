@@ -16,7 +16,7 @@ import {
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 import type { Page, Response, Route } from '@playwright/test';
-import { ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
+import { ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
 
 interface AuthError {
     code: string;
@@ -390,10 +390,18 @@ export async function mockFullyAcceptedPoliciesApi(page: Page) {
 export async function mockGroupsApi(
     page: Page,
     response: ListGroupsResponse,
-    options: { delayMs?: number; } = {},
+    options: { delayMs?: number; once?: boolean; query?: Record<string, string>; status?: number; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
-    await registerMswHandlers(page, groupsMetadataHandler(response, { delayMs: delay }));
+    await registerMswHandlers(
+        page,
+        groupsMetadataHandler(response, {
+            delayMs: delay,
+            once: options.once,
+            status: options.status,
+            query: options.query,
+        }),
+    );
 }
 
 /**
@@ -437,7 +445,7 @@ export async function mockGroupDetailApi(
     page: Page,
     groupId: GroupId,
     group: any,
-    options: { delayMs?: number; } = {},
+    options: { delayMs?: number; status?: number; once?: boolean; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
 
@@ -445,6 +453,8 @@ export async function mockGroupDetailApi(
         page,
         groupDetailHandler(groupId, group, {
             delayMs: delay,
+            status: options.status,
+            once: options.once,
         }),
     );
 }
@@ -581,6 +591,42 @@ export async function mockGenerateShareLinkApi(
                 },
             },
         ),
+    );
+}
+
+export async function mockArchiveGroupApi(
+    page: Page,
+    groupId: GroupId,
+    response: MessageResponse = { message: 'Group archived successfully' },
+    options: { delayMs?: number; status?: number; once?: boolean; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('POST', `/api/groups/${groupId}/archive`, response, {
+            delayMs: delay,
+            status: options.status ?? 200,
+            once: options.once,
+        }),
+    );
+}
+
+export async function mockUnarchiveGroupApi(
+    page: Page,
+    groupId: GroupId,
+    response: MessageResponse = { message: 'Group unarchived successfully' },
+    options: { delayMs?: number; status?: number; once?: boolean; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler('POST', `/api/groups/${groupId}/unarchive`, response, {
+            delayMs: delay,
+            status: options.status ?? 200,
+            once: options.once,
+        }),
     );
 }
 

@@ -156,6 +156,7 @@ export type PermissionLevel = (typeof PermissionLevels)[keyof typeof PermissionL
 export const MemberStatuses = {
     ACTIVE: 'active',
     PENDING: 'pending',
+    ARCHIVED: 'archived',
 } as const;
 
 export type MemberStatus = (typeof MemberStatuses)[keyof typeof MemberStatuses];

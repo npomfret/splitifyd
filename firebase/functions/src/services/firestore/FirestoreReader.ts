@@ -18,6 +18,8 @@ import {
     ExpenseId,
     type GroupDTO,
     type GroupMembershipDTO,
+    MemberStatuses,
+    type MemberStatus,
     MAX_GROUP_MEMBERS,
     type PolicyDTO,
     type RegisteredUser,
@@ -53,7 +55,7 @@ import { SettlementId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../../constants';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
-import type { BatchGroupFetchOptions, GroupsPaginationCursor, OrderBy, PaginatedResult, QueryOptions } from './IFirestoreReader';
+import type { BatchGroupFetchOptions, GetGroupsForUserOptions, GroupsPaginationCursor, OrderBy, PaginatedResult, QueryOptions } from './IFirestoreReader';
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: IFirestoreDatabase) {}
@@ -132,6 +134,25 @@ export class FirestoreReader implements IFirestoreReader {
             default:
                 throw new Error(`Unsupported comment target type: ${targetType}`);
         }
+    }
+
+    private normalizeStatusFilter(statusFilter?: MemberStatus | MemberStatus[]): MemberStatus | MemberStatus[] | undefined {
+        if (statusFilter === undefined) {
+            return undefined;
+        }
+
+        if (Array.isArray(statusFilter)) {
+            const uniqueStatuses = Array.from(new Set(statusFilter));
+            if (uniqueStatuses.length === 0) {
+                return undefined;
+            }
+            if (uniqueStatuses.length === 1) {
+                return uniqueStatuses[0];
+            }
+            return uniqueStatuses;
+        }
+
+        return statusFilter;
     }
 
     // ========================================================================
@@ -428,20 +449,37 @@ export class FirestoreReader implements IFirestoreReader {
      * @param options - Query options including limit, cursor, and orderBy
      * @returns Paginated result with groups ordered by most recent activity
      */
-    async getGroupsForUserV2(userId: string, options?: { limit?: number; cursor?: string; orderBy?: OrderBy; }): Promise<PaginatedResult<GroupDTO[]>> {
+    async getGroupsForUserV2(userId: string, options: GetGroupsForUserOptions = {}): Promise<PaginatedResult<GroupDTO[]>> {
         return measureDb('USER_GROUPS_V2', async () => {
-            const limit = options?.limit || 10;
+            const limit = options.limit || 10;
 
             // Build query with database-level ordering by groupUpdatedAt
-            const orderDirection = options?.orderBy?.direction || 'desc';
-            let query = this
-                .db
-                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('uid', '==', userId)
-                .orderBy('groupUpdatedAt', orderDirection);
+            const orderDirection = options.orderBy?.direction || 'desc';
+            const normalizedStatusFilter = this.normalizeStatusFilter(options.statusFilter);
+            const applyStatusFilter = (targetQuery: IQuery): IQuery => {
+                if (normalizedStatusFilter === undefined) {
+                    return targetQuery.where('memberStatus', '==', MemberStatuses.ACTIVE);
+                }
+
+                if (Array.isArray(normalizedStatusFilter)) {
+                    return targetQuery.where('memberStatus', 'in', normalizedStatusFilter);
+                }
+
+                return targetQuery.where('memberStatus', '==', normalizedStatusFilter);
+            };
+
+            let query = applyStatusFilter(
+                this.db
+                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                    .where('uid', '==', userId),
+            );
+
+            query = query.orderBy('groupUpdatedAt', orderDirection);
 
             // Build count query (runs in parallel for efficiency)
-            const countQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('uid', '==', userId);
+            const countQuery = applyStatusFilter(
+                this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('uid', '==', userId),
+            );
 
             // Apply cursor pagination
             if (options?.cursor) {

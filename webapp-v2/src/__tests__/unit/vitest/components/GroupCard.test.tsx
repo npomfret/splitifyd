@@ -19,6 +19,8 @@ vi.mock('react-i18next', () => ({
                     return `Add expense to ${options.groupName ?? ''}`;
                 case 'groupCard.inviteTooltip':
                     return `Invite members to ${options.groupName ?? ''}`;
+                case 'dashboard.groupCard.archivedBadge':
+                    return 'Archived';
                 default:
                     return key;
             }
@@ -44,7 +46,7 @@ const baseGroup: GroupDTO = {
     lastActivity: '2 days ago',
 };
 
-const renderGroupCard = (groupOverrides: Partial<GroupDTO>) => {
+const renderGroupCard = (groupOverrides: Partial<GroupDTO>, extraProps: Partial<Parameters<typeof GroupCard>[0]> = {}) => {
     const group = {
         ...baseGroup,
         ...groupOverrides,
@@ -54,6 +56,7 @@ const renderGroupCard = (groupOverrides: Partial<GroupDTO>) => {
         <GroupCard
             group={group}
             onClick={() => {}}
+            {...extraProps}
         />,
     );
 };
@@ -129,5 +132,11 @@ describe('GroupCard', () => {
         expect(badges).toHaveLength(2);
         expect(badges[0]).toHaveTextContent('You\'re owed £25.00 GBP');
         expect(badges[1]).toHaveTextContent('You owe €10.00 EUR');
+    });
+
+    it('renders archived badge in archived view', () => {
+        renderGroupCard({}, { isArchivedView: true });
+
+        expect(screen.getByText('Archived')).toBeInTheDocument();
     });
 });

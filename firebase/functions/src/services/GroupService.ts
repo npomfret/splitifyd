@@ -245,6 +245,7 @@ export class GroupService {
             limit,
             cursor: options.cursor,
             orderBy,
+            statusFilter: options.statusFilter,
         });
         timer.endPhase();
 

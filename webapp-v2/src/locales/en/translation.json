@@ -216,14 +216,20 @@
     "welcomeDescription": "Get started by creating your first group to track and split expenses with friends.",
     "yourGroups": "Your Groups",
     "createGroup": "Create Group",
+    "groupsFilter": {
+      "label": "Filter groups",
+      "active": "Active",
+      "archived": "Archived"
+    },
     "groupCard": {
       "settledUp": "All settled up!",
       "youOwe": "You owe {{amount}}",
       "youAreOwed": "You're owed {{amount}}",
       "addExpenseTooltip": "Add expense to {{groupName}}",
-      "inviteTooltip": "Invite members to {{groupName}}",
-      "noRecentActivity": "No recent activity"
-    },
+    "inviteTooltip": "Invite members to {{groupName}}",
+    "noRecentActivity": "No recent activity",
+    "archivedBadge": "Archived"
+  },
     "emptyState": {
       "title": "No groups yet",
       "subtitle": "Create your first group to start tracking shared expenses",
@@ -967,7 +973,9 @@
     "settleUp": "Settle Up",
     "inviteOthers": "Invite Others",
     "settings": "Settings",
-    "leaveGroup": "Leave Group"
+    "leaveGroup": "Leave Group",
+    "archive": "Archive Group",
+    "unarchive": "Unarchive Group"
   },
   "groupSettingsModal": {
     "title": "Group Settings",
@@ -1098,7 +1106,9 @@
       "loading": "Loading your groups...",
       "loadFailed": "Failed to load groups",
       "tryAgain": "Try Again",
-      "creating": "Creating group..."
+      "creating": "Creating group...",
+      "noArchivedTitle": "No archived groups",
+      "noArchivedDescription": "Groups you archive will appear here. Archive a group from the Active tab to hide it from your dashboard."
     }
   },
   "expenseComponents": {

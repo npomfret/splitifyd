@@ -2040,6 +2040,131 @@ describe('app tests', () => {
             expect(members.find(m => m.uid === user3)).toBeUndefined();
         });
 
+        describe('archive group functionality', () => {
+            it('should archive and unarchive a group membership', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+
+                // Verify user2 can see the group initially
+                let groups = await appDriver.listGroups(user2);
+                expect(groups.groups).toHaveLength(1);
+                expect(groups.groups[0].id).toBe(groupId);
+
+                // Archive the group
+                const archiveResult = await appDriver.archiveGroupForUser(user2, groupId);
+                expect(archiveResult.message).toBe('Group archived successfully');
+
+                // Verify group no longer appears in default list
+                groups = await appDriver.listGroups(user2);
+                expect(groups.groups).toHaveLength(0);
+
+                // Archived filter should return the group
+                const archivedGroups = await appDriver.listGroups(user2, { statusFilter: 'archived' });
+                expect(archivedGroups.groups).toHaveLength(1);
+                expect(archivedGroups.groups[0].id).toBe(groupId);
+
+                // Unarchive the group
+                const unarchiveResult = await appDriver.unarchiveGroupForUser(user2, groupId);
+                expect(unarchiveResult.message).toBe('Group unarchived successfully');
+
+                // Verify group appears again
+                groups = await appDriver.listGroups(user2);
+                expect(groups.groups).toHaveLength(1);
+                expect(groups.groups[0].id).toBe(groupId);
+
+                const archivedGroupsAfterUnarchive = await appDriver.listGroups(user2, { statusFilter: 'archived' });
+                expect(archivedGroupsAfterUnarchive.groups).toHaveLength(0);
+            });
+
+            it('should reject archiving a non-existent membership', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                // user2 is not a member
+                await expect(appDriver.archiveGroupForUser(user2, groupId))
+                    .rejects
+                    .toMatchObject({ code: 'NOT_FOUND' });
+            });
+
+            it('should reject archiving a non-active membership', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+
+                // Archive first time
+                await appDriver.archiveGroupForUser(user2, groupId);
+
+                // Try to archive again - should fail
+                await expect(appDriver.archiveGroupForUser(user2, groupId))
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_INPUT' });
+            });
+
+            it('should reject unarchiving a non-archived membership', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+
+                // Try to unarchive an active membership
+                await expect(appDriver.unarchiveGroupForUser(user2, groupId))
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_INPUT' });
+            });
+
+            it('should allow multiple archive/unarchive cycles', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+
+                // Archive
+                await appDriver.archiveGroupForUser(user2, groupId);
+                let groups = await appDriver.listGroups(user2);
+                expect(groups.groups).toHaveLength(0);
+
+                // Unarchive
+                await appDriver.unarchiveGroupForUser(user2, groupId);
+                groups = await appDriver.listGroups(user2);
+                expect(groups.groups).toHaveLength(1);
+
+                // Archive again
+                await appDriver.archiveGroupForUser(user2, groupId);
+                groups = await appDriver.listGroups(user2);
+                expect(groups.groups).toHaveLength(0);
+            });
+
+            it('should keep archived group accessible to other members', async () => {
+                const group = await appDriver.createGroup(user1);
+                const groupId = group.id;
+
+                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                await appDriver.joinGroupByLink(user2, linkId);
+                await appDriver.joinGroupByLink(user3, linkId);
+
+                // user2 archives the group
+                await appDriver.archiveGroupForUser(user2, groupId);
+
+                // user1 and user3 should still see the group
+                const user1Groups = await appDriver.listGroups(user1);
+                expect(user1Groups.groups).toHaveLength(1);
+
+                const user3Groups = await appDriver.listGroups(user3);
+                expect(user3Groups.groups).toHaveLength(1);
+
+                // user2 should not see it
+                const user2Groups = await appDriver.listGroups(user2);
+                expect(user2Groups.groups).toHaveLength(0);
+            });
+        });
+
         describe('split validation', () => {
             it('should reject percentage splits not totaling 100%', async () => {
                 const group = await appDriver.createGroup(user1);

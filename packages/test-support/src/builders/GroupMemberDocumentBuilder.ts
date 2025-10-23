@@ -52,7 +52,7 @@ export class GroupMemberDocumentBuilder {
         return this;
     }
 
-    withStatus(status: 'active' | 'pending'): this {
+    withStatus(status: 'active' | 'pending' | 'archived'): this {
         this.memberDoc.memberStatus = status as any;
         return this;
     }
