@@ -130,7 +130,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                         />
                                     </div>
                                     <div className='row-start-1 col-start-2 flex items-center gap-2 min-w-0'>
-                                        <span className='text-sm font-semibold truncate' style={{ color: themeColor }}>
+                                        <span className='text-sm font-semibold text-gray-900 truncate'>
                                             {renderMemberName(debt.from.uid)}
                                         </span>
                                     </div>
@@ -146,7 +146,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                     <div className='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
                                         <div className='flex items-center gap-1 flex-1'>
                                             <span className='text-xs text-gray-500'>owes</span>
-                                            <span className='text-lg font-bold tabular-nums text-gray-900' data-financial-amount='debt'>
+                                            <span className='text-base font-bold tabular-nums text-gray-900' data-financial-amount='debt'>
                                                 {formatCurrency(debt.amount, debt.currency)}
                                             </span>
                                             <span className='text-xs text-gray-500'>to</span>

@@ -67,7 +67,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                             </div>
                             <p className='text-sm text-gray-600'>
                                 {t('expenseItem.paidBy')}{' '}
-                                <span className='font-medium' style={{ color: isDeleted ? '' : themeColor }}>
+                                <span className='font-medium'>
                                     {payerName}
                                 </span>{' '}
                                 • {formatExpenseDateTime(expense.date)}
