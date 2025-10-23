@@ -6,7 +6,7 @@ import { formatCurrency } from '@/utils/currency';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
-import { amountToSmallestUnit, CreateSettlementRequest, getCurrencyDecimals, GroupMember, isZeroAmount, normalizeAmount, SettlementWithMembers, SimplifiedDebt, ZERO } from '@splitifyd/shared';
+import { amountToSmallestUnit, CreateSettlementRequest, getCurrencyDecimals, GroupMember, normalizeAmount, SettlementWithMembers, SimplifiedDebt, smallestUnitToAmountString, ZERO } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, CurrencyAmountInput, Form, Tooltip } from '../ui';
@@ -50,6 +50,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     const [currency, setCurrency] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [note, setNote] = useState('');
+    const [amountPrecisionError, setAmountPrecisionError] = useState<string | null>(null);
 
     const currentUser = authStore.user;
     const members = enhancedGroupDetailStore.members || [];
@@ -104,6 +105,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 setNote('');
             }
             setValidationError(null);
+            setAmountPrecisionError(null);
         }
     }, [isOpen, editMode, settlementToEdit, preselectedDebt, currentUser]); // Include all dependencies
 
@@ -150,6 +152,11 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     }, [isOpen, onClose]);
 
     useEffect(() => {
+        if (amountPrecisionError) {
+            setWarningMessage(null);
+            return;
+        }
+
         if (!payerId || !payeeId || !currency || !amount) {
             setWarningMessage(null);
             return;
@@ -186,8 +193,34 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return;
         }
 
+        if (amountUnits < currentDebtUnits) {
+            const payerName = getMemberName(payerId);
+            const payeeName = getMemberName(payeeId);
+            const remainingUnits = currentDebtUnits - amountUnits;
+            const remainingAmount = smallestUnitToAmountString(remainingUnits, currency);
+            setWarningMessage(
+                t('settlementForm.warnings.underpayment', {
+                    payer: payerName,
+                    payee: payeeName,
+                    amount: formatCurrency(normalizedAmount, currency),
+                    remaining: formatCurrency(remainingAmount, currency),
+                }),
+            );
+            return;
+        }
+
         setWarningMessage(null);
-    }, [payerId, payeeId, amount, currency, enhancedGroupDetailStore.balances]);
+    }, [payerId, payeeId, amount, currency, enhancedGroupDetailStore.balances, amountPrecisionError, t]);
+
+    const recalculatePrecisionError = (amountValue: string, currencyCode: string) => {
+        if (!currencyCode || !amountValue || amountValue.trim() === '') {
+            setAmountPrecisionError(null);
+            return;
+        }
+
+        const precisionMessage = getAmountPrecisionError(amountValue, currencyCode);
+        setAmountPrecisionError(precisionMessage);
+    };
 
     const handleBackdropClick = (e: Event) => {
         if (e.target === e.currentTarget) {
@@ -196,9 +229,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     };
 
     const validateForm = (): string | null => {
-        const normalizedAmount = currency ? normalizeAmount(amount, currency) : amount;
-        const amountUnits = currency ? amountToSmallestUnit(normalizedAmount, currency) : 0;
-
         if (!payerId) {
             return t('settlementForm.validation.selectPayer');
         }
@@ -212,10 +242,27 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         }
 
         if (!currency || currency.trim() === '' || currency.length !== 3) {
-            return t('settlementForm.validation.currencyRequired');
+            return t('settlementForm.validation.validCurrencyRequired');
         }
 
-        if (!amount || amountUnits <= 0) {
+        if (!amount || `${amount}`.trim() === '') {
+            return t('settlementForm.validation.validAmountRequired');
+        }
+
+        const precisionError = getAmountPrecisionError(amount, currency);
+        if (precisionError) {
+            return precisionError;
+        }
+
+        let amountUnits: number;
+        try {
+            const normalizedAmount = normalizeAmount(amount, currency);
+            amountUnits = amountToSmallestUnit(normalizedAmount, currency);
+        } catch {
+            return t('settlementForm.validation.validAmountRequired');
+        }
+
+        if (amountUnits <= 0) {
             return t('settlementForm.validation.validAmountRequired');
         }
 
@@ -288,13 +335,19 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
     // Computed property for form validity
     const isFormValid = (() => {
-        if (!payerId || !payeeId || payerId === payeeId || !amount || !date || isDateInFuture(date) || !currency) {
+        if (!payerId || !payeeId || payerId === payeeId || !currency) {
             return false;
         }
 
-        // Check for precision errors BEFORE normalizing
-        const precisionError = getAmountPrecisionError(amount, currency);
-        if (precisionError) {
+        if (!date || isDateInFuture(date)) {
+            return false;
+        }
+
+        if (!amount || `${amount}`.trim() === '') {
+            return false;
+        }
+
+        if (getAmountPrecisionError(amount, currency)) {
             return false;
         }
 
@@ -332,6 +385,63 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         </button>
                     </Tooltip>
                 </div>
+
+                {/* Quick Settlement Buttons - only show in create mode when not pre-filled from balances */}
+                {!editMode && !preselectedDebt && currentUser && enhancedGroupDetailStore.balances?.simplifiedDebts && (() => {
+                    const userDebts = enhancedGroupDetailStore.balances.simplifiedDebts.filter(
+                        (debt: SimplifiedDebt) => debt.from.uid === currentUser.uid
+                    );
+
+                    if (userDebts.length === 0) return null;
+
+                    return (
+                        <div class='mb-4 pb-4 border-b border-gray-200'>
+                            <label class='block text-sm font-medium text-gray-700 mb-2 text-center'>
+                                Quick settle:
+                            </label>
+                            <div class='flex flex-wrap gap-2 justify-center'>
+                                {userDebts.map((debt: SimplifiedDebt) => {
+                                    const payeeMember = members.find((m: GroupMember) => m.uid === debt.to.uid);
+                                    if (!payeeMember) return null;
+
+                                    return (
+                                        <button
+                                            key={`${debt.to.uid}-${debt.currency}`}
+                                            type='button'
+                                            onClick={() => {
+                                                setPayerId(debt.from.uid);
+                                                setPayeeId(debt.to.uid);
+                                                setAmount(debt.amount);
+                                                setCurrency(debt.currency);
+                                                setDate(new Date().toISOString().split('T')[0]);
+                                                setNote('');
+                                                recalculatePrecisionError(debt.amount, debt.currency);
+                                            }}
+                                            class='inline-flex items-center justify-start gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-[280px]'
+                                            title={`${formatCurrency(debt.amount, debt.currency)} → ${getGroupDisplayName(payeeMember)}`}
+                                        >
+                                            {/* Avatar */}
+                                            <div
+                                                class='w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white'
+                                                style={{ backgroundColor: payeeMember.themeColor?.light || '#6366f1' }}
+                                            >
+                                                {getGroupDisplayName(payeeMember).charAt(0).toUpperCase()}
+                                            </div>
+                                            {/* Amount and Name */}
+                                            <span class='font-semibold text-gray-900 whitespace-nowrap'>
+                                                {formatCurrency(debt.amount, debt.currency)}
+                                            </span>
+                                            <span class='text-gray-500'>→</span>
+                                            <span class='text-gray-700 truncate max-w-[120px] whitespace-nowrap'>
+                                                {getGroupDisplayName(payeeMember)}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 <Form onSubmit={handleSubmit}>
                     <div class='space-y-4'>
@@ -390,10 +500,12 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 currency={currency}
                                 onAmountChange={(value) => {
                                     setAmount(value);
+                                    recalculatePrecisionError(value, currency);
                                 }}
                                 onCurrencyChange={(value) => {
                                     setCurrency(value);
                                     CurrencyService.getInstance().addToRecentCurrencies(value);
+                                    recalculatePrecisionError(amount, value);
                                 }}
                                 label={t('settlementForm.amountLabel')}
                                 required
@@ -402,6 +514,11 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 recentCurrencies={CurrencyService.getInstance().getRecentCurrencies()}
                                 data-testid='settlement-amount-input'
                             />
+                            {amountPrecisionError && (
+                                <p class='mt-2 text-sm text-red-600' role='alert' data-testid='settlement-amount-error'>
+                                    {amountPrecisionError}
+                                </p>
+                            )}
                         </div>
 
                         {/* Date */}
@@ -441,19 +558,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 autoComplete='off'
                             />
                         </div>
-
-                        {/* Summary */}
-                        {payerId && payeeId && currency && !isZeroAmount(amount, currency) && (
-                            <div class='p-3 bg-gray-50 rounded-md'>
-                                <p class='text-sm text-gray-600'>
-                                    {t('settlementForm.paymentSummary', {
-                                        payer: getMemberName(payerId),
-                                        payee: getMemberName(payeeId),
-                                        amount: formatCurrency(amount, currency),
-                                    })}
-                                </p>
-                            </div>
-                        )}
 
                         {/* Warning Message */}
                         {warningMessage && (

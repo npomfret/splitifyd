@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { GroupBalancesBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementFormPage, ThemeBuilder } from '@splitifyd/test-support';
+import { GroupBalancesBuilder, GroupDTOBuilder, GroupDetailPage, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementFormPage, ThemeBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
@@ -158,8 +158,15 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.selectPayee('User 2');
         await settlementFormPage.fillAmount('10.123');
 
+        const precisionError = settlementFormPage.getModal().getByTestId('settlement-amount-error');
+        await expect(precisionError).toContainText('decimal place');
         await settlementFormPage.expectSubmitDisabled();
         await settlementFormPage.expectAmountValue('10.123');
+
+        await settlementFormPage.fillAmount('10.12');
+        await settlementFormPage.expectAmountValue('10.12');
+        await expect(settlementFormPage.getModal().getByTestId('settlement-amount-error')).toHaveCount(0);
+
         await expectNoGlobalError(page);
     });
 
@@ -270,6 +277,164 @@ test.describe('Settlement Form - Warning Message Bug (Reproduce)', () => {
         // The form should be valid and submittable without warnings
         await settlementFormPage.expectSubmitEnabled();
 
+        await expectNoGlobalError(page);
+    });
+});
+
+test.describe('Settlement Form - Quick Settle Shortcuts', () => {
+    test('shows quick settle shortcuts when opened from Group Actions', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const groupId = 'quick-settle-actions';
+
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId(groupId)
+            .withName('Quick Settle Group')
+            .build();
+
+        const debtorMember = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(user.displayName)
+            .withGroupDisplayName(user.displayName)
+            .withTheme(ThemeBuilder.blue().build())
+            .build();
+
+        const creditorMember = new GroupMemberBuilder()
+            .withUid('member-2')
+            .withDisplayName('Alexandra Verylongname')
+            .withGroupDisplayName('Alexandra Verylongname')
+            .withTheme(ThemeBuilder.red().build())
+            .build();
+
+        const balances = new GroupBalancesBuilder()
+            .withGroupId(groupId)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'member-2', 'Alexandra Verylongname', 37.25)
+            .build();
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers([debtorMember, creditorMember])
+            .withBalances(balances)
+            .build();
+
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId);
+
+        const settlementFormPage = new SettlementFormPage(page);
+        await settlementFormPage.navigateAndOpen(groupId);
+
+        const modal = settlementFormPage.getModal();
+        await expect(modal.getByText('Quick settle:')).toBeVisible();
+
+        const shortcutButton = modal.getByRole('button', { name: /\$37\.25\s*→\s*Alexandra Verylongname/ });
+        await expect(shortcutButton).toBeVisible();
+    });
+
+    test('hides quick settle shortcuts when modal is pre-filled from balances', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const groupId = 'quick-settle-prefilled';
+
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId(groupId)
+            .withName('Prefilled Quick Settle Group')
+            .build();
+
+        const debtorMember = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(user.displayName)
+            .withGroupDisplayName(user.displayName)
+            .withTheme(ThemeBuilder.blue().build())
+            .build();
+
+        const creditorMember = new GroupMemberBuilder()
+            .withUid('member-2')
+            .withDisplayName('Alexandra Verylongname')
+            .withGroupDisplayName('Alexandra Verylongname')
+            .withTheme(ThemeBuilder.red().build())
+            .build();
+
+        const balances = new GroupBalancesBuilder()
+            .withGroupId(groupId)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'member-2', 'Alexandra Verylongname', 37.25)
+            .build();
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers([debtorMember, creditorMember])
+            .withBalances(balances)
+            .build();
+
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId);
+
+        const groupDetailPage = new GroupDetailPage(page);
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupToLoad();
+
+        const debtButton = groupDetailPage.getSettlementButtonForDebt(user.displayName, 'Alexandra Verylongname');
+        await debtButton.click();
+
+        const settlementFormPage = new SettlementFormPage(page);
+        const modal = settlementFormPage.getModal();
+        await expect(modal).toBeVisible();
+
+        await expect(modal.getByText('Quick settle:')).toHaveCount(0);
+        await expect(modal.getByRole('button', { name: /\$37\.25\s*→\s*Alexandra Verylongname/ })).toHaveCount(0);
+    });
+});
+
+test.describe('Settlement Form - Amount Warnings', () => {
+    test('shows polite warning when settling less than the outstanding debt', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const groupId = 'settlement-underpayment-warning';
+
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId(groupId)
+            .withName('Underpayment Group')
+            .build();
+
+        const debtorMember = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(user.displayName)
+            .withGroupDisplayName(user.displayName)
+            .withTheme(ThemeBuilder.blue().build())
+            .build();
+
+        const creditorMember = new GroupMemberBuilder()
+            .withUid('member-2')
+            .withDisplayName('Alexandra Verylongname')
+            .withGroupDisplayName('Alexandra Verylongname')
+            .withTheme(ThemeBuilder.red().build())
+            .build();
+
+        const balances = new GroupBalancesBuilder()
+            .withGroupId(groupId)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'member-2', 'Alexandra Verylongname', 50.0)
+            .build();
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers([debtorMember, creditorMember])
+            .withBalances(balances)
+            .build();
+
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId);
+
+        const settlementFormPage = new SettlementFormPage(page);
+        await settlementFormPage.navigateAndOpen(groupId);
+
+        await settlementFormPage.selectCurrency('USD');
+        await settlementFormPage.selectPayee('Alexandra Verylongname');
+        await settlementFormPage.fillAmount('10.00');
+
+        const warning = settlementFormPage.getModal().getByTestId('settlement-warning-message');
+        await expect(warning).toContainText('still owe');
+
+        await settlementFormPage.fillAmount('50.00');
+        await expect(settlementFormPage.getModal().getByTestId('settlement-warning-message')).toHaveCount(0);
         await expectNoGlobalError(page);
     });
 });
