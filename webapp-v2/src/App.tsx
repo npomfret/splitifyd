@@ -53,8 +53,11 @@ function ProtectedRoute({ component: Component, ...props }: any) {
     // Redirect to login if not authenticated (declarative approach)
     if (authStore.initialized && !authStore.user) {
         // Store current URL for redirect after login
-        const currentUrl = window.location.pathname + window.location.search;
-        navigationService.goToLogin(currentUrl);
+        const locationRef = (globalThis as Record<string, any>).location as Location | undefined;
+        const pathname = locationRef?.pathname ?? '';
+        const search = locationRef?.search ?? '';
+        const currentUrl = `${pathname}${search}`;
+        navigationService.goToLogin(currentUrl.length > 0 ? currentUrl : undefined);
         return null;
     }
 

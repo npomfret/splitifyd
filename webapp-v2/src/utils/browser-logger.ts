@@ -4,6 +4,8 @@
 
 import { ApiError } from '../app/apiClient';
 
+const globalObject = globalThis as Record<string, any>;
+
 // Session ID for tracking user sessions
 const SESSION_ID = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -82,21 +84,25 @@ function sanitizeForLog(value: unknown, parentKey?: string): unknown {
 
 // Get current user context
 function getUserContext(): Record<string, any> {
+    const location = globalObject.location as Location | undefined;
     const context: Record<string, any> = {
         sessionId: SESSION_ID,
         timestamp: new Date().toISOString(),
-        url: window.location.href,
+        url: location?.href ?? 'unknown',
     };
 
     // Try to get user ID from localStorage
-    try {
-        const authToken = localStorage.getItem('auth-token');
-        if (authToken) {
-            // Basic parsing - actual user ID would come from decoded token
-            context.hasAuth = true;
+    const storage = globalObject.localStorage as Storage | undefined;
+    if (storage) {
+        try {
+            const authToken = storage.getItem('auth-token');
+            if (authToken) {
+                // Basic parsing - actual user ID would come from decoded token
+                context.hasAuth = true;
+            }
+        } catch {
+            // Ignore storage errors
         }
-    } catch (e) {
-        // Ignore localStorage errors
     }
 
     return context;
@@ -178,6 +184,7 @@ export function logButtonClick(
         level: LogLevel.USER_ACTION,
         eventType: 'button_click',
         buttonText,
+        page: (globalObject.location as Location | undefined)?.pathname ?? '/',
         ...details,
     };
 

@@ -15,6 +15,7 @@ import {GroupId, ExpenseId} from "@splitifyd/shared";
 class NavigationService {
     private currentPath: string = '';
     private pendingNavigationTimers: Set<NodeJS.Timeout> = new Set();
+    private readonly globalObject = globalThis as Record<string, any>;
 
     constructor() {
         // Initialize current path tracking
@@ -258,10 +259,12 @@ class NavigationService {
      * Log navigation events for audit trail
      */
     private logNavigation(action: string, details: Record<string, any>): void {
+        const navigatorRef = this.globalObject.navigator as Navigator | undefined;
+        const userAgent = navigatorRef?.userAgent ? navigatorRef.userAgent.substring(0, 100) : 'unknown';
         logUserAction(action, {
             ...details,
             timestamp: new Date().toISOString(),
-            userAgent: navigator.userAgent.substring(0, 100), // Truncated for privacy
+            userAgent, // Truncated for privacy
         });
     }
 }

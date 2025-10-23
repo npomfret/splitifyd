@@ -56,7 +56,6 @@ export function Button({
                 variant,
                 size,
                 type,
-                page: window.location.pathname,
             });
 
             onClick();
