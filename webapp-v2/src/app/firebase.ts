@@ -162,7 +162,7 @@ export function getFirebaseService(): FirebaseService {
     return overrideService ?? ensureDefaultService();
 }
 
-export function setFirebaseService(service: FirebaseService): void {
+function setFirebaseService(service: FirebaseService): void {
     if (!devMode) {
         console.warn('Ignoring attempt to override Firebase service outside development mode.');
         return;
@@ -170,7 +170,7 @@ export function setFirebaseService(service: FirebaseService): void {
     applyOverride(service);
 }
 
-export function resetFirebaseService(): void {
+function resetFirebaseService(): void {
     if (!devMode) {
         console.warn('Ignoring attempt to reset Firebase service outside development mode.');
         return;

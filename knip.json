@@ -20,7 +20,7 @@
     "packages/shared": {
       "entry": ["src/index.ts"],
       "project": ["src/**/*.ts"],
-      "ignore": ["dist/**/*", "node_modules/**/*"]
+      "ignore": ["src/**/*.test.ts", "src/**/*.spec.ts", "src/__tests__/**/*", "dist/**/*", "node_modules/**/*"]
     },
     "e2e-tests": {
       "entry": ["src/**/*.test.ts", "playwright.config.ts"],

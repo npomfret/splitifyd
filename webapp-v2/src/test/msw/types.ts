@@ -16,7 +16,7 @@ export type SerializedBodyMatcher =
         value: string;
     };
 
-export interface SerializedMswResponse {
+interface SerializedMswResponse {
     status?: number;
     headers?: Record<string, string>;
     body?: unknown;

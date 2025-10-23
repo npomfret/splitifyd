@@ -122,9 +122,9 @@ const UpdateMemberRoleSchema = z.object({
     role: z.nativeEnum(MemberRoles),
 });
 
-export type ApplySecurityPresetRequest = z.infer<typeof ApplySecurityPresetSchema>;
-export type UpdateGroupPermissionsRequest = Partial<GroupPermissions>;
-export type UpdateMemberRoleRequestBody = z.infer<typeof UpdateMemberRoleSchema>;
+type ApplySecurityPresetRequest = z.infer<typeof ApplySecurityPresetSchema>;
+type UpdateGroupPermissionsRequest = Partial<GroupPermissions>;
+type UpdateMemberRoleRequestBody = z.infer<typeof UpdateMemberRoleSchema>;
 
 export const validateApplySecurityPreset = (body: unknown): ApplySecurityPresetRequest => {
     return parseWithApiError(ApplySecurityPresetSchema, body, {

@@ -10,7 +10,7 @@ export type FirestoreProdTrigger = ReturnType<typeof onDocumentWritten>;
 
 export type FirestoreTriggerDocumentSnapshot = Pick<IDocumentSnapshot, 'id' | 'exists' | 'data'>;
 
-export interface FirestoreTriggerData {
+interface FirestoreTriggerData {
     before?: FirestoreTriggerDocumentSnapshot;
     after?: FirestoreTriggerDocumentSnapshot;
 }
@@ -25,7 +25,7 @@ export type FirestoreTriggerHandler<TParams extends Record<string, string> = Rec
     event: FirestoreTriggerEvent<TParams>,
 ) => Promise<unknown>;
 
-export type BaseTriggerDefinition<TName extends string = string> = {
+type BaseTriggerDefinition<TName extends string = string> = {
     name: TName;
     document: string;
     operations: TriggerOperation[];

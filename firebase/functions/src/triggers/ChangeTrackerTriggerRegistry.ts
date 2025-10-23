@@ -4,7 +4,7 @@ import { FirestoreCollections } from '../constants';
 import { measureTrigger } from '../monitoring/measure';
 import { ChangeTrackerHandlers } from './ChangeTrackerHandlers';
 
-export type TriggerName =
+type TriggerName =
     | 'trackGroupChanges'
     | 'trackExpenseChanges'
     | 'trackSettlementChanges'
@@ -19,7 +19,7 @@ type HandlerNameByTrigger = {
     trackExpenseCommentChanges: 'handleExpenseCommentChange';
 };
 
-export type HandlerName = HandlerNameByTrigger[TriggerName];
+type HandlerName = HandlerNameByTrigger[TriggerName];
 
 type TriggerParamsByName = {
     trackGroupChanges: { groupId: GroupId; };
@@ -29,7 +29,7 @@ type TriggerParamsByName = {
     trackExpenseCommentChanges: { expenseId: string; commentId: string; };
 };
 
-export interface ChangeTrackerTriggerDefinition<
+interface ChangeTrackerTriggerDefinition<
     TName extends TriggerName = TriggerName,
 > extends TriggerDefinition<TName, TriggerParamsByName[TName]> {
     name: TName;
@@ -92,7 +92,7 @@ const bindHandler = (
     return handler.bind(handlers);
 };
 
-export type ChangeTrackerTriggerExports = Record<TriggerName, FirestoreProdTrigger>;
+type ChangeTrackerTriggerExports = Record<TriggerName, FirestoreProdTrigger>;
 
 export const createChangeTrackerTriggerExports = (handlers: ChangeTrackerHandlers): ChangeTrackerTriggerExports => {
     const triggers = {} as Record<TriggerName, FirestoreProdTrigger>;

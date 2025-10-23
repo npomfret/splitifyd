@@ -1,4 +1,4 @@
-export interface DisplayNameSource {
+interface DisplayNameSource {
     displayName?: string | null;
     groupDisplayName?: string | null;
 }

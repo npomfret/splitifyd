@@ -1,7 +1,7 @@
 import type { ClientUser, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
 
-export interface HandlerOptions {
+interface HandlerOptions {
     delayMs?: number;
     once?: boolean;
     status?: number;
