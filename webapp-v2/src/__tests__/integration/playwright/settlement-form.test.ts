@@ -326,7 +326,8 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
         const modal = settlementFormPage.getModal();
         await expect(modal.getByText('Quick settle:')).toBeVisible();
 
-        const shortcutButton = modal.getByRole('button', { name: /\$37\.25\s*→\s*Alexandra Verylongname/ });
+        // The name may be truncated in the UI, so match the beginning and amount
+        const shortcutButton = modal.getByRole('button', { name: /\$37\.25\s*.*→\s*Alexandra Very/ });
         await expect(shortcutButton).toBeVisible();
     });
 

@@ -134,6 +134,9 @@ const ExpenseDataSchema = z.object({
     createdAt: z.string(),
     updatedAt: z.string(),
     receiptUrl: z.string().optional(),
+    deletedAt: z.string().nullable().optional(), // Soft delete timestamp
+    deletedBy: z.string().nullable().optional(), // User who deleted the expense
+    isLocked: z.boolean().optional(), // True if any participant has left the group
 });
 
 const ExpenseListResponseSchema = z.object({

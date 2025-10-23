@@ -145,7 +145,7 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
                     type='text'
                     id={inputId}
                     value={value}
-                    onChange={handleInputChange}
+                    onInput={handleInputChange}
                     onFocus={handleInputFocus}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder || t('uiComponents.categorySuggestionInput.placeholder')}

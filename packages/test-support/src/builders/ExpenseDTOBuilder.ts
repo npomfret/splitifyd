@@ -34,6 +34,7 @@ export class ExpenseDTOBuilder {
             category: randomCategory(),
             deletedAt: null,
             deletedBy: null,
+            isLocked: false, // Default to unlocked
         };
     }
 

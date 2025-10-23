@@ -55,19 +55,22 @@ class ConfigStoreImpl implements ConfigStore {
             return;
         }
 
-        this.#initialized = true;
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
+
+        let configLoaded = false;
 
         try {
             const config = await firebaseConfigManager.getConfig();
             this.#configSignal.value = config;
             this.#errorSignal.value = null;
+            configLoaded = true;
         } catch (error) {
             this.#errorSignal.value = error instanceof Error ? error : new Error(String(error));
             throw error;
         } finally {
             this.#loadingSignal.value = false;
+            this.#initialized = configLoaded;
         }
     }
 
