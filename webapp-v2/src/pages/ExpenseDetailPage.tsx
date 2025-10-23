@@ -1,6 +1,5 @@
 import { CommentsSection } from '@/components/comments';
-import { Avatar, Button, Card, LoadingSpinner, Tooltip } from '@/components/ui';
-import { Stack } from '@/components/ui';
+import { Avatar, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
@@ -210,7 +209,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                             <h1 className='text-xl font-bold text-gray-900 dark:text-white'>
                                 {truncateDescription(expense.value.description)}
                                 {t('pages.expenseDetailPage.titleSeparator')}
-                                {formatCurrency(expense.value.amount, expense.value.currency)}
+                                <CurrencyAmount amount={expense.value.amount} currency={expense.value.currency} />
                             </h1>
                             <div className='w-16'></div> {/* Spacer for centered title */}
                         </div>
@@ -243,7 +242,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                 {/* Top Section - Amount & Description */}
                                 <div className='text-center pb-4 border-b border-gray-200 dark:border-gray-700'>
                                     <h2 className='text-3xl font-bold text-gray-900 dark:text-white' data-testid='expense-amount'>
-                                        {formatCurrency(expense.value.amount, expense.value.currency)}
+                                        <CurrencyAmount amount={expense.value.amount} currency={expense.value.currency} />
                                     </h2>
                                     <p className='text-lg text-gray-600 dark:text-gray-400 mt-2'>{expense.value.description}</p>
                                 </div>

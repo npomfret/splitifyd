@@ -11,7 +11,7 @@ import type { GroupMember, SettlementWithMembers } from '@splitifyd/shared';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Avatar } from '../ui/Avatar';
-import { ConfirmDialog, LoadingSpinner, Tooltip } from '../ui';
+import { ConfirmDialog, CurrencyAmount, LoadingSpinner, Tooltip } from '../ui';
 
 interface SettlementHistoryProps {
     groupId: string;
@@ -213,7 +213,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                                         />
                                     </div>
                                     <div class='row-start-1 col-start-2 flex items-center gap-2 min-w-0'>
-                                        <span class='text-sm font-semibold truncate' style={{ color: isDeleted ? '' : themeColor }}>
+                                        <span class='text-sm font-semibold text-gray-900 truncate'>
                                             {renderMemberName(settlement.payer)}
                                         </span>
                                     </div>
@@ -228,9 +228,9 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                                     </div>
                                     <div class='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
                                         <div class='flex items-center gap-2'>
-                                            <span class={`text-lg font-bold tabular-nums ${isDeleted ? 'text-gray-500' : isCurrentUserPayee ? 'text-green-600' : ''}`} data-financial-amount='settlement'>
+                                            <span class={`text-base font-bold tabular-nums ${isDeleted ? 'text-gray-500' : isCurrentUserPayee ? 'text-green-600' : 'text-gray-900'}`} data-financial-amount='settlement'>
                                                 {isCurrentUserPayee && '+'}
-                                                {formatCurrency(settlement.amount, settlement.currency)}
+                                                <CurrencyAmount amount={settlement.amount} currency={settlement.currency} displayOptions={{ includeCurrencyCode: false }} />
                                             </span>
                                             <span class='text-xs text-gray-600'>{formatDate(settlement.date)}</span>
                                         </div>

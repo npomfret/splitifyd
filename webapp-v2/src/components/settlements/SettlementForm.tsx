@@ -333,6 +333,21 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
     if (!isOpen) return null;
 
+    const shouldShowSummary = payerId && payeeId && currency && !isZeroAmount(amount, currency);
+    const summaryTemplate = shouldShowSummary
+        ? t('settlementForm.paymentSummary', {
+            payer: getMemberName(payerId),
+            payee: getMemberName(payeeId),
+            amount: '__AMOUNT__',
+        })
+        : null;
+    const hasAmountPlaceholder = summaryTemplate?.includes('__AMOUNT__') ?? false;
+    const summaryParts = hasAmountPlaceholder && summaryTemplate
+        ? summaryTemplate.split('__AMOUNT__')
+        : [summaryTemplate ?? '', ''];
+    const summaryPrefix = summaryParts[0] ?? '';
+    const summarySuffix = summaryParts[1] ?? '';
+
     // Computed property for form validity
     const isFormValid = (() => {
         if (!payerId || !payeeId || payerId === payeeId || !currency) {

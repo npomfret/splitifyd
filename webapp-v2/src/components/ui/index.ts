@@ -4,6 +4,7 @@ export { Button } from './Button';
 export { Card } from './Card';
 export { CategorySuggestionInput } from './CategorySuggestionInput';
 export { ConfirmDialog } from './ConfirmDialog';
+export { CurrencyAmount } from './CurrencyAmount';
 export { CurrencyAmountInput } from './CurrencyAmountInput';
 export { ErrorState } from './ErrorState';
 export { Form } from './Form';

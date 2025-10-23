@@ -1,12 +1,10 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
-import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { formatDistanceToNow, formatExpenseDateTime } from '@/utils/dateUtils.ts';
 import { ExpenseDTO, GroupMember } from '@splitifyd/shared';
 import { DELETED_AT_FIELD } from '@splitifyd/shared';
-import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Tooltip } from '../ui';
+import { Avatar, CurrencyAmount, Tooltip } from '../ui';
 
 interface ExpenseItemProps {
     expense: ExpenseDTO;
@@ -30,9 +28,6 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
     const paidByTheme = paidByUser?.themeColor || themeStore.getThemeForUser(expense.paidBy);
     const isDark = themeStore.isDarkMode;
     const themeColor = paidByTheme ? (isDark ? paidByTheme.dark : paidByTheme.light) : '#6B7280';
-
-    // Memoize the formatted currency to avoid recalculation on every render
-    const formattedAmount = useMemo(() => formatCurrency(expense.amount, expense.currency), [expense.amount, expense.currency]);
 
     const handleCopyClick = (e: Event) => {
         e.stopPropagation(); // Prevent expense detail navigation
@@ -83,7 +78,9 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
                 <div className='text-right ml-4 flex items-start gap-2'>
                     <div>
-                        <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`}>{formattedAmount}</p>
+                        <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`}>
+                            <CurrencyAmount amount={expense.amount} currency={expense.currency} />
+                        </p>
                         <p className='text-xs text-gray-500'>{expense.category}</p>
                     </div>
 

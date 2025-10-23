@@ -1,8 +1,8 @@
-import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { amountToSmallestUnit, ExpenseDTO, GroupMember } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
+import { CurrencyAmount } from '../ui/CurrencyAmount';
 import { Avatar } from '../ui/Avatar';
 import { Stack } from '../ui/Stack';
 
@@ -101,7 +101,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                         data-financial-amount='split'
                                         data-testid='split-amount'
                                     >
-                                        {formatCurrency(split.amount, expense.currency)}
+                                        <CurrencyAmount amount={split.amount} currency={expense.currency} />
                                     </p>
                                     <p className='text-xs text-gray-500 dark:text-gray-400'>{percentage.toFixed(1)}%</p>
                                 </div>

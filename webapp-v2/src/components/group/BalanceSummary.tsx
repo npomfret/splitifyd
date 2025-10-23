@@ -1,9 +1,8 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { themeStore } from '@/app/stores/theme-store';
-import { SidebarCard, Tooltip } from '@/components/ui';
+import { CurrencyAmount, SidebarCard, Tooltip } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
-import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { useComputed, useSignal } from '@preact/signals';
 import type { SimplifiedDebt } from '@splitifyd/shared';
@@ -146,9 +145,13 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                     <div className='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
                                         <div className='flex items-center gap-1 flex-1'>
                                             <span className='text-xs text-gray-500'>owes</span>
-                                            <span className='text-base font-bold tabular-nums text-gray-900' data-financial-amount='debt'>
-                                                {formatCurrency(debt.amount, debt.currency)}
-                                            </span>
+                                            <CurrencyAmount
+                                                amount={debt.amount}
+                                                currency={debt.currency}
+                                                className='text-base font-bold tabular-nums text-gray-900'
+                                                displayOptions={{ includeCurrencyCode: false }}
+                                                data-financial-amount='debt'
+                                            />
                                             <span className='text-xs text-gray-500'>to</span>
                                         </div>
                                         {/* Settlement button - only show if current user owes this debt and onSettleUp is provided */}

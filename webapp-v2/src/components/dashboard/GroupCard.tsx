@@ -1,7 +1,7 @@
-import { formatCurrency } from '@/utils/currency';
-import { absAmount, amountToSmallestUnit, GroupDTO } from '@splitifyd/shared';
+import { absAmount, amountToSmallestUnit, GroupDTO, type Amount } from '@splitifyd/shared';
+import type { JSX } from 'preact';
 import { useTranslation } from 'react-i18next';
-import { Card, Tooltip } from '../ui';
+import { Card, CurrencyAmount, Tooltip } from '../ui';
 
 interface GroupCardProps {
     group: GroupDTO;
@@ -13,10 +13,33 @@ interface GroupCardProps {
 export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardProps) {
     const { t } = useTranslation();
 
+    const renderBalanceMessage = (translationKey: 'youAreOwed' | 'youOwe', amount: Amount, currency: string): JSX.Element => {
+        const template = t(`dashboard.groupCard.${translationKey}`, { amount: '__AMOUNT__' });
+
+        if (!template.includes('__AMOUNT__')) {
+            return (
+                <>
+                    {template}
+                    <CurrencyAmount amount={amount} currency={currency} className='font-semibold ml-1' />
+                </>
+            );
+        }
+
+        const [prefix = '', suffix = ''] = template.split('__AMOUNT__');
+
+        return (
+            <>
+                {prefix}
+                <CurrencyAmount amount={amount} currency={currency} className='font-semibold' />
+                {suffix}
+            </>
+        );
+    };
+
     const calculateBalanceDisplay = () => {
         const settled = [{
             key: 'settled',
-            text: t('groupCard.settledUp'),
+            content: t('groupCard.settledUp'),
             color: 'text-blue-400',
             bgColor: 'bg-blue-50',
         }];
@@ -46,14 +69,14 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
 
         const positiveDisplays = positives.map(({ balance }) => ({
             key: `owed-${balance.currency}`,
-            text: t('dashboard.groupCard.youAreOwed', { amount: formatCurrency(balance.netBalance, balance.currency) }),
+            content: renderBalanceMessage('youAreOwed', balance.netBalance, balance.currency),
             color: 'text-green-600',
             bgColor: 'bg-green-50',
         }));
 
         const negativeDisplays = negatives.map(({ balance }) => ({
             key: `owe-${balance.currency}`,
-            text: t('dashboard.groupCard.youOwe', { amount: formatCurrency(absAmount(balance.netBalance, balance.currency), balance.currency) }),
+            content: renderBalanceMessage('youOwe', absAmount(balance.netBalance, balance.currency), balance.currency),
             color: 'text-red-600',
             bgColor: 'bg-red-50',
         }));
@@ -114,7 +137,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
                                 class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${display.bgColor} ${display.color}`}
                                 data-financial-amount='balance'
                             >
-                                {display.text}
+                                {display.content}
                             </div>
                         ))}
                     </div>

@@ -1,10 +1,9 @@
 import { CurrencyService } from '@/app/services/currencyService.ts';
-import { formatCurrency } from '@/utils/currency';
 import { getLastNight, getThisMorning, getToday, getYesterday } from '@/utils/dateUtils.ts';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import { Amount, ExpenseCategory } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, CategorySuggestionInput, CurrencyAmountInput, TimeInput, Tooltip } from '../ui';
+import { Button, Card, CategorySuggestionInput, CurrencyAmount, CurrencyAmountInput, TimeInput, Tooltip } from '../ui';
 import { Stack } from '../ui/Stack';
 
 interface ExpenseBasicFieldsProps {
@@ -94,7 +93,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                                             onClick={() => updateField('amount', amt)}
                                             className='px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors'
                                         >
-                                            {formatCurrency(amt, currency)}
+                                            <CurrencyAmount amount={amt} currency={currency} />
                                         </button>
                                     ))}
                                 </div>

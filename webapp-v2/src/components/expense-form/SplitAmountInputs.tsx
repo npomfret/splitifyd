@@ -1,8 +1,8 @@
-import { formatCurrency, getCurrency } from '@/utils/currency';
+import { getCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { Amount, amountToSmallestUnit, smallestUnitToAmountString, ZERO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
-import { Avatar } from '../ui';
+import { Avatar, CurrencyAmount } from '../ui';
 
 interface Member {
     uid: string;
@@ -100,10 +100,15 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                             }`}
                             data-financial-amount='split-total'
                         >
-                            {formatCurrency(
-                                smallestUnitToAmountString(splits.reduce((sum, s) => sum + amountToSmallestUnit(s.amount, currency), 0), currency),
-                                currency,
-                            )} / {formatCurrency(amount, currency)}
+                            <CurrencyAmount
+                                amount={smallestUnitToAmountString(
+                                    splits.reduce((sum, s) => sum + amountToSmallestUnit(s.amount, currency), 0),
+                                    currency,
+                                )}
+                                currency={currency}
+                            />{' '}
+                            /{' '}
+                            <CurrencyAmount amount={amount} currency={currency} />
                         </span>
                     </div>
                 </div>
@@ -145,7 +150,9 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                     autoComplete='off'
                                 />
                                 <span className='text-gray-500'>{t('expenseComponents.splitAmountInputs.percentSign')}</span>
-                                <span className='text-xs text-gray-500 w-16 text-right'>{formatCurrency(split?.amount ?? ZERO, currency)}</span>
+                                <span className='text-xs text-gray-500 w-16 text-right'>
+                                    <CurrencyAmount amount={split?.amount ?? ZERO} currency={currency} />
+                                </span>
                             </div>
                         </div>
                     );
@@ -182,7 +189,9 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                     <Avatar displayName={memberName} userId={split.uid} size='sm' />
                                     <span className='text-sm text-gray-600 dark:text-gray-400'>{memberName}</span>
                                 </div>
-                                <span className='text-sm font-medium text-gray-900 dark:text-white'>{formatCurrency(split.amount, currency)}</span>
+                                <span className='text-sm font-medium text-gray-900 dark:text-white'>
+                                    <CurrencyAmount amount={split.amount} currency={currency} />
+                                </span>
                             </div>
                         );
                     })}
