@@ -173,7 +173,7 @@ const GroupMemberDTOSchema = z.object({
     // Group membership metadata (required for permissions)
     memberRole: z.enum(['admin', 'member', 'viewer']),
     memberStatus: z.enum(['active', 'pending']),
-    joinedAt: z.string().datetime(),
+    joinedAt: z.union([z.string().datetime(), z.literal('')]), // Allow empty string for departed members
     invitedBy: z.string().optional(),
 
     // Group-specific display name (required)
@@ -416,6 +416,7 @@ export const responseSchemas = {
     'GET /groups': ListGroupsResponseSchema,
     'POST /groups': GroupSchema,
     '/groups/:id': GroupSchema,
+    'PUT /groups/:id': MessageResponseSchema,
     '/groups/:id/members': GroupMembersResponseSchema,
     '/groups/:id/full-details': GroupFullDetailsSchema,
     '/expenses': ExpenseDataSchema,
