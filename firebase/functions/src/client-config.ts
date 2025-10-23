@@ -1,5 +1,4 @@
 import { AppConfiguration, EnvironmentConfig, FirebaseConfig } from '@splitifyd/shared';
-import { loadFirebaseConfig } from '@splitifyd/test-support';
 import { z } from 'zod';
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';

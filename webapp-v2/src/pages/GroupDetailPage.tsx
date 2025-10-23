@@ -9,7 +9,7 @@ import { useComputed, useSignal } from '@preact/signals';
 import type { SettlementWithMembers } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { BanknotesIcon, ChatBubbleLeftIcon, ScaleIcon } from '@heroicons/react/24/outline';
+import { BanknotesIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { useGroupModals } from '../app/hooks/useGroupModals';
 import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';

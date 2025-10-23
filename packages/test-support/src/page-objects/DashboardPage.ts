@@ -7,7 +7,7 @@ import { GroupDetailPage } from './GroupDetailPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
 import { HeaderPage } from './HeaderPage';
 import { JoinGroupPage } from './JoinGroupPage';
-import { CreateGroupFormDataBuilder } from '../builders/CreateGroupFormDataBuilder';
+import { CreateGroupFormDataBuilder } from '../builders';
 import { generateShortId, randomString } from '../test-helpers';
 import { translationEn } from '../translations/translation-en';
 

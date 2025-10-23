@@ -1,5 +1,4 @@
 import { ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
-import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 

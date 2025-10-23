@@ -1,7 +1,7 @@
 import type { Auth } from 'firebase-admin/auth';
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
 
-import { FirebaseAuthService } from '../../../services/auth/FirebaseAuthService';
+import { FirebaseAuthService } from '../../../services/auth';
 import { AuthErrorCode } from '../../../services/auth/auth-types';
 import { ApiError } from '../../../utils/errors';
 
