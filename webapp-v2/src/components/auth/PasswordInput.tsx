@@ -131,14 +131,14 @@ export function PasswordInput({
             ${hasError ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}
           `}
                 />
-                <Tooltip content={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}>
-                    <button
-                        type='button'
-                        onClick={togglePasswordVisibility}
-                        disabled={disabled}
-                        aria-label={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}
-                        class='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 disabled:opacity-50'
-                    >
+                <button
+                    type='button'
+                    onClick={togglePasswordVisibility}
+                    disabled={disabled}
+                    aria-label={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}
+                    class='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 disabled:opacity-50'
+                >
+                    <Tooltip content={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}>
                         {showPassword
                             ? (
                                 <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
@@ -161,8 +161,8 @@ export function PasswordInput({
                                     />
                                 </svg>
                             )}
-                    </button>
-                </Tooltip>
+                    </Tooltip>
+                </button>
             </div>
 
             {showStrength && value && strength && (
