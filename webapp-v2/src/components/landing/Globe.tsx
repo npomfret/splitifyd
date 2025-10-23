@@ -28,6 +28,7 @@ export function Globe() {
         }
 
         let mounted = true;
+        let cleanupFn: (() => void) | undefined;
 
         // Dynamically import Three.js for code splitting
         const initGlobe = async () => {
@@ -197,10 +198,23 @@ export function Globe() {
         };
 
         // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
-        initGlobe();
+        initGlobe().then((dispose) => {
+            if (typeof dispose === 'function') {
+                if (mounted) {
+                    cleanupFn = dispose;
+                } else {
+                    // Component already unmounted; run cleanup immediately.
+                    dispose();
+                }
+            }
+        });
 
         return () => {
             mounted = false;
+            if (cleanupFn) {
+                cleanupFn();
+                cleanupFn = undefined;
+            }
         };
     }, [isPlaywrightTest]);
 
