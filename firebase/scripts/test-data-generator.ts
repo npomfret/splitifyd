@@ -8,7 +8,6 @@ import {
     normalizeAmount,
     PermissionLevels,
     PREDEFINED_EXPENSE_CATEGORIES,
-    SecurityPresets,
     subtractAmounts,
     UserRegistration,
     zeroAmount,
@@ -626,8 +625,6 @@ async function configureLargeGroupAdvancedScenarios(
             description: 'Large scale group used to exercise permissions, approval queues, member role changes, and other edge cases.',
         }, adminUser.token)
     );
-
-    await runQueued(() => driver.applySecurityPreset(largeGroup.id, SecurityPresets.MANAGED, adminUser.token));
 
     const customPermissions: Partial<GroupPermissions> = {
         expenseEditing: PermissionLevels.OWNER_AND_ADMIN,

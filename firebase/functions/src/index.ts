@@ -12,7 +12,7 @@ import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } fr
 import { getAuth } from './firebase';
 import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
-import { applySecurityPreset, approveMember, getPendingMembers, rejectMember, updateGroupPermissions, updateMemberRole } from './groups/security';
+import { approveMember, getPendingMembers, rejectMember, updateGroupPermissions, updateMemberRole } from './groups/security';
 import { generateShareableLink, joinGroupByLink, previewGroupByLink } from './groups/shareHandlers';
 import { logger } from './logger';
 import { disableETags } from './middleware/cache-control';
@@ -349,7 +349,6 @@ function setupRoutes(app: express.Application): void {
     app.get(`/${FirestoreCollections.GROUPS}/:id/full-details`, authenticate, asyncHandler(getGroupFullDetails));
     app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
     app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
-    app.post(`/${FirestoreCollections.GROUPS}/:id/security/apply-preset`, authenticate, asyncHandler(applySecurityPreset));
     app.patch(`/${FirestoreCollections.GROUPS}/:id/security/permissions`, authenticate, asyncHandler(updateGroupPermissions));
     app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
     app.put(`/${FirestoreCollections.GROUPS}/:id/members/display-name`, authenticate, asyncHandler(updateGroupMemberDisplayName));

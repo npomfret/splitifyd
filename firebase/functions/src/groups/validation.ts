@@ -93,10 +93,6 @@ export const sanitizeGroupData = <T extends CreateGroupRequest | UpdateGroupRequ
     return sanitized as T;
 };
 
-const ApplySecurityPresetSchema = z.object({
-    preset: z.nativeEnum(SecurityPresets),
-});
-
 const ExpensePermissionSchema = z.enum([
     PermissionLevels.ANYONE,
     PermissionLevels.OWNER_AND_ADMIN,
@@ -122,18 +118,8 @@ const UpdateMemberRoleSchema = z.object({
     role: z.nativeEnum(MemberRoles),
 });
 
-type ApplySecurityPresetRequest = z.infer<typeof ApplySecurityPresetSchema>;
 type UpdateGroupPermissionsRequest = Partial<GroupPermissions>;
 type UpdateMemberRoleRequestBody = z.infer<typeof UpdateMemberRoleSchema>;
-
-export const validateApplySecurityPreset = (body: unknown): ApplySecurityPresetRequest => {
-    return parseWithApiError(ApplySecurityPresetSchema, body, {
-        preset: {
-            code: 'INVALID_INPUT',
-            message: 'Invalid preset value',
-        },
-    });
-};
 
 export const validateUpdateGroupPermissionsRequest = (body: unknown): UpdateGroupPermissionsRequest => {
     return parseWithApiError(UpdateGroupPermissionsSchema, body, {

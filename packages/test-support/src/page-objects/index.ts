@@ -15,3 +15,4 @@ export { RemoveMemberDialogPage } from './RemoveMemberDialogPage';
 export { SettingsPage } from './SettingsPage';
 export { SettlementFormPage } from './SettlementFormPage';
 export { ShareGroupModalPage } from './ShareGroupModalPage';
+export { PolicyAcceptanceModalPage } from './PolicyAcceptanceModalPage';

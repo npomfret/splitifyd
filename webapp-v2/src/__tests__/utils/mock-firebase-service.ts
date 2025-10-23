@@ -640,20 +640,6 @@ export async function mockPendingMembersApi(
     );
 }
 
-export async function mockApplySecurityPresetApi(
-    page: Page,
-    groupId: GroupId,
-    response: any = { message: 'Preset applied' },
-    options: { delayMs?: number; } = {},
-): Promise<void> {
-    const delay = getApiDelay(options.delayMs);
-
-    await registerMswHandlers(
-        page,
-        createJsonHandler('POST', `/api/groups/${groupId}/security/apply-preset`, response, { delayMs: delay }),
-    );
-}
-
 export async function mockUpdateGroupPermissionsApi(
     page: Page,
     groupId: GroupId,

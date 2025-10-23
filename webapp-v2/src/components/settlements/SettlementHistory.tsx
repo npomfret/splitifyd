@@ -70,7 +70,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
         // Always load settlements when component mounts or parameters change
         // This ensures we have fresh data when the history modal opens
         if (groupId) {
-            enhancedGroupDetailStore.fetchSettlements(undefined, userId);
+            enhancedGroupDetailStore.fetchSettlements();
         }
     }, [groupId, userId]);
 

@@ -46,9 +46,6 @@ export const TEST_ROUTES = {
     /** Group detail page pattern (for regex matching) */
     GROUP_DETAIL_PATTERN: /\/groups\/[a-zA-Z0-9\-_]+/,
 
-    /** Group detail page builder */
-    groupDetail: (groupId: GroupId) => `/groups/${groupId}`,
-
     /** Join group page */
     joinGroup: (token: string) => `/join/${token}`,
 

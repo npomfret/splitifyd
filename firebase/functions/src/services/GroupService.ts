@@ -10,7 +10,6 @@ import {
     MemberRoles,
     MemberStatuses,
     MessageResponse,
-    SecurityPreset,
     SecurityPresets,
     smallestUnitToAmountString,
     UpdateGroupRequest,
@@ -464,50 +463,6 @@ export class GroupService {
         });
 
         return { message: 'Group updated successfully' };
-    }
-
-    async applyPermissionPreset(groupId: GroupId, userId: string, preset: SecurityPreset): Promise<MessageResponse> {
-        const presetValues = Object.values(SecurityPresets) as SecurityPreset[];
-        if (!presetValues.includes(preset)) {
-            throw Errors.INVALID_INPUT({ message: 'Invalid preset selection' });
-        }
-
-        const member = await this.firestoreReader.getGroupMember(groupId, userId);
-        if (!member || member.memberStatus !== MemberStatuses.ACTIVE || member.memberRole !== MemberRoles.ADMIN) {
-            throw Errors.FORBIDDEN();
-        }
-
-        const now = new Date().toISOString();
-        const updatedPermissions = PermissionEngine.getDefaultPermissions(preset);
-
-        await this.firestoreWriter.runTransaction(async (transaction) => {
-            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
-            if (!groupInTx) {
-                throw Errors.NOT_FOUND('Group');
-            }
-
-            const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
-
-            this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, {
-                permissions: updatedPermissions,
-                updatedAt: now,
-            });
-
-            membershipSnapshot.docs.forEach((doc) => {
-                this.firestoreWriter.updateInTransaction(transaction, doc.ref.path, {
-                    groupUpdatedAt: now,
-                    updatedAt: now,
-                });
-            });
-        });
-
-        LoggerContext.setBusinessContext({ groupId });
-        logger.info('group-permissions-preset-applied', {
-            groupId,
-            preset,
-        });
-
-        return { message: 'Permissions updated successfully' };
     }
 
     async updateGroupPermissions(groupId: GroupId, userId: string, updates: Partial<GroupPermissions>): Promise<MessageResponse> {

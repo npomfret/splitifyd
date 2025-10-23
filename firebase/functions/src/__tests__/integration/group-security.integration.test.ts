@@ -1,4 +1,4 @@
-import { GroupMembershipDTO, MemberRoles, MemberStatuses, PermissionLevels, SecurityPresets } from '@splitifyd/shared';
+import { GroupMembershipDTO, MemberRoles, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
 import { ApiDriver, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -30,10 +30,22 @@ describe('Group Security Endpoints', () => {
 
             const group = await apiDriver.createGroup(groupRequest, adminUser.token);
 
-            await apiDriver.applySecurityPreset(group.id, SecurityPresets.MANAGED, adminUser.token);
+            await apiDriver.updateGroupPermissions(
+                group.id,
+                {
+                    expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
+                    expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
+                    memberInvitation: PermissionLevels.ADMIN_ONLY,
+                    memberApproval: 'admin-required',
+                    settingsManagement: PermissionLevels.ADMIN_ONLY,
+                },
+                adminUser.token,
+            );
 
             const detailsAfterPreset = await apiDriver.getGroupFullDetails(group.id, adminUser.token);
             expect(detailsAfterPreset.group.permissions).toMatchObject({
+                expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
+                expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
                 memberInvitation: PermissionLevels.ADMIN_ONLY,
                 memberApproval: 'admin-required',
                 settingsManagement: PermissionLevels.ADMIN_ONLY,

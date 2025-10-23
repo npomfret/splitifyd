@@ -773,14 +773,6 @@ class ApiClient {
         });
     }
 
-    async applySecurityPreset(groupId: GroupId, preset: SecurityPreset): Promise<MessageResponse> {
-        return this.request({
-            endpoint: `/groups/${groupId}/security/apply-preset`,
-            method: 'POST',
-            body: { preset },
-        });
-    }
-
     async updateGroupPermissions(groupId: GroupId, permissions: Partial<GroupPermissions>): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${groupId}/security/permissions`,

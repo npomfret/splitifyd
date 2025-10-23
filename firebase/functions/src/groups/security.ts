@@ -3,7 +3,6 @@ import { GroupSecurityHandlers } from './GroupSecurityHandlers';
 
 const securityHandlers = GroupSecurityHandlers.createGroupSecurityHandlers(getAppBuilder());
 
-export const applySecurityPreset = securityHandlers.applySecurityPreset;
 export const updateGroupPermissions = securityHandlers.updateGroupPermissions;
 export const updateMemberRole = securityHandlers.updateMemberRole;
 export const approveMember = securityHandlers.approveMember;

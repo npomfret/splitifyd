@@ -43,7 +43,7 @@ interface EnhancedGroupDetailStore {
 
     loadMoreSettlements(): Promise<void>;
 
-    fetchSettlements(cursor?: string, userId?: string): Promise<void>;
+    fetchSettlements(): Promise<void>;
 
     setDeletingGroup(value: boolean): void;
 
@@ -414,7 +414,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         }
     }
 
-    async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
+    async fetchSettlements(): Promise<void> {
         if (!this.currentGroupId) return;
 
         this.#loadingSettlementsSignal.value = true;

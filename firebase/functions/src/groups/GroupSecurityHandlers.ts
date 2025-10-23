@@ -7,7 +7,7 @@ import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { GroupService } from '../services/GroupService';
 import { Errors } from '../utils/errors';
-import { validateApplySecurityPreset, validateGroupId, validateMemberId, validateUpdateGroupPermissionsRequest, validateUpdateMemberRoleRequest } from './validation';
+import { validateGroupId, validateMemberId, validateUpdateGroupPermissionsRequest, validateUpdateMemberRoleRequest } from './validation';
 
 export class GroupSecurityHandlers {
     constructor(
@@ -20,19 +20,6 @@ export class GroupSecurityHandlers {
         const groupMemberService = applicationBuilder.buildGroupMemberService();
         return new GroupSecurityHandlers(groupService, groupMemberService);
     }
-
-    applySecurityPreset = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const userId = req.user?.uid;
-        if (!userId) {
-            throw Errors.UNAUTHORIZED();
-        }
-
-        const groupId = validateGroupId(req.params.id);
-        const { preset } = validateApplySecurityPreset(req.body);
-
-        const result = await this.groupService.applyPermissionPreset(groupId, userId, preset);
-        res.status(HTTP_STATUS.OK).json(result);
-    };
 
     updateGroupPermissions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
