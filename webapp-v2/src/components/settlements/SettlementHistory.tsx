@@ -233,10 +233,9 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                                         <div class='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
                                             <div class='flex items-center gap-2'>
                                                 <span
-                                                    class={`text-base font-bold tabular-nums ${isDeleted ? 'text-gray-500' : isCurrentUserPayee ? 'text-green-600' : 'text-gray-900'}`}
+                                                    class={`text-base font-bold tabular-nums ${isDeleted ? 'text-gray-500' : 'text-gray-900'}`}
                                                     data-financial-amount='settlement'
                                                 >
-                                                    {isCurrentUserPayee && '+'}
                                                     <CurrencyAmount amount={settlement.amount} currency={settlement.currency} displayOptions={{ includeCurrencyCode: false }} />
                                                 </span>
                                                 <span class='text-xs text-gray-600'>{formatDate(settlement.date)}</span>
