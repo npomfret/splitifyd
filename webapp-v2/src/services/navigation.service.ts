@@ -60,6 +60,9 @@ class NavigationService {
                 return;
             }
 
+            const destinationUrl = new URL(fullPath, window.location.origin);
+            const expectedLocation = `${destinationUrl.pathname}${destinationUrl.search}${destinationUrl.hash}`;
+
             // Wait for the URL to actually change before resolving
             let attempts = 0;
             const maxAttempts = 50; // Prevent infinite loops
@@ -67,7 +70,9 @@ class NavigationService {
             const checkNavigation = () => {
                 attempts++;
 
-                if (window.location.pathname === path || window.location.href.split('?')[0].endsWith(path) || attempts >= maxAttempts) {
+                const currentLocation = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+                if (currentLocation === expectedLocation || attempts >= maxAttempts) {
                     resolve();
                 } else {
                     // Check again on next tick with cleanup tracking
