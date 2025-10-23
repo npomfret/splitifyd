@@ -1,6 +1,5 @@
-import type { Amount, GroupDTO, GroupId, GroupMember } from '@splitifyd/shared';
-import { AuthenticatedFirebaseUser, compareAmounts, isZeroAmount, minAmount, normalizeAmount, PREDEFINED_EXPENSE_CATEGORIES, subtractAmounts, UserRegistration, zeroAmount } from '@splitifyd/shared';
-import type { CreateSettlementRequest } from '@splitifyd/shared';
+import type { Amount, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateSettlementRequest, UpdateExpenseRequest, CreateSettlementRequest } from '@splitifyd/shared';
+import { AuthenticatedFirebaseUser, MemberRoles, PermissionLevels, SecurityPresets, compareAmounts, isZeroAmount, minAmount, normalizeAmount, PREDEFINED_EXPENSE_CATEGORIES, subtractAmounts, UserRegistration, zeroAmount } from '@splitifyd/shared';
 import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 
 // Initialize ApiDriver which handles all configuration
@@ -587,6 +586,132 @@ async function ensureBillSplitterInAllGroups(
     }
 }
 
+async function configureLargeGroupAdvancedScenarios(
+    groups: GroupWithInvite[],
+    groupMemberships: Map<string, AuthenticatedFirebaseUser[]>,
+    users: AuthenticatedFirebaseUser[],
+): Promise<void> {
+    const largeGroup = groups.find((group) => group.name === 'Large Group');
+    if (!largeGroup) {
+        console.warn('Large Group not found during advanced scenario configuration');
+        return;
+    }
+
+    const trackedMembers = groupMemberships.get(largeGroup.id) ?? [];
+    if (trackedMembers.length === 0) {
+        console.warn('Large Group has no tracked members during advanced scenario configuration');
+        return;
+    }
+
+    const adminUser = trackedMembers.find((member) => member.uid === largeGroup.createdBy) ?? trackedMembers[0];
+
+    console.log('Configuring permissions, roles, and pending membership flows for "Large Group"...');
+
+    await runQueued(() => driver.updateGroup(largeGroup.id, {
+        description: 'Large scale group used to exercise permissions, approval queues, member role changes, and other edge cases.',
+    }, adminUser.token));
+
+    await runQueued(() => driver.applySecurityPreset(largeGroup.id, SecurityPresets.MANAGED, adminUser.token));
+
+    const customPermissions: Partial<GroupPermissions> = {
+        expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
+        expenseDeletion: PermissionLevels.ADMIN_ONLY,
+        memberInvitation: PermissionLevels.ADMIN_ONLY,
+        memberApproval: 'admin-required',
+        settingsManagement: PermissionLevels.ADMIN_ONLY,
+    };
+    await runQueued(() => driver.updateGroupPermissions(largeGroup.id, customPermissions, adminUser.token));
+
+    const nonCreatorMembers = trackedMembers.filter((member) => member.uid !== adminUser.uid);
+    if (nonCreatorMembers.length > 0) {
+        const promotedAdmin = nonCreatorMembers[0];
+        await runQueued(() => driver.updateMemberRole(largeGroup.id, promotedAdmin.uid, MemberRoles.ADMIN, adminUser.token));
+        console.log(`Promoted ${promotedAdmin.displayName} to admin in "Large Group"`);
+    }
+
+    type ApplicantType = 'viewer' | 'reject' | 'pending';
+    const timestampSuffix = Date.now();
+    const applicantDefinitions: Array<{ key: ApplicantType; registration: UserRegistration; }> = [
+        {
+            key: 'viewer',
+            registration: {
+                email: `managed.viewer+${timestampSuffix}@example.com`,
+                password: 'passwordpass',
+                displayName: 'Managed Viewer',
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+            },
+        },
+        {
+            key: 'reject',
+            registration: {
+                email: `managed.reject+${timestampSuffix}@example.com`,
+                password: 'passwordpass',
+                displayName: 'Rejected Applicant',
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+            },
+        },
+        {
+            key: 'pending',
+            registration: {
+                email: `managed.pending+${timestampSuffix}@example.com`,
+                password: 'passwordpass',
+                displayName: 'Pending Applicant',
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+            },
+        },
+    ];
+
+    const applicantUsers: Partial<Record<ApplicantType, AuthenticatedFirebaseUser>> = {};
+
+    for (const applicant of applicantDefinitions) {
+        const user = await runQueued(() => driver.createUser(applicant.registration));
+        users.push(user);
+        applicantUsers[applicant.key] = user;
+        await runQueued(() => driver.joinGroupViaShareLink(largeGroup.inviteLink, user.token));
+        console.log(`Received join request from ${user.displayName}; awaiting approval in "Large Group"`);
+    }
+
+    const pendingBefore = await runQueued(() => driver.getPendingMembers(largeGroup.id, adminUser.token));
+    const pendingByUid = new Map(pendingBefore.map((member) => [member.uid, member]));
+
+    const viewerApplicant = applicantUsers.viewer;
+    if (viewerApplicant && pendingByUid.has(viewerApplicant.uid)) {
+        await runQueued(() => driver.approveMember(largeGroup.id, viewerApplicant.uid, adminUser.token));
+        const updatedMembers = groupMemberships.get(largeGroup.id) ?? [];
+        updatedMembers.push(viewerApplicant);
+        groupMemberships.set(largeGroup.id, updatedMembers);
+        console.log(`Approved ${viewerApplicant.displayName} into "Large Group"`);
+
+        await runQueued(() => driver.updateMemberRole(largeGroup.id, viewerApplicant.uid, MemberRoles.VIEWER, adminUser.token));
+        await runQueued(() => driver.updateGroupMemberDisplayName(largeGroup.id, `Viewer ${viewerApplicant.displayName}`, viewerApplicant.token));
+        console.log(`Set ${viewerApplicant.displayName} to viewer role with custom group display name`);
+    }
+
+    const rejectedApplicant = applicantUsers.reject;
+    if (rejectedApplicant && pendingByUid.has(rejectedApplicant.uid)) {
+        await runQueued(() => driver.rejectMember(largeGroup.id, rejectedApplicant.uid, adminUser.token));
+        console.log(`Rejected ${rejectedApplicant.displayName} from "Large Group"`);
+    }
+
+    const pendingApplicant = applicantUsers.pending;
+    if (pendingApplicant) {
+        const stillPendingMembers = await runQueued(() => driver.getPendingMembers(largeGroup.id, adminUser.token));
+        if (stillPendingMembers.some((member) => member.uid === pendingApplicant.uid)) {
+            console.log(`Left ${pendingApplicant.displayName} pending in "Large Group" to test approval queues`);
+        }
+    }
+
+    const { group: updatedGroup, members } = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, adminUser.token));
+    largeGroup.description = updatedGroup.description;
+    largeGroup.memberDetails = members.members;
+
+    const pendingAfter = await runQueued(() => driver.getPendingMembers(largeGroup.id, adminUser.token));
+    console.log(`Large Group advanced configuration complete: ${members.members.length} active members, ${pendingAfter.length} pending members awaiting action`);
+}
+
 async function createTestExpenseTemplate(groupId: GroupId, expense: TestExpenseTemplate, participants: AuthenticatedFirebaseUser[], createdBy: AuthenticatedFirebaseUser): Promise<any> {
     const participantIds = participants.map((p) => p.uid);
 
@@ -856,6 +981,10 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], groupM
 
     // Get actual members of this group from tracked memberships
     const groupMembers = groupMemberships.get(largeGroup.id) || [];
+    const memberDetails = largeGroup.memberDetails ?? [];
+    const roleByUid = new Map(memberDetails.map((member) => [member.uid, member.memberRole]));
+    const eligiblePayers = groupMembers.filter((member) => roleByUid.get(member.uid) !== MemberRoles.VIEWER);
+    const payerPool = eligiblePayers.length > 0 ? eligiblePayers : groupMembers;
 
     if (groupMembers.length === 0) return;
 
@@ -864,7 +993,7 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], groupM
 
     for (let i = 0; i < totalExpenses; i++) {
         const expense = generateRandomExpense();
-        const payer = groupMembers[Math.floor(Math.random() * groupMembers.length)];
+        const payer = payerPool[Math.floor(Math.random() * payerPool.length)];
 
         // Random participants (2-5 people)
         const participantCount = Math.floor(Math.random() * 4) + 2;
@@ -894,6 +1023,10 @@ async function createManySettlementsForLargeGroup(groups: GroupWithInvite[], gro
 
     // Get actual members of this group from tracked memberships
     const groupMembers = groupMemberships.get(largeGroup.id) || [];
+    const memberDetails = largeGroup.memberDetails ?? [];
+    const roleByUid = new Map(memberDetails.map((member) => [member.uid, member.memberRole]));
+    const eligiblePayers = groupMembers.filter((member) => roleByUid.get(member.uid) !== MemberRoles.VIEWER);
+    const payerPool = eligiblePayers.length > 0 ? eligiblePayers : groupMembers;
 
     if (groupMembers.length < 2) return;
 
@@ -915,7 +1048,7 @@ async function createManySettlementsForLargeGroup(groups: GroupWithInvite[], gro
 
     for (let i = 0; i < totalSettlements; i++) {
         // Pick random payer and payee
-        const payer = groupMembers[Math.floor(Math.random() * groupMembers.length)];
+        const payer = payerPool[Math.floor(Math.random() * payerPool.length)];
         const availablePayees = groupMembers.filter((m) => m.uid !== payer.uid);
 
         if (availablePayees.length === 0) continue;
@@ -945,6 +1078,127 @@ async function createManySettlementsForLargeGroup(groups: GroupWithInvite[], gro
     }
 
     console.log(`Created ${totalSettlements} settlements for "Large Group"`);
+}
+
+async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>): Promise<void> {
+    const largeGroup = groups.find((group) => group.name === 'Large Group');
+    if (!largeGroup) {
+        console.warn('Large Group not found when finalizing advanced scenarios');
+        return;
+    }
+
+    const trackedMembers = groupMemberships.get(largeGroup.id) ?? [];
+    if (trackedMembers.length === 0) {
+        console.warn('Large Group has no tracked members to finalize advanced scenarios');
+        return;
+    }
+
+    const adminUser = trackedMembers.find((member) => member.uid === largeGroup.createdBy) ?? trackedMembers[0];
+
+    console.log('Applying updates, deletions, and membership departures for "Large Group"...');
+
+    const fullDetails = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, adminUser.token));
+    largeGroup.memberDetails = fullDetails.members.members;
+
+    const expensesList = fullDetails.expenses.expenses;
+    if (expensesList.length > 0) {
+        const expenseToUpdate = expensesList.find((expense) => !expense.isLocked) ?? expensesList[0];
+        const expenseUpdate: UpdateExpenseRequest = {
+            description: `${expenseToUpdate.description} (updated)`,
+            category: 'shopping',
+        };
+        await runQueued(() => driver.updateExpense(expenseToUpdate.id, expenseUpdate, adminUser.token));
+        const updatedExpenseDetails = await runQueued(() => driver.getExpenseFullDetails(expenseToUpdate.id, adminUser.token));
+        console.log(`Updated expense ${expenseToUpdate.id} in "Large Group": "${updatedExpenseDetails.expense.description}"`);
+    }
+
+    let currentMembers = groupMemberships.get(largeGroup.id) ?? [];
+
+    const settlementsList = fullDetails.settlements.settlements;
+    if (settlementsList.length > 0) {
+        const settlementToUpdate = settlementsList[0];
+        const settlementCreator = currentMembers.find((user) => user.uid === settlementToUpdate.payer.uid)
+            ?? currentMembers.find((user) => user.uid === settlementToUpdate.payee.uid);
+
+        if (settlementCreator) {
+            const settlementUpdate: UpdateSettlementRequest = {
+                note: 'Updated after review',
+                date: new Date().toISOString(),
+            };
+            await runQueued(() => driver.updateSettlement(settlementToUpdate.id, settlementUpdate, settlementCreator.token));
+            console.log(`Updated settlement ${settlementToUpdate.id} in "Large Group"`);
+        } else {
+            console.log(`Skipped updating settlement ${settlementToUpdate.id} because creator token was unavailable`);
+        }
+    }
+
+    if (settlementsList.length > 1) {
+        const settlementToDelete = settlementsList[settlementsList.length - 1];
+        const settlementCreator = currentMembers.find((user) => user.uid === settlementToDelete.payer.uid)
+            ?? currentMembers.find((user) => user.uid === settlementToDelete.payee.uid)
+            ?? adminUser;
+
+        await runQueued(() => driver.deleteSettlement(settlementToDelete.id, settlementCreator.token));
+        console.log(`Deleted settlement ${settlementToDelete.id} from "Large Group"`);
+    }
+
+    const memberDetails = largeGroup.memberDetails ?? [];
+    const viewerMember = memberDetails.find((member) => member.memberRole === MemberRoles.VIEWER);
+
+    const balancesByCurrency = fullDetails.balances.balancesByCurrency ?? {};
+    const balanceCurrencies = Object.keys(balancesByCurrency);
+    const membersWithZeroBalance = new Set<string>(
+        memberDetails
+            .filter((member) =>
+                balanceCurrencies.every((currency) => {
+                    const currencyBalances = balancesByCurrency[currency];
+                    if (!currencyBalances) return true;
+                    const userBalance = currencyBalances[member.uid];
+                    if (!userBalance || userBalance.netBalance === undefined) return true;
+                    return isZeroAmount(userBalance.netBalance, currency);
+                }),
+            )
+            .map((member) => member.uid),
+    );
+
+    const memberToLeave = memberDetails.find(
+        (member) =>
+            member.memberRole === MemberRoles.MEMBER &&
+            member.uid !== viewerMember?.uid &&
+            membersWithZeroBalance.has(member.uid),
+    );
+    if (memberToLeave) {
+        const leavingUser = currentMembers.find((user) => user.uid === memberToLeave.uid);
+        if (leavingUser) {
+            await runQueued(() => driver.leaveGroup(largeGroup.id, leavingUser.token));
+            currentMembers = currentMembers.filter((user) => user.uid !== leavingUser.uid);
+            groupMemberships.set(largeGroup.id, currentMembers);
+            console.log(`${leavingUser.displayName} left "Large Group" after updates`);
+        }
+    } else {
+        console.log('Skipped member leave action because no zero-balance member was available');
+    }
+
+    const memberToRemove = memberDetails.find((member) =>
+        member.memberRole === MemberRoles.MEMBER &&
+        member.uid !== viewerMember?.uid &&
+        member.uid !== memberToLeave?.uid &&
+        membersWithZeroBalance.has(member.uid),
+    );
+    if (memberToRemove) {
+        const removerToken = [adminUser, ...currentMembers].find((user) => user.uid === memberToRemove.invitedBy)?.token ?? adminUser.token;
+        await runQueued(() => driver.removeGroupMember(largeGroup.id, memberToRemove.uid, removerToken));
+        currentMembers = currentMembers.filter((user) => user.uid !== memberToRemove.uid);
+        groupMemberships.set(largeGroup.id, currentMembers);
+        console.log(`Removed ${memberToRemove.groupDisplayName || memberToRemove.displayName} from "Large Group"`);
+    } else {
+        console.log('Skipped member removal action because no zero-balance member was eligible');
+    }
+
+    const refreshedDetails = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, adminUser.token));
+    largeGroup.memberDetails = refreshedDetails.members.members;
+    const pendingMembers = await runQueued(() => driver.getPendingMembers(largeGroup.id, adminUser.token));
+    console.log(`"Large Group" now has ${largeGroup.memberDetails.length} active members and ${pendingMembers.length} pending members after finalize step`);
 }
 
 async function createSmallPaymentsForGroups(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>): Promise<void> {
@@ -1309,6 +1563,11 @@ export async function generateFullTestData(): Promise<void> {
     await ensureBillSplitterInAllGroups(refreshedGroups, test1User, groupMemberships);
     console.log('✓ Bill Splitter confirmed as member of all groups');
 
+    console.log('Configuring advanced scenarios for "Large Group"...');
+    const largeGroupAdvancedStart = Date.now();
+    await configureLargeGroupAdvancedScenarios(refreshedGroups, groupMemberships, users);
+    logTiming('Large group advanced configuration', largeGroupAdvancedStart);
+
     // Create random expenses for regular groups (excluding special ones)
     console.log('Creating random expenses for regular groups...');
     const regularExpensesStart = Date.now();
@@ -1336,6 +1595,11 @@ export async function generateFullTestData(): Promise<void> {
     await createManySettlementsForLargeGroup(refreshedGroups, groupMemberships, testConfig);
     console.log('✓ Created many settlements for pagination testing');
     logTiming('Large group settlements creation', largeGroupSettlementsStart);
+
+    console.log('Finalizing advanced scenarios for "Large Group"...');
+    const largeGroupFinalizeStart = Date.now();
+    await finalizeLargeGroupAdvancedData(refreshedGroups, groupMemberships);
+    logTiming('Large group finalize', largeGroupFinalizeStart);
 
     // Create small payments/settlements for groups to demonstrate payment functionality
     console.log('Creating small payments/settlements for groups...');

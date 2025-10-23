@@ -290,6 +290,10 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/role`, 'PATCH', { role }, token);
     }
 
+    async updateGroupMemberDisplayName(groupId: GroupId, newDisplayName: string, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/members/display-name`, 'PUT', { displayName: newDisplayName }, token);
+    }
+
     async approveMember(groupId: GroupId, memberId: string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/approve`, 'POST', {}, token);
     }
