@@ -143,13 +143,7 @@ export class GroupDetailPage extends BasePage {
      * Members section container - found by "Members" heading
      */
     getMembersContainer(): Locator {
-        return this
-            .page
-            .locator('div')
-            .filter({
-                has: this.page.getByRole('heading').filter({ hasText: /^members$/i }),
-            })
-            .first();
+        return this.page.locator('[data-testid="members-container"]:visible').first();
     }
 
     /**
@@ -209,6 +203,10 @@ export class GroupDetailPage extends BasePage {
         return this.getSettlementContainer().getByTestId('toggle-settlements-section');
     }
 
+    private getMembersToggle(): Locator {
+        return this.page.locator('[data-testid="toggle-members-section"]:visible').first();
+    }
+
     private getShowAllSettlementsCheckbox(): Locator {
         return this.getSettlementContainer().getByTestId('show-all-settlements-checkbox');
     }
@@ -256,6 +254,16 @@ export class GroupDetailPage extends BasePage {
 
     async expectSettlementsCollapsed(): Promise<void> {
         const toggle = this.getSettlementsToggle();
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    }
+
+    async ensureMembersSectionExpanded(): Promise<void> {
+        await this.ensureToggleExpanded(this.getMembersToggle());
+        await expect(this.getMembersContainer()).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+    }
+
+    async expectMembersCollapsed(): Promise<void> {
+        const toggle = this.getMembersToggle();
         await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     }
 
@@ -497,6 +505,7 @@ export class GroupDetailPage extends BasePage {
      */
     async waitForMemberCount(expectedCount: number, timeout: number = 5000): Promise<void> {
         await expect(async () => {
+            await this.ensureMembersSectionExpanded();
             const textCount = await this.getCurrentMemberCount().catch(() => -1);
             const actualItems = await this.getMemberCards().count();
 
@@ -841,6 +850,7 @@ export class GroupDetailPage extends BasePage {
      * Verify members are displayed
      */
     async verifyMembersDisplayed(count: number): Promise<void> {
+        await this.ensureMembersSectionExpanded();
         await expect(this.getMemberCards()).toHaveCount(count);
     }
 
@@ -848,6 +858,7 @@ export class GroupDetailPage extends BasePage {
      * Verify specific member is displayed
      */
     async verifyMemberDisplayed(memberName: string): Promise<void> {
+        await this.ensureMembersSectionExpanded();
         await expect(this.getMemberCard(memberName)).toBeVisible();
     }
 
@@ -855,6 +866,7 @@ export class GroupDetailPage extends BasePage {
      * Click remove member button and return the confirmation dialog page.
      */
     async clickRemoveMember(memberName: string): Promise<RemoveMemberDialogPage> {
+        await this.ensureMembersSectionExpanded();
         const memberItem = this.getMemberItem(memberName);
         try {
             await expect(memberItem).toBeVisible({ timeout: 5000 });

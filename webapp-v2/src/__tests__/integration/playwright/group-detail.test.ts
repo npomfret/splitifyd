@@ -133,6 +133,8 @@ test.describe('Group Detail - Members Display', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
+        await groupDetailPage.expectMembersCollapsed();
+
         // Verify all members are displayed
         await groupDetailPage.verifyMembersDisplayed(3);
         await groupDetailPage.verifyMemberDisplayed(testUser.displayName);

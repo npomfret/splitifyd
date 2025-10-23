@@ -1,11 +1,11 @@
 import { apiClient } from '@/app/apiClient';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
-import { Avatar, Button, Card, ConfirmDialog, LoadingSpinner, Tooltip } from '@/components/ui';
+import { Avatar, Button, Card, ConfirmDialog, LoadingSpinner, SidebarCard, Tooltip } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { UserMinusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, UserMinusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import { GroupMember } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
@@ -35,6 +35,8 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
     const balances = useComputed(() => enhancedGroupDetailStore.balances);
     const loading = useComputed(() => enhancedGroupDetailStore.loadingMembers);
     const currentUser = useComputed(() => authStore.user);
+    const memberCount = useComputed(() => members.value.length);
+    const isCollapsed = useSignal(true);
 
     const currentUserId = currentUser.value?.uid || '';
     const createdBy = group.value?.createdBy || '';
@@ -188,30 +190,76 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     );
                 })}
             </div>
-            {onInviteClick && (
-                <Button variant='secondary' size='sm' onClick={onInviteClick} className='w-full mt-2'>
-                    <>
-                        <UserPlusIcon className='h-4 w-4 mr-1.5' aria-hidden='true' />
-                        <span className='text-sm'>{t('membersList.inviteOthers')}</span>
-                    </>
-                </Button>
-            )}
         </>
     );
 
+    const toggleLabel = t('pages.groupDetailPage.toggleSection', { section: t('membersList.title') });
+    const titleContent = (
+        <span className='flex items-baseline gap-1.5'>
+            <span>{t('membersList.title')}</span>
+            <span className='text-sm font-medium text-gray-500'>({memberCount.value})</span>
+        </span>
+    );
+    const headerClasses = ['flex', 'items-center', 'justify-between', 'gap-2', !isCollapsed.value ? 'mb-4' : ''].filter(Boolean).join(' ');
+    const inviteTooltip = t('membersList.inviteOthers');
+    const inviteAriaLabel = t('groupActions.inviteOthers');
+    const inviteButton = onInviteClick
+        ? (
+            <Tooltip content={inviteTooltip}>
+                <button
+                    type='button'
+                    onClick={onInviteClick}
+                    aria-label={inviteAriaLabel}
+                    data-testid='invite-members-button'
+                    className='p-1 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200'
+                >
+                    <UserPlusIcon aria-hidden='true' className='h-5 w-5' />
+                </button>
+            </Tooltip>
+        )
+        : null;
+
     const content = variant === 'sidebar'
         ? (
-            <div className='border rounded-lg bg-white p-3'>
-                <div className='flex justify-between items-center mb-2'>
-                    <h3 className='font-semibold text-gray-900 text-sm'>{t('membersList.title')}</h3>
-                </div>
+            <SidebarCard
+                title={titleContent}
+                collapsible
+                defaultCollapsed
+                data-testid='members-container'
+                collapseToggleTestId='toggle-members-section'
+                collapseToggleLabel={toggleLabel}
+                headerActions={inviteButton}
+            >
                 {membersList}
-            </div>
+            </SidebarCard>
         )
         : (
-            <Card className='p-6'>
-                <h2 className='text-lg font-semibold mb-4'>{t('membersList.title')}</h2>
-                {membersList}
+            <Card data-testid='members-container'>
+                <div className={headerClasses}>
+                    <h2 className='text-lg font-semibold text-gray-900 flex items-baseline gap-2'>
+                        <span>{t('membersList.title')}</span>
+                        <span className='text-sm font-medium text-gray-500'>({memberCount.value})</span>
+                    </h2>
+                    <div className='flex items-center gap-1.5'>
+                        {inviteButton}
+                        <Tooltip content={toggleLabel}>
+                            <button
+                                type='button'
+                                onClick={() => (isCollapsed.value = !isCollapsed.value)}
+                                aria-label={toggleLabel}
+                                aria-expanded={!isCollapsed.value}
+                                data-testid='toggle-members-section'
+                                className='p-1 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors duration-200'
+                            >
+                                <ChevronDownIcon
+                                    aria-hidden='true'
+                                    className={`h-5 w-5 transform transition-transform duration-200 ${isCollapsed.value ? '-rotate-90' : 'rotate-0'}`}
+                                />
+                            </button>
+                        </Tooltip>
+                    </div>
+                </div>
+                {!isCollapsed.value && membersList}
             </Card>
         );
 
