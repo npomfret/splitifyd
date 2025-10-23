@@ -22,6 +22,7 @@ const BaseExpenseSchema = z
         participants: z.array(UserIdSchema).min(1, 'At least one participant required'),
         splits: z.array(FirestoreExpenseSplitSchema),
         receiptUrl: z.string().url().optional().nullable(),
+        isLocked: z.boolean().optional(), // True if any participant has left the group
     })
     .merge(AuditFieldsSchema)
     .merge(SoftDeletionFieldsSchema);

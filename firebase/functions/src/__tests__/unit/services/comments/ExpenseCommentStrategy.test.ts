@@ -13,6 +13,11 @@ describe('ExpenseCommentStrategy', () => {
     let strategy: ExpenseCommentStrategy;
     let db: StubFirestoreDatabase;
 
+    const toFirestoreExpenseDocument = (expense: ReturnType<ExpenseDTOBuilder['build']>) => {
+        const { isLocked: _ignored, ...firestoreExpense } = expense;
+        return firestoreExpense;
+    };
+
     beforeEach(() => {
         // Create stub database
         db = new StubFirestoreDatabase();
@@ -42,7 +47,7 @@ describe('ExpenseCommentStrategy', () => {
                 .build();
 
             // Seed data using StubFirestoreDatabase
-            db.seedExpense(expenseId, testExpense);
+            db.seedExpense(expenseId, toFirestoreExpenseDocument(testExpense));
             db.seedGroup(groupId, testGroup);
 
             const memberDoc = new GroupMemberDocumentBuilder()
@@ -83,7 +88,7 @@ describe('ExpenseCommentStrategy', () => {
 
             // Add deletedAt timestamp to mark as deleted
             const deletedExpenseWithTimestamp = {
-                ...deletedExpense,
+                ...toFirestoreExpenseDocument(deletedExpense),
                 deletedAt: Timestamp.now(),
             };
 
@@ -110,7 +115,7 @@ describe('ExpenseCommentStrategy', () => {
                 .build();
 
             // Seed only expense, not the group
-            db.seedExpense(expenseId, testExpense);
+            db.seedExpense(expenseId, toFirestoreExpenseDocument(testExpense));
 
             // Act
             const error = (await strategy.verifyAccess(expenseId, userId).catch((e: ApiError) => e)) as ApiError;
@@ -136,7 +141,7 @@ describe('ExpenseCommentStrategy', () => {
                 .withId(groupId)
                 .build();
 
-            db.seedExpense(expenseId, testExpense);
+            db.seedExpense(expenseId, toFirestoreExpenseDocument(testExpense));
             db.seedGroup(groupId, testGroup);
             // Don't seed group membership - user is not a member
 
