@@ -4,6 +4,7 @@
 - Found three high-severity security risks (markdown injection, password persistence, and plaintext credential logging) plus two functional correctness bugs in shared UI flows.
 - Stores and hooks show good use of signals overall, but a few effects ignore key dependencies or retention concerns.
 - Recommendations below are ordered by impact; most fixes are small, targeted changes.
+- Outstanding SSR/test compatibility gaps in logging and auth guard flows will still crash in non-browser runtimes (see Findings 9–10).
 
 ## Findings
 
@@ -62,6 +63,20 @@
 - **Impact:** Prevents login form rendering in shared test environments and blocks future SSR adoption.
 - **Status:** ✅ Resolved — initial read and write operations now wrap access in `typeof window !== 'undefined'` plus try/catch guards. The form still persists email between reloads but degrades gracefully when storage is unavailable.
 - **Recommendation:** Follow the register page pattern by isolating storage access in guarded helpers so the component remains portable.
+
+### 9. Browser Logger Crashes Without `window` (P1)
+- **Location:** `webapp-v2/src/utils/browser-logger.ts:84-110`
+- **Issue:** `getUserContext` reads `window.location.href` (and `localStorage`) without guarding against undefined globals. Any call to `logUserAction`, `logApiRequest`, `logError`, etc., in SSR or Node-based tests throws `ReferenceError: window is not defined`.
+- **Impact:** Breaks server rendering attempts and makes unit/integration tests brittle whenever components trigger logging. Also undermines future React Server Components or prerendering efforts.
+- **Status:** 🔴 Open — no guards or environment shims are present.
+- **Recommendation:** Wrap context-building in `typeof window !== 'undefined'` checks, default missing fields to `'unknown'`, and skip storage access when the DOM is unavailable. Consider splitting a no-op logger for non-browser environments to reduce coupling.
+
+### 10. ProtectedRoute Hard-Crashes During SSR (P1)
+- **Location:** `webapp-v2/src/App.tsx:45-76`
+- **Issue:** When the auth store reports “unauthenticated”, the guard immediately reads `window.location.pathname` to build a return URL. In SSR or tests without a DOM, this access happens during render and throws before the redirect logic executes.
+- **Impact:** Prevents pre-rendering the protected shell and complicates Storybook/testing setups that mount `App` with mocked auth. Any future server-side redirect handling will hit the same crash.
+- **Status:** 🔴 Open — the guard still assumes a browser environment.
+- **Recommendation:** Gate the return-URL logic with `typeof window !== 'undefined'`; fall back to a static path when the DOM is missing, or defer to the navigation service (letting it handle environment checks).
 
 ## Additional Observations (Nice-to-Have)
 - `webapp-v2/src/pages/RegisterPage.tsx:70-85` contains verbose flame-emoji `console.log` debugging that will leak return URLs and timestamps. **Status:** ✅ Resolved — logs removed; redirection now runs silently via navigation service.
