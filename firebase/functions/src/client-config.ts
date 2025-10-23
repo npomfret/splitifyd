@@ -99,7 +99,7 @@ function buildConfig(): ClientConfig {
 
         const missing = requiredVars.filter((key) => !env[key as keyof typeof env]);
         if (missing.length > 0) {
-            throw new Error(`Missing required environment variables in production: ${missing.join(', ')}`);
+            throw new Error(`Missing environment variables in production: ${missing.join(', ')}`);
         }
     }
 
