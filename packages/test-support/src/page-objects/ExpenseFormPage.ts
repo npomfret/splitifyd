@@ -206,13 +206,6 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Get participant checkbox by display name (scoped to Split Between section)
-     */
-    private getParticipantCheckbox(displayName: string): Locator {
-        return this.getSplitBetweenSection().getByRole('checkbox', { name: new RegExp(displayName, 'i') });
-    }
-
-    /**
      * Get split type radio by visible label (scoped to How to Split section)
      */
     private getSplitTypeRadio(splitTypeLabel: string): Locator {

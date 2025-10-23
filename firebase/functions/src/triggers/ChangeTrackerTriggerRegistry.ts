@@ -19,8 +19,6 @@ type HandlerNameByTrigger = {
     trackExpenseCommentChanges: 'handleExpenseCommentChange';
 };
 
-type HandlerName = HandlerNameByTrigger[TriggerName];
-
 type TriggerParamsByName = {
     trackGroupChanges: { groupId: GroupId; };
     trackExpenseChanges: { expenseId: string; };

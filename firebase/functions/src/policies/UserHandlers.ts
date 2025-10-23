@@ -47,5 +47,3 @@ export class UserHandlers {
         res.status(HTTP_STATUS.OK).json(response);
     };
 }
-
-const userHandlers = UserHandlers.createUserHandlers(getAppBuilder());

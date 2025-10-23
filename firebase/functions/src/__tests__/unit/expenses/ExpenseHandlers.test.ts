@@ -486,7 +486,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await appDriver.joinGroupByLink(user2, linkId);
             await appDriver.joinGroupByLink(user3, linkId);
 
-            const expense1 = await appDriver.createExpense(
+            await appDriver.createExpense(
                 user1,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
@@ -496,7 +496,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
                     .build(),
             );
 
-            const expense2 = await appDriver.createExpense(
+            await appDriver.createExpense(
                 user2,
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)

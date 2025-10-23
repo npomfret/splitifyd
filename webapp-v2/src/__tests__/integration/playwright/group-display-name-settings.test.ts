@@ -121,7 +121,6 @@ test.describe('Group display name settings', () => {
 
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('identity');
         const displayNameSection = modal.getDisplayNameSection();
-        const input = modal.getDisplayNameInput();
         const saveButton = modal.getDisplayNameSaveButton();
 
         await expect(saveButton).toBeDisabled();
@@ -167,7 +166,6 @@ test.describe('Group display name settings', () => {
         await groupDetailPage.waitForGroupTitle('Display Name Test Group');
 
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('identity');
-        const input = modal.getDisplayNameInput();
         await modal.fillDisplayName('Conflicting Alias');
         await modal.saveDisplayName();
 

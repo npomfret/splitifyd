@@ -750,7 +750,7 @@ async function createTestExpenseTemplate(groupId: GroupId, expense: TestExpenseT
     return await runQueued(() => driver.createExpense(expenseData, createdBy.token));
 }
 
-async function createRandomExpensesForGroups(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>, config: TestDataConfig): Promise<void> {
+async function createRandomExpensesForGroups(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>): Promise<void> {
     // Skip the special groups - only process regular groups
     const regularGroups = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group' && g.name !== 'Large Group');
 
@@ -1587,7 +1587,7 @@ export async function generateFullTestData(): Promise<void> {
     // Create random expenses for regular groups (excluding special ones)
     console.log('Creating random expenses for regular groups...');
     const regularExpensesStart = Date.now();
-    await createRandomExpensesForGroups(refreshedGroups, groupMemberships, testConfig);
+    await createRandomExpensesForGroups(refreshedGroups, groupMemberships);
     console.log('✓ Created random expenses for regular groups');
     logTiming('Regular expenses creation', regularExpensesStart);
 

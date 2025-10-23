@@ -56,10 +56,6 @@ export class DisplayNameConflictModalPage extends BasePage {
         return this.getModalContainer().getByTestId('display-name-conflict-error');
     }
 
-    private getSavingLabel(): Locator {
-        return this.getModalContainer().getByText(translationEn.joinGroupPage.displayNameConflict.saving);
-    }
-
     // ============================================================================
     // LIFE-CYCLE HELPERS
     // ============================================================================

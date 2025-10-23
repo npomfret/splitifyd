@@ -10,7 +10,7 @@ interface PaginationProps {
     itemsLabel?: string;
 }
 
-export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevious, loading = false, itemsLabel = 'items' }: PaginationProps) {
+export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevious, loading = false }: PaginationProps) {
     const { t } = useTranslation();
 
     if (!hasMore && !hasPrevious) {
