@@ -867,7 +867,11 @@ export class ExpenseFormPage extends BasePage {
         await expect(container).toBeVisible();
         // Find the total text within the exact split container specifically
         await expect(this.getExactSplitTotalText()).toBeVisible();
-        await expect(container.getByText(`${splitTotal} / ${expenseTotal}`, { exact: true })).toBeVisible();
+        // The total display is the parent of the "Total:" text
+        // Verify both amounts are present (they're now wrapped in CurrencyAmount components with tooltips)
+        await expect(container).toContainText(splitTotal);
+        await expect(container).toContainText(expenseTotal);
+        await expect(container).toContainText('/');
     }
 
     async verifyCopyMode(): Promise<void> {

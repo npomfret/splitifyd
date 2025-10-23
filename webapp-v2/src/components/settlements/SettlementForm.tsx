@@ -9,7 +9,7 @@ import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
 import { amountToSmallestUnit, CreateSettlementRequest, getCurrencyDecimals, GroupMember, normalizeAmount, SettlementWithMembers, SimplifiedDebt, smallestUnitToAmountString, ZERO } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, CurrencyAmountInput, Form, Tooltip } from '../ui';
+import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip } from '../ui';
 
 /**
  * Get the maximum allowed amount string for a given currency
@@ -333,21 +333,6 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
     if (!isOpen) return null;
 
-    const shouldShowSummary = payerId && payeeId && currency && !isZeroAmount(amount, currency);
-    const summaryTemplate = shouldShowSummary
-        ? t('settlementForm.paymentSummary', {
-            payer: getMemberName(payerId),
-            payee: getMemberName(payeeId),
-            amount: '__AMOUNT__',
-        })
-        : null;
-    const hasAmountPlaceholder = summaryTemplate?.includes('__AMOUNT__') ?? false;
-    const summaryParts = hasAmountPlaceholder && summaryTemplate
-        ? summaryTemplate.split('__AMOUNT__')
-        : [summaryTemplate ?? '', ''];
-    const summaryPrefix = summaryParts[0] ?? '';
-    const summarySuffix = summaryParts[1] ?? '';
-
     // Computed property for form validity
     const isFormValid = (() => {
         if (!payerId || !payeeId || payerId === payeeId || !currency) {
@@ -443,9 +428,12 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                                 {getGroupDisplayName(payeeMember).charAt(0).toUpperCase()}
                                             </div>
                                             {/* Amount and Name */}
-                                            <span class='font-semibold text-gray-900 whitespace-nowrap'>
-                                                {formatCurrency(debt.amount, debt.currency)}
-                                            </span>
+                                            <CurrencyAmount
+                                                amount={debt.amount}
+                                                currency={debt.currency}
+                                                displayOptions={{ includeCurrencyCode: false }}
+                                                className='font-semibold text-gray-900 whitespace-nowrap'
+                                            />
                                             <span class='text-gray-500'>→</span>
                                             <span class='text-gray-700 truncate max-w-[120px] whitespace-nowrap'>
                                                 {getGroupDisplayName(payeeMember)}

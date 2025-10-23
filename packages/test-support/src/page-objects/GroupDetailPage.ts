@@ -890,9 +890,16 @@ export class GroupDetailPage extends BasePage {
      * Verify expense list contains description (and optional amount)
      */
     async verifyExpenseInList(description: string, amount?: string): Promise<void> {
-        await expect(this.getExpenseByDescription(description)).toBeVisible();
+        const descriptionElement = this.getExpenseByDescription(description);
+        await expect(descriptionElement).toBeVisible();
         if (amount) {
-            await expect(this.page.getByText(amount)).toBeVisible();
+            // Find the expense-item container that contains this description
+            const expenseItem = this.getExpensesContainer()
+                .locator('[data-testid="expense-item"]')
+                .filter({ hasText: description });
+            const amountElement = expenseItem.getByTestId('expense-amount');
+            await expect(amountElement).toBeVisible();
+            await expect(amountElement).toContainText(amount);
         }
     }
 
@@ -1308,7 +1315,13 @@ export class GroupDetailPage extends BasePage {
             }
 
             if (details.amount) {
-                const amountVisible = await firstItem.locator(`text=${details.amount}`).isVisible();
+                // Use getByText which is more flexible with nested elements (works with CurrencyAmount components)
+                const amountLocator = firstItem.getByText(details.amount, { exact: false });
+                const amountCount = await amountLocator.count();
+                if (amountCount === 0) {
+                    throw new Error(`Settlement amount "${details.amount}" not found yet`);
+                }
+                const amountVisible = await amountLocator.first().isVisible();
                 if (!amountVisible) {
                     throw new Error(`Settlement amount "${details.amount}" not visible yet`);
                 }

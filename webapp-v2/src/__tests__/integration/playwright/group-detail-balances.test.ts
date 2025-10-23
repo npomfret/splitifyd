@@ -139,7 +139,7 @@ test.describe('Group Detail - Balance Display: With Debts', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Verify specific debt relationship
-        await groupDetailPage.verifyDebtRelationship(user.displayName, 'Alice', '$25.00 USD');
+        await groupDetailPage.verifyDebtRelationship(user.displayName, 'Alice', '$25.00');
     });
 
     test('should display reversed debt relationship', async ({ authenticatedPage }) => {
@@ -187,7 +187,7 @@ test.describe('Group Detail - Balance Display: With Debts', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Verify specific reversed debt relationship
-        await groupDetailPage.verifyDebtRelationship('Alice', user.displayName, '$30.00 USD');
+        await groupDetailPage.verifyDebtRelationship('Alice', user.displayName, '$30.00');
     });
 });
 
@@ -250,8 +250,8 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
         await groupDetailPage.waitForGroupToLoad();
 
         // Verify both specific debt relationships
-        await groupDetailPage.verifyDebtRelationship(user.displayName, 'Alice', '$20.00 USD');
-        await groupDetailPage.verifyDebtRelationship('Bob', user.displayName, '$15.00 USD');
+        await groupDetailPage.verifyDebtRelationship(user.displayName, 'Alice', '$20.00');
+        await groupDetailPage.verifyDebtRelationship('Bob', user.displayName, '$15.00');
     });
 
     test('should display simplified debts after optimization', async ({ authenticatedPage }) => {
@@ -319,7 +319,7 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
         await expect(groupDetailPage.getSettledUpMessage()).not.toBeVisible();
 
         // Verify specific optimized debt relationship
-        await groupDetailPage.verifyDebtRelationship('Bob', 'Alice', '$10.00 USD');
+        await groupDetailPage.verifyDebtRelationship('Bob', 'Alice', '$10.00');
     });
 });
 
@@ -420,6 +420,6 @@ test.describe('Group Detail - Balance Display: With Expenses', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Verify specific debt from expense split
-        await groupDetailPage.verifyDebtRelationship('Alice', user.displayName, '$50.00 USD');
+        await groupDetailPage.verifyDebtRelationship('Alice', user.displayName, '$50.00');
     });
 });

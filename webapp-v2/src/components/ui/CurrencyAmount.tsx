@@ -11,7 +11,7 @@ interface CurrencyAmountProps extends Omit<SpanAttributes, 'children'> {
     displayOptions?: FormatOptions;
     tooltipOptions?: FormatOptions;
     tooltipPlacement?: 'top' | 'bottom';
-    as?: keyof JSX.IntrinsicElements;
+    as?: 'span' | 'div' | 'p';
 }
 
 export function CurrencyAmount({
@@ -30,15 +30,15 @@ export function CurrencyAmount({
         includeCurrencyCode: true,
     });
 
-    const content: JSX.Element = (
-        <Tag className={className} {...rest}>
+    const content = (
+        <Tag className={className} {...rest as any}>
             {formatted}
         </Tag>
     );
 
     return (
         <Tooltip content={tooltipContent} placement={tooltipPlacement}>
-            {content as JSX.Element}
+            {content}
         </Tooltip>
     );
 }

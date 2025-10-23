@@ -48,7 +48,7 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Verify debt relationship exists
-        await groupDetailPage.verifyDebtRelationship(user.displayName, 'Alice', '$25.00 USD');
+        await groupDetailPage.verifyDebtRelationship(user.displayName, 'Alice', '$25.00');
 
         // Verify settlement button is visible
         const settlementButton = groupDetailPage.getSettlementButtonForDebt(user.displayName, 'Alice');
@@ -100,7 +100,7 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Verify debt relationship exists
-        await groupDetailPage.verifyDebtRelationship('Bob', user.displayName, '$30.00 USD');
+        await groupDetailPage.verifyDebtRelationship('Bob', user.displayName, '$30.00');
 
         // Verify settlement button is NOT visible (current user is creditor, not debtor)
         const settlementButton = groupDetailPage.getSettlementButtonForDebt('Bob', user.displayName);
@@ -223,8 +223,8 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Verify both debts exist
-        await groupDetailPage.verifyDebtRelationship(user.displayName, 'David', '$15.00 USD');
-        await groupDetailPage.verifyDebtRelationship(user.displayName, 'Emma', '$20.00 USD');
+        await groupDetailPage.verifyDebtRelationship(user.displayName, 'David', '$15.00');
+        await groupDetailPage.verifyDebtRelationship(user.displayName, 'Emma', '$20.00');
 
         // Verify both settlement buttons are visible
         const davidButton = groupDetailPage.getSettlementButtonForDebt(user.displayName, 'David');

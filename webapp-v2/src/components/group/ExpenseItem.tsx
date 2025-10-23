@@ -78,7 +78,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
                 <div className='text-right ml-4 flex items-start gap-2'>
                     <div>
-                        <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`}>
+                        <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`} data-testid='expense-amount'>
                             <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                         </p>
                         <p className='text-xs text-gray-500'>{expense.category}</p>
