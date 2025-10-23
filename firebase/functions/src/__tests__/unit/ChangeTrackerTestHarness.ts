@@ -6,8 +6,6 @@ import { changeTrackerTriggerDefinitions } from '../../triggers/ChangeTrackerTri
  * Wires the ChangeTrackerHandlers into the stub database so changes propagate
  * through the same handler methods that production triggers use.
  */
-export const registerChangeTrackerTriggers = (db: StubFirestoreDatabase, handlers: ChangeTrackerHandlers,): (() => void) => {
-    return attachTriggersToStub(db, changeTrackerTriggerDefinitions, (definition) =>
-        (handlers[definition.handlerName] as FirestoreTriggerHandler).bind(handlers),
-    );
+export const registerChangeTrackerTriggers = (db: StubFirestoreDatabase, handlers: ChangeTrackerHandlers): () => void => {
+    return attachTriggersToStub(db, changeTrackerTriggerDefinitions, (definition) => (handlers[definition.handlerName] as FirestoreTriggerHandler).bind(handlers));
 };

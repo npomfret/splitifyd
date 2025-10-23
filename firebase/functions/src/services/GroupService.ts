@@ -16,6 +16,7 @@ import {
     UpdateGroupRequest,
 } from '@splitifyd/shared';
 import { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalances } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { DOCUMENT_CONFIG, FIRESTORE, FirestoreCollections } from '../constants';
 import { logger, LoggerContext } from '../logger';
@@ -34,7 +35,6 @@ import { GroupShareService } from './GroupShareService';
 import { NotificationService } from './notification-service';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
-import { GroupId } from '@splitifyd/shared';
 
 /**
  * Service for managing group operations

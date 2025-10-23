@@ -1,9 +1,9 @@
+import type { ActiveHandlerSummary, SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 import { Page, test as base } from '@playwright/test';
 import type { Request as PlaywrightRequest, Route } from '@playwright/test';
 import { ApiSerializer, ClientUser } from '@splitifyd/shared';
 import { ClientUserBuilder } from '@splitifyd/test-support';
 import * as fs from 'fs';
-import type { ActiveHandlerSummary, SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi } from './mock-firebase-service';
 import { createConsoleLogPath, createScreenshotPath, createTestDirectory, logTestArtifactPaths } from './test-utils';
 
@@ -27,7 +27,7 @@ type ConsoleLoggingFixtures = {
     msw: MswController;
 };
 
-type ActiveHandler = SerializedMswHandler & { id: string; remainingUses: number };
+type ActiveHandler = SerializedMswHandler & { id: string; remainingUses: number; };
 
 let handlerSequence = 0;
 

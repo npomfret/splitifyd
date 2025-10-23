@@ -1,5 +1,5 @@
-import { ApiDriver, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { GroupMembershipDTO, MemberRoles, MemberStatuses, PermissionLevels, SecurityPresets } from '@splitifyd/shared';
+import { ApiDriver, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const TEST_TIMEOUT_MS = 60_000;

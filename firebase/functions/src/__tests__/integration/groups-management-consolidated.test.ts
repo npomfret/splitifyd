@@ -6,10 +6,10 @@ import {
     CreateGroupRequestBuilder,
     CreateSettlementRequestBuilder,
     ExpenseUpdateBuilder,
+    getFirebaseEmulatorConfig,
     GroupUpdateBuilder,
     NotificationDriver,
     SettlementUpdateBuilder,
-    getFirebaseEmulatorConfig,
 } from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
@@ -354,7 +354,6 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
         });
     });
 
-
     describe('Group Deletion Notifications and Cleanup', () => {
         test('should delete group and prevent member access', async () => {
             // Create a group with 2 members
@@ -692,5 +691,4 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
         }, 15000); // Increased timeout for comprehensive test with many operations
     });
-
 });

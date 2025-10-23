@@ -1,12 +1,8 @@
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 import type { ParamsOf } from 'firebase-functions';
 import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import type {
-    FirestoreTriggerChange,
-    FirestoreTriggerHandlers,
-    StubFirestoreDatabase,
-} from './StubFirestoreDatabase';
 import type { IDocumentSnapshot } from './firestore-types';
+import type { FirestoreTriggerChange, FirestoreTriggerHandlers, StubFirestoreDatabase } from './StubFirestoreDatabase';
 
 export type TriggerOperation = 'create' | 'update' | 'delete';
 
@@ -126,8 +122,10 @@ export function toProdTrigger<
     TParams extends Record<string, string> = Record<string, string>,
     TExtra extends Record<string, unknown> = Record<string, never>,
 >(
-    definition: BaseTriggerDefinition<TName> &
-        TExtra & {
+    definition:
+        & BaseTriggerDefinition<TName>
+        & TExtra
+        & {
             region?: string;
             mapParams?: (params: Record<string, string>) => TParams;
         },
@@ -189,9 +187,7 @@ export function attachTriggersToStub<
     definitions: ReadonlyArray<TDefinition>,
     resolveHandler: (definition: TDefinition) => FirestoreTriggerHandler<any>,
 ): () => void {
-    const unregisterFns = definitions.map((definition) =>
-        registerTriggerWithStub(db, definition, resolveHandler(definition)),
-    );
+    const unregisterFns = definitions.map((definition) => registerTriggerWithStub(db, definition, resolveHandler(definition)));
 
     return () => {
         for (const unregister of unregisterFns) {

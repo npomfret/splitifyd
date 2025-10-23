@@ -1,6 +1,6 @@
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { FirestoreReader } from '../../../services/firestore';
@@ -203,9 +203,11 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should prevent removing the last active admin', async () => {
             await expect(
                 groupMemberService.updateMemberRole(adminUserId, groupId, adminUserId, MemberRoles.MEMBER),
-            ).rejects.toMatchObject({
-                details: { message: expect.stringMatching(/last active admin/i) },
-            });
+            )
+                .rejects
+                .toMatchObject({
+                    details: { message: expect.stringMatching(/last active admin/i) },
+                });
         });
 
         it('should approve pending members', async () => {

@@ -1,6 +1,6 @@
 import { isValidCurrency } from '@splitifyd/shared';
-import { FieldValue, Timestamp } from '../firestore-wrapper';
 import { z } from 'zod';
+import { FieldValue, Timestamp } from '../firestore-wrapper';
 
 /**
  * Common schema fragments for consistent validation patterns across all schemas

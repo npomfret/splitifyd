@@ -1,10 +1,10 @@
 // Unit tests for group CRUD operations and access control
 // Extracted from groups-management-consolidated.test.ts integration tests
 
-import {beforeEach, describe, expect, test} from 'vitest';
-import {AppDriver} from '../AppDriver';
-import {CreateGroupRequestBuilder, GroupUpdateBuilder} from '@splitifyd/test-support';
-import {v4 as uuidv4} from 'uuid';
+import { CreateGroupRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { v4 as uuidv4 } from 'uuid';
+import { beforeEach, describe, expect, test } from 'vitest';
+import { AppDriver } from '../AppDriver';
 
 describe('Groups Management - CRUD and Access Control Unit Tests', () => {
     let appDriver: AppDriver;
@@ -55,7 +55,9 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
                         .withName('')
                         .build(),
                 ),
-            ).rejects.toThrow(/required|invalid|name/i);
+            )
+                .rejects
+                .toThrow(/required|invalid|name/i);
         });
     });
 
@@ -140,7 +142,9 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
                         .withName('Hacked Name')
                         .build(),
                 ),
-            ).rejects.toThrow(/not.*found|not.*member|access.*denied/i);
+            )
+                .rejects
+                .toThrow(/not.*found|not.*member|access.*denied/i);
         });
 
         test('should prevent member (not owner) from deleting group', async () => {
@@ -186,7 +190,9 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
                         .withName('Hacked by Member')
                         .build(),
                 ),
-            ).rejects.toThrow(/forbidden|unauthorized|only.*owner|only.*admin|permission.*denied|access.*denied/i);
+            )
+                .rejects
+                .toThrow(/forbidden|unauthorized|only.*owner|only.*admin|permission.*denied|access.*denied/i);
         });
     });
 
@@ -217,7 +223,9 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
                         .withName('New Name')
                         .build(),
                 ),
-            ).rejects.toThrow(/not.*found|user.*not.*exist|not.*member|access.*denied/i);
+            )
+                .rejects
+                .toThrow(/not.*found|user.*not.*exist|not.*member|access.*denied/i);
         });
     });
 });

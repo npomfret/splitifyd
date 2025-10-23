@@ -4,11 +4,11 @@ import { themeStore } from '@/app/stores/theme-store';
 import { CurrencyAmount, SidebarCard, Tooltip } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { getGroupDisplayName } from '@/utils/displayName';
+import { BanknotesIcon, ScaleIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import type { SimplifiedDebt } from '@splitifyd/shared';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { BanknotesIcon, ScaleIcon } from '@heroicons/react/24/outline';
 import { Card } from '../ui/Card';
 
 interface BalanceSummaryProps {
@@ -53,9 +53,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
 
         // Filter debts based on user preference - show only user's debts by default
         const filteredDebts = !showAllBalances.value && currentUser
-            ? balances.value.simplifiedDebts.filter(debt =>
-                debt.from.uid === currentUser.uid || debt.to.uid === currentUser.uid
-              )
+            ? balances.value.simplifiedDebts.filter(debt => debt.from.uid === currentUser.uid || debt.to.uid === currentUser.uid)
             : balances.value.simplifiedDebts;
 
         const grouped = filteredDebts.reduce(
@@ -90,7 +88,10 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
         : groupedDebts.length === 0 || groupedDebts.every(g => g.debts.length === 0)
         ? <p className='text-gray-600 text-sm' data-testid={`${testIdPrefix}balance-settled-up`}>{t('balanceSummary.allSettledUp')}</p>
         : (
-            <div className='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400' data-testid={`${testIdPrefix}balance-debts-list`}>
+            <div
+                className='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400'
+                data-testid={`${testIdPrefix}balance-debts-list`}
+            >
                 {groupedDebts.map(({ currency, debts }) => (
                     debts.map((debt) => {
                         const isCurrentUserFrom = currentUser && debt.from.uid === currentUser.uid;

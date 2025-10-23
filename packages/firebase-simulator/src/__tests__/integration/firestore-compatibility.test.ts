@@ -5,20 +5,20 @@
  * executing identical operations against both implementations.
  */
 
-import {getApps, initializeApp} from 'firebase-admin/app';
-import {getFirestore as getAdminFirestore} from 'firebase-admin/firestore';
 import {
-    StubFirestoreDatabase,
+    attachTriggersToStub,
+    createFirestoreDatabase,
     type FirestoreTriggerChange,
     type IFirestoreDatabase,
-    createFirestoreDatabase,
     registerTriggerWithStub,
-    attachTriggersToStub,
+    StubFirestoreDatabase,
     Timestamp,
     type TriggerDefinition,
 } from '@splitifyd/firebase-simulator';
-import {afterEach, beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
-import {getFirebaseEmulatorConfig} from '@splitifyd/test-support';
+import { getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import { getApps, initializeApp } from 'firebase-admin/app';
+import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let cachedConfig: ReturnType<typeof getFirebaseEmulatorConfig> | null = null;
 
@@ -27,10 +27,10 @@ function configureTestEnvironment() {
         cachedConfig = getFirebaseEmulatorConfig();
     }
 
-    const {projectId, firestorePort, authPort} = cachedConfig;
+    const { projectId, firestorePort, authPort } = cachedConfig;
     process.env.GCLOUD_PROJECT = projectId;
     process.env.GOOGLE_CLOUD_PROJECT = projectId;
-    process.env.FIREBASE_CONFIG = JSON.stringify({projectId});
+    process.env.FIREBASE_CONFIG = JSON.stringify({ projectId });
     process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${firestorePort}`;
     process.env.FIREBASE_AUTH_EMULATOR_HOST = `127.0.0.1:${authPort}`;
 }
@@ -39,10 +39,10 @@ function ensureFirestore() {
     configureTestEnvironment();
     if (getApps().length === 0) {
         const projectId = process.env.GCLOUD_PROJECT ?? 'demo-simulator';
-        initializeApp({projectId});
+        initializeApp({ projectId });
         const firestore = getAdminFirestore();
         if (process.env.FIRESTORE_EMULATOR_HOST) {
-            firestore.settings({host: process.env.FIRESTORE_EMULATOR_HOST, ssl: false});
+            firestore.settings({ host: process.env.FIRESTORE_EMULATOR_HOST, ssl: false });
         }
         return firestore;
     }
@@ -140,8 +140,8 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
             await testBothImplementations('update', async (db, isStub) => {
                 const docRef = db.collection(testCollectionPrefix).doc('test-doc-2');
 
-                await docRef.set({name: 'Original', age: 25});
-                await docRef.update({age: 26});
+                await docRef.set({ name: 'Original', age: 25 });
+                await docRef.update({ age: 26 });
 
                 const snapshot = await docRef.get();
                 const data = snapshot.data();
@@ -155,7 +155,7 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
             await testBothImplementations('delete', async (db, isStub) => {
                 const docRef = db.collection(testCollectionPrefix).doc('test-doc-3');
 
-                await docRef.set({name: 'To Delete'});
+                await docRef.set({ name: 'To Delete' });
                 await docRef.delete();
 
                 const snapshot = await docRef.get();
@@ -167,8 +167,8 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
             await testBothImplementations('merge', async (db, isStub) => {
                 const docRef = db.collection(testCollectionPrefix).doc('test-doc-4');
 
-                await docRef.set({name: 'Original', age: 30});
-                await docRef.set({age: 31, city: 'LA'}, {merge: true});
+                await docRef.set({ name: 'Original', age: 30 });
+                await docRef.set({ age: 31, city: 'LA' }, { merge: true });
 
                 const snapshot = await docRef.get();
                 const data = snapshot.data();
@@ -185,10 +185,10 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         beforeEach(async () => {
             const baseCollectionData = [
-                {id: 'user-1', name: 'Alice', age: 25, city: 'NYC'},
-                {id: 'user-2', name: 'Bob', age: 30, city: 'LA'},
-                {id: 'user-3', name: 'Charlie', age: 35, city: 'NYC'},
-                {id: 'user-4', name: 'David', age: 28, city: 'SF'},
+                { id: 'user-1', name: 'Alice', age: 25, city: 'NYC' },
+                { id: 'user-2', name: 'Bob', age: 30, city: 'LA' },
+                { id: 'user-3', name: 'Charlie', age: 35, city: 'NYC' },
+                { id: 'user-4', name: 'David', age: 28, city: 'SF' },
             ];
 
             for (const data of baseCollectionData) {
@@ -198,7 +198,7 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                 await stubDb.collection(testCollectionPrefix).doc(data.id).set(data);
             }
 
-            const paginationData = Array.from({length: 6}, (_, index) => ({
+            const paginationData = Array.from({ length: 6 }, (_, index) => ({
                 id: `page-item-${index + 1}`,
                 index,
                 label: `Item ${index + 1}`,
@@ -305,12 +305,12 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
         it('should handle transactional reads and writes identically', async () => {
             await testBothImplementations('transaction', async (db, isStub) => {
                 const docRef = db.collection(testCollectionPrefix).doc('counter');
-                await docRef.set({count: 0});
+                await docRef.set({ count: 0 });
 
                 await db.runTransaction(async (transaction) => {
                     const snapshot = await transaction.get(docRef);
                     const currentCount = snapshot.data()?.count || 0;
-                    transaction.update(docRef, {count: currentCount + 1});
+                    transaction.update(docRef, { count: currentCount + 1 });
                 });
 
                 const snapshot = await docRef.get();
@@ -321,11 +321,11 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
         it('should rollback transactions on error identically', async () => {
             await testBothImplementations('transaction rollback', async (db, isStub) => {
                 const docRef = db.collection(testCollectionPrefix).doc('rollback-test');
-                await docRef.set({value: 100});
+                await docRef.set({ value: 100 });
 
                 try {
                     await db.runTransaction(async (transaction) => {
-                        transaction.update(docRef, {value: 200});
+                        transaction.update(docRef, { value: 200 });
                         throw new Error('Forced rollback');
                     });
                 } catch {
@@ -346,8 +346,8 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                 const doc1 = db.collection(testCollectionPrefix).doc('batch-1');
                 const doc2 = db.collection(testCollectionPrefix).doc('batch-2');
 
-                batch.set(doc1, {name: 'Batch User 1'});
-                batch.set(doc2, {name: 'Batch User 2'});
+                batch.set(doc1, { name: 'Batch User 1' });
+                batch.set(doc2, { name: 'Batch User 2' });
 
                 await batch.commit();
 
@@ -364,11 +364,11 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
         it('should handle subcollections identically', async () => {
             await testBothImplementations('subcollections', async (db, isStub) => {
                 const groupRef = db.collection(testCollectionPrefix).doc('group-1');
-                await groupRef.set({name: 'Test Group'});
+                await groupRef.set({ name: 'Test Group' });
 
                 const membersRef = groupRef.collection('members');
-                await membersRef.doc('member-1').set({name: 'Alice', role: 'admin'});
-                await membersRef.doc('member-2').set({name: 'Bob', role: 'member'});
+                await membersRef.doc('member-1').set({ name: 'Alice', role: 'admin' });
+                await membersRef.doc('member-2').set({ name: 'Bob', role: 'member' });
 
                 const snapshot = await membersRef.get();
                 expect(snapshot.size, `Subcollection size (${isStub ? 'stub' : 'real'})`).toBe(2);
@@ -381,10 +381,10 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
         it('should navigate parent/child relationships identically', async () => {
             await testBothImplementations('parent navigation', async (db, isStub) => {
                 const groupRef = db.collection(testCollectionPrefix).doc('group-2');
-                await groupRef.set({name: 'Parent Group'});
+                await groupRef.set({ name: 'Parent Group' });
 
                 const memberRef = groupRef.collection('members').doc('member-1');
-                await memberRef.set({name: 'Child Member'});
+                await memberRef.set({ name: 'Child Member' });
 
                 const parentRef = memberRef.parent?.parent;
                 expect(parentRef, `Parent reference exists (${isStub ? 'stub' : 'real'})`).toBeDefined();
@@ -403,8 +403,8 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                 {
                     groupId: 'group-1',
                     links: [
-                        {id: 'link-1', token: 'token-1', isActive: true, createdBy: 'user-1', testRunId: testCollectionPrefix},
-                        {id: 'link-2', token: 'token-2', isActive: false, createdBy: 'user-1', testRunId: testCollectionPrefix},
+                        { id: 'link-1', token: 'token-1', isActive: true, createdBy: 'user-1', testRunId: testCollectionPrefix },
+                        { id: 'link-2', token: 'token-2', isActive: false, createdBy: 'user-1', testRunId: testCollectionPrefix },
                     ],
                 },
                 {
@@ -417,7 +417,7 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                             createdBy: 'user-2',
                             testRunId: testCollectionPrefix,
                         },
-                        {id: 'link-4', token: 'token-4', isActive: false, createdBy: 'user-3', testRunId: testCollectionPrefix},
+                        { id: 'link-4', token: 'token-4', isActive: false, createdBy: 'user-3', testRunId: testCollectionPrefix },
                     ],
                 },
             ];
@@ -425,11 +425,11 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
             for (const group of groups) {
                 const realGroupRef = realDb ? realDb.collection(testCollectionPrefix).doc(group.groupId) : undefined;
                 if (realGroupRef) {
-                    await realGroupRef.set({name: `Group ${group.groupId}`});
+                    await realGroupRef.set({ name: `Group ${group.groupId}` });
                 }
 
                 const stubGroupRef = stubDb.collection(testCollectionPrefix).doc(group.groupId);
-                await stubGroupRef.set({name: `Group ${group.groupId}`});
+                await stubGroupRef.set({ name: `Group ${group.groupId}` });
 
                 for (const link of group.links) {
                     if (realGroupRef) {
@@ -488,17 +488,16 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                 const docRef = db.collection(testCollectionPrefix).doc('does-not-exist-update');
 
                 try {
-                    await docRef.update({field: 'value'});
+                    await docRef.update({ field: 'value' });
                     expect.fail(`Should have thrown error (${isStub ? 'stub' : 'real'})`);
                 } catch (error: any) {
                     const message = String(error?.message ?? error ?? '');
                     const errorCode = error?.code;
-                    const matches =
-                        message.includes('No document to update') ||
-                        message.includes('does not exist') ||
-                        message.includes('NOT_FOUND') ||
-                        errorCode === 5 ||
-                        errorCode === 'not-found';
+                    const matches = message.includes('No document to update')
+                        || message.includes('does not exist')
+                        || message.includes('NOT_FOUND')
+                        || errorCode === 5
+                        || errorCode === 'not-found';
                     expect(matches, `Error message matches (${isStub ? 'stub' : 'real'})`).toBe(true);
                 }
             });
@@ -516,8 +515,8 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
             });
 
             const docRef = stubDb.collection(testCollectionPrefix).doc('trigger-doc');
-            await docRef.set({value: 1});
-            await docRef.update({value: 2});
+            await docRef.set({ value: 1 });
+            await docRef.update({ value: 2 });
             await docRef.delete();
 
             const capturedEvents = triggerHandler.mock.calls.map(([change]) => (change as FirestoreTriggerChange).type);
@@ -551,8 +550,8 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
             });
 
             const docRef = stubDb.collection(testCollectionPrefix).doc('abc');
-            await docRef.set({foo: 1});
-            await docRef.update({foo: 2});
+            await docRef.set({ foo: 1 });
+            await docRef.update({ foo: 2 });
             await docRef.delete();
 
             unregister();
@@ -561,18 +560,18 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
             const [createEvent, updateEvent, deleteEvent] = events;
 
-            expect(createEvent.params).toEqual({docId: 'abc'});
+            expect(createEvent.params).toEqual({ docId: 'abc' });
             expect(createEvent.before?.exists).toBe(false);
             expect(createEvent.before?.data()).toBeUndefined();
             expect(createEvent.after?.exists).toBe(true);
-            expect(createEvent.after?.data()).toEqual({foo: 1});
+            expect(createEvent.after?.data()).toEqual({ foo: 1 });
 
             expect(updateEvent.before?.exists).toBe(true);
-            expect(updateEvent.before?.data()).toEqual({foo: 1});
-            expect(updateEvent.after?.data()).toEqual({foo: 2});
+            expect(updateEvent.before?.data()).toEqual({ foo: 1 });
+            expect(updateEvent.after?.data()).toEqual({ foo: 2 });
 
             expect(deleteEvent.before?.exists).toBe(true);
-            expect(deleteEvent.before?.data()).toEqual({foo: 2});
+            expect(deleteEvent.before?.data()).toEqual({ foo: 2 });
             expect(deleteEvent.after?.exists).toBe(false);
             expect(deleteEvent.after?.data()).toBeUndefined();
         });
@@ -593,8 +592,8 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
             const docRef = stubDb.collection(testCollectionPrefix).doc('filter-test');
 
-            await docRef.set({value: 1});
-            await docRef.update({value: 2});
+            await docRef.set({ value: 1 });
+            await docRef.update({ value: 2 });
             await docRef.delete();
 
             unregister();
@@ -612,14 +611,14 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                     document: `${testCollectionPrefix}/{docId}`,
                     operations: ['create'],
                     createProdTrigger: vi.fn(),
-                    mapParams: ({docId}) => ({docId}),
+                    mapParams: ({ docId }) => ({ docId }),
                 },
                 {
                     name: 'childLifecycle',
                     document: `${testCollectionPrefix}/{docId}/children/{childId}`,
                     operations: ['create', 'delete'],
                     createProdTrigger: vi.fn(),
-                    mapParams: ({docId, childId}) => ({parent: docId, child: childId}),
+                    mapParams: ({ docId, childId }) => ({ parent: docId, child: childId }),
                 },
             ];
 
@@ -636,99 +635,100 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
             );
 
             const parentRef = stubDb.collection(testCollectionPrefix).doc('parent-1');
-            await parentRef.set({foo: 'bar'});
+            await parentRef.set({ foo: 'bar' });
 
             const childRef = parentRef.collection('children').doc('child-1');
-            await childRef.set({value: 1});
+            await childRef.set({ value: 1 });
             await childRef.delete();
 
-        expect(events).toEqual([
-            {name: 'parentCreate', type: 'create', params: {docId: 'parent-1'}},
-            {name: 'childLifecycle', type: 'create', params: {parent: 'parent-1', child: 'child-1'}},
-            {name: 'childLifecycle', type: 'delete', params: {parent: 'parent-1', child: 'child-1'}},
-        ]);
+            expect(events).toEqual([
+                { name: 'parentCreate', type: 'create', params: { docId: 'parent-1' } },
+                { name: 'childLifecycle', type: 'create', params: { parent: 'parent-1', child: 'child-1' } },
+                { name: 'childLifecycle', type: 'delete', params: { parent: 'parent-1', child: 'child-1' } },
+            ]);
 
-        events.length = 0;
-        detach();
+            events.length = 0;
+            detach();
 
-        await parentRef.set({foo: 'baz'});
-        await childRef.set({value: 2});
+            await parentRef.set({ foo: 'baz' });
+            await childRef.set({ value: 2 });
 
-        expect(events).toHaveLength(0);
-    });
-
-    describe('Realtime listeners', () => {
-        it('should stream document snapshots identically', async () => {
-            await testBothImplementations('document listener', async (db, isStub) => {
-                const docRef = db.collection(`${testCollectionPrefix}-listeners`).doc('doc-stream');
-                const snapshots: Array<{ exists: boolean; data: any | undefined; }> = [];
-                const errors: Error[] = [];
-
-                const unsubscribe = docRef.onSnapshot(
-                    (snapshot) => snapshots.push({ exists: snapshot.exists, data: snapshot.data() }),
-                    (error) => errors.push(error),
-                );
-
-                await waitForListenerFlush(isStub);
-
-                await docRef.set({ stage: 'created', value: 1 });
-                await waitForListenerFlush(isStub);
-
-                await docRef.update({ stage: 'updated', value: 2 });
-                await waitForListenerFlush(isStub);
-
-                await docRef.delete();
-                await waitForListenerFlush(isStub);
-
-                unsubscribe();
-
-                expect(errors, `Listener errors (${isStub ? 'stub' : 'real'})`).toHaveLength(0);
-                expect(snapshots.length, `Snapshot count (${isStub ? 'stub' : 'real'})`).toBe(4);
-                expect(snapshots[0].exists).toBe(false);
-                expect(snapshots[1].data).toEqual({ stage: 'created', value: 1 });
-                expect(snapshots[2].data).toEqual({ stage: 'updated', value: 2 });
-                expect(snapshots[3].exists).toBe(false);
-            });
+            expect(events).toHaveLength(0);
         });
 
-        it('should stream filtered query snapshots identically', async () => {
-            await testBothImplementations('query listener', async (db, isStub) => {
-                const collection = db.collection(`${testCollectionPrefix}-listener-queries`);
+        describe('Realtime listeners', () => {
+            it('should stream document snapshots identically', async () => {
+                await testBothImplementations('document listener', async (db, isStub) => {
+                    const docRef = db.collection(`${testCollectionPrefix}-listeners`).doc('doc-stream');
+                    const snapshots: Array<{ exists: boolean; data: any | undefined; }> = [];
+                    const errors: Error[] = [];
 
-                await collection.doc('user-1').set({ name: 'Alice', city: 'NYC' });
-                await collection.doc('user-2').set({ name: 'Bob', city: 'LA' });
-
-                const results: string[][] = [];
-                const errors: Error[] = [];
-
-                const unsubscribe = collection
-                    .where('city', '==', 'NYC')
-                    .orderBy('name')
-                    .onSnapshot(
-                        (snapshot) => results.push(snapshot.docs.map((doc) => doc.data().name)),
+                    const unsubscribe = docRef.onSnapshot(
+                        (snapshot) => snapshots.push({ exists: snapshot.exists, data: snapshot.data() }),
                         (error) => errors.push(error),
                     );
 
-                await waitForListenerFlush(isStub);
+                    await waitForListenerFlush(isStub);
 
-                await collection.doc('user-3').set({ name: 'Charlie', city: 'NYC' });
-                await waitForListenerFlush(isStub);
+                    await docRef.set({ stage: 'created', value: 1 });
+                    await waitForListenerFlush(isStub);
 
-                await collection.doc('user-1').update({ city: 'SF' });
-                await waitForListenerFlush(isStub);
+                    await docRef.update({ stage: 'updated', value: 2 });
+                    await waitForListenerFlush(isStub);
 
-                await collection.doc('user-2').set({ name: 'Bob', city: 'NYC' });
-                await waitForListenerFlush(isStub);
+                    await docRef.delete();
+                    await waitForListenerFlush(isStub);
 
-                unsubscribe();
+                    unsubscribe();
 
-                expect(errors, `Query listener errors (${isStub ? 'stub' : 'real'})`).toHaveLength(0);
-                expect(results, `Query snapshot evolution (${isStub ? 'stub' : 'real'})`).toEqual([
-                    ['Alice'],
-                    ['Alice', 'Charlie'],
-                    ['Charlie'],
-                    ['Bob', 'Charlie'],
-                ]);
+                    expect(errors, `Listener errors (${isStub ? 'stub' : 'real'})`).toHaveLength(0);
+                    expect(snapshots.length, `Snapshot count (${isStub ? 'stub' : 'real'})`).toBe(4);
+                    expect(snapshots[0].exists).toBe(false);
+                    expect(snapshots[1].data).toEqual({ stage: 'created', value: 1 });
+                    expect(snapshots[2].data).toEqual({ stage: 'updated', value: 2 });
+                    expect(snapshots[3].exists).toBe(false);
+                });
+            });
+
+            it('should stream filtered query snapshots identically', async () => {
+                await testBothImplementations('query listener', async (db, isStub) => {
+                    const collection = db.collection(`${testCollectionPrefix}-listener-queries`);
+
+                    await collection.doc('user-1').set({ name: 'Alice', city: 'NYC' });
+                    await collection.doc('user-2').set({ name: 'Bob', city: 'LA' });
+
+                    const results: string[][] = [];
+                    const errors: Error[] = [];
+
+                    const unsubscribe = collection
+                        .where('city', '==', 'NYC')
+                        .orderBy('name')
+                        .onSnapshot(
+                            (snapshot) => results.push(snapshot.docs.map((doc) => doc.data().name)),
+                            (error) => errors.push(error),
+                        );
+
+                    await waitForListenerFlush(isStub);
+
+                    await collection.doc('user-3').set({ name: 'Charlie', city: 'NYC' });
+                    await waitForListenerFlush(isStub);
+
+                    await collection.doc('user-1').update({ city: 'SF' });
+                    await waitForListenerFlush(isStub);
+
+                    await collection.doc('user-2').set({ name: 'Bob', city: 'NYC' });
+                    await waitForListenerFlush(isStub);
+
+                    unsubscribe();
+
+                    expect(errors, `Query listener errors (${isStub ? 'stub' : 'real'})`).toHaveLength(0);
+                    expect(results, `Query snapshot evolution (${isStub ? 'stub' : 'real'})`).toEqual([
+                        ['Alice'],
+                        ['Alice', 'Charlie'],
+                        ['Charlie'],
+                        ['Bob', 'Charlie'],
+                    ]);
+                });
             });
         });
     });

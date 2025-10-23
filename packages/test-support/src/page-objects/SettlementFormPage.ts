@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './BasePage';
-import {GroupId} from "@splitifyd/shared";
+import { GroupId } from '@splitifyd/shared';
 import { translationEn } from '../translations/translation-en';
+import { BasePage } from './BasePage';
 
 const translation = translationEn;
 

@@ -1,8 +1,8 @@
-import { describe, it, beforeEach, afterEach, expect } from 'vitest';
+import type { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { calculateEqualSplits, GroupId } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
-import type { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 
 const flushMicrotasks = async () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -28,8 +28,8 @@ function createNotificationListener(db: StubFirestoreDatabase, userId: string) {
                 exists: snapshot.exists,
                 changeVersion: data?.changeVersion ?? 0,
                 groups: clonedGroups,
-    });
-});
+            });
+        });
 
     const latest = () => snapshots[snapshots.length - 1];
 
@@ -237,9 +237,7 @@ describe('Notification realtime behaviour (stub firestore)', () => {
     describe('multi-member scenarios', () => {
         it('should broadcast notifications across multi-member lifecycle', async () => {
             const [owner, memberTwo, memberThree] = ['multi-user-1', 'multi-user-2', 'multi-user-3'];
-            [owner, memberTwo, memberThree].forEach((uid, index) =>
-                appDriver.seedUser(uid, { displayName: `Multi ${index + 1}` }),
-            );
+            [owner, memberTwo, memberThree].forEach((uid, index) => appDriver.seedUser(uid, { displayName: `Multi ${index + 1}` }));
 
             const listeners = createListenerMap(db, [owner, memberTwo, memberThree]);
 
@@ -293,9 +291,7 @@ describe('Notification realtime behaviour (stub firestore)', () => {
 
         it('should notify remaining members when a member leaves', async () => {
             const [owner, memberTwo, memberThree] = ['leave-user-1', 'leave-user-2', 'leave-user-3'];
-            [owner, memberTwo, memberThree].forEach((uid, index) =>
-                appDriver.seedUser(uid, { displayName: `Leave ${index + 1}` }),
-            );
+            [owner, memberTwo, memberThree].forEach((uid, index) => appDriver.seedUser(uid, { displayName: `Leave ${index + 1}` }));
 
             const listeners = createListenerMap(db, [owner, memberTwo, memberThree]);
 
@@ -331,9 +327,7 @@ describe('Notification realtime behaviour (stub firestore)', () => {
 
         it('should restrict notifications to authorized members', async () => {
             const [owner, invited, outsider] = ['access-user-1', 'access-user-2', 'access-user-3'];
-            [owner, invited, outsider].forEach((uid, index) =>
-                appDriver.seedUser(uid, { displayName: `Access ${index + 1}` }),
-            );
+            [owner, invited, outsider].forEach((uid, index) => appDriver.seedUser(uid, { displayName: `Access ${index + 1}` }));
 
             const listeners = createListenerMap(db, [owner, invited, outsider]);
 

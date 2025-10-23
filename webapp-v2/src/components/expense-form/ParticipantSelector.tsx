@@ -1,5 +1,5 @@
-import { useTranslation } from 'react-i18next';
 import { getGroupDisplayName } from '@/utils/displayName';
+import { useTranslation } from 'react-i18next';
 import { Avatar, Button, Card } from '../ui';
 import { Stack } from '../ui/Stack';
 

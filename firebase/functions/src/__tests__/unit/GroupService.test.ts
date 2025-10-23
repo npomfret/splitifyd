@@ -1,6 +1,6 @@
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { CreateGroupRequest } from '@splitifyd/shared';
 import { CreateGroupRequestBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';

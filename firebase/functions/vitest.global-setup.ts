@@ -1,4 +1,4 @@
-import { getFirestorePort, getProjectId, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import { getFirebaseEmulatorConfig, getFirestorePort, getProjectId } from '@splitifyd/test-support';
 
 async function warmUpFirestoreEmulator(): Promise<void> {
     console.log('🔥 [GLOBAL SETUP] Warming up Firestore emulator...');

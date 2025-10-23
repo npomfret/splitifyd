@@ -1,5 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { BasePage as SharedBasePage, HeaderPage, createErrorHandlingProxy } from '@splitifyd/test-support';
+import { BasePage as SharedBasePage, createErrorHandlingProxy, HeaderPage } from '@splitifyd/test-support';
 import { EMULATOR_URL } from '../helpers';
 
 /**

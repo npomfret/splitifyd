@@ -1,5 +1,18 @@
-import type { Amount, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateSettlementRequest, UpdateExpenseRequest, CreateSettlementRequest } from '@splitifyd/shared';
-import { AuthenticatedFirebaseUser, MemberRoles, PermissionLevels, SecurityPresets, compareAmounts, isZeroAmount, minAmount, normalizeAmount, PREDEFINED_EXPENSE_CATEGORIES, subtractAmounts, UserRegistration, zeroAmount } from '@splitifyd/shared';
+import type { Amount, CreateSettlementRequest, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest } from '@splitifyd/shared';
+import {
+    AuthenticatedFirebaseUser,
+    compareAmounts,
+    isZeroAmount,
+    MemberRoles,
+    minAmount,
+    normalizeAmount,
+    PermissionLevels,
+    PREDEFINED_EXPENSE_CATEGORIES,
+    SecurityPresets,
+    subtractAmounts,
+    UserRegistration,
+    zeroAmount,
+} from '@splitifyd/shared';
 import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 
 // Initialize ApiDriver which handles all configuration
@@ -46,7 +59,8 @@ class TaskQueue {
         }
 
         this.running++;
-        next.task()
+        next
+            .task()
             .then((result) => {
                 this.running--;
                 next.resolve(result);
@@ -607,9 +621,11 @@ async function configureLargeGroupAdvancedScenarios(
 
     console.log('Configuring permissions, roles, and pending membership flows for "Large Group"...');
 
-    await runQueued(() => driver.updateGroup(largeGroup.id, {
-        description: 'Large scale group used to exercise permissions, approval queues, member role changes, and other edge cases.',
-    }, adminUser.token));
+    await runQueued(() =>
+        driver.updateGroup(largeGroup.id, {
+            description: 'Large scale group used to exercise permissions, approval queues, member role changes, and other edge cases.',
+        }, adminUser.token)
+    );
 
     await runQueued(() => driver.applySecurityPreset(largeGroup.id, SecurityPresets.MANAGED, adminUser.token));
 
@@ -1156,16 +1172,16 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
                     const userBalance = currencyBalances[member.uid];
                     if (!userBalance || userBalance.netBalance === undefined) return true;
                     return isZeroAmount(userBalance.netBalance, currency);
-                }),
+                })
             )
             .map((member) => member.uid),
     );
 
     const memberToLeave = memberDetails.find(
         (member) =>
-            member.memberRole === MemberRoles.MEMBER &&
-            member.uid !== viewerMember?.uid &&
-            membersWithZeroBalance.has(member.uid),
+            member.memberRole === MemberRoles.MEMBER
+            && member.uid !== viewerMember?.uid
+            && membersWithZeroBalance.has(member.uid),
     );
     if (memberToLeave) {
         const leavingUser = currentMembers.find((user) => user.uid === memberToLeave.uid);
@@ -1180,10 +1196,10 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
     }
 
     const memberToRemove = memberDetails.find((member) =>
-        member.memberRole === MemberRoles.MEMBER &&
-        member.uid !== viewerMember?.uid &&
-        member.uid !== memberToLeave?.uid &&
-        membersWithZeroBalance.has(member.uid),
+        member.memberRole === MemberRoles.MEMBER
+        && member.uid !== viewerMember?.uid
+        && member.uid !== memberToLeave?.uid
+        && membersWithZeroBalance.has(member.uid)
     );
     if (memberToRemove) {
         const removerToken = [adminUser, ...currentMembers].find((user) => user.uid === memberToRemove.invitedBy)?.token ?? adminUser.token;

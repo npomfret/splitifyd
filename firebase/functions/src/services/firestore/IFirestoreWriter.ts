@@ -15,10 +15,10 @@
  */
 
 import type { CommentDTO, CommentTargetType, RegisteredUser, ShareLinkDTO } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
 import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
-import {GroupId} from "@splitifyd/shared";
 
 export interface WriteResult {
     id: string;

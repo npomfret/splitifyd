@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
 vi.mock('@/app/apiClient', () => ({
@@ -40,10 +40,10 @@ if (typeof window !== 'undefined') {
     });
 }
 
-import type { CommentDTO, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '@/app/apiClient';
 import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { UserNotificationDetector } from '@/utils/user-notification-detector';
+import type { CommentDTO, ListCommentsResponse } from '@splitifyd/shared';
 
 const mockedApiClient = apiClient as unknown as {
     getGroupComments: Mock;
@@ -96,7 +96,8 @@ describe('CommentsStoreImpl', () => {
         const first = createComment('1', 'First comment');
         const second = createComment('2', 'Second comment');
 
-        mockedApiClient.getGroupComments
+        mockedApiClient
+            .getGroupComments
             .mockResolvedValueOnce(responseFor([first]))
             .mockResolvedValueOnce(responseFor([second]));
 

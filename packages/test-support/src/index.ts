@@ -1,8 +1,3 @@
-export * from './ApiDriver';
-export * from './builders';
-export * from './error-proxy';
-export * from './errors/test-errors';
-export * from './firebase-emulator-config';
 export type {
     ICollectionReference,
     IDocumentReference,
@@ -16,18 +11,17 @@ export type {
     SetOptions,
     WhereFilterOp,
 } from '@splitifyd/firebase-simulator';
+export { type FirestoreTriggerChange, type FirestoreTriggerChangeHandler, type FirestoreTriggerEventType, type FirestoreTriggerHandlers, StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+export type { FirestoreTriggerChangeHandler as FirestoreTriggerHandler } from '@splitifyd/firebase-simulator';
+export * from './ApiDriver';
+export * from './builders';
+export * from './error-proxy';
+export * from './errors/test-errors';
+export * from './firebase-emulator-config';
 export * from './http-stubs';
 export * from './NotificationDriver';
 export * from './page-objects';
 export * from './Polling';
-export {
-    StubFirestoreDatabase,
-    type FirestoreTriggerChange,
-    type FirestoreTriggerEventType,
-    type FirestoreTriggerChangeHandler,
-    type FirestoreTriggerHandlers,
-} from '@splitifyd/firebase-simulator';
-export type { FirestoreTriggerChangeHandler as FirestoreTriggerHandler } from '@splitifyd/firebase-simulator';
 export * from './test-constants';
 export * from './test-helpers';
 export * from './test-pool-helpers';

@@ -1,7 +1,7 @@
 import type { CreateSettlementRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import {GroupId} from "@splitifyd/shared";
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;

@@ -1,10 +1,10 @@
 import { routes } from '@/constants/routes';
 import { logError } from '@/utils/browser-logger.ts';
 import { useComputed } from '@preact/signals';
+import { GroupId } from '@splitifyd/shared';
 import { route } from 'preact-router';
 import { useEffect } from 'preact/hooks';
 import { expenseFormStore } from '../stores/expense-form-store';
-import {GroupId} from "@splitifyd/shared";
 
 interface UseFormSubmissionOptions {
     groupId: GroupId;

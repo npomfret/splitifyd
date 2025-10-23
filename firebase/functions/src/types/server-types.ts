@@ -1,5 +1,5 @@
+import { GroupId } from '@splitifyd/shared';
 import { Timestamp } from '../firestore-wrapper';
-import {GroupId} from "@splitifyd/shared";
 
 /**
  * Document structure for top-level group memberships collection: group-memberships/{userId}_{groupId}

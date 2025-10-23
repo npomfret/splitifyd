@@ -27,8 +27,9 @@ describe('PolicyRenderer', () => {
             '- item one',
             '- item two',
             '',
-            'Please review the **terms** and *conditions*.'
-        ].join('\n');
+            'Please review the **terms** and *conditions*.',
+        ]
+            .join('\n');
 
         const { container } = render(<PolicyRenderer content={content} />);
 

@@ -1,22 +1,21 @@
 import { Response } from 'express';
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
-import { getIdentityToolkitConfig } from '../client-config';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { UserPolicyService } from '../services/UserPolicyService';
 import { ApiError } from '../utils/errors';
 import { validateAcceptMultiplePolicies } from './validation';
-import {getAppBuilder} from "../ApplicationBuilderSingleton";
-import {UserPolicyService} from "../services/UserPolicyService";
 
 export class UserHandlers {
-
     constructor(private readonly userPolicyService: UserPolicyService) {
     }
 
     static createUserHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const userPolicyService = applicationBuilder.buildUserPolicyService();
-        return new UserHandlers(userPolicyService)
+        return new UserHandlers(userPolicyService);
     }
 
     acceptMultiplePolicies = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

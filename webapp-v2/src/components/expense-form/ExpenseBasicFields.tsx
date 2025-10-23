@@ -20,7 +20,9 @@ interface ExpenseBasicFieldsProps {
     PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[];
 }
 
-export function ExpenseBasicFields({ description, amount, currency, date, time, category, validationErrors, updateField, validateOnBlur, getRecentAmounts, PREDEFINED_EXPENSE_CATEGORIES }: ExpenseBasicFieldsProps) {
+export function ExpenseBasicFields(
+    { description, amount, currency, date, time, category, validationErrors, updateField, validateOnBlur, getRecentAmounts, PREDEFINED_EXPENSE_CATEGORIES }: ExpenseBasicFieldsProps,
+) {
     const { t } = useTranslation();
     const recentAmounts = getRecentAmounts();
     const currencyService = CurrencyService.getInstance();

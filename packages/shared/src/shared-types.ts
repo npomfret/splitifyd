@@ -909,11 +909,11 @@ export interface CreateCommentRequest {
     groupId?: string; // Required for expense comments
 }
 
-export interface ListMembersResponse {// todo: there should be no pagination - all members are returned
+export interface ListMembersResponse { // todo: there should be no pagination - all members are returned
     members: GroupMember[];
     hasMore: boolean;
     nextCursor?: string;
-};
+}
 
 export interface ListExpensesResponse {
     expenses: ExpenseDTO[];

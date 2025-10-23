@@ -1,6 +1,6 @@
-import { PolicyIds, type CurrentPolicyResponse } from '@splitifyd/shared';
+import { type CurrentPolicyResponse, PolicyIds } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
-import { ApiError, apiClient } from '../app/apiClient';
+import { apiClient, ApiError } from '../app/apiClient';
 import { logError } from '../utils/browser-logger';
 
 // Hook for fetching a single policy

@@ -1,8 +1,8 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
-import { getIdentityToolkitConfig } from '../client-config';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { GroupShareService } from '../services/GroupShareService';
 import { logger } from '../utils/contextual-logger';

@@ -192,7 +192,8 @@ test.describe('Join Group Page - Display Name Conflict', () => {
 
         await setupSuccessfulApiMocks(page);
 
-        const previewResponse = PreviewGroupResponseBuilder.newMember()
+        const previewResponse = PreviewGroupResponseBuilder
+            .newMember()
             .withGroupName('Design Team')
             .build();
         await mockGroupPreviewApi(page, previewResponse);
@@ -221,7 +222,8 @@ test.describe('Join Group Page - Display Name Conflict', () => {
 
         await setupSuccessfulApiMocks(page);
 
-        const previewResponse = PreviewGroupResponseBuilder.newMember()
+        const previewResponse = PreviewGroupResponseBuilder
+            .newMember()
             .withGroupName('Engineering Squad')
             .build();
         await mockGroupPreviewApi(page, previewResponse);
@@ -287,7 +289,8 @@ test.describe('Join Group Page - Display Name Conflict', () => {
 
         await setupSuccessfulApiMocks(page);
 
-        const previewResponse = PreviewGroupResponseBuilder.newMember()
+        const previewResponse = PreviewGroupResponseBuilder
+            .newMember()
             .withGroupName('Art Collective')
             .build();
         await mockGroupPreviewApi(page, previewResponse);

@@ -1,7 +1,7 @@
 import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId, SettlementFormDataBuilder } from '@splitifyd/test-support';
 import { expect, simpleTest } from '../../fixtures';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 /**
  * Consolidated Expense and Balance Lifecycle E2E Tests

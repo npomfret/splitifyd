@@ -358,7 +358,7 @@ const AcceptMultiplePoliciesResponseSchema = z.object({
             policyId: z.string().min(1),
             versionHash: z.string().min(1),
             acceptedAt: z.string().datetime(),
-        })
+        }),
     ),
 });
 

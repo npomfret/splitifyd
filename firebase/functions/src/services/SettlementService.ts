@@ -1,6 +1,9 @@
 import { CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
+import { SettlementId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import { FieldValue } from '../firestore-wrapper';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
@@ -9,9 +12,6 @@ import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-import {GroupId} from "@splitifyd/shared";
-import {SettlementId} from "@splitifyd/shared";
-import { FieldValue } from '../firestore-wrapper';
 
 /**
  * Zod schema for User document - ensures critical fields are present

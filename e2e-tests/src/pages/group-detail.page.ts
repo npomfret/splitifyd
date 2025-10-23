@@ -13,8 +13,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     ): Promise<T> {
         return super.clickSettleUpButton<T>(expectedMemberCount, {
             ...options,
-            createSettlementFormPage:
-                options.createSettlementFormPage
+            createSettlementFormPage: options.createSettlementFormPage
                 ?? ((page) => new E2ESettlementFormPage(page) as unknown as T),
         });
     }
@@ -30,8 +29,7 @@ export class GroupDetailPage extends BaseGroupDetailPage {
     ): Promise<T> {
         return super.clickEditSettlement<T>(settlementNote, {
             ...options,
-            createSettlementFormPage:
-                options.createSettlementFormPage
+            createSettlementFormPage: options.createSettlementFormPage
                 ?? ((page) => new E2ESettlementFormPage(page) as unknown as T),
             waitForFormReady: options.waitForFormReady ?? true,
         });

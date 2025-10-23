@@ -202,16 +202,16 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                         </div>
 
                                                         <div className='mt-4 flex items-center'>
-                                                        <input
-                                                            type='checkbox'
-                                                            id={`accept-${currentPolicy.policyId}`}
-                                                            className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
-                                                            autoComplete='off'
-                                                            onChange={(e) => {
-                                                                if (e.currentTarget.checked) {
-                                                                    handleAcceptPolicy(currentPolicy.policyId);
-                                                                } else {
-                                                                    setAcceptedPolicies((prev) => {
+                                                            <input
+                                                                type='checkbox'
+                                                                id={`accept-${currentPolicy.policyId}`}
+                                                                className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
+                                                                autoComplete='off'
+                                                                onChange={(e) => {
+                                                                    if (e.currentTarget.checked) {
+                                                                        handleAcceptPolicy(currentPolicy.policyId);
+                                                                    } else {
+                                                                        setAcceptedPolicies((prev) => {
                                                                             const newSet = new Set(prev);
                                                                             newSet.delete(currentPolicy.policyId);
                                                                             return newSet;

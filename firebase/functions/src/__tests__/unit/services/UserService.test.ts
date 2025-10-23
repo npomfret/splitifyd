@@ -1,5 +1,5 @@
-import { PasswordChangeRequestBuilder, ThemeBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { PasswordChangeRequestBuilder, ThemeBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';

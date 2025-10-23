@@ -1,6 +1,7 @@
 import type { ExpenseDTO, SettlementDTO, UserBalance } from '@splitifyd/shared';
 import { amountToSmallestUnit, negateAmount, smallestUnitToAmountString, subtractAmounts, sumAmounts, zeroAmount } from '@splitifyd/shared';
 import { negateNormalizedAmount } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
 import type { ITransaction } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import type { GroupBalanceDTO, ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
@@ -8,7 +9,6 @@ import type { IFirestoreWriter } from '../firestore';
 import { DebtSimplificationService } from './DebtSimplificationService';
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
-import {GroupId} from "@splitifyd/shared";
 
 export class IncrementalBalanceService {
     private expenseProcessor: ExpenseProcessor;

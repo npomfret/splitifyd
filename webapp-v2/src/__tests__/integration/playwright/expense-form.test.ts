@@ -37,7 +37,7 @@ async function openExpenseFormForTest(
                 .withUid(member.uid)
                 .withDisplayName(member.displayName)
                 .withGroupDisplayName(member.groupDisplayName ?? member.displayName)
-                .build(),
+                .build()
         ),
     ];
 

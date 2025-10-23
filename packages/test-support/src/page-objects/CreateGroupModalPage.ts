@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
-import { BasePage } from './BasePage';
 import { translationEn } from '../translations/translation-en';
+import { BasePage } from './BasePage';
 
 const translation = translationEn;
 
@@ -165,7 +165,8 @@ export class CreateGroupModalPage extends BasePage {
                 '[data-testid*="error"]',
                 '.error-message',
                 '[role="dialog"] [role="alert"]',
-            ].join(', '),
+            ]
+                .join(', '),
         );
 
         return pattern ? allErrors.filter({ hasText: pattern }) : allErrors;
@@ -203,13 +204,13 @@ export class CreateGroupModalPage extends BasePage {
 
         if (!isModalVisible) {
             throw new Error(
-                `Cannot fill group name - Create Group Modal is not open or has already closed.\n` +
-                `This usually means:\n` +
-                `  1. Modal closed unexpectedly (check browser console for "[CreateGroupModal] Closing modal" logs)\n` +
-                `  2. Modal was never opened in the first place\n` +
-                `  3. Navigation occurred while modal was still processing\n` +
-                `Current URL: ${this.page.url()}\n` +
-                `Attempted to fill name: "${name}"`
+                `Cannot fill group name - Create Group Modal is not open or has already closed.\n`
+                    + `This usually means:\n`
+                    + `  1. Modal closed unexpectedly (check browser console for "[CreateGroupModal] Closing modal" logs)\n`
+                    + `  2. Modal was never opened in the first place\n`
+                    + `  3. Navigation occurred while modal was still processing\n`
+                    + `Current URL: ${this.page.url()}\n`
+                    + `Attempted to fill name: "${name}"`,
             );
         }
 
@@ -223,10 +224,10 @@ export class CreateGroupModalPage extends BasePage {
             const stillVisible = await modalContainer.isVisible().catch(() => false);
             if (!stillVisible) {
                 throw new Error(
-                    `Create Group Modal closed while waiting for input to be ready.\n` +
-                    `The modal was visible initially but closed during interaction.\n` +
-                    `Check browser console for "[CreateGroupModal] Closing modal" logs to see why it closed.\n` +
-                    `Original error: ${error instanceof Error ? error.message : String(error)}`
+                    `Create Group Modal closed while waiting for input to be ready.\n`
+                        + `The modal was visible initially but closed during interaction.\n`
+                        + `Check browser console for "[CreateGroupModal] Closing modal" logs to see why it closed.\n`
+                        + `Original error: ${error instanceof Error ? error.message : String(error)}`,
                 );
             }
             throw error;
@@ -245,9 +246,9 @@ export class CreateGroupModalPage extends BasePage {
 
         if (!isModalVisible) {
             throw new Error(
-                `Cannot fill group description - Create Group Modal is not open or has closed.\n` +
-                `Current URL: ${this.page.url()}\n` +
-                `Check browser console for "[CreateGroupModal] Closing modal" logs.`
+                `Cannot fill group description - Create Group Modal is not open or has closed.\n`
+                    + `Current URL: ${this.page.url()}\n`
+                    + `Check browser console for "[CreateGroupModal] Closing modal" logs.`,
             );
         }
 
@@ -280,9 +281,9 @@ export class CreateGroupModalPage extends BasePage {
 
         if (!isModalVisible) {
             throw new Error(
-                `Cannot submit form - Create Group Modal is not open or has closed.\n` +
-                `Current URL: ${this.page.url()}\n` +
-                `Check browser console for "[CreateGroupModal] Closing modal" logs.`
+                `Cannot submit form - Create Group Modal is not open or has closed.\n`
+                    + `Current URL: ${this.page.url()}\n`
+                    + `Check browser console for "[CreateGroupModal] Closing modal" logs.`,
             );
         }
 

@@ -1,5 +1,5 @@
-import { beforeEach, afterEach, describe, expect, it } from 'vitest';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('Group sharing workflow (stub firestore)', () => {

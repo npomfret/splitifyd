@@ -74,7 +74,7 @@ describe('GroupCard', () => {
         });
 
         expect(screen.getByText('Settled up')).toBeInTheDocument();
-        const badges = container.querySelectorAll('[data-financial-amount=\"balance\"]');
+        const badges = container.querySelectorAll('[data-financial-amount="balance"]');
         expect(badges).toHaveLength(1);
         expect(badges[0]).toHaveTextContent('Settled up');
     });
@@ -99,9 +99,9 @@ describe('GroupCard', () => {
             },
         });
 
-        const badges = Array.from(container.querySelectorAll('[data-financial-amount=\"balance\"]'));
+        const badges = Array.from(container.querySelectorAll('[data-financial-amount="balance"]'));
         expect(badges).toHaveLength(2);
-        expect(badges[0]).toHaveTextContent("You're owed $50.00 USD");
+        expect(badges[0]).toHaveTextContent('You\'re owed $50.00 USD');
         expect(badges[1]).toHaveTextContent('You owe $75.00 CAD');
     });
 
@@ -125,9 +125,9 @@ describe('GroupCard', () => {
             },
         });
 
-        const badges = Array.from(container.querySelectorAll('[data-financial-amount=\"balance\"]'));
+        const badges = Array.from(container.querySelectorAll('[data-financial-amount="balance"]'));
         expect(badges).toHaveLength(2);
-        expect(badges[0]).toHaveTextContent("You're owed £25.00 GBP");
+        expect(badges[0]).toHaveTextContent('You\'re owed £25.00 GBP');
         expect(badges[1]).toHaveTextContent('You owe €10.00 EUR');
     });
 });

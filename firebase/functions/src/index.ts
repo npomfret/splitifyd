@@ -11,15 +11,8 @@ import { HTTP_STATUS, SYSTEM } from './constants';
 import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
 import { getAuth } from './firebase';
 import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
-import {
-    applySecurityPreset,
-    approveMember,
-    getPendingMembers,
-    rejectMember,
-    updateGroupPermissions,
-    updateMemberRole,
-} from './groups/security';
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
+import { applySecurityPreset, approveMember, getPendingMembers, rejectMember, updateGroupPermissions, updateMemberRole } from './groups/security';
 import { generateShareableLink, joinGroupByLink, previewGroupByLink } from './groups/shareHandlers';
 import { logger } from './logger';
 import { disableETags } from './middleware/cache-control';
@@ -44,13 +37,7 @@ import { APP_VERSION } from './utils/version';
 import { getAppBuilder } from './ApplicationBuilderSingleton';
 import { FirestoreCollections } from './constants';
 import { logMetrics } from './scheduled/metrics-logger';
-import {
-    trackExpenseChanges,
-    trackExpenseCommentChanges,
-    trackGroupChanges,
-    trackGroupCommentChanges,
-    trackSettlementChanges,
-} from './triggers/change-tracker';
+import { trackExpenseChanges, trackExpenseCommentChanges, trackGroupChanges, trackGroupCommentChanges, trackSettlementChanges } from './triggers/change-tracker';
 
 // Removed emulator connection test at module level to prevent connection creation
 // The emulator connection will be tested lazily when first needed

@@ -1,12 +1,12 @@
 import { ReturnTestUserResponse } from '@splitifyd/shared';
 import type { Request, Response } from 'express';
-import { getAuth, getFirestore, isEmulator } from '../firebase';
 import { getIdentityToolkitConfig } from '../client-config';
+import { getAuth, getFirestore, isEmulator } from '../firebase';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { TestUserPoolService } from './TestUserPoolService';
 
-//todo: use the singleton
+// todo: use the singleton
 const firestore = getFirestore();
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
 const firestoreWriter = applicationBuilder.buildFirestoreWriter();

@@ -1,9 +1,9 @@
 import { CreatePolicyResponse, DeletePolicyVersionResponse, PublishPolicyResponse, UpdatePolicyResponse } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
-import { getIdentityToolkitConfig } from '../client-config';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { PolicyService } from '../services/PolicyService';

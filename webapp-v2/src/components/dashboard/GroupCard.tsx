@@ -1,4 +1,4 @@
-import { absAmount, amountToSmallestUnit, GroupDTO, type Amount } from '@splitifyd/shared';
+import { absAmount, type Amount, amountToSmallestUnit, GroupDTO } from '@splitifyd/shared';
 import type { JSX } from 'preact';
 import { useTranslation } from 'react-i18next';
 import { Card, CurrencyAmount, Tooltip } from '../ui';
@@ -48,7 +48,8 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
             return settled;
         }
 
-        const balances = Object.values(group.balance.balancesByCurrency)
+        const balances = Object
+            .values(group.balance.balancesByCurrency)
             .map((balance) => ({
                 balance,
                 totalUnits: amountToSmallestUnit(balance.netBalance, balance.currency),
@@ -119,7 +120,12 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
                                     aria-label={t('groupCard.inviteTooltip', { groupName: group.name })}
                                 >
                                     <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' />
+                                        <path
+                                            stroke-linecap='round'
+                                            stroke-linejoin='round'
+                                            stroke-width='2'
+                                            d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'
+                                        />
                                     </svg>
                                 </button>
                             </Tooltip>

@@ -1,5 +1,5 @@
+import { GroupId } from '@splitifyd/shared';
 import * as admin from 'firebase-admin';
-import {GroupId} from "@splitifyd/shared";
 
 /**
  * User notification document structure (matches webapp's UserNotificationDetector)

@@ -1,4 +1,4 @@
-import { beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach } from 'vitest';
 
 const DEFAULT_TIMEOUT_MS = 3000;
 const activeTimers = new WeakMap<Parameters<typeof beforeEach>[0], NodeJS.Timeout>();
@@ -19,7 +19,7 @@ beforeEach((ctx) => {
 
     activeTimers.set(ctx, timer);
 
-    const maybeCtx = ctx as unknown as { onTestFinished?: (callback: () => void) => void };
+    const maybeCtx = ctx as unknown as { onTestFinished?: (callback: () => void) => void; };
     if (typeof maybeCtx.onTestFinished === 'function') {
         maybeCtx.onTestFinished(() => {
             clearTimeout(timer);

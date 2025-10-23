@@ -1,6 +1,6 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
-import { getGroupDisplayName } from '@/utils/displayName';
 import { formatDistanceToNow, formatExpenseDateTime } from '@/utils/dateUtils.ts';
+import { getGroupDisplayName } from '@/utils/displayName';
 import { ExpenseDTO, GroupMember } from '@splitifyd/shared';
 import { DELETED_AT_FIELD } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';

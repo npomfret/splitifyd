@@ -1,6 +1,6 @@
+import type { JSX } from 'preact';
 import { cloneElement, isValidElement } from 'preact/compat';
 import { useRef, useState } from 'preact/hooks';
-import type { JSX } from 'preact';
 
 type TooltipPlacement = 'top' | 'bottom';
 
@@ -45,10 +45,9 @@ export function Tooltip({ content, children, placement = 'top', className }: Too
         })
         : children;
 
-    const positionClasses =
-        placement === 'bottom'
-            ? 'top-full mt-2'
-            : 'bottom-full mb-2';
+    const positionClasses = placement === 'bottom'
+        ? 'top-full mt-2'
+        : 'bottom-full mb-2';
 
     const wrapperClasses = ['relative inline-flex', className].filter(Boolean).join(' ');
 
@@ -64,7 +63,9 @@ export function Tooltip({ content, children, placement = 'top', className }: Too
             <span
                 id={tooltipId}
                 role='tooltip'
-                className={`pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white shadow-lg transition-opacity duration-150 ${positionClasses} ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+                className={`pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white shadow-lg transition-opacity duration-150 ${positionClasses} ${
+                    isVisible ? 'opacity-100' : 'opacity-0'
+                }`}
                 aria-hidden={!isVisible}
             >
                 {content}

@@ -8,12 +8,12 @@
  * with real Firestore (cursor consistency, pagination edge cases with real data, etc.)
  */
 
+import { GroupId } from '@splitifyd/shared';
 import { ApiDriver, CreateGroupRequestBuilder, NotificationDriver, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { afterEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { FirestoreReader } from '../../services/firestore';
-import { GroupId } from '@splitifyd/shared';
 
 describe('FirestoreReader Integration Tests (Firebase-Specific Behavior)', () => {
     const apiDriver = new ApiDriver();

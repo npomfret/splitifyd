@@ -1,7 +1,17 @@
-import { CommentBuilder, ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { createJsonHandler } from '@/test/msw/handlers.ts';
+import {
+    CommentBuilder,
+    ExpenseDTOBuilder,
+    GroupBalancesBuilder,
+    GroupDetailPage,
+    GroupDTOBuilder,
+    GroupFullDetailsBuilder,
+    GroupMemberBuilder,
+    SettlementWithMembersBuilder,
+    ThemeBuilder,
+} from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi, mockPendingMembersApi, mockUpdateGroupPermissionsApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
-import { createJsonHandler } from '@/test/msw/handlers.ts';
 
 test.describe('Group Detail - Authentication and Navigation', () => {
     test('should redirect unauthenticated user to login', async ({ pageWithLogging: page }) => {

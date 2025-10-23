@@ -1,7 +1,7 @@
-import type { Amount } from '@splitifyd/shared';
-import { Tooltip } from './Tooltip';
 import { formatCurrency, type FormatOptions } from '@/utils/currency';
+import type { Amount } from '@splitifyd/shared';
 import type { JSX } from 'preact';
+import { Tooltip } from './Tooltip';
 
 type SpanAttributes = JSX.HTMLAttributes<HTMLSpanElement>;
 

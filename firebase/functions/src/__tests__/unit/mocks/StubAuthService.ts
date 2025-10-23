@@ -15,7 +15,7 @@ export class StubAuthService implements IAuthService {
     private passwords = new Map<string, string>();
 
     // Helper methods to set up test data
-    setUser(uid: string, user: Partial<UserRecord> & { uid: string; }, options: { password?: string } = {}) {
+    setUser(uid: string, user: Partial<UserRecord> & { uid: string; }, options: { password?: string; } = {}) {
         const fullUser: UserRecord = {
             uid,
             email: user.email,

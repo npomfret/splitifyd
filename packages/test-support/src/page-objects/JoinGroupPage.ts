@@ -1,9 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { DisplayNameConflictModalPage } from './DisplayNameConflictModalPage';
 import { HeaderPage } from './HeaderPage';
-import { translationEn } from '../translations/translation-en';
 
 const translation = translationEn;
 
@@ -429,7 +429,8 @@ export class JoinGroupPage extends BasePage {
             }
 
             throw new Error(`Expected error message "${expectedText}" not found in inline error or heading`);
-        }).toPass({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
     }
 
     /**

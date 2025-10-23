@@ -20,6 +20,7 @@ import type {
     GroupDTO,
     GroupFullDetailsDTO,
     GroupMembershipDTO,
+    GroupPermissions,
     JoinGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
@@ -28,21 +29,20 @@ import type {
     PolicyAcceptanceStatusDTO,
     PreviewGroupResponse,
     RegisterResponse,
+    SecurityPreset,
     SettlementDTO,
     ShareLinkResponse,
-    GroupPermissions,
-    SecurityPreset,
-    UpdateGroupRequest,
     UpdateDisplayNameRequest,
+    UpdateGroupRequest,
     UserPolicyStatusResponse,
     UserProfileResponse,
 } from '@splitifyd/shared';
 import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
+import { ExpenseId, GroupId } from '@splitifyd/shared';
+import { SettlementId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
-import {GroupId, ExpenseId} from "@splitifyd/shared";
-import {SettlementId} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 
@@ -812,7 +812,7 @@ class ApiClient {
     }
 
     async getPendingMembers(groupId: GroupId): Promise<GroupMembershipDTO[]> {
-        const response = await this.request<{ members: GroupMembershipDTO[] }>({
+        const response = await this.request<{ members: GroupMembershipDTO[]; }>({
             endpoint: `/groups/${groupId}/members/pending`,
             method: 'GET',
         });

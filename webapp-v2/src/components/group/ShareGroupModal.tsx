@@ -1,6 +1,6 @@
 import { apiClient } from '@/app/apiClient.ts';
-import { logError } from '@/utils/browser-logger.ts';
 import { Tooltip } from '@/components/ui';
+import { logError } from '@/utils/browser-logger.ts';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
@@ -160,7 +160,12 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                             <div class='flex flex-col space-y-1'>
                                 <div class='flex items-center space-x-2'>
                                     <svg class='w-5 h-5 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' />
+                                        <path
+                                            stroke-linecap='round'
+                                            stroke-linejoin='round'
+                                            stroke-width='2'
+                                            d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'
+                                        />
                                     </svg>
                                     <h3 id='share-modal-title' class='text-lg font-semibold text-gray-900'>
                                         {t('shareGroupModal.title')}

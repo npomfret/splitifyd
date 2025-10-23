@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { ISOString, ExpenseId } from '@splitifyd/shared';
+import type { ExpenseId, ISOString } from '@splitifyd/shared';
 import type { IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
@@ -72,9 +72,9 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 // Import parsed types from schemas
 import { CommentTargetType } from '@splitifyd/shared';
 import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
+import { SettlementId } from '@splitifyd/shared';
 import type { GroupBalanceDTO, ParsedShareLink } from '../../schemas';
-import {GroupId} from "@splitifyd/shared";
-import {SettlementId} from "@splitifyd/shared";
 
 export interface IFirestoreReader {
     // ========================================================================

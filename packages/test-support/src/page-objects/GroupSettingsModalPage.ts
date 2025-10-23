@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
-import { BasePage } from './BasePage';
 import { translationEn } from '../translations/translation-en';
+import { BasePage } from './BasePage';
 import { DashboardPage } from './DashboardPage';
 
 const translation = translationEn;
@@ -208,7 +208,7 @@ export class GroupSettingsModalPage extends BasePage {
     // MODAL LIFECYCLE
     // ============================================================================
 
-    async waitForModalToOpen(options: { tab?: GroupSettingsTab; timeout?: number } = {}): Promise<void> {
+    async waitForModalToOpen(options: { tab?: GroupSettingsTab; timeout?: number; } = {}): Promise<void> {
         const { tab, timeout = TEST_TIMEOUTS.MODAL_TRANSITION } = options;
         await expect(this.getModalContainer()).toBeVisible({ timeout });
 
@@ -270,7 +270,8 @@ export class GroupSettingsModalPage extends BasePage {
             if (currentValue !== name) {
                 throw new Error('Form value still changing');
             }
-        }).toPass({ timeout: 500, intervals: [50, 100] });
+        })
+            .toPass({ timeout: 500, intervals: [50, 100] });
 
         const currentValue = await nameInput.inputValue();
         if (currentValue !== name) {
@@ -306,7 +307,8 @@ export class GroupSettingsModalPage extends BasePage {
             if (currentValue !== description) {
                 throw new Error('Form value still changing');
             }
-        }).toPass({ timeout: 500, intervals: [50, 100] });
+        })
+            .toPass({ timeout: 500, intervals: [50, 100] });
 
         const currentValue = await descriptionInput.inputValue();
         if (currentValue !== description) {
@@ -483,7 +485,8 @@ export class GroupSettingsModalPage extends BasePage {
             await this.ensureSecurityTab();
             const button = this.getPendingApproveButton(memberId);
             await expect(button).toBeVisible({ timeout: 2000 });
-        }).toPass({ timeout });
+        })
+            .toPass({ timeout });
     }
 
     async selectPreset(preset: string): Promise<void> {
@@ -498,7 +501,8 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(async () => {
             await expect(saveButton).toBeEnabled();
             await this.clickButton(saveButton, { buttonName: translation.common.save });
-        }).toPass({ timeout: 8000 });
+        })
+            .toPass({ timeout: 8000 });
     }
 
     async selectPermission(key: string, option: string): Promise<void> {
@@ -630,9 +634,9 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
         await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 5000 });
 
-        const dashboardPage = (createDashboardPage
+        const dashboardPage = createDashboardPage
             ? createDashboardPage(this.page)
-            : (new DashboardPage(this.page) as unknown as T));
+            : (new DashboardPage(this.page) as unknown as T);
 
         const dashboardGuards = dashboardPage as unknown as {
             waitForDashboard?: () => Promise<void>;

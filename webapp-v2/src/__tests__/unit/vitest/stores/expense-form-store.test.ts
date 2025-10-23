@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest';
 import { expenseFormStore } from '@/app/stores/expense-form-store';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('expenseFormStore amount validation', () => {
     beforeEach(() => {
@@ -11,7 +11,9 @@ describe('expenseFormStore amount validation', () => {
 
         expect(() => {
             expenseFormStore.updateField('amount', '3.333');
-        }).not.toThrow();
+        })
+            .not
+            .toThrow();
 
         expect(expenseFormStore.validationErrors.amount).toContain('decimal place');
         expect(expenseFormStore.splits).toEqual([]);

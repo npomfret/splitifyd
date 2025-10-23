@@ -17,8 +17,8 @@ vi.mock('@/app/apiClient', () => {
     };
 });
 
-import { joinGroupStore } from '@/app/stores/join-group-store';
 import { apiClient } from '@/app/apiClient';
+import { joinGroupStore } from '@/app/stores/join-group-store';
 
 const mockedApiClient = apiClient as unknown as {
     joinGroupByLink: Mock;

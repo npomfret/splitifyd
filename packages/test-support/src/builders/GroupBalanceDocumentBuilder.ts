@@ -1,6 +1,6 @@
 import { Amount } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
-import {GroupId} from "@splitifyd/shared";
 
 interface GroupBalanceDocument {
     groupId: GroupId;

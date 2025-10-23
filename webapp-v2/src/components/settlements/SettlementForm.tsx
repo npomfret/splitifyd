@@ -4,9 +4,19 @@ import { CurrencyService } from '@/app/services/currencyService.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { formatCurrency } from '@/utils/currency';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
-import { getGroupDisplayName } from '@/utils/displayName';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
-import { amountToSmallestUnit, CreateSettlementRequest, getCurrencyDecimals, GroupMember, normalizeAmount, SettlementWithMembers, SimplifiedDebt, smallestUnitToAmountString, ZERO } from '@splitifyd/shared';
+import { getGroupDisplayName } from '@/utils/displayName';
+import {
+    amountToSmallestUnit,
+    CreateSettlementRequest,
+    getCurrencyDecimals,
+    GroupMember,
+    normalizeAmount,
+    SettlementWithMembers,
+    SimplifiedDebt,
+    smallestUnitToAmountString,
+    ZERO,
+} from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip } from '../ui';
@@ -129,9 +139,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         // Find the simplified debt from payer to payee in the specified currency
         const debt = simplifiedDebts.find(
             (d: SimplifiedDebt) =>
-                d.from.uid === payerId &&
-                d.to.uid === payeeId &&
-                d.currency === currency
+                d.from.uid === payerId
+                && d.to.uid === payeeId
+                && d.currency === currency,
         );
 
         // Return the debt amount if found, otherwise ZERO
@@ -380,7 +390,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                     <Tooltip content={t('settlementForm.closeModal')}>
                         <button onClick={onClose} class='text-gray-400 hover:text-gray-500' aria-label={t('settlementForm.closeModal')}>
                             <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
+                                <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
                             </svg>
                         </button>
                     </Tooltip>
@@ -389,7 +399,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 {/* Quick Settlement Buttons - only show in create mode when not pre-filled from balances */}
                 {!editMode && !preselectedDebt && currentUser && enhancedGroupDetailStore.balances?.simplifiedDebts && (() => {
                     const userDebts = enhancedGroupDetailStore.balances.simplifiedDebts.filter(
-                        (debt: SimplifiedDebt) => debt.from.uid === currentUser.uid
+                        (debt: SimplifiedDebt) => debt.from.uid === currentUser.uid,
                     );
 
                     if (userDebts.length === 0) return null;

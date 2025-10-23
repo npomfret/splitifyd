@@ -46,13 +46,7 @@
  */
 
 import { PooledTestUser } from '@splitifyd/shared';
-import {
-    ApiDriver,
-    borrowTestUsers,
-    CreateExpenseRequestBuilder,
-    CreateGroupRequestBuilder,
-    NotificationDriver,
-} from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, NotificationDriver } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 
@@ -159,10 +153,10 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(group.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid])
-                        .withAmount(35, 'USD')
-                        .build(),
-                    user1.token,
-                );
+                    .withAmount(35, 'USD')
+                    .build(),
+                user1.token,
+            );
 
             const events = await userListener.waitForEventCount(group.id, 'transaction', 2, 6000);
             const secondEvent = events[events.length - 1];

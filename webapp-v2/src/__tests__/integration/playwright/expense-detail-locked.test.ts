@@ -11,14 +11,14 @@ test.describe('Expense Detail - Locked Expense UI', () => {
 
         // Mock the expense detail API response with a locked expense
         const expense = new ExpenseDTOBuilder()
-                .withId(expenseId)
-                .withGroupId(groupId)
-                .withDescription('Locked Expense')
-                .withAmount(100.0, 'EUR')
-                .withPaidBy(testUser.uid)
-                .withParticipants([testUser.uid])
-                .withIsLocked(true) // Mark as locked
-                .build();
+            .withId(expenseId)
+            .withGroupId(groupId)
+            .withDescription('Locked Expense')
+            .withAmount(100.0, 'EUR')
+            .withPaidBy(testUser.uid)
+            .withParticipants([testUser.uid])
+            .withIsLocked(true) // Mark as locked
+            .build();
         const group = GroupDTOBuilder
             .groupForUser(testUser.uid)
             .withId(groupId)
@@ -67,14 +67,14 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         const groupId = 'test-group-456';
 
         const expense = new ExpenseDTOBuilder()
-                .withId(expenseId)
-                .withGroupId(groupId)
-                .withDescription('Locked Expense')
-                .withAmount(100.0, 'EUR')
-                .withPaidBy(testUser.uid)
-                .withParticipants([testUser.uid])
-                .withIsLocked(true) // Mark as locked
-                .build();
+            .withId(expenseId)
+            .withGroupId(groupId)
+            .withDescription('Locked Expense')
+            .withAmount(100.0, 'EUR')
+            .withPaidBy(testUser.uid)
+            .withParticipants([testUser.uid])
+            .withIsLocked(true) // Mark as locked
+            .build();
         const group = GroupDTOBuilder
             .groupForUser(testUser.uid)
             .withId(groupId)
@@ -120,13 +120,13 @@ test.describe('Expense Detail - Locked Expense UI', () => {
 
         // Mock the expense detail API response with a normal (unlocked) expense
         const expense = new ExpenseDTOBuilder()
-                .withId(expenseId)
-                .withGroupId(groupId)
-                .withDescription('Normal Expense')
-                .withAmount(50.0, 'EUR')
-                .withPaidBy(testUser.uid)
-                .withParticipants([testUser.uid])
-                .build();
+            .withId(expenseId)
+            .withGroupId(groupId)
+            .withDescription('Normal Expense')
+            .withAmount(50.0, 'EUR')
+            .withPaidBy(testUser.uid)
+            .withParticipants([testUser.uid])
+            .build();
         const group = GroupDTOBuilder
             .groupForUser(testUser.uid)
             .withId(groupId)

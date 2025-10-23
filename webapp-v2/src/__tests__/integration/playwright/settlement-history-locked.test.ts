@@ -1,4 +1,4 @@
-import { GroupDTOBuilder, GroupDetailPage, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { test } from '../../utils/console-logging-fixture';
 import { mockGroupDetailApi } from '../../utils/mock-firebase-service';

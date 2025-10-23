@@ -1,6 +1,14 @@
 import { amountToSmallestUnit, GroupDTO } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, NotificationDriver, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import {
+    ApiDriver,
+    borrowTestUsers,
+    CreateExpenseRequestBuilder,
+    CreateGroupRequestBuilder,
+    CreateSettlementRequestBuilder,
+    getFirebaseEmulatorConfig,
+    NotificationDriver,
+} from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
@@ -380,8 +388,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         .withParticipants([testUser1.uid, testUser2.uid])
                         .withSplitType('equal')
                         .build(),
-                ),
-            );
+                ));
 
             const results = await runWithLimitedConcurrency<unknown>(operations, 3);
 

@@ -1,12 +1,6 @@
-import type { ClientUser, GroupId } from '@splitifyd/shared';
 import type { Page } from '@playwright/test';
-import {
-    DisplayNameConflictModalPage,
-    JoinGroupPage,
-    JoinGroupResponseBuilder,
-    PreviewGroupResponseBuilder,
-    TEST_TIMEOUTS,
-} from '@splitifyd/test-support';
+import type { ClientUser, GroupId } from '@splitifyd/shared';
+import { DisplayNameConflictModalPage, JoinGroupPage, JoinGroupResponseBuilder, PreviewGroupResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupPreviewApi, mockJoinGroupApi, mockUpdateGroupDisplayNameApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
@@ -26,7 +20,7 @@ interface ConflictModalContext {
 }
 
 async function openConflictModal(
-    authenticatedPage: { page: Page; user: ClientUser },
+    authenticatedPage: { page: Page; user: ClientUser; },
     options: ConflictModalOptions = {},
 ): Promise<ConflictModalContext> {
     const { page, user } = authenticatedPage;

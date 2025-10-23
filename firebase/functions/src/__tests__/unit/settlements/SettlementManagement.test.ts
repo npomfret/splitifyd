@@ -90,8 +90,10 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Act & Assert: Outsider cannot retrieve settlement
             await expect(
-                appDriver.getSettlement(outsiderUserId, group.id, created.id)
-            ).rejects.toThrow(/status 403.*NOT_GROUP_MEMBER/);
+                appDriver.getSettlement(outsiderUserId, group.id, created.id),
+            )
+                .rejects
+                .toThrow(/status 403.*NOT_GROUP_MEMBER/);
         });
 
         it('should handle non-existent settlement', async () => {
@@ -103,8 +105,10 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Act & Assert: Non-existent settlement throws error
             await expect(
-                appDriver.getSettlement(userId, group.id, 'non-existent-id')
-            ).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+                appDriver.getSettlement(userId, group.id, 'non-existent-id'),
+            )
+                .rejects
+                .toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
         });
     });
 
@@ -183,8 +187,10 @@ describe('Settlement Management - Unit Tests', () => {
                 .build();
 
             await expect(
-                appDriver.updateSettlement(otherMemberUserId, created.id, updateData)
-            ).rejects.toThrow(/Only the creator can update this settlement/);
+                appDriver.updateSettlement(otherMemberUserId, created.id, updateData),
+            )
+                .rejects
+                .toThrow(/Only the creator can update this settlement/);
         });
 
         it('should validate update data', async () => {
@@ -217,8 +223,10 @@ describe('Settlement Management - Unit Tests', () => {
                 .build();
 
             await expect(
-                appDriver.updateSettlement(creatorUserId, created.id, invalidUpdateData)
-            ).rejects.toThrow(/Amount must be a valid decimal number/);
+                appDriver.updateSettlement(creatorUserId, created.id, invalidUpdateData),
+            )
+                .rejects
+                .toThrow(/Amount must be a valid decimal number/);
         });
     });
 
@@ -298,8 +306,10 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Act & Assert: Non-creator cannot delete
             await expect(
-                appDriver.deleteSettlement(otherMemberUserId, created.id)
-            ).rejects.toThrow(/Only the creator or group admin can delete this settlement/);
+                appDriver.deleteSettlement(otherMemberUserId, created.id),
+            )
+                .rejects
+                .toThrow(/Only the creator or group admin can delete this settlement/);
         });
 
         it('should handle deletion of non-existent settlement', async () => {
@@ -311,8 +321,10 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Act & Assert: Non-existent settlement deletion throws error
             await expect(
-                appDriver.deleteSettlement(userId, 'non-existent-id')
-            ).rejects.toThrow(/Settlement not found/);
+                appDriver.deleteSettlement(userId, 'non-existent-id'),
+            )
+                .rejects
+                .toThrow(/Settlement not found/);
         });
     });
 
@@ -357,8 +369,10 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Verify member who left cannot access the group or settlements
             await expect(
-                appDriver.getGroupFullDetails(leavingMemberUserId, group.id)
-            ).rejects.toThrow(/status 404.*NOT_FOUND|status 403.*NOT_GROUP_MEMBER/);
+                appDriver.getGroupFullDetails(leavingMemberUserId, group.id),
+            )
+                .rejects
+                .toThrow(/status 404.*NOT_FOUND|status 403.*NOT_GROUP_MEMBER/);
         });
     });
 
@@ -488,8 +502,10 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Act & Assert: Other member (not creator, not admin) cannot delete
             await expect(
-                appDriver.deleteSettlement(otherMemberUserId, created.id)
-            ).rejects.toThrow(/Only the creator or group admin can delete this settlement/);
+                appDriver.deleteSettlement(otherMemberUserId, created.id),
+            )
+                .rejects
+                .toThrow(/Only the creator or group admin can delete this settlement/);
         });
 
         it('should prevent double deletion of already deleted settlement', async () => {
@@ -521,8 +537,10 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Act & Assert: Second deletion should fail
             await expect(
-                appDriver.deleteSettlement(creatorUserId, created.id)
-            ).rejects.toThrow(/Settlement not found/);
+                appDriver.deleteSettlement(creatorUserId, created.id),
+            )
+                .rejects
+                .toThrow(/Settlement not found/);
         });
 
         it('should not allow updating a soft deleted settlement', async () => {
@@ -559,8 +577,10 @@ describe('Settlement Management - Unit Tests', () => {
                 .build();
 
             await expect(
-                appDriver.updateSettlement(creatorUserId, created.id, updateData)
-            ).rejects.toThrow(/Settlement not found/);
+                appDriver.updateSettlement(creatorUserId, created.id, updateData),
+            )
+                .rejects
+                .toThrow(/Settlement not found/);
         });
     });
 });

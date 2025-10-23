@@ -1147,7 +1147,9 @@ describe('StubFirestoreDatabase - Example Usage', () => {
                     transaction.update(docRef, { count: 999 });
                     throw new Error('abort');
                 }),
-            ).rejects.toThrow('abort');
+            )
+                .rejects
+                .toThrow('abort');
 
             expect(updates).toEqual([1]);
 
@@ -1229,7 +1231,9 @@ describe('StubFirestoreDatabase - Example Usage', () => {
                 const current = snap.data()?.value ?? 0;
                 transaction.update(docRef, { value: current + 10 });
                 throw new Error('rollback');
-            })).rejects.toThrow('rollback');
+            }))
+                .rejects
+                .toThrow('rollback');
 
             await waitForUpdates();
 

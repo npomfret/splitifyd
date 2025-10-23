@@ -187,6 +187,8 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
                 expense.id,
                 new ExpenseUpdateBuilder().withDescription('Unauthorized Update').build(),
             ),
-        ).rejects.toThrow();
+        )
+            .rejects
+            .toThrow();
     });
 });

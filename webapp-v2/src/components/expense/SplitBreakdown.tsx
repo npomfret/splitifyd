@@ -1,8 +1,8 @@
+import { CurrencyAmount } from '@/components/ui';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { amountToSmallestUnit, ExpenseDTO, GroupMember } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
-import { CurrencyAmount } from '@/components/ui';
 import { Avatar } from '../ui/Avatar';
 import { Stack } from '../ui/Stack';
 

@@ -2,12 +2,7 @@
 // Tests that expenses and settlements involving departed members become read-only (locked)
 
 import { calculateEqualSplits, GroupId } from '@splitifyd/shared';
-import {
-    CreateExpenseRequestBuilder,
-    CreateSettlementRequestBuilder,
-    ExpenseUpdateBuilder,
-    SettlementUpdateBuilder,
-} from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -599,7 +594,9 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                         .withPayeeId(userIds[0])
                         .build(),
                 ),
-            ).rejects.toThrow(/not.*member|departed|left.*group|cannot.*create.*settlement/i);
+            )
+                .rejects
+                .toThrow(/not.*member|departed|left.*group|cannot.*create.*settlement/i);
         });
 
         test('should prevent creating settlement with departed payee', async () => {
@@ -621,7 +618,9 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                         .withPayeeId(userIds[2]) // departed member
                         .build(),
                 ),
-            ).rejects.toThrow(/not.*member|departed|left.*group|cannot.*create.*settlement/i);
+            )
+                .rejects
+                .toThrow(/not.*member|departed|left.*group|cannot.*create.*settlement/i);
         });
     });
 
@@ -685,7 +684,9 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                         .withSplits(calculateEqualSplits(150, 'USD', userIds))
                         .build(),
                 ),
-            ).rejects.toThrow(/expense.*locked|cannot.*edit.*locked|cannot.*edit.*expense|participants.*left/i);
+            )
+                .rejects
+                .toThrow(/expense.*locked|cannot.*edit.*locked|cannot.*edit.*expense|participants.*left/i);
         });
 
         test('should compute lock status dynamically on each read', async () => {

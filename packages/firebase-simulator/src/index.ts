@@ -1,4 +1,6 @@
 export type {
+    IAggregateQuery,
+    IAggregateQuerySnapshot,
     ICollectionReference,
     IDocumentReference,
     IDocumentSnapshot,
@@ -10,27 +12,19 @@ export type {
     OrderByDirection,
     SetOptions,
     WhereFilterOp,
-    IAggregateQuery,
-    IAggregateQuerySnapshot,
 } from './firestore-types';
 
+export { FieldPath, FieldValue, Filter, Timestamp } from 'firebase-admin/firestore';
+export { createFirestoreDatabase } from './admin-firestore';
+export { type FirestoreTriggerChange, type FirestoreTriggerChangeHandler, type FirestoreTriggerEventType, type FirestoreTriggerHandlers, StubFirestoreDatabase } from './StubFirestoreDatabase';
 export {
-    StubFirestoreDatabase,
-    type FirestoreTriggerChange,
-    type FirestoreTriggerEventType,
-    type FirestoreTriggerChangeHandler,
-    type FirestoreTriggerHandlers,
-} from './StubFirestoreDatabase';
-export {
-    type TriggerOperation,
-    type TriggerDefinition,
-    type FirestoreTriggerHandler,
+    attachTriggersToStub,
+    type FirestoreProdTrigger,
     type FirestoreTriggerDocumentSnapshot,
     type FirestoreTriggerEvent,
-    type FirestoreProdTrigger,
+    type FirestoreTriggerHandler,
     registerTriggerWithStub,
-    attachTriggersToStub,
     toProdTrigger,
+    type TriggerDefinition,
+    type TriggerOperation,
 } from './triggers';
-export { createFirestoreDatabase } from './admin-firestore';
-export { FieldPath, FieldValue, Filter, Timestamp } from 'firebase-admin/firestore';

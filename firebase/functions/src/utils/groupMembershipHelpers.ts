@@ -1,6 +1,6 @@
 import type { GroupMembershipDTO, ISOString } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
 import { TopLevelGroupMemberDocument } from '../types';
-import {GroupId} from "@splitifyd/shared";
 
 /**
  * Helper functions for group membership document operations

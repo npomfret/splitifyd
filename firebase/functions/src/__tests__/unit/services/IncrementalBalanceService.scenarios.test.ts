@@ -1,6 +1,6 @@
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import type { SimplifiedDebt } from '@splitifyd/shared';
 import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
 import { FirestoreWriter } from '../../../services/firestore';

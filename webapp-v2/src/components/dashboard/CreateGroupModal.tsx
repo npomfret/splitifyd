@@ -1,10 +1,10 @@
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
+import { logInfo } from '@/utils/browser-logger';
 import { signal } from '@preact/signals';
 import { CreateGroupRequest } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, Tooltip } from '../ui';
-import { logInfo } from '@/utils/browser-logger';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
@@ -41,7 +41,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             if (e.key === 'Escape') {
                 logInfo('[CreateGroupModal] Closing modal: Escape key pressed', {
                     key: e.key,
-                    isSubmitting
+                    isSubmitting,
                 });
                 onClose();
             }
@@ -55,7 +55,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     const handleBackdropClick = (e: Event) => {
         if (e.target === e.currentTarget && !isSubmitting) {
             logInfo('[CreateGroupModal] Closing modal: Backdrop clicked', {
-                isSubmitting
+                isSubmitting,
             });
             onClose();
         }
@@ -213,12 +213,17 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
                     {/* Modal Footer */}
                     <div class='flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200'>
-                        <Button type='button' variant='secondary' onClick={() => {
-                            logInfo('[CreateGroupModal] Closing modal: Cancel button clicked', {
-                                isSubmitting
-                            });
-                            onClose();
-                        }} disabled={isSubmitting}>
+                        <Button
+                            type='button'
+                            variant='secondary'
+                            onClick={() => {
+                                logInfo('[CreateGroupModal] Closing modal: Cancel button clicked', {
+                                    isSubmitting,
+                                });
+                                onClose();
+                            }}
+                            disabled={isSubmitting}
+                        >
                             {t('createGroupModal.cancelButton')}
                         </Button>
                         <Button type='submit' loading={isSubmitting} disabled={!isFormValid}>

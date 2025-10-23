@@ -23,9 +23,9 @@ console.log(`🎯 Running policy seeding for ${env.environment}`);
 // Initialize Firebase using common pattern
 initializeFirebase(env);
 
+import { getIdentityToolkitConfig } from '../functions/src/client-config';
 import { FirestoreCollections } from '../functions/src/constants';
 import { getAuth, getFirestore } from '../functions/src/firebase';
-import { getIdentityToolkitConfig } from '../functions/src/client-config';
 import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder';
 
 // Get Firebase instances

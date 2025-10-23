@@ -1,15 +1,15 @@
 import { expect, Locator, Page } from '@playwright/test';
 import type { CreateGroupFormData } from '@splitifyd/shared';
+import { CreateGroupFormDataBuilder } from '../builders';
 import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
+import { generateShortId, randomString } from '../test-helpers';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { CreateGroupModalPage } from './CreateGroupModalPage';
 import { GroupDetailPage } from './GroupDetailPage';
-import { ShareGroupModalPage } from './ShareGroupModalPage';
 import { HeaderPage } from './HeaderPage';
 import { JoinGroupPage } from './JoinGroupPage';
-import { CreateGroupFormDataBuilder } from '../builders';
-import { generateShortId, randomString } from '../test-helpers';
-import { translationEn } from '../translations/translation-en';
+import { ShareGroupModalPage } from './ShareGroupModalPage';
 
 const translation = translationEn;
 let multiUserGroupCounter = 0;
@@ -75,7 +75,6 @@ export class DashboardPage extends BasePage {
             })
             .first();
     }
-
 
     /**
      * Welcome section for new users
@@ -346,7 +345,6 @@ export class DashboardPage extends BasePage {
         return this.getQuickActionsContainer().getByRole('button', { name: /view.*expenses/i });
     }
 
-
     /**
      * Group Card - Invite button (hover action)
      */
@@ -512,8 +510,7 @@ export class DashboardPage extends BasePage {
             await expect(this.page.getByRole('heading', { name })).toBeVisible();
         }
 
-        const createGroupDetailPage =
-            options.createGroupDetailPage
+        const createGroupDetailPage = options.createGroupDetailPage
             ?? ((page: Page) => this.createGroupDetailPageInstance<T>(page));
 
         const groupDetailPage = createGroupDetailPage(this.page);
@@ -557,23 +554,22 @@ export class DashboardPage extends BasePage {
             // This catches race conditions where modal opens then immediately closes
             await expect(modalPage.getModalContainer()).toBeVisible({ timeout: 500 });
             await expect(modalPage.getGroupNameInput()).toBeVisible({ timeout: 500 });
-
         } catch (error) {
             // Capture detailed page state when modal fails to open or stay open
             const url = this.page.url();
             const visibleButtons = await this.page.locator('button:visible').evaluateAll(
-                (buttons) => buttons.map((b) => b.textContent?.trim()).filter(Boolean)
+                (buttons) => buttons.map((b) => b.textContent?.trim()).filter(Boolean),
             );
             const dialogs = await this.page.locator('[role="dialog"]').count();
             const modalVisible = await modalPage.getModalContainer().isVisible().catch(() => false);
 
             throw new Error(
-                `Create Group modal failed to open or stay open after clicking button.\n` +
-                `Current URL: ${url}\n` +
-                `Dialogs in DOM: ${dialogs}\n` +
-                `Modal visible now: ${modalVisible}\n` +
-                `Visible buttons: ${JSON.stringify(visibleButtons)}\n` +
-                `Original error: ${error instanceof Error ? error.message : String(error)}`
+                `Create Group modal failed to open or stay open after clicking button.\n`
+                    + `Current URL: ${url}\n`
+                    + `Dialogs in DOM: ${dialogs}\n`
+                    + `Modal visible now: ${modalVisible}\n`
+                    + `Visible buttons: ${JSON.stringify(visibleButtons)}\n`
+                    + `Original error: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
 
@@ -633,8 +629,7 @@ export class DashboardPage extends BasePage {
             throw new Error(`Failed to navigate to group detail page after clicking "${groupName}". ` + `Current URL: ${currentUrl}. Expected pattern: /groups/[id]`);
         }
 
-        const createGroupDetailPage =
-            options.createGroupDetailPage
+        const createGroupDetailPage = options.createGroupDetailPage
             ?? ((page: Page) => this.createGroupDetailPageInstance<T>(page));
 
         const groupDetailPage = createGroupDetailPage(this.page);
@@ -678,10 +673,9 @@ export class DashboardPage extends BasePage {
         optionsOrBuilder: CreateGroupFormData | CreateGroupFormDataBuilder = new CreateGroupFormDataBuilder(),
         ...dashboardPages: DashboardPage[]
     ): Promise<T[]> {
-        const options =
-            optionsOrBuilder instanceof CreateGroupFormDataBuilder
-                ? optionsOrBuilder.build()
-                : optionsOrBuilder;
+        const options = optionsOrBuilder instanceof CreateGroupFormDataBuilder
+            ? optionsOrBuilder.build()
+            : optionsOrBuilder;
 
         const groupName = options.name ?? `g-${++multiUserGroupCounter} ${randomString(4)} ${randomString(6)} ${randomString(8)}`;
         const groupDescription = options.description ?? `descr for ${groupName}`;
@@ -897,7 +891,6 @@ export class DashboardPage extends BasePage {
             await expect(this.getGroupCards()).toHaveCount(expectedCount);
         }
     }
-
 
     /**
      * Verify quick actions card is displayed

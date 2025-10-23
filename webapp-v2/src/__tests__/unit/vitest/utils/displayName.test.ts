@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { getGroupDisplayName } from '@/utils/displayName';
+import { describe, expect, it } from 'vitest';
 
 describe('getGroupDisplayName', () => {
     it('returns group display name when available', () => {
@@ -14,7 +14,7 @@ describe('getGroupDisplayName', () => {
 
     it('throws when group display name is missing', () => {
         expect(() => getGroupDisplayName({ groupDisplayName: '', displayName: 'Jordan' })).toThrow(
-            'Expected groupDisplayName to be set'
+            'Expected groupDisplayName to be set',
         );
     });
 

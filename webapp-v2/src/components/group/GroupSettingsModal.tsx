@@ -3,15 +3,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import { useComputed } from '@preact/signals';
-import {
-    GroupDTO,
-    GroupMember,
-    GroupMembershipDTO,
-    GroupPermissions,
-    MemberRole,
-    PermissionLevels,
-    SecurityPreset,
-} from '@splitifyd/shared';
+import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset } from '@splitifyd/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, LoadingSpinner, Tooltip } from '../ui';
@@ -783,7 +775,9 @@ export function GroupSettingsModal({
                                 key={preset}
                                 type='button'
                                 onClick={() => applyPreset(preset)}
-                                className={`h-full border rounded-lg px-4 py-3 text-left transition ${isActive ? 'border-purple-500 bg-purple-50 shadow-sm' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/40'}`}
+                                className={`h-full border rounded-lg px-4 py-3 text-left transition ${
+                                    isActive ? 'border-purple-500 bg-purple-50 shadow-sm' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50/40'
+                                }`}
                                 data-testid={`preset-button-${preset}`}
                             >
                                 <div className='flex items-center justify-between'>
@@ -800,9 +794,7 @@ export function GroupSettingsModal({
             <section>
                 <div className='flex items-center justify-between mb-2'>
                     <h3 className='text-base font-semibold text-gray-900'>{t('securitySettingsModal.custom.heading')}</h3>
-                    {selectedPreset === 'custom' && hasPermissionChanges && (
-                        <span className='text-xs text-purple-600 font-medium'>{t('securitySettingsModal.custom.unsaved')}</span>
-                    )}
+                    {selectedPreset === 'custom' && hasPermissionChanges && <span className='text-xs text-purple-600 font-medium'>{t('securitySettingsModal.custom.unsaved')}</span>}
                 </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {permissionOrder.map((key) => (
@@ -913,7 +905,12 @@ export function GroupSettingsModal({
     return (
         <>
             <div className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
-                <div className='relative top-12 mx-auto w-full max-w-3xl bg-white rounded-xl shadow-xl border border-gray-200' role='dialog' aria-modal='true' aria-labelledby='group-settings-modal-title'>
+                <div
+                    className='relative top-12 mx-auto w-full max-w-3xl bg-white rounded-xl shadow-xl border border-gray-200'
+                    role='dialog'
+                    aria-modal='true'
+                    aria-labelledby='group-settings-modal-title'
+                >
                     <div className='flex items-center justify-between px-6 py-4 border-b border-gray-200'>
                         <div>
                             <h2 id='group-settings-modal-title' className='text-lg font-semibold text-gray-900' data-testid='group-settings-modal-title'>
@@ -944,7 +941,9 @@ export function GroupSettingsModal({
                                             key={tab}
                                             type='button'
                                             onClick={() => setActiveTab(tab)}
-                                            className={`pb-2 text-sm font-medium border-b-2 transition-colors ${isActive ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                                            className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
+                                                isActive ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                            }`}
                                             data-testid={`group-settings-tab-${tab}`}
                                         >
                                             {t(`groupSettingsModal.tabs.${tab}`)}

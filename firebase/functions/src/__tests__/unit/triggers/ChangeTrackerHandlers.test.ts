@@ -1,9 +1,9 @@
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
-import { describe, expect, it, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import type { UserNotificationDocument } from '../../../schemas/user-notifications';
 import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { NotificationService } from '../../../services/notification-service';
 import { ChangeTrackerHandlers } from '../../../triggers/ChangeTrackerHandlers';
-import type { UserNotificationDocument } from '../../../schemas/user-notifications';
 
 describe('ChangeTrackerHandlers - Unit Tests with Trigger Simulation', () => {
     let db: StubFirestoreDatabase;
@@ -227,7 +227,9 @@ describe('ChangeTrackerHandlers - Unit Tests with Trigger Simulation', () => {
                     txn.update(groupRef, { name: 'Will be rolled back' });
                     throw new Error('Transaction rolled back');
                 }),
-            ).rejects.toThrow('Transaction rolled back');
+            )
+                .rejects
+                .toThrow('Transaction rolled back');
 
             expect(triggerCalls).toHaveLength(0);
 

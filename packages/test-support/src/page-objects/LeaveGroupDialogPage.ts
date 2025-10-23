@@ -1,8 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
+import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { DashboardPage } from './DashboardPage';
-import { translationEn } from '../translations/translation-en';
 
 const translation = translationEn;
 

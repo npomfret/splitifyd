@@ -1,17 +1,17 @@
 import type { FirestoreTriggerDocumentSnapshot, FirestoreTriggerEvent } from '@splitifyd/firebase-simulator';
-import { getAuth, getFirestore } from '../firebase';
+import { GroupId } from '@splitifyd/shared';
 import { getIdentityToolkitConfig } from '../client-config';
+import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import type { IFirestoreReader } from '../services/firestore';
 import type { NotificationService } from '../services/notification-service';
 import { ChangeType } from '../utils/change-detection';
-import {GroupId} from "@splitifyd/shared";
 
 export class ChangeTrackerHandlers {
     constructor(private readonly firestoreReader: IFirestoreReader, private readonly notificationService: NotificationService) {}
 
-    static createChangeTrackerHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig()),) {
+    static createChangeTrackerHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const firestoreReader = applicationBuilder.buildFirestoreReader();
         const notificationService = applicationBuilder.buildNotificationService();
         return new ChangeTrackerHandlers(firestoreReader, notificationService);
@@ -19,10 +19,10 @@ export class ChangeTrackerHandlers {
 
     async handleGroupChange(event: FirestoreTriggerEvent<{ groupId: GroupId; }>) {
         const groupId = event.params.groupId;
-        const {changeType} = this.extractDataChange(event);
+        const { changeType } = this.extractDataChange(event);
 
         if (changeType === 'deleted') {
-            logger.info('group-deleted', {groupId});
+            logger.info('group-deleted', { groupId });
             return;
         }
 
@@ -32,16 +32,16 @@ export class ChangeTrackerHandlers {
             await this.notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
         }
 
-        logger.info('group-changed', {id: groupId, groupId, usersNotified: affectedUsers.length});
-    };
+        logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
+    }
 
     async handleExpenseChange(event: FirestoreTriggerEvent<{ expenseId: string; }>) {
         const expenseId = event.params.expenseId;
-        const {after, changeType} = this.extractDataChange(event);
+        const { after, changeType } = this.extractDataChange(event);
 
         // For delete events, we need to use the 'before' snapshot to get groupId
         if (changeType === 'deleted') {
-            const {before} = this.extractDataChange(event);
+            const { before } = this.extractDataChange(event);
             const beforeData = before?.data();
             const groupId = beforeData?.groupId;
 
@@ -60,7 +60,7 @@ export class ChangeTrackerHandlers {
                 'balance',
             ]);
 
-            logger.info('expense-deleted', {id: expenseId, groupId, usersNotified: affectedUsers.length});
+            logger.info('expense-deleted', { id: expenseId, groupId, usersNotified: affectedUsers.length });
             return;
         }
 
@@ -77,16 +77,16 @@ export class ChangeTrackerHandlers {
             'balance',
         ]);
 
-        logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.length});
-    };
+        logger.info('expense-changed', { id: expenseId, groupId, usersNotified: affectedUsers.length });
+    }
 
     handleSettlementChange = async (event: FirestoreTriggerEvent<{ settlementId: string; }>) => {
         const settlementId = event.params.settlementId;
-        const {after, changeType} = this.extractDataChange(event);
+        const { after, changeType } = this.extractDataChange(event);
 
         // For delete events, we need to use the 'before' snapshot to get groupId
         if (changeType === 'deleted') {
-            const {before} = this.extractDataChange(event);
+            const { before } = this.extractDataChange(event);
             const beforeData = before?.data();
             const groupId = beforeData?.groupId;
 
@@ -96,7 +96,7 @@ export class ChangeTrackerHandlers {
                     changeType,
                     hasBeforeData: !!beforeData,
                 });
-                return {groupId: '', affectedUserCount: 0};
+                return { groupId: '', affectedUserCount: 0 };
             }
 
             const affectedUsers = await this.firestoreReader.getAllGroupMemberIds(groupId);
@@ -105,8 +105,8 @@ export class ChangeTrackerHandlers {
                 'balance',
             ]);
 
-            logger.info('settlement-deleted', {id: settlementId, groupId, usersNotified: affectedUsers.length});
-            return {groupId, affectedUserCount: affectedUsers.length};
+            logger.info('settlement-deleted', { id: settlementId, groupId, usersNotified: affectedUsers.length });
+            return { groupId, affectedUserCount: affectedUsers.length };
         }
 
         const afterData = after?.data();
@@ -122,9 +122,9 @@ export class ChangeTrackerHandlers {
             'balance',
         ]);
 
-        logger.info('settlement-changed', {id: settlementId, groupId, usersNotified: affectedUsers.length});
+        logger.info('settlement-changed', { id: settlementId, groupId, usersNotified: affectedUsers.length });
 
-        return {groupId, affectedUserCount: affectedUsers.length};
+        return { groupId, affectedUserCount: affectedUsers.length };
     };
 
     async handleGroupCommentChange(event: FirestoreTriggerEvent<{ groupId: GroupId; commentId: string; }>) {
@@ -137,8 +137,8 @@ export class ChangeTrackerHandlers {
             await this.notificationService.batchUpdateNotifications(affectedUsers, groupId, 'comment');
         }
 
-        logger.info('group-comment-changed', {id: commentId, groupId, usersNotified: affectedUsers.length});
-    };
+        logger.info('group-comment-changed', { id: commentId, groupId, usersNotified: affectedUsers.length });
+    }
 
     async handleExpenseCommentChange(event: FirestoreTriggerEvent<{ expenseId: string; commentId: string; }>) {
         const expenseId = event.params.expenseId;
@@ -160,21 +160,20 @@ export class ChangeTrackerHandlers {
             groupId,
             usersNotified: affectedUsers.length,
         });
-    };
+    }
 
     private extractDataChange(event: FirestoreTriggerEvent): {
         before?: FirestoreTriggerDocumentSnapshot;
         after?: FirestoreTriggerDocumentSnapshot;
         changeType: ChangeType;
     } {
-        const {before, after} = event.data;
-        const changeType: ChangeType =
-            event.changeType === 'create'
-                ? 'created'
-                : event.changeType === 'delete'
-                    ? 'deleted'
-                    : 'updated';
+        const { before, after } = event.data;
+        const changeType: ChangeType = event.changeType === 'create'
+            ? 'created'
+            : event.changeType === 'delete'
+            ? 'deleted'
+            : 'updated';
 
-        return {before, after, changeType};
+        return { before, after, changeType };
     }
 }

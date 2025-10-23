@@ -4,21 +4,21 @@
  * Handles joining a group via share link invitation
  */
 
-import { navigationService } from '@/services/navigation.service';
-import { useComputed } from '@preact/signals';
-import { useEffect } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
-import { joinGroupStore } from '../app/stores/join-group-store';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { Card } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { LoadingSpinner } from '@/components/ui';
+import { navigationService } from '@/services/navigation.service';
+import { useComputed } from '@preact/signals';
+import { useEffect } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { joinGroupStore } from '../app/stores/join-group-store';
+import { DisplayNameConflictModal } from '../components/join-group/DisplayNameConflictModal';
 import { GroupPreview } from '../components/join-group/GroupPreview';
 import { JoinButton } from '../components/join-group/JoinButton';
 import { MembersPreview } from '../components/join-group/MembersPreview';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { DisplayNameConflictModal } from '../components/join-group/DisplayNameConflictModal';
 
 interface JoinGroupPageProps {
     linkId?: string;
@@ -226,9 +226,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                                             {t('joinGroupPage.goToGroup')}
                                         </Button>
                                     )
-                                    : (
-                                        <JoinButton onJoin={handleJoinGroup} loading={joining} disabled={pendingApproval} />
-                                    )}
+                                    : <JoinButton onJoin={handleJoinGroup} loading={joining} disabled={pendingApproval} />}
 
                                 <Button variant='secondary' onClick={() => navigationService.goToDashboard()} fullWidth>
                                     {t('joinGroupPage.cancel')}

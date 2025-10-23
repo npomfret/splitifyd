@@ -1,5 +1,5 @@
-import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';

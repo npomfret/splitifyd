@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
-import { BasePage } from './BasePage';
 import { translationEn } from '../translations/translation-en';
+import { BasePage } from './BasePage';
 
 /**
  * Page Object Model for the Display Name Conflict modal shown during the join group flow.
@@ -132,7 +132,8 @@ export class DisplayNameConflictModalPage extends BasePage {
             await expect(errorElement).toBeVisible();
             const text = await errorElement.textContent();
             expect(text).toContain(expectedText);
-        }).toPass({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY, intervals: [50, 100, 200, 500] });
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY, intervals: [50, 100, 200, 500] });
     }
 
     async verifyNoServerError(): Promise<void> {

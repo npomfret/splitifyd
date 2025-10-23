@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { getAuth, getFirestore } from '../firebase';
 import { getIdentityToolkitConfig } from '../client-config';
+import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 

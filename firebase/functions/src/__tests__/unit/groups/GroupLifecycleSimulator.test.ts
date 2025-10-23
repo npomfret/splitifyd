@@ -1,6 +1,6 @@
-import { beforeEach, afterEach, describe, expect, it } from 'vitest';
+import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
-import { MemberRoles, MemberStatuses, amountToSmallestUnit, calculateEqualSplits } from '@splitifyd/shared';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('Group lifecycle behaviour (stub firestore)', () => {
@@ -146,7 +146,9 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             {
                 name: 'Intrusion Attempt',
             },
-        )).rejects.toThrow();
+        ))
+            .rejects
+            .toThrow();
 
         await expect(groupService.deleteGroup(group.id, member.id)).rejects.toThrow();
     });

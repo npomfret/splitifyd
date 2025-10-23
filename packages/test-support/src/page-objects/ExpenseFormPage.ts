@@ -498,15 +498,18 @@ export class ExpenseFormPage extends BasePage {
             return;
         }
 
-        const availableOptions = await this.page
+        const availableOptions = await this
+            .page
             .locator('label:has(input[type="radio"][name="paidBy"])')
             .allTextContents();
 
         throw new Error(
-            `Could not find payer "${displayName}". Available options: ${availableOptions
-                .map((text) => text.trim())
-                .filter(Boolean)
-                .join(', ')}`,
+            `Could not find payer "${displayName}". Available options: ${
+                availableOptions
+                    .map((text) => text.trim())
+                    .filter(Boolean)
+                    .join(', ')
+            }`,
         );
     }
 
@@ -932,7 +935,8 @@ export class ExpenseFormPage extends BasePage {
         await expect(async () => {
             const value = await this.getDateInput().inputValue();
             expect(value).toMatch(pattern);
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     async setDate(value: string): Promise<void> {

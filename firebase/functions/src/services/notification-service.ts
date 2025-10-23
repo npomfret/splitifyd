@@ -17,13 +17,13 @@
  * - Atomic consistency using FieldValue operations
  */
 
+import { GroupId } from '@splitifyd/shared';
+import { FieldValue } from '../firestore-wrapper';
+import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import { type CreateUserNotificationDocument } from '../schemas/user-notifications';
 import type { IFirestoreReader } from './firestore';
 import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './firestore/IFirestoreWriter';
-import {GroupId} from "@splitifyd/shared";
-import { FieldValue } from '../firestore-wrapper';
-import { logger } from '../logger';
 
 export type ChangeType = 'transaction' | 'balance' | 'group' | 'comment';
 

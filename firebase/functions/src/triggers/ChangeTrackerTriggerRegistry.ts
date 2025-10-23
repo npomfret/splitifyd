@@ -1,14 +1,8 @@
-import {
-    TriggerDefinition,
-    TriggerOperation,
-    FirestoreTriggerHandler,
-    FirestoreProdTrigger,
-    toProdTrigger,
-} from '@splitifyd/firebase-simulator';
+import { FirestoreProdTrigger, FirestoreTriggerHandler, toProdTrigger, TriggerDefinition, TriggerOperation } from '@splitifyd/firebase-simulator';
+import { GroupId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../constants';
 import { measureTrigger } from '../monitoring/measure';
 import { ChangeTrackerHandlers } from './ChangeTrackerHandlers';
-import { GroupId } from "@splitifyd/shared";
 
 export type TriggerName =
     | 'trackGroupChanges'
@@ -52,7 +46,7 @@ const changeTrackerTriggerDefinitions: ReadonlyArray<ChangeTrackerTriggerDefinit
         handlerName: 'handleGroupChange',
         operations: ['create', 'update', 'delete'],
         metricName: 'trackGroupChanges',
-        mapParams: ({groupId}) => ({groupId}),
+        mapParams: ({ groupId }) => ({ groupId }),
     }),
     toProdTrigger<'trackExpenseChanges', TriggerParamsByName['trackExpenseChanges'], { handlerName: HandlerNameByTrigger['trackExpenseChanges']; metricName: string; }>({
         name: 'trackExpenseChanges',
@@ -60,7 +54,7 @@ const changeTrackerTriggerDefinitions: ReadonlyArray<ChangeTrackerTriggerDefinit
         handlerName: 'handleExpenseChange',
         operations: ['create', 'update'],
         metricName: 'trackExpenseChanges',
-        mapParams: ({expenseId}) => ({expenseId}),
+        mapParams: ({ expenseId }) => ({ expenseId }),
     }),
     toProdTrigger<'trackSettlementChanges', TriggerParamsByName['trackSettlementChanges'], { handlerName: HandlerNameByTrigger['trackSettlementChanges']; metricName: string; }>({
         name: 'trackSettlementChanges',
@@ -68,7 +62,7 @@ const changeTrackerTriggerDefinitions: ReadonlyArray<ChangeTrackerTriggerDefinit
         handlerName: 'handleSettlementChange',
         operations: ['create', 'update'],
         metricName: 'trackSettlementChanges',
-        mapParams: ({settlementId}) => ({settlementId}),
+        mapParams: ({ settlementId }) => ({ settlementId }),
     }),
     toProdTrigger<'trackGroupCommentChanges', TriggerParamsByName['trackGroupCommentChanges'], { handlerName: HandlerNameByTrigger['trackGroupCommentChanges']; metricName: string; }>({
         name: 'trackGroupCommentChanges',
@@ -76,7 +70,7 @@ const changeTrackerTriggerDefinitions: ReadonlyArray<ChangeTrackerTriggerDefinit
         handlerName: 'handleGroupCommentChange',
         operations: ['create', 'update'],
         metricName: 'trackGroupCommentChanges',
-        mapParams: ({groupId, commentId}) => ({groupId, commentId}),
+        mapParams: ({ groupId, commentId }) => ({ groupId, commentId }),
     }),
     toProdTrigger<'trackExpenseCommentChanges', TriggerParamsByName['trackExpenseCommentChanges'], { handlerName: HandlerNameByTrigger['trackExpenseCommentChanges']; metricName: string; }>({
         name: 'trackExpenseCommentChanges',
@@ -84,7 +78,7 @@ const changeTrackerTriggerDefinitions: ReadonlyArray<ChangeTrackerTriggerDefinit
         handlerName: 'handleExpenseCommentChange',
         operations: ['create', 'update'],
         metricName: 'trackExpenseCommentChanges',
-        mapParams: ({expenseId, commentId}) => ({expenseId, commentId}),
+        mapParams: ({ expenseId, commentId }) => ({ expenseId, commentId }),
     }),
 ] as const;
 
@@ -100,13 +94,12 @@ const bindHandler = (
 
 export type ChangeTrackerTriggerExports = Record<TriggerName, FirestoreProdTrigger>;
 
-export const createChangeTrackerTriggerExports = (handlers: ChangeTrackerHandlers,): ChangeTrackerTriggerExports => {
+export const createChangeTrackerTriggerExports = (handlers: ChangeTrackerHandlers): ChangeTrackerTriggerExports => {
     const triggers = {} as Record<TriggerName, FirestoreProdTrigger>;
 
     for (const definition of changeTrackerTriggerDefinitions) {
         const handler = bindHandler(handlers, definition);
-        const measuredHandler: FirestoreTriggerHandler = (event) =>
-            measureTrigger(definition.metricName, () => handler(event));
+        const measuredHandler: FirestoreTriggerHandler = (event) => measureTrigger(definition.metricName, () => handler(event));
         triggers[definition.name] = definition.createProdTrigger(measuredHandler);
     }
 

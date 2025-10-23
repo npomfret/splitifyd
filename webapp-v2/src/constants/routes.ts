@@ -1,4 +1,4 @@
-import {GroupId, ExpenseId} from "@splitifyd/shared";
+import { ExpenseId, GroupId } from '@splitifyd/shared';
 
 export const ROUTES = {
     // Main Routes

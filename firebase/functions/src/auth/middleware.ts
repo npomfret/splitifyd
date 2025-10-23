@@ -1,8 +1,8 @@
 import { AuthenticatedUser, SystemUserRoles } from '@splitifyd/shared';
 import { NextFunction, Request, Response } from 'express';
+import { getIdentityToolkitConfig } from '../client-config';
 import { AUTH } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
-import { getIdentityToolkitConfig } from '../client-config';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';

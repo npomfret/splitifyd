@@ -126,14 +126,16 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                         p-1.5 rounded-lg
                         transition-colors
                         ${
-                        text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
-                            ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
-                            : 'text-gray-400 cursor-not-allowed'
-                    }
+                            text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
+                                ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
+                                : 'text-gray-400 cursor-not-allowed'
+                        }
                     `}
                         aria-label={t('comments.input.sendAriaLabel')}
                     >
-                        {isSubmitting ? <div className='w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin' /> : <PaperAirplaneIcon className='w-4 h-4' aria-hidden='true' />}
+                        {isSubmitting
+                            ? <div className='w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin' />
+                            : <PaperAirplaneIcon className='w-4 h-4' aria-hidden='true' />}
                     </button>
                 </Tooltip>
             </div>

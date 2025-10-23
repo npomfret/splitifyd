@@ -1,5 +1,5 @@
-import { PolicyDocumentBuilder } from '@splitifyd/test-support';
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { PolicyDocumentBuilder } from '@splitifyd/test-support';
 import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';

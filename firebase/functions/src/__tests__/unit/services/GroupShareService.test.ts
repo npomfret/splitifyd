@@ -1,6 +1,6 @@
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreReader } from '../../../services/firestore';

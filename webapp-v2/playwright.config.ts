@@ -1,10 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const DEV_SERVER_HOST = '127.0.0.1';
-const ASSIGNED_PORT =
-    process.env.PLAYWRIGHT_DEV_PORT ??
-    process.env.PLAYWRIGHT_ASSIGNED_PORT ??
-    String(40000 + Math.floor(Math.random() * 10000));
+const ASSIGNED_PORT = process.env.PLAYWRIGHT_DEV_PORT
+    ?? process.env.PLAYWRIGHT_ASSIGNED_PORT
+    ?? String(40000 + Math.floor(Math.random() * 10000));
 
 process.env.PLAYWRIGHT_ASSIGNED_PORT = ASSIGNED_PORT;
 

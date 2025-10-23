@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { getAuth, getFirestore } from '../firebase';
 import { getIdentityToolkitConfig } from '../client-config';
+import { getAuth, getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { logger } from '../utils/contextual-logger';

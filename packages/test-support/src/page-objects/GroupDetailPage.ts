@@ -1,16 +1,16 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { TEST_TIMEOUTS } from '../test-constants';
-import { BasePage } from './BasePage';
-import { GroupSettingsModalPage } from './GroupSettingsModalPage';
-import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
-import { ShareGroupModalPage } from './ShareGroupModalPage';
-import { ExpenseFormPage } from './ExpenseFormPage';
-import { ExpenseDetailPage } from './ExpenseDetailPage';
-import { SettlementFormPage } from './SettlementFormPage';
-import { RemoveMemberDialogPage } from './RemoveMemberDialogPage';
-import { HeaderPage } from './HeaderPage';
-import { translationEn } from '../translations/translation-en';
 import { GroupId } from '@splitifyd/shared';
+import { TEST_TIMEOUTS } from '../test-constants';
+import { translationEn } from '../translations/translation-en';
+import { BasePage } from './BasePage';
+import { ExpenseDetailPage } from './ExpenseDetailPage';
+import { ExpenseFormPage } from './ExpenseFormPage';
+import { GroupSettingsModalPage } from './GroupSettingsModalPage';
+import { HeaderPage } from './HeaderPage';
+import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
+import { RemoveMemberDialogPage } from './RemoveMemberDialogPage';
+import { SettlementFormPage } from './SettlementFormPage';
+import { ShareGroupModalPage } from './ShareGroupModalPage';
 
 const translation = translationEn;
 
@@ -86,10 +86,11 @@ export class GroupDetailPage extends BasePage {
             if (normalizedTitle !== expectedText) {
                 throw new Error(`Title is still "${normalizedTitle}", waiting for "${expectedText}"`);
             }
-        }).toPass({
-            timeout,
-            intervals: [500, 1000, 1500, 2000],
-        });
+        })
+            .toPass({
+                timeout,
+                intervals: [500, 1000, 1500, 2000],
+            });
     }
 
     /**
@@ -104,10 +105,11 @@ export class GroupDetailPage extends BasePage {
             if (normalizedDescription !== expectedText) {
                 throw new Error(`Description is still "${normalizedDescription}", waiting for "${expectedText}"`);
             }
-        }).toPass({
-            timeout,
-            intervals: [500, 1000, 1500, 2000],
-        });
+        })
+            .toPass({
+                timeout,
+                intervals: [500, 1000, 1500, 2000],
+            });
     }
 
     /**
@@ -397,8 +399,7 @@ export class GroupDetailPage extends BasePage {
         const button = this.getSettleUpButton();
         await this.clickButton(button, { buttonName: 'Settle up' });
 
-        const createSettlementFormPage =
-            options.createSettlementFormPage
+        const createSettlementFormPage = options.createSettlementFormPage
             ?? ((page: Page) => new SettlementFormPage(page) as unknown as T);
 
         const settlementFormPage = createSettlementFormPage(this.page);
@@ -499,7 +500,8 @@ export class GroupDetailPage extends BasePage {
                         + `Members: [${memberNames.join(', ')}]. URL: ${this.page.url()}`,
                 );
             }
-        }).toPass({ timeout });
+        })
+            .toPass({ timeout });
     }
 
     /**
@@ -648,7 +650,8 @@ export class GroupDetailPage extends BasePage {
         await expect(async () => {
             const count = await this.getCommentItems().count();
             expect(count).toBe(expectedCount);
-        }).toPass({ timeout });
+        })
+            .toPass({ timeout });
     }
 
     /**
@@ -860,7 +863,8 @@ export class GroupDetailPage extends BasePage {
                 `Failed to find visible member "${memberName}".`,
                 `Visible members:`,
                 visibleMembers.map((m, index) => `  ${index + 1}. ${m}`).join('\n') || '  (none)',
-            ].join('\n');
+            ]
+                .join('\n');
             throw new Error(message);
         }
 
@@ -894,7 +898,8 @@ export class GroupDetailPage extends BasePage {
         await expect(descriptionElement).toBeVisible();
         if (amount) {
             // Find the expense-item container that contains this description
-            const expenseItem = this.getExpensesContainer()
+            const expenseItem = this
+                .getExpensesContainer()
                 .locator('[data-testid="expense-item"]')
                 .filter({ hasText: description });
             const amountElement = expenseItem.getByTestId('expense-amount');
@@ -962,7 +967,8 @@ export class GroupDetailPage extends BasePage {
                         + `Looking for amount: "${currencyAmount}"`,
                 );
             }
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     /**
@@ -980,10 +986,11 @@ export class GroupDetailPage extends BasePage {
             if (!visible) {
                 throw new Error(`Expense with description "${description}" found but not visible yet`);
             }
-        }).toPass({
-            timeout,
-            intervals: [100, 200, 300, 500, 1000],
-        });
+        })
+            .toPass({
+                timeout,
+                intervals: [100, 200, 300, 500, 1000],
+            });
     }
 
     /**
@@ -1091,11 +1098,14 @@ export class GroupDetailPage extends BasePage {
             }
 
             // Find debt items containing both names - supports both old (→) and new (owes...to) format
-            const debtItems = balancesSection.locator('[data-testid="debt-item"]').filter({
-                hasText: debtorName,
-            }).filter({
-                hasText: creditorName,
-            });
+            const debtItems = balancesSection
+                .locator('[data-testid="debt-item"]')
+                .filter({
+                    hasText: debtorName,
+                })
+                .filter({
+                    hasText: creditorName,
+                });
 
             const count = await debtItems.count();
             if (count === 0) {
@@ -1239,8 +1249,7 @@ export class GroupDetailPage extends BasePage {
             await expect(modal.getByRole('heading', { name: /Update Settlement/i })).toBeVisible();
         }
 
-        const createFormPage =
-            options.createSettlementFormPage
+        const createFormPage = options.createSettlementFormPage
             ?? ((page: Page) => new SettlementFormPage(page) as unknown as T);
 
         const settlementFormPage = createFormPage(this.page);

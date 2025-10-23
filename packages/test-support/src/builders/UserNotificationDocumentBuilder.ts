@@ -5,7 +5,7 @@
  * Note: This is a simplified version adapted for browser tests.
  * The server version uses Firestore Timestamps from firebase-admin.
  */
-import {GroupId} from "@splitifyd/shared";
+import { GroupId } from '@splitifyd/shared';
 
 // Browser-safe type definitions (using Date instead of Timestamp)
 interface UserNotificationGroupDocument {

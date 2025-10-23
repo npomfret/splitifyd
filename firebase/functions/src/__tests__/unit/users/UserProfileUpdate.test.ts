@@ -48,7 +48,9 @@ describe('User Profile Update - Unit Tests', () => {
             // Try to update profile without valid user
             await expect(
                 appDriver.updateUserProfile('non-existent-user', { displayName: 'New Name' }),
-            ).rejects.toThrow(/not.*found|user.*not.*exist/i);
+            )
+                .rejects
+                .toThrow(/not.*found|user.*not.*exist/i);
         });
     });
 });

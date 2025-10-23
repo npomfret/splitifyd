@@ -1,7 +1,7 @@
+import { GroupId } from '@splitifyd/shared';
 import { Timestamp } from 'firebase/firestore';
 import { FirebaseService, getFirebaseService } from '../app/firebase';
 import { logError, logInfo } from './browser-logger';
-import {GroupId} from "@splitifyd/shared";
 
 /**
  * User notification detector callbacks

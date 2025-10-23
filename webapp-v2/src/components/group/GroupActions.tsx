@@ -49,15 +49,16 @@ export function GroupActions({
         </>
     );
 
-    const settingsButton =
-        showSettingsButton && onSettings ? (
+    const settingsButton = showSettingsButton && onSettings
+        ? (
             <Button variant='primary' onClick={onSettings} className={variant === 'vertical' ? 'w-full' : ''} data-testid='group-settings-button'>
                 <>
                     <CogIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                     {t('groupActions.settings')}
                 </>
             </Button>
-        ) : null;
+        )
+        : null;
 
     const leaveGroupButton = onLeaveGroup && canLeaveGroup
         ? (

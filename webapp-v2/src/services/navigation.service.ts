@@ -1,7 +1,7 @@
 import { ROUTES, routes } from '@/constants/routes';
 import { logUserAction } from '@/utils/browser-logger';
+import { ExpenseId, GroupId } from '@splitifyd/shared';
 import { route } from 'preact-router';
-import {GroupId, ExpenseId} from "@splitifyd/shared";
 
 /**
  * Centralized navigation service for consistent routing throughout the application.

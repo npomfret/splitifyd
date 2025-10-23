@@ -11,13 +11,14 @@ import {
     GroupBalances,
     GroupDTO,
     GroupFullDetailsDTO,
+    GroupId,
     type GroupMembershipDTO,
+    type GroupPermissions,
     JoinGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
-    MessageResponse,
-    type GroupPermissions,
     type MemberRole,
+    MessageResponse,
     PooledTestUser,
     RegisterResponse,
     type SecurityPreset,
@@ -30,14 +31,13 @@ import {
     UserProfileResponse,
     UserRegistration,
     UserToken,
-    GroupId
 } from '@splitifyd/shared';
 
+import { ExpenseId } from '@splitifyd/shared';
+import { SettlementId } from '@splitifyd/shared';
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
-import {ExpenseId} from "@splitifyd/shared";
-import {SettlementId} from "@splitifyd/shared";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;

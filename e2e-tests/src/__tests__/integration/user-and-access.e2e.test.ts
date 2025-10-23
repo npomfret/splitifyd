@@ -4,9 +4,9 @@ import { ApiDriver } from '@splitifyd/test-support';
 import { JoinGroupPage } from '@splitifyd/test-support';
 import { simpleTest } from '../../fixtures';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
+import { EMULATOR_URL } from '../../helpers';
 import { DashboardPage, GroupDetailPage, LoginPage, RegisterPage, SettingsPage } from '../../pages';
 import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.page';
-import { EMULATOR_URL } from '../../helpers';
 
 type DashboardNavigable = SettingsPage | GroupDetailPage;
 

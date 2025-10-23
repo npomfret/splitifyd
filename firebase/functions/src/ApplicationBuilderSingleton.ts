@@ -1,6 +1,6 @@
 // Initialize ApplicationBuilder
-import { getAuth, getFirestore } from './firebase';
 import { getIdentityToolkitConfig } from './client-config';
+import { getAuth, getFirestore } from './firebase';
 import { ApplicationBuilder } from './services/ApplicationBuilder';
 
 // Lazy initialization
@@ -12,7 +12,7 @@ export function getAppBuilder(): ApplicationBuilder {
         appBuilder = ApplicationBuilder.createApplicationBuilder(
             getFirestore(),
             getAuth(),
-            getIdentityToolkitConfig()
+            getIdentityToolkitConfig(),
         );
     }
     return appBuilder;

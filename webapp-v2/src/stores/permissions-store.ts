@@ -1,6 +1,6 @@
 import { computed, signal } from '@preact/signals';
 import { GroupDTO, GroupMember, GroupPermissions, MemberRole } from '@splitifyd/shared';
-import {GroupId} from "@splitifyd/shared";
+import { GroupId } from '@splitifyd/shared';
 
 /**
  * Permission cache with TTL

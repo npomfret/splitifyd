@@ -1,8 +1,8 @@
 import type { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
-import {GroupId} from "@splitifyd/shared";
 
 /**
  * Group balance DTO structure for testing

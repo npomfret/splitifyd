@@ -2,10 +2,10 @@ import Router, { Route } from 'preact-router';
 import { lazy, Suspense } from 'preact/compat';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './app/hooks/useAuth';
+import { TokenRefreshIndicator } from './components/auth/TokenRefreshIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
 import { LoadingState, WarningBanner } from './components/ui';
-import { TokenRefreshIndicator } from './components/auth/TokenRefreshIndicator';
 import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
 import { navigationService } from './services/navigation.service';
 

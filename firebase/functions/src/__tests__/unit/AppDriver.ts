@@ -1,3 +1,4 @@
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import {
     AcceptMultiplePoliciesResponse,
     CommentDTO,
@@ -9,7 +10,8 @@ import {
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     GroupDTO,
-    GroupFullDetailsDTO, GroupId,
+    GroupFullDetailsDTO,
+    GroupId,
     JoinGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
@@ -25,25 +27,24 @@ import {
     UpdateSettlementRequest,
     UserPolicyStatusResponse,
 } from '@splitifyd/shared';
+import { ExpenseId, SettlementId } from '@splitifyd/shared';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@splitifyd/test-support';
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { expect } from 'vitest';
 import { CommentHandlers } from '../../comments/CommentHandlers';
 import { ExpenseHandlers } from '../../expenses/ExpenseHandlers';
 import { GroupHandlers } from '../../groups/GroupHandlers';
 import { GroupMemberHandlers } from '../../groups/GroupMemberHandlers';
 import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
 import { PolicyHandlers } from '../../policies/PolicyHandlers';
-import { UserHandlers as PolicyUserHandlers } from '../../policies/UserHandlers';
 import { getCurrentPolicy } from '../../policies/public-handlers';
+import { UserHandlers as PolicyUserHandlers } from '../../policies/UserHandlers';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
+import { ChangeTrackerHandlers } from '../../triggers/ChangeTrackerHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
-import { StubAuthService } from './mocks/StubAuthService';
-import { ExpenseId, SettlementId } from '@splitifyd/shared';
-import { expect } from 'vitest';
 import { registerChangeTrackerTriggers } from './ChangeTrackerTestHarness';
-import {ChangeTrackerHandlers} from "../../triggers/ChangeTrackerHandlers";
+import { StubAuthService } from './mocks/StubAuthService';
 
 /**
  * Thin façade around the public HTTP handlers.
@@ -356,8 +357,10 @@ export class AppDriver {
         } catch (error: any) {
             // If getGroupFullDetails fails, it means the user can't access the group
             // This should be treated as NOT_GROUP_MEMBER regardless of the specific error code
-            if (error.status === 403 || error.status === 404 ||
-                (error.message && (error.message.includes('Group not found') || error.message.includes('403')))) {
+            if (
+                error.status === 403 || error.status === 404
+                || (error.message && (error.message.includes('Group not found') || error.message.includes('403')))
+            ) {
                 const groupError = new Error(`Group access denied`);
                 (groupError as any).status = 403;
                 (groupError as any).message = 'status 403: NOT_GROUP_MEMBER';
@@ -567,7 +570,7 @@ export class AppDriver {
             balanceChangeCount?: number;
             groupDetailsChangeCount?: number;
             commentChangeCount?: number;
-        }
+        },
     ) {
         const notif = await this.getUserNotifications(userId);
         expect(notif, `Expected notifications for user ${userId}`).toBeDefined();
@@ -602,5 +605,5 @@ export class AppDriver {
         for (const userId of memberUserIds) {
             await this.joinGroupByLink(userId, shareLink.linkId);
         }
-    };
+    }
 }

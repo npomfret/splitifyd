@@ -1,7 +1,7 @@
 import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId, JoinGroupPage } from '@splitifyd/test-support';
+import { expect, simpleTest } from '../../fixtures';
 import { DashboardPage as E2EDashboardPage } from '../../pages/dashboard.page';
 import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
-import { expect, simpleTest } from '../../fixtures';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 import type { GroupDetailPage as E2EGroupDetailPage } from '../../pages/group-detail.page';
 

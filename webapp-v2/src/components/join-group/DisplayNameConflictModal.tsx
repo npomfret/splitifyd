@@ -1,6 +1,6 @@
+import { Button, Input, Tooltip } from '@/components/ui';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Input, Tooltip } from '@/components/ui';
 
 interface DisplayNameConflictModalProps {
     isOpen: boolean;
@@ -164,13 +164,13 @@ export function DisplayNameConflictModal({
                     <Input
                         label={t('joinGroupPage.displayNameConflict.inputLabel')}
                         placeholder={t('joinGroupPage.displayNameConflict.inputPlaceholder')}
-                    value={displayName}
-                    onChange={handleInputChange}
-                    disabled={loading}
-                    error={validationError || undefined}
-                    data-testid='display-name-conflict-input'
-                    inputRef={inputRef}
-                />
+                        value={displayName}
+                        onChange={handleInputChange}
+                        disabled={loading}
+                        error={validationError || undefined}
+                        data-testid='display-name-conflict-input'
+                        inputRef={inputRef}
+                    />
 
                     {error && (
                         <div

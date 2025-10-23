@@ -52,7 +52,15 @@ export function SplitTypeSelector({ splitType, updateField }: SplitTypeSelectorP
                         }
           `}
                     >
-                        <input type='radio' name='splitType' value='percentage' checked={splitType === 'percentage'} onChange={() => updateField('splitType', 'percentage')} className='sr-only' autoComplete='off' />
+                        <input
+                            type='radio'
+                            name='splitType'
+                            value='percentage'
+                            checked={splitType === 'percentage'}
+                            onChange={() => updateField('splitType', 'percentage')}
+                            className='sr-only'
+                            autoComplete='off'
+                        />
                         <span className='text-sm font-medium text-gray-900 dark:text-white'>{t('expenseComponents.splitTypeSelector.percentage')}</span>
                     </label>
                 </div>

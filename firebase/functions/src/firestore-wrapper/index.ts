@@ -12,6 +12,8 @@
  */
 
 export type {
+    IAggregateQuery,
+    IAggregateQuerySnapshot,
     IDocumentReference,
     IDocumentSnapshot,
     IFirestoreDatabase,
@@ -22,8 +24,6 @@ export type {
     OrderByDirection,
     SetOptions,
     WhereFilterOp,
-    IAggregateQuery,
-    IAggregateQuerySnapshot,
 } from '@splitifyd/firebase-simulator';
 
 export { createFirestoreDatabase, FieldPath, FieldValue, Filter, Timestamp } from '@splitifyd/firebase-simulator';

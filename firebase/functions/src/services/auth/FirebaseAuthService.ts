@@ -140,7 +140,7 @@ export class FirebaseAuthService implements IAuthService {
                 case AuthErrorCode.TOO_MANY_REQUESTS:
                     return new ApiError(HTTP_STATUS.TOO_MANY_REQUESTS, appErrorCode, 'Too many requests');
                 default:
-                return new ApiError(HTTP_STATUS.INTERNAL_ERROR, appErrorCode, error.message);
+                    return new ApiError(HTTP_STATUS.INTERNAL_ERROR, appErrorCode, error.message);
             }
         }
 

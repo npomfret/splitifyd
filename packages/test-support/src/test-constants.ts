@@ -2,7 +2,7 @@
  * Test Constants
  * Standardized timeout values and magic strings for Playwright tests
  */
-import {GroupId} from "@splitifyd/shared";
+import { GroupId } from '@splitifyd/shared';
 
 export const TEST_TIMEOUTS = {
     /** Standard navigation timeout - page transitions, route changes */

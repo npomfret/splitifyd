@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { GroupBalancesBuilder, GroupDTOBuilder, GroupDetailPage, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementFormPage, ThemeBuilder } from '@splitifyd/test-support';
+import { GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementFormPage, ThemeBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
@@ -37,7 +37,7 @@ async function openSettlementFormForTest(
                 .withUid(member.uid)
                 .withDisplayName(member.displayName)
                 .withGroupDisplayName(member.groupDisplayName ?? member.displayName)
-                .build(),
+                .build()
         ),
     ];
 
@@ -226,12 +226,12 @@ test.describe('Settlement Form - Warning Message Bug (Reproduce)', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withSimpleTwoPersonDebt(
-                user.uid,        // from: Bill Splitter
+                user.uid, // from: Bill Splitter
                 user.displayName,
-                'han-solo-uid',  // to: Han Solo
+                'han-solo-uid', // to: Han Solo
                 'Han Solo',
-                84.79,           // amount owed
-                'EUR'            // currency
+                84.79, // amount owed
+                'EUR', // currency
             )
             .withBalancesByCurrency({
                 'EUR': {

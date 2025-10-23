@@ -1,5 +1,5 @@
-import { Errors } from './errors';
 import type { IQuery } from '../firestore-wrapper';
+import { Errors } from './errors';
 
 export interface CursorData {
     updatedAt: string;

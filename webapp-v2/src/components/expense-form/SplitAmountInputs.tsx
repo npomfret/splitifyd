@@ -107,8 +107,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                 )}
                                 currency={currency}
                             />{' '}
-                            /{' '}
-                            <CurrencyAmount amount={amount} currency={currency} />
+                            / <CurrencyAmount amount={amount} currency={currency} />
                         </span>
                     </div>
                 </div>

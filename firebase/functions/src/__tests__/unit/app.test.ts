@@ -222,7 +222,8 @@ describe('app tests', () => {
                 ...firstPage.expenses.expenses,
                 ...secondPage.expenses.expenses,
                 ...thirdPage.expenses.expenses,
-            ].map((expense) => expense.id);
+            ]
+                .map((expense) => expense.id);
 
             expect(new Set(allExpenseIds)).toEqual(new Set(createdExpenseIds));
             expect(new Set(seenSettlementIds)).toEqual(new Set(createdSettlementIds));
@@ -2828,7 +2829,7 @@ describe('app tests', () => {
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
                     .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
-                    .build()
+                    .build(),
             );
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
@@ -2854,7 +2855,7 @@ describe('app tests', () => {
                     .withPayerId(user2)
                     .withPayeeId(user1)
                     .withAmount(50, 'USD')
-                    .build()
+                    .build(),
             );
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
@@ -2898,7 +2899,7 @@ describe('app tests', () => {
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
                     .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
-                    .build()
+                    .build(),
             );
 
             await appDriver.createExpenseComment(user1, expense.id, 'Expense comment');
@@ -2926,7 +2927,7 @@ describe('app tests', () => {
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
                     .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
-                    .build()
+                    .build(),
             );
 
             let notif = await appDriver.getUserNotifications(user1);
@@ -3006,7 +3007,9 @@ describe('app tests', () => {
                     text: 'Updated terms version 1',
                     publish: true,
                 }),
-            ).rejects.toThrow(/Policy not found/);
+            )
+                .rejects
+                .toThrow(/Policy not found/);
 
             const created = await appDriver.createPolicy(policyAdmin, {
                 policyName,
@@ -3035,5 +3038,4 @@ describe('app tests', () => {
             expect(currentVersion?.text).toBe('Updated terms version 2');
         });
     });
-
 });

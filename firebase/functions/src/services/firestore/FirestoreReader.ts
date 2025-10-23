@@ -15,12 +15,12 @@ import {
     type CommentTargetType,
     CommentTargetTypes,
     type ExpenseDTO,
+    ExpenseId,
     type GroupDTO,
     type GroupMembershipDTO,
     MAX_GROUP_MEMBERS,
     type PolicyDTO,
     type RegisteredUser,
-    ExpenseId,
     type SettlementDTO,
 } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
@@ -48,12 +48,12 @@ import { CommentDocumentSchema } from '../../schemas';
 
 // Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
 // FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
+import { GroupId } from '@splitifyd/shared';
+import { SettlementId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../../constants';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
 import type { BatchGroupFetchOptions, GroupsPaginationCursor, OrderBy, PaginatedResult, QueryOptions } from './IFirestoreReader';
-import {GroupId} from "@splitifyd/shared";
-import {SettlementId} from "@splitifyd/shared";
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: IFirestoreDatabase) {}

@@ -1,5 +1,5 @@
 import type { AppConfiguration } from '@splitifyd/shared';
-import { ApiError, apiClient } from './apiClient';
+import { apiClient, ApiError } from './apiClient';
 
 class FirebaseConfigManager {
     private configPromise: Promise<AppConfiguration> | null = null;

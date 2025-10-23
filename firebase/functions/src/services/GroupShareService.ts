@@ -1,5 +1,6 @@
 import { COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import type { GroupMembershipDTO, JoinGroupResponse } from '@splitifyd/shared';
+import { GroupId } from '@splitifyd/shared';
 import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
@@ -13,7 +14,6 @@ import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '..
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { GroupMemberService } from './GroupMemberService';
-import {GroupId} from "@splitifyd/shared";
 
 export class GroupShareService {
     constructor(

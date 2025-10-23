@@ -1,7 +1,7 @@
+import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { CommentTargetTypes } from '@splitifyd/shared';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
 import { AuthUserRecordBuilder, CommentRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateComment, validateListCommentsQuery, validateTargetId } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';

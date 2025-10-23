@@ -1,6 +1,6 @@
 import { ShareGroupModal } from '@/components/group/ShareGroupModal';
 import { render, screen, waitFor } from '@testing-library/preact';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
 vi.mock('@/app/apiClient.ts', () => ({
@@ -43,7 +43,7 @@ describe('ShareGroupModal', () => {
                 onClose={() => {}}
                 groupId='group-1'
                 groupName='Design Guild'
-            />
+            />,
         );
 
         await waitFor(() => expect(mockedApiClient.generateShareLink).toHaveBeenCalledWith('group-1'));
@@ -54,7 +54,8 @@ describe('ShareGroupModal', () => {
     });
 
     it('regenerates the share link when the group changes while open', async () => {
-        mockedApiClient.generateShareLink
+        mockedApiClient
+            .generateShareLink
             .mockResolvedValueOnce({ shareablePath: '/share/group-1' })
             .mockResolvedValueOnce({ shareablePath: '/share/group-2' });
 
@@ -64,7 +65,7 @@ describe('ShareGroupModal', () => {
                 onClose={() => {}}
                 groupId='group-1'
                 groupName='Design Guild'
-            />
+            />,
         );
 
         const linkInput = await screen.findByTestId('share-link-input') as HTMLInputElement;
@@ -77,7 +78,7 @@ describe('ShareGroupModal', () => {
                 onClose={() => {}}
                 groupId='group-2'
                 groupName='Product Crew'
-            />
+            />,
         );
 
         await waitFor(() => expect(mockedApiClient.generateShareLink).toHaveBeenLastCalledWith('group-2'));

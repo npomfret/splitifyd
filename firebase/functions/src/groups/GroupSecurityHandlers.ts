@@ -1,19 +1,13 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
-import { getIdentityToolkitConfig } from '../client-config';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { GroupService } from '../services/GroupService';
 import { Errors } from '../utils/errors';
-import {
-    validateApplySecurityPreset,
-    validateGroupId,
-    validateMemberId,
-    validateUpdateGroupPermissionsRequest,
-    validateUpdateMemberRoleRequest,
-} from './validation';
+import { validateApplySecurityPreset, validateGroupId, validateMemberId, validateUpdateGroupPermissionsRequest, validateUpdateMemberRoleRequest } from './validation';
 
 export class GroupSecurityHandlers {
     constructor(

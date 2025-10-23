@@ -1,6 +1,6 @@
 import { CommentTargetTypes } from '@splitifyd/shared';
 import type { CreateCommentRequest } from '@splitifyd/shared';
-import {GroupId} from "@splitifyd/shared";
+import { GroupId } from '@splitifyd/shared';
 
 /**
  * Builder for creating comment request objects for testing
