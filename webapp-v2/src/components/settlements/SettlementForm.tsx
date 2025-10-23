@@ -121,20 +121,19 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return ZERO;
         }
 
-        const balancesByCurrency = enhancedGroupDetailStore.balances.balancesByCurrency;
-        if (!balancesByCurrency) return ZERO;
+        const simplifiedDebts = enhancedGroupDetailStore.balances.simplifiedDebts;
+        if (!simplifiedDebts) return ZERO;
 
-        const currencyBalances = balancesByCurrency[currency];
-        if (!currencyBalances) return ZERO;
+        // Find the simplified debt from payer to payee in the specified currency
+        const debt = simplifiedDebts.find(
+            (d: SimplifiedDebt) =>
+                d.from.uid === payerId &&
+                d.to.uid === payeeId &&
+                d.currency === currency
+        );
 
-        const payerBalance = currencyBalances[payerId];
-        if (!payerBalance) return ZERO;
-
-        // Find how much payer owes to payee
-        const debtToPayee = payerBalance.owes[payeeId] || ZERO;
-
-        // Return the amount (already positive if there's a debt)
-        return debtToPayee;
+        // Return the debt amount if found, otherwise ZERO
+        return debt?.amount || ZERO;
     };
 
     useEffect(() => {

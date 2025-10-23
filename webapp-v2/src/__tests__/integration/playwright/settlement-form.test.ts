@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementFormPage } from '@splitifyd/test-support';
+import { GroupBalancesBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementFormPage, ThemeBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
@@ -159,5 +159,107 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.clickCloseButton();
 
         await settlementFormPage.expectModalClosed();
+    });
+});
+
+test.describe('Settlement Form - Warning Message Bug (Reproduce)', () => {
+    /**
+     * This test reproduces a bug where the settlement form incorrectly shows a warning
+     * that "payer does not owe payee any money" even when the payer DOES owe money to the payee.
+     *
+     * The bug occurs in SettlementForm.tsx getCurrentDebt() function which only checks
+     * if payer owes payee, but the warning logic doesn't correctly handle this case.
+     *
+     * Expected behavior:
+     * - When Bill Splitter owes Han Solo €84.79, and tries to record a settlement of €84.79,
+     *   NO warning should appear (this is a valid settlement matching the debt)
+     *
+     * Actual behavior (bug):
+     * - The warning appears incorrectly: "Bill Splitter does not owe Han Solo any money in EUR.
+     *   This settlement will create a debt in the opposite direction."
+     */
+    test('should NOT show warning when payer owes exact debt amount to payee', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const groupId = 'test-settlement-warning-bug';
+
+        // Setup: Create a group where current user (Bill Splitter) owes €84.79 to Han Solo
+        const group = GroupDTOBuilder
+            .groupForUser(user.uid)
+            .withId(groupId)
+            .withName('Large Group')
+            .build();
+
+        const billSplitter = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(user.displayName) // "Bill Splitter (You)"
+            .withGroupDisplayName(user.displayName)
+            .withTheme(ThemeBuilder.blue().build())
+            .build();
+
+        const hanSolo = new GroupMemberBuilder()
+            .withUid('han-solo-uid')
+            .withDisplayName('Han Solo')
+            .withGroupDisplayName('Han Solo')
+            .withTheme(ThemeBuilder.red().build())
+            .build();
+
+        const members = [billSplitter, hanSolo];
+
+        // Bill Splitter owes Han Solo €84.79
+        const balances = new GroupBalancesBuilder()
+            .withGroupId(groupId)
+            .withSimpleTwoPersonDebt(
+                user.uid,        // from: Bill Splitter
+                user.displayName,
+                'han-solo-uid',  // to: Han Solo
+                'Han Solo',
+                84.79,           // amount owed
+                'EUR'            // currency
+            )
+            .withBalancesByCurrency({
+                'EUR': {
+                    [user.uid]: {
+                        uid: user.uid,
+                        owes: { 'han-solo-uid': '84.79' },
+                        owedBy: {},
+                        netBalance: '-84.79',
+                    },
+                    'han-solo-uid': {
+                        uid: 'han-solo-uid',
+                        owes: {},
+                        owedBy: { [user.uid]: '84.79' },
+                        netBalance: '84.79',
+                    },
+                },
+            })
+            .build();
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers(members)
+            .withBalances(balances)
+            .build();
+
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId);
+
+        const settlementFormPage = new SettlementFormPage(page);
+        await settlementFormPage.navigateAndOpen(groupId);
+
+        // Fill the form: Bill Splitter (payer) pays Han Solo (payee) €84.79
+        await settlementFormPage.selectCurrency('EUR');
+        await settlementFormPage.selectPayee('Han Solo');
+        await settlementFormPage.fillAmount('84.79');
+
+        // BUG: The warning message appears even though this is a valid settlement
+        const warningMessage = page.getByTestId('settlement-warning-message');
+
+        // This assertion will FAIL due to the bug - the warning incorrectly appears
+        await expect(warningMessage).not.toBeVisible();
+
+        // The form should be valid and submittable without warnings
+        await settlementFormPage.expectSubmitEnabled();
+
+        await expectNoGlobalError(page);
     });
 });
