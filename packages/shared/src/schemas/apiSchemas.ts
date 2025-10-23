@@ -327,6 +327,41 @@ const UserProfileResponseSchema = z.object({
     displayName: z.string(),
 });
 
+// Policy schemas
+const CurrentPolicyResponseSchema = z.object({
+    id: z.string().min(1),
+    policyName: z.string().min(1),
+    currentVersionHash: z.string().min(1),
+    text: z.string().min(1),
+    createdAt: z.string().datetime(),
+});
+
+const PolicyAcceptanceStatusSchema = z.object({
+    policyId: z.string().min(1),
+    currentVersionHash: z.string().min(1),
+    userAcceptedHash: z.string().optional(),
+    needsAcceptance: z.boolean(),
+    policyName: z.string().min(1),
+});
+
+const UserPolicyStatusResponseSchema = z.object({
+    needsAcceptance: z.boolean(),
+    policies: z.array(PolicyAcceptanceStatusSchema),
+    totalPending: z.number().int().min(0),
+});
+
+const AcceptMultiplePoliciesResponseSchema = z.object({
+    success: z.boolean(),
+    message: z.string().min(1),
+    acceptedPolicies: z.array(
+        z.object({
+            policyId: z.string().min(1),
+            versionHash: z.string().min(1),
+            acceptedAt: z.string().datetime(),
+        })
+    ),
+});
+
 // Group full details schema - combines multiple endpoint responses
 const GroupFullDetailsSchema = z.object({
     group: GroupSchema,
@@ -345,9 +380,28 @@ const GroupFullDetailsSchema = z.object({
     comments: ListCommentsResponseSchema,
 });
 
+// Minimal group schema for expense details - only includes fields that are actually returned
+const MinimalGroupSchema = z.object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    description: z.string().optional(),
+    createdBy: z.string().optional(),
+    createdAt: z.string().optional(),
+    updatedAt: z.string().optional(),
+    permissions: z
+        .object({
+            expenseEditing: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
+            expenseDeletion: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
+            memberInvitation: z.enum(['anyone', 'admin-only']).optional(),
+            memberApproval: z.enum(['automatic', 'admin-required']).optional(),
+            settingsManagement: z.enum(['anyone', 'admin-only']).optional(),
+        })
+        .optional(),
+});
+
 const ExpenseFullDetailsSchema = z.object({
     expense: ExpenseDataSchema,
-    group: GroupSchema,
+    group: MinimalGroupSchema,
     members: z.object({
         members: z.array(GroupMemberDTOSchema),
     }),
@@ -390,6 +444,10 @@ export const responseSchemas = {
     'POST /groups/:id/leave': MessageResponseSchema,
     'DELETE /groups/:id/members/:memberId': MessageResponseSchema,
     'PUT /groups/:id/members/display-name': MessageResponseSchema,
+    // Policy endpoints
+    'GET /policies/:id/current': CurrentPolicyResponseSchema,
+    'GET /user/policies/status': UserPolicyStatusResponseSchema,
+    'POST /user/policies/accept-multiple': AcceptMultiplePoliciesResponseSchema,
 } as const;
 
 // Schema for the currency-specific balance data used in GroupService.addComputedFields
