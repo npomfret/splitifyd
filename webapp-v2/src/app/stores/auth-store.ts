@@ -20,6 +20,7 @@ interface AuthState {
     error: string | null;
     initialized: boolean;
     isUpdatingProfile?: boolean;
+    isRefreshingToken: boolean;
 }
 
 interface AuthActions {
@@ -35,6 +36,7 @@ interface AuthActions {
 export interface AuthStore extends AuthState, AuthActions {
     loadingSignal: ReadonlySignal<boolean>;
     errorSignal: ReadonlySignal<string | null>;
+    refreshingTokenSignal: ReadonlySignal<boolean>;
 }
 
 export function mapFirebaseUser(firebaseUser: FirebaseUser): ClientUser {
@@ -54,6 +56,7 @@ class AuthStoreImpl implements AuthStore {
     readonly #errorSignal = signal<string | null>(null);
     readonly #initializedSignal = signal<boolean>(false);
     readonly #isUpdatingProfileSignal = signal<boolean>(false);
+    readonly #isRefreshingTokenSignal = signal<boolean>(false);
 
     // State getters - readonly values for external consumers
     get user() {
@@ -71,6 +74,9 @@ class AuthStoreImpl implements AuthStore {
     get isUpdatingProfile() {
         return this.#isUpdatingProfileSignal.value;
     }
+    get isRefreshingToken() {
+        return this.#isRefreshingTokenSignal.value;
+    }
 
     // Signal accessors for reactive components - return raw signals (components will wrap with useComputed)
     get loadingSignal(): ReadonlySignal<boolean> {
@@ -79,10 +85,26 @@ class AuthStoreImpl implements AuthStore {
     get errorSignal(): ReadonlySignal<string | null> {
         return this.#errorSignal;
     }
+    get refreshingTokenSignal(): ReadonlySignal<boolean> {
+        return this.#isRefreshingTokenSignal;
+    }
 
     // Token refresh management
     private refreshPromise: Promise<string> | null = null;
     private refreshTimer: NodeJS.Timeout | null = null;
+    private tokenExpiryTime: number | null = null;
+    private visibilityListenersRegistered = false;
+    private readonly handleVisibilityChange = () => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+        if (document.visibilityState === 'visible') {
+            void this.refreshAuthTokenIfNeeded();
+        }
+    };
+    private readonly handleWindowFocus = () => {
+        void this.refreshAuthTokenIfNeeded();
+    };
 
     // User-scoped storage for preferences and auth data
     private userStorage = createUserScopedStorage(() => this.#userSignal.value?.uid || null);
@@ -105,6 +127,7 @@ class AuthStoreImpl implements AuthStore {
         try {
             const firebase = this.firebase;
             await firebase.connect();
+            this.setupVisibilityListeners();
 
             // Set up API client auth callbacks to avoid circular dependencies
             apiClient.setAuthCallbacks(
@@ -160,6 +183,67 @@ class AuthStoreImpl implements AuthStore {
             this.#errorSignal.value = error instanceof Error ? error.message : 'Auth initialization failed';
             this.#loadingSignal.value = false;
             this.#initializedSignal.value = true;
+        }
+    }
+
+    private setupVisibilityListeners(): void {
+        if (this.visibilityListenersRegistered) {
+            return;
+        }
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+            return;
+        }
+
+        window.addEventListener('focus', this.handleWindowFocus);
+        document.addEventListener('visibilitychange', this.handleVisibilityChange);
+        this.visibilityListenersRegistered = true;
+    }
+
+    private async refreshAuthTokenIfNeeded(): Promise<void> {
+        if (!this.#userSignal.value) {
+            return;
+        }
+
+        if (this.refreshPromise) {
+            return;
+        }
+
+        if (this.tokenExpiryTime) {
+            const now = Date.now();
+            const refreshThreshold = 5 * 60 * 1000;
+            if (now < this.tokenExpiryTime - refreshThreshold) {
+                return;
+            }
+        }
+
+        try {
+            await this.refreshAuthToken();
+        } catch (error) {
+            logError('Visibility-triggered token refresh failed', error);
+        }
+    }
+
+    private decodeTokenExpiry(token: string): number | null {
+        const parts = token.split('.');
+        if (parts.length < 2) {
+            return null;
+        }
+
+        if (typeof atob !== 'function') {
+            return null;
+        }
+
+        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+
+        try {
+            const payload = JSON.parse(atob(padded));
+            if (typeof payload?.exp === 'number') {
+                return payload.exp * 1000;
+            }
+            return null;
+        } catch {
+            return null;
         }
     }
 
@@ -285,6 +369,7 @@ class AuthStoreImpl implements AuthStore {
     }
 
     private async performTokenRefresh(): Promise<string> {
+        this.#isRefreshingTokenSignal.value = true;
         try {
             const freshToken = await this.firebase.performTokenRefresh();
             apiClient.setAuthToken(freshToken);
@@ -293,6 +378,8 @@ class AuthStoreImpl implements AuthStore {
         } catch (error) {
             logError('Token refresh failed', error);
             throw error;
+        } finally {
+            this.#isRefreshingTokenSignal.value = false;
         }
     }
 
@@ -302,32 +389,24 @@ class AuthStoreImpl implements AuthStore {
             clearTimeout(this.refreshTimer);
         }
 
-        try {
-            // Decode token to get expiration (basic JWT decode)
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            const expiresAt = payload.exp * 1000; // Convert to milliseconds
+        const expiresAt = this.decodeTokenExpiry(token);
+        let refreshDelay = 50 * 60 * 1000; // Fallback: refresh after 50 minutes
+
+        if (expiresAt) {
+            this.tokenExpiryTime = expiresAt;
             const now = Date.now();
             const timeUntilExpiry = expiresAt - now;
-
-            // Refresh 5 minutes before expiration
-            const refreshIn = Math.max(0, timeUntilExpiry - 5 * 60 * 1000);
-
-            this.refreshTimer = setTimeout(() => {
-                this.refreshAuthToken().catch((error) => {
-                    logError('Scheduled token refresh failed', error);
-                });
-            }, refreshIn);
-        } catch (error) {
-            // Fallback to 50-minute refresh if decode fails
-            this.refreshTimer = setTimeout(
-                () => {
-                    this.refreshAuthToken().catch((error) => {
-                        logError('Scheduled token refresh failed', error);
-                    });
-                },
-                50 * 60 * 1000,
-            );
+            refreshDelay = Math.max(0, timeUntilExpiry - 5 * 60 * 1000);
+        } else {
+            // Approximate expiry when decode fails (token lifetime ~60 minutes)
+            this.tokenExpiryTime = Date.now() + 60 * 60 * 1000;
         }
+
+        this.refreshTimer = setTimeout(() => {
+            this.refreshAuthToken().catch((error) => {
+                logError('Scheduled token refresh failed', error);
+            });
+        }, refreshDelay);
     }
 
     private cleanup(): void {
@@ -336,6 +415,8 @@ class AuthStoreImpl implements AuthStore {
             this.refreshTimer = null;
         }
         this.refreshPromise = null;
+        this.tokenExpiryTime = null;
+        this.#isRefreshingTokenSignal.value = false;
     }
 
     private getAuthErrorMessage(error: any): string {

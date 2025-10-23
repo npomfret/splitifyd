@@ -5,6 +5,7 @@ import { useAuth } from './app/hooks/useAuth';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
 import { LoadingState, WarningBanner } from './components/ui';
+import { TokenRefreshIndicator } from './components/auth/TokenRefreshIndicator';
 import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
 import { navigationService } from './services/navigation.service';
 
@@ -85,6 +86,7 @@ export function App() {
     return (
         <ErrorBoundary>
             <WarningBanner />
+            <TokenRefreshIndicator />
             <Router>
                 <Route path='/' component={(props: any) => <LazyRoute component={LandingPage} {...props} />} />
 

@@ -181,6 +181,7 @@
   },
 
   "auth": {
+    "refreshingSession": "Refreshing your session...",
     "emailInput": {
       "label": "Email",
       "placeholder": "Enter your email",

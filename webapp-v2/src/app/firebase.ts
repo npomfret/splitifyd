@@ -1,7 +1,7 @@
 import { mapFirebaseUser } from '@/app/stores/auth-store.ts';
 import { ClientUser } from '@splitifyd/shared';
 import { FirebaseApp, initializeApp } from 'firebase/app';
-import { Auth, connectAuthEmulator, getAuth, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
+import { Auth, connectAuthEmulator, getAuth, onIdTokenChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
 import { connectFirestoreEmulator, doc, Firestore, getFirestore, onSnapshot } from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
 
@@ -110,14 +110,20 @@ class FirebaseServiceImpl implements FirebaseService {
     }
 
     onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>) {
-        return onAuthStateChanged(this.getAuth(), async (firebaseUser: FirebaseUser | null) => {
-            if (firebaseUser) {
-                const user = mapFirebaseUser(firebaseUser);
-                const idToken = await firebaseUser.getIdToken();
-                callback(user!, idToken!);
-            } else {
-                callback(null, null);
-            }
+        return onIdTokenChanged(this.getAuth(), (firebaseUser: FirebaseUser | null) => {
+            void (async () => {
+                try {
+                    if (firebaseUser) {
+                        const user = mapFirebaseUser(firebaseUser);
+                        const idToken = await firebaseUser.getIdToken();
+                        await callback(user!, idToken!);
+                    } else {
+                        await callback(null, null);
+                    }
+                } catch (error) {
+                    console.error('Auth state callback failed', error);
+                }
+            })();
         });
     }
 
