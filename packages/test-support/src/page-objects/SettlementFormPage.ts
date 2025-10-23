@@ -84,11 +84,29 @@ export class SettlementFormPage extends BasePage {
      */
     async selectCurrency(currency: string): Promise<void> {
         const currencyButton = this.getCurrencyButton();
-        await currencyButton.click();
+        await this.clickButton(currencyButton, { buttonName: 'Select currency' });
 
-        // Select the target currency from dropdown
-        const currencyOption = this.getModal().getByRole('option', { name: currency });
+        const searchInput = this.getModal().getByPlaceholder(/Search by symbol, code, or country/i);
+        const searchVisible = await searchInput.isVisible().catch(() => false);
+
+        if (searchVisible) {
+            await this.fillPreactInput(searchInput, currency);
+            await this.page.waitForTimeout(350);
+            await searchInput.press('ArrowDown');
+            await searchInput.press('Enter');
+            await expect(searchInput).not.toBeVisible({ timeout: 2000 });
+            return;
+        }
+
+        const currencyOption = this.getModal().getByRole('option', { name: new RegExp(currency, 'i') });
+        await expect(currencyOption).toBeVisible({ timeout: 2000 });
         await currencyOption.click();
+    }
+
+    async expectCurrencySelectionDisplays(symbol: string, currencyCode: string): Promise<void> {
+        const currencyButton = this.getCurrencyButton();
+        await expect(currencyButton).toContainText(symbol);
+        await expect(currencyButton).toContainText(currencyCode);
     }
 
     /**

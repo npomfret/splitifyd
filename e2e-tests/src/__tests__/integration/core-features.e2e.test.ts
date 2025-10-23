@@ -166,10 +166,10 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
 
         // Wait for expense to be processed and balances to update
         await groupDetailPage.waitForExpense(expenseDescription);
-        await groupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, '¥50');
+        await groupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, '¥50 JPY');
 
         await memberGroupDetailPage.waitForExpense(expenseDescription);
-        await memberGroupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, '¥50');
+        await memberGroupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, '¥50 JPY');
 
         // Member tries to leave group
         await memberGroupDetailPage.verifyLeaveGroupButtonVisible();

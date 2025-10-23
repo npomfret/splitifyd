@@ -3,10 +3,14 @@ import { getCurrency } from './currencyList';
 
 export interface FormatOptions {
     locale?: string;
+    includeCurrencyCode?: boolean;
 }
 
 export const formatCurrency = (amount: Amount | number, currencyCode: string, options: FormatOptions = {}): string => {
-    const { locale = 'en-US' } = options;
+    const {
+        locale = 'en-US',
+        includeCurrencyCode = true,
+    } = options;
 
     if (!currencyCode || currencyCode.trim() === '') {
         throw Error('you must supply a currencyCode AND amount');
@@ -19,12 +23,25 @@ export const formatCurrency = (amount: Amount | number, currencyCode: string, op
     const multiplier = Math.pow(10, currency.decimal_digits);
     const numericAmount = amountUnits / multiplier;
 
-    const formatter = new Intl.NumberFormat(locale, {
-        style: 'currency',
-        currency: currencyCode.toUpperCase(),
+    const magnitudeFormatter = new Intl.NumberFormat(locale, {
         minimumFractionDigits: currency.decimal_digits,
         maximumFractionDigits: currency.decimal_digits,
+        useGrouping: true,
     });
 
-    return formatter.format(numericAmount);
+    const parts = magnitudeFormatter.formatToParts(numericAmount);
+    const signPart = parts.find((part) => part.type === 'minusSign')?.value ?? '';
+    const unsignedFormattedNumber = parts
+        .filter((part) => part.type !== 'minusSign')
+        .map((part) => part.value)
+        .join('');
+
+    const symbol = currency.symbol || currency.acronym;
+    const formatted = `${signPart}${symbol}${unsignedFormattedNumber}`;
+
+    if (!includeCurrencyCode) {
+        return formatted;
+    }
+
+    return `${formatted} ${currencyCode.toUpperCase()}`;
 };

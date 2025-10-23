@@ -56,8 +56,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Verify expense appears and balance is calculated correctly (€50 each)
         await groupDetailPage1.waitForExpense(expenseDescription);
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00');
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00 EUR');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00 EUR');
 
         // Step 3: Edit the expense and verify balance updates
         const expenseDetailPage = await groupDetailPage1.clickExpenseToView(expenseDescription);
@@ -77,8 +77,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Navigate back to group to verify updated balance (€75.00 each)
         await expenseDetailPage.page.goto(`/groups/${groupId}`);
         await groupDetailPage1.waitForPage(groupId, 2);
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€75.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€75.00');
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€75.00 EUR');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€75.00 EUR');
 
         // Step 4: Record partial settlement and verify balance update
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
@@ -93,8 +93,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         );
 
         // Verify partial settlement reduces debt (€75.00 - €50.00 = €25.00)
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€25.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€25.00');
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€25.00 EUR');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€25.00 EUR');
 
         // Step 5: Delete expense and verify balance cleared
         const expenseDetailPage2 = await groupDetailPage1.clickExpenseToView(updatedDescription);
@@ -107,8 +107,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Balance should still show the settlement amount as the only transaction
         // Since expense is deleted but settlement remains, User2 actually paid User1 €50.00
         // So User1 now owes User2 €50.00 (debt relationship reversed)
-        await groupDetailPage1.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€50.00');
-        await groupDetailPage2.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€50.00');
+        await groupDetailPage1.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€50.00 EUR');
+        await groupDetailPage2.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€50.00 EUR');
     });
 
     simpleTest('should handle comprehensive multi-currency expenses with precision and cross-currency settlements', async ({ createLoggedInBrowsers }) => {
@@ -156,7 +156,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .build(),
         );
         await groupDetailPage.waitForExpense(`Multi-currency BHD ${uniqueId}`);
-        await groupDetailPage.verifyCurrencyAmountInExpenses(user1DisplayName, 'BHD 31.000');
+        await groupDetailPage.verifyCurrencyAmountInExpenses(user1DisplayName, '.د.ب31.000 BHD');
 
         // PHASE 3: Test KWD (3 decimals) - comprehensive currency test
         const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
@@ -174,15 +174,15 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .build(),
         );
         await groupDetailPage.waitForExpense(`Multi-currency KWD ${uniqueId}`);
-        await groupDetailPage.verifyCurrencyAmountInExpenses(user1DisplayName, 'KWD 6.000');
+        await groupDetailPage.verifyCurrencyAmountInExpenses(user1DisplayName, 'KD6.000 KWD');
 
         // Verify JPY expense (created first) is still visible
         await groupDetailPage.waitForExpense(`Multi-currency JPY ${uniqueId}`);
-        await groupDetailPage.verifyCurrencyAmountInExpenses(user1DisplayName, '¥124');
+        await groupDetailPage.verifyCurrencyAmountInExpenses(user1DisplayName, '¥124 JPY');
 
         // Verify multi-currency balances (separate debt per currency)
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62 JPY');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62 JPY');
 
         // PHASE 4: Test cross-currency settlement (settle with different currency)
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
@@ -201,7 +201,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await groupDetailPage2.verifySettlementDetails({ note: 'Cross-currency settlement test' });
 
         // Original currency debts should persist (cross-currency doesn't auto-convert)
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62 JPY');
     });
 
     simpleTest('should handle expense creation with custom date, time, and immediate balance impact', async ({ createLoggedInBrowsers }) => {
@@ -289,8 +289,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .build(),
         );
 
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€150.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€150.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€150.00 EUR');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€150.00 EUR');
 
         // User2 pays €100 (each owes €50, net: User2 owes €100)
         const expenseFormPage1 = await groupDetailPage2.clickAddExpenseAndOpenForm(
@@ -309,8 +309,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         );
 
         // Net calculation: User2 owes €150 - €50 = €100
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€100.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€100.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€100.00 EUR');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€100.00 EUR');
 
         // User2 makes partial settlement of €60
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
@@ -325,8 +325,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         );
 
         // Final balance: €100 - €60 = €40
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€40.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€40.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€40.00 EUR');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€40.00 EUR');
 
         // Verify settlement is recorded
         await groupDetailPage.verifySettlementDetails({ note: 'Partial settlement in complex scenario' });
@@ -349,8 +349,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         );
 
         // Final net: €40 + €25 = €65
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€65.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€65.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€65.00 EUR');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€65.00 EUR');
     });
 
     simpleTest('should handle comprehensive multi-user settlement scenarios with real-time updates', async ({ createLoggedInBrowsers }) => {
@@ -398,8 +398,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             await page.waitForPage(groupId, memberCount);
             // Enable "Show all balances" to see all debts, not just current user's
             await page.toggleShowAllBalances(true);
-            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
+            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40 JPY');
+            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40 JPY');
         }
 
         // PHASE 1: User2 makes partial settlement of ¥30 (leaving ¥10 debt)
@@ -423,8 +423,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             await page.waitForPage(groupId, memberCount);
             // Ensure "Show all balances" is enabled (should already be from earlier, but be explicit)
             await page.toggleShowAllBalances(true);
-            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10'); // 40 - 30 = 10
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // unchanged
+            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10 JPY'); // 40 - 30 = 10
+            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40 JPY'); // unchanged
         }
 
         // PHASE 2: User2 makes final settlement of ¥10 (fully settled)
@@ -449,7 +449,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             // Ensure "Show all balances" is enabled
             await page.toggleShowAllBalances(true);
             await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 fully settled
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // User3 still owes
+            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40 JPY'); // User3 still owes
         }
 
         // PHASE 3: Test additional real-time scenarios - User3 partial settlement
@@ -474,7 +474,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             // Ensure "Show all balances" is enabled
             await page.toggleShowAllBalances(true);
             await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 still fully settled
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥15'); // 40 - 25 = 15
+            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥15 JPY'); // 40 - 25 = 15
         }
 
         // Verify all settlements appear in history
@@ -842,8 +842,8 @@ simpleTest.describe('Copy Expense Feature', () => {
         await groupDetailPage1.waitForExpense(copiedDescription); // Copied expense exists
 
         // Step 11: Verify balances updated correctly (original €63.75 + copied €45.00 = €108.75 total)
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€108.75');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€108.75');
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€108.75 EUR');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€108.75 EUR');
 
         // Step 12: Verify both users can see both expenses
         await groupDetailPage2.waitForExpense(originalDescription);
@@ -917,7 +917,7 @@ simpleTest.describe('Copy Expense Feature', () => {
         // But let's verify what the actual balances show first
         // Enable "Show all balances" to see debts not involving current user (user1)
         await groupDetailPage1.toggleShowAllBalances(true);
-        await groupDetailPage1.verifyDebtRelationship(user3DisplayName, user2DisplayName, '¥70');
-        await groupDetailPage1.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥10');
+        await groupDetailPage1.verifyDebtRelationship(user3DisplayName, user2DisplayName, '¥70 JPY');
+        await groupDetailPage1.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥10 JPY');
     });
 });

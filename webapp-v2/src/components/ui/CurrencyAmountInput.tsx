@@ -151,7 +151,15 @@ export function CurrencyAmountInput({
                         aria-expanded={isOpen}
                         aria-haspopup='listbox'
                     >
-                        <span className='font-medium text-lg'>{selectedCurrency?.symbol ?? currency}</span>
+                        <div className='flex items-baseline gap-2'>
+                            <span className={`font-semibold text-lg leading-none ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>
+                                {selectedCurrency?.symbol ?? currency ?? t('uiComponents.currencyAmountInput.unknown')}
+                            </span>
+                            {' '}
+                            <span className={`text-xs font-medium uppercase tracking-wide ${disabled ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {selectedCurrency?.acronym ?? currency ?? ''}
+                            </span>
+                        </div>
                         <svg className={`ml-1 h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} aria-hidden='true' focusable='false' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'>
                             <path
                                 fillRule='evenodd'

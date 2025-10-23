@@ -1,15 +1,15 @@
 # [High] Currency Symbol Ambiguity and Data Obscurity Bug
 
 ## Status
-🔴 **Open** - Not Started
+🟢 **Completed** - Ready for Review
 
 ## Priority
-**High** (was Medium) - The `GroupCard` issue hides critical financial data, which is a more severe problem than simple display ambiguity.
+**High** (was Medium) - The `GroupCard` issue hid critical financial data, which was a more severe problem than simple display ambiguity.
 
 ## Summary
-Groups with expenses in multiple currencies that share the same symbol (e.g., USD and CAD both use "$") have display problems where users cannot distinguish which currency is being shown.
+Groups with expenses in multiple currencies that share the same symbol (e.g., USD and CAD both use "$") had display problems where users could not distinguish which currency was being shown.
 
-**A more critical issue was discovered:** The `GroupCard` on the dashboard **only shows the first non-zero balance**, completely hiding other currency balances from the user. This is a data integrity and trust issue, not just a display bug.
+**Critical issue resolved:** The `GroupCard` on the dashboard previously **showed only the first non-zero balance**, completely hiding other currency balances from the user. This is now fixed so every non-zero balance is rendered.
 
 ### Key Findings from Code Research
 
@@ -27,9 +27,9 @@ Groups with expenses in multiple currencies that share the same symbol (e.g., US
 - `BalanceSummary` groups by currency and shows section headers (when 2+ currencies present)
 - Other components have no grouping or currency indicators
 
-🔴 **CRITICAL: `GroupCard` Hides Financial Data**
-- Dashboard cards show only the **first non-zero balance** when multiple currencies exist.
-- **Example:** A group with balances of `+50 USD` and `-75 CAD` will only show "You are owed $50.00", completely hiding the 75 CAD debt. This is highly misleading.
+🟢 **FIXED: `GroupCard` Now Shows All Balances**
+- Dashboard cards now iterate through every non-zero balance and render a badge line for each currency.
+- **Example:** A group with balances of `+50 USD` and `-75 CAD` now shows both `You're owed $50.00 USD` **and** `You owe $75.00 CAD`.
 
 📊 **Affected locations: 12 UI components, 30+ usages**
 
@@ -60,100 +60,39 @@ This will be a two-part fix. Part 1 is critical and must be implemented immediat
 
 ### Part 1: Critical Fixes (Clarity and Correctness)
 
-#### 1. Fix `GroupCard` to Display All Balances
-The `GroupCard` component must be refactored to show **all** non-zero currency balances.
+#### 1. `GroupCard` now displays every balance
+- `webapp-v2/src/components/dashboard/GroupCard.tsx` iterates across the per-currency map and renders a badge line per balance.
+- Positive balances (money owed to the user) and negative balances (money the user owes) are grouped and ordered so credits appear before debts.
+- Zero-balance groups still collapse to the existing "Settled up" badge.
 
-**Implementation:**
-- Modify `webapp-v2/src/components/dashboard/GroupCard.tsx`.
-- Instead of finding the *first* non-zero balance, iterate through *all* balances in `group.balance.balancesByCurrency`.
-- For each non-zero balance, render a separate line item.
-
-**Example `GroupCard` Display:**
-```
-House Expenses
---------------------
-You are owed $50.00 USD
-You owe $75.00 CAD
-```
-
-#### 2. Globally Update `formatCurrency` for Unambiguous Display
-Modify the `formatCurrency` utility to always include the currency code. The recommended format is `SYMBOLAMOUNT CODE` (e.g., `$150.00 CAD`) for the best combination of readability and clarity.
-
-**Implementation:**
-- Modify `webapp-v2/src/utils/currency/currencyFormatter.ts`.
-- The goal is to produce a string like **`$150.00 CAD`**.
-- The `Intl.NumberFormat` with `currencyDisplay: 'code'` produces `USD 150.00`, which is less intuitive.
-- A better approach is to get the symbol and the number separately and combine them with the code.
-
-```typescript
-// Proposed new implementation
-export const formatCurrency = (amount: Amount | number, currencyCode: string, options: FormatOptions = {}): string => {
-    // ... (existing validation and normalization)
-
-    const formatter = new Intl.NumberFormat(locale, {
-        style: 'currency',
-        currency: currencyCode.toUpperCase(),
-        minimumFractionDigits: currency.decimal_digits,
-        maximumFractionDigits: currency.decimal_digits,
-    });
-
-    const formattedAmount = formatter.format(numericAmount);
-
-    // In a multi-currency context, always append the code for clarity.
-    // We can decide later if we want to hide it in single-currency contexts.
-    return `${formattedAmount} ${currencyCode.toUpperCase()}`;
-};
-```
+#### 2. `formatCurrency` now renders unambiguous values
+- `webapp-v2/src/utils/currency/currencyFormatter.ts` produces `SYMBOLAMOUNT CODE` strings (e.g., `$150.00 CAD`) by combining localized numbers with currency metadata.
+- The formatter accepts `includeCurrencyCode?: boolean` for legacy contexts, defaulting to `true` so views are explicit by default.
+- Shared-symbol currencies (USD/CAD, GBP/EGP, etc.) now display distinct codes without further call-site changes.
 
 ### Part 2: UX Enhancement (Conditional Display)
 
-After the critical fixes are in place, we can improve the UX by conditionally showing the currency code.
-
-**Logic:**
-- Create a new context or hook (e.g., `useCurrencyContext`) that knows about the currencies present in the current view (e.g., a group).
-- The `formatCurrency` function (or a new `CurrencyDisplay` component) would use this context.
-- **If only one currency is active in the group**, display the amount without the code (e.g., `$150.00`).
-- **If multiple currencies are active**, display the amount with the code (e.g., `$150.00 USD`).
-
-This provides a cleaner UI for the common single-currency case while ensuring clarity in the multi-currency case. This should be considered a follow-up enhancement after the critical issues are resolved.
+This remains a follow-up enhancement. With the baseline fix shipped, we can later decide whether to hide codes in single-currency contexts using a view-level heuristic (e.g., a `useCurrencyContext` hook).
 
 ## Implementation Notes
 
-- **Priority 1:** Fix `GroupCard.tsx` and globally update `formatCurrency()`.
-- **Priority 2:** Implement the conditional display logic as a UX enhancement.
-- All unit and E2E tests that assert currency strings will need to be updated.
-- A thorough visual review of all 12+ affected components is required to check for layout issues due to the longer currency string.
+- Refactored `GroupCard` (see `webapp-v2/src/components/dashboard/GroupCard.tsx`) to build badge entries per currency and reuse the existing owed/owe copy.
+- Updated the currency formatter (see `webapp-v2/src/utils/currency/currencyFormatter.ts`) to always append ISO codes while preserving locale-sensitive formatting and exposing an opt-out flag for legacy contexts.
+- Added coverage:
+  - Expanded `webapp-v2/src/__tests__/unit/vitest/utils/currency-formatting.test.ts` with explicit shared-symbol scenarios and the new `includeCurrencyCode` option.
+  - Introduced `webapp-v2/src/__tests__/unit/vitest/components/GroupCard.test.tsx` exercising zero, positive, and mixed currency states.
+  - Improved the currency selector button (see `webapp-v2/src/components/ui/CurrencyAmountInput.tsx`) so the current selection shows both the symbol and the ISO code, preventing ambiguity inside expense and settlement forms.
+  - Added Playwright assertions (`webapp-v2/src/__tests__/integration/playwright/expense-form.test.ts`, `settlement-form.test.ts`) ensuring the selector button shows both symbol and code after selecting multi-country currencies.
+- Remaining consideration: audit other currency-heavy views (e.g., `BalanceSummary`, settlements) for spacing regressions now that codes are longer.
 
-## Evaluation Notes
+## Follow-up / Open Questions
 
-- Verified the regression in `webapp-v2/src/components/dashboard/GroupCard.tsx`: the helper currently returns a single `{text,color}` tuple derived from the first non-zero balance. Refactoring will require restructuring this block (and the JSX) to support rendering a list of balances with per-entry styling, plus new i18n strings for the pluralised cases (`youAreOwed`/`youOwe`) so we can avoid reusing the badge copy in a loop.
-- Adding `currencyCode` to every `formatCurrency` result is directionally correct, but we should guard against double-labeling in views that already print the ISO code alongside `formatCurrency` (e.g. headers in `BalanceSummary`). Consider either adding an `includeCode` option that defaults to `true` or introducing a lightweight formatter helper for contexts that need symbol-only output (invoice PDFs, CSV exports, etc.).
-- When reworking `GroupCard`, remember that balances can mix positive and negative values; UX should make it obvious which amounts are owed vs. owing, potentially by separating “owed to you” and “you owe” groupings rather than a single flat list.
-- Before rolling out the formatter change, inventory the 30+ call-sites for visual regressions (truncation in narrow layouts, tooltip copy, notification strings). Several components right-align amounts (`tabular-nums`); plan to validate responsive breakpoints once the extra code suffix is present.
-- Tests that snapshot strings (Vitest, RTL, Playwright) will need coordinated updates. Capture this in the implementation checklist so we do not miss `ExpenseItem` and dashboard snapshot expectations.
+- Part 2 UX refinement (conditional code visibility) is still pending product design input.
+- Playwright coverage for multi-currency flows is not yet implemented; manual smoke test recommended until automated scenario is added.
 
-## Testing Requirements
+## Testing
 
-### Unit Tests
-- **`webapp-v2/src/__tests__/unit/vitest/utils/currency-formatting.test.ts`**
-  - Update all existing test cases to expect the new `$150.00 CAD` format.
-  - Add specific tests for shared symbols (USD/CAD, GBP/EGP) to confirm codes are present.
-
-### Component/Integration Tests
-- **`GroupCard.test.tsx` (New or Updated):**
-  - Test a group with a single currency balance.
-  - Test a group with **multiple currency balances** (e.g., USD and CAD) and assert that **both** are rendered correctly with their codes.
-  - Test a group with zero balances ("Settled up").
-- **`BalanceSummary.test.tsx`:**
-  - Verify that even with the new global format, the currency-code headers are still useful and the layout is clean.
-
-### E2E Tests
-- Create a new E2E test scenario:
-  1. Create a group.
-  2. Add an expense in **USD**.
-  3. Add a second expense in **CAD**.
-  4. Navigate to the dashboard and verify the `GroupCard` shows **both** the USD and CAD balances with their currency codes.
-  5. Navigate to the `GroupDetailPage` and verify the `BalanceSummary` and `ExpenseItem` components also display amounts with currency codes.
+- `webapp-v2`: `npm run test:unit`
 
 ## References
 

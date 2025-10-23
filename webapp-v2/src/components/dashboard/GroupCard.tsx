@@ -13,64 +13,55 @@ interface GroupCardProps {
 export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardProps) {
     const { t } = useTranslation();
 
-    // Calculate balance display based on group balance data
     const calculateBalanceDisplay = () => {
+        const settled = [{
+            key: 'settled',
+            text: t('groupCard.settledUp'),
+            color: 'text-blue-400',
+            bgColor: 'bg-blue-50',
+        }];
+
         if (!group.balance?.balancesByCurrency) {
-            return {
-                text: t('groupCard.settledUp'),
-                color: 'text-blue-400',
-                bgColor: 'bg-blue-50',
-            };
+            return settled;
         }
 
-        // Get all currency balances - display the first non-zero balance, or first balance if all zero
-        const currencies = Object.keys(group.balance.balancesByCurrency);
-        if (currencies.length === 0) {
-            return {
-                text: t('groupCard.settledUp'),
-                color: 'text-blue-400',
-                bgColor: 'bg-blue-50',
-            };
+        const balances = Object.values(group.balance.balancesByCurrency)
+            .map((balance) => ({
+                balance,
+                totalUnits: amountToSmallestUnit(balance.netBalance, balance.currency),
+            }))
+            .filter(({ totalUnits }) => totalUnits !== 0);
+
+        if (balances.length === 0) {
+            return settled;
         }
 
-        // Find first non-zero balance, or use first currency if all are zero
-        let balance = group.balance.balancesByCurrency[currencies[0]];
-        for (const currency of currencies) {
-            const currencyBalance = group.balance.balancesByCurrency[currency];
-            if (amountToSmallestUnit(currencyBalance.netBalance, currencyBalance.currency) !== 0) {
-                balance = currencyBalance;
-                break;
-            }
-        }
+        const positives = balances
+            .filter(({ totalUnits }) => totalUnits > 0)
+            .sort((a, b) => a.balance.currency.localeCompare(b.balance.currency));
 
-        if (!balance || amountToSmallestUnit(balance.netBalance, balance.currency) === 0) {
-            return {
-                text: t('groupCard.settledUp'),
-                color: 'text-blue-400',
-                bgColor: 'bg-blue-50',
-            };
-        }
+        const negatives = balances
+            .filter(({ totalUnits }) => totalUnits < 0)
+            .sort((a, b) => a.balance.currency.localeCompare(b.balance.currency));
 
-        const netBalanceUnits = amountToSmallestUnit(balance.netBalance, balance.currency);
+        const positiveDisplays = positives.map(({ balance }) => ({
+            key: `owed-${balance.currency}`,
+            text: t('dashboard.groupCard.youAreOwed', { amount: formatCurrency(balance.netBalance, balance.currency) }),
+            color: 'text-green-600',
+            bgColor: 'bg-green-50',
+        }));
 
-        if (netBalanceUnits > 0) {
-            // User is owed money
-            return {
-                text: t('dashboard.groupCard.youAreOwed', { amount: formatCurrency(balance.netBalance, balance.currency) }),
-                color: 'text-green-600',
-                bgColor: 'bg-green-50',
-            };
-        } else {
-            // User owes money
-            return {
-                text: t('dashboard.groupCard.youOwe', { amount: formatCurrency(absAmount(balance.netBalance, balance.currency), balance.currency) }),
-                color: 'text-red-600',
-                bgColor: 'bg-red-50',
-            };
-        }
+        const negativeDisplays = negatives.map(({ balance }) => ({
+            key: `owe-${balance.currency}`,
+            text: t('dashboard.groupCard.youOwe', { amount: formatCurrency(absAmount(balance.netBalance, balance.currency), balance.currency) }),
+            color: 'text-red-600',
+            bgColor: 'bg-red-50',
+        }));
+
+        return [...positiveDisplays, ...negativeDisplays];
     };
 
-    const balanceDisplay = calculateBalanceDisplay();
+    const balanceDisplays = calculateBalanceDisplay();
 
     const handleActionClick = (e: Event, action: () => void) => {
         e.preventDefault();
@@ -116,8 +107,16 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
                 {/* GroupDTO header */}
                 <div class='mb-3 pr-12'>
                     <h4 class='font-semibold text-gray-900 text-lg mb-1'>{group.name}</h4>
-                    <div class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${balanceDisplay.bgColor} ${balanceDisplay.color}`} data-financial-amount='balance'>
-                        {balanceDisplay.text}
+                    <div class='flex flex-col gap-1'>
+                        {balanceDisplays.map((display) => (
+                            <div
+                                key={display.key}
+                                class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${display.bgColor} ${display.color}`}
+                                data-financial-amount='balance'
+                            >
+                                {display.text}
+                            </div>
+                        ))}
                     </div>
                 </div>
 

@@ -129,14 +129,14 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitType('Equal');
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('$33.33');
-            await expenseFormPage.verifyEqualSplitsContainAmount('$33.34');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$33.33 USD');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$33.34 USD');
 
             await expenseFormPage.fillAmount('150');
 
-            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00');
-            await expenseFormPage.verifyEqualSplitsDoNotContainAmount('$33.33');
-            await expenseFormPage.verifyEqualSplitsDoNotContainAmount('$33.34');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00 USD');
+            await expenseFormPage.verifyEqualSplitsDoNotContainAmount('$33.33 USD');
+            await expenseFormPage.verifyEqualSplitsDoNotContainAmount('$33.34 USD');
         });
 
         test('should recalculate EQUAL splits with 2 members', async ({ authenticatedPage }) => {
@@ -178,7 +178,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitType('Equal');
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00 USD');
         });
 
         test('should recalculate EQUAL splits with 4 members', async ({ authenticatedPage }) => {
@@ -230,11 +230,25 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitType('Equal');
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('$25.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$25.00 USD');
         });
     });
 
     test.describe('Currency Handling', () => {
+        test('should display symbol and code in currency selector button', async ({ authenticatedPage }) => {
+            const { expenseFormPage } = await openExpenseFormForTest(
+                authenticatedPage,
+                'test-group-currency-display',
+                [{ uid: 'user-2', displayName: 'User 2' }],
+            );
+
+            await expenseFormPage.selectCurrency('USD');
+            await expenseFormPage.expectCurrencySelectionDisplays('$', 'USD');
+
+            await expenseFormPage.selectCurrency('CAD');
+            await expenseFormPage.expectCurrencySelectionDisplays('$', 'CAD');
+        });
+
         test('should recalculate splits when currency changes (USD to JPY)', async ({ authenticatedPage }) => {
             const { page, user: testUser } = authenticatedPage;
             const groupId = 'test-group-currency-usd-jpy';
@@ -273,12 +287,12 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitParticipants(['User 2']);
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00 USD');
 
             await expenseFormPage.selectCurrency('JPY');
 
-            await expenseFormPage.verifyEqualSplitsContainAmount('¥50');
-            await expenseFormPage.verifyEqualSplitsDoNotContainAmount('¥50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('¥50 JPY');
+            await expenseFormPage.verifyEqualSplitsDoNotContainAmount('¥50.00 JPY');
         });
 
         test('should recalculate splits when currency changes (JPY to USD)', async ({ authenticatedPage }) => {
@@ -319,11 +333,11 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitParticipants(['User 2']);
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('¥500');
+            await expenseFormPage.verifyEqualSplitsContainAmount('¥500 JPY');
 
             await expenseFormPage.selectCurrency('USD');
 
-            await expenseFormPage.verifyEqualSplitsContainAmount('$500.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$500.00 USD');
         });
 
         test('should recalculate splits when currency changes (USD to EUR)', async ({ authenticatedPage }) => {
@@ -364,11 +378,11 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitParticipants(['User 2']);
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00 USD');
 
             await expenseFormPage.selectCurrency('EUR');
 
-            await expenseFormPage.verifyEqualSplitsContainAmount('€50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('€50.00 EUR');
         });
     });
 
@@ -418,7 +432,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.fillAmount('200');
 
             await expenseFormPage.verifyExactSplitInputsHaveValue('100.00');
-            await expenseFormPage.verifyExactSplitTotal('$200.00', '$200.00');
+            await expenseFormPage.verifyExactSplitTotal('$200.00 USD', '$200.00 USD');
         });
 
         test('should recalculate EXACT splits with 3 members', async ({ authenticatedPage }) => {
@@ -508,11 +522,11 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitType('Exact amounts');
 
             await expenseFormPage.verifyExactSplitInputsHaveValue('50.00');
-            await expenseFormPage.verifyExactSplitTotal('$100.00', '$100.00');
+            await expenseFormPage.verifyExactSplitTotal('$100.00 USD', '$100.00 USD');
 
             await expenseFormPage.selectCurrency('JPY');
 
-            await expenseFormPage.verifyExactSplitTotal('¥100', '¥100');
+            await expenseFormPage.verifyExactSplitTotal('¥100 JPY', '¥100 JPY');
         });
     });
 
@@ -555,7 +569,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitParticipants(['User 2']);
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00 USD');
 
             await expenseFormPage.selectSplitType('Exact amounts');
 
@@ -607,7 +621,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitType('Equal');
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00 USD');
         });
     });
 
@@ -650,7 +664,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitParticipants(['User 2']);
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00 USD');
         });
 
         test('should handle amounts with 3 decimal places', async ({ authenticatedPage }) => {
@@ -697,7 +711,7 @@ test.describe('Expense Form', () => {
 
             await expenseFormPage.verifyEqualSplitDisplayed();
             // BHD supports 3 decimal places; split should show exact 3-decimal rounding
-            await expenseFormPage.verifyEqualSplitsContainAmount('BHD 33.333');
+            await expenseFormPage.verifyEqualSplitsContainAmount('.د.ب33.333 BHD');
         });
     });
 
@@ -740,7 +754,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitParticipants(['User 2']);
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('$500,000.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$500,000.00 USD');
         });
     });
 
@@ -799,7 +813,7 @@ test.describe('Expense Form', () => {
 
             await expenseFormPage.verifyEqualSplitDisplayed();
             // $100 ÷ 5 = $20 each
-            await expenseFormPage.verifyEqualSplitsContainAmount('$20.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$20.00 USD');
         });
     });
 
@@ -842,19 +856,19 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitParticipants(['User 2']);
 
             // Change 1
-            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00 USD');
 
             // Change 2
             await expenseFormPage.fillAmount('200');
-            await expenseFormPage.verifyEqualSplitsContainAmount('$100.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$100.00 USD');
 
             // Change 3
             await expenseFormPage.fillAmount('75');
-            await expenseFormPage.verifyEqualSplitsContainAmount('$37.50');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$37.50 USD');
 
             // Change 4
             await expenseFormPage.fillAmount('150');
-            await expenseFormPage.verifyEqualSplitsContainAmount('$75.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$75.00 USD');
         });
 
         test('should handle complex multi-step changes', async ({ authenticatedPage }) => {
@@ -894,15 +908,15 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectCurrency('USD');
             await expenseFormPage.selectPayer(testUser.displayName);
             await expenseFormPage.selectSplitParticipants(['User 2']);
-            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$50.00 USD');
 
             // Change to JPY
             await expenseFormPage.selectCurrency('JPY');
-            await expenseFormPage.verifyEqualSplitsContainAmount('¥50');
+            await expenseFormPage.verifyEqualSplitsContainAmount('¥50 JPY');
 
             // Change amount
             await expenseFormPage.fillAmount('1000');
-            await expenseFormPage.verifyEqualSplitsContainAmount('¥500');
+            await expenseFormPage.verifyEqualSplitsContainAmount('¥500 JPY');
 
             // Switch to Exact amounts
             await expenseFormPage.selectSplitType('Exact amounts');
@@ -911,11 +925,11 @@ test.describe('Expense Form', () => {
 
             // Back to Equal
             await expenseFormPage.selectSplitType('Equal');
-            await expenseFormPage.verifyEqualSplitsContainAmount('¥500');
+            await expenseFormPage.verifyEqualSplitsContainAmount('¥500 JPY');
 
             // Back to USD
             await expenseFormPage.selectCurrency('USD');
-            await expenseFormPage.verifyEqualSplitsContainAmount('$500.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$500.00 USD');
         });
     });
 
@@ -964,8 +978,8 @@ test.describe('Expense Form', () => {
 
             await expenseFormPage.verifyEqualSplitDisplayed();
             // $10 ÷ 3 = $3.33, $3.33, $3.34
-            await expenseFormPage.verifyEqualSplitsContainAmount('$3.33');
-            await expenseFormPage.verifyEqualSplitsContainAmount('$3.34');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$3.33 USD');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$3.34 USD');
         });
 
         test('should handle very small amounts', async ({ authenticatedPage }) => {
@@ -1006,7 +1020,7 @@ test.describe('Expense Form', () => {
 
             await expenseFormPage.verifyEqualSplitDisplayed();
             // $0.01 ÷ 2 = $0.01 and $0.00 (or both $0.01 depending on rounding)
-            await expenseFormPage.verifyEqualSplitsContainAmount('$0.01');
+            await expenseFormPage.verifyEqualSplitsContainAmount('$0.01 USD');
         });
     });
 
@@ -1049,7 +1063,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitParticipants(['User 2']);
 
             await expenseFormPage.verifyEqualSplitDisplayed();
-            await expenseFormPage.verifyEqualSplitsContainAmount('£50.00');
+            await expenseFormPage.verifyEqualSplitsContainAmount('£50.00 GBP');
         });
     });
 
@@ -1092,10 +1106,10 @@ test.describe('Expense Form', () => {
             await expenseFormPage.selectSplitParticipants(['User 2']);
             await expenseFormPage.selectSplitType('Exact amounts');
 
-            await expenseFormPage.verifyExactSplitTotal('$200.00', '$200.00');
+            await expenseFormPage.verifyExactSplitTotal('$200.00 USD', '$200.00 USD');
 
             await expenseFormPage.selectCurrency('EUR');
-            await expenseFormPage.verifyExactSplitTotal('€200.00', '€200.00');
+            await expenseFormPage.verifyExactSplitTotal('€200.00 EUR', '€200.00 EUR');
         });
     });
 

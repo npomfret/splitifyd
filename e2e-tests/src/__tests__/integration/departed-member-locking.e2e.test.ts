@@ -52,7 +52,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         await bobGroupDetailPage.waitForExpense(expenseDescription);
 
         // Verify Bob owes Alice $30.00
-        await bobGroupDetailPage.verifyDebtRelationship(bobDisplayName, aliceDisplayName, '$30.00');
+        await bobGroupDetailPage.verifyDebtRelationship(bobDisplayName, aliceDisplayName, '$30.00 USD');
 
         // Bob settles his debt
         const settlementFormPage = await bobGroupDetailPage.clickSettleUpButton(3);
@@ -134,7 +134,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         await bobGroupDetailPage.waitForExpense(expenseDescription);
 
         // Verify Bob owes Alice $50.00
-        await bobGroupDetailPage.verifyDebtRelationship(bobDisplayName, aliceDisplayName, '$50.00');
+        await bobGroupDetailPage.verifyDebtRelationship(bobDisplayName, aliceDisplayName, '$50.00 USD');
 
         // Bob records partial settlement payment to Alice ($25)
         const settlementNote = `Partial payment ${generateShortId()}`;
@@ -161,7 +161,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         });
 
         // Bob now owes Alice $25.00 (remaining balance)
-        await bobGroupDetailPage.verifyDebtRelationship(bobDisplayName, aliceDisplayName, '$25.00');
+        await bobGroupDetailPage.verifyDebtRelationship(bobDisplayName, aliceDisplayName, '$25.00 USD');
 
         // Bob settles remaining debt
         const finalSettlementFormPage = await bobGroupDetailPage.clickSettleUpButton(2);
@@ -233,7 +233,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         await aliceGroupDetailPage.waitForExpense(expenseDescription);
 
         // Verify Alice owes Bob $50.00
-        await aliceGroupDetailPage.verifyDebtRelationship(aliceDisplayName, bobDisplayName, '$50.00');
+        await aliceGroupDetailPage.verifyDebtRelationship(aliceDisplayName, bobDisplayName, '$50.00 USD');
 
         // Alice records partial settlement payment to Bob ($25)
         const settlementNote = `Partial payment ${generateShortId()}`;
@@ -260,7 +260,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         });
 
         // Alice now owes Bob $25.00 (remaining balance)
-        await aliceGroupDetailPage.verifyDebtRelationship(aliceDisplayName, bobDisplayName, '$25.00');
+        await aliceGroupDetailPage.verifyDebtRelationship(aliceDisplayName, bobDisplayName, '$25.00 USD');
 
         // Alice settles remaining debt
         const finalSettlementFormPage = await aliceGroupDetailPage.clickSettleUpButton(2);
@@ -338,7 +338,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         await bobGroupDetailPage.waitForExpense(initialExpenseDescription);
 
         // Verify Bob owes Alice $30.00
-        await bobGroupDetailPage.verifyDebtRelationship(bobDisplayName, aliceDisplayName, '$30.00');
+        await bobGroupDetailPage.verifyDebtRelationship(bobDisplayName, aliceDisplayName, '$30.00 USD');
 
         // Bob settles his debt
         const settlementFormPage = await bobGroupDetailPage.clickSettleUpButton(3);
@@ -392,6 +392,6 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         // Verify Charlie owes Alice $60.00 total:
         // - $30 from initial expense (never settled)
         // - $30 from new expense (just created)
-        await charlieGroupDetailPage.verifyDebtRelationship(charlieDisplayName, aliceDisplayName, '$60.00');
+        await charlieGroupDetailPage.verifyDebtRelationship(charlieDisplayName, aliceDisplayName, '$60.00 USD');
     });
 });

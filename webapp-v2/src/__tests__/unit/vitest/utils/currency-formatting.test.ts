@@ -5,28 +5,22 @@ describe('formatCurrency', () => {
     describe('basic formatting', () => {
         it('should format USD currency with default options', () => {
             const result = formatCurrency('25.5', 'USD');
-            // Should use Intl.NumberFormat for proper locale formatting
-            expect(result).toMatch(/\$25\.50/);
+            expect(result).toBe('$25.50 USD');
         });
 
         it('should format EUR currency', () => {
             const result = formatCurrency('99.99', 'EUR');
-            expect(result).toContain('€');
-            expect(result).toContain('99.99');
+            expect(result).toBe('€99.99 EUR');
         });
 
         it('should format JPY currency with zero decimal places', () => {
             const result = formatCurrency('1000', 'JPY');
-            expect(result).toContain('¥');
-            expect(result).toContain('1,000');
-            expect(result).not.toContain('.00');
+            expect(result).toBe('¥1,000 JPY');
         });
 
         it('should format BHD currency with three decimal places', () => {
             const result = formatCurrency('10.123', 'BHD');
-            // When Intl.NumberFormat works, it uses the browser's currency formatting
-            // which may show the full currency name 'BHD' rather than the symbol 'BD'
-            expect(result).toMatch(/BHD|BD/);
+            expect(result.endsWith(' BHD')).toBe(true);
             expect(result).toContain('10.123');
         });
     });
@@ -54,23 +48,22 @@ describe('formatCurrency', () => {
 
         it('should handle zero amount', () => {
             const result = formatCurrency('0', 'USD');
-            expect(result).toMatch(/\$0\.00/);
+            expect(result).toBe('$0.00 USD');
         });
 
         it('should handle negative amounts', () => {
             const result = formatCurrency('-15.75', 'USD');
-            expect(result).toContain('-');
-            expect(result).toContain('15.75');
+            expect(result).toBe('-$15.75 USD');
         });
 
         it('should handle very large amounts', () => {
             const result = formatCurrency('1000000.5', 'USD');
-            expect(result).toContain('1,000,000.50');
+            expect(result).toBe('$1,000,000.50 USD');
         });
 
         it('should handle very small amounts', () => {
             const result = formatCurrency('0.01', 'USD');
-            expect(result).toMatch(/\$0\.01/);
+            expect(result).toBe('$0.01 USD');
         });
     });
 
@@ -78,20 +71,40 @@ describe('formatCurrency', () => {
         it('should use different locale when specified', () => {
             const options: FormatOptions = { locale: 'de-DE' };
             const result = formatCurrency('1234.56', 'EUR', options);
-            // German locale typically uses comma for decimal separator
-            expect(result).toContain('€');
+            expect(result).toBe('€1.234,56 EUR');
+        });
+
+        it('should omit the currency code when includeCurrencyCode is false', () => {
+            const result = formatCurrency('25.5', 'USD', { includeCurrencyCode: false });
+            expect(result).toBe('$25.50');
         });
     });
 
     describe('case sensitivity', () => {
         it('should handle lowercase currency codes', () => {
             const result = formatCurrency('25.5', 'usd');
-            expect(result).toMatch(/\$25\.50/);
+            expect(result).toBe('$25.50 USD');
         });
 
         it('should handle mixed case currency codes', () => {
             const result = formatCurrency('25.5', 'Usd');
-            expect(result).toMatch(/\$25\.50/);
+            expect(result).toBe('$25.50 USD');
+        });
+    });
+
+    describe('shared-symbol currencies', () => {
+        it('should append codes for currencies that share symbols', () => {
+            const usd = formatCurrency('50', 'USD');
+            const cad = formatCurrency('75', 'CAD');
+            expect(usd).toBe('$50.00 USD');
+            expect(cad).toBe('$75.00 CAD');
+        });
+
+        it('should differentiate pound-based currencies', () => {
+            const gbp = formatCurrency('25', 'GBP');
+            const egp = formatCurrency('25', 'EGP');
+            expect(gbp).toBe('£25.00 GBP');
+            expect(egp).toBe('£25.00 EGP');
         });
     });
 });

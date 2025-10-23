@@ -431,6 +431,12 @@ export class ExpenseFormPage extends BasePage {
         await expect(input).toHaveValue(value);
     }
 
+    async expectCurrencySelectionDisplays(symbol: string, currencyCode: string): Promise<void> {
+        const currencyButton = this.getCurrencySelect();
+        await expect(currencyButton).toContainText(symbol);
+        await expect(currencyButton).toContainText(currencyCode);
+    }
+
     async expectFormOpen(): Promise<void> {
         await expect(this.page.getByRole('form')).toBeVisible();
     }

@@ -53,6 +53,16 @@ async function openSettlementFormForTest(
 }
 
 test.describe('Settlement Form Validation', () => {
+    test('should display symbol and code in currency selector button', async ({ authenticatedPage }) => {
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, 'test-group-currency-display');
+
+        await settlementFormPage.selectCurrency('USD');
+        await settlementFormPage.expectCurrencySelectionDisplays('$', 'USD');
+
+        await settlementFormPage.selectCurrency('CAD');
+        await settlementFormPage.expectCurrencySelectionDisplays('$', 'CAD');
+    });
+
     test('should keep submit button disabled with only payer pre-selected', async ({ authenticatedPage }) => {
         const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, 'test-group-default');
         await settlementFormPage.expectSubmitDisabled();
