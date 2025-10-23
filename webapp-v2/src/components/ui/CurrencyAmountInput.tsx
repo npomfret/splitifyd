@@ -178,7 +178,7 @@ export function CurrencyAmountInput({
                         min={minValue}
                         step={stepValue}
                         value={amount}
-                        onChange={handleAmountChange}
+                        onInput={handleAmountChange}
                         onBlur={onAmountBlur}
                         onKeyDown={handleKeyDown}
                         disabled={disabled}
@@ -207,7 +207,7 @@ export function CurrencyAmountInput({
                                 ref={searchInputRef}
                                 type='text'
                                 value={searchTerm}
-                                onChange={handleSearchChange}
+                                onInput={handleSearchChange}
                                 onKeyDown={handleKeyDown}
                                 placeholder={t('uiComponents.currencyAmountInput.searchPlaceholder')}
                                 className='w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600'
