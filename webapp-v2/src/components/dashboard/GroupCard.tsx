@@ -1,7 +1,7 @@
 import { absAmount, type Amount, amountToSmallestUnit, GroupDTO } from '@splitifyd/shared';
 import type { JSX } from 'preact';
 import { useTranslation } from 'react-i18next';
-import { Card, CurrencyAmount, Tooltip } from '../ui';
+import { Card, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
 
 interface GroupCardProps {
     group: GroupDTO;
@@ -31,7 +31,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
         return (
             <>
                 {prefix}
-                <CurrencyAmount amount={amount} currency={currency} className='font-semibold' />
+                <CurrencyAmount amount={amount} currency={currency} className='font-semibold ml-0.5' />
                 {suffix}
             </>
         );
@@ -150,7 +150,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                         {balanceDisplays.map((display) => (
                             <div
                                 key={display.key}
-                                class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${display.bgColor} ${display.color}`}
+                                class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${display.bgColor} ${display.color}`}
                                 data-financial-amount='balance'
                             >
                                 {display.content}
@@ -165,7 +165,9 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                         <svg class='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                         </svg>
-                        {group.lastActivity || t('groupCard.noRecentActivity')}
+                        {group.updatedAt
+                            ? <RelativeTime date={group.updatedAt} fallback={group.lastActivity || t('groupCard.noRecentActivity')} />
+                            : (group.lastActivity || t('groupCard.noRecentActivity'))}
                     </div>
                 </div>
             </div>

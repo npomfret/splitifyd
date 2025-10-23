@@ -3,6 +3,86 @@ export const formatLocalDateTime = (utcString: string): string => {
     return date.toLocaleString();
 };
 
+export const getUserTimeZone = (): string | undefined => {
+    if (typeof Intl === 'undefined' || typeof Intl.DateTimeFormat !== 'function') {
+        return undefined;
+    }
+
+    try {
+        const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
+        return timeZone;
+    } catch {
+        return undefined;
+    }
+};
+
+const pad = (value: number): string => value.toString().padStart(2, '0');
+
+export const formatDateTimeInUserTimeZone = (date: Date): string => {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+        return '';
+    }
+
+    const detectedTimeZone = getUserTimeZone();
+    const timeZone = detectedTimeZone || 'UTC';
+
+    try {
+        const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+            timeZone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        });
+
+        const timeFormatter = new Intl.DateTimeFormat('en-GB', {
+            timeZone,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+        });
+
+        const dateParts = dateFormatter.formatToParts(date);
+        const timeParts = timeFormatter.formatToParts(date);
+
+        const year = dateParts.find((part) => part.type === 'year')?.value;
+        const month = dateParts.find((part) => part.type === 'month')?.value;
+        const day = dateParts.find((part) => part.type === 'day')?.value;
+
+        const hour = timeParts.find((part) => part.type === 'hour')?.value;
+        const minute = timeParts.find((part) => part.type === 'minute')?.value;
+        const second = timeParts.find((part) => part.type === 'second')?.value;
+
+        const dateComponent = year && month && day ? `${year}-${month}-${day}` : undefined;
+        const timeComponent = hour && minute && second ? `${hour}:${minute}:${second}` : undefined;
+
+        const timeZoneFormatter = new Intl.DateTimeFormat('en-US', {
+            timeZone,
+            timeZoneName: 'shortOffset',
+        });
+        const offsetPart = timeZoneFormatter
+            .formatToParts(date)
+            .find((part) => part.type === 'timeZoneName')
+            ?.value;
+
+        if (dateComponent && timeComponent) {
+            return `${dateComponent} ${timeComponent}`;
+        }
+
+        // Fallback to manual ISO-like construction if formatToParts fails
+        const yearManual = date.getUTCFullYear();
+        const monthManual = pad(date.getUTCMonth() + 1);
+        const dayManual = pad(date.getUTCDate());
+        const hourManual = pad(date.getUTCHours());
+        const minuteManual = pad(date.getUTCMinutes());
+        const secondManual = pad(date.getUTCSeconds());
+
+        return `${yearManual}-${monthManual}-${dayManual} ${hourManual}:${minuteManual}:${secondManual}`;
+    } catch {
+        return date.toISOString();
+    }
+};
+
 export const getUTCMidnight = (localDateString: string): string => {
     const [year, month, day] = localDateString.split('-').map(Number);
     const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));

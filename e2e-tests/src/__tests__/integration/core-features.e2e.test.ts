@@ -182,6 +182,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         await leaveModalWithBalance.cancelLeaveGroup();
 
         // Owner tries to remove member - button should be disabled
+        await groupDetailPage.ensureMembersSectionExpanded();
         const removeButton = groupDetailPage.getRemoveMemberButton(memberDisplayName);
         await expect(removeButton).toBeDisabled({ timeout: 5000 });
     });

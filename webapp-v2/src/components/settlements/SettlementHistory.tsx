@@ -3,14 +3,13 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { formatCurrency } from '@/utils/currency';
-import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import type { GroupMember, SettlementWithMembers } from '@splitifyd/shared';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { ConfirmDialog, CurrencyAmount, LoadingSpinner, Tooltip } from '../ui';
+import { ConfirmDialog, CurrencyAmount, LoadingSpinner, RelativeTime, Tooltip } from '../ui';
 import { Avatar } from '../ui/Avatar';
 
 interface SettlementHistoryProps {
@@ -73,25 +72,6 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
             enhancedGroupDetailStore.fetchSettlements();
         }
     }, [groupId, userId]);
-
-    const formatDate = (dateString: string): string => {
-        const date = new Date(dateString);
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        if (date.toDateString() === today.toDateString()) {
-            return t('settlementHistory.today');
-        } else if (date.toDateString() === yesterday.toDateString()) {
-            return t('settlementHistory.yesterday');
-        } else {
-            return date.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
-            });
-        }
-    };
 
     const handleDeleteClick = (settlement: SettlementWithMembers) => {
         setSettlementToDelete(settlement);
@@ -238,7 +218,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                                                 >
                                                     <CurrencyAmount amount={settlement.amount} currency={settlement.currency} displayOptions={{ includeCurrencyCode: false }} />
                                                 </span>
-                                                <span class='text-xs text-gray-600'>{formatDate(settlement.date)}</span>
+                                                <RelativeTime date={settlement.date} className='text-xs text-gray-600' tooltipPlacement='bottom' />
                                             </div>
 
                                             {/* Action buttons */}
@@ -306,12 +286,8 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                                         {/* Deleted info if present */}
                                         {isDeleted && settlement.deletedAt && (
                                             <div class={`${settlement.note ? 'row-start-5' : 'row-start-4'} col-start-2 text-red-600 text-xs mt-1`} data-financial-amount='deleted'>
-                                                {t('settlementHistory.deletedBy')} {deletedByContent} {formatDistanceToNow(
-                                                    new Date(
-                                                        settlement
-                                                            .deletedAt,
-                                                    ),
-                                                )}
+                                                {t('settlementHistory.deletedBy')} {deletedByContent}{' '}
+                                                <RelativeTime date={settlement.deletedAt} className='text-red-600' />
                                             </div>
                                         )}
                                     </div>

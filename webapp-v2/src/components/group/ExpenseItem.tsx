@@ -1,10 +1,9 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
-import { formatDistanceToNow, formatExpenseDateTime } from '@/utils/dateUtils.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { ExpenseDTO, GroupMember } from '@splitifyd/shared';
 import { DELETED_AT_FIELD } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
-import { Avatar, CurrencyAmount, Tooltip } from '../ui';
+import { Avatar, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
 
 interface ExpenseItemProps {
     expense: ExpenseDTO;
@@ -65,10 +64,11 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                                 <span className='font-medium'>
                                     {payerName}
                                 </span>{' '}
-                                • {formatExpenseDateTime(expense.date)}
+                                • <RelativeTime date={expense.date} className='text-gray-600' tooltipPlacement='bottom' />
                                 {isDeleted && expense.deletedAt && (
                                     <span className='ml-2 text-red-600'>
-                                        • {t('expenseItem.deletedBy')} {deletedByName} {formatDistanceToNow(new Date(expense.deletedAt))}
+                                        • {t('expenseItem.deletedBy')} {deletedByName}{' '}
+                                        <RelativeTime date={expense.deletedAt} className='text-red-600' />
                                     </span>
                                 )}
                             </p>

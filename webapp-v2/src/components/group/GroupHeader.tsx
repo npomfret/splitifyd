@@ -1,8 +1,7 @@
-import { formatDistanceToNow } from '@/utils/dateUtils.ts';
 import { CogIcon } from '@heroicons/react/24/outline';
 import { GroupDTO, GroupMember } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, Tooltip } from '../ui';
+import { Button, Card, RelativeTime, Tooltip } from '../ui';
 
 interface GroupHeaderProps {
     group: GroupDTO;
@@ -46,7 +45,7 @@ export function GroupHeader({ group, members, expenseCount = 0, onSettings, show
                 </div>
                 {group.createdAt && (
                     <div>
-                        {t('groupHeader.createdPrefix')} {formatDistanceToNow(new Date(group.createdAt))}
+                        {t('groupHeader.createdPrefix')} <RelativeTime date={group.createdAt} />
                     </div>
                 )}
             </div>

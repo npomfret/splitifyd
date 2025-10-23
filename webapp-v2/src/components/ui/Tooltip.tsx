@@ -2,7 +2,7 @@ import type { JSX } from 'preact';
 import { cloneElement, isValidElement } from 'preact/compat';
 import { useRef, useState } from 'preact/hooks';
 
-type TooltipPlacement = 'top' | 'bottom';
+export type TooltipPlacement = 'top' | 'bottom';
 
 interface TooltipProps {
     content: string;

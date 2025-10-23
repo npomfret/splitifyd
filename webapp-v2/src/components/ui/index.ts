@@ -12,6 +12,7 @@ export { Input } from './Input';
 export { LoadingSpinner } from './LoadingSpinner';
 export { LoadingState } from './LoadingState';
 export { Pagination } from './Pagination';
+export { RelativeTime } from './RelativeTime';
 export { SidebarCard } from './SidebarCard';
 export { Stack } from './Stack';
 export { TimeInput } from './TimeInput';
