@@ -1,9 +1,11 @@
-# COMMAND-FIRST WORKFLOW
+Read these first!
 
+@README.md
 @docs/guides/building-and-testing.md
 @docs/guides/code.md
 @docs/guides/end-to-end_testing.md
 @docs/guides/firebase.md
+@docs/guides/firebase-config-deep-dive.md
 @docs/guides/general.md
 @docs/guides/testing.md
 @docs/guides/types.md
