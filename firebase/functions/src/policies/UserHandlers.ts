@@ -1,5 +1,4 @@
 import { Response } from 'express';
-import { getAppBuilder } from '../ApplicationBuilderSingleton';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';

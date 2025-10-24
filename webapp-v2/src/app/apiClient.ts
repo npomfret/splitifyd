@@ -31,7 +31,6 @@ import type {
     PolicyAcceptanceStatusDTO,
     PreviewGroupResponse,
     RegisterResponse,
-    SecurityPreset,
     SettlementDTO,
     ShareLinkResponse,
     UpdateDisplayNameRequest,

@@ -11,8 +11,8 @@ import { MemberStatuses } from '@splitifyd/shared';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { ActivityFeedService } from '../../services/ActivityFeedService';
-import { FirestoreReader } from '../../services/firestore/FirestoreReader';
-import { FirestoreWriter } from '../../services/firestore/FirestoreWriter';
+import { FirestoreReader } from '../../services/firestore';
+import { FirestoreWriter } from '../../services/firestore';
 import { GroupMemberService } from '../../services/GroupMemberService';
 
 describe('Archive Groups - FirestoreReader Status Filtering', () => {

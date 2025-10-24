@@ -22,7 +22,6 @@ import {
     MessageResponse,
     PooledTestUser,
     RegisterResponse,
-    type SecurityPreset,
     type SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,

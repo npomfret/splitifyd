@@ -3,7 +3,7 @@ import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
 import type { ITransaction } from '../firestore-wrapper';
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';
-import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { IFirestoreWriter } from './firestore';
 
 interface CreateActivityItemInput {
     groupId: GroupId;

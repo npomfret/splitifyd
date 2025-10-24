@@ -1,9 +1,5 @@
 import { getAppBuilder } from '../ApplicationBuilderSingleton';
-import { logger } from '../logger';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import { GroupMemberService } from '../services/GroupMemberService';
 import { GroupMemberHandlers } from './GroupMemberHandlers';
-import { GroupShareHandlers } from './GroupShareHandlers';
 
 const groupMemberHandlers = GroupMemberHandlers.createGroupMemberHandlers(getAppBuilder());
 

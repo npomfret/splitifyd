@@ -60,7 +60,7 @@ import type { CommentId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../../constants';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
-import type { BatchGroupFetchOptions, GetGroupsForUserOptions, GroupsPaginationCursor, OrderBy, PaginatedResult, QueryOptions } from './IFirestoreReader';
+import type { BatchGroupFetchOptions, GetGroupsForUserOptions, GroupsPaginationCursor, PaginatedResult, QueryOptions } from './IFirestoreReader';
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: IFirestoreDatabase) {}
