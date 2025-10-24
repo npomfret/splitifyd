@@ -23,6 +23,18 @@ if (fs.existsSync(envPath)) {
 const PROTECTED_COLLECTIONS = new Set(['users']);
 const BATCH_SIZE = 200;
 
+function resolveProjectId(): string | undefined {
+    if (admin.apps.length > 0) {
+        try {
+            return admin.app().options.projectId;
+        } catch {
+            // ignore and fall back to environment variables
+        }
+    }
+
+    return process.env.GCLOUD_PROJECT ?? process.env.PROJECT_ID ?? undefined;
+}
+
 async function resolveFirestore(env: ScriptEnvironment): Promise<Firestore> {
     if (env.isEmulator) {
         const firebaseModule = await import('../functions/src/firebase');
@@ -133,7 +145,7 @@ async function wipeCollections(firestore: Firestore, requestedCollectionIds: str
         console.log(`   • ${collection.id} ${label} - ${countLabel} document(s)`);
     }
 
-    await confirmDestructiveAction(deletableCollections, firestore.app.options.projectId);
+    await confirmDestructiveAction(deletableCollections, resolveProjectId());
 
     console.log('\n🗑️  Starting deletion...');
     let totalDeleted = 0;
