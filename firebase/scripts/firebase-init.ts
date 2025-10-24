@@ -56,7 +56,7 @@ export function getEnvironment(args?: string[]): ScriptEnvironment {
 export function initializeFirebase(env: ScriptEnvironment): void {
     console.log(`🎯 Initializing Firebase for ${env.environment}`);
 
-    if (!env.isEmulator && require.main === module) {
+    if (!env.isEmulator) {
         console.log('   Using Production Firebase');
 
         const serviceAccountPath = path.join(__dirname, '../service-account-key.json');
@@ -73,8 +73,10 @@ export function initializeFirebase(env: ScriptEnvironment): void {
                 credential: admin.credential.cert(serviceAccountPath),
                 projectId: 'splitifyd',
             });
+        } else {
+            console.log('   Firebase Admin already initialized');
         }
-    } else if (env.isEmulator) {
+    } else {
         console.log('   Using Firebase Emulator Suite');
     }
 }
