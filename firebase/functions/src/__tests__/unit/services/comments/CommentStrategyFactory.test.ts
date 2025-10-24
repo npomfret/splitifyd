@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentStrategyFactory } from '../../../../services/comments/CommentStrategyFactory';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
+import { ActivityFeedService } from '../../../../services/ActivityFeedService';
 import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
@@ -20,7 +21,8 @@ describe('CommentStrategyFactory', () => {
         // Create real services using stub database
         const firestoreReader = new FirestoreReader(db);
         const firestoreWriter = new FirestoreWriter(db);
-        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter);
+        const activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
+        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService);
 
         // Create factory with real services
         factory = new CommentStrategyFactory(firestoreReader, groupMemberService);

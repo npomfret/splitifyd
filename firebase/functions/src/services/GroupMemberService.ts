@@ -1,4 +1,4 @@
-import { amountToSmallestUnit, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse } from '@splitifyd/shared';
+import { ActivityFeedEventTypes, amountToSmallestUnit, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../constants';
 import { FieldValue } from '../firestore-wrapper';
@@ -8,11 +8,13 @@ import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ApiError, Errors } from '../utils/errors';
 import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { ActivityFeedService } from './ActivityFeedService';
 
 export class GroupMemberService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
+        private readonly activityFeedService: ActivityFeedService,
     ) {}
 
     async leaveGroup(userId: string, groupId: GroupId): Promise<MessageResponse> {
@@ -110,6 +112,14 @@ export class GroupMemberService {
                 return { message: 'Member is already active' };
             }
 
+            const group = await this.firestoreReader.getGroup(groupId);
+            if (!group) {
+                throw Errors.NOT_FOUND('Group');
+            }
+
+            const actorDisplayName = targetMembership.groupDisplayName || 'Unknown member';
+            const now = new Date().toISOString();
+
             await this.firestoreWriter.runTransaction(async (transaction) => {
                 const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
@@ -118,12 +128,47 @@ export class GroupMemberService {
                     throw Errors.NOT_FOUND('Group member');
                 }
 
+                const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
+                const activityRecipients = new Set<string>();
+                for (const doc of membershipsSnapshot.docs) {
+                    const data = doc.data() as { uid: string; memberStatus: string; };
+                    if (data.memberStatus === MemberStatuses.ACTIVE) {
+                        activityRecipients.add(data.uid);
+                    }
+                }
+                activityRecipients.add(targetUserId);
+
+                const recipientIds = Array.from(activityRecipients);
+                const existingActivityItems = recipientIds.length > 0
+                    ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, recipientIds)
+                    : new Map();
+
                 transaction.update(membershipRef, {
                     memberStatus: MemberStatuses.ACTIVE,
                     groupUpdatedAt: FieldValue.serverTimestamp(),
                 });
 
                 await this.firestoreWriter.touchGroup(groupId, transaction);
+
+                if (recipientIds.length > 0) {
+                    this.activityFeedService.recordActivityForUsersWithExistingItems(
+                        transaction,
+                        recipientIds,
+                        {
+                            groupId,
+                            groupName: group.name,
+                            eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                            actorId: targetUserId,
+                            actorName: actorDisplayName,
+                            timestamp: now,
+                            details: {
+                                targetUserId,
+                                targetUserName: actorDisplayName,
+                            },
+                        },
+                        existingActivityItems,
+                    );
+                }
             });
 
             LoggerContext.setBusinessContext({ groupId });
@@ -287,9 +332,80 @@ export class GroupMemberService {
         }
         timer.endPhase();
 
-        // Atomically update group, delete membership, and clean up notifications
+        const actorId = isLeaving ? targetUserId : requestingUserId;
+        const targetDisplayName = memberDoc.groupDisplayName || 'Unknown member';
+        let actorDisplayName = targetDisplayName;
+
+        if (!isLeaving) {
+            const actorMembership = await this.firestoreReader.getGroupMember(groupId, requestingUserId);
+            actorDisplayName = actorMembership?.groupDisplayName || 'Unknown member';
+        }
+
+        const now = new Date().toISOString();
+
+        // Atomically update group, delete membership, clean up notifications, and emit activity
         timer.startPhase('transaction');
-        await this.firestoreWriter.leaveGroupAtomic(groupId, targetUserId);
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
+            const memberIdsInTransaction = membershipsSnapshot.docs.map((doc) => (doc.data() as { uid: string; }).uid);
+            const remainingMemberIds = memberIdsInTransaction.filter((uid) => uid !== targetUserId);
+
+            const activityRecipients = Array.from(new Set<string>([...remainingMemberIds, targetUserId]));
+            const existingActivityItems = activityRecipients.length > 0
+                ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, activityRecipients)
+                : new Map();
+
+            const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
+            const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
+            transaction.delete(membershipRef);
+
+            await this.firestoreWriter.touchGroup(groupId, transaction);
+
+            const leavingUserNotificationRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, 'user-notifications', targetUserId);
+            transaction.update(leavingUserNotificationRef, {
+                [`groups.${groupId}`]: FieldValue.delete(),
+                changeVersion: FieldValue.increment(1),
+                lastModified: FieldValue.serverTimestamp(),
+            });
+
+            for (const remainingMemberId of remainingMemberIds) {
+                const remainingMemberNotificationRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, 'user-notifications', remainingMemberId);
+                transaction.set(
+                    remainingMemberNotificationRef,
+                    {
+                        changeVersion: FieldValue.increment(1),
+                        lastModified: FieldValue.serverTimestamp(),
+                        groups: {
+                            [groupId]: {
+                                lastGroupDetailsChange: now,
+                                groupDetailsChangeCount: FieldValue.increment(1),
+                            },
+                        },
+                    },
+                    { merge: true },
+                );
+            }
+
+            if (activityRecipients.length > 0) {
+                this.activityFeedService.recordActivityForUsersWithExistingItems(
+                    transaction,
+                    activityRecipients,
+                    {
+                        groupId,
+                        groupName: group.name,
+                        eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                        actorId,
+                        actorName: actorDisplayName,
+                        timestamp: now,
+                        details: {
+                            targetUserId,
+                            targetUserName: targetDisplayName,
+                        },
+                    },
+                    existingActivityItems,
+                );
+            }
+        });
         timer.endPhase();
 
         LoggerContext.setBusinessContext({ groupId });

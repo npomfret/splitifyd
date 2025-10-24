@@ -1,4 +1,4 @@
-import { COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import { ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import type { GroupMembershipDTO, JoinGroupResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { randomBytes } from 'crypto';
@@ -13,6 +13,7 @@ import { ApiError } from '../utils/errors';
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
+import { ActivityFeedService } from './ActivityFeedService';
 import type { GroupMemberService } from './GroupMemberService';
 
 const SHARE_LINK_DEFAULT_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
@@ -24,6 +25,7 @@ export class GroupShareService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
+        private readonly activityFeedService: ActivityFeedService,
     ) {}
 
     private resolveExpirationTimestamp(requestedExpiresAt?: string): string {
@@ -314,6 +316,9 @@ export class GroupShareService {
         const now = new Date().toISOString();
         timer.endPhase();
 
+        const shouldEmitJoinedActivity = !requiresApproval;
+        const activityRecipients = shouldEmitJoinedActivity ? Array.from(new Set<string>([...existingMembersIds, userId])) : [];
+
         // Atomic transaction: check group exists and create member subcollection
         timer.startPhase('transaction');
         const result = await this.firestoreWriter.runTransaction(async (transaction) => {
@@ -322,6 +327,10 @@ export class GroupShareService {
             if (!groupSnapshot) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
+
+            const existingActivityItems = shouldEmitJoinedActivity && activityRecipients.length > 0
+                ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, activityRecipients)
+                : new Map();
 
             // Update group timestamp to reflect membership change
             await this.firestoreWriter.touchGroup(groupId, transaction);
@@ -338,6 +347,27 @@ export class GroupShareService {
 
             // Note: Group notifications are handled by the trackGroupChanges trigger
             // which fires when the group's updatedAt timestamp is modified above
+
+            if (shouldEmitJoinedActivity && activityRecipients.length > 0) {
+                const groupName = (groupSnapshot.data() as { name?: string; } | undefined)?.name ?? preCheckGroup.name;
+                this.activityFeedService.recordActivityForUsersWithExistingItems(
+                    transaction,
+                    activityRecipients,
+                    {
+                        groupId,
+                        groupName,
+                        eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                        actorId: userId,
+                        actorName: memberDoc.groupDisplayName,
+                        timestamp: now,
+                        details: {
+                            targetUserId: userId,
+                            targetUserName: memberDoc.groupDisplayName,
+                        },
+                    },
+                    existingActivityItems,
+                );
+            }
 
             return {
                 groupName: preCheckGroup.name,

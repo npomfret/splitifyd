@@ -10,6 +10,7 @@ import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { MemberStatuses } from '@splitifyd/shared';
 import { beforeEach, describe, expect, test } from 'vitest';
+import { ActivityFeedService } from '../../services/ActivityFeedService';
 import { FirestoreReader } from '../../services/firestore/FirestoreReader';
 import { FirestoreWriter } from '../../services/firestore/FirestoreWriter';
 import { GroupMemberService } from '../../services/GroupMemberService';
@@ -152,7 +153,8 @@ describe('Archive Groups - GroupMemberService', () => {
         db = new StubFirestoreDatabase();
         reader = new FirestoreReader(db);
         writer = new FirestoreWriter(db);
-        service = new GroupMemberService(reader, writer);
+        const activityFeedService = new ActivityFeedService(reader, writer);
+        service = new GroupMemberService(reader, writer, activityFeedService);
     });
 
     describe('archiveGroupForUser', () => {

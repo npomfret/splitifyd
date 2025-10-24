@@ -3,6 +3,7 @@ import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
+import { ActivityFeedService } from '../../../../services/ActivityFeedService';
 import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
@@ -20,7 +21,8 @@ describe('GroupCommentStrategy', () => {
         // Create real services using stub database
         firestoreReader = new FirestoreReader(db);
         const firestoreWriter = new FirestoreWriter(db);
-        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter);
+        const activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
+        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService);
 
         // Create strategy with real services
         strategy = new GroupCommentStrategy(firestoreReader, groupMemberService);

@@ -1,8 +1,9 @@
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
-import { MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
+import { ActivityFeedEventTypes, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import { ActivityFeedService } from '../../../services/ActivityFeedService';
 import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
@@ -15,6 +16,7 @@ describe('GroupShareService', () => {
     let firestoreReader: FirestoreReader;
     let firestoreWriter: FirestoreWriter;
     let groupMemberService: GroupMemberService;
+    let activityFeedService: ActivityFeedService;
 
     beforeEach(() => {
         // Create stub database
@@ -23,10 +25,11 @@ describe('GroupShareService', () => {
         // Create real services using stub database
         firestoreReader = new FirestoreReader(db);
         firestoreWriter = new FirestoreWriter(db);
-        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter);
+        activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
+        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService);
 
         // Create service with real services
-        groupShareService = new GroupShareService(firestoreReader, firestoreWriter, groupMemberService);
+        groupShareService = new GroupShareService(firestoreReader, firestoreWriter, groupMemberService, activityFeedService);
     });
 
     const seedGroupWithOwner = (groupId: string, ownerId: string) => {
@@ -511,6 +514,65 @@ describe('GroupShareService', () => {
 
             const storedMembership = await firestoreReader.getGroupMember(groupId, joiningUserId);
             expect(storedMembership?.memberStatus).toBe(MemberStatuses.ACTIVE);
+        });
+    });
+
+    describe('activity feed integration', () => {
+        it('emits MEMBER_JOINED activity for auto-approved joins', async () => {
+            const groupId = 'activity-group';
+            const linkId = 'activity-link';
+            const ownerId = 'owner-user';
+            const joiningUserId = 'joining-user';
+
+            const group = new GroupDTOBuilder()
+                .withId(groupId)
+                .withCreatedBy(ownerId)
+                .withPermissions({ memberApproval: 'automatic' })
+                .build();
+
+            db.seedGroup(groupId, group);
+            db.initializeGroupBalance(groupId);
+
+            const ownerMembership = new GroupMemberDocumentBuilder()
+                .withUserId(ownerId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .asActive()
+                .buildDocument();
+            db.seedGroupMember(groupId, ownerId, ownerMembership);
+
+            const shareLink = {
+                id: linkId,
+                token: linkId,
+                createdBy: ownerId,
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+            db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
+
+            db.seedUser(joiningUserId, { displayName: 'Joining User' });
+
+            await groupShareService.joinGroupByLink(joiningUserId, linkId);
+
+            const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
+            expect(ownerFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                actorId: joiningUserId,
+                details: expect.objectContaining({
+                    targetUserId: joiningUserId,
+                    targetUserName: 'Joining User',
+                }),
+            });
+
+            const joiningFeed = await firestoreReader.getActivityFeedForUser(joiningUserId);
+            expect(joiningFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                actorId: joiningUserId,
+                details: expect.objectContaining({
+                    targetUserId: joiningUserId,
+                }),
+            });
         });
     });
 });

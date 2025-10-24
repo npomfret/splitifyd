@@ -213,4 +213,5 @@ useEffect(() => {
 - ✅ Backend `ActivityFeedService` implemented with transactional write + prune helpers; Firestore reader/writer extended for user-scoped feeds.
 - ✅ Expense, settlement, and comment services now emit activity entries within their existing transactions.
 - ✅ New authenticated `/activity-feed` endpoint wired through Express/Firebase Functions with cursor pagination (limit 10).
-- ⏳ Member join/leave events, frontend UI/listener, and legacy notification removal still pending.
+- ✅ Member join/leave events now emit activity feed entries, with transactional pruning + unit tests covering approvals, leave/remove flows, and share-link joins (`vitest run src/__tests__/unit/services/GroupMemberService.test.ts src/__tests__/unit/services/GroupShareService.test.ts`).
+- ⏳ Frontend UI/listener work and legacy notification removal still pending.

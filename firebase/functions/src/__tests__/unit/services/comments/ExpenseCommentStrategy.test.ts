@@ -4,6 +4,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
+import { ActivityFeedService } from '../../../../services/ActivityFeedService';
 import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
@@ -24,7 +25,9 @@ describe('ExpenseCommentStrategy', () => {
 
         // Create real services using stub database
         const firestoreReader = new FirestoreReader(db);
-        const groupMemberService = new GroupMemberService(firestoreReader, new FirestoreWriter(db));
+        const firestoreWriter = new FirestoreWriter(db);
+        const activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
+        const groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService);
 
         // Create ExpenseCommentStrategy with real services
         strategy = new ExpenseCommentStrategy(firestoreReader, groupMemberService);

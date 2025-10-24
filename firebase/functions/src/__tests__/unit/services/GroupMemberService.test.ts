@@ -1,8 +1,9 @@
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
-import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { ActivityFeedEventTypes, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, test } from 'vitest';
+import { ActivityFeedService } from '../../../services/ActivityFeedService';
 import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
@@ -15,6 +16,14 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     const defaultTheme = new ThemeBuilder()
         .build();
 
+    const seedUserNotificationDoc = (userId: string) => {
+        db.seed(`user-notifications/${userId}`, {
+            changeVersion: 0,
+            lastModified: Timestamp.now(),
+            groups: {},
+        });
+    };
+
     beforeEach(async () => {
         // Create stub database
         db = new StubFirestoreDatabase();
@@ -22,9 +31,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         // Create real services using stub database
         firestoreReader = new FirestoreReader(db);
         const firestoreWriter = new FirestoreWriter(db);
+        const activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
 
         // GroupMemberService uses pre-computed balances from Firestore now (no balance service needed)
-        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter);
+        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService);
 
         // Setup test group using builder
         const testGroup = new GroupDTOBuilder()
@@ -171,18 +181,21 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const adminMember = new GroupMemberDocumentBuilder()
                 .withUserId(adminUserId)
                 .withGroupId(groupId)
+                .withGroupDisplayName('Admin User')
                 .asAdmin()
                 .asActive()
                 .buildDocument();
             const activeMember = new GroupMemberDocumentBuilder()
                 .withUserId(memberUserId)
                 .withGroupId(groupId)
+                .withGroupDisplayName('Active Member')
                 .asMember()
                 .asActive()
                 .buildDocument();
             const pendingMember = new GroupMemberDocumentBuilder()
                 .withUserId(pendingUserId)
                 .withGroupId(groupId)
+                .withGroupDisplayName('Pending Member')
                 .asMember()
                 .asPending()
                 .buildDocument();
@@ -216,6 +229,22 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             const approvedMember = await firestoreReader.getGroupMember(groupId, pendingUserId);
             expect(approvedMember?.memberStatus).toBe(MemberStatuses.ACTIVE);
+
+            const adminFeed = await firestoreReader.getActivityFeedForUser(adminUserId);
+            expect(adminFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                actorId: pendingUserId,
+                details: expect.objectContaining({
+                    targetUserId: pendingUserId,
+                    targetUserName: 'Pending Member',
+                }),
+            });
+
+            const pendingFeed = await firestoreReader.getActivityFeedForUser(pendingUserId);
+            expect(pendingFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                actorId: pendingUserId,
+            });
         });
 
         it('should reject pending members', async () => {
@@ -269,6 +298,14 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const memberDoc = new GroupMemberDocumentBuilder()
                 .withUserId('member-user-123')
                 .withGroupId('test-group-id')
+                .withGroupDisplayName('Member To Remove')
+                .buildDocument();
+
+            const creatorMemberDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user-123')
+                .withGroupId('test-group-id')
+                .withGroupDisplayName('Group Owner')
+                .asAdmin()
                 .buildDocument();
 
             // Set up balance document with outstanding balance
@@ -308,12 +345,14 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const memberDoc = new GroupMemberDocumentBuilder()
                 .withUserId('member-user-123')
                 .withGroupId('test-group-id')
+                .withGroupDisplayName('Leaving Member')
                 .buildDocument();
 
             // Add another member so the group has multiple members (needed for leave validation)
             const otherMemberDoc = new GroupMemberDocumentBuilder()
                 .withUserId('other-member-123')
                 .withGroupId('test-group-id')
+                .withGroupDisplayName('Remaining Member')
                 .buildDocument();
 
             // Set up balance document with zero balance
@@ -340,12 +379,31 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             db.seedGroupMember('test-group-id', 'other-member-123', otherMemberDoc);
             db.seed(`groups/test-group-id/metadata/balance`, settledBalanceWithTimestamp);
 
+            seedUserNotificationDoc('member-user-123');
+            seedUserNotificationDoc('other-member-123');
+
             // Act
             const result = await groupMemberService.leaveGroup('member-user-123', 'test-group-id');
 
             // Assert
             expect(result).toEqual({
                 message: 'Successfully left the group',
+            });
+
+            const remainingFeed = await firestoreReader.getActivityFeedForUser('other-member-123');
+            expect(remainingFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                actorId: 'member-user-123',
+                details: expect.objectContaining({
+                    targetUserId: 'member-user-123',
+                    targetUserName: 'Leaving Member',
+                }),
+            });
+
+            const leavingFeed = await firestoreReader.getActivityFeedForUser('member-user-123');
+            expect(leavingFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                actorId: 'member-user-123',
             });
         });
 
@@ -425,6 +483,14 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const memberDoc = new GroupMemberDocumentBuilder()
                 .withUserId('member-user-123')
                 .withGroupId('test-group-id')
+                .withGroupDisplayName('Member To Remove')
+                .buildDocument();
+
+            const creatorMemberDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user-123')
+                .withGroupId('test-group-id')
+                .withGroupDisplayName('Group Owner')
+                .asAdmin()
                 .buildDocument();
 
             // Set up balance document with outstanding balance
@@ -464,6 +530,14 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const memberDoc = new GroupMemberDocumentBuilder()
                 .withUserId('member-user-123')
                 .withGroupId('test-group-id')
+                .withGroupDisplayName('Member To Remove')
+                .buildDocument();
+
+            const creatorMemberDoc = new GroupMemberDocumentBuilder()
+                .withUserId('creator-user-123')
+                .withGroupId('test-group-id')
+                .withGroupDisplayName('Group Owner')
+                .asAdmin()
                 .buildDocument();
 
             // Set up balance document with zero balance
@@ -487,7 +561,11 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             db.seedGroup('test-group-id', testGroup);
             db.seedGroupMember('test-group-id', 'member-user-123', memberDoc);
+            db.seedGroupMember('test-group-id', 'creator-user-123', creatorMemberDoc);
             db.seed(`groups/test-group-id/metadata/balance`, settledBalanceWithTimestamp);
+
+            seedUserNotificationDoc('member-user-123');
+            seedUserNotificationDoc('creator-user-123');
 
             // Act
             const result = await groupMemberService.removeGroupMember('creator-user-123', 'test-group-id', 'member-user-123');
@@ -495,6 +573,22 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             // Assert
             expect(result).toEqual({
                 message: 'Member removed successfully',
+            });
+
+            const ownerFeed = await firestoreReader.getActivityFeedForUser('creator-user-123');
+            expect(ownerFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                actorId: 'creator-user-123',
+                details: expect.objectContaining({
+                    targetUserId: 'member-user-123',
+                    targetUserName: 'Member To Remove',
+                }),
+            });
+
+            const removedFeed = await firestoreReader.getActivityFeedForUser('member-user-123');
+            expect(removedFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                actorId: 'creator-user-123',
             });
         });
 
