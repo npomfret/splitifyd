@@ -34,6 +34,9 @@
 // Comment schemas
 export { CommentDataSchema, CommentDocumentSchema } from './comment';
 
+// Activity feed schemas
+export { ActivityFeedDocumentSchema, type ActivityFeedDocument } from './activity-feed';
+
 // Expense schemas
 export { ExpenseDocumentSchema } from './expense';
 

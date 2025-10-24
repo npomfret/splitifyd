@@ -16,7 +16,7 @@
 
 import type { CommentDTO, CommentTargetType, RegisteredUser, ShareLinkDTO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
-import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
+import type { IDocumentReference, IDocumentSnapshot, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 
@@ -93,6 +93,8 @@ export interface IFirestoreWriter {
      */
     addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult>;
 
+    createCommentInTransaction(transaction: ITransaction, targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDTO, 'id'>): IDocumentReference;
+
     // ========================================================================
     // Share Link Operations
     // ========================================================================
@@ -158,6 +160,21 @@ export interface IFirestoreWriter {
      * @param updates - The update data
      */
     updateInTransaction(transaction: ITransaction, documentPath: string, updates: any): void;
+
+    /**
+     * Create an activity feed document within a user-scoped subcollection during a transaction.
+     */
+    createActivityFeedItemInTransaction(transaction: ITransaction, userId: string, documentId: string | null, data: Record<string, any>): IDocumentReference;
+
+    /**
+     * Fetch recent activity feed snapshots for a user within a transaction.
+     */
+    getActivityFeedItemsForUserInTransaction(transaction: ITransaction, userId: string, limit: number): Promise<IDocumentSnapshot[]>;
+
+    /**
+     * Delete an activity feed document within a transaction.
+     */
+    deleteActivityFeedItemInTransaction(transaction: ITransaction, userId: string, documentId: string): void;
 
     // ========================================================================
     // Utility Operations

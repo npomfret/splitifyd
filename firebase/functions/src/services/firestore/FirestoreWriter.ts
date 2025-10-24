@@ -24,6 +24,7 @@ import type { GroupBalanceDTO } from '../../schemas';
 // Import schemas for validation
 import { GroupId } from '@splitifyd/shared';
 import {
+    ActivityFeedDocumentSchema,
     CommentDataSchema,
     ExpenseDocumentSchema,
     GroupBalanceDocumentSchema,
@@ -387,6 +388,7 @@ export class FirestoreWriter implements IFirestoreWriter {
             [FirestoreCollections.COMMENTS]: CommentDataSchema,
             [FirestoreCollections.GROUP_MEMBERSHIPS]: TopLevelGroupMemberSchema,
             [FirestoreCollections.USER_NOTIFICATIONS]: UserNotificationDocumentSchema,
+            [FirestoreCollections.ACTIVITY_FEED]: ActivityFeedDocumentSchema,
         };
 
         const schema = schemaMap[collection];
@@ -793,6 +795,25 @@ export class FirestoreWriter implements IFirestoreWriter {
         logger.info('Group balance updated in transaction', { groupId, version: newBalance.version });
     }
 
+    createCommentInTransaction(transaction: ITransaction, targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDTO, 'id'>) {
+        const collectionPath = this.getCommentCollectionPath(targetType, targetId);
+        const commentRef = this.db.collection(collectionPath).doc();
+
+        const cleanedData = this.removeUndefinedValues(commentData);
+        const convertedData = this.convertISOToTimestamps(cleanedData);
+        const validatedData = CommentDataSchema.parse(convertedData);
+
+        const finalData = {
+            ...validatedData,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+        };
+
+        transaction.set(commentRef, finalData);
+
+        return commentRef;
+    }
+
     async addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.addComment', async () => {
             try {
@@ -904,6 +925,42 @@ export class FirestoreWriter implements IFirestoreWriter {
         this.validateTransactionData(collection, finalUpdates, docRef.id);
 
         transaction.update(docRef, finalUpdates);
+    }
+
+    createActivityFeedItemInTransaction(transaction: ITransaction, userId: string, documentId: string | null, data: Record<string, any>) {
+        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
+        const docRef = documentId ? collectionRef.doc(documentId) : collectionRef.doc();
+
+        const cleanedData = this.removeUndefinedValues(data);
+        const convertedData = this.convertISOToTimestamps(cleanedData);
+
+        const finalData = {
+            ...convertedData,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+        };
+
+        ActivityFeedDocumentSchema.parse({
+            ...finalData,
+            id: docRef.id,
+        });
+
+        transaction.set(docRef, finalData);
+
+        return docRef;
+    }
+
+    async getActivityFeedItemsForUserInTransaction(transaction: ITransaction, userId: string, limit: number) {
+        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
+        const query = collectionRef.orderBy('createdAt', 'desc').limit(limit);
+        const snapshot = await transaction.get(query);
+        return snapshot.docs;
+    }
+
+    deleteActivityFeedItemInTransaction(transaction: ITransaction, userId: string, documentId: string) {
+        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
+        const docRef = collectionRef.doc(documentId);
+        transaction.delete(docRef);
     }
 
     // ========================================================================

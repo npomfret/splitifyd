@@ -16,6 +16,7 @@ import { PolicyService } from './PolicyService';
 import { SettlementService } from './SettlementService';
 import { UserPolicyService } from './UserPolicyService';
 import { UserService } from './UserService2';
+import { ActivityFeedService } from './ActivityFeedService';
 
 export class ApplicationBuilder {
     // Base infrastructure - created once
@@ -31,6 +32,7 @@ export class ApplicationBuilder {
     private groupShareService?: GroupShareService;
     private notificationService?: NotificationService;
     private incrementalBalanceService?: IncrementalBalanceService;
+    private activityFeedService?: ActivityFeedService;
     private firestoreReader: IFirestoreReader;
     private firestoreWriter: IFirestoreWriter;
 
@@ -87,21 +89,37 @@ export class ApplicationBuilder {
 
     buildExpenseService(): ExpenseService {
         if (!this.expenseService) {
-            this.expenseService = new ExpenseService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildIncrementalBalanceService());
+            this.expenseService = new ExpenseService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildIncrementalBalanceService(),
+                this.buildActivityFeedService(),
+            );
         }
         return this.expenseService;
     }
 
     buildSettlementService(): SettlementService {
         if (!this.settlementService) {
-            this.settlementService = new SettlementService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildIncrementalBalanceService());
+            this.settlementService = new SettlementService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildIncrementalBalanceService(),
+                this.buildActivityFeedService(),
+            );
         }
         return this.settlementService;
     }
 
     buildCommentService(): CommentService {
         if (!this.commentService) {
-            this.commentService = new CommentService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService(), this.buildAuthService());
+            this.commentService = new CommentService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildGroupMemberService(),
+                this.buildAuthService(),
+                this.buildActivityFeedService(),
+            );
         }
         return this.commentService;
     }
@@ -139,6 +157,13 @@ export class ApplicationBuilder {
             this.groupShareService = new GroupShareService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
         }
         return this.groupShareService;
+    }
+
+    buildActivityFeedService(): ActivityFeedService {
+        if (!this.activityFeedService) {
+            this.activityFeedService = new ActivityFeedService(this.buildFirestoreReader(), this.buildFirestoreWriter());
+        }
+        return this.activityFeedService;
     }
 
     buildNotificationService(): NotificationService {

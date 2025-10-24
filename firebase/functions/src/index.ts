@@ -8,6 +8,7 @@ import { authenticateAdmin } from './auth/middleware';
 import { getConfig } from './client-config';
 import { createComment, listExpenseComments, listGroupComments } from './comments/handlers';
 import { HTTP_STATUS, SYSTEM } from './constants';
+import { getActivityFeed } from './activity/handlers';
 import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
 import { getAuth } from './firebase';
 import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
@@ -347,6 +348,7 @@ function setupRoutes(app: express.Application): void {
 
     // Parameterized routes come last
     app.get(`/${FirestoreCollections.GROUPS}/:id/full-details`, authenticate, asyncHandler(getGroupFullDetails));
+    app.get('/activity-feed', authenticate, asyncHandler(getActivityFeed));
     app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
     app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
     app.patch(`/${FirestoreCollections.GROUPS}/:id/security/permissions`, authenticate, asyncHandler(updateGroupPermissions));

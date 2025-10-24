@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { PositiveAmountStringSchema, SplitTypes } from '../shared-types';
+import { ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes } from '../shared-types';
 
 const UserThemeColorSchema = z.object({
     light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
@@ -411,9 +411,42 @@ const ExpenseFullDetailsSchema = z.object({
     }),
 });
 
+const ActivityFeedEventTypeSchema = z.enum(Object.values(ActivityFeedEventTypes) as [string, ...string[]]);
+
+const ActivityFeedItemDetailsSchema = z.object({
+    expenseId: z.string().optional(),
+    expenseDescription: z.string().optional(),
+    commentId: z.string().optional(),
+    commentPreview: z.string().optional(),
+    settlementId: z.string().optional(),
+    settlementDescription: z.string().optional(),
+    targetUserId: z.string().optional(),
+    targetUserName: z.string().optional(),
+});
+
+export const ActivityFeedItemSchema = z.object({
+    id: z.string(),
+    userId: z.string(),
+    groupId: z.string(),
+    groupName: z.string(),
+    eventType: ActivityFeedEventTypeSchema,
+    actorId: z.string(),
+    actorName: z.string(),
+    timestamp: z.string().datetime(),
+    details: ActivityFeedItemDetailsSchema,
+    createdAt: z.string().datetime().optional(),
+});
+
+export const ActivityFeedResponseSchema = z.object({
+    items: z.array(ActivityFeedItemSchema),
+    hasMore: z.boolean(),
+    nextCursor: z.string().optional(),
+});
+
 export const responseSchemas = {
     '/config': AppConfigurationSchema,
     '/health': HealthCheckResponseSchema,
+    'GET /activity-feed': ActivityFeedResponseSchema,
     'GET /groups': ListGroupsResponseSchema,
     'POST /groups': GroupSchema,
     '/groups/:id': GroupSchema,

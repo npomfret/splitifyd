@@ -11,6 +11,8 @@
  */
 
 import {
+    type ActivityFeedEventType,
+    type ActivityFeedItem,
     type CommentDTO,
     type CommentTargetType,
     CommentTargetTypes,
@@ -35,6 +37,8 @@ import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
 import {
+    ActivityFeedDocumentSchema,
+    type ActivityFeedDocument,
     ExpenseDocumentSchema,
     GroupBalanceDocumentSchema,
     type GroupBalanceDTO,
@@ -656,6 +660,86 @@ export class FirestoreReader implements IFirestoreReader {
             }
 
             return parsedMembers;
+        });
+    }
+
+    async getActivityFeedForUser(
+        userId: string,
+        options: {
+            limit?: number;
+            cursor?: string;
+        } = {},
+    ): Promise<{ items: ActivityFeedItem[]; hasMore: boolean; nextCursor?: string; }> {
+        return measureDb('GET_ACTIVITY_FEED_FOR_USER', async () => {
+            const limit = Math.max(1, Math.min(options.limit ?? 10, 50));
+            const fetchLimit = limit + 1;
+
+            const collectionRef = this
+                .db
+                .collection(FirestoreCollections.ACTIVITY_FEED)
+                .doc(userId)
+                .collection('items');
+
+            let query = collectionRef.orderBy('createdAt', 'desc').orderBy('__name__', 'desc').limit(fetchLimit);
+
+            if (options.cursor) {
+                const cursorDoc = await collectionRef.doc(options.cursor).get();
+                if (!cursorDoc.exists) {
+                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Activity feed cursor is invalid or expired');
+                }
+                query = query.startAfter(cursorDoc);
+            }
+
+            const snapshot = await query.get();
+            const docs = snapshot.docs;
+
+            const hasMore = docs.length > limit;
+            const limitedDocs = hasMore ? docs.slice(0, limit) : docs;
+
+            const items: ActivityFeedItem[] = [];
+            for (const doc of limitedDocs) {
+                const rawData = doc.data();
+                if (!rawData) {
+                    continue;
+                }
+
+                try {
+                    const validated = ActivityFeedDocumentSchema.parse({
+                        id: doc.id,
+                        ...rawData,
+                    });
+
+                    const converted = this.convertTimestampsToISO(validated) as ActivityFeedDocument;
+
+                    const item: ActivityFeedItem = {
+                        id: converted.id,
+                        userId: converted.userId,
+                        groupId: converted.groupId,
+                        groupName: converted.groupName,
+                        eventType: converted.eventType as ActivityFeedEventType,
+                        actorId: converted.actorId,
+                        actorName: converted.actorName,
+                        timestamp: converted.timestamp,
+                        details: converted.details ?? {},
+                        createdAt: converted.createdAt,
+                    };
+
+                    items.push(item);
+                } catch (error) {
+                    logger.error('Invalid activity feed document encountered', error, {
+                        userId,
+                        docId: doc.id,
+                    });
+                }
+            }
+
+            const nextCursor = hasMore && limitedDocs.length > 0 ? limitedDocs[limitedDocs.length - 1]!.id : undefined;
+
+            return {
+                items,
+                hasMore,
+                nextCursor,
+            };
         });
     }
 

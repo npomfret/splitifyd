@@ -83,6 +83,47 @@ export const PolicyIds = {
     PRIVACY_POLICY: 'privacy-policy',
 } as const;
 
+// ========================================================================
+// Activity Feed Types
+// ========================================================================
+
+export const ActivityFeedEventTypes = {
+    EXPENSE_CREATED: 'expense-created',
+    EXPENSE_UPDATED: 'expense-updated',
+    EXPENSE_DELETED: 'expense-deleted',
+    MEMBER_JOINED: 'member-joined',
+    MEMBER_LEFT: 'member-left',
+    COMMENT_ADDED: 'comment-added',
+    SETTLEMENT_CREATED: 'settlement-created',
+    SETTLEMENT_UPDATED: 'settlement-updated',
+} as const;
+
+export type ActivityFeedEventType = (typeof ActivityFeedEventTypes)[keyof typeof ActivityFeedEventTypes];
+
+export interface ActivityFeedItemDetails {
+    expenseId?: string;
+    expenseDescription?: string;
+    commentId?: string;
+    commentPreview?: string;
+    settlementId?: string;
+    settlementDescription?: string;
+    targetUserId?: string;
+    targetUserName?: string;
+}
+
+export interface ActivityFeedItem {
+    id: string;
+    userId: string;
+    groupId: string;
+    groupName: string;
+    eventType: ActivityFeedEventType;
+    actorId: string;
+    actorName: string;
+    timestamp: ISOString;
+    details: ActivityFeedItemDetails;
+    createdAt?: ISOString;
+}
+
 export const DELETED_AT_FIELD = 'deletedAt';
 
 // ========================================================================

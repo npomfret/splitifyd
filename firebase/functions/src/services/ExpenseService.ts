@@ -1,4 +1,4 @@
-import { CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest } from '@splitifyd/shared';
+import { ActivityFeedEventTypes, CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest } from '@splitifyd/shared';
 import { ExpenseId, GroupId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
@@ -10,6 +10,7 @@ import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { ApiError, Errors } from '../utils/errors';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
+import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 
 /**
@@ -31,6 +32,7 @@ export class ExpenseService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly incrementalBalanceService: IncrementalBalanceService,
+        private readonly activityFeedService: ActivityFeedService,
     ) {}
 
     /**
@@ -213,6 +215,8 @@ export class ExpenseService {
             throw Errors.FORBIDDEN();
         }
 
+        const actorDisplayName = member.groupDisplayName || 'Unknown member';
+
         // Check if user can create expenses in this group
         const canCreateExpense = PermissionEngineAsync.checkPermission(member!, groupData, userId, 'expenseEditing');
         if (!canCreateExpense) {
@@ -272,6 +276,8 @@ export class ExpenseService {
         let createdExpenseRef: IDocumentReference | undefined;
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
+            // ===== READ PHASE: All reads must happen before any writes =====
+
             // Re-verify group exists within transaction - using DTO method
             const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expenseData.groupId);
 
@@ -281,6 +287,11 @@ export class ExpenseService {
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expenseData.groupId);
+
+            // Fetch existing activity feed items for all members (required for pruning logic)
+            const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
+
+            // ===== WRITE PHASE: All writes happen after reads =====
 
             // Create the expense with the pre-generated ID
             createdExpenseRef = this.firestoreWriter.createInTransaction(
@@ -295,6 +306,25 @@ export class ExpenseService {
 
             // Apply incremental balance update
             this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expense, memberIds);
+
+            // Record activity feed items using pre-fetched data
+            this.activityFeedService.recordActivityForUsersWithExistingItems(
+                transaction,
+                memberIds,
+                {
+                    groupId: expenseData.groupId,
+                    groupName: groupInTx.name,
+                    eventType: ActivityFeedEventTypes.EXPENSE_CREATED,
+                    actorId: userId,
+                    actorName: actorDisplayName,
+                    timestamp: now,
+                    details: {
+                        expenseId,
+                        expenseDescription: expense.description,
+                    },
+                },
+                existingActivityItems,
+            );
         });
         timer.endPhase();
 
@@ -353,6 +383,8 @@ export class ExpenseService {
             throw Errors.FORBIDDEN();
         }
 
+        const actorDisplayName = member.groupDisplayName || 'Unknown member';
+
         // Group is already a GroupDTO from FirestoreReader
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
@@ -409,6 +441,8 @@ export class ExpenseService {
         // Use transaction to update expense atomically with optimistic locking and balance update
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
+            // ===== READ PHASE: All reads must happen before any writes =====
+
             // Re-fetch expense within transaction to check for concurrent updates
             // Now using DTO method which returns ISO strings
             const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
@@ -426,6 +460,11 @@ export class ExpenseService {
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
 
+            // Fetch existing activity feed items for all members (required for pruning logic)
+            const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
+
+            // ===== WRITE PHASE: All writes happen after reads =====
+
             // Create history entry with ISO timestamp
             // Filter out undefined values for Firestore compatibility
             const cleanExpenseData = Object.fromEntries(Object.entries(expense).filter(([, value]) => value !== undefined));
@@ -440,6 +479,25 @@ export class ExpenseService {
             // Apply incremental balance update with old and new expense
             const newExpense: ExpenseDTO = { ...expense, ...updates };
             this.incrementalBalanceService.applyExpenseUpdated(transaction, expense.groupId, currentBalance, expense, newExpense, memberIds);
+
+            // Record activity feed items using pre-fetched data
+            this.activityFeedService.recordActivityForUsersWithExistingItems(
+                transaction,
+                memberIds,
+                {
+                    groupId: expense.groupId,
+                    groupName: groupData.name,
+                    eventType: ActivityFeedEventTypes.EXPENSE_UPDATED,
+                    actorId: userId,
+                    actorName: actorDisplayName,
+                    timestamp: updates.updatedAt,
+                    details: {
+                        expenseId,
+                        expenseDescription: newExpense.description,
+                    },
+                },
+                existingActivityItems,
+            );
         });
 
         timer.endPhase();
@@ -575,13 +633,15 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
         }
 
+        const actorDisplayName = member.groupDisplayName || 'Unknown member';
+
         try {
             // Use transaction to soft delete expense atomically and update balance
             timer.startPhase('transaction');
             await this.firestoreWriter.runTransaction(async (transaction) => {
-                // IMPORTANT: All reads must happen before any writes in Firestore transactions
+                // ===== READ PHASE: All reads must happen before any writes =====
 
-                // Step 1: Do ALL reads first - using DTO methods
+                // Do ALL reads first - using DTO methods
                 const currentExpense = await this.firestoreReader.getExpenseInTransaction(transaction, expenseId);
                 if (!currentExpense) {
                     throw Errors.NOT_FOUND('Expense');
@@ -596,12 +656,17 @@ export class ExpenseService {
                 // Read current balance BEFORE any writes (Firestore transaction rule)
                 const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
 
-                // Step 2: Check for concurrent updates (compare ISO strings)
+                // Fetch existing activity feed items for all members (required for pruning logic)
+                const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
+
+                // Check for concurrent updates (compare ISO strings)
                 if (expense.updatedAt !== currentExpense.updatedAt) {
                     throw Errors.CONCURRENT_UPDATE();
                 }
 
-                // Step 3: Now do ALL writes - soft delete the expense
+                // ===== WRITE PHASE: All writes happen after reads =====
+
+                // Soft delete the expense
                 const now = new Date().toISOString();
                 this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, {
                     [DELETED_AT_FIELD]: now, // ISO string, FirestoreWriter converts to Timestamp
@@ -614,6 +679,25 @@ export class ExpenseService {
 
                 // Apply incremental balance update to remove this expense's contribution
                 this.incrementalBalanceService.applyExpenseDeleted(transaction, expense.groupId, currentBalance, expense, memberIds);
+
+                // Record activity feed items using pre-fetched data
+                this.activityFeedService.recordActivityForUsersWithExistingItems(
+                    transaction,
+                    memberIds,
+                    {
+                        groupId: expense.groupId,
+                        groupName: groupInTx.name,
+                        eventType: ActivityFeedEventTypes.EXPENSE_DELETED,
+                        actorId: userId,
+                        actorName: actorDisplayName,
+                        timestamp: now,
+                        details: {
+                            expenseId,
+                            expenseDescription: expense.description,
+                        },
+                    },
+                    existingActivityItems,
+                );
             });
             timer.endPhase();
 

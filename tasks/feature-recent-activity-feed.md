@@ -206,3 +206,11 @@ useEffect(() => {
 3. Expose `GET /api/activity-feed` with membership filtering, cursor support, and a fixed page size of 10 items.
 4. Create the dashboard activity feed UI, Firestore listener plumbing, and dispatcher that also signals domain stores.
 5. Remove the legacy `user-notifications` backend triggers/services, frontend detector, and update associated tests.
+
+## 9. Progress Log
+
+- ✅ Shared activity-feed DTOs and response schemas added in `@splitifyd/shared`, including API validation for `GET /activity-feed`.
+- ✅ Backend `ActivityFeedService` implemented with transactional write + prune helpers; Firestore reader/writer extended for user-scoped feeds.
+- ✅ Expense, settlement, and comment services now emit activity entries within their existing transactions.
+- ✅ New authenticated `/activity-feed` endpoint wired through Express/Firebase Functions with cursor pagination (limit 10).
+- ⏳ Member join/leave events, frontend UI/listener, and legacy notification removal still pending.

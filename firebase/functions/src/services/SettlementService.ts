@@ -1,4 +1,4 @@
-import { CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
+import { ActivityFeedEventTypes, CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { z } from 'zod';
@@ -11,6 +11,7 @@ import * as dateHelpers from '../utils/dateHelpers';
 import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
+import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 
 /**
@@ -31,6 +32,7 @@ export class SettlementService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly incrementalBalanceService: IncrementalBalanceService,
+        private readonly activityFeedService: ActivityFeedService,
     ) {}
     /**
      * Fetch group member data for settlements
@@ -197,6 +199,8 @@ export class SettlementService {
             throw Errors.FORBIDDEN();
         }
 
+        const actorDisplayName = member.groupDisplayName || 'Unknown member';
+
         // Verify payer and payee are still in the group (race condition protection)
         for (const uid of [settlementData.payerId, settlementData.payeeId]) {
             if (!memberIds.includes(uid)) {
@@ -240,14 +244,21 @@ export class SettlementService {
         // Create settlement and update group balance atomically
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
+            // ===== READ PHASE: All reads must happen before any writes =====
+
             // Verify group still exists
-            const groupData = await this.firestoreReader.getGroupInTransaction(transaction, settlementData.groupId);
-            if (!groupData) {
+            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, settlementData.groupId);
+            if (!groupInTx) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlementData.groupId);
+
+            // Fetch existing activity feed items for all members (required for pruning logic)
+            const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
+
+            // ===== WRITE PHASE: All writes happen after reads =====
 
             // Create settlement in transaction
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.SETTLEMENTS, settlementId, settlementDataToCreate);
@@ -258,6 +269,25 @@ export class SettlementService {
             // Apply incremental balance update
             const settlementToApply: SettlementDTO = { id: settlementId, ...settlementDataToCreate };
             this.incrementalBalanceService.applySettlementCreated(transaction, settlementData.groupId, currentBalance, settlementToApply, memberIds);
+
+            // Record activity feed items using pre-fetched data
+            this.activityFeedService.recordActivityForUsersWithExistingItems(
+                transaction,
+                memberIds,
+                {
+                    groupId: settlementData.groupId,
+                    groupName: groupInTx.name,
+                    eventType: ActivityFeedEventTypes.SETTLEMENT_CREATED,
+                    actorId: userId,
+                    actorName: actorDisplayName,
+                    timestamp: now,
+                    details: {
+                        settlementId,
+                        settlementDescription: settlementData.note,
+                    },
+                },
+                existingActivityItems,
+            );
         });
         timer.endPhase();
 
@@ -317,8 +347,6 @@ export class SettlementService {
             );
         }
 
-        await this.firestoreReader.verifyGroupMembership(settlement.groupId, userId);
-
         if (settlement.createdBy !== userId) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_SETTLEMENT_CREATOR', 'Only the creator can update this settlement');
         }
@@ -346,13 +374,26 @@ export class SettlementService {
             }
         }
 
-        // Get members for balance update
-        const memberIds = await this.firestoreReader.getAllGroupMemberIds(settlement.groupId);
+        const [member, memberIds] = await Promise.all([
+            this.firestoreReader.getGroupMember(settlement.groupId, userId),
+            this.firestoreReader.getAllGroupMemberIds(settlement.groupId),
+        ]);
+
+        if (!member) {
+            throw Errors.FORBIDDEN();
+        }
+
+        const actorDisplayName = member.groupDisplayName || 'Unknown member';
+
         timer.endPhase();
+
+        const updatedNote = updateData.note === undefined ? settlement.note : updateData.note || undefined;
 
         // Update with optimistic locking and balance update
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
+            // ===== READ PHASE: All reads must happen before any writes =====
+
             const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
             if (!currentSettlement) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
@@ -363,21 +404,54 @@ export class SettlementService {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
             }
 
+            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, settlement.groupId);
+            if (!groupInTx) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            }
+
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
 
+            // Fetch existing activity feed items for all members (required for pruning logic)
+            const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
+
+            // ===== WRITE PHASE: All writes happen after reads =====
+
+            const updateTimestamp = new Date().toISOString();
             const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
             this.firestoreWriter.updateInTransaction(transaction, documentPath, {
                 ...updates,
-                updatedAt: new Date().toISOString(), // ISO string, FirestoreWriter converts
+                updatedAt: updateTimestamp, // ISO string, FirestoreWriter converts
             });
 
             // Update group timestamp to track activity
             await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
 
             // Apply incremental balance update with old and new settlement
-            const newSettlement: SettlementDTO = { ...settlement, ...updates };
+            const newSettlement: SettlementDTO = { ...settlement, ...updates, updatedAt: updateTimestamp } as SettlementDTO;
+            if (updates.note === FieldValue.delete()) {
+                delete (newSettlement as any).note;
+            }
             this.incrementalBalanceService.applySettlementUpdated(transaction, settlement.groupId, currentBalance, settlement, newSettlement, memberIds);
+
+            // Record activity feed items using pre-fetched data
+            this.activityFeedService.recordActivityForUsersWithExistingItems(
+                transaction,
+                memberIds,
+                {
+                    groupId: settlement.groupId,
+                    groupName: groupInTx.name,
+                    eventType: ActivityFeedEventTypes.SETTLEMENT_UPDATED,
+                    actorId: userId,
+                    actorName: actorDisplayName,
+                    timestamp: updateTimestamp,
+                    details: {
+                        settlementId,
+                        settlementDescription: updatedNote,
+                    },
+                },
+                existingActivityItems,
+            );
         });
         timer.endPhase();
 

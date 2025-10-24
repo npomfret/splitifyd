@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { ExpenseId, ISOString, MemberStatus } from '@splitifyd/shared';
+import type { ActivityFeedItem, ExpenseId, ISOString, MemberStatus } from '@splitifyd/shared';
 import type { IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
@@ -153,6 +153,22 @@ export interface IFirestoreReader {
     getAllGroupMembers(groupId: GroupId): Promise<GroupMembershipDTO[]>;
 
     getAllGroupMemberIds(groupId: GroupId): Promise<string[]>;
+
+    // ========================================================================
+    // Activity Feed Operations
+    // ========================================================================
+
+    getActivityFeedForUser(
+        userId: string,
+        options?: {
+            limit?: number;
+            cursor?: string;
+        },
+    ): Promise<{
+        items: ActivityFeedItem[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }>;
 
     // ========================================================================
     // Collection Read Operations - Expense-related
