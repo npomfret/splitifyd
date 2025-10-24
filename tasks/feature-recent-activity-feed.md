@@ -191,3 +191,18 @@ useEffect(() => {
 - **Backend Tests:** All unit and integration tests for the old notification triggers and services will be deleted.
 - **Frontend Tests:** Unit tests relying on mocking the `UserNotificationDetector` will be rewritten to mock the new `RealtimeService` and simulate incoming `ActivityFeedItem` events.
 - **E2E Tests:** End-to-end tests may require updates to their waiting logic. Instead of waiting for the old notification mechanism, they will need to wait for UI changes triggered by the new real-time activity events.
+
+## 7. Clarifications & Decisions (2025-02-14)
+
+- Activity feed writes will happen inside the same Firestore transaction as the originating mutation. We will write one activity document per relevant user and immediately prune that user's feed back to a maximum of 10 items before the transaction completes.
+- The REST API will default to returning 10 items per call, matching the stored maximum.
+- Frontend real-time updates will use Firestore listeners (no WebSockets) to take advantage of the existing infrastructure and test mocks.
+- The legacy `user-notifications` triggers and related code can be removed outright once the new feed ships; no dual-running period is required.
+
+## 8. Implementation Plan (Agent)
+
+1. Introduce shared activity feed types and integrate them across backend and frontend packages.
+2. Build an `ActivityFeedService` that participates in existing transactions, including pruning logic, and inject it into expense, group, comment, and settlement flows.
+3. Expose `GET /api/activity-feed` with membership filtering, cursor support, and a fixed page size of 10 items.
+4. Create the dashboard activity feed UI, Firestore listener plumbing, and dispatcher that also signals domain stores.
+5. Remove the legacy `user-notifications` backend triggers/services, frontend detector, and update associated tests.
