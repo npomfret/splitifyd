@@ -317,11 +317,12 @@ function setupRoutes(app: express.Application): void {
     // Test endpoints - only available in non-production environments
     if (getConfig().isProduction) {
         // Return 404 for test endpoints in production to prevent privilege escalation
-        app.all('/test-pool/*', (req, res) => {
+        // Use regex pattern for wildcard matching in Express 5
+        app.all(/^\/test-pool.*/, (req, res) => {
             logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
             res.status(404).json({ error: 'Not found' });
         });
-        app.all('/test/user/*', (req, res) => {
+        app.all(/^\/test\/user.*/, (req, res) => {
             logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
             res.status(404).json({ error: 'Not found' });
         });
