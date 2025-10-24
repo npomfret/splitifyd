@@ -176,103 +176,114 @@ function setupRoutes(app: express.Application): void {
         res.json(report);
     });
 
-    // Environment variables endpoint (for debugging)
-    app.get('/env', (req: express.Request, res: express.Response) => {
-        const uptimeSeconds = process.uptime();
-        const memUsage = process.memoryUsage();
+    if (!getConfig().isProduction) {
+        // Environment variables endpoint (for debugging)
+        app.get('/env', (req: express.Request, res: express.Response) => {
+            const uptimeSeconds = process.uptime();
+            const memUsage = process.memoryUsage();
 
-        // Format uptime as human readable
-        const days = Math.floor(uptimeSeconds / 86400);
-        const hours = Math.floor((uptimeSeconds % 86400) / 3600);
-        const minutes = Math.floor((uptimeSeconds % 3600) / 60);
-        const seconds = Math.floor(uptimeSeconds % 60);
+            // Format uptime as human readable
+            const days = Math.floor(uptimeSeconds / 86400);
+            const hours = Math.floor((uptimeSeconds % 86400) / 3600);
+            const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+            const seconds = Math.floor(uptimeSeconds % 60);
 
-        let uptimeText = '';
-        if (days > 0) uptimeText += `${days}d `;
-        if (hours > 0) uptimeText += `${hours}h `;
-        if (minutes > 0) uptimeText += `${minutes}m `;
-        uptimeText += `${seconds}s`;
+            let uptimeText = '';
+            if (days > 0) uptimeText += `${days}d `;
+            if (hours > 0) uptimeText += `${hours}h `;
+            if (minutes > 0) uptimeText += `${minutes}m `;
+            uptimeText += `${seconds}s`;
 
-        // Format bytes to human readable
-        const formatBytes = (bytes: number): string => {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-        };
+            // Format bytes to human readable
+            const formatBytes = (bytes: number): string => {
+                if (bytes === 0) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+            };
 
-        // List files in current directory
-        const currentDir = process.cwd();
-        let files: any[];
+            // List files in current directory
+            const currentDir = process.cwd();
+            let files: any[];
 
-        try {
-            const entries = fs.readdirSync(currentDir);
-            files = entries
-                .map((name) => {
-                    try {
-                        const fullPath = path.join(currentDir, name);
-                        const stats = fs.statSync(fullPath);
-                        return {
-                            name,
-                            type: stats.isDirectory() ? 'dir' : 'file',
-                            size: stats.isDirectory() ? null : formatBytes(stats.size),
-                            modified: stats.mtime.toISOString(),
-                            mode: stats.mode.toString(8),
-                            isSymbolicLink: stats.isSymbolicLink(),
-                        };
-                    } catch (err) {
-                        return {
-                            name,
-                            error: err instanceof Error ? err.message : 'Unable to stat',
-                        };
-                    }
-                })
-                .sort((a, b) => {
-                    // Sort directories first, then by name
-                    if (a.type === 'dir' && b.type !== 'dir') return -1;
-                    if (a.type !== 'dir' && b.type === 'dir') return 1;
-                    return a.name.localeCompare(b.name);
-                });
-        } catch (err) {
-            files = [
-                {
-                    error: err instanceof Error ? err.message : 'Unable to read directory',
+            try {
+                const entries = fs.readdirSync(currentDir);
+                files = entries
+                    .map((name) => {
+                        try {
+                            const fullPath = path.join(currentDir, name);
+                            const stats = fs.statSync(fullPath);
+                            return {
+                                name,
+                                type: stats.isDirectory() ? 'dir' : 'file',
+                                size: stats.isDirectory() ? null : formatBytes(stats.size),
+                                modified: stats.mtime.toISOString(),
+                                mode: stats.mode.toString(8),
+                                isSymbolicLink: stats.isSymbolicLink(),
+                            };
+                        } catch (err) {
+                            return {
+                                name,
+                                error: err instanceof Error ? err.message : 'Unable to stat',
+                            };
+                        }
+                    })
+                    .sort((a, b) => {
+                        // Sort directories first, then by name
+                        if (a.type === 'dir' && b.type !== 'dir') return -1;
+                        if (a.type !== 'dir' && b.type === 'dir') return 1;
+                        return a.name.localeCompare(b.name);
+                    });
+            } catch (err) {
+                files = [
+                    {
+                        error: err instanceof Error ? err.message : 'Unable to read directory',
+                    },
+                ];
+            }
+
+            const responsePayload = {
+                env: process.env,
+                build: {
+                    timestamp: BUILD_INFO.timestamp,
+                    date: BUILD_INFO.date,
+                    version: APP_VERSION,
                 },
-            ];
-        }
+                runtime: {
+                    startTime: new Date(Date.now() - uptimeSeconds * 1000).toISOString(),
+                    uptime: uptimeSeconds,
+                    uptimeHuman: uptimeText.trim(),
+                },
+                memory: {
+                    rss: formatBytes(memUsage.rss),
+                    heapTotal: formatBytes(memUsage.heapTotal),
+                    heapUsed: formatBytes(memUsage.heapUsed),
+                    external: formatBytes(memUsage.external),
+                    arrayBuffers: formatBytes(memUsage.arrayBuffers),
+                    heapAvailable: formatBytes(memUsage.heapTotal - memUsage.heapUsed),
+                },
+                filesystem: {
+                    currentDirectory: currentDir,
+                    files,
+                },
+            };
 
-        const responsePayload = {
-            env: process.env,
-            build: {
-                timestamp: BUILD_INFO.timestamp,
-                date: BUILD_INFO.date,
-                version: APP_VERSION,
-            },
-            runtime: {
-                startTime: new Date(Date.now() - uptimeSeconds * 1000).toISOString(),
-                uptime: uptimeSeconds,
-                uptimeHuman: uptimeText.trim(),
-            },
-            memory: {
-                rss: formatBytes(memUsage.rss),
-                heapTotal: formatBytes(memUsage.heapTotal),
-                heapUsed: formatBytes(memUsage.heapUsed),
-                external: formatBytes(memUsage.external),
-                arrayBuffers: formatBytes(memUsage.arrayBuffers),
-                heapAvailable: formatBytes(memUsage.heapTotal - memUsage.heapUsed),
-            },
-            filesystem: {
-                currentDirectory: currentDir,
-                files,
-            },
-        };
-
-        // Use standard JSON response for easier manual inspection in browsers
-        res.status(200);
-        res.setHeader('Content-Type', 'application/json; charset=utf-8');
-        res.send(JSON.stringify(responsePayload, null, 2));
-    });
+            // Use standard JSON response for easier manual inspection in browsers
+            res.status(200);
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            res.send(JSON.stringify(responsePayload, null, 2));
+        });
+    } else {
+        app.all('/env', (req: express.Request, res: express.Response) => {
+            res.status(404).json({
+                error: {
+                    code: 'NOT_FOUND',
+                    message: 'Endpoint not found',
+                },
+            });
+        });
+    }
 
     // Async error wrapper to ensure proper error handling
     const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {

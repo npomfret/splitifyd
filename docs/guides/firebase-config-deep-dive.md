@@ -37,8 +37,6 @@ This note captures the current Firebase configuration workflow, the moving piece
 
 | Priority | Item | Notes |
 | --- | --- | --- |
-| P0 | Guard or delete `/api/env` when `getConfig().isProduction` is true | Quick security win; change is isolated to `index.ts`. |
-| P0 | Ensure the prod switch works (`generate-firebase-config` vs `.env.instanceprod`) | Blocker for deployments; set `FUNCTIONS_SOURCE` explicitly or add a dedicated mode flag. |
 | P1 | Add a real production build script for functions (or invoke `tsc` directly) | Fixes the missing `npm run build:prod` path that `conditional-build.js` expects. |
 | P1 | Stop committing the generated `firebase/firebase.json` | Add to `.gitignore` or redirect output so instance switches stop dirtying git state. |
 | P2 | Relax `start-with-data.ts` to allow `NODE_ENV=development` | Removes friction during emulator startup without affecting prod. |
