@@ -27,7 +27,7 @@
     "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../../scripts/test-wrapper.js"
   },
   "devDependencies": {
-    "@splitifyd/test-support": "workspace:*",
+    "@splitifyd/test-support": "^1.0.0",
     "@types/node": "^24.0.14",
     "tsup": "^8.0.0",
     "tsx": "^4.7.0",
