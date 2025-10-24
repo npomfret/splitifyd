@@ -19,6 +19,10 @@ const __dirname = path.dirname(__filename);
 const distDir = path.join(__dirname, '..', 'dist');
 
 const buildMode = process.env.BUILD_MODE || 'development';
+if (process.env.SKIP_WORKSPACE_BUILD === 'true') {
+    console.log('⏭️  Skipping build for @splitifyd/firebase-simulator (SKIP_WORKSPACE_BUILD detected)');
+    process.exit(0);
+}
 const shouldEmitBundles = buildMode === 'production' || buildMode === 'test' || process.env.FORCE_PROD_BUILD === 'true';
 
 if (shouldEmitBundles) {

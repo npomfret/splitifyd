@@ -11,6 +11,7 @@ const stageFunctions = path.join(stageRoot, 'functions');
 const productionEnv = {
     ...process.env,
     BUILD_MODE: 'production',
+    SKIP_WORKSPACE_BUILD: 'true',
 };
 
 const workspacePackages = [
@@ -55,6 +56,13 @@ execSync('npm run build:prod', { cwd: srcFunctions, stdio: 'inherit', env: produ
 console.log('Staging functions directory...');
 fs.cpSync(srcFunctions, stageFunctions, { recursive: true });
 
+// Remove any existing node_modules to avoid copying dev-only artifacts
+const stagedNodeModules = path.join(stageFunctions, 'node_modules');
+if (fs.existsSync(stagedNodeModules)) {
+    fs.rmSync(stagedNodeModules, { recursive: true, force: true });
+    console.log('Removed existing node_modules from staging directory');
+}
+
 // Copy tarballs to staged functions
 tarballs.forEach(({ name, filename, sourcePath }) => {
     const destination = path.join(stageFunctions, filename);
@@ -91,6 +99,18 @@ tarballs.forEach(({ filename, sourcePath }) => {
 // Install production dependencies in staged directory
 console.log('Installing production dependencies in staged functions...');
 execSync('npm install --omit=dev --package-lock=false', { cwd: stageFunctions, stdio: 'inherit' });
+
+// Sanity check: ensure production env mode is present
+const stagedEnvPath = path.join(stageFunctions, '.env');
+if (!fs.existsSync(stagedEnvPath)) {
+    console.warn('⚠️  No .env found in staged functions directory. Prod deployments expect .env.instanceprod to be copied earlier.');
+} else {
+    const envContent = fs.readFileSync(stagedEnvPath, 'utf8');
+    if (!/^INSTANCE_MODE=prod$/m.test(envContent)) {
+        throw new Error('Staged .env does not contain INSTANCE_MODE=prod. Aborting deployment staging.');
+    }
+    console.log('✅ Verified staged .env contains INSTANCE_MODE=prod');
+}
 
 console.log(`\n✓ Deployment stage ready at ${stageFunctions}`);
 console.log('Firebase will deploy from this staged directory.');

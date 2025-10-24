@@ -16,6 +16,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const buildMode = process.env.BUILD_MODE || 'development';
+if (process.env.SKIP_WORKSPACE_BUILD === 'true') {
+    console.log('⏭️  Skipping build for @splitifyd/shared (SKIP_WORKSPACE_BUILD detected)');
+    process.exit(0);
+}
 
 if (buildMode === 'production' || buildMode === 'test') {
     console.log('🏗️  Running production build for @splitifyd/shared...');
