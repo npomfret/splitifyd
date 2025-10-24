@@ -1,11 +1,11 @@
-import { GroupId } from '@splitifyd/shared';
+import { GroupId, ISOString } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
 
 interface TransactionChangeDocument {
     groupId: GroupId;
     type: 'expense' | 'settlement' | 'group';
     users: string[];
-    createdAt: string; // ISO string for consistency with DTO pattern
+    createdAt: ISOString; // ISO string for consistency with DTO pattern
 }
 
 /**

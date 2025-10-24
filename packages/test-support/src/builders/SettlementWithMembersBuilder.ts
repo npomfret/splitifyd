@@ -1,6 +1,6 @@
 import type { GroupMember, SettlementWithMembers, UserId } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
+import { GroupId, ISOString } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
@@ -100,7 +100,7 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withCreatedAt(createdAt: string | Date): this {
+    withCreatedAt(createdAt: ISOString | Date): this {
         this.settlement.createdAt = typeof createdAt === 'string' ? createdAt : createdAt.toISOString();
         return this;
     }
