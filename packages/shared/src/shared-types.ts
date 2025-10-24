@@ -52,6 +52,7 @@ todo: introduce branded types:
 export type GroupId = string;
 export type ExpenseId = string;
 export type SettlementId = string;
+export type GroupName = string;
 
 /**
  * Zod schema for expense splits
@@ -114,8 +115,8 @@ export interface ActivityFeedItemDetails {
 export interface ActivityFeedItem {
     id: string;
     userId: string;
-    groupId: string;
-    groupName: string;
+    groupId: GroupId;
+    groupName: GroupName;
     eventType: ActivityFeedEventType;
     actorId: string;
     actorName: string;
@@ -839,7 +840,7 @@ export interface GenerateShareLinkRequest {
 
 export interface PreviewGroupResponse {
     groupId: GroupId;
-    groupName: string;
+    groupName: GroupName;
     groupDescription: string;
     memberCount: number;
     isAlreadyMember: boolean;
@@ -847,7 +848,7 @@ export interface PreviewGroupResponse {
 
 export interface JoinGroupResponse {
     groupId: GroupId;
-    groupName: string;
+    groupName: GroupName;
     success: boolean;
     displayNameConflict: boolean; // True if user's display name conflicts with existing member
     memberStatus: MemberStatus;

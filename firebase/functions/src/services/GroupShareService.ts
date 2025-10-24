@@ -15,6 +15,7 @@ import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { ActivityFeedService } from './ActivityFeedService';
 import type { GroupMemberService } from './GroupMemberService';
+import type {GroupName} from "@splitifyd/shared";
 
 const SHARE_LINK_DEFAULT_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
 const SHARE_LINK_MAX_EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
@@ -216,7 +217,7 @@ export class GroupShareService {
         linkId: string,
     ): Promise<{
         groupId: GroupId;
-        groupName: string;
+        groupName: GroupName;
         groupDescription: string;
         memberCount: number;
         isAlreadyMember: boolean;

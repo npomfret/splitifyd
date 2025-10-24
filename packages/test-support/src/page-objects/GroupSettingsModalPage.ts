@@ -3,6 +3,7 @@ import { TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { DashboardPage } from './DashboardPage';
+import type {GroupName} from "@splitifyd/shared";
 
 const translation = translationEn;
 
@@ -431,7 +432,7 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(this.getDeleteDialog()).toBeVisible({ timeout: 2000 });
     }
 
-    async fillDeleteConfirmation(groupName: string): Promise<void> {
+    async fillDeleteConfirmation(groupName: GroupName): Promise<void> {
         const input = this.getDeleteConfirmationInput();
         await input.click();
         await input.fill(groupName);
@@ -463,7 +464,7 @@ export class GroupSettingsModalPage extends BasePage {
         await this.clickButton(button, { buttonName: translation.editGroupModal.deleteConfirmDialog.cancelText });
     }
 
-    async deleteGroup(groupName: string): Promise<void> {
+    async deleteGroup(groupName: GroupName): Promise<void> {
         await this.clickDelete();
         await this.fillDeleteConfirmation(groupName);
         await this.confirmDelete();
@@ -611,7 +612,7 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     async handleDeleteConfirmDialog<T = DashboardPage>(
-        groupName: string,
+        groupName: GroupName,
         createDashboardPage?: (page: Page) => T,
     ): Promise<T> {
         await this.waitForDomContentLoaded();

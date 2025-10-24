@@ -4,6 +4,7 @@ import { UserNotificationDetector, userNotificationDetector } from '@/utils/user
 import { batch, computed, ReadonlySignal, signal } from '@preact/signals';
 import { CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
+import type {GroupId} from "@splitifyd/shared";
 
 interface EnhancedGroupsStore {
     groups: GroupDTO[];
@@ -39,8 +40,8 @@ interface EnhancedGroupsStore {
     setPageSize(size: number): Promise<void>;
     createGroup(data: CreateGroupRequest): Promise<GroupDTO>;
     updateGroup(id: string, updates: Partial<GroupDTO>): Promise<void>;
-    archiveGroup(groupId: string): Promise<void>;
-    unarchiveGroup(groupId: string): Promise<void>;
+    archiveGroup(groupId: GroupId): Promise<void>;
+    unarchiveGroup(groupId: GroupId): Promise<void>;
     refreshGroups(): Promise<void>;
     setShowArchived(showArchived: boolean): Promise<void>;
     toggleShowArchived(): Promise<void>;
@@ -337,11 +338,11 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         }
     }
 
-    async archiveGroup(groupId: string): Promise<void> {
+    async archiveGroup(groupId: GroupId): Promise<void> {
         await this.updateMembershipStatus(groupId, () => apiClient.archiveGroup(groupId));
     }
 
-    async unarchiveGroup(groupId: string): Promise<void> {
+    async unarchiveGroup(groupId: GroupId): Promise<void> {
         await this.updateMembershipStatus(groupId, () => apiClient.unarchiveGroup(groupId));
     }
 
@@ -624,7 +625,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         return this.#showArchivedSignal.value ? MemberStatuses.ARCHIVED : MemberStatuses.ACTIVE;
     }
 
-    private async updateMembershipStatus(groupId: string, operation: () => Promise<unknown>): Promise<void> {
+    private async updateMembershipStatus(groupId: GroupId, operation: () => Promise<unknown>): Promise<void> {
         const updatingIds = new Set(this.#updatingGroupIdsSignal.value);
         updatingIds.add(groupId);
         this.#updatingGroupIdsSignal.value = updatingIds;

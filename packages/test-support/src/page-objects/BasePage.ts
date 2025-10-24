@@ -49,13 +49,13 @@ import { TEST_TIMEOUTS } from '../test-constants';
  * 1. **Always provide both versions** for major navigation actions:
  *    ```typescript
  *    // Non-fluent: action only
- *    async clickGroupCard(groupName: string): Promise<void> {
+ *    async clickGroupCard(groupName: GroupName): Promise<void> {
  *        const card = this.getGroupCard(groupName);
  *        await card.click();
  *    }
  *
  *    // Fluent: action + verification + return page object
- *    async clickGroupCardAndNavigateToDetail(groupName: string): Promise<GroupDetailPage> {
+ *    async clickGroupCardAndNavigateToDetail(groupName: GroupName): Promise<GroupDetailPage> {
  *        await this.clickGroupCard(groupName);  // Reuse non-fluent version
  *        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
  *        const detailPage = new GroupDetailPage(this.page);

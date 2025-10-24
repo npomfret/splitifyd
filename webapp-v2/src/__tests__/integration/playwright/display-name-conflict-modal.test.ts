@@ -3,6 +3,7 @@ import type { ClientUser, GroupId } from '@splitifyd/shared';
 import { DisplayNameConflictModalPage, JoinGroupPage, JoinGroupResponseBuilder, PreviewGroupResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupPreviewApi, mockJoinGroupApi, mockUpdateGroupDisplayNameApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
+import type {GroupName} from "@splitifyd/shared";
 
 interface ConflictModalOptions {
     groupName?: string;
@@ -14,7 +15,7 @@ interface ConflictModalContext {
     joinGroupPage: JoinGroupPage;
     conflictModal: DisplayNameConflictModalPage;
     groupId: GroupId;
-    groupName: string;
+    groupName: GroupName;
     userDisplayName: string;
     page: Page;
 }

@@ -4,6 +4,7 @@ import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
+import type {GroupName} from "@splitifyd/shared";
 
 interface PendingEntry {
     uid: string;
@@ -14,7 +15,7 @@ interface PendingEntry {
 
 interface ManagedGroupSetupResult {
     groupId: GroupId;
-    groupName: string;
+    groupName: GroupName;
     pendingEntries: PendingEntry[];
 }
 

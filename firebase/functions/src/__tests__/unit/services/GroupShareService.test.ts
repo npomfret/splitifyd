@@ -9,6 +9,7 @@ import { FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupShareService } from '../../../services/GroupShareService';
 import { ApiError } from '../../../utils/errors';
+import type {GroupId} from "@splitifyd/shared";
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
@@ -32,7 +33,7 @@ describe('GroupShareService', () => {
         groupShareService = new GroupShareService(firestoreReader, firestoreWriter, groupMemberService, activityFeedService);
     });
 
-    const seedGroupWithOwner = (groupId: string, ownerId: string) => {
+    const seedGroupWithOwner = (groupId: GroupId, ownerId: string) => {
         const testGroup = new GroupDTOBuilder()
             .withId(groupId)
             .withCreatedBy(ownerId)

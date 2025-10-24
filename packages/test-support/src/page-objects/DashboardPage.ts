@@ -10,6 +10,7 @@ import { GroupDetailPage } from './GroupDetailPage';
 import { HeaderPage } from './HeaderPage';
 import { JoinGroupPage } from './JoinGroupPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
+import type {GroupName} from "@splitifyd/shared";
 
 const translation = translationEn;
 let multiUserGroupCounter = 0;
@@ -140,7 +141,7 @@ export class DashboardPage extends BasePage {
     /**
      * Get a specific group card by name
      */
-    getGroupCard(groupName: string): Locator {
+    getGroupCard(groupName: GroupName): Locator {
         return this.getGroupCards().filter({
             has: this.page.getByText(groupName, { exact: true }),
         });
@@ -167,7 +168,7 @@ export class DashboardPage extends BasePage {
     /**
      * Hover a specific group card by name
      */
-    async hoverGroupCard(groupName: string): Promise<void> {
+    async hoverGroupCard(groupName: GroupName): Promise<void> {
         const card = this.getGroupCard(groupName);
         await expect(card).toBeVisible();
         await card.hover();
@@ -185,12 +186,12 @@ export class DashboardPage extends BasePage {
         await this.waitForGroupsToLoad();
     }
 
-    async verifyGroupHasArchivedBadge(groupName: string): Promise<void> {
+    async verifyGroupHasArchivedBadge(groupName: GroupName): Promise<void> {
         const badge = this.getGroupCard(groupName).getByTestId('archived-badge');
         await expect(badge).toBeVisible();
     }
 
-    async verifyGroupHasNoArchiveQuickActions(groupName: string): Promise<void> {
+    async verifyGroupHasNoArchiveQuickActions(groupName: GroupName): Promise<void> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
@@ -390,21 +391,21 @@ export class DashboardPage extends BasePage {
     /**
      * Group Card - Invite button (hover action)
      */
-    getGroupCardInviteButton(groupName: string): Locator {
+    getGroupCardInviteButton(groupName: GroupName): Locator {
         return this.getGroupCard(groupName).locator('button[title*="Invite"], button[aria-label*="Invite"]');
     }
 
     /**
      * Group Card - Add expense button (hover action)
      */
-    getGroupCardAddExpenseButton(groupName: string): Locator {
+    getGroupCardAddExpenseButton(groupName: GroupName): Locator {
         return this.getGroupCard(groupName).locator('button[title*="expense"], button[aria-label*="expense"]');
     }
 
     /**
      * Group Card - Balance display badge
      */
-    getGroupCardBalance(groupName: string): Locator {
+    getGroupCardBalance(groupName: GroupName): Locator {
         return this.getGroupCard(groupName).locator('[data-financial-amount="balance"]');
     }
 
@@ -635,7 +636,7 @@ export class DashboardPage extends BasePage {
      * Click on a specific group card to navigate to group details
      * Non-fluent version - does not verify navigation or return page object
      */
-    async clickGroupCard(groupName: string): Promise<void> {
+    async clickGroupCard(groupName: GroupName): Promise<void> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible();
         await groupCard.click();
@@ -648,7 +649,7 @@ export class DashboardPage extends BasePage {
      * Use this when you expect navigation to succeed
      */
     async clickGroupCardAndNavigateToDetail<T extends GroupDetailPage = GroupDetailPage>(
-        groupName: string,
+        groupName: GroupName,
         options: {
             createGroupDetailPage?: (page: Page) => T;
             expectedGroupId?: string;
@@ -794,7 +795,7 @@ export class DashboardPage extends BasePage {
     /**
      * Wait for a specific group to appear (useful for real-time updates)
      */
-    async waitForGroupToAppear(groupName: string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+    async waitForGroupToAppear(groupName: GroupName, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
         try {
             await expect(this.getGroupCard(groupName)).toBeVisible({ timeout });
         } catch (error) {
@@ -806,7 +807,7 @@ export class DashboardPage extends BasePage {
     /**
      * Wait for a specific group to disappear (useful for real-time updates)
      */
-    async waitForGroupToDisappear(groupName: string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+    async waitForGroupToDisappear(groupName: GroupName, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
         try {
             await expect(this.getGroupCard(groupName)).not.toBeVisible({ timeout });
         } catch (error) {
@@ -830,7 +831,7 @@ export class DashboardPage extends BasePage {
      * Click group card invite button to open share modal
      * Fluent version - opens modal, verifies it opened, returns ShareGroupModalPage
      */
-    async clickGroupCardInviteButton(groupName: string): Promise<ShareGroupModalPage> {
+    async clickGroupCardInviteButton(groupName: GroupName): Promise<ShareGroupModalPage> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible();
 
@@ -851,7 +852,7 @@ export class DashboardPage extends BasePage {
      * Non-fluent version - clicks without verification
      * TODO: Add fluent version that returns ExpenseFormPage when it exists
      */
-    async clickGroupCardAddExpenseButton(groupName: string): Promise<void> {
+    async clickGroupCardAddExpenseButton(groupName: GroupName): Promise<void> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible();
 
@@ -895,7 +896,7 @@ export class DashboardPage extends BasePage {
     /**
      * Verify specific group is displayed
      */
-    async verifyGroupDisplayed(groupName: string): Promise<void> {
+    async verifyGroupDisplayed(groupName: GroupName): Promise<void> {
         await expect(this.getGroupCard(groupName)).toBeVisible();
     }
 
@@ -957,7 +958,7 @@ export class DashboardPage extends BasePage {
     /**
      * Verify group card action buttons appear on hover
      */
-    async verifyGroupCardActionsVisible(groupName: string): Promise<void> {
+    async verifyGroupCardActionsVisible(groupName: GroupName): Promise<void> {
         const groupCard = this.getGroupCard(groupName);
         await groupCard.hover();
 
@@ -968,7 +969,7 @@ export class DashboardPage extends BasePage {
     /**
      * Verify group card balance display
      */
-    async verifyGroupCardBalance(groupName: string, expectedText: string): Promise<void> {
+    async verifyGroupCardBalance(groupName: GroupName, expectedText: string): Promise<void> {
         const balanceBadge = this.getGroupCardBalance(groupName);
         await expect(balanceBadge).toBeVisible();
         await expect(balanceBadge).toContainText(expectedText);

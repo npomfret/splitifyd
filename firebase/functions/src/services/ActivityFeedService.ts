@@ -3,10 +3,11 @@ import type { ITransaction } from '../firestore-wrapper';
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type {GroupName, GroupId} from "@splitifyd/shared";
 
 interface CreateActivityItemInput {
-    groupId: string;
-    groupName: string;
+    groupId: GroupId;
+    groupName: GroupName;
     eventType: ActivityFeedEventType;
     actorId: string;
     actorName: string;

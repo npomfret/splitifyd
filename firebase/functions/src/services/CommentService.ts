@@ -11,6 +11,8 @@ import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { ActivityFeedService } from './ActivityFeedService';
 import { GroupMemberService } from './GroupMemberService';
+import type {GroupName} from "@splitifyd/shared";
+import type {GroupId} from "@splitifyd/shared";
 
 /**
  * Service for managing comment operations
@@ -119,8 +121,8 @@ export class CommentService {
         timer.startPhase('query');
         await this.verifyCommentAccess(targetType, targetId, userId);
 
-        let groupId: string;
-        let groupName: string;
+        let groupId: GroupId;
+        let groupName: GroupName;
         let expenseDescription: string | undefined;
 
         if (targetType === CommentTargetTypes.GROUP) {

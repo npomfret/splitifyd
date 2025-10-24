@@ -11,6 +11,7 @@ import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 import { RemoveMemberDialogPage } from './RemoveMemberDialogPage';
 import { SettlementFormPage } from './SettlementFormPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
+import type {GroupName} from "@splitifyd/shared";
 
 const translation = translationEn;
 
@@ -824,7 +825,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Verify group detail page loaded successfully
      */
-    async verifyGroupDetailPageLoaded(groupName: string): Promise<void> {
+    async verifyGroupDetailPageLoaded(groupName: GroupName): Promise<void> {
         await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9\-_]+/);
         await expect(this.getGroupName()).toContainText(groupName);
     }

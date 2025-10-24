@@ -1,4 +1,4 @@
-import type { PreviewGroupResponse } from '@splitifyd/shared';
+import type { PreviewGroupResponse, GroupName } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
 
@@ -19,7 +19,7 @@ export class PreviewGroupResponseBuilder {
         return this;
     }
 
-    withGroupName(groupName: string): this {
+    withGroupName(groupName: GroupName): this {
         this.fields.groupName = groupName;
         return this;
     }

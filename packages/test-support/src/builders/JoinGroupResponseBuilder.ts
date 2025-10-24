@@ -1,6 +1,7 @@
 import type { JoinGroupResponse, MemberStatus } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
+import type {GroupName} from "@splitifyd/shared";
 
 /**
  * Builder for creating JoinGroupResponse objects for tests
@@ -19,7 +20,7 @@ export class JoinGroupResponseBuilder {
         return this;
     }
 
-    withGroupName(groupName: string): this {
+    withGroupName(groupName: GroupName): this {
         this.fields.groupName = groupName;
         return this;
     }
@@ -46,7 +47,7 @@ export class JoinGroupResponseBuilder {
     /**
      * Creates a successful join response
      */
-    static success(groupName: string = 'Test Group'): JoinGroupResponseBuilder {
+    static success(groupName: GroupName = 'Test Group'): JoinGroupResponseBuilder {
         return new JoinGroupResponseBuilder()
             .withGroupName(groupName)
             .withSuccess(true)
