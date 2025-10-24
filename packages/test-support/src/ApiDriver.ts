@@ -193,8 +193,13 @@ export class ApiDriver {
         return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
     }
 
-    async generateShareLink(groupId: GroupId, token: string): Promise<ShareLinkResponse> {
-        return await this.apiRequest('/groups/share', 'POST', { groupId }, token);
+    async generateShareLink(groupId: GroupId, token: string, expiresAt?: string): Promise<ShareLinkResponse> {
+        const body: Record<string, unknown> = { groupId };
+        if (expiresAt) {
+            body.expiresAt = expiresAt;
+        }
+
+        return await this.apiRequest('/groups/share', 'POST', body, token);
     }
 
     async joinGroupViaShareLink(linkId: string, token: string): Promise<JoinGroupResponse> {

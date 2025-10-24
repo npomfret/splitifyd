@@ -572,9 +572,10 @@ export async function mockGenerateShareLinkApi(
     page: Page,
     groupId: GroupId,
     shareToken: string = 'test-share-token-123',
-    options: { delayMs?: number; } = {},
+    options: { delayMs?: number; expiresAt?: string; } = {},
 ): Promise<void> {
     const delay = getApiDelay(options.delayMs);
+    const expiresAt = options.expiresAt ?? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     await registerMswHandlers(
         page,
@@ -582,6 +583,7 @@ export async function mockGenerateShareLinkApi(
             {
                 linkId: shareToken,
                 shareablePath: `/join/${shareToken}`,
+                expiresAt,
             },
             {
                 delayMs: delay,

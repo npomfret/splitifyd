@@ -67,3 +67,11 @@ When a user attempts to join a group using a share link, the following validatio
 - **Testing**
     - Add unit tests for the creation function covering: default expiry, custom expiry, rejection of past timestamps, and cleanup of expired documents.
     - Extend integration/e2e coverage (in emulator suite) to verify join rejection after expiry and success before expiry.
+
+## Progress
+
+- [x] Share link documents now require an `expiresAt` timestamp and stale entries are purged during creation.
+- [x] Back-end handlers accept an explicit expiration, default to 24h, and block joins/previews once expired.
+- [x] Web share modal lets members pick 15m/1h/1d/5d expirations, regenerates links on change, and surfaces the exact expiry.
+- [x] Unit coverage added in `GroupShareService.test.ts`, `app.test.ts`, web share modal/stores, and simulator suites confirming creation, cleanup, and expiry failures.
+- [x] Verified via `npm run build:packages`, `npx vitest run firebase/functions/src/__tests__/unit/services/GroupShareService.test.ts`, `npx vitest run firebase/functions/src/__tests__/unit/app.test.ts`, `npx vitest run firebase/functions/src/__tests__/unit/groups/GroupShareSimulator.test.ts`, and `npx vitest run webapp-v2/src/__tests__/unit/vitest/components/ShareGroupModal.test.tsx webapp-v2/src/__tests__/unit/vitest/stores/join-group-store.test.ts`.

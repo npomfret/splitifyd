@@ -108,6 +108,15 @@ export interface IFirestoreWriter {
      */
     createShareLinkInTransaction(transaction: ITransaction, groupId: GroupId, shareLinkData: Omit<ShareLinkDTO, 'id'>): IDocumentReference;
 
+    /**
+     * Delete expired share links for a group within a transaction
+     * @param transaction - The transaction object
+     * @param groupId - The group ID
+     * @param cutoffIso - Expiration cutoff timestamp (ISO 8601)
+     * @returns Number of deleted share links
+     */
+    deleteExpiredShareLinksInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: string): Promise<number>;
+
     // ========================================================================
     // Policy Operations
     // ========================================================================

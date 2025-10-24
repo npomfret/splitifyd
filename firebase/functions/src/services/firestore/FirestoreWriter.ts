@@ -1153,6 +1153,25 @@ export class FirestoreWriter implements IFirestoreWriter {
         return shareLinkRef;
     }
 
+    async deleteExpiredShareLinksInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: string): Promise<number> {
+        const shareLinksCollection = this
+            .db
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('shareLinks');
+
+        const expiredQuery = shareLinksCollection.where('expiresAt', '<=', cutoffIso);
+        const snapshot = await transaction.get(expiredQuery);
+
+        let deleted = 0;
+        for (const doc of snapshot.docs) {
+            transaction.delete(doc.ref);
+            deleted += 1;
+        }
+
+        return deleted;
+    }
+
     // ========================================================================
     // Policy Operations
     // ========================================================================

@@ -110,7 +110,7 @@ class JoinGroupStore {
         } catch (error: any) {
             this.#loadingPreviewSignal.value = false;
 
-            if (error.code === 'INVALID_LINK') {
+            if (error.code === 'INVALID_LINK' || error.code === 'LINK_EXPIRED') {
                 this.#errorSignal.value = 'This invitation link is invalid or has expired';
             } else if (error.code === 'GROUP_NOT_FOUND') {
                 this.#errorSignal.value = 'This group no longer exists';
@@ -175,7 +175,7 @@ class JoinGroupStore {
 
             if (error.code === 'ALREADY_MEMBER') {
                 errorMessage = 'You are already a member of this group';
-            } else if (error.code === 'INVALID_LINK') {
+            } else if (error.code === 'INVALID_LINK' || error.code === 'LINK_EXPIRED') {
                 errorMessage = 'This invitation link is invalid or has expired';
             } else if (error.code === 'GROUP_NOT_FOUND') {
                 errorMessage = 'This group no longer exists';

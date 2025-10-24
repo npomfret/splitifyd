@@ -1,3 +1,4 @@
+import type { GenerateShareLinkRequest } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { getIdentityToolkitConfig } from '../client-config';
@@ -21,20 +22,27 @@ export class GroupShareHandlers {
     }
 
     generateShareableLink = async (req: AuthenticatedRequest, res: Response) => {
-        const { groupId } = req.body;
+        const body = (req.body ?? {}) as Partial<GenerateShareLinkRequest>;
+        const { groupId } = body;
+        if (!groupId || typeof groupId !== 'string') {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
+        }
+
+        const validGroupId = groupId as string;
+        const sanitizedExpiresAt = typeof body.expiresAt === 'string' ? body.expiresAt : undefined;
         const userId = req.user!.uid;
 
         try {
             if (!this.groupShareService.generateShareableLink) {
                 throw Error();
             }
-            const result = await this.groupShareService.generateShareableLink(userId, groupId);
+            const result = await this.groupShareService.generateShareableLink(userId, validGroupId, sanitizedExpiresAt);
             res.status(HTTP_STATUS.OK).json(result);
         } catch (error) {
             if (error instanceof ApiError) throw error;
 
             logger.error('Error generating shareable link', error, {
-                groupId,
+                groupId: validGroupId,
                 userId,
             });
 

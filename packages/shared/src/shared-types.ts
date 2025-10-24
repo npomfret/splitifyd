@@ -552,7 +552,7 @@ export interface GroupMember {
 interface ShareLink {
     token: string; // The actual share token used in URLs
     createdBy: string; // UID of the user who created this share link
-    expiresAt?: ISOString;
+    expiresAt: ISOString;
     isActive: boolean; // For soft deletion/deactivation
 }
 
@@ -829,6 +829,12 @@ export interface MessageResponse {
 export interface ShareLinkResponse {
     linkId: string;
     shareablePath: string;
+    expiresAt: ISOString;
+}
+
+export interface GenerateShareLinkRequest {
+    groupId: GroupId;
+    expiresAt?: ISOString;
 }
 
 export interface PreviewGroupResponse {

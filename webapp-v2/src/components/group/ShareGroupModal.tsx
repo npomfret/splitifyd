@@ -1,6 +1,7 @@
 import { apiClient } from '@/app/apiClient.ts';
 import { Tooltip } from '@/components/ui';
 import { logError } from '@/utils/browser-logger.ts';
+import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
@@ -12,40 +13,39 @@ interface ShareGroupModalProps {
     groupName: string;
 }
 
+const SHARE_LINK_EXPIRATION_OPTIONS = [
+    { id: '15m', durationMs: 15 * 60 * 1000, translationKey: 'shareGroupModal.expirationOptions.15m' },
+    { id: '1h', durationMs: 60 * 60 * 1000, translationKey: 'shareGroupModal.expirationOptions.1h' },
+    { id: '1d', durationMs: 24 * 60 * 60 * 1000, translationKey: 'shareGroupModal.expirationOptions.1d' },
+    { id: '5d', durationMs: 5 * 24 * 60 * 60 * 1000, translationKey: 'shareGroupModal.expirationOptions.5d' },
+] as const;
+
+type ShareLinkExpirationOption = typeof SHARE_LINK_EXPIRATION_OPTIONS[number];
+type ShareLinkExpirationOptionId = ShareLinkExpirationOption['id'];
+
+const DEFAULT_EXPIRATION_OPTION_ID: ShareLinkExpirationOptionId = '1d';
+
+const getExpirationOption = (id: ShareLinkExpirationOptionId): ShareLinkExpirationOption => {
+    return SHARE_LINK_EXPIRATION_OPTIONS.find((option) => option.id === id) ??
+        SHARE_LINK_EXPIRATION_OPTIONS.find((option) => option.id === DEFAULT_EXPIRATION_OPTION_ID)!;
+};
+
 export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGroupModalProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [shareLink, setShareLink] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [showToast, setShowToast] = useState(false);
+    const [selectedExpirationId, setSelectedExpirationId] = useState<ShareLinkExpirationOptionId>(DEFAULT_EXPIRATION_OPTION_ID);
+    const [expiresAt, setExpiresAt] = useState<string | null>(null);
     const linkInputRef = useRef<HTMLInputElement>(null);
     const copiedTimerRef = useRef<number | null>(null);
     const toastTimerRef = useRef<number | null>(null);
+    const requestIdRef = useRef(0);
+    const [refreshCounter, setRefreshCounter] = useState(0);
+    const expirationContainerClass = shareLink ? 'space-y-2 border-t border-gray-100 pt-4' : 'space-y-2 pt-4';
     const normalizedGroupName = groupName.trim();
-
-    useEffect(() => {
-        if (!isOpen || !groupId) {
-            return;
-        }
-
-        if (copiedTimerRef.current) {
-            clearTimeout(copiedTimerRef.current);
-            copiedTimerRef.current = null;
-        }
-        if (toastTimerRef.current) {
-            clearTimeout(toastTimerRef.current);
-            toastTimerRef.current = null;
-        }
-
-        setShareLink('');
-        setError(null);
-        setCopied(false);
-        setShowToast(false);
-
-        // Intentionally not awaited - useEffect cannot be async
-        generateLink(groupId);
-    }, [isOpen, groupId]);
 
     // Handle escape key to close modal
     // Pattern matches CreateGroupModal for consistency and reliability
@@ -80,21 +80,80 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
         };
     }, []);
 
-    const generateLink = async (targetGroupId: string) => {
+    useEffect(() => {
+        if (!isOpen || !groupId) {
+            return;
+        }
+
+        if (copiedTimerRef.current) {
+            clearTimeout(copiedTimerRef.current);
+            copiedTimerRef.current = null;
+        }
+        if (toastTimerRef.current) {
+            clearTimeout(toastTimerRef.current);
+            toastTimerRef.current = null;
+        }
+
+        setShareLink('');
+        setExpiresAt(null);
+        setError(null);
+        setCopied(false);
+        setShowToast(false);
+        setSelectedExpirationId(DEFAULT_EXPIRATION_OPTION_ID);
+    }, [isOpen, groupId]);
+
+    useEffect(() => {
+        if (!isOpen || !groupId) {
+            return;
+        }
+
+        const requestId = requestIdRef.current + 1;
+        requestIdRef.current = requestId;
+
         setLoading(true);
         setError(null);
+        setShareLink('');
+        setExpiresAt(null);
+        setCopied(false);
+        setShowToast(false);
 
-        try {
-            const response = await apiClient.generateShareLink(targetGroupId);
-            // Construct full URL from the path returned by server
-            const fullUrl = `${window.location.origin}${response.shareablePath}`;
-            setShareLink(fullUrl);
-        } catch (err) {
-            logError('Failed to generate share link', err);
-            setError(t('shareGroupModal.errors.generateLinkFailed'));
-        } finally {
-            setLoading(false);
+        const { durationMs } = getExpirationOption(selectedExpirationId);
+        const requestedExpiresAt = new Date(Date.now() + durationMs).toISOString();
+        const errorMessage = t('shareGroupModal.errors.generateLinkFailed');
+
+        (async () => {
+            try {
+                const response = await apiClient.generateShareLink(groupId, requestedExpiresAt);
+                if (requestIdRef.current !== requestId) {
+                    return;
+                }
+
+                const fullUrl = `${window.location.origin}${response.shareablePath}`;
+                setShareLink(fullUrl);
+                setExpiresAt(response.expiresAt);
+            } catch (err) {
+                if (requestIdRef.current !== requestId) {
+                    return;
+                }
+
+                logError('Failed to generate share link', err);
+                setError(errorMessage);
+            } finally {
+                if (requestIdRef.current === requestId) {
+                    setLoading(false);
+                }
+            }
+        })();
+    }, [isOpen, groupId, selectedExpirationId, refreshCounter, i18n.language]);
+
+    const handleExpirationChange = (event: Event) => {
+        if (!groupId) {
+            return;
         }
+
+        const target = event.target as HTMLSelectElement;
+        const newId = target.value as ShareLinkExpirationOptionId;
+        setSelectedExpirationId(newId);
     };
 
     const copyToClipboard = async () => {
@@ -211,65 +270,97 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                             </div>
                         )}
 
-                        {shareLink && !loading && (
-                            <div class='space-y-6'>
-                                {/* Share link input with inline copy button */}
-                                <div class='relative'>
-                                    <input
-                                        ref={linkInputRef}
-                                        type='text'
-                                        value={shareLink}
-                                        readOnly={true}
-                                        class='w-full pl-3 pr-12 py-3 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'
-                                        onClick={(e) => (e.target as HTMLInputElement).select()}
-                                        data-testid='share-link-input'
-                                        autoComplete='off'
-                                    />
-                                    <Tooltip content={copied ? t('shareGroupModal.linkCopied') : t('shareGroupModal.copyLinkTitle')}>
+                        <div class='space-y-6'>
+                            {shareLink && !loading && (
+                                <>
+                                    {/* Share link input with inline copy button */}
+                                    <div class='relative'>
+                                        <input
+                                            ref={linkInputRef}
+                                            type='text'
+                                            value={shareLink}
+                                            readOnly={true}
+                                            class='w-full pl-3 pr-12 py-3 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                                            onClick={(e) => (e.target as HTMLInputElement).select()}
+                                            data-testid='share-link-input'
+                                            autoComplete='off'
+                                        />
+                                        <Tooltip content={copied ? t('shareGroupModal.linkCopied') : t('shareGroupModal.copyLinkTitle')}>
+                                            <button
+                                                type='button'
+                                                onClick={copyToClipboard}
+                                                class='absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-all duration-200'
+                                                data-testid='copy-link-button'
+                                                aria-label={t('shareGroupModal.copyLinkAriaLabel')}
+                                            >
+                                                {copied
+                                                    ? (
+                                                        <svg class='w-5 h-5 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />
+                                                        </svg>
+                                                    )
+                                                    : (
+                                                        <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                                            <path
+                                                                stroke-linecap='round'
+                                                                stroke-linejoin='round'
+                                                                stroke-width='2'
+                                                                d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
+                                                            />
+                                                        </svg>
+                                                    )}
+                                            </button>
+                                        </Tooltip>
+                                    </div>
+
+                                    {/* QR Code section */}
+                                    <div class='flex flex-col items-center py-4'>
+                                        <div class='p-4 bg-white rounded-lg border border-gray-200'>
+                                            <QRCodeCanvas value={shareLink} size={150} />
+                                        </div>
+                                        <p class='text-sm text-gray-500 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Link expiration options */}
+                            <div class={expirationContainerClass}>
+                                <div class='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+                                    <label htmlFor='share-link-expiration-select' class='text-sm font-medium text-gray-600'>
+                                        {t('shareGroupModal.expirationLabel')}
+                                    </label>
+                                    <div class='flex items-center gap-3'>
+                                        <select
+                                            id='share-link-expiration-select'
+                                            class='border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                                            value={selectedExpirationId}
+                                            onChange={handleExpirationChange}
+                                            data-testid='share-link-expiration-select'
+                                        >
+                                            {SHARE_LINK_EXPIRATION_OPTIONS.map((option) => (
+                                                <option key={option.id} value={option.id}>
+                                                    {t(option.translationKey)}
+                                                </option>
+                                            ))}
+                                        </select>
                                         <button
                                             type='button'
-                                            onClick={copyToClipboard}
-                                            class='absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-all duration-200'
-                                            data-testid='copy-link-button'
-                                            aria-label={t('shareGroupModal.copyLinkAriaLabel')}
+                                            onClick={() => setRefreshCounter((count) => count + 1)}
+                                            class='text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+                                            data-testid='generate-new-link-button'
+                                            disabled={loading}
                                         >
-                                            {copied
-                                                ? (
-                                                    <svg class='w-5 h-5 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />
-                                                    </svg>
-                                                )
-                                                : (
-                                                    <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                                        <path
-                                                            stroke-linecap='round'
-                                                            stroke-linejoin='round'
-                                                            stroke-width='2'
-                                                            d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
-                                                        />
-                                                    </svg>
-                                                )}
+                                            {t('shareGroupModal.generateNew')}
                                         </button>
-                                    </Tooltip>
-                                </div>
-
-                                {/* QR Code section */}
-                                <div class='flex flex-col items-center py-4'>
-                                    <div class='p-4 bg-white rounded-lg border border-gray-200'>
-                                        <QRCodeCanvas value={shareLink} size={150} />
                                     </div>
-                                    <p class='text-sm text-gray-500 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
                                 </div>
-
-                                {/* Link expiration options */}
-                                <div class='flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-100'>
-                                    <span>{t('shareGroupModal.expiration')}</span>
-                                    <button onClick={() => generateLink(groupId)} class='text-purple-600 hover:text-purple-700 font-medium' data-testid='generate-new-link-button'>
-                                        {t('shareGroupModal.generateNew')}
-                                    </button>
-                                </div>
+                                {expiresAt && (
+                                    <p class='text-xs text-gray-500' data-testid='share-link-expiration-hint'>
+                                        {t('shareGroupModal.expiresAt', { date: formatDateTimeInUserTimeZone(new Date(expiresAt)) })}
+                                    </p>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
             </div>

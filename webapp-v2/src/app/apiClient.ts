@@ -32,6 +32,7 @@ import type {
     RegisterResponse,
     SecurityPreset,
     SettlementDTO,
+    GenerateShareLinkRequest,
     ShareLinkResponse,
     UpdateDisplayNameRequest,
     UpdateGroupRequest,
@@ -793,11 +794,16 @@ class ApiClient {
         });
     }
 
-    async generateShareLink(groupId: GroupId): Promise<ShareLinkResponse> {
+    async generateShareLink(groupId: GroupId, expiresAt?: string): Promise<ShareLinkResponse> {
+        const body: GenerateShareLinkRequest = { groupId };
+        if (expiresAt) {
+            body.expiresAt = expiresAt;
+        }
+
         return this.request({
             endpoint: '/groups/share',
             method: 'POST',
-            body: { groupId },
+            body,
         });
     }
 

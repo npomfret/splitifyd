@@ -201,8 +201,13 @@ export class AppDriver {
         return (res as any).getJson() as GroupDTO;
     }
 
-    async generateShareableLink(userId1: string, groupId: GroupId): Promise<ShareLinkResponse> {
-        const req = createStubRequest(userId1, { groupId });
+    async generateShareableLink(userId1: string, groupId: GroupId, expiresAt?: string): Promise<ShareLinkResponse> {
+        const body: Record<string, unknown> = { groupId };
+        if (expiresAt) {
+            body.expiresAt = expiresAt;
+        }
+
+        const req = createStubRequest(userId1, body);
         const res = createStubResponse();
 
         await this.groupShareHandlers.generateShareableLink(req, res);

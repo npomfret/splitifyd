@@ -706,11 +706,8 @@ simpleTest.describe('Share Link Access Management', () => {
             const initialShareLink = await shareModalPage.getShareLink();
             expect(initialShareLink).toMatch(/\/join\?linkId=/);
 
-            // Click "Generate New" to regenerate the link
-            await shareModalPage.clickGenerateNewLink();
-
-            // Get the new share link
-            const newShareLink = await shareModalPage.getShareLink();
+            // Use the helper method that properly waits for the link to update
+            const newShareLink = await shareModalPage.generateNewShareLink();
             expect(newShareLink).toMatch(/\/join\?linkId=/);
 
             // Verify the link has actually changed

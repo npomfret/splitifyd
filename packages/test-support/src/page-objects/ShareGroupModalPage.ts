@@ -117,6 +117,20 @@ export class ShareGroupModalPage extends BasePage {
         return this.getModalContainer().getByTestId('share-group-error-message');
     }
 
+    /**
+     * Expiration select dropdown
+     */
+    getExpirationSelect(): Locator {
+        return this.getModalContainer().getByTestId('share-link-expiration-select');
+    }
+
+    /**
+     * Expiration hint text
+     */
+    getExpirationHint(): Locator {
+        return this.getModalContainer().getByTestId('share-link-expiration-hint');
+    }
+
     // ============================================================================
     // STATE VERIFICATION METHODS
     // ============================================================================
@@ -168,6 +182,14 @@ export class ShareGroupModalPage extends BasePage {
     async clickGenerateNewLink(): Promise<void> {
         const button = this.getGenerateNewLinkButton();
         await this.clickButton(button, { buttonName: translation.shareGroupModal.generateNew });
+    }
+
+    /**
+     * Select a new expiration duration from the dropdown
+     */
+    async selectExpiration(optionValue: '15m' | '1h' | '1d' | '5d'): Promise<void> {
+        const select = this.getExpirationSelect();
+        await select.selectOption(optionValue);
     }
 
     /**

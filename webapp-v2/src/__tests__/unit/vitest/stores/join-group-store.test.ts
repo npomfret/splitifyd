@@ -68,4 +68,16 @@ describe('joinGroupStore', () => {
         expect(joinGroupStore.joinSuccess).toBe(true);
         expect(joinGroupStore.displayNameUpdateError).toBeNull();
     });
+
+    it('sets an error when the share link has expired', async () => {
+        mockedApiClient.joinGroupByLink.mockRejectedValue({
+            code: 'LINK_EXPIRED',
+            message: 'expired',
+        });
+
+        await joinGroupStore.joinGroup('expired-link');
+
+        expect(joinGroupStore.error).toBe('This invitation link is invalid or has expired');
+        expect(joinGroupStore.joinSuccess).toBe(false);
+    });
 });

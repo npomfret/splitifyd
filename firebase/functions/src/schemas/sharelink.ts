@@ -13,7 +13,7 @@ export const ShareLinkDocumentSchema = z
         createdBy: z.string().min(1), // UID of the user who created this share link
         createdAt: z.string().datetime(), // ISO timestamp string
         updatedAt: z.string().datetime(), // ISO timestamp string
-        expiresAt: z.string().datetime().optional(), // Future: expiration support (ISO timestamp)
+        expiresAt: z.string().datetime(), // Expiration timestamp (ISO format)
         isActive: z.boolean(), // For soft deletion/deactivation
     })
     .strict();

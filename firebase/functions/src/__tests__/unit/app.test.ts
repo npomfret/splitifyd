@@ -459,6 +459,38 @@ describe('app tests', () => {
             expect(recordedExpenseAfterUpdate!.splits).toEqual(updatedSplits);
         });
 
+        it('should generate different share links on consecutive calls', async () => {
+            const group = await appDriver.createGroup(user1);
+            const groupId = group.id;
+
+            // Generate first share link
+            const { shareablePath: path1, linkId: linkId1, expiresAt: expiresAt1 } = await appDriver.generateShareableLink(user1, groupId);
+            expect(path1).toBe(`/join?linkId=${linkId1}`);
+            expect(linkId1).toHaveLength(16);
+            expect(expiresAt1).toBeTruthy();
+
+            // Generate second share link (simulating "Generate New" button)
+            const { shareablePath: path2, linkId: linkId2, expiresAt: expiresAt2 } = await appDriver.generateShareableLink(user1, groupId);
+            expect(path2).toBe(`/join?linkId=${linkId2}`);
+            expect(linkId2).toHaveLength(16);
+            expect(expiresAt2).toBeTruthy();
+
+            // Verify links are different
+            expect(linkId2).not.toBe(linkId1);
+            expect(path2).not.toBe(path1);
+
+            // Verify both links are valid and functional by joining with them
+            await appDriver.joinGroupByLink(user2, linkId1);
+            await appDriver.joinGroupByLink(user3, linkId2);
+
+            // Verify both users successfully joined by checking group listing
+            const { groups: groupsUser2 } = await appDriver.listGroups(user2);
+            const { groups: groupsUser3 } = await appDriver.listGroups(user3);
+
+            expect(groupsUser2.find((g) => g.id === groupId)).toBeTruthy();
+            expect(groupsUser3.find((g) => g.id === groupId)).toBeTruthy();
+        });
+
         it('should allow sharing a group and list membership balances for all users', async () => {
             const group = await appDriver.createGroup(user1);
 
@@ -683,6 +715,45 @@ describe('app tests', () => {
             const user2Groups = await appDriver.listGroups(user2);
             expect(user2Groups.count).toBe(1);
             expect(user2Groups.groups[0].id).toBe(groupId);
+        });
+
+        it('should persist custom share link expiration timestamps', async () => {
+            const group = await appDriver.createGroup(user1, new CreateGroupRequestBuilder().withName('Custom Expiry Group').build());
+            const groupId = group.id;
+
+            const customExpiration = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+
+            const shareLink = await appDriver.generateShareableLink(user1, groupId, customExpiration);
+
+            expect(shareLink.expiresAt).toBe(customExpiration);
+
+            const { db } = appDriver.getTestHarness();
+            const shareLinksSnapshot = await db.collection('groups').doc(groupId).collection('shareLinks').get();
+            const storedDoc = shareLinksSnapshot.docs.find((doc) => doc.data()?.token === shareLink.linkId);
+            expect(storedDoc).toBeDefined();
+            expect(storedDoc?.data()?.expiresAt).toBe(customExpiration);
+        });
+
+        it('should reject preview and join operations once a share link has expired', async () => {
+            const group = await appDriver.createGroup(user1, new CreateGroupRequestBuilder().withName('Expiring Group').build());
+            const groupId = group.id;
+
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+
+            const { db } = appDriver.getTestHarness();
+            const shareLinksSnapshot = await db.collection('groups').doc(groupId).collection('shareLinks').get();
+            const storedDoc = shareLinksSnapshot.docs.find((doc) => doc.data()?.token === linkId);
+            expect(storedDoc).toBeDefined();
+
+            const expiredAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+            const shareLinkPath = `groups/${groupId}/shareLinks/${storedDoc!.id}`;
+            db.seed(shareLinkPath, {
+                ...storedDoc!.data(),
+                expiresAt: expiredAt,
+            });
+
+            await expect(appDriver.previewGroupByLink(user2, linkId)).rejects.toMatchObject({ code: 'LINK_EXPIRED' });
+            await expect(appDriver.joinGroupByLink(user2, linkId)).rejects.toMatchObject({ code: 'LINK_EXPIRED' });
         });
 
         it('should let members update their own group display name', async () => {

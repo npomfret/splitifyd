@@ -38,6 +38,7 @@ describe('Group sharing workflow (stub firestore)', () => {
         const ownerShare = await appDriver.generateShareableLink(owner, group.id);
         expect(ownerShare.shareablePath).toBe(`/join?linkId=${ownerShare.linkId}`);
         expect(ownerShare.linkId).toHaveLength(16);
+        expect(new Date(ownerShare.expiresAt).getTime()).toBeGreaterThan(Date.now());
 
         // Members can also generate a link once they join
         const joinResult = await appDriver.joinGroupByLink(member, ownerShare.linkId);
@@ -46,6 +47,7 @@ describe('Group sharing workflow (stub firestore)', () => {
 
         const memberShare = await appDriver.generateShareableLink(member, group.id);
         expect(memberShare.linkId).toHaveLength(16);
+        expect(new Date(memberShare.expiresAt).getTime()).toBeGreaterThan(Date.now());
 
         // Non-members cannot generate links
         await expect(appDriver.generateShareableLink(outsider, group.id)).rejects.toMatchObject({
@@ -84,6 +86,7 @@ describe('Group sharing workflow (stub firestore)', () => {
         );
 
         const shareLink = await appDriver.generateShareableLink(owner, group.id);
+        expect(new Date(shareLink.expiresAt).getTime()).toBeGreaterThan(Date.now());
 
         for (const userId of joiners) {
             const response = await appDriver.joinGroupByLink(userId, shareLink.linkId);

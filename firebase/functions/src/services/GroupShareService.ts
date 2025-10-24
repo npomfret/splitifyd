@@ -15,12 +15,55 @@ import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { GroupMemberService } from './GroupMemberService';
 
+const SHARE_LINK_DEFAULT_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
+const SHARE_LINK_MAX_EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
+const SHARE_LINK_EXPIRATION_DRIFT_MS = 5 * 60 * 1000; // Allow slight client/server drift (5 minutes)
+
 export class GroupShareService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
     ) {}
+
+    private resolveExpirationTimestamp(requestedExpiresAt?: string): string {
+        const nowMs = Date.now();
+
+        if (requestedExpiresAt) {
+            const parsed = new Date(requestedExpiresAt);
+            if (Number.isNaN(parsed.getTime())) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPIRATION', 'Invalid share link expiration timestamp');
+            }
+
+            const expiresAtMs = parsed.getTime();
+            if (expiresAtMs <= nowMs) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPIRATION', 'Share link expiration must be in the future');
+            }
+
+            const maxAllowed = nowMs + SHARE_LINK_MAX_EXPIRATION_MS + SHARE_LINK_EXPIRATION_DRIFT_MS;
+            if (expiresAtMs > maxAllowed) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPIRATION', 'Share link expiration exceeds the maximum allowed duration');
+            }
+
+            return new Date(expiresAtMs).toISOString();
+        }
+
+        return new Date(nowMs + SHARE_LINK_DEFAULT_EXPIRATION_MS).toISOString();
+    }
+
+    private ensureShareLinkNotExpired(shareLink: ShareLinkDTO): void {
+        const expiresAtIso = shareLink.expiresAt;
+        const expiredMessage = 'This invitation link has expired. Please request a new one from the group admin.';
+
+        const expiresAt = new Date(expiresAtIso);
+        if (Number.isNaN(expiresAt.getTime())) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'LINK_EXPIRED', expiredMessage);
+        }
+
+        if (Date.now() >= expiresAt.getTime()) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'LINK_EXPIRED', expiredMessage);
+        }
+    }
 
     private generateShareToken(): string {
         const bytes = randomBytes(12);
@@ -68,21 +111,27 @@ export class GroupShareService {
     async generateShareableLink(
         userId: string,
         groupId: GroupId,
+        expiresAt?: string,
     ): Promise<{
         shareablePath: string;
         linkId: string;
+        expiresAt: string;
     }> {
-        return measure.measureDb('GroupShareService.generateShareableLink', async () => this._generateShareableLink(userId, groupId));
+        return measure.measureDb('GroupShareService.generateShareableLink', async () => this._generateShareableLink(userId, groupId, expiresAt));
     }
 
     private async _generateShareableLink(
         userId: string,
         groupId: GroupId,
+        expiresAt?: string,
     ): Promise<{
         shareablePath: string;
         linkId: string;
+        expiresAt: string;
     }> {
         const timer = new PerformanceTimer();
+        const resolvedExpiresAt = this.resolveExpirationTimestamp(expiresAt);
+        let expiredLinksRemoved = 0;
 
         if (!groupId) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
@@ -114,6 +163,7 @@ export class GroupShareService {
                 createdBy: userId,
                 createdAt: now,
                 updatedAt: now,
+                expiresAt: resolvedExpiresAt,
                 isActive: true,
             };
 
@@ -129,6 +179,14 @@ export class GroupShareService {
                 });
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SHARELINK_DATA', 'Failed to create share link due to invalid data structure');
             }
+
+            try {
+                expiredLinksRemoved = await this.firestoreWriter.deleteExpiredShareLinksInTransaction(transaction, groupId, now);
+            } catch (cleanupError) {
+                logger.error('Failed to delete expired share links during creation', cleanupError as Error, {
+                    groupId,
+                });
+            }
         });
         timer.endPhase();
 
@@ -139,12 +197,15 @@ export class GroupShareService {
             id: shareToken,
             groupId,
             createdBy: userId,
+            expiresAt: resolvedExpiresAt,
+            expiredLinksRemoved,
             timings: timer.getTimings(),
         });
 
         return {
             shareablePath,
             linkId: shareToken,
+            expiresAt: resolvedExpiresAt,
         };
     }
 
@@ -162,7 +223,8 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Link ID is required');
         }
 
-        const { groupId } = await this.findShareLinkByToken(linkId);
+        const { groupId, shareLink } = await this.findShareLinkByToken(linkId);
+        this.ensureShareLinkNotExpired(shareLink);
 
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
@@ -196,6 +258,7 @@ export class GroupShareService {
         // Performance optimization: Find shareLink outside transaction
         timer.startPhase('query');
         const { groupId, shareLink } = await this.findShareLinkByToken(linkId);
+        this.ensureShareLinkNotExpired(shareLink);
 
         // Pre-validate group exists outside transaction to fail fast
         const preCheckGroup = await this.firestoreReader.getGroup(groupId);
