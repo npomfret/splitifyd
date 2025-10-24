@@ -5,6 +5,7 @@
   "scripts": {
     "build": "npm run build:check && node scripts/conditional-build.js",
     "build:check": "tsc --project tsconfig.build.json --noEmit",
+    "build:prod": "npm run clean && tsc --project tsconfig.build.json && npm run copy:locales",
     "clean": "rm -rf lib coverage",
     "super-clean": "npm run clean && rm -rf node_modules",
     "copy:locales": "cp -r src/locales lib/ || mkdir -p lib/locales && cp -r src/locales/* lib/locales/",

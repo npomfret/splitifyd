@@ -37,8 +37,6 @@ This note captures the current Firebase configuration workflow, the moving piece
 
 | Priority | Item | Notes |
 | --- | --- | --- |
-| P1 | Add a real production build script for functions (or invoke `tsc` directly) | Fixes the missing `npm run build:prod` path that `conditional-build.js` expects. |
-| P1 | Stop committing the generated `firebase/firebase.json` | Add to `.gitignore` or redirect output so instance switches stop dirtying git state. |
 | P2 | Relax `start-with-data.ts` to allow `NODE_ENV=development` | Removes friction during emulator startup without affecting prod. |
 | P2 | Broaden Firestore emulator host validation (`localhost`/`0.0.0.0`/`127.0.0.1`) | Avoid brittle checks when the emulator supplies different hosts. |
 | P3 | Add a dedicated `INSTANCE_MODE=dev|prod` flag and use it across scripts/config loaders | Longer-term cleanup that clarifies intent once critical issues are fixed. |
