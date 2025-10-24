@@ -292,7 +292,11 @@ export function SettlementHistory({
                                         {isDeleted && settlement.deletedAt && (
                                             <div class={`${settlement.note ? 'row-start-5' : 'row-start-4'} col-start-2 text-red-600 text-xs mt-1`} data-financial-amount='deleted'>
                                                 {t('settlementHistory.deletedBy')} {deletedByContent}{' '}
-                                                <RelativeTime date={settlement.deletedAt} className='text-red-600' />
+                                                <RelativeTime
+                                                    date={settlement
+                                                        .deletedAt}
+                                                    className='text-red-600'
+                                                />
                                             </div>
                                         )}
                                     </div>

@@ -7,8 +7,8 @@ import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ApiError, Errors } from '../utils/errors';
 import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
-import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { ActivityFeedService } from './ActivityFeedService';
+import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 
 export class GroupMemberService {
     constructor(

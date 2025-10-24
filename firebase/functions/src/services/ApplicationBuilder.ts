@@ -1,6 +1,7 @@
 import type { Auth } from 'firebase-admin/auth';
 import type { Firestore } from 'firebase-admin/firestore';
 import { createFirestoreDatabase, IFirestoreDatabase } from '../firestore-wrapper';
+import { ActivityFeedService } from './ActivityFeedService';
 import { IAuthService } from './auth';
 import { FirebaseAuthService, type IdentityToolkitConfig } from './auth';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
@@ -16,7 +17,6 @@ import { PolicyService } from './PolicyService';
 import { SettlementService } from './SettlementService';
 import { UserPolicyService } from './UserPolicyService';
 import { UserService } from './UserService2';
-import { ActivityFeedService } from './ActivityFeedService';
 
 export class ApplicationBuilder {
     // Base infrastructure - created once

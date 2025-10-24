@@ -1,6 +1,6 @@
 import type { SettlementFormData } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Builder for creating SettlementFormData objects for UI tests

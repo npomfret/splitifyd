@@ -1,8 +1,8 @@
-import type { SettlementDTO,  } from '@splitifyd/shared';
-import { Amount , UserId} from '@splitifyd/shared';
+import type { SettlementDTO } from '@splitifyd/shared';
+import { Amount, UserId } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Builder for creating Settlement objects for tests

@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { GroupId } from '@splitifyd/shared';
+import type { GroupName } from '@splitifyd/shared';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
@@ -11,7 +12,6 @@ import { LeaveGroupDialogPage } from './LeaveGroupDialogPage';
 import { RemoveMemberDialogPage } from './RemoveMemberDialogPage';
 import { SettlementFormPage } from './SettlementFormPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
-import type {GroupName} from "@splitifyd/shared";
 
 const translation = translationEn;
 
@@ -1508,10 +1508,11 @@ export class GroupDetailPage extends BasePage {
             if (!isVisible) {
                 throw new Error('Archive group action is still hidden.');
             }
-        }).toPass({
-            timeout: options.timeoutMs ?? TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            intervals: [250, 500, 750, 1000],
-        });
+        })
+            .toPass({
+                timeout: options.timeoutMs ?? TEST_TIMEOUTS.ELEMENT_VISIBLE,
+                intervals: [250, 500, 750, 1000],
+            });
     }
 
     async ensureUnarchiveActionVisible(options: { expectedGroupId?: GroupId; timeoutMs?: number; } = {}): Promise<void> {
@@ -1531,10 +1532,11 @@ export class GroupDetailPage extends BasePage {
             if (!isVisible) {
                 throw new Error('Unarchive group action is still hidden.');
             }
-        }).toPass({
-            timeout: options.timeoutMs ?? TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            intervals: [250, 500, 750, 1000],
-        });
+        })
+            .toPass({
+                timeout: options.timeoutMs ?? TEST_TIMEOUTS.ELEMENT_VISIBLE,
+                intervals: [250, 500, 750, 1000],
+            });
     }
 
     /**

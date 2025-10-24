@@ -1,8 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { GroupId } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 const translation = translationEn;
 

@@ -1,9 +1,9 @@
 import { FirestoreProdTrigger, FirestoreTriggerHandler, toProdTrigger, TriggerDefinition, TriggerOperation } from '@splitifyd/firebase-simulator';
 import { GroupId } from '@splitifyd/shared';
+import type { CommentId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../constants';
 import { measureTrigger } from '../monitoring/measure';
 import { ChangeTrackerHandlers } from './ChangeTrackerHandlers';
-import type {CommentId} from "@splitifyd/shared";
 
 type TriggerName =
     | 'trackGroupChanges'

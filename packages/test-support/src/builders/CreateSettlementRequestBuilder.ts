@@ -1,8 +1,8 @@
 import type { CreateSettlementRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { GroupId, UserId } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;

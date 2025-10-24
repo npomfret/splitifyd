@@ -1,5 +1,5 @@
-import * as admin from 'firebase-admin';
 import { config as loadEnv } from 'dotenv';
+import * as admin from 'firebase-admin';
 import assert from 'node:assert';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';

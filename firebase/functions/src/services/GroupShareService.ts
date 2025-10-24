@@ -1,6 +1,7 @@
 import { ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import type { GroupMembershipDTO, JoinGroupResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
+import type { GroupName } from '@splitifyd/shared';
 import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
@@ -11,11 +12,10 @@ import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ShareLinkDataSchema } from '../schemas';
 import { ApiError } from '../utils/errors';
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
+import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
-import { ActivityFeedService } from './ActivityFeedService';
 import type { GroupMemberService } from './GroupMemberService';
-import type {GroupName} from "@splitifyd/shared";
 
 const SHARE_LINK_DEFAULT_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
 const SHARE_LINK_MAX_EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000; // 5 days

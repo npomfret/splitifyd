@@ -1,8 +1,8 @@
 import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, CreateExpenseRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;

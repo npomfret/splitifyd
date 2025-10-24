@@ -1,18 +1,18 @@
 import { ActivityFeedEventTypes, CommentDTO, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
+import type { GroupName } from '@splitifyd/shared';
+import type { GroupId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ApiError } from '../utils/errors';
 import * as loggerContext from '../utils/logger-context';
+import { ActivityFeedService } from './ActivityFeedService';
 import type { IAuthService } from './auth';
 import { CommentStrategyFactory } from './comments/CommentStrategyFactory';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
-import { ActivityFeedService } from './ActivityFeedService';
 import { GroupMemberService } from './GroupMemberService';
-import type {GroupName} from "@splitifyd/shared";
-import type {GroupId} from "@splitifyd/shared";
 
 /**
  * Service for managing comment operations

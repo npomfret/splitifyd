@@ -1,9 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import type { ExpenseFormData } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
-import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Expense Form Page Object Model for Playwright tests

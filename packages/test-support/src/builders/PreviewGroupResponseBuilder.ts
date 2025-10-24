@@ -1,4 +1,4 @@
-import type { PreviewGroupResponse, GroupName } from '@splitifyd/shared';
+import type { GroupName, PreviewGroupResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
 

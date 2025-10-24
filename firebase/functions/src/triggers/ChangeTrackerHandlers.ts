@@ -1,5 +1,6 @@
 import type { FirestoreTriggerDocumentSnapshot, FirestoreTriggerEvent } from '@splitifyd/firebase-simulator';
 import { GroupId } from '@splitifyd/shared';
+import type { CommentId } from '@splitifyd/shared';
 import { getIdentityToolkitConfig } from '../client-config';
 import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
@@ -7,7 +8,6 @@ import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import type { IFirestoreReader } from '../services/firestore';
 import type { NotificationService } from '../services/notification-service';
 import { ChangeType } from '../utils/change-detection';
-import type {CommentId} from "@splitifyd/shared";
 
 export class ChangeTrackerHandlers {
     constructor(private readonly firestoreReader: IFirestoreReader, private readonly notificationService: NotificationService) {}

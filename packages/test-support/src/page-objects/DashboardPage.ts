@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import type { CreateGroupFormData } from '@splitifyd/shared';
+import type { GroupName } from '@splitifyd/shared';
 import { CreateGroupFormDataBuilder } from '../builders';
 import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { generateShortId, randomString } from '../test-helpers';
@@ -10,7 +11,6 @@ import { GroupDetailPage } from './GroupDetailPage';
 import { HeaderPage } from './HeaderPage';
 import { JoinGroupPage } from './JoinGroupPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
-import type {GroupName} from "@splitifyd/shared";
 
 const translation = translationEn;
 let multiUserGroupCounter = 0;
@@ -201,10 +201,11 @@ export class DashboardPage extends BasePage {
             if (count !== 0) {
                 throw new Error(`Expected no archive or unarchive quick actions for "${groupName}", but found ${count}.`);
             }
-        }).toPass({
-            timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            intervals: [250, 500, 750],
-        });
+        })
+            .toPass({
+                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
+                intervals: [250, 500, 750],
+            });
     }
 
     private getPaginationContainer(): Locator {
@@ -788,7 +789,10 @@ export class DashboardPage extends BasePage {
             const groupsVisible = await this.getGroupCards().first().isVisible();
             const emptyStateVisible = await this.getEmptyGroupsState().isVisible();
             const archivedEmptyStateVisible = await this.getArchivedEmptyState().isVisible();
-            throw new Error(`Groups failed to load within ${timeout}ms. ` + `Spinner visible: ${spinnerVisible}, Groups visible: ${groupsVisible}, Empty state visible: ${emptyStateVisible}, Archived empty state visible: ${archivedEmptyStateVisible}`);
+            throw new Error(
+                `Groups failed to load within ${timeout}ms. `
+                    + `Spinner visible: ${spinnerVisible}, Groups visible: ${groupsVisible}, Empty state visible: ${emptyStateVisible}, Archived empty state visible: ${archivedEmptyStateVisible}`,
+            );
         }
     }
 

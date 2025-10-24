@@ -1,7 +1,7 @@
-import { Response } from 'express';
-import { AuthenticatedRequest } from '../auth/middleware';
 import { MemberStatuses } from '@splitifyd/shared';
 import type { MemberStatus } from '@splitifyd/shared';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../auth/middleware';
 import { getIdentityToolkitConfig } from '../client-config';
 import { DOCUMENT_CONFIG, HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';

@@ -1,9 +1,9 @@
+import type { Email } from '@splitifyd/shared';
 import { getFirestore } from '../firebase';
 import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
-import type {Email} from "@splitifyd/shared";
 
 interface PoolUser {
     token: string;

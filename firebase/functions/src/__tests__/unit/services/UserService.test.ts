@@ -1,4 +1,5 @@
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { DisplayName } from '@splitifyd/shared';
 import { PasswordChangeRequestBuilder, ThemeBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -7,7 +8,6 @@ import { UserService } from '../../../services/UserService2';
 import { ApiError } from '../../../utils/errors';
 import { initializeI18n } from '../../../utils/i18n';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {DisplayName} from "@splitifyd/shared";
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;

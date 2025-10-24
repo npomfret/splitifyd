@@ -10,8 +10,8 @@ import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import * as dateHelpers from '../utils/dateHelpers';
 import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
-import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import { ActivityFeedService } from './ActivityFeedService';
+import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 
 /**

@@ -3,8 +3,8 @@ import { streamingMetrics } from '@/utils/streaming-metrics';
 import { UserNotificationDetector, userNotificationDetector } from '@/utils/user-notification-detector.ts';
 import { batch, computed, ReadonlySignal, signal } from '@preact/signals';
 import { CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@splitifyd/shared';
+import type { GroupId } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
-import type {GroupId} from "@splitifyd/shared";
 
 interface EnhancedGroupsStore {
     groups: GroupDTO[];

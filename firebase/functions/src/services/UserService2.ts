@@ -1,6 +1,8 @@
 import { AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor } from '@splitifyd/shared';
 import { GroupMember, GroupMembershipDTO, GroupMembersResponse, UserProfileResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
+import type { Email } from '@splitifyd/shared';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';
@@ -13,8 +15,6 @@ import { LoggerContext } from '../utils/logger-context';
 import type { IAuthService } from './auth';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { NotificationService } from './notification-service';
-import {DisplayName} from "@splitifyd/shared";
-import type {Email} from "@splitifyd/shared";
 
 /**
  * Result of a successful user registration

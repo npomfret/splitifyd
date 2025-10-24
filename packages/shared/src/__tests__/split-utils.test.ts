@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { CurrencyISOCode } from '../shared-types';
 import { amountToSmallestUnit, calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, getCurrencyDecimals, roundToCurrencyPrecision } from '../split-utils';
-import type {CurrencyISOCode} from "../shared-types";
 
 const amountFor = (value: number | string, currency: CurrencyISOCode): string => roundToCurrencyPrecision(value, currency);
 const sumSplitAmounts = (splits: Array<{ amount: string; }>): number => splits.reduce((sum, split) => sum + Number(split.amount), 0);

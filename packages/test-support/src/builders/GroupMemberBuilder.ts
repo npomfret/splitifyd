@@ -1,8 +1,8 @@
 import type { GroupMember, MemberRole, MemberStatus, UserThemeColor } from '@splitifyd/shared';
-import { MemberRoles, MemberStatuses , UserId} from '@splitifyd/shared';
+import { MemberRoles, MemberStatuses, UserId } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
-import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Builder for creating GroupMember objects for tests

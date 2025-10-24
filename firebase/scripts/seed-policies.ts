@@ -2,10 +2,10 @@
 
 import { PolicyIds } from '@splitifyd/shared';
 import { ApiDriver, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
-import * as dotenv from 'dotenv';
 import { requireInstanceMode } from '../functions/src/shared/instance-mode';
 import { getEnvironment, initializeFirebase } from './firebase-init';
 

@@ -54,6 +54,8 @@ interface ValidatedUpdateUserRequest extends UpdateRequest {
     emailVerified?: boolean;
     disabled?: boolean;
 }
+import { DisplayName } from '@splitifyd/shared';
+import type { Email } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
@@ -61,8 +63,6 @@ import { ApiError, Errors } from '../../utils/errors';
 import { LoggerContext } from '../../utils/logger-context';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateBatchUserIds, validateCreateUser, validateCustomClaims, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
-import {DisplayName} from "@splitifyd/shared";
-import type {Email} from "@splitifyd/shared";
 
 export interface IdentityToolkitConfig {
     apiKey: string;

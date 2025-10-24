@@ -9,8 +9,8 @@ import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { ApiError, Errors } from '../utils/errors';
-import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import { ActivityFeedService } from './ActivityFeedService';
+import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 
 /**

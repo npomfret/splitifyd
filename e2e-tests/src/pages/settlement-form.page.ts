@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import type { SettlementFormData } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
 import { SettlementFormPage as BaseSettlementFormPage } from '@splitifyd/test-support';
-import {DisplayName} from "@splitifyd/shared";
 
 /**
  * E2E-specific SettlementFormPage extending shared base class.

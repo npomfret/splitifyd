@@ -1,8 +1,8 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { DisplayName } from '@splitifyd/shared';
+import type { Email } from '@splitifyd/shared';
 import { BasePage } from './BasePage';
 import { HeaderPage } from './HeaderPage';
-import {DisplayName} from "@splitifyd/shared";
-import type {Email} from "@splitifyd/shared";
 
 /**
  * Shared base class for Settings page object.

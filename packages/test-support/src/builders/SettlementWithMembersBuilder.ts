@@ -1,9 +1,9 @@
 import type { GroupMember, SettlementWithMembers, UserId } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Builder for creating SettlementWithMembers objects for tests

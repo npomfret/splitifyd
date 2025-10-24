@@ -11,14 +11,6 @@
  * directly from firebase-admin/firestore as they don't require wrapping.
  */
 
-export type {
-    IDocumentReference,
-    IDocumentSnapshot,
-    IFirestoreDatabase,
-    IQuery,
-    IQuerySnapshot,
-    ITransaction,
-    IWriteBatch,
-} from '@splitifyd/firebase-simulator';
+export type { IDocumentReference, IDocumentSnapshot, IFirestoreDatabase, IQuery, IQuerySnapshot, ITransaction, IWriteBatch } from '@splitifyd/firebase-simulator';
 
 export { createFirestoreDatabase, FieldPath, FieldValue, Filter, Timestamp } from '@splitifyd/firebase-simulator';

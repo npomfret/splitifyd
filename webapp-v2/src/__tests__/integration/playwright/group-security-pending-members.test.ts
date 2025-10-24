@@ -1,11 +1,11 @@
 import type { Page } from '@playwright/test';
 import type { ClientUser, GroupId, GroupMembershipDTO } from '@splitifyd/shared';
 import { MemberRoles, MemberStatuses, UserId } from '@splitifyd/shared';
+import type { GroupName } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
 import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
-import type {GroupName} from "@splitifyd/shared";
-import {DisplayName} from "@splitifyd/shared";
 
 interface PendingEntry {
     uid: string;

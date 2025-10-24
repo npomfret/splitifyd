@@ -1,8 +1,8 @@
+import type { Email } from '@splitifyd/shared';
 import type { CreateRequest, DecodedIdToken, GetUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { HTTP_STATUS } from '../../../constants';
 import type { IAuthService } from '../../../services/auth';
 import { ApiError } from '../../../utils/errors';
-import type {Email} from "@splitifyd/shared";
 
 /**
  * In-memory stub implementation of IAuthService for unit testing

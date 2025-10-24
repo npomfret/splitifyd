@@ -7,13 +7,13 @@
  *
  * Defaults: pageSize = 25, maxPages = all
  */
-import * as admin from 'firebase-admin';
-import { DocumentSnapshot, FieldPath, Firestore, Query, FieldValue } from 'firebase-admin/firestore';
+import { SystemUserRoles } from '@splitifyd/shared';
 import * as dotenv from 'dotenv';
+import * as admin from 'firebase-admin';
+import { DocumentSnapshot, FieldPath, FieldValue, Firestore, Query } from 'firebase-admin/firestore';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ZodError, type ZodIssue } from 'zod';
-import { SystemUserRoles } from '@splitifyd/shared';
 import { FirestoreCollections } from '../functions/src/constants';
 import { UserDocumentSchema } from '../functions/src/schemas';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
@@ -70,7 +70,7 @@ function summarizeDoc(doc: DocumentSnapshot): Record<string, unknown> {
     return summary;
 }
 
-function formatZodIssues(error: ZodError): Array<{ path: string; message: string; code: string }> {
+function formatZodIssues(error: ZodError): Array<{ path: string; message: string; code: string; }> {
     return error.issues.map((issue: ZodIssue) => ({
         path: issue.path.join('.'),
         message: issue.message,

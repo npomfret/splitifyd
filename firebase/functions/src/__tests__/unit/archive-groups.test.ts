@@ -7,8 +7,8 @@
  */
 
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
-import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { MemberStatuses } from '@splitifyd/shared';
+import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { ActivityFeedService } from '../../services/ActivityFeedService';
 import { FirestoreReader } from '../../services/firestore/FirestoreReader';

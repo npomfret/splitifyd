@@ -1,6 +1,6 @@
+import { formatDateTimeInUserTimeZone, formatDistanceToNow } from '@/utils/dateUtils.ts';
 import type { TooltipPlacement } from './Tooltip';
 import { Tooltip } from './Tooltip';
-import { formatDateTimeInUserTimeZone, formatDistanceToNow } from '@/utils/dateUtils.ts';
 
 interface RelativeTimeProps {
     date: Date | string | number;

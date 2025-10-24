@@ -1,14 +1,14 @@
-import type { Response } from 'express';
 import type { ActivityFeedItem } from '@splitifyd/shared';
+import type { Response } from 'express';
+import { getAppBuilder } from '../ApplicationBuilderSingleton';
+import type { AuthenticatedRequest } from '../auth/middleware';
+import { validateUserAuth } from '../auth/utils';
 import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
-import { getAppBuilder } from '../ApplicationBuilderSingleton';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
-import { ActivityFeedService } from '../services/ActivityFeedService';
-import type { AuthenticatedRequest } from '../auth/middleware';
-import { validateUserAuth } from '../auth/utils';
 import { logger } from '../logger';
+import { ActivityFeedService } from '../services/ActivityFeedService';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 interface ActivityFeedQuery {
     limit?: number;

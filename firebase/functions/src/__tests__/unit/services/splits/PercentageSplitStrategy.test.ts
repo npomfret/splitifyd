@@ -15,7 +15,7 @@ describe('PercentageSplitStrategy', () => {
                     { uid: 'user1', percentage: 30 },
                     { uid: 'user2', percentage: 40 },
                     { uid: 'user3', percentage: 30 },
-                ], "USD")
+                ], 'USD')
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).not.toThrow();
         });
@@ -30,7 +30,7 @@ describe('PercentageSplitStrategy', () => {
                     { uid: 'user1', percentage: 30 },
                     { uid: 'user2', percentage: 40 },
                     { uid: 'user3', percentage: 20 }, // Total = 90, not 100
-                ], "USD")
+                ], 'USD')
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).toThrow(new ApiError(400, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100'));
         });
@@ -41,7 +41,7 @@ describe('PercentageSplitStrategy', () => {
                     { uid: 'user1', percentage: 33.333 },
                     { uid: 'user2', percentage: 33.333 },
                     { uid: 'user3', percentage: 33.334 },
-                ], "USD")
+                ], 'USD')
                 .build();
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).not.toThrow();
         });

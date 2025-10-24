@@ -20,9 +20,9 @@ import {
     ExpenseId,
     type GroupDTO,
     type GroupMembershipDTO,
-    MemberStatuses,
-    type MemberStatus,
     MAX_GROUP_MEMBERS,
+    type MemberStatus,
+    MemberStatuses,
     type PolicyDTO,
     type RegisteredUser,
     type SettlementDTO,
@@ -37,8 +37,8 @@ import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
 import {
-    ActivityFeedDocumentSchema,
     type ActivityFeedDocument,
+    ActivityFeedDocumentSchema,
     ExpenseDocumentSchema,
     GroupBalanceDocumentSchema,
     type GroupBalanceDTO,
@@ -56,11 +56,11 @@ import { CommentDocumentSchema } from '../../schemas';
 // FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
 import { GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
+import type { CommentId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../../constants';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
 import type { BatchGroupFetchOptions, GetGroupsForUserOptions, GroupsPaginationCursor, OrderBy, PaginatedResult, QueryOptions } from './IFirestoreReader';
-import type {CommentId} from "@splitifyd/shared";
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: IFirestoreDatabase) {}
@@ -480,7 +480,8 @@ export class FirestoreReader implements IFirestoreReader {
             };
 
             let query = applyStatusFilter(
-                this.db
+                this
+                    .db
                     .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
                     .where('uid', '==', userId),
             );

@@ -16,10 +16,10 @@ import {
     SplitTypes,
 } from '@splitifyd/shared';
 import { ExpenseId, GroupId } from '@splitifyd/shared';
+import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
-import type {CurrencyISOCode, UserId} from "@splitifyd/shared";
 
 interface ExpenseFormStore {
     // Form fields

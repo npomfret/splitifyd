@@ -227,10 +227,10 @@
       "youOwe": "You owe {{amount}}",
       "youAreOwed": "You're owed {{amount}}",
       "addExpenseTooltip": "Add expense to {{groupName}}",
-    "inviteTooltip": "Invite members to {{groupName}}",
-    "noRecentActivity": "No recent activity",
-    "archivedBadge": "Archived"
-  },
+      "inviteTooltip": "Invite members to {{groupName}}",
+      "noRecentActivity": "No recent activity",
+      "archivedBadge": "Archived"
+    },
     "emptyState": {
       "title": "No groups yet",
       "subtitle": "Create your first group to start tracking shared expenses",

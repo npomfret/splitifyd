@@ -1,6 +1,6 @@
 import type { CommentDTO } from '@splitifyd/shared';
+import type { UserId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomChoice, randomDate, randomString, timestampToISOString } from '../test-helpers';
-import type {UserId} from "@splitifyd/shared";
 
 export class CommentBuilder {
     private comment: CommentDTO = {

@@ -36,11 +36,11 @@ import {
 
 import { ExpenseId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
+import type { Email } from '@splitifyd/shared';
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
-import {DisplayName} from "@splitifyd/shared";
-import type {Email} from "@splitifyd/shared";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -311,7 +311,10 @@ export class ApiDriver {
         return Array.isArray(response?.members) ? (response.members as GroupMembershipDTO[]) : [];
     }
 
-    async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean; statusFilter?: MemberStatus | MemberStatus[]; }): Promise<ListGroupsResponse> {
+    async listGroups(
+        token: string,
+        params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean; statusFilter?: MemberStatus | MemberStatus[]; },
+    ): Promise<ListGroupsResponse> {
         const queryParams = new URLSearchParams();
         if (params?.limit) queryParams.append('limit', params.limit.toString());
         if (params?.cursor) queryParams.append('cursor', params.cursor);

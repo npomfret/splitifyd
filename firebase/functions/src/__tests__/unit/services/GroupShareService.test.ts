@@ -1,5 +1,6 @@
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { ActivityFeedEventTypes, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
+import type { GroupId } from '@splitifyd/shared';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -9,7 +10,6 @@ import { FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupShareService } from '../../../services/GroupShareService';
 import { ApiError } from '../../../utils/errors';
-import type {GroupId} from "@splitifyd/shared";
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;

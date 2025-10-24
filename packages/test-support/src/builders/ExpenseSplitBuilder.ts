@@ -1,5 +1,5 @@
 import { Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString } from '@splitifyd/shared';
-import type {CurrencyISOCode} from "@splitifyd/shared";
+import type { CurrencyISOCode } from '@splitifyd/shared';
 
 /**
  * Internal interface for expense splits - used only by ExpenseSplitBuilder

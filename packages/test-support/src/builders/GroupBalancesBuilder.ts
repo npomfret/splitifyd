@@ -2,8 +2,8 @@ import type { GroupBalances, SimplifiedDebt, UserBalance } from '@splitifyd/shar
 import { Amount } from '@splitifyd/shared';
 import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
-import {DisplayName} from "@splitifyd/shared";
-import type {CurrencyISOCode} from "@splitifyd/shared";
+import { DisplayName } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 
 /**
  * Extended UserBalance with optional displayName and balances fields

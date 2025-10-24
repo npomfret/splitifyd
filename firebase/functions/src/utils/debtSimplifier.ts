@@ -1,6 +1,6 @@
 import { addAmounts, compareAmounts, isZeroAmount, minAmount, negateAmount, SimplifiedDebt, subtractAmounts, UserBalance, zeroAmount } from '@splitifyd/shared';
 import type { Amount } from '@splitifyd/shared';
-import type {CurrencyISOCode} from "@splitifyd/shared";
+import type { CurrencyISOCode } from '@splitifyd/shared';
 
 interface NetBalance {
     uid: string;

@@ -257,13 +257,15 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         }
     };
 
-    const handleArchiveGroup = () => runMembershipMutation(async () => {
-        await enhancedGroupDetailStore.archiveGroup();
-    });
+    const handleArchiveGroup = () =>
+        runMembershipMutation(async () => {
+            await enhancedGroupDetailStore.archiveGroup();
+        });
 
-    const handleUnarchiveGroup = () => runMembershipMutation(async () => {
-        await enhancedGroupDetailStore.unarchiveGroup();
-    });
+    const handleUnarchiveGroup = () =>
+        runMembershipMutation(async () => {
+            await enhancedGroupDetailStore.unarchiveGroup();
+        });
 
     const handleLeaveGroup = () => {
         showLeaveGroupDialog.value = true;
@@ -335,14 +337,12 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             onExpenseCopy={handleExpenseCopy}
                             canToggleShowDeleted={canViewDeletedTransactions.value}
                             showDeletedExpenses={showDeletedExpenses.value}
-                            onShowDeletedChange={
-                                canViewDeletedTransactions.value
-                                    ? (show) => {
-                                        enhancedGroupDetailStore.setShowDeletedExpenses(show);
-                                        enhancedGroupDetailStore.refreshAll();
-                                    }
-                                    : undefined
-                            }
+                            onShowDeletedChange={canViewDeletedTransactions.value
+                                ? (show) => {
+                                    enhancedGroupDetailStore.setShowDeletedExpenses(show);
+                                    enhancedGroupDetailStore.refreshAll();
+                                }
+                                : undefined}
                         />
 
                         {/* Mobile-only members list */}
@@ -383,14 +383,12 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                                 onEditSettlement={handleEditSettlement}
                                 canToggleShowDeleted={canViewDeletedTransactions.value}
                                 showDeletedSettlements={showDeletedSettlements.value}
-                                onShowDeletedChange={
-                                    canViewDeletedTransactions.value
-                                        ? (show) => {
-                                            enhancedGroupDetailStore.setShowDeletedSettlements(show);
-                                            enhancedGroupDetailStore.refreshAll();
-                                        }
-                                        : undefined
-                                }
+                                onShowDeletedChange={canViewDeletedTransactions.value
+                                    ? (show) => {
+                                        enhancedGroupDetailStore.setShowDeletedSettlements(show);
+                                        enhancedGroupDetailStore.refreshAll();
+                                    }
+                                    : undefined}
                             />
                         </SidebarCard>
 

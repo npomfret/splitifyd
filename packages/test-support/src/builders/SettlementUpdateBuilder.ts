@@ -1,7 +1,7 @@
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomValidCurrencyAmountPair } from '../test-helpers';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class SettlementUpdateBuilder {
     private update: Partial<UpdateSettlementRequest>;

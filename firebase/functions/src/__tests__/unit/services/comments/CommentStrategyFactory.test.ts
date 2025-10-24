@@ -1,10 +1,10 @@
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { CommentTargetTypes } from '@splitifyd/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { ActivityFeedService } from '../../../../services/ActivityFeedService';
 import { CommentStrategyFactory } from '../../../../services/comments/CommentStrategyFactory';
 import { ExpenseCommentStrategy } from '../../../../services/comments/ExpenseCommentStrategy';
 import { GroupCommentStrategy } from '../../../../services/comments/GroupCommentStrategy';
-import { ActivityFeedService } from '../../../../services/ActivityFeedService';
 import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';

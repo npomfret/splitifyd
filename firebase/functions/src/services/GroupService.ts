@@ -16,6 +16,7 @@ import {
 } from '@splitifyd/shared';
 import { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalances } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { DOCUMENT_CONFIG, FirestoreCollections } from '../constants';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -33,7 +34,6 @@ import { GroupShareService } from './GroupShareService';
 import { NotificationService } from './notification-service';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Service for managing group operations

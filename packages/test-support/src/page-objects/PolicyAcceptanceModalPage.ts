@@ -140,7 +140,8 @@ export class PolicyAcceptanceModalPage extends BasePage {
                     return; // Modal closed, we're done
                 }
 
-                const acceptanceVisible = await this.getAcceptanceSection()
+                const acceptanceVisible = await this
+                    .getAcceptanceSection()
                     .isVisible()
                     .catch(() => false);
 
@@ -150,7 +151,8 @@ export class PolicyAcceptanceModalPage extends BasePage {
 
                 // If modal is visible but acceptance section is not, we're in transition
                 throw new Error('Waiting for modal to close or next policy to load');
-            }).toPass({ timeout: 2000 });
+            })
+                .toPass({ timeout: 2000 });
 
             const modalVisible = await this.getModalContainer().isVisible();
             if (!modalVisible) {
@@ -158,7 +160,8 @@ export class PolicyAcceptanceModalPage extends BasePage {
                 continue;
             }
 
-            const acceptanceVisible = await this.getAcceptanceSection()
+            const acceptanceVisible = await this
+                .getAcceptanceSection()
                 .isVisible()
                 .catch(() => false);
 
@@ -173,7 +176,8 @@ export class PolicyAcceptanceModalPage extends BasePage {
             const policyName = await this.getCurrentPolicyName();
             expect(policyName).toBeTruthy();
             expect(policyName.length).toBeGreaterThan(minLength);
-        }).toPass({ timeout: 5000 });
+        })
+            .toPass({ timeout: 5000 });
     }
 
     async verifyTitleVisible(): Promise<void> {

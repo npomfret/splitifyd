@@ -6,13 +6,13 @@
  * If collection IDs are supplied, only those collections (minus protected ones) are deleted.
  * Otherwise, every non-protected collection will be purged.
  */
+import * as dotenv from 'dotenv';
 import * as admin from 'firebase-admin';
 import type { CollectionReference, Firestore, QueryDocumentSnapshot } from 'firebase-admin/firestore';
-import * as dotenv from 'dotenv';
 import * as fs from 'fs';
+import { stdin as input, stdout as output } from 'node:process';
 import * as path from 'path';
 import { createInterface } from 'readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
 const envPath = path.join(__dirname, '../functions/.env');

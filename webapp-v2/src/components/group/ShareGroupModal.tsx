@@ -26,8 +26,8 @@ type ShareLinkExpirationOptionId = ShareLinkExpirationOption['id'];
 const DEFAULT_EXPIRATION_OPTION_ID: ShareLinkExpirationOptionId = '1d';
 
 const getExpirationOption = (id: ShareLinkExpirationOptionId): ShareLinkExpirationOption => {
-    return SHARE_LINK_EXPIRATION_OPTIONS.find((option) => option.id === id) ??
-        SHARE_LINK_EXPIRATION_OPTIONS.find((option) => option.id === DEFAULT_EXPIRATION_OPTION_ID)!;
+    return SHARE_LINK_EXPIRATION_OPTIONS.find((option) => option.id === id)
+        ?? SHARE_LINK_EXPIRATION_OPTIONS.find((option) => option.id === DEFAULT_EXPIRATION_OPTION_ID)!;
 };
 
 export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGroupModalProps) {
@@ -304,28 +304,33 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                     </div>
 
                                     {/* QR Code section */}
-                                <div class='flex flex-col items-center py-4'>
-                                    <div class='p-4 bg-white rounded-lg border border-gray-200'>
-                                        <QRCodeCanvas value={shareLink} size={150} />
+                                    <div class='flex flex-col items-center py-4'>
+                                        <div class='p-4 bg-white rounded-lg border border-gray-200'>
+                                            <QRCodeCanvas value={shareLink} size={150} />
+                                        </div>
+                                        <p class='text-sm text-gray-500 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
+                                        <div class='w-full flex justify-end mt-3'>
+                                            <Tooltip content={t('shareGroupModal.generateNew')}>
+                                                <button
+                                                    type='button'
+                                                    onClick={() => setRefreshCounter((count) => count + 1)}
+                                                    class='p-2 rounded-full text-purple-600 hover:text-purple-700 hover:bg-purple-50 transition disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed'
+                                                    data-testid='generate-new-link-button'
+                                                    disabled={loading}
+                                                    aria-label={t('shareGroupModal.generateNew')}
+                                                >
+                                                    <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                                        <path
+                                                            stroke-linecap='round'
+                                                            stroke-linejoin='round'
+                                                            stroke-width='1.5'
+                                                            d='M16.023 9.348h4.284m0 0V5.064m0 4.284-2.913-2.913a7.5 7.5 0 10-.255 10.79'
+                                                        />
+                                                    </svg>
+                                                </button>
+                                            </Tooltip>
+                                        </div>
                                     </div>
-                                    <p class='text-sm text-gray-500 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
-                                    <div class='w-full flex justify-end mt-3'>
-                                        <Tooltip content={t('shareGroupModal.generateNew')}>
-                                            <button
-                                                type='button'
-                                                onClick={() => setRefreshCounter((count) => count + 1)}
-                                                class='p-2 rounded-full text-purple-600 hover:text-purple-700 hover:bg-purple-50 transition disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed'
-                                                data-testid='generate-new-link-button'
-                                                disabled={loading}
-                                                aria-label={t('shareGroupModal.generateNew')}
-                                            >
-                                                <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
-                                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M16.023 9.348h4.284m0 0V5.064m0 4.284-2.913-2.913a7.5 7.5 0 10-.255 10.79' />
-                                                </svg>
-                                            </button>
-                                        </Tooltip>
-                                    </div>
-                                </div>
                                 </>
                             )}
 

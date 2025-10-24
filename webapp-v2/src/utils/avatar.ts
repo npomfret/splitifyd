@@ -1,4 +1,4 @@
-import { DisplayName } from "@splitifyd/shared";
+import { DisplayName } from '@splitifyd/shared';
 
 export interface AvatarProps {
     displayName: DisplayName;

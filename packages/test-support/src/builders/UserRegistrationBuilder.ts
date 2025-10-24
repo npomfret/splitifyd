@@ -1,7 +1,7 @@
 import { UserRegistration } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
+import type { Email } from '@splitifyd/shared';
 import { generateNewUserDetails } from '../test-helpers';
-import {DisplayName} from "@splitifyd/shared";
-import type {Email} from "@splitifyd/shared";
 
 export class UserRegistrationBuilder {
     private userRegistration: UserRegistration;

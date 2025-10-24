@@ -1,8 +1,8 @@
 import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
-import {DisplayName} from "@splitifyd/shared";
 
 describe('Group lifecycle behaviour (stub firestore)', () => {
     let appDriver: AppDriver;

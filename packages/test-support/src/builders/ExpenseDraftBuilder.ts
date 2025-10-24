@@ -1,8 +1,8 @@
 import type { ExpenseDraft } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { generateShortId, randomCategory, randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class ExpenseDraftBuilder {
     private draft: ExpenseDraft;

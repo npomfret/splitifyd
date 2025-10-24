@@ -1,10 +1,10 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { DisplayName } from '@splitifyd/shared';
+import type { Email } from '@splitifyd/shared';
 import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { DashboardPage } from './DashboardPage';
-import {DisplayName} from "@splitifyd/shared";
-import type {Email} from "@splitifyd/shared";
 
 const translation = translationEn;
 

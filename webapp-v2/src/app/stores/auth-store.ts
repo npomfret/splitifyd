@@ -4,6 +4,7 @@ import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
 import type { ClientUser, Email } from '@splitifyd/shared';
 import { AuthErrors } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { apiClient } from '../apiClient';
 import { getFirebaseService } from '../firebase';
@@ -12,7 +13,6 @@ import { expenseFormStore } from './expense-form-store';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
 import { themeStore } from './theme-store';
-import {DisplayName} from "@splitifyd/shared";
 
 // Auth types - moved from types/auth.ts
 interface AuthState {

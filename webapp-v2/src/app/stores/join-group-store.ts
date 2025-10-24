@@ -6,8 +6,8 @@
 
 import { ReadonlySignal, signal } from '@preact/signals';
 import { GroupDTO, JoinGroupResponse, MemberStatus } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
-import {DisplayName} from "@splitifyd/shared";
 
 class JoinGroupStore {
     // Private signals - encapsulated within the class

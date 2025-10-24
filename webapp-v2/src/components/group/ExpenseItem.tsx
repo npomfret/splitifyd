@@ -67,8 +67,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                                 • <RelativeTime date={expense.date} className='text-gray-600' tooltipPlacement='bottom' />
                                 {isDeleted && expense.deletedAt && (
                                     <span className='ml-2 text-red-600'>
-                                        • {t('expenseItem.deletedBy')} {deletedByName}{' '}
-                                        <RelativeTime date={expense.deletedAt} className='text-red-600' />
+                                        • {t('expenseItem.deletedBy')} {deletedByName} <RelativeTime date={expense.deletedAt} className='text-red-600' />
                                     </span>
                                 )}
                             </p>

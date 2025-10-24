@@ -1,9 +1,9 @@
-import type { ActivityFeedItem, ActivityFeedItemDetails, ActivityFeedEventType } from '@splitifyd/shared';
+import type { ActivityFeedEventType, ActivityFeedItem, ActivityFeedItemDetails } from '@splitifyd/shared';
+import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
 import type { ITransaction } from '../firestore-wrapper';
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
-import type {GroupName, GroupId, UserId} from "@splitifyd/shared";
 
 interface CreateActivityItemInput {
     groupId: GroupId;
@@ -30,8 +30,8 @@ export class ActivityFeedService {
     async fetchExistingItemsForUsers(
         transaction: ITransaction,
         userIds: string[],
-    ): Promise<Map<string, Array<{ id: string }>>> {
-        const existingItemsMap = new Map<string, Array<{ id: string }>>();
+    ): Promise<Map<string, Array<{ id: string; }>>> {
+        const existingItemsMap = new Map<string, Array<{ id: string; }>>();
 
         for (const userId of userIds) {
             const existingSnapshots = await this.firestoreWriter.getActivityFeedItemsForUserInTransaction(
@@ -55,7 +55,7 @@ export class ActivityFeedService {
         transaction: ITransaction,
         userIds: string[],
         item: CreateActivityItemInput,
-        existingItemsMap: Map<string, Array<{ id: string }>>,
+        existingItemsMap: Map<string, Array<{ id: string; }>>,
     ): void {
         if (userIds.length === 0) {
             return;

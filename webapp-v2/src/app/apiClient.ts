@@ -17,6 +17,7 @@ import type {
     CurrentPolicyResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
+    GenerateShareLinkRequest,
     GroupDTO,
     GroupFullDetailsDTO,
     GroupMembershipDTO,
@@ -24,15 +25,14 @@ import type {
     JoinGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
-    MemberStatus,
     MemberRole,
+    MemberStatus,
     MessageResponse,
     PolicyAcceptanceStatusDTO,
     PreviewGroupResponse,
     RegisterResponse,
     SecurityPreset,
     SettlementDTO,
-    GenerateShareLinkRequest,
     ShareLinkResponse,
     UpdateDisplayNameRequest,
     UpdateGroupRequest,
@@ -43,10 +43,10 @@ import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { ExpenseId, GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
+import type { Email } from '@splitifyd/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
-import {DisplayName} from "@splitifyd/shared";
-import type {Email} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 
@@ -614,7 +614,9 @@ class ApiClient {
     }
 
     // Convenience methods for common endpoints (using enhanced RequestConfig internally)
-    async getGroups(options?: { includeMetadata?: boolean; page?: number; limit?: number; order?: 'asc' | 'desc'; cursor?: string; statusFilter?: MemberStatus | MemberStatus[]; }): Promise<ListGroupsResponse> {
+    async getGroups(
+        options?: { includeMetadata?: boolean; page?: number; limit?: number; order?: 'asc' | 'desc'; cursor?: string; statusFilter?: MemberStatus | MemberStatus[]; },
+    ): Promise<ListGroupsResponse> {
         const query: Record<string, string> = {};
         if (options?.includeMetadata) query.includeMetadata = 'true';
         if (options?.page) query.page = options.page.toString();

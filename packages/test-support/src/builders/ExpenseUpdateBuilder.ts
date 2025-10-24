@@ -1,7 +1,7 @@
 import type { UpdateExpenseRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class ExpenseUpdateBuilder {
     private update: Partial<UpdateExpenseRequest>;

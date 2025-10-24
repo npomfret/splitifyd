@@ -29,6 +29,7 @@ import {
     UserPolicyStatusResponse,
 } from '@splitifyd/shared';
 import { ExpenseId, SettlementId } from '@splitifyd/shared';
+import { DisplayName } from '@splitifyd/shared';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@splitifyd/test-support';
 import { expect } from 'vitest';
 import { CommentHandlers } from '../../comments/CommentHandlers';
@@ -46,7 +47,6 @@ import { ChangeTrackerHandlers } from '../../triggers/ChangeTrackerHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
 import { registerChangeTrackerTriggers } from './ChangeTrackerTestHarness';
 import { StubAuthService } from './mocks/StubAuthService';
-import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Thin façade around the public HTTP handlers.

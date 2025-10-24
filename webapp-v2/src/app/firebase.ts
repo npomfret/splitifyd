@@ -1,10 +1,10 @@
 import { mapFirebaseUser } from '@/app/stores/auth-store.ts';
 import { ClientUser } from '@splitifyd/shared';
+import type { Email } from '@splitifyd/shared';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { Auth, connectAuthEmulator, getAuth, onIdTokenChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
 import { connectFirestoreEmulator, doc, Firestore, getFirestore, onSnapshot } from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
-import type {Email} from "@splitifyd/shared";
 
 declare global {
     interface Window {

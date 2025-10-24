@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
+import type { Email } from '@splitifyd/shared';
 import { DashboardPage, LoginPage } from '../pages';
-import type {Email} from "@splitifyd/shared";
 
 /**
  * Authentication workflow class that handles user creation and login flows.

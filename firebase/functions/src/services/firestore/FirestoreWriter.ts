@@ -23,6 +23,7 @@ import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 import type { GroupBalanceDTO } from '../../schemas';
 // Import schemas for validation
 import { GroupId } from '@splitifyd/shared';
+import type { Email } from '@splitifyd/shared';
 import {
     ActivityFeedDocumentSchema,
     CommentDataSchema,
@@ -38,7 +39,6 @@ import {
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
 import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
-import type {Email} from "@splitifyd/shared";
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness

@@ -1,7 +1,7 @@
 import { useDebounce } from '@/utils/debounce.ts';
+import type { CurrencyISOCode } from '@splitifyd/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { type Currency, CurrencyService } from '../services/currencyService';
-import type {CurrencyISOCode} from "@splitifyd/shared";
 
 interface UseCurrencySelectorOptions {
     onCurrencyChange: (currency: CurrencyISOCode) => void;

@@ -1,7 +1,7 @@
 import type { JoinGroupResponse, MemberStatus } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
+import type { GroupName } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
-import type {GroupName} from "@splitifyd/shared";
 
 /**
  * Builder for creating JoinGroupResponse objects for tests

@@ -1,4 +1,4 @@
-import {Amount, type CurrencyISOCode} from './shared-types';
+import { Amount, type CurrencyISOCode } from './shared-types';
 import { amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString } from './split-utils';
 
 function normalizeAndConvertToUnits(amount: Amount | number, currency: CurrencyISOCode): number {
