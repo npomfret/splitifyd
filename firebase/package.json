@@ -22,6 +22,7 @@
     "deploy:hosting": "cd .. && BUILD_MODE=production npm run build && cd firebase && firebase deploy --only hosting",
     "deploy:rules": "firebase deploy --only firestore:rules",
     "deploy:indexes": "firebase deploy --only firestore:indexes --force",
+    "download:indexes": "firebase firestore:indexes --project splitifyd > firestore.indexes.json",
     "seed-policies:prod": "tsx scripts/switch-instance.ts prod && tsx scripts/seed-policies.ts production && rm functions/.env",
     "fix-users": "tsx scripts/fix-broken-users.ts emulator",
     "fix-users:prod": "tsx scripts/switch-instance.ts prod && tsx scripts/fix-broken-users.ts production && rm functions/.env",
