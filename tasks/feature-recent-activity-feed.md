@@ -121,3 +121,73 @@ export interface ActivityFeedItem {
 - **Improved User Engagement**: Provides a centralized and engaging way for users to keep up with what's happening.
 - **Increased Transparency**: Makes group activities more visible to all members.
 - **Saves Time**: Users can get a quick overview of all their groups without having to navigate to each one.
+
+## 6. Phase 4: Deprecating the User Notification System
+
+Once the real-time activity feed is implemented, it will completely replace the existing `user-notifications` system, which is complex and inefficient. This change will simplify the architecture and reduce Firestore costs.
+
+### 6.1. Current System Overview
+
+The current notification system is an over-engineered signaling mechanism with two main parts:
+
+1.  **Backend (Fan-out on Write):** Firestore triggers (e.g., `trackGroupChanges`, `trackExpenseChanges`) monitor database changes. When a change occurs in a group, a Cloud Function writes a notification document for *every single member* of that group into the `user-notifications` collection. This results in a high number of write operations (N writes for N members) for a single logical change.
+
+2.  **Frontend (Stateful Detector):** The `UserNotificationDetector` class in the webapp establishes a real-time listener on the current user's specific notification document (`user-notifications/{userId}`). It maintains a local state of change counters and versions. By comparing the incoming document with its last known state, it detects what has changed (e.g., transactions, balances) and fires corresponding callbacks (e.g., `onTransactionChange(groupId)`). These callbacks act as signals for the application's data stores to refetch data from the API.
+
+This system is inefficient and adds significant complexity and cost.
+
+### 6.2. The New Strategy: A Single, Unified Real-Time Stream
+
+The new real-time activity feed will serve a dual purpose:
+
+1.  **UI Feed:** Displaying human-readable events in the "Recent Activity" component.
+2.  **Signaling Mechanism:** Acting as the primary real-time signal for triggering client-side data refreshes, completely replacing the `user-notifications` system.
+
+When the frontend's real-time service receives an `ActivityFeedItem`, it will dispatch it to two places:
+- The UI component for rendering.
+- A new dispatcher that checks the `eventType` and `groupId`. If the event is relevant to the data currently being viewed by the user, it will trigger a targeted refresh in the appropriate data store (e.g., `expenseStore.fetchExpenses(groupId)`).
+
+### 6.3. Refactoring and Removal Plan
+
+#### Backend Refactoring
+
+- **Delete Firestore Triggers:** The Cloud Functions responsible for listening to database changes and fanning out notifications will be deleted. This includes files like `change-tracker.ts` and `comment-tracker.ts`.
+- **Delete `NotificationService`:** The `NotificationService` and any related helpers responsible for creating the `user-notifications` documents will be removed.
+- **Remove `user-notifications` Collection:** All code that reads from or writes to the `user-notifications` collection will be deleted from services like `FirestoreWriter` and `FirestoreReader`.
+- **Update Firestore Rules:** The security rules for the `user-notifications` collection will be removed.
+
+#### Frontend Refactoring
+
+- **Delete `UserNotificationDetector`:** The entire `webapp-v2/src/utils/user-notification-detector.ts` file and all its usages will be removed.
+- **Enhance `RealtimeService`:** The new `RealtimeService` (proposed in Phase 3) will be enhanced. In addition to managing the WebSocket connection, it will include a dispatcher or event emitter.
+- **Update Data Stores and Pages:** Components and stores that currently subscribe to the `UserNotificationDetector` will be updated to subscribe to the new `RealtimeService` instead. The logic will be more direct.
+
+**Example of New Logic in a Component:**
+```typescript
+// In a component like GroupDetailPage.tsx
+
+useEffect(() => {
+    const handleActivityEvent = (event: ActivityFeedItem) => {
+        // Check if the event is relevant to the current view
+        if (event.eventType === 'EXPENSE_UPDATED' || event.eventType === 'EXPENSE_CREATED') {
+            // Trigger a targeted data refresh
+            expensesStore.fetchExpenses(groupId);
+            balanceStore.recalculateBalances(groupId);
+        } else if (event.eventType === 'MEMBER_LEFT') {
+            membersStore.fetchMembers(groupId);
+        }
+    };
+
+    // Subscribe to events for the current group
+    const unsubscribe = realtimeService.subscribe(groupId, handleActivityEvent);
+
+    // Unsubscribe on cleanup
+    return () => unsubscribe();
+}, [groupId]);
+```
+
+#### Testing Impact
+
+- **Backend Tests:** All unit and integration tests for the old notification triggers and services will be deleted.
+- **Frontend Tests:** Unit tests relying on mocking the `UserNotificationDetector` will be rewritten to mock the new `RealtimeService` and simulate incoming `ActivityFeedItem` events.
+- **E2E Tests:** End-to-end tests may require updates to their waiting logic. Instead of waiting for the old notification mechanism, they will need to wait for UI changes triggered by the new real-time activity events.
