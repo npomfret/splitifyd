@@ -17,9 +17,12 @@ vi.mock('qrcode.react', () => ({
     QRCodeCanvas: () => <div data-testid='qr-code' />,
 }));
 
+// Create a stable mock translation function to prevent infinite re-renders
+const mockTranslate = vi.fn((key: string) => key);
+
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string) => key,
+        t: mockTranslate,
         i18n: { language: 'en' },
     }),
 }));
@@ -145,14 +148,10 @@ describe('ShareGroupModal', () => {
         await screen.findByTestId('share-link-input');
         const firstCallCount = mockedApiClient.generateShareLink.mock.calls.length;
 
-        // Verify the dropdown exists with correct default value
-        const select = screen.getByTestId('share-link-expiration-select');
-        expect(select).toHaveValue('1d'); // Default is 1 day
-
-        // Verify all expiration options are available
-        const options = select.querySelectorAll('option');
-        expect(options.length).toBe(4);
-        expect(Array.from(options).map((opt) => (opt as HTMLOptionElement).value)).toEqual(['15m', '1h', '1d', '5d']);
+        // Verify expiration buttons are rendered with expected defaults
+        const buttons = ['15m', '1h', '1d', '5d'].map((id) => screen.getByTestId(`share-link-expiration-${id}`));
+        expect(buttons).toHaveLength(4);
+        expect(screen.getByTestId('share-link-expiration-1d')).toHaveAttribute('aria-pressed', 'true');
 
         // Verify first call requested ~1 day expiration (default)
         const firstCall = mockedApiClient.generateShareLink.mock.calls[0];
@@ -161,10 +160,19 @@ describe('ShareGroupModal', () => {
         expect(firstCallExpiryMs).toBeGreaterThan(expectedFirstMs - 5000);
         expect(firstCallExpiryMs).toBeLessThan(expectedFirstMs + 5000);
 
-        // Note: The actual test of changing the select and regenerating the link
-        // is covered by the integration/e2e tests. Unit testing state updates
-        // triggered by select changes in Preact is complex and better tested
-        // at a higher level. We've verified the options are present and correct.
+        // Change the selection to 1 hour and ensure a new link is requested
+        const oneHourButton = screen.getByTestId('share-link-expiration-1h');
+        await act(() => {
+            fireEvent.click(oneHourButton);
+        });
+
+        await waitFor(() => expect(mockedApiClient.generateShareLink).toHaveBeenCalledTimes(firstCallCount + 1));
+        const secondCall = mockedApiClient.generateShareLink.mock.calls[firstCallCount];
+        const secondCallExpiryMs = new Date(secondCall[1]).getTime();
+        const expectedSecondMs = Date.now() + ONE_HOUR_MS;
+        expect(secondCallExpiryMs).toBeGreaterThan(expectedSecondMs - 5000);
+        expect(secondCallExpiryMs).toBeLessThan(expectedSecondMs + 5000);
+        expect(oneHourButton).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('displays loading state while generating link', async () => {
@@ -198,7 +206,7 @@ describe('ShareGroupModal', () => {
 
         // Loading should disappear and link should appear
         await waitFor(() => {
-            expect(screen.queryByRole('presentation').querySelector('.animate-spin')).not.toBeInTheDocument();
+            expect(screen.queryByRole('presentation')?.querySelector('.animate-spin')).not.toBeInTheDocument();
         });
         await screen.findByTestId('share-link-input');
     });

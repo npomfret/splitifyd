@@ -31,7 +31,7 @@ const getExpirationOption = (id: ShareLinkExpirationOptionId): ShareLinkExpirati
 };
 
 export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGroupModalProps) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const [shareLink, setShareLink] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -144,17 +144,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                 }
             }
         })();
-    }, [isOpen, groupId, selectedExpirationId, refreshCounter, i18n.language]);
-
-    const handleExpirationChange = (event: Event) => {
-        if (!groupId) {
-            return;
-        }
-
-        const target = event.target as HTMLSelectElement;
-        const newId = target.value as ShareLinkExpirationOptionId;
-        setSelectedExpirationId(newId);
-    };
+    }, [isOpen, groupId, selectedExpirationId, refreshCounter, t]);
 
     const copyToClipboard = async () => {
         if (!shareLink) return;
@@ -314,44 +304,58 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                     </div>
 
                                     {/* QR Code section */}
-                                    <div class='flex flex-col items-center py-4'>
-                                        <div class='p-4 bg-white rounded-lg border border-gray-200'>
-                                            <QRCodeCanvas value={shareLink} size={150} />
-                                        </div>
-                                        <p class='text-sm text-gray-500 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
+                                <div class='flex flex-col items-center py-4'>
+                                    <div class='p-4 bg-white rounded-lg border border-gray-200'>
+                                        <QRCodeCanvas value={shareLink} size={150} />
                                     </div>
+                                    <p class='text-sm text-gray-500 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
+                                    <div class='w-full flex justify-end mt-3'>
+                                        <Tooltip content={t('shareGroupModal.generateNew')}>
+                                            <button
+                                                type='button'
+                                                onClick={() => setRefreshCounter((count) => count + 1)}
+                                                class='p-2 rounded-full text-purple-600 hover:text-purple-700 hover:bg-purple-50 transition disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed'
+                                                data-testid='generate-new-link-button'
+                                                disabled={loading}
+                                                aria-label={t('shareGroupModal.generateNew')}
+                                            >
+                                                <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M16.023 9.348h4.284m0 0V5.064m0 4.284-2.913-2.913a7.5 7.5 0 10-.255 10.79' />
+                                                </svg>
+                                            </button>
+                                        </Tooltip>
+                                    </div>
+                                </div>
                                 </>
                             )}
 
                             {/* Link expiration options */}
                             <div class={expirationContainerClass}>
-                                <div class='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
-                                    <label htmlFor='share-link-expiration-select' class='text-sm font-medium text-gray-600'>
+                                <div class='flex flex-col gap-3'>
+                                    <span class='text-sm font-medium text-gray-600'>
                                         {t('shareGroupModal.expirationLabel')}
-                                    </label>
-                                    <div class='flex items-center gap-3'>
-                                        <select
-                                            id='share-link-expiration-select'
-                                            class='border border-gray-300 rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent'
-                                            value={selectedExpirationId}
-                                            onChange={handleExpirationChange}
-                                            data-testid='share-link-expiration-select'
-                                        >
-                                            {SHARE_LINK_EXPIRATION_OPTIONS.map((option) => (
-                                                <option key={option.id} value={option.id}>
+                                    </span>
+                                    <div class='flex flex-wrap gap-2'>
+                                        {SHARE_LINK_EXPIRATION_OPTIONS.map((option) => {
+                                            const isSelected = option.id === selectedExpirationId;
+                                            return (
+                                                <button
+                                                    key={option.id}
+                                                    type='button'
+                                                    data-testid={`share-link-expiration-${option.id}`}
+                                                    onClick={() => setSelectedExpirationId(option.id)}
+                                                    aria-pressed={isSelected}
+                                                    class={`px-3 py-1.5 rounded-md border text-sm transition ${
+                                                        isSelected
+                                                            ? 'border-purple-500 bg-purple-50 text-purple-700 shadow-sm'
+                                                            : 'border-gray-300 text-gray-600 hover:border-purple-400 hover:text-purple-700'
+                                                    }`}
+                                                    disabled={loading && isSelected}
+                                                >
                                                     {t(option.translationKey)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <button
-                                            type='button'
-                                            onClick={() => setRefreshCounter((count) => count + 1)}
-                                            class='text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed'
-                                            data-testid='generate-new-link-button'
-                                            disabled={loading}
-                                        >
-                                            {t('shareGroupModal.generateNew')}
-                                        </button>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                                 {expiresAt && (

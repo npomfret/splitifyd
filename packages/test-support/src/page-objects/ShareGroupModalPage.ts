@@ -118,13 +118,6 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
-     * Expiration select dropdown
-     */
-    getExpirationSelect(): Locator {
-        return this.getModalContainer().getByTestId('share-link-expiration-select');
-    }
-
-    /**
      * Expiration hint text
      */
     getExpirationHint(): Locator {
@@ -184,12 +177,16 @@ export class ShareGroupModalPage extends BasePage {
         await this.clickButton(button, { buttonName: translation.shareGroupModal.generateNew });
     }
 
+    getExpirationOption(optionValue: '15m' | '1h' | '1d' | '5d'): Locator {
+        return this.getModalContainer().getByTestId(`share-link-expiration-${optionValue}`);
+    }
+
     /**
-     * Select a new expiration duration from the dropdown
+     * Choose a new expiration duration
      */
     async selectExpiration(optionValue: '15m' | '1h' | '1d' | '5d'): Promise<void> {
-        const select = this.getExpirationSelect();
-        await select.selectOption(optionValue);
+        const option = this.getExpirationOption(optionValue);
+        await option.click();
     }
 
     /**

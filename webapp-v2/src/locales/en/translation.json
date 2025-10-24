@@ -1033,7 +1033,7 @@
     "copyLinkTitle": "Copy link",
     "copyLinkAriaLabel": "Copy group invite link",
     "qrCodeDescription": "Or scan this code",
-    "expirationLabel": "Link expires in",
+    "expirationLabel": "Invitation link expires in…",
     "expirationOptions": {
       "15m": "15 minutes",
       "1h": "1 hour",

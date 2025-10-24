@@ -17,6 +17,16 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
+    const emitModalDebugLog = (message: string, data?: Record<string, unknown>) => {
+        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
+            console.info(`${message}:`, JSON.stringify({
+                timestamp: new Date().toISOString(),
+                ...(data ?? {}),
+            }));
+        }
+
+        logInfo(message, data);
+    };
 
     // Create fresh signals for each modal instance to avoid stale state
     const [groupNameSignal] = useState(() => signal(''));
@@ -39,7 +49,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
-                logInfo('[CreateGroupModal] Closing modal: Escape key pressed', {
+                emitModalDebugLog('[CreateGroupModal] Closing modal: Escape key pressed', {
                     key: e.key,
                     isSubmitting,
                 });
@@ -53,12 +63,21 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
     // Handle click outside modal to close - but not during submission
     const handleBackdropClick = (e: Event) => {
-        if (e.target === e.currentTarget && !isSubmitting) {
-            logInfo('[CreateGroupModal] Closing modal: Backdrop clicked', {
+        if (e.target !== e.currentTarget) {
+            return;
+        }
+
+        if (isSubmitting) {
+            emitModalDebugLog('[CreateGroupModal] Ignored backdrop click while submitting', {
                 isSubmitting,
             });
-            onClose();
+            return;
         }
+
+        emitModalDebugLog('[CreateGroupModal] Closing modal: Backdrop clicked', {
+            isSubmitting,
+        });
+        onClose();
     };
 
     const validateForm = (): string | null => {
@@ -129,7 +148,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                         <button
                             type='button'
                             onClick={() => {
-                                logInfo('[CreateGroupModal] Closing modal: X button clicked', {
+                                emitModalDebugLog('[CreateGroupModal] Closing modal: X button clicked', {
                                     isSubmitting,
                                 });
                                 onClose();
@@ -217,7 +236,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                             type='button'
                             variant='secondary'
                             onClick={() => {
-                                logInfo('[CreateGroupModal] Closing modal: Cancel button clicked', {
+                                emitModalDebugLog('[CreateGroupModal] Closing modal: Cancel button clicked', {
                                     isSubmitting,
                                 });
                                 onClose();
