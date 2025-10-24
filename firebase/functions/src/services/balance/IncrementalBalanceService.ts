@@ -9,6 +9,7 @@ import type { IFirestoreWriter } from '../firestore';
 import { DebtSimplificationService } from './DebtSimplificationService';
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class IncrementalBalanceService {
     private expenseProcessor: ExpenseProcessor;
@@ -147,7 +148,7 @@ export class IncrementalBalanceService {
         });
     }
 
-    private ensureMembersInitialized(balancesByCurrency: CurrencyBalances, currency: string, memberIds: string[]): void {
+    private ensureMembersInitialized(balancesByCurrency: CurrencyBalances, currency: CurrencyISOCode, memberIds: string[]): void {
         if (!balancesByCurrency[currency]) {
             balancesByCurrency[currency] = {};
         }
@@ -211,7 +212,7 @@ export class IncrementalBalanceService {
         }
     }
 
-    private balancesToPairs(currencyBalances: Record<string, UserBalance>, currency: string): Map<string, number> {
+    private balancesToPairs(currencyBalances: Record<string, UserBalance>, currency: CurrencyISOCode): Map<string, number> {
         const pairs = new Map<string, number>();
         for (const [debtorId, balance] of Object.entries(currencyBalances ?? {})) {
             for (const [creditorId, amount] of Object.entries(balance.owes ?? {})) {
@@ -252,7 +253,7 @@ export class IncrementalBalanceService {
         }
     }
 
-    private pairsToBalances(pairs: Map<string, number>, users: Set<string>, currency: string): Record<string, UserBalance> {
+    private pairsToBalances(pairs: Map<string, number>, users: Set<string>, currency: CurrencyISOCode): Record<string, UserBalance> {
         const zero = zeroAmount(currency);
         const balances: Record<string, UserBalance> = {};
 

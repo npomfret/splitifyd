@@ -1,6 +1,7 @@
 import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 interface GroupBalanceDocument {
     groupId: GroupId;
@@ -29,7 +30,7 @@ export class GroupBalanceDocumentBuilder {
         return this;
     }
 
-    withBalance(userId: string, currency: string, amount: Amount): this {
+    withBalance(userId: string, currency: CurrencyISOCode, amount: Amount): this {
         if (!this.document.balances[userId]) {
             this.document.balances[userId] = {};
         }

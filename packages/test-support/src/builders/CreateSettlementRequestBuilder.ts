@@ -2,6 +2,7 @@ import type { CreateSettlementRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { GroupId, UserId } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;
@@ -34,7 +35,7 @@ export class CreateSettlementRequestBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: string): this {
+    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
         this.settlement.currency = currency;
         this.settlement.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
@@ -50,7 +51,7 @@ export class CreateSettlementRequestBuilder {
         return this;
     }
 
-    withCurrency(currency: string): this {
+    withCurrency(currency: CurrencyISOCode): this {
         this.settlement.currency = currency;
         return this;
     }

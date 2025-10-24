@@ -2,6 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { GroupId } from '@splitifyd/shared';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 const translation = translationEn;
 
@@ -82,7 +83,7 @@ export class SettlementFormPage extends BasePage {
     /**
      * Select currency from the currency dropdown
      */
-    async selectCurrency(currency: string): Promise<void> {
+    async selectCurrency(currency: CurrencyISOCode): Promise<void> {
         const currencyButton = this.getCurrencyButton();
         await this.clickButton(currencyButton, { buttonName: 'Select currency' });
 
@@ -163,7 +164,7 @@ export class SettlementFormPage extends BasePage {
      * Simplified method to fill and submit settlement form
      * Used when the form is already open and ready
      */
-    async fillAndSubmitSettlement(payeeName: string, amount: string, currency: string, note?: string): Promise<void> {
+    async fillAndSubmitSettlement(payeeName: string, amount: string, currency: CurrencyISOCode, note?: string): Promise<void> {
         // Set currency - MANDATORY, no defaults allowed
         await this.selectCurrency(currency);
 

@@ -2,6 +2,7 @@ import type { SettlementDTO,  } from '@splitifyd/shared';
 import { Amount , UserId} from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Builder for creating Settlement objects for tests
@@ -13,7 +14,7 @@ export class SettlementDTOBuilder {
     private payerId: UserId;
     private payeeId: UserId;
     private amount: Amount;
-    private currency: string;
+    private currency: CurrencyISOCode;
     private date: string;
     private note?: string;
 
@@ -65,7 +66,7 @@ export class SettlementDTOBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: string): SettlementDTOBuilder {
+    withAmount(amount: Amount | number, currency: CurrencyISOCode): SettlementDTOBuilder {
         this.currency = currency;
         this.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
@@ -81,7 +82,7 @@ export class SettlementDTOBuilder {
         return this;
     }
 
-    withCurrency(currency: string): SettlementDTOBuilder {
+    withCurrency(currency: CurrencyISOCode): SettlementDTOBuilder {
         this.currency = currency;
         return this;
     }

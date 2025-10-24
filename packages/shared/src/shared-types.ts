@@ -56,6 +56,7 @@ export type GroupName = string;
 export type UserId = string;
 export type DisplayName = string;
 export type Email = string;
+export type CurrencyISOCode = string;
 
 /**
  * Zod schema for expense splits
@@ -480,7 +481,7 @@ export interface UserBalance {
 }
 
 export interface CurrencyBalance {
-    currency: string;
+    currency: CurrencyISOCode;
     netBalance: Amount;
     totalOwed: Amount;
     totalOwing: Amount;
@@ -692,7 +693,7 @@ interface Expense extends SoftDeletable {
     createdBy: UserId;
     paidBy: UserId;
     amount: Amount;
-    currency: string;
+    currency: CurrencyISOCode;
     description: string;
     category: string;
     date: ISOString;
@@ -717,7 +718,7 @@ export interface CreateExpenseRequest {
     groupId: GroupId;
     description: string;
     amount: Amount;
-    currency: string;
+    currency: CurrencyISOCode;
     paidBy: UserId;
     category: string;
     date: string;
@@ -741,7 +742,7 @@ interface Settlement extends SoftDeletable {
     payerId: UserId;
     payeeId: UserId;
     amount: Amount;
-    currency: string;
+    currency: CurrencyISOCode;
     date: ISOString;
     note?: string;
     createdBy: UserId;
@@ -763,7 +764,7 @@ export interface CreateSettlementRequest {
     payerId: UserId;
     payeeId: UserId;
     amount: Amount;
-    currency: string;
+    currency: CurrencyISOCode;
     date?: ISOString;
     note?: string;
 }
@@ -796,7 +797,7 @@ export interface SettlementWithMembers extends SoftDeletable {
     payer: GroupMember;
     payee: GroupMember;
     amount: Amount;
-    currency: string;
+    currency: CurrencyISOCode;
     date: ISOString;
     note?: string;
     createdAt: ISOString;
@@ -919,7 +920,7 @@ export interface SimplifiedDebt {
         uid: UserId;
     };
     amount: Amount;
-    currency: string;
+    currency: CurrencyISOCode;
 }
 
 export interface GroupBalances {
@@ -1068,7 +1069,7 @@ export interface CreateGroupFormData {
 export interface ExpenseFormData {
     description: string;
     amount: Amount;
-    currency: string;
+    currency: CurrencyISOCode;
     paidByDisplayName: string; // Display name (not the uid)
     splitType: 'equal' | 'exact' | 'percentage';
     participants: string[]; // Participant names (not the uids)
@@ -1082,7 +1083,7 @@ export interface SettlementFormData {
     payerName: string; // Display name of who paid
     payeeName: string; // Display name of who received payment
     amount: string;
-    currency: string;
+    currency: CurrencyISOCode;
     note: string;
 }
 
@@ -1093,7 +1094,7 @@ export interface SettlementFormData {
 export interface ExpenseDraft {
     description: string;
     amount: Amount;
-    currency: string;
+    currency: CurrencyISOCode;
     date: string; // YYYY-MM-DD format
     time: string; // HH:MM format
     paidBy: UserId;

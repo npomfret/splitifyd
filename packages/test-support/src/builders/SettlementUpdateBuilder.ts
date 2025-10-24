@@ -1,6 +1,7 @@
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomValidCurrencyAmountPair } from '../test-helpers';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class SettlementUpdateBuilder {
     private update: Partial<UpdateSettlementRequest>;
@@ -16,13 +17,13 @@ export class SettlementUpdateBuilder {
         };
     }
 
-    withAmount(amount: Amount | number, currency: string): this {
+    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
         this.update.currency = currency;
         this.update.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 
-    withCurrency(currency: string): this {
+    withCurrency(currency: CurrencyISOCode): this {
         this.update.currency = currency;
         return this;
     }

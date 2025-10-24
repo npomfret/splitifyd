@@ -2,6 +2,7 @@ import type { ExpenseFormData } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 import {DisplayName} from "@splitifyd/shared";
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Builder for creating ExpenseFormData objects for UI tests
@@ -28,13 +29,13 @@ export class ExpenseFormDataBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: string): this {
+    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
         this.expense.currency = currency;
         this.expense.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 
-    withCurrency(currency: string): this {
+    withCurrency(currency: CurrencyISOCode): this {
         this.expense.currency = currency;
         return this;
     }

@@ -33,6 +33,7 @@ import { GroupShareService } from './GroupShareService';
 import { NotificationService } from './notification-service';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Service for managing group operations
@@ -65,7 +66,7 @@ export class GroupService {
         const balancesByCurrency: Record<
             string,
             {
-                currency: string;
+                currency: CurrencyISOCode;
                 netBalance: Amount;
                 totalOwed: Amount;
                 totalOwing: Amount;
@@ -159,7 +160,7 @@ export class GroupService {
     /**
      * Calculate totalOwed and totalOwing from netBalance
      */
-    private calculateBalanceBreakdown(netBalance: Amount, currency: string): { netBalance: Amount; totalOwed: Amount; totalOwing: Amount; } {
+    private calculateBalanceBreakdown(netBalance: Amount, currency: CurrencyISOCode): { netBalance: Amount; totalOwed: Amount; totalOwing: Amount; } {
         const netBalanceUnits = amountToSmallestUnit(netBalance, currency);
         const totalOwedUnits = netBalanceUnits > 0 ? netBalanceUnits : 0;
         const totalOwingUnits = netBalanceUnits < 0 ? Math.abs(netBalanceUnits) : 0;
@@ -179,7 +180,7 @@ export class GroupService {
         const balancesByCurrency: Record<
             string,
             {
-                currency: string;
+                currency: CurrencyISOCode;
                 netBalance: Amount;
                 totalOwed: Amount;
                 totalOwing: Amount;

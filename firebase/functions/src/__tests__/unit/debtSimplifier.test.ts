@@ -3,11 +3,12 @@ import { addAmounts, compareAmounts, isZeroAmount, subtractAmounts, zeroAmount }
 import { DebtScenarios, SimplifiedDebtBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { describe, expect, it } from 'vitest';
 import { simplifyDebts } from '../../utils/debtSimplifier';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 const USD = 'USD';
 const EUR = 'EUR';
 
-const buildDebt = (from: string, to: string, amount: Amount | number, currency: string = USD) =>
+const buildDebt = (from: string, to: string, amount: Amount | number, currency: CurrencyISOCode = USD) =>
     new SimplifiedDebtBuilder()
         .from(from)
         .to(to)
@@ -39,7 +40,7 @@ const expectTransactionsMatch = (actual: SimplifiedDebt[], expected: SimplifiedD
     expect(normalizeTransactions(actual)).toEqual(normalizeTransactions(expected));
 };
 
-const netFromBalances = (balances: Record<string, UserBalance>, currency: string) => {
+const netFromBalances = (balances: Record<string, UserBalance>, currency: CurrencyISOCode) => {
     const zero = zeroAmount(currency);
     const net: Record<string, Amount> = {};
 
@@ -62,7 +63,7 @@ const netFromBalances = (balances: Record<string, UserBalance>, currency: string
     return net;
 };
 
-const netFromTransactions = (transactions: SimplifiedDebt[], currency: string) => {
+const netFromTransactions = (transactions: SimplifiedDebt[], currency: CurrencyISOCode) => {
     const zero = zeroAmount(currency);
     const net: Record<string, Amount> = {};
 
@@ -83,7 +84,7 @@ const netFromTransactions = (transactions: SimplifiedDebt[], currency: string) =
     return net;
 };
 
-const expectNetBalancesMatch = (balances: Record<string, UserBalance>, transactions: SimplifiedDebt[], currency: string) => {
+const expectNetBalancesMatch = (balances: Record<string, UserBalance>, transactions: SimplifiedDebt[], currency: CurrencyISOCode) => {
     const expectedNet = netFromBalances(balances, currency);
     const actualNet = netFromTransactions(transactions, currency);
 
@@ -93,11 +94,11 @@ const expectNetBalancesMatch = (balances: Record<string, UserBalance>, transacti
     });
 };
 
-const expectAmountEqual = (actual: Amount, expected: Amount | number, currency: string = USD) => {
+const expectAmountEqual = (actual: Amount, expected: Amount | number, currency: CurrencyISOCode) => {
     expect(compareAmounts(actual, expected, currency)).toBe(0);
 };
 
-const expectAmountPositive = (actual: Amount, currency: string) => {
+const expectAmountPositive = (actual: Amount, currency: CurrencyISOCode) => {
     expect(compareAmounts(actual, zeroAmount(currency), currency)).toBeGreaterThan(0);
 };
 
@@ -235,6 +236,6 @@ describe('simplifyDebts', () => {
             zero,
         );
 
-        expectAmountEqual(totalToUser4, '100.00');
+        expectAmountEqual(totalToUser4, '100.00', 'USD');
     });
 });

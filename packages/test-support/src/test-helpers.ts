@@ -1,6 +1,7 @@
 // Import currency utilities from shared package
 import { getCurrencyDecimals, roundToCurrencyPrecision } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Generates a short, readable UUID for test data
@@ -94,7 +95,7 @@ export { getCurrencyDecimals, roundToCurrencyPrecision };
  * @param max Maximum amount (default: 500)
  * @returns Object with currency code and valid amount
  */
-export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500): { currency: string; amount: Amount; } {
+export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500): { currency: CurrencyISOCode; amount: Amount; } {
     // Currency lists by decimal precision (excluding USD)
     const currenciesByDecimals: Record<number, string[]> = {
         0: ['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'PYG'], // Zero decimals
@@ -109,7 +110,7 @@ export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500
 
     // Pick a random currency from that group
     const currencyList: string[] = currenciesByDecimals[selectedDecimals];
-    const currency: string = randomChoice<string>(currencyList);
+    const currency: CurrencyISOCode = randomChoice<CurrencyISOCode>(currencyList);
 
     // Generate amount with correct decimal precision
     const numericAmount = randomDecimal(min, max, selectedDecimals);

@@ -1,5 +1,6 @@
 import type { SimplifiedDebt } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Builder for creating SimplifiedDebt objects for testing
@@ -40,13 +41,13 @@ export class SimplifiedDebtBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: string): this {
+    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
         this.debt.currency = currency;
         this.debt.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 
-    withCurrency(currency: string): this {
+    withCurrency(currency: CurrencyISOCode): this {
         this.debt.currency = currency;
         return this;
     }

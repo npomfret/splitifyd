@@ -1,6 +1,7 @@
 import type { UpdateExpenseRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class ExpenseUpdateBuilder {
     private update: Partial<UpdateExpenseRequest>;
@@ -29,13 +30,13 @@ export class ExpenseUpdateBuilder {
         return new ExpenseUpdateBuilder(false);
     }
 
-    withAmount(amount: Amount | number, currency: string): this {
+    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
         this.update.currency = currency;
         this.update.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 
-    withCurrency(currency: string): this {
+    withCurrency(currency: CurrencyISOCode): this {
         this.update.currency = currency;
         return this;
     }

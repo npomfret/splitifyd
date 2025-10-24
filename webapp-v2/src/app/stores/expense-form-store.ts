@@ -19,13 +19,13 @@ import { ExpenseId, GroupId } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
-import type {UserId} from "@splitifyd/shared";
+import type {CurrencyISOCode, UserId} from "@splitifyd/shared";
 
 interface ExpenseFormStore {
     // Form fields
     description: string;
     amount: Amount;
-    currency: string;
+    currency: CurrencyISOCode;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
     paidBy: UserId;
@@ -83,7 +83,7 @@ interface ExpenseFormStore {
 interface ExpenseFormData {
     description: string;
     amount: Amount;
-    currency: string;
+    currency: CurrencyISOCode;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
     paidBy: UserId;

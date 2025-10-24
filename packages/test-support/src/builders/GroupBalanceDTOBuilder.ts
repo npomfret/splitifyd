@@ -3,6 +3,7 @@ import { Amount } from '@splitifyd/shared';
 import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Group balance DTO structure for testing
@@ -52,7 +53,7 @@ export class GroupBalanceDTOBuilder {
      * Add a user balance for a specific currency
      * Creates the currency structure if it doesn't exist
      */
-    withUserBalance(currency: string, userId: string, balance: Partial<UserBalance>): this {
+    withUserBalance(currency: CurrencyISOCode, userId: string, balance: Partial<UserBalance>): this {
         if (!this.balance.balancesByCurrency[currency]) {
             this.balance.balancesByCurrency[currency] = {};
         }
@@ -71,7 +72,7 @@ export class GroupBalanceDTOBuilder {
      * Set complete currency balances structure
      * Useful for complex multi-user scenarios
      */
-    withCurrencyBalances(currency: string, balances: Record<string, UserBalance>): this {
+    withCurrencyBalances(currency: CurrencyISOCode, balances: Record<string, UserBalance>): this {
         this.balance.balancesByCurrency[currency] = { ...balances };
         return this;
     }
@@ -130,7 +131,7 @@ export class GroupBalanceDTOBuilder {
      * Initialize empty balances for a currency with specified users
      * Useful for setting up clean initial state
      */
-    withEmptyCurrencyBalances(currency: string, userIds: string[]): this {
+    withEmptyCurrencyBalances(currency: CurrencyISOCode, userIds: string[]): this {
         if (!this.balance.balancesByCurrency[currency]) {
             this.balance.balancesByCurrency[currency] = {};
         }

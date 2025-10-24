@@ -1,5 +1,6 @@
 import { addAmounts, Amount, ExpenseDTO, normalizeAmount, subtractAmounts, sumAmounts, UserBalance, zeroAmount } from '@splitifyd/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class ExpenseProcessor {
     processExpenses(expenses: ExpenseDTO[], memberIds: string[]): CurrencyBalances {
@@ -74,13 +75,13 @@ export class ExpenseProcessor {
         }
     }
 
-    private updateUserBalance(userBalance: UserBalance, otherUserId: string, amount: Amount, type: 'owes' | 'owedBy', currency: string): void {
+    private updateUserBalance(userBalance: UserBalance, otherUserId: string, amount: Amount, type: 'owes' | 'owedBy', currency: CurrencyISOCode): void {
         const balanceMap = userBalance[type];
         const existing = balanceMap[otherUserId] ?? zeroAmount(currency);
         balanceMap[otherUserId] = addAmounts(existing, amount, currency);
     }
 
-    private recalculateNetBalance(userBalance: UserBalance, currency: string): void {
+    private recalculateNetBalance(userBalance: UserBalance, currency: CurrencyISOCode): void {
         const totalOwed = sumAmounts(Object.values(userBalance.owedBy), currency);
         const totalOwing = sumAmounts(Object.values(userBalance.owes), currency);
         userBalance.netBalance = subtractAmounts(totalOwed, totalOwing, currency);

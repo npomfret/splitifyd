@@ -3,6 +3,7 @@ import { Amount } from '@splitifyd/shared';
 import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import {DisplayName} from "@splitifyd/shared";
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Extended UserBalance with optional displayName and balances fields
@@ -101,7 +102,7 @@ export class GroupBalancesBuilder {
     /**
      * Add a simplified debt entry
      */
-    addSimplifiedDebt(from: { uid: string; displayName?: string; }, to: { uid: string; displayName?: string; }, amount: Amount, currency: string = 'USD'): this {
+    addSimplifiedDebt(from: { uid: string; displayName?: string; }, to: { uid: string; displayName?: string; }, amount: Amount, currency: CurrencyISOCode = 'USD'): this {
         this.balances.simplifiedDebts.push({
             from,
             to,
@@ -136,7 +137,7 @@ export class GroupBalancesBuilder {
      * Convenience method: Set up a simple two-person debt scenario
      * User 'from' owes user 'to' the specified amount
      */
-    withSimpleTwoPersonDebt(fromUid: string, fromName: string, toUid: string, toName: string, amount: Amount | number, currency: string = 'USD'): this {
+    withSimpleTwoPersonDebt(fromUid: string, fromName: string, toUid: string, toName: string, amount: Amount | number, currency: CurrencyISOCode = 'USD'): this {
         const amt: Amount = typeof amount === 'number' ? amount.toString() : amount;
 
         // Add user balances

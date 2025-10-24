@@ -2,6 +2,7 @@ import type { ExpenseDTO } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -75,7 +76,7 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: string): this {
+    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
         this.expense.currency = currency;
         const normalizedAmount = typeof amount === 'number' ? amount.toString() : amount;
         this.expense.amount = normalizedAmount;
@@ -91,7 +92,7 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withCurrency(currency: string): this {
+    withCurrency(currency: CurrencyISOCode): this {
         this.expense.currency = currency;
         return this;
     }

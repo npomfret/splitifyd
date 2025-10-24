@@ -3,23 +3,24 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlemen
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from './AppDriver';
 import type {UserId} from "@splitifyd/shared";
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
-const netBalanceForPayer = (splits: Array<{ uid: string; amount: string; }>, payerId: UserId, currency: string) => {
+const netBalanceForPayer = (splits: Array<{ uid: string; amount: string; }>, payerId: UserId, currency: CurrencyISOCode) => {
     const totalUnits = splits
         .filter((split) => split.uid !== payerId)
         .reduce((sum, split) => sum + amountToSmallestUnit(split.amount, currency), 0);
     return smallestUnitToAmountString(totalUnits, currency);
 };
 
-const sumBalances = (balances: Record<string, UserBalance>, currency: string): number => {
+const sumBalances = (balances: Record<string, UserBalance>, currency: CurrencyISOCode): number => {
     return Object.values(balances).reduce((sum, balance) => {
         return sum + amountToSmallestUnit(balance.netBalance, currency);
     }, 0);
 };
 
-const verifyBalanceConsistency = (balances: Record<string, UserBalance>, currency: string, testDescription: string) => {
+const verifyBalanceConsistency = (balances: Record<string, UserBalance>, currency: CurrencyISOCode, testDescription: string) => {
     const totalBalance = sumBalances(balances, currency);
     expect(totalBalance, `Total balance should be zero for ${testDescription} (found ${totalBalance} smallest units)`).toBe(0);
 };

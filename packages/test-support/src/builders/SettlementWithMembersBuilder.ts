@@ -3,6 +3,7 @@ import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Builder for creating SettlementWithMembers objects for tests
@@ -78,13 +79,13 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: string): this {
+    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
         this.settlement.currency = currency;
         this.settlement.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 
-    withCurrency(currency: string): this {
+    withCurrency(currency: CurrencyISOCode): this {
         this.settlement.currency = currency;
         return this;
     }

@@ -2,6 +2,7 @@ import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, 
 import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;
@@ -47,7 +48,7 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: string): this {
+    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
         this.expense.currency = currency;
         this.expense.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
@@ -84,7 +85,7 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withCurrency(currency: string): this {
+    withCurrency(currency: CurrencyISOCode): this {
         this.expense.currency = currency;
         return this;
     }

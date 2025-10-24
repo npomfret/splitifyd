@@ -1,5 +1,6 @@
 import type { SettlementFormData } from '@splitifyd/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Builder for creating SettlementFormData objects for UI tests
@@ -30,13 +31,13 @@ export class SettlementFormDataBuilder {
         return this;
     }
 
-    withAmount(amount: string | number, currency: string): this {
+    withAmount(amount: string | number, currency: CurrencyISOCode): this {
         this.settlement.currency = currency;
         this.settlement.amount = amount.toString();
         return this;
     }
 
-    withCurrency(currency: string): this {
+    withCurrency(currency: CurrencyISOCode): this {
         this.settlement.currency = currency;
         return this;
     }

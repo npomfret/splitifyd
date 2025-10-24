@@ -1,4 +1,5 @@
 import { Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString } from '@splitifyd/shared';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 /**
  * Internal interface for expense splits - used only by ExpenseSplitBuilder
@@ -34,7 +35,7 @@ export class ExpenseSplitBuilder {
     static percentageSplit(
         totalAmount: Amount | number,
         userPercentages: Array<{ uid: string; percentage: number; }>,
-        currency: string = 'USD',
+        currency: CurrencyISOCode,
     ): ExpenseSplitBuilder {
         const builder = new ExpenseSplitBuilder();
         const normalizedTotal = roundToCurrencyPrecision(totalAmount, currency);

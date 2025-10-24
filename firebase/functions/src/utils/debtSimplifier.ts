@@ -1,5 +1,6 @@
 import { addAmounts, compareAmounts, isZeroAmount, minAmount, negateAmount, SimplifiedDebt, subtractAmounts, UserBalance, zeroAmount } from '@splitifyd/shared';
 import type { Amount } from '@splitifyd/shared';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 interface NetBalance {
     uid: string;
@@ -12,12 +13,12 @@ interface NetBalance {
  * Example: If A owes B $10, B owes C $15, and A owes C $5
  * Instead of 3 transactions, returns: A pays C $15 (settles both A→B→C and A→C directly)
  */
-export function simplifyDebts(balances: Record<string, UserBalance>, currency: string): SimplifiedDebt[] {
+export function simplifyDebts(balances: Record<string, UserBalance>, currency: CurrencyISOCode): SimplifiedDebt[] {
     const netBalances = calculateNetBalances(balances, currency);
     return createOptimalTransactions(netBalances, currency);
 }
 
-function calculateNetBalances(balances: Record<string, UserBalance>, currency: string): Record<string, NetBalance> {
+function calculateNetBalances(balances: Record<string, UserBalance>, currency: CurrencyISOCode): Record<string, NetBalance> {
     const netBalances: Record<string, NetBalance> = {};
     const zero = zeroAmount(currency);
 
@@ -43,7 +44,7 @@ function calculateNetBalances(balances: Record<string, UserBalance>, currency: s
     return netBalances;
 }
 
-function createOptimalTransactions(netBalances: Record<string, NetBalance>, currency: string): SimplifiedDebt[] {
+function createOptimalTransactions(netBalances: Record<string, NetBalance>, currency: CurrencyISOCode): SimplifiedDebt[] {
     const transactions: SimplifiedDebt[] = [];
     const creditors: NetBalance[] = [];
     const debtors: NetBalance[] = [];

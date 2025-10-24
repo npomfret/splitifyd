@@ -1,6 +1,7 @@
 import { isZeroAmount, SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 import { simplifyDebts } from '../../utils/debtSimplifier';
+import type {CurrencyISOCode} from "@splitifyd/shared";
 
 export class DebtSimplificationService {
     simplifyDebtsForAllCurrencies(balancesByCurrency: CurrencyBalances): SimplifiedDebt[] {
@@ -19,7 +20,7 @@ export class DebtSimplificationService {
         return allSimplifiedDebts;
     }
 
-    private hasNonZeroBalances(userBalances: Record<string, UserBalance>, currency: string): boolean {
+    private hasNonZeroBalances(userBalances: Record<string, UserBalance>, currency: CurrencyISOCode): boolean {
         return Object.values(userBalances).some((balance) => !isZeroAmount(balance.netBalance, currency));
     }
 }
