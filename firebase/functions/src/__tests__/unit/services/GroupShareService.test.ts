@@ -548,6 +548,7 @@ describe('GroupShareService', () => {
                 isActive: true,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
             };
             db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
 
