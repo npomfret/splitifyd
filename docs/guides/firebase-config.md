@@ -1,4 +1,4 @@
-# Firebase Config Deep Dive
+# Firebase Config
 
 This note captures the current Firebase configuration workflow, the moving pieces that feed it, and the problems spotted while digging through the codebase. Use it as a starting point for any cleanup or refactors.
 

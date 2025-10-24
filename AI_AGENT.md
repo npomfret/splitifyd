@@ -5,7 +5,7 @@ Read these first!
 @docs/guides/code.md
 @docs/guides/end-to-end_testing.md
 @docs/guides/firebase.md
-@docs/guides/firebase-config-deep-dive.md
+@docs/guides/firebase-config.md
 @docs/guides/general.md
 @docs/guides/testing.md
 @docs/guides/types.md
