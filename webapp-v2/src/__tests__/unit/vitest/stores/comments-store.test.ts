@@ -15,13 +15,6 @@ vi.mock('@/utils/browser-logger', () => ({
     logError: vi.fn(),
 }));
 
-vi.mock('@/utils/user-notification-detector', () => ({
-    userNotificationDetector: {
-        subscribe: vi.fn(),
-    },
-    UserNotificationDetector: class {},
-}));
-
 const matchMediaMock = vi.fn().mockImplementation(() => ({
     matches: false,
     addListener: vi.fn(),
@@ -42,7 +35,7 @@ if (typeof window !== 'undefined') {
 
 import { apiClient } from '@/app/apiClient';
 import { CommentsStoreImpl } from '@/stores/comments-store';
-import type { UserNotificationDetector } from '@/utils/user-notification-detector';
+import type { ActivityFeedStore } from '@/app/stores/activity-feed-store';
 import type { CommentDTO, ListCommentsResponse } from '@splitifyd/shared';
 
 const mockedApiClient = apiClient as unknown as {
@@ -71,19 +64,21 @@ function responseFor(comments: CommentDTO[]): ListCommentsResponse {
 }
 
 describe('CommentsStoreImpl', () => {
-    let unsubscribeMock: Mock;
-    let subscribeMock: Mock;
+    let registerListenerMock: Mock;
+    let deregisterListenerMock: Mock;
+    let activityFeedMock: ActivityFeedStore;
     let store: CommentsStoreImpl;
 
     beforeEach(() => {
-        unsubscribeMock = vi.fn();
-        subscribeMock = vi.fn().mockReturnValue(unsubscribeMock);
+        registerListenerMock = vi.fn().mockResolvedValue(undefined);
+        deregisterListenerMock = vi.fn();
 
-        const notificationDetector = {
-            subscribe: subscribeMock,
-        } as unknown as UserNotificationDetector;
+        activityFeedMock = {
+            registerListener: registerListenerMock,
+            deregisterListener: deregisterListenerMock,
+        } as unknown as ActivityFeedStore;
 
-        store = new CommentsStoreImpl(notificationDetector);
+        store = new CommentsStoreImpl(activityFeedMock);
         mockedApiClient.getGroupComments.mockReset();
         mockedApiClient.getExpenseComments.mockReset();
     });
@@ -112,8 +107,8 @@ describe('CommentsStoreImpl', () => {
 
         // Comments should be cleared immediately while new fetch is in-flight
         expect(store.comments).toEqual([]);
-        expect(unsubscribeMock).toHaveBeenCalledTimes(1);
-        expect(subscribeMock).toHaveBeenCalledTimes(2);
+        expect(registerListenerMock).toHaveBeenCalledTimes(1);
+        expect(deregisterListenerMock).not.toHaveBeenCalled();
 
         await mockedApiClient.getGroupComments.mock.results[1]!.value;
 
@@ -134,7 +129,7 @@ describe('CommentsStoreImpl', () => {
         store.registerComponent('group', 'group-1');
 
         expect(mockedApiClient.getGroupComments).toHaveBeenCalledTimes(1);
-        expect(subscribeMock).toHaveBeenCalledTimes(1);
+        expect(registerListenerMock).toHaveBeenCalledTimes(1);
         expect(store.comments).toEqual([first]);
     });
 });

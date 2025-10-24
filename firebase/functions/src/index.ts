@@ -38,7 +38,6 @@ import { APP_VERSION } from './utils/version';
 import { getAppBuilder } from './ApplicationBuilderSingleton';
 import { FirestoreCollections } from './constants';
 import { logMetrics } from './scheduled/metrics-logger';
-import { trackExpenseChanges, trackExpenseCommentChanges, trackGroupChanges, trackGroupCommentChanges, trackSettlementChanges } from './triggers/change-tracker';
 
 // Removed emulator connection test at module level to prevent connection creation
 // The emulator connection will be tested lazily when first needed
@@ -56,7 +55,7 @@ function getApp(): express.Application {
         disableETags(app);
 
         // Strip /api prefix for hosting rewrites
-        app.use((req, res, next) => {
+    app.use((req, res, next) => {
             if (req.url.startsWith('/api/')) {
                 req.url = req.url.substring(4);
             }
@@ -479,7 +478,6 @@ export const api = onRequest(
 );
 
 // Export Firestore triggers for realtime change tracking
-export { trackExpenseChanges, trackExpenseCommentChanges, trackGroupChanges, trackGroupCommentChanges, trackSettlementChanges };
 
 // Note: User notification lifecycle is now handled directly in UserService business logic
 // - Notification document creation: UserService.createUserDirect()

@@ -14,7 +14,7 @@
  */
 
 import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus } from '@splitifyd/shared';
-import type { IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
+import type { IDocumentReference, IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
 /**
@@ -243,7 +243,6 @@ export interface IFirestoreReader {
      * @param userId - The user ID
      * @returns True if notification document exists, false otherwise
      */
-    getUserNotificationExists(userId: string): Promise<boolean>;
 
     /**
      * Find a share link by its token across all groups
@@ -251,6 +250,15 @@ export interface IFirestoreReader {
      * @returns Object with groupId and share link, or null if not found
      */
     findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLink: ParsedShareLink; } | null>;
+
+    /**
+     * Get expired share link document references within a transaction
+     * @param transaction - The transaction to use for reading
+     * @param groupId - The group ID
+     * @param cutoffIso - ISO string timestamp for expiration cutoff
+     * @returns Array of document references to expired share links
+     */
+    getExpiredShareLinkRefsInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: string): Promise<IDocumentReference[]>;
 
     // ========================================================================
     // Comment Operations

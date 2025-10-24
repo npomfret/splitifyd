@@ -37,8 +37,6 @@ import {
     UserDocumentSchema,
     validateUpdate,
 } from '../../schemas';
-import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
-import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
 import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
 
 /**
@@ -389,7 +387,6 @@ export class FirestoreWriter implements IFirestoreWriter {
             [FirestoreCollections.POLICIES]: PolicyDocumentSchema,
             [FirestoreCollections.COMMENTS]: CommentDataSchema,
             [FirestoreCollections.GROUP_MEMBERSHIPS]: TopLevelGroupMemberSchema,
-            [FirestoreCollections.USER_NOTIFICATIONS]: UserNotificationDocumentSchema,
             [FirestoreCollections.ACTIVITY_FEED]: ActivityFeedDocumentSchema,
         };
 
@@ -973,156 +970,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         return this.db.collection(collection).doc().id;
     }
 
-    // ========================================================================
-    // User Notification Operations
-    // ========================================================================
-
-    async createUserNotification(userId: string, notificationData: CreateUserNotificationDocument): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.createUserNotification', async () => {
-            try {
-                // Validate data before writing
-                const validatedData = UserNotificationDocumentSchema.parse({
-                    changeVersion: 0,
-                    lastModified: FieldValue.serverTimestamp(),
-                    ...notificationData,
-                });
-
-                // Remove server timestamp for the data to write (it will be added by Firestore)
-                const { lastModified, ...dataToWrite } = validatedData;
-
-                const finalData = {
-                    ...dataToWrite,
-                    lastModified: FieldValue.serverTimestamp(),
-                };
-
-                await this.db.doc(`user-notifications/${userId}`).set(finalData);
-
-                logger.info('User notification document created', { userId });
-
-                return {
-                    id: userId,
-                    success: true,
-                    timestamp: new Date(),
-                };
-            } catch (error) {
-                logger.error('Failed to create user notification document', error, { userId });
-                return {
-                    id: userId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    async removeUserNotificationGroup(userId: string, groupId: GroupId): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.removeUserNotificationGroup', async () => {
-            try {
-                const updates = {
-                    [`groups.${groupId}`]: FieldValue.delete(),
-                    changeVersion: FieldValue.increment(1),
-                    lastModified: FieldValue.serverTimestamp(),
-                };
-
-                await this.db.doc(`user-notifications/${userId}`).update(updates);
-
-                logger.info('User notification group removed (FieldValue operations)', { userId, groupId });
-
-                return {
-                    id: userId,
-                    success: true,
-                    timestamp: new Date(),
-                };
-            } catch (error) {
-                // If the document doesn't exist, consider the removal successful (idempotent)
-                if (error instanceof Error && error.message.includes('NOT_FOUND')) {
-                    logger.info('User notification document not found - removal considered successful', { userId, groupId });
-                    return {
-                        id: userId,
-                        success: true,
-                        timestamp: new Date(),
-                    };
-                }
-
-                logger.error('Failed to remove user notification group', error, { userId, groupId });
-                return {
-                    id: userId,
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    async batchSetUserNotifications(updates: Array<{ userId: string; data: any; merge?: boolean; }>): Promise<BatchWriteResult> {
-        return measureDb('FirestoreWriter.batchSetUserNotifications', async () => {
-            const allResults: WriteResult[] = [];
-            let totalSuccess = 0;
-            let totalFailure = 0;
-
-            const BATCH_SIZE = FIRESTORE.TRANSACTION_MAX_WRITES;
-            const chunks: (typeof updates)[] = [];
-            for (let i = 0; i < updates.length; i += BATCH_SIZE) {
-                chunks.push(updates.slice(i, i + BATCH_SIZE));
-            }
-
-            for (const chunk of chunks) {
-                try {
-                    const batch = this.db.batch();
-
-                    for (const update of chunk) {
-                        const finalData = {
-                            ...update.data,
-                            lastModified: FieldValue.serverTimestamp(),
-                        };
-
-                        const userNotificationRef = this.db.doc(`user-notifications/${update.userId}`);
-                        batch.set(userNotificationRef, finalData, { merge: update.merge || false });
-                    }
-
-                    await batch.commit();
-
-                    for (const update of chunk) {
-                        allResults.push({ id: update.userId, success: true });
-                        totalSuccess++;
-                    }
-
-                    logger.info('Batch set user notifications succeeded', {
-                        chunkSize: chunk.length,
-                        totalProcessed: totalSuccess + totalFailure,
-                        totalUpdates: updates.length,
-                    });
-                } catch (error) {
-                    logger.error('Batch set user notifications failed for chunk', error, {
-                        chunkSize: chunk.length,
-                        errorMessage: error instanceof Error ? error.message : 'Unknown error',
-                    });
-
-                    for (const update of chunk) {
-                        allResults.push({
-                            id: update.userId,
-                            success: false,
-                            error: error instanceof Error ? error.message : 'Unknown error',
-                        });
-                        totalFailure++;
-                    }
-                }
-            }
-
-            logger.info('Batch set user notifications completed', {
-                totalUpdates: updates.length,
-                successCount: totalSuccess,
-                failureCount: totalFailure,
-                chunksProcessed: chunks.length,
-            });
-
-            return {
-                successCount: totalSuccess,
-                failureCount: totalFailure,
-                results: allResults,
-            };
-        });
-    }
 
     // ========================================================================
     // Share Link Operations
@@ -1460,91 +1307,55 @@ export class FirestoreWriter implements IFirestoreWriter {
     async leaveGroupAtomic(groupId: GroupId, userId: string): Promise<BatchWriteResult> {
         return measureDb('FirestoreWriter.leaveGroupAtomic', async () => {
             try {
-                // Use a transaction for transactional correctness
-                // This ensures the membership list we read is consistent with the updates we perform
-                const result = await this.db.runTransaction(async (transaction) => {
-                    // 1. Query all current group members INSIDE the transaction
+                const membershipDocId = await this.db.runTransaction(async (transaction) => {
                     const membershipQuery = this
                         .db
                         .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
                         .where('groupId', '==', groupId);
                     const membershipsSnapshot = await transaction.get(membershipQuery);
-                    const allMemberIds = membershipsSnapshot.docs.map(doc => doc.data().userId);
 
-                    // Filter out the leaving member to get remaining members
-                    const remainingMemberIds = allMemberIds.filter(id => id !== userId);
+                    if (membershipsSnapshot.empty) {
+                        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'NO_MEMBERS_FOUND', 'No members found in group');
+                    }
 
-                    // Generate membership document ID using helper function
+                    const memberDoc = membershipsSnapshot.docs.find((doc) => doc.data().userId === userId);
+
+                    if (!memberDoc) {
+                        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_A_MEMBER', 'User is not a member of this group');
+                    }
+
                     const membershipDocId = getTopLevelMembershipDocId(userId, groupId);
 
-                    // 2. Update group timestamp
                     const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
                     transaction.update(groupRef, {
                         updatedAt: FieldValue.serverTimestamp(),
                     });
 
-                    // 3. Delete membership document
                     const membershipRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${membershipDocId}`);
                     transaction.delete(membershipRef);
 
-                    // 4. Clean up leaving user's notification document
-                    const userNotificationRef = this.db.doc(`user-notifications/${userId}`);
-                    transaction.update(userNotificationRef, {
-                        [`groups.${groupId}`]: FieldValue.delete(),
-                        changeVersion: FieldValue.increment(1),
-                        lastModified: FieldValue.serverTimestamp(),
-                    });
-
-                    // 5. Notify remaining members about group change (member left)
-                    // This ensures remaining members see the updated member list without navigation
-                    const now = new Date().toISOString();
-                    for (const remainingMemberId of remainingMemberIds) {
-                        const remainingMemberNotificationRef = this.db.doc(`user-notifications/${remainingMemberId}`);
-                        transaction.set(remainingMemberNotificationRef, {
-                            changeVersion: FieldValue.increment(1),
-                            lastModified: FieldValue.serverTimestamp(),
-                            groups: {
-                                [groupId]: {
-                                    lastGroupDetailsChange: now,
-                                    groupDetailsChangeCount: FieldValue.increment(1),
-                                },
-                            },
-                        }, { merge: true });
-                    }
-
-                    return {
-                        membershipDocId,
-                        remainingMemberCount: remainingMemberIds.length,
-                        remainingMemberIds,
-                    };
+                    return membershipDocId;
                 });
 
-                logger.info('User left group atomically - group updated, membership deleted, notifications updated', {
+                logger.info('User left group atomically - group updated, membership deleted', {
                     userId,
                     groupId,
-                    membershipDocId: result.membershipDocId,
-                    remainingMembers: result.remainingMemberCount,
+                    membershipDocId,
                 });
 
                 return {
-                    successCount: 3 + result.remainingMemberCount,
+                    successCount: 2,
                     failureCount: 0,
                     results: [
                         { id: groupId, success: true, timestamp: new Date() },
-                        { id: result.membershipDocId, success: true, timestamp: new Date() },
-                        { id: `user-notification-${userId}-${groupId}`, success: true, timestamp: new Date() },
-                        ...result.remainingMemberIds.map(id => ({
-                            id: `user-notification-${id}-${groupId}`,
-                            success: true,
-                            timestamp: new Date(),
-                        })),
+                        { id: membershipDocId, success: true, timestamp: new Date() },
                     ],
                 };
             } catch (error) {
                 logger.error('Atomic leave group operation failed', error);
                 return {
                     successCount: 0,
-                    failureCount: 3,
+                    failureCount: 2,
                     results: [
                         {
                             id: groupId,
@@ -1553,11 +1364,6 @@ export class FirestoreWriter implements IFirestoreWriter {
                         },
                         {
                             id: `${userId}_${groupId}`,
-                            success: false,
-                            error: error instanceof Error ? error.message : 'Unknown error',
-                        },
-                        {
-                            id: `user-notification-${userId}-${groupId}`,
                             success: false,
                             error: error instanceof Error ? error.message : 'Unknown error',
                         },

@@ -155,12 +155,21 @@ export class GroupShareService {
 
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
+            // CRITICAL: All reads must happen before all writes in Firestore transactions
+
+            // Read 1: Check group exists
             const freshGroupDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
             if (!freshGroupDoc) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
             const now = new Date().toISOString();
+
+            // Read 2: Find expired link document references (must happen before any writes)
+            const expiredLinkRefs = await this.firestoreReader.getExpiredShareLinkRefsInTransaction(transaction, groupId, now);
+
+            // All reads complete - now perform writes
+
             const shareLinkData: Omit<ShareLinkDTO, 'id'> = {
                 token: shareToken,
                 createdBy: userId,
@@ -170,7 +179,7 @@ export class GroupShareService {
                 isActive: true,
             };
 
-            // Validate share link data before writing to Firestore
+            // Write 1: Create new share link
             try {
                 const validatedShareLinkData = ShareLinkDataSchema.parse(shareLinkData);
                 this.firestoreWriter.createShareLinkInTransaction(transaction, groupId, validatedShareLinkData);
@@ -183,8 +192,12 @@ export class GroupShareService {
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SHARELINK_DATA', 'Failed to create share link due to invalid data structure');
             }
 
+            // Write 2: Delete expired links
             try {
-                expiredLinksRemoved = await this.firestoreWriter.deleteExpiredShareLinksInTransaction(transaction, groupId, now);
+                for (const ref of expiredLinkRefs) {
+                    transaction.delete(ref);
+                    expiredLinksRemoved += 1;
+                }
             } catch (cleanupError) {
                 logger.error('Failed to delete expired share links during creation', cleanupError as Error, {
                     groupId,

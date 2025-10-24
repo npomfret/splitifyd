@@ -104,6 +104,7 @@ export const ActivityFeedEventTypes = {
     COMMENT_ADDED: 'comment-added',
     SETTLEMENT_CREATED: 'settlement-created',
     SETTLEMENT_UPDATED: 'settlement-updated',
+    GROUP_UPDATED: 'group-updated',
 } as const;
 
 export type ActivityFeedEventType = (typeof ActivityFeedEventTypes)[keyof typeof ActivityFeedEventTypes];
@@ -117,6 +118,7 @@ export interface ActivityFeedItemDetails {
     settlementDescription?: string;
     targetUserId?: UserId;
     targetUserName?: string;
+    previousGroupName?: string;
 }
 
 export interface ActivityFeedItem {
@@ -130,6 +132,12 @@ export interface ActivityFeedItem {
     timestamp: ISOString;
     details: ActivityFeedItemDetails;
     createdAt?: ISOString;
+}
+
+export interface ActivityFeedResponse {
+    items: ActivityFeedItem[];
+    hasMore: boolean;
+    nextCursor?: string;
 }
 
 export const DELETED_AT_FIELD = 'deletedAt';

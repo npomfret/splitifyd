@@ -1,9 +1,10 @@
 import { permissionsStore } from '@/stores/permissions-store.ts';
 import { logError, logInfo } from '@/utils/browser-logger';
-import { UserNotificationDetector, userNotificationDetector } from '@/utils/user-notification-detector';
 import { batch, signal } from '@preact/signals';
-import { ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
+import { ActivityFeedItem, ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
+import type { ActivityFeedStore } from './activity-feed-store';
+import { activityFeedStore } from './activity-feed-store';
 
 const GROUP_EXPENSE_PAGE_SIZE = 8;
 const GROUP_SETTLEMENT_PAGE_SIZE = 8;
@@ -78,15 +79,19 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     // Reference counting infrastructure for multi-group support
     readonly #subscriberCounts = new Map<string, number>();
 
-    // Single detector per user, not per group
-    private notificationUnsubscribe: (() => void) | null = null;
+    private readonly activityFeed: ActivityFeedStore;
+    private readonly activityListenerId = 'group-detail-store';
+    private activityListenerRegistered = false;
+    private currentUserId: string | null = null;
 
     // Current group tracking for core functionality
     private currentGroupId: string | null = null;
     private expenseCursor: string | null = null;
     private settlementCursor: string | null = null;
 
-    constructor(private notificationDetector: UserNotificationDetector) {}
+    constructor(activityFeed: ActivityFeedStore = activityFeedStore) {
+        this.activityFeed = activityFeed;
+    }
 
     // State getters
     get group() {
@@ -278,12 +283,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     dispose(): void {
-        // Clean up notification detector
-        if (this.notificationUnsubscribe) {
-            this.notificationUnsubscribe();
-            this.notificationUnsubscribe = null;
-        }
-
+        this.disposeSubscription();
         // Note: We do NOT clear #subscriberCounts or call permissionsStore.dispose()
         // to avoid breaking other components that might be using the reference-counted API
     }
@@ -307,78 +307,106 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     // Reference-counted registration - single detector approach
     async registerComponent(groupId: GroupId, userId: string): Promise<void> {
-        // Registering component for group (routine)
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
         this.#subscriberCounts.set(groupId, currentCount + 1);
 
-        // Load the group data
         await this.loadGroup(groupId);
 
-        // Set up notification detector if not already running (prevent duplicate subscriptions!)
-        if (!this.notificationUnsubscribe) {
-            this.notificationUnsubscribe = this.notificationDetector.subscribe({
-                onTransactionChange: (changeGroupId) => {
-                    if (changeGroupId === this.currentGroupId) {
-                        logInfo('Transaction change detected', { groupId: changeGroupId });
-                        this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
-                    }
-                },
-                onGroupChange: (changeGroupId) => {
-                    if (changeGroupId === this.currentGroupId) {
-                        logInfo('GroupDTO change detected', { groupId: changeGroupId });
-                        // Refresh all data to pick up changes like settlement lock status after member departure
-                        this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
-                    }
-                },
-                onBalanceChange: (changeGroupId) => {
-                    if (changeGroupId === this.currentGroupId) {
-                        logInfo('Balance change detected', { groupId: changeGroupId });
-                        this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
-                    }
-                },
-                onGroupRemoved: (changeGroupId) => {
-                    if (changeGroupId === this.currentGroupId) {
-                        logInfo('GroupDTO removed - clearing state and setting removal flag', { groupId: changeGroupId });
-                        this.#clearGroupData();
-                        // Set specific error after clearing data to trigger better UX
-                        this.#errorSignal.value = 'USER_REMOVED_FROM_GROUP';
-                    }
-                },
-            });
+        const shouldRegisterListener = !this.activityListenerRegistered || this.currentUserId !== userId;
+        if (shouldRegisterListener) {
+            this.currentUserId = userId;
+            try {
+                await this.activityFeed.registerListener(this.activityListenerId, userId, this.handleActivityEvent);
+                this.activityListenerRegistered = true;
+            } catch (error) {
+                logError('Failed to register activity feed listener for group detail store', {
+                    error: error instanceof Error ? error.message : String(error),
+                    groupId,
+                    userId,
+                });
+            }
         }
 
-        // Update permissions store
         permissionsStore.registerComponent(groupId, userId);
     }
 
     deregisterComponent(groupId: GroupId): void {
-        // Deregistering component for group (routine)
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
 
         if (currentCount <= 1) {
-            // Last component for group - cleanup required
             this.#subscriberCounts.delete(groupId);
 
-            // If this was the current group, clear the state
             if (this.currentGroupId === groupId) {
                 this.#clearGroupData();
                 this.currentGroupId = null;
             }
 
-            // If no more groups being tracked, dispose detector
             if (this.#subscriberCounts.size === 0) {
-                // No more groups being tracked, disposing detector
-                if (this.notificationUnsubscribe) {
-                    this.notificationUnsubscribe();
-                    this.notificationUnsubscribe = null;
-                }
+                this.disposeSubscription();
             }
         } else {
             this.#subscriberCounts.set(groupId, currentCount - 1);
         }
 
-        // Update permissions store
         permissionsStore.deregisterComponent(groupId);
+    }
+
+    private handleActivityEvent = (event: ActivityFeedItem): void => {
+        const { groupId, eventType, details } = event;
+
+        if (!groupId || !this.#subscriberCounts.has(groupId)) {
+            return;
+        }
+
+        if (this.currentGroupId !== groupId) {
+            return;
+        }
+
+        if (eventType === 'member-left' && details?.targetUserId && details.targetUserId === this.currentUserId) {
+            logInfo('Current user removed from group via activity feed', {
+                groupId,
+                eventId: event.id,
+            });
+            this.#clearGroupData();
+            this.#errorSignal.value = 'USER_REMOVED_FROM_GROUP';
+            this.currentGroupId = null;
+            return;
+        }
+
+        const shouldRefresh = (() => {
+            switch (eventType) {
+                case 'expense-created':
+                case 'expense-updated':
+                case 'expense-deleted':
+                case 'settlement-created':
+                case 'settlement-updated':
+                case 'member-joined':
+                case 'member-left':
+                case 'comment-added':
+                    return true;
+                default:
+                    return true;
+            }
+        })();
+
+        if (shouldRefresh) {
+            this.refreshAll().catch((error) =>
+                logError('Failed to refresh group detail after activity event', {
+                    error: error instanceof Error ? error.message : String(error),
+                    groupId,
+                    eventType,
+                    eventId: event.id,
+                })
+            );
+        }
+    };
+
+    private disposeSubscription(): void {
+        if (this.activityListenerRegistered) {
+            this.activityFeed.deregisterListener(this.activityListenerId);
+            this.activityListenerRegistered = false;
+            this.currentUserId = null;
+        }
     }
 
     async loadMoreExpenses(): Promise<void> {
@@ -509,4 +537,4 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 }
 
-export const enhancedGroupDetailStore = new EnhancedGroupDetailStoreImpl(userNotificationDetector);
+export const enhancedGroupDetailStore = new EnhancedGroupDetailStoreImpl(activityFeedStore);

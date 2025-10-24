@@ -1,6 +1,8 @@
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import {
     AcceptMultiplePoliciesResponse,
+    ActivityFeedEventType,
+    ActivityFeedEventTypes,
     CommentDTO,
     CreateExpenseRequest,
     CreatePolicyResponse,
@@ -45,9 +47,7 @@ import { UserHandlers as PolicyUserHandlers } from '../../policies/UserHandlers'
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
-import { ChangeTrackerHandlers } from '../../triggers/ChangeTrackerHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
-import { registerChangeTrackerTriggers } from './ChangeTrackerTestHarness';
 import { StubAuthService } from './mocks/StubAuthService';
 
 /**
@@ -75,22 +75,9 @@ export class AppDriver {
     private userHandlers = new UserHandlers(this.applicationBuilder.buildUserService());
     private policyHandlers = new PolicyHandlers(this.applicationBuilder.buildPolicyService());
     private policyUserHandlers = new PolicyUserHandlers(this.applicationBuilder.buildUserPolicyService());
-    private disposeTriggers?: () => void;
-
-    constructor() {
-        const handlers = ChangeTrackerHandlers.createChangeTrackerHandlers(this.applicationBuilder);
-        this.disposeTriggers = registerChangeTrackerTriggers(this.db, handlers);
-    }
 
     seedUser(userId: string, userData: Record<string, any> = {}) {
         const user = this.db.seedUser(userId, userData);
-
-        this.db.seed(`user-notifications/${userId}`, {
-            userId,
-            changeVersion: 0,
-            lastModified: new Date().toISOString(),
-            groups: {},
-        });
 
         this.authService.setUser(userId, {
             uid: userId,
@@ -111,10 +98,7 @@ export class AppDriver {
         };
     }
 
-    dispose() {
-        this.disposeTriggers?.();
-        this.disposeTriggers = undefined;
-    }
+    dispose() {}
 
     async listGroups(
         userId1: string,
@@ -592,9 +576,9 @@ export class AppDriver {
         return (res as any).getJson() as CurrentPolicyResponse;
     }
 
-    async getUserNotifications(userId: string) {
-        const doc = await this.db.collection('user-notifications').doc(userId).get();
-        return doc.exists ? doc.data() : null;
+    async getActivityFeedItems(userId: string) {
+        const snapshot = await this.db.collection('activity-feed').doc(userId).collection('items').get();
+        return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     }
 
     async expectNotificationUpdate(
@@ -607,30 +591,46 @@ export class AppDriver {
             commentChangeCount?: number;
         },
     ) {
-        const notif = await this.getUserNotifications(userId);
-        expect(notif, `Expected notifications for user ${userId}`).toBeDefined();
-        expect(notif.groups[groupId], `Expected group ${groupId} in notifications`).toBeDefined();
+        const items = await this.getActivityFeedItems(userId);
 
-        const groupNotif = notif.groups[groupId];
+        const expectations: Array<[keyof typeof expectedChanges, ActivityFeedEventType[]]> = [
+            [
+                'transactionChangeCount',
+                [
+                    ActivityFeedEventTypes.EXPENSE_CREATED,
+                    ActivityFeedEventTypes.EXPENSE_UPDATED,
+                    ActivityFeedEventTypes.EXPENSE_DELETED,
+                ],
+            ],
+            [
+                'balanceChangeCount',
+                [
+                    ActivityFeedEventTypes.SETTLEMENT_CREATED,
+                    ActivityFeedEventTypes.SETTLEMENT_UPDATED,
+                ],
+            ],
+            [
+                'groupDetailsChangeCount',
+                [
+                    ActivityFeedEventTypes.GROUP_UPDATED,
+                    ActivityFeedEventTypes.MEMBER_JOINED,
+                    ActivityFeedEventTypes.MEMBER_LEFT,
+                ],
+            ],
+            ['commentChangeCount', [ActivityFeedEventTypes.COMMENT_ADDED]],
+        ];
 
-        if (expectedChanges.transactionChangeCount !== undefined) {
-            expect(groupNotif.transactionChangeCount).toBe(expectedChanges.transactionChangeCount);
-            expect(groupNotif.lastTransactionChange).toBeDefined();
-        }
+        for (const [field, eventTypes] of expectations) {
+            const expected = expectedChanges[field];
+            if (expected === undefined || expected <= 0) {
+                continue;
+            }
 
-        if (expectedChanges.balanceChangeCount !== undefined) {
-            expect(groupNotif.balanceChangeCount).toBe(expectedChanges.balanceChangeCount);
-            expect(groupNotif.lastBalanceChange).toBeDefined();
-        }
-
-        if (expectedChanges.groupDetailsChangeCount !== undefined) {
-            expect(groupNotif.groupDetailsChangeCount).toBe(expectedChanges.groupDetailsChangeCount);
-            expect(groupNotif.lastGroupDetailsChange).toBeDefined();
-        }
-
-        if (expectedChanges.commentChangeCount !== undefined) {
-            expect(groupNotif.commentChangeCount).toBe(expectedChanges.commentChangeCount);
-            expect(groupNotif.lastCommentChange).toBeDefined();
+            const match = items.some((item) => item.groupId === groupId && eventTypes.includes(item.eventType));
+            if (!match) {
+                console.error('Activity feed items', items.map((item) => ({ eventType: item.eventType, groupId: item.groupId })));
+            }
+            expect(match, `Expected activity feed event ${eventTypes.join(', ')} for group ${groupId}`).toBe(true);
         }
     }
 

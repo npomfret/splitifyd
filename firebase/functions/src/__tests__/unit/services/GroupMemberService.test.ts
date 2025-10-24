@@ -16,14 +16,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
     const defaultTheme = new ThemeBuilder()
         .build();
 
-    const seedUserNotificationDoc = (userId: string) => {
-        db.seed(`user-notifications/${userId}`, {
-            changeVersion: 0,
-            lastModified: Timestamp.now(),
-            groups: {},
-        });
-    };
-
     beforeEach(async () => {
         // Create stub database
         db = new StubFirestoreDatabase();
@@ -379,8 +371,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             db.seedGroupMember('test-group-id', 'other-member-123', otherMemberDoc);
             db.seed(`groups/test-group-id/metadata/balance`, settledBalanceWithTimestamp);
 
-            seedUserNotificationDoc('member-user-123');
-            seedUserNotificationDoc('other-member-123');
 
             // Act
             const result = await groupMemberService.leaveGroup('member-user-123', 'test-group-id');
@@ -564,8 +554,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             db.seedGroupMember('test-group-id', 'creator-user-123', creatorMemberDoc);
             db.seed(`groups/test-group-id/metadata/balance`, settledBalanceWithTimestamp);
 
-            seedUserNotificationDoc('member-user-123');
-            seedUserNotificationDoc('creator-user-123');
 
             // Act
             const result = await groupMemberService.removeGroupMember('creator-user-123', 'test-group-id', 'member-user-123');

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
+import { ActivityFeedCard } from '../components/dashboard/ActivityFeedCard';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
@@ -95,6 +96,10 @@ export function DashboardPage() {
                                 <p class='text-gray-600'>{t('dashboard.welcomeDescription')}</p>
                             </div>
                         )}
+
+                        <div class='mb-6'>
+                            <ActivityFeedCard userId={user.uid} />
+                        </div>
 
                         {/* Groups Section */}
                         <div class='bg-white rounded-lg shadow-sm border border-gray-200 p-6' data-testid='groups-container'>

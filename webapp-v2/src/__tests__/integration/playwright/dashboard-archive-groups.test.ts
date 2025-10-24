@@ -2,7 +2,7 @@ import { expect } from '@playwright/test';
 import { MemberStatuses } from '@splitifyd/shared';
 import { DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
-import { mockArchiveGroupApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi, mockUnarchiveGroupApi } from '../../utils/mock-firebase-service';
+import { mockActivityFeedApi, mockArchiveGroupApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi, mockUnarchiveGroupApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard group archiving', () => {
     test('should archive and unarchive a group from group detail quick actions', async ({ authenticatedPage }) => {
@@ -46,10 +46,14 @@ test.describe('Dashboard group archiving', () => {
 
         const queueActive = async (response = activeResponse, options: { once?: boolean; } = { once: true }) => {
             await mockGroupsApi(page, response, { query: activeQueryParams, ...options });
+            await mockActivityFeedApi(page, []);
+            await mockActivityFeedApi(page, []);
         };
 
         const queueArchived = async (response = emptyResponse, options: { once?: boolean; } = { once: true }) => {
             await mockGroupsApi(page, response, { query: archivedQueryParams, ...options });
+            await mockActivityFeedApi(page, []);
+            await mockActivityFeedApi(page, []);
         };
 
         // Initial active dashboard load shows the group

@@ -248,6 +248,47 @@
     }
   },
 
+  "activityFeed": {
+    "title": "Recent Activity",
+    "loading": "Loading...",
+    "emptyState": {
+      "title": "No activity yet",
+      "description": "Activity from your groups will appear here as it happens."
+    },
+    "error": {
+      "loadFailed": "We could not load your recent activity right now. Please try again."
+    },
+    "actions": {
+      "retry": "Retry",
+      "loadMore": "Load more",
+      "loadingMore": "Loading..."
+    },
+    "labels": {
+      "actorYou": "You",
+      "unknownUser": "Someone",
+      "unknownGroup": "a group",
+      "unknownExpense": "an expense",
+      "unknownSettlement": "a settlement",
+      "commentOnGroup": "the group discussion",
+      "commentOnExpense": "the expense \"{{description}}\""
+    },
+    "events": {
+      "expense-created": "{{actor}} added {{expense}} in {{group}}",
+      "expense-updated": "{{actor}} updated {{expense}} in {{group}}",
+      "expense-deleted": "{{actor}} deleted {{expense}} from {{group}}",
+      "member-joined": "{{actor}} added {{target}} to {{group}}",
+      "member-joined-self": "{{actor}} joined {{group}}",
+      "member-left": "{{actor}} removed {{target}} from {{group}}",
+      "member-left-self": "{{actor}} left {{group}}",
+      "comment-added": "{{actor}} commented on {{target}} in {{group}}",
+      "settlement-created": "{{actor}} recorded {{settlement}} in {{group}}",
+      "settlement-updated": "{{actor}} updated {{settlement}} in {{group}}",
+      "group-updated": "{{actor}} updated the group {{group}}",
+      "group-updated-from": "{{actor}} renamed {{previous}} to {{group}}",
+      "generic": "{{actor}} made changes in {{group}}"
+    }
+  },
+
   "group": {
     "header": {
       "members": "{{count}} member",

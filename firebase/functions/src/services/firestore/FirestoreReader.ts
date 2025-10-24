@@ -28,7 +28,7 @@ import {
     type SettlementDTO,
 } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
-import { FieldPath, Filter, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp } from '../../firestore-wrapper';
+import { FieldPath, Filter, type IDocumentReference, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelpers';
@@ -888,16 +888,6 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getUserNotificationExists(userId: string): Promise<boolean> {
-        try {
-            const notificationDoc = await this.db.collection('user-notifications').doc(userId).get();
-            return notificationDoc.exists;
-        } catch (error) {
-            logger.error('Failed to check user notification existence', error);
-            throw error;
-        }
-    }
-
     // ========================================================================
     // Share Link Operations
     // ========================================================================
@@ -933,6 +923,13 @@ export class FirestoreReader implements IFirestoreReader {
             logger.error('Failed to find share link by token', error);
             throw error;
         }
+    }
+
+    async getExpiredShareLinkRefsInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: string): Promise<IDocumentReference[]> {
+        const shareLinksCollection = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
+        const expiredQuery = shareLinksCollection.where('expiresAt', '<=', cutoffIso);
+        const snapshot = await transaction.get(expiredQuery);
+        return snapshot.docs.map((doc) => doc.ref);
     }
 
     // ========================================================================

@@ -1,6 +1,6 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockApiFailure, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockActivityFeedApi, mockApiFailure, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 // Test for browser reuse - using fixture-based approach with proper infrastructure
 test.describe('Browser Reuse Test', () => {
@@ -18,6 +18,7 @@ test.describe('Browser Reuse Test', () => {
                 .responseWithMetadata([], 0)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await page.goto('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
         await expect(page).toHaveURL(/\/dashboard/);
     });
@@ -45,6 +46,7 @@ test.describe('Dashboard Authentication and Navigation', () => {
                 .responseWithMetadata([], 0)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Navigate to dashboard
         await page.goto('/dashboard');
@@ -65,6 +67,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
             .responseWithMetadata([], 0)
             .build();
         await mockGroupsApi(page, groupsResponse, { delayMs: 1000 });
+        await mockActivityFeedApi(page, []);
 
         // Navigate and verify loading state appears
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
@@ -106,6 +109,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
                 .responseWithMetadata(groups, groups.length)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
@@ -127,6 +131,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
                 .responseWithMetadata([], 0)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
 
@@ -151,6 +156,7 @@ test.describe('Dashboard Groups Display and Loading States', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await page.goto('/dashboard');
 
         // Wait for groups to load
@@ -172,6 +178,7 @@ test.describe('Dashboard Error Handling', () => {
 
         // Mock API failure - matches all groups API requests with includeMetadata=true
         await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Internal Server Error' });
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
@@ -185,6 +192,7 @@ test.describe('Dashboard Error Handling', () => {
 
         // Mock initial API failure - matches all groups API requests with includeMetadata=true
         await mockApiFailure(page, '/api/groups?includeMetadata=true', 500, { error: 'Server temporarily unavailable' });
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
@@ -198,6 +206,7 @@ test.describe('Dashboard Error Handling', () => {
                 .responseWithMetadata([], 0)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Click try again
         await dashboardPage.clickTryAgain();
@@ -213,6 +222,7 @@ test.describe('Dashboard Error Handling', () => {
 
         // Mock network timeout - matches all groups API requests with includeMetadata=true
         await mockApiFailure(page, '/api/groups?includeMetadata=true', 408, { error: 'Request timeout' });
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 

@@ -14,7 +14,6 @@ import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import type { IAuthService } from './auth';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-import { NotificationService } from './notification-service';
 
 /**
  * Result of a successful user registration
@@ -35,7 +34,6 @@ export class UserService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly notificationService: NotificationService,
         private readonly authService: IAuthService,
     ) {}
 
@@ -415,7 +413,6 @@ export class UserService {
             await this.firestoreWriter.createUser(userRecord.uid, userDoc);
 
             // Initialize notification document for new user
-            await this.notificationService.initializeUserNotifications(userRecord.uid);
 
             return {
                 uid: userRecord.uid,

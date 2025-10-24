@@ -3032,12 +3032,10 @@ describe('app tests', () => {
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
                 transactionChangeCount: 1,
-                balanceChangeCount: 1,
             });
 
             await appDriver.expectNotificationUpdate(user2, group.id, {
                 transactionChangeCount: 1,
-                balanceChangeCount: 1,
             });
         });
 
@@ -3057,12 +3055,10 @@ describe('app tests', () => {
             );
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                transactionChangeCount: 1,
                 balanceChangeCount: 1,
             });
 
             await appDriver.expectNotificationUpdate(user2, group.id, {
-                transactionChangeCount: 1,
                 balanceChangeCount: 1,
             });
         });
@@ -3128,13 +3124,13 @@ describe('app tests', () => {
                     .build(),
             );
 
-            let notif = await appDriver.getUserNotifications(user1);
-            expect(notif.changeVersion).toBe(5);
+            const feedAfterExpense = await appDriver.getActivityFeedItems(user1);
+            expect(feedAfterExpense.length).toBeGreaterThan(0);
 
             await appDriver.createGroupComment(user1, group.id, 'Comment');
 
-            notif = await appDriver.getUserNotifications(user1);
-            expect(notif.changeVersion).toBe(6);
+            const feedAfterComment = await appDriver.getActivityFeedItems(user1);
+            expect(feedAfterComment.length).toBeGreaterThan(feedAfterExpense.length);
         });
 
         it('should handle group updates', async () => {

@@ -1030,51 +1030,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
             expect(data?.lastModified).toBeInstanceOf(Timestamp);
         });
 
-        it('should handle complex NotificationService pattern with delete', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
-            const docRef = db.collection('user-notifications').doc('user-1');
-
-            // Initial state with 3 groups
-            await docRef.set({
-                changeVersion: 10,
-                groups: {
-                    'group-1': {
-                        lastTransactionChange: '2024-01-01T00:00:00.000Z',
-                        transactionChangeCount: 5,
-                    },
-                    'group-2': {
-                        lastBalanceChange: '2024-01-02T00:00:00.000Z',
-                        balanceChangeCount: 10,
-                    },
-                    'group-3': {
-                        lastCommentChange: '2024-01-03T00:00:00.000Z',
-                        commentChangeCount: 3,
-                    },
-                },
-                lastModified: Timestamp.now(),
-            });
-
-            // Remove group-2 (user leaves group)
-            await docRef.update({
-                'groups.group-2': FieldValue.delete(),
-                changeVersion: FieldValue.increment(1),
-                lastModified: FieldValue.serverTimestamp(),
-            });
-
-            const snapshot = await docRef.get();
-            const data = snapshot.data();
-
-            // Verify group-2 is gone
-            expect(data?.groups?.['group-2']).toBeUndefined();
-
-            // Verify group-1 and group-3 are intact
-            expect(data?.groups?.['group-1']?.transactionChangeCount).toBe(5);
-            expect(data?.groups?.['group-3']?.commentChangeCount).toBe(3);
-
-            // Verify metadata updated
-            expect(data?.changeVersion).toBe(11);
-            expect(data?.lastModified).toBeInstanceOf(Timestamp);
-        });
     });
 
     describe('Trigger simulation', () => {

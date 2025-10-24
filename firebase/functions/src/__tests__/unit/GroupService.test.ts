@@ -134,6 +134,17 @@ describe('GroupService - Unit Tests', () => {
             const userId = 'test-user-123';
             const groupId = 'test-group-456';
 
+            // Seed user in both Auth and Firestore (required for actor display name in activity feed)
+            stubAuth.setUser(userId, {
+                uid: userId,
+                email: 'test-user@example.com',
+                displayName: 'Test User',
+            });
+            db.seedUser(userId, {
+                email: 'test-user@example.com',
+                displayName: 'Test User',
+            });
+
             // Set up existing group (not marked for deletion yet)
             db.seedGroup(groupId, {
                 name: 'Test Group',

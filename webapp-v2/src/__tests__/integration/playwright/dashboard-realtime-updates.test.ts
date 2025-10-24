@@ -1,6 +1,6 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
-import { mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockActivityFeedApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 // ============================================================================
 // Dashboard Real-time Updates & Notifications (Consolidated)
@@ -29,6 +29,7 @@ test.describe('Dashboard Real-time Notifications', () => {
                 .responseWithMetadata([initialGroup], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
         await dashboardPage.verifyGroupDisplayed('Test Group');
@@ -54,6 +55,7 @@ test.describe('Dashboard Real-time Notifications', () => {
                 .responseWithMetadata([updatedGroup], 2)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Trigger change notification (could be balance, transaction, or group details - all trigger same refresh)
         await mockFirebase.triggerNotificationUpdate(
@@ -89,6 +91,7 @@ test.describe('Dashboard Real-time Notifications', () => {
                 .responseWithMetadata([group1, group2], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
 
@@ -115,6 +118,7 @@ test.describe('Dashboard Real-time Notifications', () => {
                     .responseWithMetadata([group1, group2], i)
                     .build(),
             );
+            await mockActivityFeedApi(page, []);
             await mockFirebase.triggerNotificationUpdate(
                 user.uid,
                 new UserNotificationDocumentBuilder()
@@ -145,6 +149,7 @@ test.describe('Dashboard Real-time Notifications', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
 

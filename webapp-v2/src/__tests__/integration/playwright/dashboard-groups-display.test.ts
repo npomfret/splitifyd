@@ -9,7 +9,7 @@ import {
     UserNotificationDocumentBuilder,
 } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
-import { mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockActivityFeedApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard User Interface and Responsiveness', () => {
     test('should display user menu and allow interaction', async ({ authenticatedPage }) => {
@@ -23,6 +23,7 @@ test.describe('Dashboard User Interface and Responsiveness', () => {
                 .responseWithMetadata([], 0)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
 
@@ -58,6 +59,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
                 .responseWithMetadata(groups, groups.length)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -87,6 +89,7 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Mock group detail API for when we navigate to the group page
         const members = [
@@ -143,6 +146,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .responseWithMetadata([group1, group2], 2)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -170,6 +174,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .responseWithMetadata([group2], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Simulate user being removed from group - group disappears from notification
         await mockFirebase.triggerNotificationUpdate(
@@ -209,6 +214,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .responseWithMetadata([group1, group2], 2)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -236,6 +242,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .responseWithMetadata([group2], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Simulate group deletion - group disappears from notification
         await mockFirebase.triggerNotificationUpdate(
@@ -269,6 +276,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -294,6 +302,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .responseWithMetadata([], 0)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Simulate removal from last group
         await mockFirebase.triggerNotificationUpdate(
@@ -338,6 +347,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .responseWithMetadata([group1, group2, group3], 3)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -364,6 +374,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                 .responseWithMetadata([group3], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Simulate two groups being removed simultaneously
         await mockFirebase.triggerNotificationUpdate(

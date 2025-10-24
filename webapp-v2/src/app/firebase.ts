@@ -3,7 +3,19 @@ import { ClientUser } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import { Auth, connectAuthEmulator, getAuth, onIdTokenChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
-import { connectFirestoreEmulator, doc, Firestore, getFirestore, onSnapshot } from 'firebase/firestore';
+import {
+    collection,
+    connectFirestoreEmulator,
+    doc,
+    FieldPath,
+    Firestore,
+    getFirestore,
+    limit as firestoreLimit,
+    onSnapshot,
+    orderBy as firestoreOrderBy,
+    query,
+    QueryConstraint,
+} from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
 
 declare global {
@@ -24,6 +36,15 @@ export interface FirebaseService {
     signOut(): Promise<void>;
     onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>): () => void;
     onDocumentSnapshot(collection: string, documentId: string, onData: (data: any) => void, onError: (error: Error) => void): () => void;
+    onCollectionSnapshot(
+        pathSegments: [string, ...string[]],
+        options: {
+            orderBy?: Array<{ field: string | FieldPath; direction?: 'asc' | 'desc'; }>;
+            limit?: number;
+        },
+        onData: (data: any) => void,
+        onError: (error: Error) => void,
+    ): () => void;
 }
 
 class FirebaseServiceImpl implements FirebaseService {
@@ -131,6 +152,36 @@ class FirebaseServiceImpl implements FirebaseService {
     onDocumentSnapshot(collection: string, documentId: string, onData: (data: any) => void, onError: (error: Error) => void): () => void {
         const docRef = doc(this.getFirestore(), collection, documentId);
         return onSnapshot(docRef, onData, onError);
+    }
+
+    onCollectionSnapshot(
+        pathSegments: [string, ...string[]],
+        options: {
+            orderBy?: Array<{ field: string | FieldPath; direction?: 'asc' | 'desc'; }>;
+            limit?: number;
+        },
+        onData: (data: any) => void,
+        onError: (error: Error) => void,
+    ): () => void {
+        if (!Array.isArray(pathSegments) || pathSegments.length === 0) {
+            throw new Error('Cannot setup collection listener: path segments are required');
+        }
+
+        const collectionRef = collection(this.getFirestore(), ...pathSegments);
+        const constraints: QueryConstraint[] = [];
+
+        if (options?.orderBy) {
+            for (const { field, direction } of options.orderBy) {
+                constraints.push(firestoreOrderBy(field, direction));
+            }
+        }
+
+        if (options?.limit && options.limit > 0) {
+            constraints.push(firestoreLimit(options.limit));
+        }
+
+        const queryRef = constraints.length > 0 ? query(collectionRef, ...constraints) : collectionRef;
+        return onSnapshot(queryRef, onData, onError);
     }
 }
 

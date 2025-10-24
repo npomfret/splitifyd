@@ -1,8 +1,9 @@
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { CommentDTO, CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
+import type { ActivityFeedItem, CommentDTO, CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
+import type { ActivityFeedStore } from '../app/stores/activity-feed-store';
+import { activityFeedStore } from '../app/stores/activity-feed-store';
 import { logError, logInfo } from '../utils/browser-logger';
-import { UserNotificationDetector, userNotificationDetector } from '../utils/user-notification-detector';
 
 interface CommentsStore {
     // State getters - readonly values for external consumers
@@ -46,10 +47,15 @@ export class CommentsStoreImpl implements CommentsStore {
     #apiCursor: string | null = null;
     #apiHasMore: boolean = false;
 
-    // Notification system dependencies
-    #notificationUnsubscribe: (() => void) | null = null;
+    // Activity feed dependencies
+    #activityFeed: ActivityFeedStore;
+    #listenerId = 'comments-store';
+    #listenerRegistered = false;
+    #listenerRegistrationPromise: Promise<void> | null = null;
 
-    constructor(private userNotificationDetector: UserNotificationDetector) {}
+    constructor(activityFeed: ActivityFeedStore = activityFeedStore) {
+        this.#activityFeed = activityFeed;
+    }
 
     // State getters - readonly values for external consumers
     get comments() {
@@ -98,7 +104,7 @@ export class CommentsStoreImpl implements CommentsStore {
         const targetChanged = this.#targetIdSignal.value !== targetId || this.#targetTypeSignal.value !== targetType;
         if (currentCount === 0 || targetChanged) {
             this.#activateTarget(targetType, targetId);
-            this.#setupNotificationListener(targetType, targetId);
+            this.#ensureActivityListener();
 
             // Fetch initial data via API
             if (initialData) {
@@ -144,39 +150,68 @@ export class CommentsStoreImpl implements CommentsStore {
         });
     }
 
-    /**
-     * Setup notification listener for comment changes
-     */
-    #setupNotificationListener(targetType: CommentTargetType, targetId: string) {
-        // Setup notification listener to detect comment changes
-        this.#notificationUnsubscribe = this.userNotificationDetector.subscribe({
-            onCommentChange: (notificationTargetType, notificationTargetId) => {
-                // Handle comment notifications based on our current target type
-                if (targetType === 'group' && notificationTargetType === 'group' && notificationTargetId === targetId) {
-                    // Direct match for group comments
-                    logInfo('Group comment change notification received, refreshing comments');
-                    this.#refreshComments();
-                } else if (targetType === 'expense' && notificationTargetType === 'expense') {
-                    // For expense comments, check if the notification is for the group containing our expense
-                    // The notificationTargetId is the groupId, so we need to check if this expense belongs to that group
-                    // We don't have direct access to the expense's groupId here, but we can refresh
-                    // and let the API call determine if there are new comments for this expense
-                    logInfo('Expense comment change notification received, refreshing comments');
-                    this.#refreshComments();
-                } else if (targetType === 'expense' && notificationTargetType === 'group') {
-                    // This might be a group-level comment, but we only care about expense comments when in expense mode
-                    // Skip group comment notifications when we're listening for expense comments
-                    return;
-                }
-            },
+    #ensureActivityListener() {
+        if (this.#listenerRegistered || this.#listenerRegistrationPromise) {
+            return;
+        }
+
+        this.#listenerRegistrationPromise = this.#activityFeed
+            .registerListener(this.#listenerId, null, this.#handleActivityEvent)
+            .then(() => {
+                this.#listenerRegistered = true;
+            })
+            .catch((error) => {
+                logError('Failed to register activity feed listener for comments store', error);
+            })
+            .finally(() => {
+                this.#listenerRegistrationPromise = null;
+            });
+    }
+
+    #handleActivityEvent = (event: ActivityFeedItem): void => {
+        if (event.eventType !== 'comment-added') {
+            return;
+        }
+
+        const currentTargetType = this.#targetTypeSignal.value;
+        const currentTargetId = this.#targetIdSignal.value;
+
+        if (!currentTargetType || !currentTargetId) {
+            return;
+        }
+
+        if (currentTargetType === 'group') {
+            if (event.groupId !== currentTargetId) {
+                return;
+            }
+        } else if (currentTargetType === 'expense') {
+            if (event.details?.expenseId !== currentTargetId) {
+                return;
+            }
+        }
+
+        logInfo('Activity feed comment event matched current target, refreshing comments', {
+            targetType: currentTargetType,
+            targetId: currentTargetId,
+            eventId: event.id,
         });
+
+        void this.#refreshComments();
+    };
+
+    #disposeActivityListener(): void {
+        if (this.#listenerRegistered) {
+            this.#activityFeed.deregisterListener(this.#listenerId);
+            this.#listenerRegistered = false;
+        }
+
+        this.#listenerRegistrationPromise = null;
     }
 
     #activateTarget(targetType: CommentTargetType, targetId: string) {
         const targetChanged = this.#targetTypeSignal.value !== targetType || this.#targetIdSignal.value !== targetId;
 
         if (targetChanged) {
-            this.#dispose();
             this.#commentsSignal.value = [];
             this.#hasMoreSignal.value = false;
             this.#apiCursor = null;
@@ -368,13 +403,9 @@ export class CommentsStoreImpl implements CommentsStore {
      * Clean up subscriptions
      */
     #dispose() {
-        // Clean up notification listener
-        if (this.#notificationUnsubscribe) {
-            this.#notificationUnsubscribe();
-            this.#notificationUnsubscribe = null;
-        }
+        this.#disposeActivityListener();
     }
 }
 
 // Export singleton instance
-export const commentsStore = new CommentsStoreImpl(userNotificationDetector);
+export const commentsStore = new CommentsStoreImpl(activityFeedStore);

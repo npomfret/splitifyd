@@ -1,5 +1,6 @@
 import {
     Amount,
+    ActivityFeedEventTypes,
     amountToSmallestUnit,
     CommentTargetTypes,
     CreateGroupRequest,
@@ -31,9 +32,9 @@ import { ExpenseService } from './ExpenseService';
 import type { GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
 import { GroupShareService } from './GroupShareService';
-import { NotificationService } from './notification-service';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
+import { ActivityFeedService } from './ActivityFeedService';
 
 /**
  * Service for managing group operations
@@ -46,9 +47,9 @@ export class GroupService {
         private readonly expenseService: ExpenseService,
         private readonly settlementService: SettlementService,
         private readonly groupMemberService: GroupMemberService,
-        private readonly notificationService: NotificationService,
         private readonly groupShareService: GroupShareService,
         private readonly commentService: CommentService,
+        private readonly activityFeedService: ActivityFeedService,
     ) {}
 
     /**
@@ -419,6 +420,13 @@ export class GroupService {
 
             // Read membership documents that need updating
             const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
+            const memberIds = membershipSnapshot.docs
+                .map((doc) => (doc.data().uid as string | null | undefined) ?? null)
+                .filter((id): id is string => Boolean(id));
+            const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);
+            const actorDisplayName = actorMembershipDoc?.data().groupDisplayName ?? 'Unknown member';
+
+            const existingActivityItems = new Map<string, Array<{ id: string }>>();
 
             // Optimistic locking: Check if group was updated since we fetched it (compare ISO strings)
             if (group.updatedAt !== currentGroup.updatedAt) {
@@ -450,6 +458,25 @@ export class GroupService {
                     updatedAt: now,
                 });
             });
+
+            if (memberIds.length > 0) {
+                const details = updatedData.name !== group.name ? { previousGroupName: group.name } : {};
+
+                this.activityFeedService.recordActivityForUsersWithExistingItems(
+                    transaction,
+                    memberIds,
+                    {
+                        groupId,
+                        groupName: updatedData.name,
+                        eventType: ActivityFeedEventTypes.GROUP_UPDATED,
+                        actorId: userId,
+                        actorName: actorDisplayName,
+                        timestamp: now,
+                        details,
+                    },
+                    existingActivityItems,
+                );
+            }
         });
         timer.endPhase();
 
@@ -534,6 +561,10 @@ export class GroupService {
         const memberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
         const requestContext = { groupId, memberCount: memberIds.length, members: memberIds };
 
+        // Get actor info for activity feed
+        const actor = await this.userService.getUser(userId);
+        const actorDisplayName = actor.displayName;
+
         logger.info('Initiating group soft delete', {
             ...requestContext,
             operation: 'SOFT_DELETE',
@@ -541,6 +572,12 @@ export class GroupService {
 
         const now = new Date().toISOString();
         let performedDeletion = false;
+
+        // Fetch existing activity items for all members (MUST be before transaction writes)
+        const existingActivityItemsPromise = this.firestoreWriter.runTransaction(async (readTransaction) => {
+            return this.activityFeedService.fetchExistingItemsForUsers(readTransaction, memberIds);
+        });
+        const existingActivityItems = await existingActivityItemsPromise;
 
         await this.firestoreWriter.runTransaction(async (transaction) => {
             const currentGroup = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
@@ -572,23 +609,28 @@ export class GroupService {
                 });
             });
 
+            // Record MEMBER_LEFT activity for each member
+            for (const memberId of memberIds) {
+                this.activityFeedService.recordActivityForUsersWithExistingItems(
+                    transaction,
+                    [memberId],
+                    {
+                        groupId,
+                        groupName: group.name,
+                        eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                        actorId: userId,
+                        actorName: actorDisplayName,
+                        timestamp: now,
+                        details: {
+                            targetUserId: memberId,
+                        },
+                    },
+                    existingActivityItems,
+                );
+            }
+
             performedDeletion = true;
         });
-
-        if (performedDeletion && memberIds.length > 0) {
-            const results = [];
-            for (const memberId of memberIds) {
-                const result = await this.notificationService.removeUserFromGroup(memberId, groupId);
-                results.push(result);
-            }
-            const successfulCleanups = results.filter((r) => r.success).length;
-            logger.info('Notification cleanup completed after soft delete', {
-                groupId,
-                totalUsers: memberIds.length,
-                successfulCleanups,
-                failedCleanups: results.length - successfulCleanups,
-            });
-        }
 
         LoggerContext.setBusinessContext({ groupId });
 

@@ -1,6 +1,6 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
-import { mockCreateGroupApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockActivityFeedApi, mockCreateGroupApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard Groups Pagination', () => {
     test('should not show pagination controls when groups fit on one page', async ({ authenticatedPage }) => {
@@ -21,6 +21,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withHasMore(false)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -48,6 +49,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withNextCursor('cursor-page-2')
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -77,6 +79,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withNextCursor('cursor-page-2')
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -97,6 +100,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withHasMore(false)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await dashboardPage.clickPaginationNext();
 
@@ -127,6 +131,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withNextCursor('cursor-page-2')
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -146,6 +151,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withHasMore(false)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await dashboardPage.clickPaginationNext();
 
@@ -161,6 +167,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withNextCursor('cursor-page-2')
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await dashboardPage.clickPaginationPrevious();
 
@@ -190,6 +197,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withHasMore(false)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -217,6 +225,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withNextCursor('cursor-page-2')
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -237,6 +246,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .build(),
             { delayMs: 500 },
         );
+        await mockActivityFeedApi(page, []);
 
         const clickPromise = dashboardPage.clickPaginationNextWithoutWait();
 
@@ -273,6 +283,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withNextCursor('cursor-page-2')
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -292,6 +303,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withHasMore(false)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await dashboardPage.clickPaginationNext();
         await dashboardPage.verifyGroupDisplayed('Page 2 Group 1');
@@ -313,6 +325,7 @@ test.describe('Dashboard Groups Pagination', () => {
                 .withNextCursor('cursor-page-2-updated')
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Mock the create group API call (without metadata query param)
         await mockCreateGroupApi(page, newGroup);
@@ -338,6 +351,8 @@ test.describe('Dashboard Groups Pagination', () => {
             .build();
 
         await mockGroupsApi(page, emptyResponse);
+        await mockActivityFeedApi(page, []);
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
 
@@ -369,6 +384,7 @@ test.describe('Dashboard Pagination Mobile View', () => {
                 .withNextCursor('cursor-page-2')
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();

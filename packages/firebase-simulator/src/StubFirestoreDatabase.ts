@@ -1487,15 +1487,6 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
     seedGroupMember(groupId: GroupId, userId: string, memberData: Record<string, any>): void {
         const firestoreData = this.convertDatesToTimestamps(memberData);
         this.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
-        const notificationPath = `user-notifications/${userId}`;
-        if (!this.storage.has(notificationPath)) {
-            const now = Timestamp.now();
-            this.seed(notificationPath, {
-                changeVersion: 0,
-                groups: {},
-                lastModified: now,
-            });
-        }
     }
 
     seedExpense(expenseId: ExpenseId, expenseData: Record<string, any>): void {

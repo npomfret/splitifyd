@@ -104,14 +104,6 @@ service cloud.firestore {
       allow write: if false;
     }
     
-    match /user-notifications/{userId} {
-      // Users can only read their own notification documents
-      allow read: if request.auth != null && request.auth.uid == userId;
-      
-      // Only server functions can write notifications (via admin SDK)
-      allow write: if false;
-    }
-
     // Group memberships collection (top-level V2 implementation)
     match /group-memberships/{membershipId} {
       // Users can read memberships where they are the user

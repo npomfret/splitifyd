@@ -17,7 +17,6 @@ export const FirestoreCollections = {
     USERS: 'users',
     POLICIES: 'policies',
     COMMENTS: 'comments',
-    USER_NOTIFICATIONS: 'user-notifications',
     ACTIVITY_FEED: 'activity-feed',
 } as const;
 

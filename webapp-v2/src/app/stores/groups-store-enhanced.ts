@@ -1,10 +1,11 @@
 import { logInfo, logWarning } from '@/utils/browser-logger.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
-import { UserNotificationDetector, userNotificationDetector } from '@/utils/user-notification-detector.ts';
 import { batch, computed, ReadonlySignal, signal } from '@preact/signals';
-import { CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@splitifyd/shared';
+import { ActivityFeedItem, CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
+import type { ActivityFeedStore } from './activity-feed-store';
+import { activityFeedStore } from './activity-feed-store';
 
 interface EnhancedGroupsStore {
     groups: GroupDTO[];
@@ -71,7 +72,9 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #pageSizeSignal = signal<number>(8);
     readonly #showArchivedSignal = signal<boolean>(false);
 
-    private notificationUnsubscribe: (() => void) | null = null;
+    private readonly activityFeed: ActivityFeedStore;
+    private readonly activityListenerId = 'groups-store';
+    private activityListenerRegistered = false;
     private nextCursor: string | null = null;
     private previousCursors: string[] = []; // Stack of cursors for previous pages
 
@@ -85,10 +88,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     private refreshDebounceDelay: number;
     private pendingRefresh = false;
 
-    constructor(
-        private notificationDetector: UserNotificationDetector,
-        debounceDelay: number = 300,
-    ) {
+    constructor(activityFeed: ActivityFeedStore = activityFeedStore, debounceDelay: number = 300) {
+        this.activityFeed = activityFeed;
         this.refreshDebounceDelay = debounceDelay;
     }
 
@@ -411,7 +412,12 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         // If this is the first subscriber or user changed, set up subscription
         if (this.subscriberCount === 1 || this.currentUserId !== userId) {
             this.currentUserId = userId;
-            this.setupSubscription(userId);
+            this.setupSubscription(userId).catch((error) =>
+                logWarning('Failed to set up activity feed subscription for groups store', {
+                    error: error instanceof Error ? error.message : String(error),
+                    userId,
+                })
+            );
         }
 
         // Component registered (routine)
@@ -436,104 +442,18 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             this.disposeSubscription();
             this.currentUserId = null;
         }
-    }
-
-    /**
+    }    /**
      * Internal method to set up subscription
      */
-    private setupSubscription(userId: string): void {
-        // Unsubscribe from any existing listener
-        if (this.notificationUnsubscribe) {
-            this.notificationUnsubscribe();
+    private async setupSubscription(userId: string): Promise<void> {
+        if (this.activityListenerRegistered) {
+            this.activityFeed.deregisterListener(this.activityListenerId);
+            this.activityListenerRegistered = false;
         }
 
-        // Subscribe to user notifications - group changes trigger refresh
-        this.notificationUnsubscribe = this.notificationDetector.subscribe(
-            {
-                onGroupChange: (groupId) => {
-                    logInfo('Group change detected, triggering refresh', {
-                        userId,
-                        groupId,
-                        currentGroupCount: this.#groupsSignal.value.length,
-                        timestamp: new Date().toISOString(),
-                    });
+        await this.activityFeed.registerListener(this.activityListenerId, userId, this.handleActivityEvent);
+        this.activityListenerRegistered = true;
 
-                    // NO OPTIMISTIC UPDATES - just refresh from server
-                    // This ensures the dashboard accurately reflects server state
-                    this
-                        .refreshGroups()
-                        .then(() => {
-                            logInfo('Groups refresh completed after change detection', {
-                                userId,
-                                groupId,
-                                newGroupCount: this.#groupsSignal.value.length,
-                            });
-                        })
-                        .catch((error) =>
-                            logWarning('Failed to refresh groups after change detection', {
-                                error: error instanceof Error ? error.message : String(error),
-                                userId,
-                                groupId,
-                            })
-                        );
-                },
-                onGroupRemoved: (groupId) => {
-                    // Find the group name before removing it
-                    const currentGroups = this.#groupsSignal.value;
-                    const removedGroup = currentGroups.find((group) => group.id === groupId);
-                    const groupName = removedGroup?.name || 'Unknown Group';
-
-                    logInfo('Group removed - removing from list without refresh', {
-                        userId,
-                        groupId,
-                        groupName,
-                        currentGroupCount: currentGroups.length,
-                    });
-
-                    // Remove the group from the list immediately without fetching
-                    const filteredGroups = currentGroups.filter((group) => group.id !== groupId);
-
-                    if (filteredGroups.length !== currentGroups.length) {
-                        this.#groupsSignal.value = filteredGroups;
-
-                        // Show user-friendly notification about removal
-                        console.info(`📨 You've been removed from "${groupName}"`);
-
-                        // DEBUG: Log signal value change for UI reactivity debugging
-                        console.info('🔄 Signal value updated after group removal', {
-                            groupId,
-                            groupName,
-                            oldCount: currentGroups.length,
-                            newCount: filteredGroups.length,
-                            oldGroupIds: currentGroups.map((g) => g.id),
-                            newGroupIds: filteredGroups.map((g) => g.id),
-                            signalValueLength: this.#groupsSignal.value.length,
-                            signalPeek: this.#groupsSignal.peek().length,
-                        });
-
-                        logInfo('Group removed from dashboard', {
-                            groupId,
-                            groupName,
-                            oldCount: currentGroups.length,
-                            newCount: filteredGroups.length,
-                        });
-                    }
-                },
-            },
-            {
-                maxRetries: 3,
-                retryDelay: 2000,
-                onError: (error) => {
-                    logWarning('Notification subscription error, notifications may be delayed', {
-                        error: error.message,
-                        userId,
-                    });
-                },
-            },
-        );
-
-        // Immediately refresh to get current data after setting up subscription
-        // This ensures we don't miss any changes that happened before the subscription was active
         this.refreshGroups().catch((error) =>
             logWarning('Failed to refresh groups after subscription setup', {
                 error: error instanceof Error ? error.message : String(error),
@@ -542,13 +462,79 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         );
     }
 
+    private handleActivityEvent = (event: ActivityFeedItem): void => {
+        const { groupId, eventType, details } = event;
+        const userId = this.currentUserId;
+
+        if (!groupId || !userId) {
+            return;
+        }
+
+        logInfo('Activity feed event received for groups store', {
+            eventType,
+            groupId,
+        });
+
+        if (eventType === 'member-left' && details?.targetUserId === userId) {
+            this.handleGroupRemoval(groupId, details?.targetUserName ?? event.groupName);
+            return;
+        }
+
+        this.refreshGroups().catch((error) =>
+            logWarning('Failed to refresh groups after activity event', {
+                error: error instanceof Error ? error.message : String(error),
+                groupId,
+                eventType,
+            })
+        );
+    };
+
+    private handleGroupRemoval(groupId: string, groupNameHint?: string): void {
+        const currentGroups = this.#groupsSignal.value;
+        const removedGroup = currentGroups.find((group) => group.id === groupId);
+        const groupName = groupNameHint || removedGroup?.name || 'Unknown Group';
+
+        logInfo('Group removed - removing from list without refresh', {
+            groupId,
+            groupName,
+            currentGroupCount: currentGroups.length,
+        });
+
+        const filteredGroups = currentGroups.filter((group) => group.id !== groupId);
+
+        if (filteredGroups.length === currentGroups.length) {
+            return;
+        }
+
+        this.#groupsSignal.value = filteredGroups;
+
+        console.info(`📨 You've been removed from "${groupName}"`);
+        console.info('🔄 Signal value updated after group removal', {
+            groupId,
+            groupName,
+            oldCount: currentGroups.length,
+            newCount: filteredGroups.length,
+            oldGroupIds: currentGroups.map((g) => g.id),
+            newGroupIds: filteredGroups.map((g) => g.id),
+            signalValueLength: this.#groupsSignal.value.length,
+            signalPeek: this.#groupsSignal.peek().length,
+        });
+
+        logInfo('Group removed from dashboard', {
+            groupId,
+            groupName,
+            oldCount: currentGroups.length,
+            newCount: filteredGroups.length,
+        });
+    }
+
     /**
      * Internal method to dispose subscription
      */
     private disposeSubscription(): void {
-        if (this.notificationUnsubscribe) {
-            this.notificationUnsubscribe();
-            this.notificationUnsubscribe = null;
+        if (this.activityListenerRegistered) {
+            this.activityFeed.deregisterListener(this.activityListenerId);
+            this.activityListenerRegistered = false;
         }
     }
 
@@ -557,7 +543,12 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
      * @deprecated Use registerComponent/deregisterComponent instead
      */
     subscribeToChanges(userId: string): void {
-        this.setupSubscription(userId);
+        this.setupSubscription(userId).catch((error) =>
+            logWarning('Legacy subscribeToChanges failed to register listener', {
+                error: error instanceof Error ? error.message : String(error),
+                userId,
+            })
+        );
     }
 
     clearError(): void {
@@ -650,4 +641,4 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 // Export singleton instance with environment-aware debounce delay
 // Use 10ms in test environments for fast unit tests, 300ms in production
 const debounceDelay = import.meta.env.MODE === 'test' ? 10 : 300;
-export const enhancedGroupsStore = new EnhancedGroupsStoreImpl(userNotificationDetector, debounceDelay);
+export const enhancedGroupsStore = new EnhancedGroupsStoreImpl(activityFeedStore, debounceDelay);

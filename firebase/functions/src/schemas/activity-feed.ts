@@ -12,6 +12,7 @@ const ActivityFeedDetailsSchema = z
         settlementDescription: z.string().min(1).optional(),
         targetUserId: z.string().min(1).optional(),
         targetUserName: z.string().min(1).optional(),
+        previousGroupName: z.string().min(1).optional(),
     })
     .strict()
     .partial();

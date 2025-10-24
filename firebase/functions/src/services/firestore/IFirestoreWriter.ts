@@ -20,7 +20,6 @@ import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
-import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 
 export interface WriteResult {
     id: string;
@@ -197,34 +196,6 @@ export interface IFirestoreWriter {
      * @returns Generated document ID
      */
     generateDocumentId(collection: string): string;
-
-    // ========================================================================
-    // User Notification Operations
-    // ========================================================================
-
-    /**
-     * Create a new user notification document
-     * @param userId - The user ID
-     * @param notificationData - The notification document data
-     * @returns Write result with document ID
-     */
-    createUserNotification(userId: string, notificationData: CreateUserNotificationDocument): Promise<WriteResult>;
-
-    /**
-     * Remove a group from user's notification tracking
-     * @param userId - The user ID
-     * @param groupId - The group ID to remove
-     * @returns Write result
-     */
-    removeUserNotificationGroup(userId: string, groupId: GroupId): Promise<WriteResult>;
-
-    /**
-     * Batch set user notifications using Firestore batch writes for optimal performance
-     * Automatically handles batching for groups exceeding 500 users (Firestore batch limit)
-     * @param updates - Array of user notification updates
-     * @returns Batch write result with success/failure counts
-     */
-    batchSetUserNotifications(updates: Array<{ userId: string; data: any; merge?: boolean; }>): Promise<BatchWriteResult>;
 
     // ========================================================================
     // Test Pool Operations (for TestUserPoolService)

@@ -1,6 +1,6 @@
 import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockActivityFeedApi, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 test.describe('Dashboard Navigation Flows', () => {
     test('should navigate to group detail when clicking group card', async ({ authenticatedPage }) => {
@@ -19,6 +19,7 @@ test.describe('Dashboard Navigation Flows', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -46,6 +47,7 @@ test.describe('Dashboard Navigation Flows', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -84,6 +86,7 @@ test.describe('Dashboard Navigation Flows', () => {
                 .responseWithMetadata(groups)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await mockGenerateShareLinkApi(page, 'group-1');
 
         await dashboardPage.navigate();
@@ -110,6 +113,7 @@ test.describe('Dashboard Navigation Flows', () => {
                 .responseWithMetadata([])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Navigate to dashboard
         await dashboardPage.navigate();

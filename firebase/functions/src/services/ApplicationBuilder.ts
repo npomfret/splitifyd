@@ -12,7 +12,6 @@ import { FirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
 import { GroupService } from './GroupService';
 import { GroupShareService } from './GroupShareService';
-import { NotificationService } from './notification-service';
 import { PolicyService } from './PolicyService';
 import { SettlementService } from './SettlementService';
 import { UserPolicyService } from './UserPolicyService';
@@ -30,7 +29,6 @@ export class ApplicationBuilder {
     private userPolicyService?: UserPolicyService;
     private groupMemberService?: GroupMemberService;
     private groupShareService?: GroupShareService;
-    private notificationService?: NotificationService;
     private incrementalBalanceService?: IncrementalBalanceService;
     private activityFeedService?: ActivityFeedService;
     private firestoreReader: IFirestoreReader;
@@ -65,7 +63,7 @@ export class ApplicationBuilder {
 
     buildUserService(): UserService {
         if (!this.userService) {
-            this.userService = new UserService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildNotificationService(), this.buildAuthService());
+            this.userService = new UserService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildAuthService());
         }
         return this.userService!;
     }
@@ -79,9 +77,9 @@ export class ApplicationBuilder {
                 this.buildExpenseService(),
                 this.buildSettlementService(),
                 this.buildGroupMemberService(),
-                this.buildNotificationService(),
                 this.buildGroupShareService(),
                 this.buildCommentService(),
+                this.buildActivityFeedService(),
             );
         }
         return this.groupService;
@@ -173,13 +171,6 @@ export class ApplicationBuilder {
             this.activityFeedService = new ActivityFeedService(this.buildFirestoreReader(), this.buildFirestoreWriter());
         }
         return this.activityFeedService;
-    }
-
-    buildNotificationService(): NotificationService {
-        if (!this.notificationService) {
-            this.notificationService = new NotificationService(this.buildFirestoreReader(), this.buildFirestoreWriter());
-        }
-        return this.notificationService;
     }
 
     buildFirestoreReader(): IFirestoreReader {

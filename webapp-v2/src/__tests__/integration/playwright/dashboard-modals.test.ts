@@ -1,6 +1,6 @@
 import { CreateGroupModalPage, DashboardPage, FORM_VALIDATION, GroupDTOBuilder, ListGroupsResponseBuilder, randomString } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
-import { mockApiFailure, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { mockActivityFeedApi, mockApiFailure, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 // ============================================================================
 // Dashboard Create Group Functionality
@@ -21,6 +21,7 @@ test.describe('Dashboard Create Group Functionality', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -59,6 +60,7 @@ test.describe('Dashboard Create Group Functionality', () => {
                     .responseWithMetadata([group], 1)
                     .build(),
             );
+            await mockActivityFeedApi(page, []);
 
             await page.goto('/dashboard');
             await dashboardPage.waitForGroupsToLoad();
@@ -82,6 +84,7 @@ test.describe('Dashboard Create Group Functionality', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -120,6 +123,7 @@ test.describe('Dashboard Create Group Functionality', () => {
                     .responseWithMetadata([group], 1)
                     .build(),
             );
+            await mockActivityFeedApi(page, []);
 
             await page.goto('/dashboard');
             await dashboardPage.waitForGroupsToLoad();
@@ -149,6 +153,7 @@ test.describe('Dashboard Create Group Functionality', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
@@ -178,6 +183,7 @@ test.describe('Dashboard Create Group Functionality', () => {
                 .responseWithMetadata([], 0)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -206,6 +212,7 @@ test.describe('Dashboard Create Group Functionality', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -232,6 +239,7 @@ test.describe('Dashboard Create Group Functionality', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -262,6 +270,7 @@ test.describe('Dashboard Create Group Functionality', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -295,6 +304,7 @@ test.describe('Dashboard Create Group Functionality', () => {
                 .responseWithMetadata([group], 1)
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
@@ -339,6 +349,7 @@ test.describe('Dashboard Share Group Modal', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
@@ -367,6 +378,7 @@ test.describe('Dashboard Share Group Modal', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await mockGenerateShareLinkApi(page, 'group-123', 'test-token-abc');
 
         await dashboardPage.navigate();
@@ -398,6 +410,7 @@ test.describe('Dashboard Share Group Modal', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
@@ -429,6 +442,7 @@ test.describe('Dashboard Share Group Modal', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
@@ -459,6 +473,7 @@ test.describe('Dashboard Share Group Modal', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await mockGenerateShareLinkApi(page, 'group-123');
 
         await dashboardPage.navigate();
@@ -490,6 +505,7 @@ test.describe('Dashboard Share Group Modal', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await mockGenerateShareLinkApi(page, 'group-123');
 
         // Grant clipboard permissions
@@ -529,6 +545,7 @@ test.describe('Dashboard Share Group Modal', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
         await mockGenerateShareLinkApi(page, 'group-123', 'first-token');
 
         await dashboardPage.navigate();
@@ -565,6 +582,7 @@ test.describe('Dashboard Share Group Modal', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Mock API failure for share link generation
         await mockApiFailure(page, `/api/groups/group-123/share-link`, 500, { error: 'Failed to generate share link' });
@@ -594,6 +612,7 @@ test.describe('Dashboard Share Group Modal', () => {
                 .responseWithMetadata([group])
                 .build(),
         );
+        await mockActivityFeedApi(page, []);
 
         // Mock delayed response for share link to test loading state
         await mockGenerateShareLinkApi(page, 'group-123', 'delayed-token', { delayMs: 100 });

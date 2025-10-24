@@ -16,7 +16,7 @@ import {
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 import type { Page, Response, Route } from '@playwright/test';
-import { ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
+import { ActivityFeedEventTypes, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
 
 interface AuthError {
     code: string;
@@ -99,6 +99,9 @@ export class MockFirebase {
     private page: Page;
     private state: MockFirebaseState;
     private initialized = false;
+    private notificationVersions = new Map<string, number>();
+    private notificationCounters = new Map<string, { transaction: number; balance: number; group: number; comment: number; }>();
+    private userGroupMemberships = new Map<string, Set<string>>(); // Track which groups each user is in
 
     constructor(page: Page) {
         this.page = page;
@@ -165,6 +168,14 @@ export class MockFirebase {
                     window.__TEST_ENV__!.firebase.firestoreListeners.set(path, onData);
                     return () => {
                         window.__TEST_ENV__!.firebase.firestoreListeners.delete(path);
+                    };
+                },
+                onCollectionSnapshot: (pathSegments, _options, onData, _onError) => {
+                    const path = pathSegments.join('/');
+                    const key = `collection:${path}`;
+                    window.__TEST_ENV__!.firebase.firestoreListeners.set(key, onData);
+                    return () => {
+                        window.__TEST_ENV__!.firebase.firestoreListeners.delete(key);
                     };
                 },
                 getCurrentUserId: () => {
@@ -272,7 +283,88 @@ export class MockFirebase {
     }
 
     public async triggerNotificationUpdate(userId: string, data: any): Promise<void> {
-        await this.emitFirestoreSnapshot('user-notifications', userId, data);
+        const changeVersion = typeof data?.changeVersion === 'number' ? data.changeVersion : 0;
+        const lastVersion = this.notificationVersions.get(userId) ?? 0;
+
+        // Track group membership BEFORE early returns (so baseline is recorded)
+        const previousGroups = this.userGroupMemberships.get(userId) ?? new Set<string>();
+        const currentGroups = new Set<string>(Object.keys(data?.groups ?? {}));
+        this.userGroupMemberships.set(userId, currentGroups);
+
+        if (lastVersion === 0 && changeVersion <= 1) {
+            this.notificationVersions.set(userId, changeVersion);
+            return;
+        }
+
+        if (changeVersion <= lastVersion) {
+            return;
+        }
+
+        this.notificationVersions.set(userId, changeVersion);
+
+        // Detect removed groups
+        const removedGroups = Array.from(previousGroups).filter(groupId => !currentGroups.has(groupId));
+
+        const events: Array<{ groupId: string; type: 'transaction' | 'balance' | 'group' | 'comment' | 'member-left'; }> = [];
+
+        // Generate member-left events for removed groups
+        for (const groupId of removedGroups) {
+            events.push({ groupId, type: 'member-left' });
+        }
+
+        if (Array.isArray(data?.recentChanges) && data.recentChanges.length > 0) {
+            for (const change of data.recentChanges) {
+                events.push({ groupId: change.groupId, type: change.type });
+            }
+        } else if (data?.groups) {
+            for (const [groupId, groupState] of Object.entries<any>(data.groups)) {
+                const state = groupState ?? {};
+                const key = `${userId}:${groupId}`;
+                const previous = this.notificationCounters.get(key) ?? { transaction: 0, balance: 0, group: 0, comment: 0 };
+
+                const counts: Array<[keyof typeof previous, number]> = [
+                    ['transaction', state.transactionChangeCount ?? 0],
+                    ['balance', state.balanceChangeCount ?? 0],
+                    ['group', state.groupDetailsChangeCount ?? 0],
+                    ['comment', state.commentChangeCount ?? 0],
+                ];
+
+                for (const [category, count] of counts) {
+                    if (count > previous[category]) {
+                        events.push({ groupId, type: category });
+                    }
+                }
+
+                this.notificationCounters.set(key, {
+                    transaction: state.transactionChangeCount ?? previous.transaction,
+                    balance: state.balanceChangeCount ?? previous.balance,
+                    group: state.groupDetailsChangeCount ?? previous.group,
+                    comment: state.commentChangeCount ?? previous.comment,
+                });
+            }
+        }
+
+        if (events.length === 0) {
+            return;
+        }
+
+        const timestamp = new Date().toISOString();
+        const items = events.map(({ groupId, type }) => ({
+            id: `mock-activity-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            data: {
+                userId,
+                groupId,
+                groupName: data.groups?.[groupId]?.name ?? 'Mock Group',
+                eventType: this.mapNotificationCategoryToActivityType(type),
+                actorId: 'system',
+                actorName: 'System',
+                timestamp,
+                createdAt: timestamp,
+                details: type === 'member-left' ? { targetUserId: userId } : {},
+            },
+        }));
+
+        await this.emitActivityFeedSnapshot(userId, items);
     }
 
     public async emitFirestoreSnapshot(collection: string, documentId: string, data: any): Promise<void> {
@@ -290,6 +382,43 @@ export class MockFirebase {
             },
             { collection, documentId, data },
         );
+    }
+
+    private async emitActivityFeedSnapshot(userId: string, items: Array<{ id: string; data: any; }>): Promise<void> {
+        await this.page.evaluate(
+            ({ userId, items }) => {
+                const path = `collection:activity-feed/${userId}/items`;
+                const listener = window.__TEST_ENV__!.firebase.firestoreListeners.get(path);
+                if (!listener) {
+                    return;
+                }
+
+                const docs = items.map(({ id, data }) => ({
+                    id,
+                    data: () => data,
+                }));
+
+                listener({ docs });
+            },
+            { userId, items },
+        );
+    }
+
+    private mapNotificationCategoryToActivityType(type: 'transaction' | 'balance' | 'group' | 'comment' | 'member-left'): string {
+        switch (type) {
+            case 'transaction':
+                return ActivityFeedEventTypes.EXPENSE_UPDATED;
+            case 'balance':
+                return ActivityFeedEventTypes.SETTLEMENT_UPDATED;
+            case 'group':
+                return ActivityFeedEventTypes.GROUP_UPDATED;
+            case 'comment':
+                return ActivityFeedEventTypes.COMMENT_ADDED;
+            case 'member-left':
+                return ActivityFeedEventTypes.MEMBER_LEFT;
+            default:
+                return ActivityFeedEventTypes.EXPENSE_UPDATED;
+        }
     }
 
     private async registerSuccessHandler(user: ClientUser, options: { delayMs?: number; }): Promise<void> {
@@ -749,6 +878,35 @@ export async function mockJoinGroupFailure(
 }
 
 /**
+ * Mock activity feed API endpoint
+ * @param items - Activity feed items to return
+ * @param delayMs - Optional delay in milliseconds before responding
+ */
+export async function mockActivityFeedApi(
+    page: Page,
+    items: any[] = [],
+    options: { delayMs?: number; hasMore?: boolean; nextCursor?: string; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler(
+            'GET',
+            '/api/activity-feed',
+            {
+                items,
+                hasMore: options.hasMore ?? false,
+                nextCursor: options.nextCursor,
+            },
+            {
+                delayMs: delay,
+            },
+        ),
+    );
+}
+
+/**
  * Creates successful API mocks for authenticated user flows
  * Commonly used pattern for tests that need authenticated users with accepted policies
  */
@@ -768,4 +926,7 @@ export async function setupSuccessfulApiMocks(page: Page): Promise<void> {
             changeCount: 0,
         },
     });
+
+    // Mock activity feed API: /api/activity-feed -> empty activity feed
+    await mockActivityFeedApi(page, []);
 }

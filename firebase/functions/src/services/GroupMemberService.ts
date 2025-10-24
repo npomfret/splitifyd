@@ -361,31 +361,6 @@ export class GroupMemberService {
 
             await this.firestoreWriter.touchGroup(groupId, transaction);
 
-            const leavingUserNotificationRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, 'user-notifications', targetUserId);
-            transaction.update(leavingUserNotificationRef, {
-                [`groups.${groupId}`]: FieldValue.delete(),
-                changeVersion: FieldValue.increment(1),
-                lastModified: FieldValue.serverTimestamp(),
-            });
-
-            for (const remainingMemberId of remainingMemberIds) {
-                const remainingMemberNotificationRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, 'user-notifications', remainingMemberId);
-                transaction.set(
-                    remainingMemberNotificationRef,
-                    {
-                        changeVersion: FieldValue.increment(1),
-                        lastModified: FieldValue.serverTimestamp(),
-                        groups: {
-                            [groupId]: {
-                                lastGroupDetailsChange: now,
-                                groupDetailsChangeCount: FieldValue.increment(1),
-                            },
-                        },
-                    },
-                    { merge: true },
-                );
-            }
-
             if (activityRecipients.length > 0) {
                 this.activityFeedService.recordActivityForUsersWithExistingItems(
                     transaction,

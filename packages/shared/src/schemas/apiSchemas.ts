@@ -422,6 +422,7 @@ const ActivityFeedItemDetailsSchema = z.object({
     settlementDescription: z.string().optional(),
     targetUserId: z.string().optional(),
     targetUserName: z.string().optional(),
+    previousGroupName: z.string().optional(),
 });
 
 export const ActivityFeedItemSchema = z.object({

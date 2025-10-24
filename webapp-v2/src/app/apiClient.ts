@@ -7,6 +7,7 @@
 
 import { ApiSerializer } from '@splitifyd/shared';
 import type {
+    ActivityFeedResponse,
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
     AppConfiguration,
@@ -631,10 +632,29 @@ class ApiClient {
             }
         }
 
-        return this.request({
+        return this.request<ListGroupsResponse>({
             endpoint: '/groups',
             method: 'GET',
             query: Object.keys(query).length > 0 ? query : undefined,
+        });
+    }
+
+    async getActivityFeed(options: { cursor?: string; limit?: number; } = {}): Promise<ActivityFeedResponse> {
+        const query: Record<string, string> = {};
+
+        if (options.limit !== undefined) {
+            query.limit = options.limit.toString();
+        }
+
+        if (options.cursor) {
+            query.cursor = options.cursor;
+        }
+
+        return this.request<ActivityFeedResponse>({
+            endpoint: '/activity-feed',
+            method: 'GET',
+            query: Object.keys(query).length > 0 ? query : undefined,
+            schema: responseSchemas['GET /activity-feed'] as z.ZodSchema<ActivityFeedResponse>,
         });
     }
 

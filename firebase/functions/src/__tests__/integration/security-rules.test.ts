@@ -364,70 +364,6 @@ describe('Firestore Security Rules (Production)', () => {
         });
     });
 
-    describe('User Notifications Collection', () => {
-        beforeAll(async () => {
-            await testEnv
-                .withSecurityRulesDisabled(async (context: any) => {
-                    const db = context.firestore();
-
-                    const now = Timestamp.now();
-
-                    // Create user notification documents inline with client SDK Timestamps
-                    const user1Notification = {
-                        changeVersion: 1,
-                        groups: {
-                            'test-group-1': {
-                                lastTransactionChange: now,
-                                lastBalanceChange: null,
-                                lastGroupDetailsChange: null,
-                                lastCommentChange: null,
-                                transactionChangeCount: 5,
-                                balanceChangeCount: 0,
-                                groupDetailsChangeCount: 0,
-                                commentChangeCount: 0,
-                            },
-                        },
-                        lastModified: now,
-                    };
-
-                    await setDoc(doc(db, 'user-notifications', 'user1-id'), user1Notification);
-
-                    const user2Notification = {
-                        changeVersion: 1,
-                        groups: {},
-                        lastModified: now,
-                    };
-
-                    await setDoc(doc(db, 'user-notifications', 'user2-id'), user2Notification);
-                });
-        });
-
-        it('should allow users to read their own notification document', async () => {
-            // User1 can read their own notifications
-            await assertSucceeds(getDoc(doc(user1Db, 'user-notifications', 'user1-id')));
-
-            // User2 can read their own notifications
-            await assertSucceeds(getDoc(doc(user2Db, 'user-notifications', 'user2-id')));
-        });
-
-        it('should deny users from reading other users notification documents', async () => {
-            // User1 cannot read user2's notifications
-            await assertFails(getDoc(doc(user1Db, 'user-notifications', 'user2-id')));
-
-            // User2 cannot read user1's notifications
-            await assertFails(getDoc(doc(user2Db, 'user-notifications', 'user1-id')));
-        });
-
-        it('should deny all client writes to notifications', async () => {
-            const updateData = {
-                changeVersion: 2,
-            };
-
-            // Users cannot write to their own notifications
-            await assertFails(setDoc(doc(user1Db, 'user-notifications', 'user1-id'), updateData, { merge: true }));
-        });
-    });
-
     describe('Policies Collection', () => {
         const policyId = 'privacy-policy';
 
@@ -529,24 +465,7 @@ describe('Firestore Security Rules (Production)', () => {
             unsubscribe();
         });
 
-        it('should allow real-time subscriptions to user notifications', async () => {
-            // Test that onSnapshot works for user's own notifications
-            const unsubscribe = onSnapshot(
-                doc(user1Db, 'user-notifications', 'user1-id'),
-                (snapshot) => {
-                    // Subscription should work without errors
-                    expect(snapshot).toBeDefined();
-                },
-                (error) => {
-                    // Should not error for own notifications
-                    expect(error).toBeUndefined();
-                },
-            );
-
-            // Clean up
-            unsubscribe();
         });
-    });
 
     describe('Users Collection', () => {
         it('should allow users to read and write their own user document', async () => {
