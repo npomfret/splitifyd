@@ -1,7 +1,11 @@
 #!/usr/bin/env npx tsx
 
 assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
-assert(process.env.NODE_ENV === undefined); // todo
+const allowedNodeEnvs = [undefined, 'development', ''];
+assert(
+    allowedNodeEnvs.includes(process.env.NODE_ENV),
+    `NODE_ENV must be one of ${allowedNodeEnvs.map((v) => (v === undefined ? 'undefined' : `"${v}"`)).join(', ')}`,
+);
 
 import { getPorts, getProjectId } from '@splitifyd/test-support';
 import { ChildProcess } from 'child_process';

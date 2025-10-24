@@ -140,8 +140,9 @@ function getFirebaseFirestoreUrl(config: ClientConfig, env: z.infer<typeof envSc
         throw new Error('FIRESTORE_EMULATOR_HOST environment variable must be set in development. Set it in your .env file.');
     }
 
-    if (!/127\.0\.0\.1:\d{4}/.test(firestoreHost)) {
-        throw Error(`firestoreHost looks wrong: ${firestoreHost}`);
+    const validHosts = /^(?:127\.0\.0\.1|localhost|0\.0\.0\.0):\d+$/;
+    if (!validHosts.test(firestoreHost)) {
+        throw Error(`firestoreHost looks wrong: ${firestoreHost}. Expected localhost, 127.0.0.1, or 0.0.0.0 with a port.`);
     }
 
     return `http://${firestoreHost}`;
