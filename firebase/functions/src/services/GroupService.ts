@@ -16,7 +16,6 @@ import {
 } from '@splitifyd/shared';
 import { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalances } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
-import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { DOCUMENT_CONFIG, FirestoreCollections } from '../constants';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -295,11 +294,7 @@ export class GroupService {
      * Create a new group with the creator as the owner/admin
      * IMPORTANT: The creator is automatically added as a member with 'owner' role
      */
-    async createGroup(
-        userId: string,
-        groupData: CreateGroupRequest = new CreateGroupRequestBuilder()
-            .build(),
-    ): Promise<GroupDTO> {
+    async createGroup(userId: string, groupData: CreateGroupRequest): Promise<GroupDTO> {
         return measure.measureDb('createGroup', async () => this._createGroup(userId, groupData));
     }
 

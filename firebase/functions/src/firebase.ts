@@ -1,8 +1,14 @@
 import * as admin from 'firebase-admin';
+import { config as loadEnv } from 'dotenv';
 import assert from 'node:assert';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { isDevInstanceMode, requireInstanceMode } from './shared/instance-mode';
+
+const envPath = join(__dirname, '../.env');
+if (!process.env.INSTANCE_MODE && existsSync(envPath)) {
+    loadEnv({ path: envPath });
+}
 
 function getInstanceMode() {
     return requireInstanceMode();

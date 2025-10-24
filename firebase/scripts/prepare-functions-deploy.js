@@ -4,10 +4,25 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const rootDir = path.join(__dirname, '../..');
-const sharedDir = path.join(rootDir, 'packages/shared');
 const srcFunctions = path.join(__dirname, '../functions');
 const stageRoot = path.join(__dirname, '../.firebase/deploy');
 const stageFunctions = path.join(stageRoot, 'functions');
+
+const productionEnv = {
+    ...process.env,
+    BUILD_MODE: 'production',
+};
+
+const workspacePackages = [
+    {
+        name: '@splitifyd/shared',
+        directory: path.join(rootDir, 'packages/shared'),
+    },
+    {
+        name: '@splitifyd/firebase-simulator',
+        directory: path.join(rootDir, 'packages/firebase-simulator'),
+    },
+];
 
 console.log('=== Preparing Firebase Functions for Deployment ===');
 
@@ -16,25 +31,36 @@ console.log('Creating staging directory...');
 fs.rmSync(stageFunctions, { recursive: true, force: true });
 fs.mkdirSync(stageFunctions, { recursive: true });
 
-// Build shared package
-console.log('Building @splitifyd/shared...');
-execSync('npm run build', { cwd: sharedDir, stdio: 'inherit' });
+const tarballs = workspacePackages.map(({ name, directory }) => {
+    console.log(`Building ${name}...`);
+    execSync('npm run build', { cwd: directory, stdio: 'inherit', env: productionEnv });
 
-// Pack shared and capture actual filename
-console.log('Packing @splitifyd/shared...');
-const packOutput = execSync('npm pack --json', { cwd: sharedDir }).toString();
-const [{ filename }] = JSON.parse(packOutput);
-console.log(`Created tarball: ${filename}`);
+    console.log(`Packing ${name}...`);
+    const packOutput = execSync('npm pack --json', { cwd: directory, env: productionEnv }).toString();
+    const [{ filename }] = JSON.parse(packOutput);
+    console.log(`Created tarball: ${filename}`);
+
+    return {
+        name,
+        filename,
+        sourcePath: path.join(directory, filename),
+    };
+});
+
+// Ensure production build artifacts exist before staging
+console.log('Ensuring Firebase Functions production build...');
+execSync('npm run build:prod', { cwd: srcFunctions, stdio: 'inherit', env: productionEnv });
 
 // Stage functions directory
 console.log('Staging functions directory...');
 fs.cpSync(srcFunctions, stageFunctions, { recursive: true });
 
-// Copy tarball to staged functions
-const tarballSource = path.join(sharedDir, filename);
-const tarballDest = path.join(stageFunctions, filename);
-fs.cpSync(tarballSource, tarballDest);
-console.log(`Copied tarball to staging: ${filename}`);
+// Copy tarballs to staged functions
+tarballs.forEach(({ name, filename, sourcePath }) => {
+    const destination = path.join(stageFunctions, filename);
+    fs.cpSync(sourcePath, destination);
+    console.log(`Copied ${name} tarball to staging: ${filename}`);
+});
 
 // Update package.json in staging directory only
 const pkgPath = path.join(stageFunctions, 'package.json');
@@ -42,11 +68,10 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 pkg.dependencies = pkg.dependencies || {};
 pkg.devDependencies = pkg.devDependencies || {};
 
-// Replace workspace reference with local tarball
-pkg.dependencies['@splitifyd/shared'] = `file:./${filename}`;
+tarballs.forEach(({ name, filename }) => {
+    pkg.dependencies[name] = `file:./${filename}`;
+});
 
-// Remove any other @splitifyd workspace packages from devDependencies
-// since they won't be available and we're using --omit=dev anyway
 Object.keys(pkg.devDependencies).forEach((dep) => {
     if (dep.startsWith('@splitifyd/')) {
         console.log(`Removing devDependency: ${dep}`);
@@ -55,11 +80,13 @@ Object.keys(pkg.devDependencies).forEach((dep) => {
 });
 
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
-console.log('Updated staged package.json with local tarball reference');
+console.log('Updated staged package.json with local tarball references');
 
-// Clean up tarball from shared directory
-fs.rmSync(tarballSource);
-console.log('Cleaned up temporary tarball');
+// Clean up tarballs from workspace directories
+tarballs.forEach(({ filename, sourcePath }) => {
+    fs.rmSync(sourcePath);
+    console.log(`Cleaned up temporary tarball: ${filename}`);
+});
 
 // Install production dependencies in staged directory
 console.log('Installing production dependencies in staged functions...');
