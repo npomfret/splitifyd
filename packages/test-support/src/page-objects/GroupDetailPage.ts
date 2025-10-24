@@ -271,6 +271,10 @@ export class GroupDetailPage extends BasePage {
         return this.getSettlementContainer().locator('[data-testid="settlement-item"]');
     }
 
+    getIncludeDeletedSettlementsCheckbox(): Locator {
+        return this.getSettlementContainer().locator('[data-testid="include-deleted-settlements-checkbox"]');
+    }
+
     private getSettlementItem(note: string | RegExp): Locator {
         const pattern = typeof note === 'string' ? new RegExp(note, 'i') : note;
         return this.getSettlementItems().filter({
@@ -553,6 +557,10 @@ export class GroupDetailPage extends BasePage {
      */
     getExpenseItems(): Locator {
         return this.getExpensesContainer().locator('[data-testid="expense-item"]');
+    }
+
+    getIncludeDeletedExpensesCheckbox(): Locator {
+        return this.getExpensesContainer().locator('[data-testid="include-deleted-expenses-checkbox"]');
     }
 
     /**

@@ -1,6 +1,6 @@
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { CreateGroupRequest } from '@splitifyd/shared';
-import { CreateGroupRequestBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
@@ -30,6 +30,68 @@ describe('GroupService - Unit Tests', () => {
             const nonExistentGroupId = 'non-existent-group';
 
             await expect(groupService.getGroupFullDetails(nonExistentGroupId, userId)).rejects.toThrow(ApiError);
+        });
+
+        it('should respect the includeDeletedExpenses flag when retrieving expenses', async () => {
+            const userId = 'include-deleted-owner';
+            const groupId = 'include-deleted-group';
+
+            db.seedGroup(groupId, {
+                name: 'Include Deleted Test Group',
+                createdBy: userId,
+            });
+            db.initializeGroupBalance(groupId);
+
+            const membershipDoc = new GroupMemberDocumentBuilder()
+                .withUserId(userId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .asActive()
+                .buildDocument();
+            db.seedGroupMember(groupId, userId, membershipDoc);
+
+            const activeExpense = new ExpenseDTOBuilder()
+                .withId('expense-active')
+                .withGroupId(groupId)
+                .withPaidBy(userId)
+                .withCreatedBy(userId)
+                .withParticipants([userId])
+                .withSplitType('equal')
+                .withAmount(25, 'USD')
+                .withDescription('Active expense')
+                .build();
+            db.seedExpense(activeExpense.id, activeExpense);
+
+            const deletedExpense = new ExpenseDTOBuilder()
+                .withId('expense-deleted')
+                .withGroupId(groupId)
+                .withPaidBy(userId)
+                .withCreatedBy(userId)
+                .withParticipants([userId])
+                .withSplitType('equal')
+                .withAmount(40, 'USD')
+                .withDescription('Deleted expense')
+                .withDeletedAt(new Date())
+                .withDeletedBy(userId)
+                .build();
+            db.seedExpense(deletedExpense.id, deletedExpense);
+
+            const defaultDetails = await groupService.getGroupFullDetails(groupId, userId);
+            const defaultDescriptions = defaultDetails.expenses.expenses.map((expense) => expense.description);
+            expect(defaultDescriptions).toContain('Active expense');
+            expect(defaultDescriptions).not.toContain('Deleted expense');
+            expect(defaultDetails.expenses.expenses.every((expense) => expense.deletedAt === null)).toBe(true);
+
+            const detailsWithDeleted = await groupService.getGroupFullDetails(groupId, userId, {
+                includeDeletedExpenses: true,
+            });
+            const withDeletedDescriptions = detailsWithDeleted.expenses.expenses.map((expense) => expense.description);
+            expect(withDeletedDescriptions).toContain('Active expense');
+            expect(withDeletedDescriptions).toContain('Deleted expense');
+
+            const resurrectedExpense = detailsWithDeleted.expenses.expenses.find((expense) => expense.description === 'Deleted expense');
+            expect(resurrectedExpense?.deletedAt).not.toBeNull();
+            expect(resurrectedExpense?.deletedBy).toBe(userId);
         });
     });
 

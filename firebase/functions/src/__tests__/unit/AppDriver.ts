@@ -156,6 +156,7 @@ export class AppDriver {
         options: {
             expenseLimit?: number;
             expenseCursor?: string;
+            includeDeletedExpenses?: boolean;
             settlementLimit?: number;
             settlementCursor?: string;
             includeDeletedSettlements?: boolean;
@@ -169,6 +170,9 @@ export class AppDriver {
         }
         if (options.expenseCursor) {
             query.expenseCursor = options.expenseCursor;
+        }
+        if (options.includeDeletedExpenses !== undefined) {
+            query.includeDeletedExpenses = String(options.includeDeletedExpenses);
         }
         if (options.settlementLimit !== undefined) {
             query.settlementLimit = String(options.settlementLimit);

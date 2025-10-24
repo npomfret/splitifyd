@@ -18,9 +18,17 @@ interface SettlementHistoryProps {
     onEditSettlement?: (settlement: SettlementWithMembers) => void;
     showDeletedSettlements?: boolean;
     onShowDeletedChange?: (show: boolean) => void;
+    canToggleShowDeleted?: boolean;
 }
 
-export function SettlementHistory({ groupId, userId, onEditSettlement, showDeletedSettlements = false, onShowDeletedChange }: SettlementHistoryProps) {
+export function SettlementHistory({
+    groupId,
+    userId,
+    onEditSettlement,
+    showDeletedSettlements = false,
+    onShowDeletedChange,
+    canToggleShowDeleted = false,
+}: SettlementHistoryProps) {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
     const currentUser = authStore.user;
@@ -33,11 +41,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
     const settlements = useComputed(() => enhancedGroupDetailStore.settlements);
     const isLoading = useComputed(() => enhancedGroupDetailStore.loadingSettlements);
     const hasMore = useComputed(() => enhancedGroupDetailStore.hasMoreSettlements);
-    const group = useComputed(() => enhancedGroupDetailStore.group);
     const members = useComputed(() => enhancedGroupDetailStore.members);
-
-    // Check if current user is group owner
-    const isGroupOwner = currentUser && group.value && group.value.createdBy === currentUser.uid;
 
     const renderMemberName = (member: GroupMember) => {
         const displayName = getGroupDisplayName(member);
@@ -136,16 +140,17 @@ export function SettlementHistory({ groupId, userId, onEditSettlement, showDelet
                     />
                     <span class='text-gray-700'>{t('settlementHistory.showAll')}</span>
                 </label>
-                {isGroupOwner && onShowDeletedChange && (
+                {canToggleShowDeleted && onShowDeletedChange && (
                     <label class='flex items-center space-x-2 text-sm cursor-pointer'>
                         <input
                             type='checkbox'
+                            data-testid='include-deleted-settlements-checkbox'
                             checked={showDeletedSettlements}
                             onChange={(e) => onShowDeletedChange(e.currentTarget.checked)}
                             class='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
                             autoComplete='off'
                         />
-                        <span class='text-gray-700'>{t('settlementHistory.showDeletedSettlements')}</span>
+                        <span class='text-gray-700'>{t('common.includeDeleted')}</span>
                     </label>
                 )}
             </div>

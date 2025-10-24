@@ -30,6 +30,7 @@
     "info": "Info",
     "unknown": "Unknown",
     "unknownUser": "Unknown User",
+    "includeDeleted": "Include deleted",
     "you": "You",
     "youSuffix": " (You)",
     "required": "*",
@@ -717,7 +718,6 @@
     "cancelButton": "Cancel",
     "showAll": "Show all",
     "noPaymentsForYou": "No payments involving you yet",
-    "showDeletedSettlements": "Show deleted settlements",
     "deletedBy": "Deleted by"
   },
   "balanceSummary": {
@@ -781,7 +781,6 @@
   },
   "expensesList": {
     "title": "Expenses",
-    "showDeletedExpenses": "Show deleted expenses",
     "noExpensesYet": "No expenses yet. Add one to get started!",
     "loadMore": "Load More"
   },

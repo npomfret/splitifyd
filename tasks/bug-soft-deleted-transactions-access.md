@@ -2,7 +2,8 @@
 
 ## 1. Summary
 
-Soft-deleted transactions are effectively hidden from group administrators. The UI only exposes the “Show deleted” toggles to the original group creator, so admins (or any other elevated role) cannot request soft-deleted records. Even when the expense toggle is visible (for the owner), enabling it does not change the payload sent to the API, so deleted expenses never appear. Settlement deletion suffers from the same “owner-only” restriction.
+Soft-deleted transactions were effectively hidden from group administrators. The UI only exposed the “Show deleted” toggles to the original group creator, so admins (or any other elevated role) could not request soft-deleted records. Even when the expense toggle was visible (for the owner), enabling it did not change the payload sent to the API, so deleted expenses never appeared. Settlement deletion suffered from the same “owner-only” restriction.  
+**Status:** Fix implemented in webapp and Firebase services (2025-02-14); awaiting automated test coverage.
 
 ## 2. Impact
 
@@ -23,19 +24,27 @@ Soft-deleted transactions are effectively hidden from group administrators. The 
 
 | Aspect | Observed | Expected |
 | --- | --- | --- |
-| Toggle visibility | Conditioned on `group.createdBy === currentUser.uid` (`webapp-v2/src/components/group/ExpensesList.tsx:32-47`, `webapp-v2/src/components/settlements/SettlementHistory.tsx:61-78`). Admin roles never see the control. | All users with the appropriate permission (owner, admin, or other elevated role) should see the toggles. |
-| Deleted expense query | Toggling the checkbox only updates a local signal; `enhancedGroupDetailStore` never records the preference (`GroupDetailPage.tsx:30-48`). API calls omit an `includeDeleted` flag, so deleted expenses are permanently filtered out. | The store should track the “show deleted expenses” preference, propagate it to `apiClient.getGroupFullDetails`, and the backend should honour the flag. |
-| Backend support | `GroupService.getGroupFullDetails` ignores any include-deleted intent and always calls `ExpenseService.listGroupExpenses` without `includeDeleted` (`firebase/functions/src/services/GroupService.ts:831-875`). | When the frontend requests deleted expenses, the service should pass `includeDeleted: true`, allowing `FirestoreReader.getExpensesForGroupPaginated` to include soft deletes. |
-| Settlements | Same owner-only UI gate; service already accepts `includeDeletedSettlements`, but admins cannot toggle it so the flag never flips for them. | Apply the same permission check used for expenses so admins can surface deleted settlements. |
+| Toggle visibility | ✅ Resolved. Permission-aware toggles now render for owners, admins, and members with elevated permissions, and wording aligns across expenses/settlements (`webapp-v2/src/pages/GroupDetailPage.tsx:44-83`, `webapp-v2/src/components/group/ExpensesList.tsx:18-46`, `webapp-v2/src/components/settlements/SettlementHistory.tsx:24-154`). | All users with the appropriate permission (owner, admin, or other elevated role) should see the toggles. |
+| Deleted expense query | ✅ Resolved. `enhancedGroupDetailStore` persists the preference and forwards `includeDeletedExpenses` through the API client (`webapp-v2/src/app/stores/group-detail-store-enhanced.ts:12-201`, `webapp-v2/src/app/apiClient.ts:641-672`). | The store should track the “show deleted expenses” preference, propagate it to `apiClient.getGroupFullDetails`, and the backend should honour the flag. |
+| Backend support | ✅ Resolved. `GroupService.getGroupFullDetails` now pipes `includeDeletedExpenses` to `ExpenseService.listGroupExpenses`, with handler/test plumbing updated (`firebase/functions/src/groups/GroupHandlers.ts:142-160`, `firebase/functions/src/services/GroupService.ts:824-899`, `firebase/functions/src/__tests__/unit/AppDriver.ts:150-181`). | When the frontend requests deleted expenses, the service should pass `includeDeleted: true`, allowing `FirestoreReader.getExpensesForGroupPaginated` to include soft deletes. |
+| Settlements | ✅ Resolved. Settlement history reuses the same permission check and shared “Include deleted” label; store value is reused across reloads (`webapp-v2/src/pages/GroupDetailPage.tsx:320-340`, `webapp-v2/src/components/settlements/SettlementHistory.tsx:24-154`). | Apply the same permission check used for expenses so admins can surface deleted settlements. |
 
 ## 5. Suggested Fix
 
-1. Introduce a permissions-based guard (e.g. “can manage transactions” or reuse existing admin flags from `permissionsStore`) when deciding whether to render the toggles for expenses and settlements.
-2. Store the `showDeletedExpenses` preference inside `enhancedGroupDetailStore`, reuse it during initial load, pagination, and refreshes, and plumb an `includeDeletedExpenses` query parameter through the API client.
-3. Update `GroupService.getGroupFullDetails` to forward an `includeDeleted` option to `ExpenseService.listGroupExpenses`, ensuring Firestore queries opt into soft-deleted documents.
-4. Verify that settlement deletion settings mirror the expense rules (UI guard + store + service).
+1. ✅ Introduce a permissions-based guard (reuses `permissionsStore` signals and admin roles) when deciding whether to render the toggles for expenses and settlements.
+2. ✅ Store the `showDeletedExpenses` preference inside `enhancedGroupDetailStore`, reuse it during initial load, pagination, and refreshes, and plumb an `includeDeletedExpenses` query parameter through the API client.
+3. ✅ Update `GroupService.getGroupFullDetails` to forward an `includeDeleted` option to `ExpenseService.listGroupExpenses`, ensuring Firestore queries opt into soft-deleted documents.
+4. ✅ Verify that settlement deletion settings mirror the expense rules (UI guard + store + service).
 
 ## 6. Additional Notes
 
-- The backend already supports `includeDeleted` in `ExpenseService.listGroupExpenses` and in `FirestoreReader.getExpensesForGroupPaginated`; we just need to expose the switch end-to-end.
-- Review Playwright integration tests around expense/settlement listings to add coverage for the include-deleted toggle.
+- The backend already supported `includeDeleted` in `ExpenseService.listGroupExpenses` and in `FirestoreReader.getExpensesForGroupPaginated`; the feature flag is now exposed end-to-end.
+- Added Playwright integration coverage for the include-deleted toggles to prevent regressions (`webapp-v2/src/__tests__/integration/playwright/group-detail-include-deleted.test.ts`).
+- Added backend unit tests for the handler and service include-deleted flow (`firebase/functions/src/__tests__/unit/groups/GroupHandlers.test.ts`, `firebase/functions/src/__tests__/unit/GroupService.test.ts`).
+
+## 7. Current Status
+
+- Frontend toggles use a shared “Include deleted” label, respect owner/admin/permission-based access, and reset to off automatically when a user loses permissions.
+- Store retains deleted filters between refreshes and pipes `includeDeletedExpenses` / `includeDeletedSettlements` through API calls.
+- Backend handlers/services accept `includeDeletedExpenses`, enabling admins to retrieve soft-deleted expenses.
+- Backend and handler unit tests cover the include-deleted flag alongside Playwright end-to-end scenarios.

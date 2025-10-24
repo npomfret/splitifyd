@@ -403,6 +403,56 @@ describe('GroupHandlers - Unit Tests', () => {
             expect(result.expenses.expenses).toHaveLength(1);
             expect(result.balances).toBeDefined();
         });
+
+        it('should include soft-deleted expenses only when includeDeletedExpenses is true', async () => {
+            const ownerId = 'include-deleted-owner';
+            appDriver.seedUser(ownerId, { displayName: 'Owner User' });
+
+            const group = await appDriver.createGroup(
+                ownerId,
+                new CreateGroupRequestBuilder()
+                    .withName('Include Deleted Expenses Group')
+                    .build(),
+            );
+
+            const activeExpenseRequest = new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withPaidBy(ownerId)
+                .withParticipants([ownerId])
+                .withSplitType('equal')
+                .withAmount(75, 'USD')
+                .withDescription('Active dinner expense')
+                .build();
+            await appDriver.createExpense(ownerId, activeExpenseRequest);
+
+            const deletedExpenseRequest = new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withPaidBy(ownerId)
+                .withParticipants([ownerId])
+                .withSplitType('equal')
+                .withAmount(120, 'USD')
+                .withDescription('Soft-deleted tour deposit')
+                .build();
+            const deletedExpense = await appDriver.createExpense(ownerId, deletedExpenseRequest);
+            await appDriver.deleteExpense(ownerId, deletedExpense.id);
+
+            const defaultDetails = await appDriver.getGroupFullDetails(ownerId, group.id);
+            const defaultDescriptions = defaultDetails.expenses.expenses.map((expense) => expense.description);
+            expect(defaultDescriptions).toContain('Active dinner expense');
+            expect(defaultDescriptions).not.toContain('Soft-deleted tour deposit');
+            expect(defaultDetails.expenses.expenses.every((expense) => expense.deletedAt === null)).toBe(true);
+
+            const detailsWithDeleted = await appDriver.getGroupFullDetails(ownerId, group.id, {
+                includeDeletedExpenses: true,
+            });
+            const withDeletedDescriptions = detailsWithDeleted.expenses.expenses.map((expense) => expense.description);
+            expect(withDeletedDescriptions).toContain('Active dinner expense');
+            expect(withDeletedDescriptions).toContain('Soft-deleted tour deposit');
+
+            const resurrectedExpense = detailsWithDeleted.expenses.expenses.find((expense) => expense.description === 'Soft-deleted tour deposit');
+            expect(resurrectedExpense?.deletedAt).not.toBeNull();
+            expect(resurrectedExpense?.deletedBy).toBe(ownerId);
+        });
     });
 
     describe('Static Factory Method', () => {

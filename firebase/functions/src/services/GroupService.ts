@@ -834,6 +834,7 @@ export class GroupService {
         options: {
             expenseLimit?: number;
             expenseCursor?: string;
+            includeDeletedExpenses?: boolean;
             settlementLimit?: number;
             settlementCursor?: string;
             includeDeletedSettlements?: boolean;
@@ -862,6 +863,7 @@ export class GroupService {
             this.expenseService.listGroupExpenses(groupId, userId, {
                 limit: expenseLimit,
                 cursor: options.expenseCursor,
+                includeDeleted: options.includeDeletedExpenses ?? false,
             }),
 
             // Get pre-computed balances from Firestore (O(1) read)

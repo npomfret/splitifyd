@@ -144,6 +144,7 @@ export class GroupHandlers {
         const expenseCursor = req.query.expenseCursor as string;
         const settlementLimit = parseInt(req.query.settlementLimit as string) || 8;
         const settlementCursor = req.query.settlementCursor as string;
+        const includeDeletedExpenses = req.query.includeDeletedExpenses === 'true';
         const includeDeletedSettlements = req.query.includeDeletedSettlements === 'true';
         const commentLimit = parseInt(req.query.commentLimit as string) || 8;
         const commentCursor = req.query.commentCursor as string;
@@ -151,6 +152,7 @@ export class GroupHandlers {
         const result = await this.groupService.getGroupFullDetails(groupId, userId, {
             expenseLimit,
             expenseCursor,
+            includeDeletedExpenses,
             settlementLimit,
             settlementCursor,
             includeDeletedSettlements,

@@ -9,7 +9,7 @@ import { permissionsStore } from '@/stores/permissions-store.ts';
 import { BanknotesIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import type { SettlementWithMembers } from '@splitifyd/shared';
-import { MemberStatuses } from '@splitifyd/shared';
+import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -27,7 +27,6 @@ interface GroupDetailPageProps {
 export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const { t } = useTranslation();
     const isInitialized = useSignal(false);
-    const showDeletedExpenses = useSignal(false);
     const showLeaveGroupDialog = useSignal(false);
     const membershipActionInFlight = useSignal(false);
 
@@ -42,19 +41,52 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const balances = useComputed(() => enhancedGroupDetailStore.balances);
     const expenses = useComputed(() => enhancedGroupDetailStore.expenses);
     const commentsResponse = useComputed(() => enhancedGroupDetailStore.commentsResponse);
-    const currentMembership = useComputed(() => members.value.find((member) => member.uid === currentUser.value?.uid) ?? null);
-    const membershipStatus = useComputed(() => currentMembership.value?.memberStatus ?? MemberStatuses.ACTIVE);
-    const isArchivedMembership = useComputed(() => membershipStatus.value === MemberStatuses.ARCHIVED);
+    const showDeletedExpenses = useComputed(() => enhancedGroupDetailStore.showDeletedExpenses);
+    const showDeletedSettlements = useComputed(() => enhancedGroupDetailStore.showDeletedSettlements);
 
     // Auth store via hook
     const authStore = useAuthRequired();
     const currentUser = useComputed(() => authStore.user);
+    const currentMembership = useComputed(() => members.value.find((member) => member.uid === currentUser.value?.uid) ?? null);
+    const membershipStatus = useComputed(() => currentMembership.value?.memberStatus ?? MemberStatuses.ACTIVE);
+    const isArchivedMembership = useComputed(() => membershipStatus.value === MemberStatuses.ARCHIVED);
     const isGroupOwner = useComputed(() => currentUser.value && group.value && group.value.createdBy === currentUser.value.uid);
     const userPermissions = useComputed(() => permissionsStore.permissions.value || {});
     const canManageSecurity = useComputed(() => Boolean(userPermissions.value.canManageSettings));
     const canApproveMembers = useComputed(() => Boolean(userPermissions.value.canApproveMembers));
     const isGroupMember = useComputed(() => members.value.some((member) => member.uid === currentUser.value?.uid));
     const canShowSettingsButton = useComputed(() => Boolean(isGroupOwner.value || canManageSecurity.value || canApproveMembers.value || isGroupMember.value));
+    const canViewDeletedTransactions = useComputed(() => {
+        if (!currentUser.value || !group.value) {
+            return false;
+        }
+        if (group.value.createdBy === currentUser.value.uid) {
+            return true;
+        }
+
+        const role = currentMembership.value?.memberRole;
+        if (role === MemberRoles.ADMIN) {
+            return true;
+        }
+
+        const permissions = userPermissions.value;
+        if (!permissions) {
+            return false;
+        }
+
+        return Boolean(permissions.canDeleteAnyExpense || permissions.canEditAnyExpense || permissions.canManageSettings);
+    });
+
+    useEffect(() => {
+        if (!canViewDeletedTransactions.value) {
+            if (showDeletedExpenses.value) {
+                enhancedGroupDetailStore.setShowDeletedExpenses(false);
+            }
+            if (showDeletedSettlements.value) {
+                enhancedGroupDetailStore.setShowDeletedSettlements(false);
+            }
+        }
+    }, [canViewDeletedTransactions.value]);
 
     // Check if user can leave group (not the owner and not the last member)
     const isLastMember = useComputed(() => members.value.length === 1);
@@ -301,11 +333,16 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         <ExpensesList
                             onExpenseClick={handleExpenseClick}
                             onExpenseCopy={handleExpenseCopy}
+                            canToggleShowDeleted={canViewDeletedTransactions.value}
                             showDeletedExpenses={showDeletedExpenses.value}
-                            onShowDeletedChange={(show) => {
-                                showDeletedExpenses.value = show;
-                                enhancedGroupDetailStore.refreshAll();
-                            }}
+                            onShowDeletedChange={
+                                canViewDeletedTransactions.value
+                                    ? (show) => {
+                                        enhancedGroupDetailStore.setShowDeletedExpenses(show);
+                                        enhancedGroupDetailStore.refreshAll();
+                                    }
+                                    : undefined
+                            }
                         />
 
                         {/* Mobile-only members list */}
@@ -344,11 +381,16 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             <SettlementHistory
                                 groupId={groupId!}
                                 onEditSettlement={handleEditSettlement}
-                                showDeletedSettlements={enhancedGroupDetailStore.showDeletedSettlements}
-                                onShowDeletedChange={(show) => {
-                                    enhancedGroupDetailStore.setShowDeletedSettlements(show);
-                                    enhancedGroupDetailStore.refreshAll();
-                                }}
+                                canToggleShowDeleted={canViewDeletedTransactions.value}
+                                showDeletedSettlements={showDeletedSettlements.value}
+                                onShowDeletedChange={
+                                    canViewDeletedTransactions.value
+                                        ? (show) => {
+                                            enhancedGroupDetailStore.setShowDeletedSettlements(show);
+                                            enhancedGroupDetailStore.refreshAll();
+                                        }
+                                        : undefined
+                                }
                             />
                         </SidebarCard>
 

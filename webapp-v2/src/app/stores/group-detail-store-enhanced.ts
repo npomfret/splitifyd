@@ -25,6 +25,7 @@ interface EnhancedGroupDetailStore {
     readonly hasMoreExpenses: boolean;
     readonly hasMoreSettlements: boolean;
     readonly showDeletedSettlements: boolean;
+    readonly showDeletedExpenses: boolean;
 
     // Methods
     loadGroup(id: string): Promise<void>;
@@ -48,6 +49,7 @@ interface EnhancedGroupDetailStore {
     setDeletingGroup(value: boolean): void;
 
     setShowDeletedSettlements(value: boolean): void;
+    setShowDeletedExpenses(value: boolean): void;
 
     archiveGroup(): Promise<void>;
 
@@ -71,6 +73,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     readonly #hasMoreSettlementsSignal = signal<boolean>(false);
     readonly #isDeletingGroupSignal = signal<boolean>(false);
     readonly #showDeletedSettlementsSignal = signal<boolean>(false);
+    readonly #showDeletedExpensesSignal = signal<boolean>(false);
 
     // Reference counting infrastructure for multi-group support
     readonly #subscriberCounts = new Map<string, number>();
@@ -142,6 +145,10 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         return this.#showDeletedSettlementsSignal.value;
     }
 
+    get showDeletedExpenses() {
+        return this.#showDeletedExpensesSignal.value;
+    }
+
     setDeletingGroup(value: boolean): void {
         this.#isDeletingGroupSignal.value = value;
         // GroupDTO deletion flag changed (routine)
@@ -149,6 +156,10 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     setShowDeletedSettlements(value: boolean): void {
         this.#showDeletedSettlementsSignal.value = value;
+    }
+
+    setShowDeletedExpenses(value: boolean): void {
+        this.#showDeletedExpensesSignal.value = value;
     }
 
     async loadGroup(groupId: GroupId): Promise<void> {
@@ -159,6 +170,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         try {
             const fullDetails = await apiClient.getGroupFullDetails(groupId, {
                 expenseLimit: GROUP_EXPENSE_PAGE_SIZE,
+                includeDeletedExpenses: this.#showDeletedExpensesSignal.value,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
                 settlementLimit: GROUP_SETTLEMENT_PAGE_SIZE,
                 commentLimit: GROUP_COMMENT_PAGE_SIZE,
@@ -383,6 +395,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
                 expenseLimit: GROUP_EXPENSE_PAGE_SIZE,
                 expenseCursor: this.expenseCursor,
+                includeDeletedExpenses: this.#showDeletedExpensesSignal.value,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
             });
 
@@ -418,6 +431,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
                 expenseLimit: GROUP_EXPENSE_PAGE_SIZE,
+                includeDeletedExpenses: this.#showDeletedExpensesSignal.value,
                 settlementCursor: this.settlementCursor,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
                 settlementLimit: GROUP_SETTLEMENT_PAGE_SIZE,
@@ -450,6 +464,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
                 expenseLimit: GROUP_EXPENSE_PAGE_SIZE,
+                includeDeletedExpenses: this.#showDeletedExpensesSignal.value,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
                 settlementLimit: GROUP_SETTLEMENT_PAGE_SIZE,
                 commentLimit: GROUP_COMMENT_PAGE_SIZE,

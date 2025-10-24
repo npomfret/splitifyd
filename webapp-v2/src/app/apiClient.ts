@@ -638,6 +638,7 @@ class ApiClient {
         options?: {
             expenseLimit?: number;
             expenseCursor?: string;
+            includeDeletedExpenses?: boolean;
             settlementLimit?: number;
             settlementCursor?: string;
             includeDeletedSettlements?: boolean;
@@ -652,6 +653,9 @@ class ApiClient {
         }
         if (options?.expenseCursor) {
             queryParams.expenseCursor = options.expenseCursor;
+        }
+        if (options?.includeDeletedExpenses !== undefined) {
+            queryParams.includeDeletedExpenses = options.includeDeletedExpenses.toString();
         }
         if (options?.settlementLimit) {
             queryParams.settlementLimit = options.settlementLimit.toString();
