@@ -9,10 +9,16 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isGroupActive(groupId) {
+      let groupDoc = get(/databases/$(database)/documents/groups/$(groupId));
+      return groupDoc != null && groupDoc.data.deletedAt == null;
+    }
+
     // Groups collection - production security rules
     match /groups/{groupId} {
       // Allow read only for authenticated users who are group members
       allow read: if request.auth != null &&
+        resource.data.deletedAt == null &&
         exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
 
       // Deny all direct writes - only server functions can write to groups
@@ -21,7 +27,7 @@ service cloud.firestore {
       // ShareLinks subcollection - for invite tracking
       match /shareLinks/{shareLinkId} {
         // Allow read for authenticated users to resolve share links
-        allow read: if request.auth != null;
+        allow read: if request.auth != null && isGroupActive(groupId);
         // Deny all direct writes - only server functions can write share links
         allow write: if false;
       }
@@ -30,6 +36,7 @@ service cloud.firestore {
       match /comments/{commentId} {
         // Allow read only for group members
         allow read: if request.auth != null &&
+          isGroupActive(groupId) &&
           exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
         // Only server functions can write comments
         allow write: if false;
@@ -67,6 +74,7 @@ service cloud.firestore {
     match /group-balances/{groupId} {
       // Allow read only for group members
       allow read: if request.auth != null &&
+        isGroupActive(groupId) &&
         exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
 
       // Deny all writes - these should only be updated by server functions
@@ -109,7 +117,8 @@ service cloud.firestore {
       // Users can read memberships where they are the user
       // Document ID format: userId_groupId, so we can extract userId from document ID
       allow read: if request.auth != null && 
-        membershipId.matches('^' + request.auth.uid + '_.*');
+        membershipId.matches('^' + request.auth.uid + '_.*') &&
+        isGroupActive(resource.data.groupId);
       
       // Only server functions can write memberships (via admin SDK)
       allow write: if false;

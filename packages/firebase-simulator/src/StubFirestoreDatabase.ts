@@ -1469,6 +1469,7 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
             name: restOverrides.name ?? 'Test Group',
             description: restOverrides.description ?? 'A test group',
             createdBy: restOverrides.createdBy ?? 'test-creator',
+            deletedAt: restOverrides.deletedAt ?? null,
             permissions: {
                 ...defaultPermissions,
                 ...(overridePermissions ?? {}),

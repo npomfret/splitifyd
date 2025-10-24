@@ -21,10 +21,7 @@ const BaseGroupSchema = z
                 settingsManagement: z.string(),
             })
             .strict(),
-        // Phase 3: Deletion state management fields
-        deletionStatus: z.enum(['deleting', 'failed']).optional(),
-        deletionStartedAt: FirestoreTimestampSchema.optional(),
-        deletionAttempts: z.number().optional(),
+        deletedAt: FirestoreTimestampSchema.nullable(),
     })
     .merge(AuditFieldsSchema)
     .strict();

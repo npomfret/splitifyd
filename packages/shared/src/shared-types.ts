@@ -93,7 +93,7 @@ export const DELETED_AT_FIELD = 'deletedAt';
  * Common soft delete metadata fields.
  * All soft-deletable financial entities must include these fields.
  * Applies to: Expenses, Settlements
- * Does NOT apply to: Comments (hard delete), Groups (hard delete)
+ * Does NOT apply to: Comments (hard delete). Groups maintain a lightweight soft delete timestamp only.
  */
 export interface SoftDeletable {
     /**
@@ -560,7 +560,9 @@ interface Group {
 /**
  * Group DTO = Business fields + Metadata
  */
-export interface GroupDTO extends Group, BaseDTO {}
+export interface GroupDTO extends Group, BaseDTO {
+    deletedAt: ISOString | null;
+}
 
 // Request/Response types
 export interface CreateGroupRequest {

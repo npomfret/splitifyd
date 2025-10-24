@@ -234,7 +234,7 @@ describe('GroupHandlers - Unit Tests', () => {
             const result = await appDriver.deleteGroup(userId, group.id);
 
             expect(result).toMatchObject({
-                message: 'Group and all associated data deleted permanently',
+                message: 'Group deleted successfully',
             });
         });
 

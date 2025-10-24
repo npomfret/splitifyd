@@ -97,6 +97,7 @@ class JoinGroupStore {
                     balancesByCurrency: {},
                 },
                 lastActivity: 'Never',
+                deletedAt: null,
             };
 
             this.#groupSignal.value = group;
@@ -163,6 +164,7 @@ class JoinGroupStore {
                         balancesByCurrency: {},
                     },
                     lastActivity: 'Never',
+                    deletedAt: null,
                 };
             }
 

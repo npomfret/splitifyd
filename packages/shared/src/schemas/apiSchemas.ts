@@ -87,6 +87,7 @@ const GroupSchema = z.object({
     createdBy: z.string().optional(),
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
+    deletedAt: z.string().nullable().optional(),
     lastExpenseTime: z.string().optional(),
 });
 

@@ -375,6 +375,10 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             // Delete the group
             await apiDriver.deleteGroup(group.id, users[0].token);
 
+            const deletedGroup = await firestoreReader.getGroup(group.id, { includeDeleted: true });
+            expect(deletedGroup).not.toBeNull();
+            expect(deletedGroup?.deletedAt).not.toBeNull();
+
             // Verify the group is deleted from the backend
             await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
 
@@ -406,13 +410,17 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             // Delete the group
             await apiDriver.deleteGroup(group.id, users[0].token);
 
+            const deletedGroup = await firestoreReader.getGroup(group.id, { includeDeleted: true });
+            expect(deletedGroup).not.toBeNull();
+            expect(deletedGroup?.deletedAt).not.toBeNull();
+
             // Verify the group is actually deleted from the backend
             await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
         });
     });
 
     describe('Comprehensive Group Deletion Tests', () => {
-        test('should successfully delete group with soft-deleted expenses using hard delete', async () => {
+        test('should soft delete group with soft-deleted expenses', async () => {
             const groupUsers = await borrowTestUsers(2);
             const [user1, user2] = groupUsers;
 
@@ -450,7 +458,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
 
             expect(deleteResponse).toHaveProperty('message');
-            expect(deleteResponse.message).toContain('deleted permanently');
+            expect(deleteResponse.message).toBe('Group deleted successfully');
+
+            const deletedGroup = await firestoreReader.getGroup(testGroup.id, { includeDeleted: true });
+            expect(deletedGroup).not.toBeNull();
+            expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is actually deleted
             await expect(apiDriver.getGroupFullDetails(testGroup.id, user1.token)).rejects.toThrow(/404|not found/i);
@@ -459,7 +471,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             await expect(apiDriver.getGroupFullDetails(testGroup.id, user2.token)).rejects.toThrow(/404|not found/i);
         });
 
-        test('should delete group with multiple soft-deleted expenses', async () => {
+        test('should soft delete group with multiple soft-deleted expenses', async () => {
             const groupUsers = await borrowTestUsers(3);
             const [user1, user2, user3] = groupUsers;
 
@@ -500,7 +512,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
 
             expect(deleteResponse).toHaveProperty('message');
-            expect(deleteResponse.message).toContain('deleted permanently');
+            expect(deleteResponse.message).toBe('Group deleted successfully');
+
+            const deletedGroup = await firestoreReader.getGroup(testGroup.id, { includeDeleted: true });
+            expect(deletedGroup).not.toBeNull();
+            expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is deleted for all users
             for (const user of groupUsers) {
@@ -508,7 +524,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
         });
 
-        test('should clean up member subcollection when deleting group', async () => {
+        test('should hide group memberships after deletion', async () => {
             const groupUsers = await borrowTestUsers(4);
             const [owner, ...members] = groupUsers;
 
@@ -534,7 +550,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const deleteResponse = await apiDriver.deleteGroup(testGroup.id, owner.token);
 
             expect(deleteResponse).toHaveProperty('message');
-            expect(deleteResponse.message).toContain('deleted permanently');
+            expect(deleteResponse.message).toBe('Group deleted successfully');
+
+            const deletedGroup = await firestoreReader.getGroup(testGroup.id, { includeDeleted: true });
+            expect(deletedGroup).not.toBeNull();
+            expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is completely gone
             await expect(apiDriver.getGroupFullDetails(testGroup.id, owner.token)).rejects.toThrow(/404|not found/i);
@@ -545,14 +565,14 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
         });
 
-        test('should successfully delete group with active (non-deleted) expenses using hard delete', async () => {
+        test('should soft delete group with active (non-deleted) expenses', async () => {
             const groupUsers = await borrowTestUsers(2);
             const [user1, user2] = groupUsers;
 
             // Create a group
             const groupData = new CreateGroupRequestBuilder()
                 .withName(`Active Expense Group ${uuidv4()}`)
-                .withDescription('Testing hard delete with active expenses')
+                .withDescription('Testing soft delete with active expenses')
                 .build();
 
             const testGroup = await apiDriver.createGroup(groupData, user1.token);
@@ -577,7 +597,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
 
             expect(deleteResponse).toHaveProperty('message');
-            expect(deleteResponse.message).toContain('deleted permanently');
+            expect(deleteResponse.message).toBe('Group deleted successfully');
+
+            const deletedGroup = await firestoreReader.getGroup(testGroup.id, { includeDeleted: true });
+            expect(deletedGroup).not.toBeNull();
+            expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is completely deleted
             await expect(apiDriver.getGroupFullDetails(testGroup.id, user1.token)).rejects.toThrow(/404|not found/i);
@@ -585,18 +609,18 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             // Verify user2 also can't access it
             await expect(apiDriver.getGroupFullDetails(testGroup.id, user2.token)).rejects.toThrow(/404|not found/i);
 
-            // Verify the expense is also deleted (hard delete removes everything)
+            // Verify the expense is also inaccessible via API after soft delete
             await expect(apiDriver.getExpense(createdExpense.id, user1.token)).rejects.toThrow(/404|not found/i);
         });
 
-        test('should completely delete group with ALL subcollections and related data', async () => {
+        test('should soft delete group while preserving related data', async () => {
             const groupUsers = await borrowTestUsers(4);
             const [owner, member1, member2, member3] = groupUsers;
 
             // Create a comprehensive group with ALL possible related data
             const groupData = new CreateGroupRequestBuilder()
                 .withName(`Comprehensive Deletion Test ${uuidv4()}`)
-                .withDescription('Testing complete deletion of all subcollections')
+                .withDescription('Testing soft delete preserves subcollections')
                 .build();
 
             const testGroup = await apiDriver.createGroup(groupData, owner.token);
@@ -660,25 +684,27 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const totalExpenseComments = groupDeletionData.expenseComments.reduce((sum, snapshot) => sum + snapshot.size, 0);
             expect(totalExpenseComments).toBeGreaterThanOrEqual(3); // 3 expense comments total
 
-            // PERFORM HARD DELETE
+            // Perform soft delete
             const deleteResponse = await apiDriver.deleteGroup(groupId, owner.token);
 
             expect(deleteResponse).toHaveProperty('message');
-            expect(deleteResponse.message).toContain('deleted permanently');
+            expect(deleteResponse.message).toBe('Group deleted successfully');
 
-            // COMPREHENSIVE VERIFICATION: ALL subcollections should be completely deleted
+            const deletedGroup = await firestoreReader.getGroup(groupId, { includeDeleted: true });
+            expect(deletedGroup).not.toBeNull();
+            expect(deletedGroup?.deletedAt).not.toBeNull();
 
-            // 2. Use group deletion data method to verify all subcollections are empty
+            // COMPREHENSIVE VERIFICATION: Data remains persisted for potential recovery
+
             const groupDeletionDataAfter = await firestoreReader.getGroupDeletionData(groupId);
 
-            expect(groupDeletionDataAfter.expenses.size).toBe(0);
-            expect(groupDeletionDataAfter.settlements.size).toBe(0);
-            expect(groupDeletionDataAfter.shareLinks.size).toBe(0);
-            expect(groupDeletionDataAfter.groupComments.size).toBe(0);
+            expect(groupDeletionDataAfter.expenses.size).toBeGreaterThanOrEqual(expenses.length);
+            expect(groupDeletionDataAfter.settlements.size).toBeGreaterThanOrEqual(1);
+            expect(groupDeletionDataAfter.shareLinks.size).toBeGreaterThanOrEqual(2);
+            expect(groupDeletionDataAfter.groupComments.size).toBeGreaterThanOrEqual(2);
 
-            // Verify all expense comment subcollections are empty
             const totalExpenseCommentsAfter = groupDeletionDataAfter.expenseComments.reduce((sum, snapshot) => sum + snapshot.size, 0);
-            expect(totalExpenseCommentsAfter).toBe(0);
+            expect(totalExpenseCommentsAfter).toBeGreaterThanOrEqual(3);
 
             // 10. API calls should return 404 for all users
             for (const user of groupUsers) {

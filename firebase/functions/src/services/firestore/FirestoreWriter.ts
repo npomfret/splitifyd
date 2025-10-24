@@ -202,7 +202,6 @@ export class FirestoreWriter implements IFirestoreWriter {
             'lastCommentChange',
             'timestamp',
             'expiresAt',
-            'deletionStartedAt',
             'groupUpdatedAt',
             'lastUpdated',
             'assignedAt', // For theme.assignedAt

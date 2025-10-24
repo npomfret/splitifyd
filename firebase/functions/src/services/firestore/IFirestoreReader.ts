@@ -95,7 +95,7 @@ export interface IFirestoreReader {
      * @param groupId - The group ID
      * @returns Group document or null if not found
      */
-    getGroup(groupId: GroupId): Promise<GroupDTO | null>;
+    getGroup(groupId: GroupId, options?: { includeDeleted?: boolean; }): Promise<GroupDTO | null>;
 
     /**
      * Get an expense document by ID

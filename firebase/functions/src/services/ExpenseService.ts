@@ -663,6 +663,7 @@ export class ExpenseService {
             createdAt: groupData.createdAt,
             updatedAt: groupData.updatedAt,
             permissions: groupData.permissions,
+            deletedAt: groupData.deletedAt ?? null,
         };
 
         // Fetch participant data by UID (works for current AND departed members)

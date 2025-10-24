@@ -184,7 +184,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getGroup(groupId: GroupId): Promise<GroupDTO | null> {
+    async getGroup(groupId: GroupId, options: { includeDeleted?: boolean; } = {}): Promise<GroupDTO | null> {
         try {
             const groupDoc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
 
@@ -205,7 +205,13 @@ export class FirestoreReader implements IFirestoreReader {
             // Convert Timestamps to ISO strings for DTO
             const convertedData = this.convertTimestampsToISO(groupData);
 
-            return convertedData as unknown as GroupDTO;
+            const group = convertedData as unknown as GroupDTO;
+
+            if (group.deletedAt && !options.includeDeleted) {
+                return null;
+            }
+
+            return group;
         } catch (error) {
             logger.error('Failed to get group', error);
             throw error;
@@ -331,18 +337,13 @@ export class FirestoreReader implements IFirestoreReader {
         // These might be present in corrupted data from old migrations or test data
         delete sanitized.balance;
         delete sanitized.lastActivity;
-        // Drop legacy fields that should no longer be stored
-        if ('securityPreset' in sanitized) {
-            delete sanitized.securityPreset;
-        }
-        if ('presetAppliedAt' in sanitized) {
-            delete sanitized.presetAppliedAt;
-        }
-
         // Assert timestamp fields are proper Timestamp objects
         // DO NOT silently fix corrupted data - let it throw
         sanitized.createdAt = assertTimestamp(sanitized.createdAt, 'createdAt');
         sanitized.updatedAt = assertTimestamp(sanitized.updatedAt, 'updatedAt');
+        if (sanitized.deletedAt !== undefined && sanitized.deletedAt !== null) {
+            sanitized.deletedAt = assertTimestamp(sanitized.deletedAt, 'deletedAt');
+        }
 
         return sanitized;
     }
@@ -412,7 +413,12 @@ export class FirestoreReader implements IFirestoreReader {
                     // Convert Timestamps to ISO strings for DTO
                     const convertedData = this.convertTimestampsToISO(groupData);
 
-                    allGroups.push(convertedData as unknown as GroupDTO);
+                    const group = convertedData as unknown as GroupDTO;
+                    if (group.deletedAt) {
+                        continue;
+                    }
+
+                    allGroups.push(group);
 
                     // Hard stop if we reach the limit
                     if (allGroups.length >= options.limit) break;
@@ -1124,7 +1130,13 @@ export class FirestoreReader implements IFirestoreReader {
             // Convert Timestamps to ISO strings for DTO
             const convertedData = this.convertTimestampsToISO(groupData);
 
-            return convertedData as unknown as GroupDTO;
+            const group = convertedData as unknown as GroupDTO;
+
+            if (group.deletedAt) {
+                return null;
+            }
+
+            return group;
         } catch (error) {
             logger.error('Failed to get group in transaction', error, { groupId });
             throw error;

@@ -42,6 +42,7 @@ const baseGroup: GroupDTO = {
         memberApproval: 'automatic',
         settingsManagement: 'admin-only',
     },
+    deletedAt: null,
     balance: undefined,
     lastActivity: '2 days ago',
 };

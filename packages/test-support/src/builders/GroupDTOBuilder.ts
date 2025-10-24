@@ -13,6 +13,9 @@ export class GroupDTOBuilder {
         createdAt: new Date() as Date | string | { toDate(): Date; },
         updatedAt: new Date() as Date | string | { toDate(): Date; },
     };
+    private deletionFields = {
+        deletedAt: null as BuilderTimestamp | null,
+    };
 
     // Business logic fields
     private businessFields: {
@@ -103,6 +106,11 @@ export class GroupDTOBuilder {
         return this;
     }
 
+    withDeletedAt(timestamp: BuilderTimestamp | null): this {
+        this.deletionFields.deletedAt = timestamp;
+        return this;
+    }
+
     withLastActivity(activity: string): this {
         this.clientFields.lastActivity = activity;
         return this;
@@ -160,6 +168,7 @@ export class GroupDTOBuilder {
             // Convert audit timestamps to ISO strings for client
             createdAt: timestampToISOString(this.auditFields.createdAt),
             updatedAt: timestampToISOString(this.auditFields.updatedAt),
+            deletedAt: this.deletionFields.deletedAt ? timestampToISOString(this.deletionFields.deletedAt) : null,
             // Default client fields if not set
             balance: this.clientFields.balance || { balancesByCurrency: {} },
             lastActivity: this.clientFields.lastActivity || '2 hours ago',
@@ -178,6 +187,7 @@ export class GroupDTOBuilder {
             // Convert audit timestamps to ISO strings
             createdAt: timestampToISOString(this.auditFields.createdAt),
             updatedAt: timestampToISOString(this.auditFields.updatedAt),
+            deletedAt: this.deletionFields.deletedAt ? timestampToISOString(this.deletionFields.deletedAt) : null,
         };
         return result;
     }

@@ -89,16 +89,22 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         );
 
         const response = await groupService.deleteGroup(group.id, owner.id);
-        expect(response.message).toContain('deleted permanently');
+        expect(response.message).toBe('Group deleted successfully');
 
         await expect(firestoreReader.getGroup(group.id)).resolves.toBeNull();
-        await expect(firestoreReader.getExpense(expense.id)).resolves.toBeNull();
-        await expect(firestoreReader.getSettlement(settlement.id)).resolves.toBeNull();
+
+        const softDeletedGroup = await firestoreReader.getGroup(group.id, { includeDeleted: true });
+        expect(softDeletedGroup).not.toBeNull();
+        expect(softDeletedGroup?.deletedAt).not.toBeNull();
+
+        await expect(firestoreReader.getExpense(expense.id)).resolves.not.toBeNull();
+        await expect(firestoreReader.getSettlement(settlement.id)).resolves.not.toBeNull();
 
         const remainingMembers = await firestoreReader.getAllGroupMembers(group.id);
-        expect(remainingMembers).toHaveLength(0);
+        expect(remainingMembers).toHaveLength(2);
 
-        await expect(groupService.deleteGroup(group.id, owner.id)).rejects.toThrow();
+        const repeatDelete = await groupService.deleteGroup(group.id, owner.id);
+        expect(repeatDelete.message).toBe('Group deleted successfully');
     });
 
     it('prevents non-owners from deleting groups', async () => {

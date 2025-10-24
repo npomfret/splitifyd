@@ -4,6 +4,13 @@
 
 This document outlines the plan to change the group deletion mechanism from a hard delete to a soft delete. Currently, deleting a group removes the document and all its sub-collections from Firestore. For large groups, this operation is at risk of timing out or exceeding memory limits in the Firebase Function.
 
+### Current Status
+
+- ✅ Schema and service changes are implemented; group deletion now sets `deletedAt`.
+- ✅ Firestore reader/writer updates, shared DTOs, builders, and security/index definitions all reflect the new field.
+- ✅ Backend/shared/frontend unit tests pass with the soft-delete behaviour.
+- 🔄 Full integration suite still needs to be rerun once the functions emulator is reachable (current attempts from CI env time out).
+
 The proposed solution is to introduce a `deletedAt` timestamp to the group document. When a user "deletes" a group, we will set this timestamp instead of permanently removing the data. All queries will be updated to filter out these soft-deleted groups, making the change transparent to the end-user.
 
 ## 2. Problem
