@@ -24,6 +24,7 @@ import type { GroupBalanceDTO } from '../../schemas';
 // Import schemas for validation
 import { GroupId } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
+import { PolicyId } from '@splitifyd/shared';
 import {
     ActivityFeedDocumentSchema,
     CommentDataSchema,
@@ -1183,7 +1184,7 @@ export class FirestoreWriter implements IFirestoreWriter {
      * @param policyData - The policy data
      * @returns Write result
      */
-    async createPolicy(policyId: string | null, policyData: any): Promise<WriteResult> {
+    async createPolicy(policyId: PolicyId | null, policyData: any): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createPolicy', async () => {
             try {
                 const policiesCollection = this.db.collection('policies');
@@ -1234,7 +1235,7 @@ export class FirestoreWriter implements IFirestoreWriter {
      * @param updates - The policy updates
      * @returns Write result
      */
-    async updatePolicy(policyId: string, updates: any): Promise<WriteResult> {
+    async updatePolicy(policyId: PolicyId, updates: any): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updatePolicy', async () => {
             try {
                 // Convert ISO strings to Timestamps in the updates

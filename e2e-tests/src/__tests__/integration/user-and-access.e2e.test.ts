@@ -2,11 +2,11 @@ import { expect } from '@playwright/test';
 import { CreateGroupFormDataBuilder, DEFAULT_PASSWORD, generateTestEmail, generateTestGroupName, generateTestUserName, TestUserBuilder } from '@splitifyd/test-support';
 import { ApiDriver } from '@splitifyd/test-support';
 import { JoinGroupPage } from '@splitifyd/test-support';
+import { PolicyAcceptanceModalPage } from '@splitifyd/test-support';
 import { simpleTest } from '../../fixtures';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
 import { EMULATOR_URL } from '../../helpers';
 import { DashboardPage, GroupDetailPage, LoginPage, RegisterPage, SettingsPage } from '../../pages';
-import { PolicyAcceptanceModalPage } from '@splitifyd/test-support';
 
 type DashboardNavigable = SettingsPage | GroupDetailPage;
 

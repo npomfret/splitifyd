@@ -57,6 +57,7 @@ import { CommentDocumentSchema } from '../../schemas';
 import { GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import type { CommentId } from '@splitifyd/shared';
+import { PolicyId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../../constants';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
@@ -272,7 +273,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getPolicy(policyId: string): Promise<PolicyDTO | null> {
+    async getPolicy(policyId: PolicyId): Promise<PolicyDTO | null> {
         try {
             const policyDoc = await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
 
@@ -1183,7 +1184,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getRawPolicyDocument(policyId: string): Promise<IDocumentSnapshot | null> {
+    async getRawPolicyDocument(policyId: PolicyId): Promise<IDocumentSnapshot | null> {
         try {
             const doc = await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
             return doc.exists ? doc : null;

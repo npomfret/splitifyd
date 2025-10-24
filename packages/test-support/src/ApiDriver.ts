@@ -37,6 +37,7 @@ import { ExpenseId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
+import { PolicyId } from '@splitifyd/shared';
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
@@ -349,15 +350,15 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
-    async getPolicy(policyId: string): Promise<CurrentPolicyResponse> {
+    async getPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
         return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
     }
 
-    async getCurrentPolicy(policyId: string): Promise<CurrentPolicyResponse> {
+    async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
         return this.getPolicy(policyId);
     }
 
-    async acceptMultiplePolicies(acceptances: Array<{ policyId: string; versionHash: string; }>, token: string): Promise<any> {
+    async acceptMultiplePolicies(acceptances: Array<{ policyId: PolicyId; versionHash: string; }>, token: string): Promise<any> {
         return await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
     }
 
@@ -576,7 +577,7 @@ export class ApiDriver {
     }
 
     // Policy administration methods for testing
-    async updatePolicy(policyId: string, text: string, publish: boolean = true, adminToken?: string): Promise<any> {
+    async updatePolicy(policyId: PolicyId, text: string, publish: boolean = true, adminToken?: string): Promise<any> {
         // Try with the adminToken first, then fall back to regular token
         const token = adminToken;
         return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', {
@@ -610,7 +611,7 @@ export class ApiDriver {
         }
     }
 
-    async updateSpecificPolicy(policyId: string, userToken?: string): Promise<void> {
+    async updateSpecificPolicy(policyId: PolicyId, userToken?: string): Promise<void> {
         const timestamp = Date.now();
         const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
         const safeContent = `${policyName} version ${timestamp}. Updated policy content for testing.`;

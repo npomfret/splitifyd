@@ -76,6 +76,7 @@ import { CommentTargetType } from '@splitifyd/shared';
 import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
+import { PolicyId } from '@splitifyd/shared';
 import type { GroupBalanceDTO, ParsedShareLink } from '../../schemas';
 
 export interface IFirestoreReader {
@@ -116,7 +117,7 @@ export interface IFirestoreReader {
      * @param policyId - The policy ID
      * @returns Policy document or null if not found
      */
-    getPolicy(policyId: string): Promise<PolicyDTO | null>;
+    getPolicy(policyId: PolicyId): Promise<PolicyDTO | null>;
 
     /**
      * Get all policy documents
@@ -344,7 +345,7 @@ export interface IFirestoreReader {
      * @param policyId - The policy ID
      * @returns Raw document snapshot or null if not found
      */
-    getRawPolicyDocument(policyId: string): Promise<IDocumentSnapshot | null>;
+    getRawPolicyDocument(policyId: PolicyId): Promise<IDocumentSnapshot | null>;
 
     /**
      * Get group DTO in a transaction with Timestamp → ISO conversion

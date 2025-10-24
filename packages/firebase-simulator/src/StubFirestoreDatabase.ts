@@ -6,6 +6,7 @@
  * over data and behavior.
  */
 
+import { PolicyId } from '@splitifyd/shared';
 import type { UserRecord } from 'firebase-admin/auth';
 import { Timestamp } from 'firebase-admin/firestore';
 import type {
@@ -1507,7 +1508,7 @@ export class StubFirestoreDatabase implements IFirestoreDatabase {
         this.seed(`settlements/${settlementId}`, firestoreData);
     }
 
-    seedPolicy(policyId: string, policyData: Record<string, any>): void {
+    seedPolicy(policyId: PolicyId, policyData: Record<string, any>): void {
         const firestoreData = this.convertDatesToTimestamps(policyData);
         this.seed(`policies/${policyId}`, firestoreData);
     }

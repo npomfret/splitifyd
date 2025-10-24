@@ -17,6 +17,7 @@
 import type { CommentDTO, CommentTargetType, RegisteredUser, ShareLinkDTO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
+import { PolicyId } from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
@@ -128,7 +129,7 @@ export interface IFirestoreWriter {
      * @param policyData - The policy data
      * @returns Write result
      */
-    createPolicy(policyId: string | null, policyData: any): Promise<WriteResult>;
+    createPolicy(policyId: PolicyId | null, policyData: any): Promise<WriteResult>;
 
     /**
      * Update a policy document
@@ -136,7 +137,7 @@ export interface IFirestoreWriter {
      * @param updates - The policy updates
      * @returns Write result
      */
-    updatePolicy(policyId: string, updates: any): Promise<WriteResult>;
+    updatePolicy(policyId: PolicyId, updates: any): Promise<WriteResult>;
 
     // ========================================================================
     // Transaction Operations

@@ -17,6 +17,7 @@ import {
     ListGroupsResponse,
     MemberStatus,
     MessageResponse,
+    PolicyId,
     PreviewGroupResponse,
     PublishPolicyResponse,
     RegisteredUser,
@@ -518,7 +519,7 @@ export class AppDriver {
         return (res as any).getJson() as { policies: any[]; count: number; };
     }
 
-    async getPolicy(userId: string, policyId: string): Promise<any> {
+    async getPolicy(userId: string, policyId: PolicyId): Promise<any> {
         const req = createStubRequest(userId, {}, { id: policyId });
         const res = createStubResponse();
 
@@ -527,7 +528,7 @@ export class AppDriver {
         return (res as any).getJson();
     }
 
-    async getPolicyVersion(userId: string, policyId: string, versionHash: string): Promise<any> {
+    async getPolicyVersion(userId: string, policyId: PolicyId, versionHash: string): Promise<any> {
         const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
         const res = createStubResponse();
 
@@ -536,7 +537,7 @@ export class AppDriver {
         return (res as any).getJson();
     }
 
-    async updatePolicy(userId: string, policyId: string, updateData: { text: string; publish?: boolean; }): Promise<UpdatePolicyResponse> {
+    async updatePolicy(userId: string, policyId: PolicyId, updateData: { text: string; publish?: boolean; }): Promise<UpdatePolicyResponse> {
         const req = createStubRequest(userId, updateData, { id: policyId });
         const res = createStubResponse();
 
@@ -545,7 +546,7 @@ export class AppDriver {
         return (res as any).getJson() as UpdatePolicyResponse;
     }
 
-    async publishPolicy(userId: string, policyId: string, versionHash: string): Promise<PublishPolicyResponse> {
+    async publishPolicy(userId: string, policyId: PolicyId, versionHash: string): Promise<PublishPolicyResponse> {
         const req = createStubRequest(userId, { versionHash }, { id: policyId });
         const res = createStubResponse();
 
@@ -554,7 +555,7 @@ export class AppDriver {
         return (res as any).getJson() as PublishPolicyResponse;
     }
 
-    async deletePolicyVersion(userId: string, policyId: string, versionHash: string): Promise<DeletePolicyVersionResponse> {
+    async deletePolicyVersion(userId: string, policyId: PolicyId, versionHash: string): Promise<DeletePolicyVersionResponse> {
         const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
         const res = createStubResponse();
 
@@ -563,7 +564,7 @@ export class AppDriver {
         return (res as any).getJson() as DeletePolicyVersionResponse;
     }
 
-    async acceptMultiplePolicies(userId: string, acceptances: Array<{ policyId: string; versionHash: string; }>): Promise<AcceptMultiplePoliciesResponse> {
+    async acceptMultiplePolicies(userId: string, acceptances: Array<{ policyId: PolicyId; versionHash: string; }>): Promise<AcceptMultiplePoliciesResponse> {
         const req = createStubRequest(userId, { acceptances });
         const res = createStubResponse();
 
@@ -581,7 +582,7 @@ export class AppDriver {
         return (res as any).getJson() as UserPolicyStatusResponse;
     }
 
-    async getCurrentPolicy(policyId: string): Promise<CurrentPolicyResponse> {
+    async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
         const req = createStubRequest('', {}, { id: policyId });
         const res = createStubResponse();
 

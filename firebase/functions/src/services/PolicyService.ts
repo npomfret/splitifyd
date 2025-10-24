@@ -1,4 +1,5 @@
 import { PolicyDTO, PolicyVersion } from '@splitifyd/shared';
+import { PolicyId } from '@splitifyd/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
@@ -22,7 +23,7 @@ export class PolicyService {
     /**
      * Validates that a policy document remains valid after an update operation
      */
-    private async validatePolicyAfterUpdate(policyId: string, operationType: 'update' | 'publish' | 'version deletion', additionalContext: Record<string, any> = {}): Promise<void> {
+    private async validatePolicyAfterUpdate(policyId: PolicyId, operationType: 'update' | 'publish' | 'version deletion', additionalContext: Record<string, any> = {}): Promise<void> {
         const updatedDoc = await this.firestoreReader.getRawPolicyDocument(policyId);
         if (!updatedDoc) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', `Policy not found after ${operationType}`);

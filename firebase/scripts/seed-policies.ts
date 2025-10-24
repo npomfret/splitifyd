@@ -32,6 +32,7 @@ console.log(`🎯 Running policy seeding for ${env.environment}`);
 // Initialize Firebase using common pattern
 initializeFirebase(env);
 
+import { PolicyId } from '@splitifyd/shared';
 import { getIdentityToolkitConfig } from '../functions/src/client-config';
 import { FirestoreCollections } from '../functions/src/constants';
 import { getAuth, getFirestore } from '../functions/src/firebase';
@@ -72,7 +73,7 @@ function readPolicyFile(filename: string): string {
 /**
  * Seed policy using API endpoints (dev) or internal functions (production)
  */
-async function seedPolicy(policyId: string, policyName: string, filename: string): Promise<void> {
+async function seedPolicy(policyId: PolicyId, policyName: string, filename: string): Promise<void> {
     try {
         // Check if policy already exists
         const existingDoc = await firestoreDb.collection(FirestoreCollections.POLICIES).doc(policyId).get();
