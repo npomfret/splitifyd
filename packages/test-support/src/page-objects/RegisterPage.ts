@@ -3,6 +3,7 @@ import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { DashboardPage } from './DashboardPage';
+import {DisplayName} from "@splitifyd/shared";
 
 const translation = translationEn;
 
@@ -640,7 +641,7 @@ export class RegisterPage extends BasePage {
     /**
      * Verify user display name is visible on page after navigation
      */
-    async verifyUserDisplayNameVisible(displayName: string): Promise<void> {
+    async verifyUserDisplayNameVisible(displayName: DisplayName): Promise<void> {
         await expect(this.page.getByText(displayName).first()).toBeVisible();
     }
 }

@@ -2,10 +2,11 @@ import { amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, 
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from './AppDriver';
+import type {UserId} from "@splitifyd/shared";
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
-const netBalanceForPayer = (splits: Array<{ uid: string; amount: string; }>, payerId: string, currency: string) => {
+const netBalanceForPayer = (splits: Array<{ uid: string; amount: string; }>, payerId: UserId, currency: string) => {
     const totalUnits = splits
         .filter((split) => split.uid !== payerId)
         .reduce((sum, split) => sum + amountToSmallestUnit(split.amount, currency), 0);

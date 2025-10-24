@@ -1,5 +1,6 @@
 import type { UserRecord } from 'firebase-admin/auth';
 import { generateShortId } from '../test-helpers';
+import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Builder for creating Firebase Auth UserRecord objects for testing
@@ -45,7 +46,7 @@ export class AuthUserRecordBuilder {
         return this;
     }
 
-    withDisplayName(displayName: string | undefined): AuthUserRecordBuilder {
+    withDisplayName(displayName: DisplayName | undefined): AuthUserRecordBuilder {
         this.data.displayName = displayName;
         return this;
     }

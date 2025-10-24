@@ -3,10 +3,11 @@ import { ExpenseFormPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberB
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 import type {GroupId} from "@splitifyd/shared";
+import {DisplayName} from "@splitifyd/shared";
 
 type MemberSeed = {
     uid: string;
-    displayName: string;
+    displayName: DisplayName;
     groupDisplayName?: string;
 };
 
@@ -16,7 +17,7 @@ async function expectNoGlobalError(page: Page) {
 }
 
 async function openExpenseFormForTest(
-    authenticatedPage: { page: Page; user: { uid: string; displayName: string; }; },
+    authenticatedPage: { page: Page; user: { uid: string; displayName: DisplayName; }; },
     groupId: GroupId,
     additionalMembers: MemberSeed[] = [],
 ) {

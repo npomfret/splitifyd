@@ -1,5 +1,5 @@
-import type { SettlementDTO } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
+import type { SettlementDTO,  } from '@splitifyd/shared';
+import { Amount , UserId} from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
 
@@ -10,8 +10,8 @@ import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPai
 export class SettlementDTOBuilder {
     // Core settlement data (from CreateSettlementRequest)
     private groupId: GroupId;
-    private payerId: string;
-    private payeeId: string;
+    private payerId: UserId;
+    private payeeId: UserId;
     private amount: Amount;
     private currency: string;
     private date: string;
@@ -23,11 +23,11 @@ export class SettlementDTOBuilder {
     private updatedAt: Date;
 
     // Business logic field
-    private createdBy: string;
+    private createdBy: UserId;
 
     // Soft delete fields
     private deletedAt: Date | null = null;
-    private deletedBy: string | null = null;
+    private deletedBy: UserId | null = null;
 
     // Test control
     private excludeCurrency = false;
@@ -55,12 +55,12 @@ export class SettlementDTOBuilder {
         return this;
     }
 
-    withPayerId(payerId: string): SettlementDTOBuilder {
+    withPayerId(payerId: UserId): SettlementDTOBuilder {
         this.payerId = payerId;
         return this;
     }
 
-    withPayeeId(payeeId: string): SettlementDTOBuilder {
+    withPayeeId(payeeId: UserId): SettlementDTOBuilder {
         this.payeeId = payeeId;
         return this;
     }

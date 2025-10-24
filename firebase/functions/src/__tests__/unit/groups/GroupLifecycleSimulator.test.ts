@@ -2,6 +2,7 @@ import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
+import {DisplayName} from "@splitifyd/shared";
 
 describe('Group lifecycle behaviour (stub firestore)', () => {
     let appDriver: AppDriver;
@@ -27,7 +28,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         appDriver.dispose();
     });
 
-    const seedUsers = (...users: Array<{ id: string; displayName: string; }>) => {
+    const seedUsers = (...users: Array<{ id: string; displayName: DisplayName; }>) => {
         for (const user of users) {
             appDriver.seedUser(user.id, { displayName: user.displayName, email: `${user.id}@test.local` });
         }

@@ -12,6 +12,7 @@ import { expenseFormStore } from './expense-form-store';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
 import { themeStore } from './theme-store';
+import {DisplayName} from "@splitifyd/shared";
 
 // Auth types - moved from types/auth.ts
 interface AuthState {
@@ -25,7 +26,7 @@ interface AuthState {
 
 interface AuthActions {
     login: (email: string, password: string) => Promise<void>;
-    register: (email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
+    register: (email: string, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
     logout: () => Promise<void>;
     resetPassword: (email: string) => Promise<void>;
     updateUserProfile: (updates: { displayName?: string; }) => Promise<void>;
@@ -262,7 +263,7 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    async register(email: string, password: string, displayName: string, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true): Promise<void> {
+    async register(email: string, password: string, displayName: DisplayName, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
 

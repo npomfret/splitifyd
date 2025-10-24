@@ -1,5 +1,6 @@
 import { UserRegistration } from '@splitifyd/shared';
 import { generateNewUserDetails } from '../test-helpers';
+import {DisplayName} from "@splitifyd/shared";
 
 export class UserRegistrationBuilder {
     private userRegistration: UserRegistration;
@@ -23,7 +24,7 @@ export class UserRegistrationBuilder {
         return this;
     }
 
-    withDisplayName(displayName: string): this {
+    withDisplayName(displayName: DisplayName): this {
         this.userRegistration.displayName = displayName;
         return this;
     }

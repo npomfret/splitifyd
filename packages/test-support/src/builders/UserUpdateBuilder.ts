@@ -1,4 +1,5 @@
 import type { UpdateUserRequest } from '@splitifyd/shared';
+import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Builder for creating user update request objects for testing
@@ -7,7 +8,7 @@ import type { UpdateUserRequest } from '@splitifyd/shared';
 export class UserUpdateBuilder {
     private updateData: Partial<UpdateUserRequest> = {};
 
-    withDisplayName(displayName: string): UserUpdateBuilder {
+    withDisplayName(displayName: DisplayName): UserUpdateBuilder {
         this.updateData.displayName = displayName;
         return this;
     }

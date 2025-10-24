@@ -7,6 +7,7 @@ import { UserService } from '../../../services/UserService2';
 import { ApiError } from '../../../utils/errors';
 import { initializeI18n } from '../../../utils/i18n';
 import { StubAuthService } from '../mocks/StubAuthService';
+import {DisplayName} from "@splitifyd/shared";
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
@@ -670,7 +671,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         describe('Display Name Validation', () => {
             it('should reject empty display names', () => {
                 expect(() => {
-                    const displayName: string = '';
+                    const displayName: DisplayName = '';
                     if (!displayName || displayName.trim().length === 0) {
                         throw new ApiError(400, 'INVALID_DISPLAY_NAME', 'Display name cannot be empty');
                     }

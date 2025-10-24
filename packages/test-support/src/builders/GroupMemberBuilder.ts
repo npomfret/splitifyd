@@ -1,7 +1,8 @@
 import type { GroupMember, MemberRole, MemberStatus, UserThemeColor } from '@splitifyd/shared';
-import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { MemberRoles, MemberStatuses , UserId} from '@splitifyd/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
+import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Builder for creating GroupMember objects for tests
@@ -38,7 +39,7 @@ export class GroupMemberBuilder {
         return this;
     }
 
-    withDisplayName(displayName: string): this {
+    withDisplayName(displayName: DisplayName): this {
         this.member.displayName = displayName;
         // Auto-update initials when display name changes
         this.member.initials = this.generateInitials(displayName);
@@ -85,7 +86,7 @@ export class GroupMemberBuilder {
         return this;
     }
 
-    withInvitedBy(invitedBy: string): this {
+    withInvitedBy(invitedBy: UserId): this {
         this.member.invitedBy = invitedBy;
         return this;
     }
@@ -125,7 +126,7 @@ export class GroupMemberBuilder {
      * Generate initials from display name
      * Examples: "Alice Smith" -> "AS", "Bob" -> "B"
      */
-    private generateInitials(displayName: string): string {
+    private generateInitials(displayName: DisplayName): string {
         const parts = displayName.trim().split(/\s+/);
         if (parts.length === 1) {
             return parts[0].charAt(0).toUpperCase();

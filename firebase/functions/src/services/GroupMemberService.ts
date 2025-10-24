@@ -1,5 +1,5 @@
 import { ActivityFeedEventTypes, amountToSmallestUnit, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
+import { GroupId, UserId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../constants';
 import { FieldValue } from '../firestore-wrapper';
 import { logger, LoggerContext } from '../logger';
@@ -25,7 +25,7 @@ export class GroupMemberService {
         return measure.measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
     }
 
-    async updateMemberRole(requestingUserId: string, groupId: GroupId, targetUserId: string, newRole: MemberRole): Promise<MessageResponse> {
+    async updateMemberRole(requestingUserId: string, groupId: GroupId, targetUserId: UserId, newRole: MemberRole): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.updateMemberRole', async () => {
             if (!requestingUserId) {
                 throw Errors.UNAUTHORIZED();
@@ -86,7 +86,7 @@ export class GroupMemberService {
         });
     }
 
-    async approveMember(requestingUserId: string, groupId: GroupId, targetUserId: string): Promise<MessageResponse> {
+    async approveMember(requestingUserId: string, groupId: GroupId, targetUserId: UserId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.approveMember', async () => {
             if (!requestingUserId) {
                 throw Errors.UNAUTHORIZED();
@@ -181,7 +181,7 @@ export class GroupMemberService {
         });
     }
 
-    async rejectMember(requestingUserId: string, groupId: GroupId, targetUserId: string): Promise<MessageResponse> {
+    async rejectMember(requestingUserId: string, groupId: GroupId, targetUserId: UserId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.rejectMember', async () => {
             if (!requestingUserId) {
                 throw Errors.UNAUTHORIZED();
@@ -241,7 +241,7 @@ export class GroupMemberService {
      * @param targetUserId - The user being removed (could be same as requesting user for leave)
      * @param isLeaving - true for self-leave, false for admin removal
      */
-    private async _removeMemberFromGroup(requestingUserId: string, groupId: GroupId, targetUserId: string, isLeaving: boolean): Promise<MessageResponse> {
+    private async _removeMemberFromGroup(requestingUserId: string, groupId: GroupId, targetUserId: UserId, isLeaving: boolean): Promise<MessageResponse> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ groupId });

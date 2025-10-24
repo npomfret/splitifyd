@@ -1,5 +1,6 @@
 import type { UserRegistration } from '@splitifyd/shared';
 import { randomBoolean, randomChoice, randomEmail, randomString } from '../test-helpers';
+import {DisplayName} from "@splitifyd/shared";
 
 export class RegisterRequestBuilder {
     private request: UserRegistration = {
@@ -20,7 +21,7 @@ export class RegisterRequestBuilder {
         return this;
     }
 
-    withDisplayName(displayName: string): this {
+    withDisplayName(displayName: DisplayName): this {
         this.request.displayName = displayName;
         return this;
     }

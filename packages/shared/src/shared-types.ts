@@ -53,6 +53,8 @@ export type GroupId = string;
 export type ExpenseId = string;
 export type SettlementId = string;
 export type GroupName = string;
+export type UserId = string;
+export type DisplayName = string;
 
 /**
  * Zod schema for expense splits
@@ -108,17 +110,17 @@ export interface ActivityFeedItemDetails {
     commentPreview?: string;
     settlementId?: string;
     settlementDescription?: string;
-    targetUserId?: string;
+    targetUserId?: UserId;
     targetUserName?: string;
 }
 
 export interface ActivityFeedItem {
     id: string;
-    userId: string;
+    userId: UserId;
     groupId: GroupId;
     groupName: GroupName;
     eventType: ActivityFeedEventType;
-    actorId: string;
+    actorId: UserId;
     actorName: string;
     timestamp: ISOString;
     details: ActivityFeedItemDetails;
@@ -148,7 +150,7 @@ export interface SoftDeletable {
      * UID of the user who deleted the entity.
      * null indicates the entity is active (not deleted).
      */
-    deletedBy: string | null;
+    deletedBy: UserId | null;
 }
 
 // ========================================================================
@@ -232,7 +234,7 @@ export interface PermissionChangeLog {
 
 export interface InviteLink {
     createdAt: ISOString;
-    createdBy: string;
+    createdBy: UserId;
     expiresAt?: ISOString;
     maxUses?: number; // Optional usage limit
     usedCount: number;
@@ -244,7 +246,7 @@ export interface InviteLink {
 
 export interface ExpenseCategory {
     name: string;
-    displayName: string;
+    displayName: DisplayName;
     icon: string;
 }
 
@@ -350,7 +352,7 @@ export interface UserThemeColor {
 }
 
 export interface BaseUser {
-    displayName: string;
+    displayName: DisplayName;
 }
 
 export interface UserRegistration extends BaseUser {
@@ -361,7 +363,7 @@ export interface UserRegistration extends BaseUser {
 }
 
 export interface FirebaseUser extends BaseUser {
-    uid: string;
+    uid: UserId;
 }
 
 export interface PooledTestUser extends UserToken {
@@ -370,7 +372,7 @@ export interface PooledTestUser extends UserToken {
 }
 
 export interface UserToken {
-    uid: string;
+    uid: UserId;
     token: string;
 }
 
@@ -412,8 +414,8 @@ export interface RegisteredUser extends FirebaseUser {
  * Used in middleware and request context where only auth fields are needed.
  */
 export interface AuthenticatedUser {
-    uid: string;
-    displayName: string;
+    uid: UserId;
+    displayName: DisplayName;
     role?: SystemUserRole;
 }
 
@@ -436,9 +438,9 @@ export interface AuthenticatedRequest {
  * Contains all fields needed by the frontend, excluding sensitive server-only data.
  */
 export interface ClientUser {
-    uid: string;
+    uid: UserId;
     email: string;
-    displayName: string;
+    displayName: DisplayName;
     emailVerified: boolean;
     photoURL?: string | null;
     themeColor?: UserThemeColor;
@@ -470,9 +472,9 @@ export interface PolicyDTO extends Policy, BaseDTO {}
 // ========================================================================
 
 export interface UserBalance {
-    uid: string;
-    owes: Record<string, Amount>;
-    owedBy: Record<string, Amount>;
+    uid: UserId;
+    owes: Record<UserId, Amount>;
+    owedBy: Record<UserId, Amount>;
     netBalance: Amount;
 }
 
@@ -494,12 +496,12 @@ export interface CurrencyBalance {
  * This is the minimal data needed to track a user's membership in a group.
  */
 export interface GroupMembership {
-    uid: string;
+    uid: UserId;
     groupId: GroupId; // For collectionGroup queries
     memberRole: MemberRole;
     memberStatus: MemberStatus;
     joinedAt: ISOString;
-    invitedBy?: string; // UID of the user who created the share link that was used to join
+    invitedBy?: UserId; // UID of the user who created the share link that was used to join
     theme: UserThemeColor;
     groupDisplayName: string; // Custom display name for this group (set on join, can be changed later)
 }
@@ -530,8 +532,8 @@ export type GroupMembershipDTO = GroupMembership;
  */
 export interface GroupMember {
     // User identification
-    uid: string;
-    displayName: string;
+    uid: UserId;
+    displayName: DisplayName;
     initials: string;
 
     // User display properties
@@ -544,7 +546,7 @@ export interface GroupMember {
     memberRole: MemberRole;
     memberStatus: MemberStatus;
     joinedAt: ISOString;
-    invitedBy?: string; // UID of the user who invited this member
+    invitedBy?: UserId; // UID of the user who invited this member
 }
 
 /**
@@ -552,7 +554,7 @@ export interface GroupMember {
  */
 interface ShareLink {
     token: string; // The actual share token used in URLs
-    createdBy: string; // UID of the user who created this share link
+    createdBy: UserId; // UID of the user who created this share link
     expiresAt: ISOString;
     isActive: boolean; // For soft deletion/deactivation
 }
@@ -581,7 +583,7 @@ interface Group {
     name: string;
     description?: string;
 
-    createdBy: string;
+    createdBy: UserId;
 
     // Individual permission settings (customizable after preset selection)
     permissions: GroupPermissions;
@@ -618,7 +620,7 @@ export interface UpdateGroupRequest {
 }
 
 export interface UpdateDisplayNameRequest {
-    displayName: string;
+    displayName: DisplayName;
 }
 
 // Validation schemas
@@ -676,7 +678,7 @@ export interface GroupMembersResponse {
 // ========================================================================
 
 export interface ExpenseSplit {
-    uid: string;
+    uid: UserId;
     amount: Amount;
     percentage?: number;
 }
@@ -686,15 +688,15 @@ export interface ExpenseSplit {
  */
 interface Expense extends SoftDeletable {
     groupId: GroupId;
-    createdBy: string;
-    paidBy: string;
+    createdBy: UserId;
+    paidBy: UserId;
     amount: Amount;
     currency: string;
     description: string;
     category: string;
     date: ISOString;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
-    participants: string[];
+    participants: UserId[];
     splits: ExpenseSplit[];
     receiptUrl?: string;
 }
@@ -715,11 +717,11 @@ export interface CreateExpenseRequest {
     description: string;
     amount: Amount;
     currency: string;
-    paidBy: string;
+    paidBy: UserId;
     category: string;
     date: string;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
-    participants: string[];
+    participants: UserId[];
     splits: ExpenseSplit[];
     receiptUrl?: string;
 }
@@ -735,13 +737,13 @@ export type UpdateExpenseRequest = Partial<Omit<CreateExpenseRequest, 'groupId'>
  */
 interface Settlement extends SoftDeletable {
     groupId: GroupId;
-    payerId: string;
-    payeeId: string;
+    payerId: UserId;
+    payeeId: UserId;
     amount: Amount;
     currency: string;
     date: ISOString;
     note?: string;
-    createdBy: string;
+    createdBy: UserId;
 }
 
 /**
@@ -757,8 +759,8 @@ export interface SettlementDTO extends Settlement, BaseDTO {
 
 export interface CreateSettlementRequest {
     groupId: GroupId;
-    payerId: string;
-    payeeId: string;
+    payerId: UserId;
+    payeeId: UserId;
     amount: Amount;
     currency: string;
     date?: ISOString;
@@ -858,8 +860,8 @@ export interface RegisterResponse {
     success: boolean;
     message: string;
     user: {
-        uid: string;
-        displayName: string;
+        uid: UserId;
+        displayName: DisplayName;
     };
 }
 
@@ -872,7 +874,7 @@ export interface CurrentPolicyResponse {
 }
 
 export interface UserProfileResponse {
-    displayName: string;
+    displayName: DisplayName;
 }
 
 export interface AcceptMultiplePoliciesResponse {
@@ -910,10 +912,10 @@ export interface AcceptPolicyRequest {
 
 export interface SimplifiedDebt {
     from: {
-        uid: string;
+        uid: UserId;
     };
     to: {
-        uid: string;
+        uid: UserId;
     };
     amount: Amount;
     currency: string;
@@ -921,10 +923,10 @@ export interface SimplifiedDebt {
 
 export interface GroupBalances {
     groupId: GroupId;
-    userBalances: Record<string, UserBalance>;
+    userBalances: Record<UserId, UserBalance>;
     simplifiedDebts: SimplifiedDebt[];
     lastUpdated: ISOString;
-    balancesByCurrency: Record<string, Record<string, UserBalance>>;
+    balancesByCurrency: Record<string, Record<UserId, UserBalance>>;
 }
 
 // ========================================================================
@@ -942,7 +944,7 @@ export type CommentTargetType = (typeof CommentTargetTypes)[keyof typeof Comment
  * Comment business fields (without metadata)
  */
 interface Comment {
-    authorId: string;
+    authorId: UserId;
     authorName: string;
     authorAvatar?: string;
     text: string;
@@ -1042,7 +1044,7 @@ export interface TestSuccessResponse {
 export interface TestPromoteToAdminResponse {
     success: boolean;
     message: string;
-    userId: string;
+    userId: UserId;
 }
 
 // ========================================================================
@@ -1093,11 +1095,11 @@ export interface ExpenseDraft {
     currency: string;
     date: string; // YYYY-MM-DD format
     time: string; // HH:MM format
-    paidBy: string;
+    paidBy: UserId;
     category: string;
     splitType: string;
-    participants: string[];
-    splits: Array<{ userId: string; amount: Amount; percentage?: number; }>;
+    participants: UserId[];
+    splits: Array<{ userId: UserId; amount: Amount; percentage?: number; }>;
     timestamp: number;
 }
 

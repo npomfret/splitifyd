@@ -1,4 +1,4 @@
-import type { GroupMember, SettlementWithMembers } from '@splitifyd/shared';
+import type { GroupMember, SettlementWithMembers, UserId } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
@@ -57,7 +57,7 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withPayerId(payerId: string): this {
+    withPayerId(payerId: UserId): this {
         this.settlement.payer = new GroupMemberBuilder()
             .withUid(payerId)
             .withDisplayName(`Payer ${payerId.slice(0, 4)}`)
@@ -70,7 +70,7 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withPayeeId(payeeId: string): this {
+    withPayeeId(payeeId: UserId): this {
         this.settlement.payee = new GroupMemberBuilder()
             .withUid(payeeId)
             .withDisplayName(`Payee ${payeeId.slice(0, 4)}`)

@@ -6,6 +6,7 @@
 import { Page } from '@playwright/test';
 import { ProxiedMethodError } from './errors/test-errors';
 import { collectPageState } from './utils/page-state-collector';
+import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Configuration for the error handling proxy
@@ -23,7 +24,7 @@ interface ProxyConfig {
  * User context extracted from the page at error time
  */
 interface UserContext {
-    displayName: string;
+    displayName: DisplayName;
     browserContextId: string;
 }
 

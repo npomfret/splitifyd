@@ -4,6 +4,7 @@ import { assertValidInstanceMode, type InstanceMode } from './shared/instance-mo
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';
 import { validateAppConfiguration } from './middleware/config-validation';
+import {DisplayName} from "@splitifyd/shared";
 
 // Cache for lazy-loaded configurations
 let cachedConfig: ClientConfig | null = null;
@@ -59,7 +60,7 @@ interface ClientConfig {
         previewLength: number;
     };
     formDefaults: {
-        displayName: string;
+        displayName: DisplayName;
         email: string;
         password: string;
     };

@@ -1,11 +1,13 @@
+import { DisplayName } from "@splitifyd/shared";
+
 export interface AvatarProps {
-    displayName: string;
+    displayName: DisplayName;
     userId: string;
     size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 // Generate initials from display name
-export function getInitials(displayName: string): string {
+export function getInitials(displayName: DisplayName): string {
     return displayName
         .split(' ')
         .map((n) => n[0])

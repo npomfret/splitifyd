@@ -3,6 +3,7 @@ import type { ExpenseFormData } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
+import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Expense Form Page Object Model for Playwright tests
@@ -201,7 +202,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Get payer radio button by display name (scoped to Who Paid section)
      */
-    private getPayerRadio(displayName: string): Locator {
+    private getPayerRadio(displayName: DisplayName): Locator {
         return this.getWhoPaidSection().getByRole('radio', { name: displayName });
     }
 
@@ -463,7 +464,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Select who paid by display name (what user sees on screen)
      */
-    async selectPayer(displayName: string): Promise<void> {
+    async selectPayer(displayName: DisplayName): Promise<void> {
         const radioByUid = this.page.locator(`input[type="radio"][name="paidBy"][value="${displayName}"]`);
 
         if (await radioByUid.isVisible().catch(() => false)) {

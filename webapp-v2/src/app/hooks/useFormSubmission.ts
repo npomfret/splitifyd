@@ -1,7 +1,7 @@
 import { routes } from '@/constants/routes';
 import { logError } from '@/utils/browser-logger.ts';
 import { useComputed } from '@preact/signals';
-import { GroupId } from '@splitifyd/shared';
+import { GroupId, UserId } from '@splitifyd/shared';
 import { route } from 'preact-router';
 import { useEffect } from 'preact/hooks';
 import { expenseFormStore } from '../stores/expense-form-store';
@@ -85,7 +85,7 @@ export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, 
         expenseFormStore.setParticipants(allMemberIds);
     };
 
-    const handleSelectNone = (paidBy: string | null) => {
+    const handleSelectNone = (paidBy: UserId | null) => {
         // Keep only the payer
         expenseFormStore.setParticipants(paidBy ? [paidBy] : []);
     };

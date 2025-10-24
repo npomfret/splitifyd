@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { HeaderPage } from './HeaderPage';
+import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Shared base class for Settings page object.
@@ -287,7 +288,7 @@ export class SettingsPage extends BasePage {
     /**
      * Profile Information Verification
      */
-    async verifyProfileInformation(displayName: string, email: string): Promise<void> {
+    async verifyProfileInformation(displayName: DisplayName, email: string): Promise<void> {
         await expect(this.getProfileDisplayName()).toContainText(displayName);
         await expect(this.getProfileEmail()).toContainText(email);
     }

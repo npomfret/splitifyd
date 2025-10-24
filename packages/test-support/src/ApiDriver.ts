@@ -39,6 +39,7 @@ import { SettlementId } from '@splitifyd/shared';
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
+import {DisplayName} from "@splitifyd/shared";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -323,7 +324,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async register(userData: { email: string; password: string; displayName: string; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; }): Promise<RegisterResponse> {
+    async register(userData: { email: string; password: string; displayName: DisplayName; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; }): Promise<RegisterResponse> {
         // Ensure required policy acceptance fields are provided with defaults
         const registrationData = {
             ...userData,

@@ -46,6 +46,7 @@ import { ChangeTrackerHandlers } from '../../triggers/ChangeTrackerHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
 import { registerChangeTrackerTriggers } from './ChangeTrackerTestHarness';
 import { StubAuthService } from './mocks/StubAuthService';
+import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Thin façade around the public HTTP handlers.
@@ -302,7 +303,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async updateGroupMemberDisplayName(userId: string, groupId: GroupId, displayName: string): Promise<MessageResponse> {
+    async updateGroupMemberDisplayName(userId: string, groupId: GroupId, displayName: DisplayName): Promise<MessageResponse> {
         const req = createStubRequest(userId, { displayName }, { id: groupId });
         const res = createStubResponse();
 

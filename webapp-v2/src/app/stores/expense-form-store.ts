@@ -19,6 +19,7 @@ import { ExpenseId, GroupId } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
+import type {UserId} from "@splitifyd/shared";
 
 interface ExpenseFormStore {
     // Form fields
@@ -27,7 +28,7 @@ interface ExpenseFormStore {
     currency: string;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
-    paidBy: string;
+    paidBy: UserId;
     category: string;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: string[];
@@ -85,7 +86,7 @@ interface ExpenseFormData {
     currency: string;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
-    paidBy: string;
+    paidBy: UserId;
     category: string;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
 }

@@ -38,7 +38,7 @@ interface AuthOperationContext {
 interface ValidatedCreateUserRequest extends CreateRequest {
     email: string;
     password: string;
-    displayName: string;
+    displayName: DisplayName;
     emailVerified?: boolean;
     phoneNumber?: string;
     photoURL?: string;
@@ -61,6 +61,7 @@ import { ApiError, Errors } from '../../utils/errors';
 import { LoggerContext } from '../../utils/logger-context';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateBatchUserIds, validateCreateUser, validateCustomClaims, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
+import {DisplayName} from "@splitifyd/shared";
 
 export interface IdentityToolkitConfig {
     apiKey: string;

@@ -1,5 +1,5 @@
 import { ColorPattern, GroupMembershipDTO, MemberRoles, MemberStatuses, UserThemeColor } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
+import { GroupId, UserId } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 
 /**
@@ -68,7 +68,7 @@ export class GroupMemberDocumentBuilder {
         return this;
     }
 
-    withInvitedBy(invitedBy: string): this {
+    withInvitedBy(invitedBy: UserId): this {
         this.memberDoc.invitedBy = invitedBy;
         return this;
     }

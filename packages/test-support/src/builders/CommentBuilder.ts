@@ -1,5 +1,6 @@
 import type { CommentDTO } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomChoice, randomDate, randomString, timestampToISOString } from '../test-helpers';
+import type {UserId} from "@splitifyd/shared";
 
 export class CommentBuilder {
     private comment: CommentDTO = {
@@ -16,7 +17,7 @@ export class CommentBuilder {
         return this;
     }
 
-    withAuthor(authorId: string, authorName: string): this {
+    withAuthor(authorId: UserId, authorName: string): this {
         this.comment.authorId = authorId;
         this.comment.authorName = authorName;
         return this;

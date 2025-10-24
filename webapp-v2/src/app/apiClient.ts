@@ -45,6 +45,7 @@ import { ExpenseId, GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
+import {DisplayName} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 
@@ -863,7 +864,7 @@ class ApiClient {
         });
     }
 
-    async register(email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean): Promise<RegisterResponse> {
+    async register(email: string, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean): Promise<RegisterResponse> {
         return this.request({
             endpoint: '/register',
             method: 'POST',

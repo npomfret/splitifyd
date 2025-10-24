@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import type { SettlementFormData } from '@splitifyd/shared';
 import { SettlementFormPage as BaseSettlementFormPage } from '@splitifyd/test-support';
+import {DisplayName} from "@splitifyd/shared";
 
 /**
  * E2E-specific SettlementFormPage extending shared base class.
@@ -36,7 +37,7 @@ export class SettlementFormPage extends BaseSettlementFormPage {
             .toPass({ timeout: 5000 });
     }
 
-    async findOptionByDisplayName(select: Locator, displayName: string): Promise<string> {
+    async findOptionByDisplayName(select: Locator, displayName: DisplayName): Promise<string> {
         const options = await select.locator('option').all();
         for (const option of options) {
             const text = await option.textContent();

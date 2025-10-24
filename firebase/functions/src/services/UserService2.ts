@@ -13,6 +13,7 @@ import { LoggerContext } from '../utils/logger-context';
 import type { IAuthService } from './auth';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { NotificationService } from './notification-service';
+import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Result of a successful user registration
@@ -22,7 +23,7 @@ interface RegisterUserResult {
     message: string;
     user: {
         uid: string;
-        displayName: string | undefined;
+        displayName: DisplayName | undefined;
     };
 }
 
@@ -41,7 +42,7 @@ export class UserService {
      * Validates that a user record has all required fields
      * @throws Error if required fields are missing
      */
-    private validateUserRecord(userRecord: UserRecord): asserts userRecord is UserRecord & { email: string; displayName: string; } {
+    private validateUserRecord(userRecord: UserRecord): asserts userRecord is UserRecord & { email: string; displayName: DisplayName; } {
         if (!userRecord.email || !userRecord.displayName) {
             throw new Error(`User ${userRecord.uid} missing required fields: email and displayName are mandatory`);
         }
@@ -50,7 +51,7 @@ export class UserService {
     /**
      * Creates a RegisteredUser from Firebase Auth record and Firestore data
      */
-    private createUserProfile(userRecord: UserRecord & { email: string; displayName: string; }, firestoreData: any): RegisteredUser {
+    private createUserProfile(userRecord: UserRecord & { email: string; displayName: DisplayName; }, firestoreData: any): RegisteredUser {
         return {
             uid: userRecord.uid,
             displayName: userRecord.displayName,

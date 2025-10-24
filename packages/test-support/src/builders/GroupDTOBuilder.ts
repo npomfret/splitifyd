@@ -1,5 +1,5 @@
 import type { GroupDTO, GroupPermissions, UserThemeColor } from '@splitifyd/shared';
-import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { MemberRoles, MemberStatuses, UserId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomChoice, randomString, timestampToISOString } from '../test-helpers';
 
 /**
@@ -19,7 +19,7 @@ export class GroupDTOBuilder {
 
     // Business logic fields
     private businessFields: {
-        createdBy: string;
+        createdBy: UserId;
         name: string;
         description?: string;
         permissions: GroupPermissions;

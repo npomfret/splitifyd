@@ -1,6 +1,6 @@
 import type { CreateSettlementRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
+import { GroupId, UserId } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class CreateSettlementRequestBuilder {
@@ -24,12 +24,12 @@ export class CreateSettlementRequestBuilder {
         return this;
     }
 
-    withPayerId(payerId: string): this {
+    withPayerId(payerId: UserId): this {
         this.settlement.payerId = payerId;
         return this;
     }
 
-    withPayeeId(payeeId: string): this {
+    withPayeeId(payeeId: UserId): this {
         this.settlement.payeeId = payeeId;
         return this;
     }

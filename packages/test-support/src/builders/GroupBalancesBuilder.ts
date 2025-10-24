@@ -2,6 +2,7 @@ import type { GroupBalances, SimplifiedDebt, UserBalance } from '@splitifyd/shar
 import { Amount } from '@splitifyd/shared';
 import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
+import {DisplayName} from "@splitifyd/shared";
 
 /**
  * Extended UserBalance with optional displayName and balances fields
@@ -162,7 +163,7 @@ export class GroupBalancesBuilder {
     /**
      * Convenience method: Set up a scenario with no debts (all settled up)
      */
-    withNoDebts(...users: Array<{ uid: string; displayName: string; }>): this {
+    withNoDebts(...users: Array<{ uid: string; displayName: DisplayName; }>): this {
         users.forEach((user) => {
             this.addUserBalance(user.uid, {
                 displayName: user.displayName,
