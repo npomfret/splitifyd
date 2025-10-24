@@ -1,4 +1,4 @@
-import { PolicyDTO, PolicyVersion } from '@splitifyd/shared';
+import { PolicyDTO, PolicyVersion, VersionHash } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
@@ -102,7 +102,7 @@ export class PolicyService {
     /**
      * Get specific version content
      */
-    async getPolicyVersion(id: string, hash: string): Promise<PolicyVersion & { versionHash: string; }> {
+    async getPolicyVersion(id: string, hash: string): Promise<PolicyVersion & { versionHash: VersionHash; }> {
         try {
             const policy = await this.firestoreReader.getPolicy(id);
 
@@ -137,11 +137,11 @@ export class PolicyService {
     /**
      * Create new draft version (not published)
      */
-    async updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string; }> {
+    async updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: VersionHash; currentVersionHash?: string; }> {
         return measureDb('PolicyService.updatePolicy', async () => this._updatePolicy(id, text, publish));
     }
 
-    private async _updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string; }> {
+    private async _updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: VersionHash; currentVersionHash?: string; }> {
         LoggerContext.update({ policyId: id, operation: 'update-policy', publish });
 
         try {
@@ -209,7 +209,7 @@ export class PolicyService {
     /**
      * Publish a policy version (internal helper)
      */
-    async publishPolicyInternal(id: string, versionHash: string): Promise<{ currentVersionHash: string; }> {
+    async publishPolicyInternal(id: string, versionHash: VersionHash): Promise<{ currentVersionHash: string; }> {
         if (!versionHash) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'VERSION_HASH_REQUIRED', 'Version hash is required');
         }
@@ -254,11 +254,11 @@ export class PolicyService {
     /**
      * Publish a policy version
      */
-    async publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string; }> {
+    async publishPolicy(id: string, versionHash: VersionHash): Promise<{ currentVersionHash: string; }> {
         return measureDb('PolicyService.publishPolicy', async () => this._publishPolicy(id, versionHash));
     }
 
-    private async _publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string; }> {
+    private async _publishPolicy(id: string, versionHash: VersionHash): Promise<{ currentVersionHash: string; }> {
         LoggerContext.update({ policyId: id, operation: 'publish-policy', versionHash });
 
         return this.publishPolicyInternal(id, versionHash);

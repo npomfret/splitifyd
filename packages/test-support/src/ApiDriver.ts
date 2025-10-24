@@ -36,7 +36,7 @@ import {
 import { ExpenseId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
+import type { Email, VersionHash } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
@@ -358,7 +358,7 @@ export class ApiDriver {
         return this.getPolicy(policyId);
     }
 
-    async acceptMultiplePolicies(acceptances: Array<{ policyId: PolicyId; versionHash: string; }>, token: string): Promise<any> {
+    async acceptMultiplePolicies(acceptances: Array<{ policyId: PolicyId; versionHash: VersionHash; }>, token: string): Promise<any> {
         return await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
     }
 

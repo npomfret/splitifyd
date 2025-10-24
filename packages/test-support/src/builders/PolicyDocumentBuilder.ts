@@ -1,4 +1,4 @@
-import { PolicyDTO } from '@splitifyd/shared';
+import { PolicyDTO, VersionHash } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
 
 /**
@@ -35,7 +35,7 @@ export class PolicyDocumentBuilder {
         return this;
     }
 
-    withVersionText(versionHash: string, text: string): this {
+    withVersionText(versionHash: VersionHash, text: string): this {
         this.policy.currentVersionHash = versionHash;
         this.policy.versions = {
             [versionHash]: {

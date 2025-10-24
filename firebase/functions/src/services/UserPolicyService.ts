@@ -1,4 +1,4 @@
-import { PolicyAcceptanceStatusDTO, PolicyId, UserPolicyStatusResponse } from '@splitifyd/shared';
+import { PolicyAcceptanceStatusDTO, PolicyId, UserPolicyStatusResponse, VersionHash } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
@@ -12,7 +12,7 @@ import { IFirestoreWriter } from './firestore';
  */
 interface AcceptPolicyRequest {
     policyId: PolicyId;
-    versionHash: string;
+    versionHash: VersionHash;
 }
 
 /**
@@ -27,7 +27,7 @@ export class UserPolicyService {
     /**
      * Validate that a policy exists and the version hash is valid
      */
-    private async validatePolicyAndVersion(policyId: PolicyId, versionHash: string): Promise<void> {
+    private async validatePolicyAndVersion(policyId: PolicyId, versionHash: VersionHash): Promise<void> {
         const policy = await this.firestoreReader.getPolicy(policyId);
 
         if (!policy) {
@@ -42,11 +42,11 @@ export class UserPolicyService {
     /**
      * Accept multiple policy versions for a user
      */
-    async acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: PolicyId; versionHash: string; acceptedAt: string; }>> {
+    async acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: PolicyId; versionHash: VersionHash; acceptedAt: string; }>> {
         return measureDb('UserPolicyService.acceptMultiplePolicies', async () => this._acceptMultiplePolicies(userId, acceptances));
     }
 
-    private async _acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: PolicyId; versionHash: string; acceptedAt: string; }>> {
+    private async _acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: PolicyId; versionHash: VersionHash; acceptedAt: string; }>> {
         LoggerContext.update({ userId, operation: 'accept-multiple-policies', count: acceptances.length });
 
         try {

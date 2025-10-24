@@ -1,4 +1,4 @@
-import { PolicyId } from '@splitifyd/shared';
+import { PolicyId, VersionHash } from '@splitifyd/shared';
 import * as Joi from 'joi';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
@@ -29,7 +29,7 @@ const acceptMultiplePoliciesSchema = Joi
  */
 interface AcceptPolicyRequest {
     policyId: PolicyId;
-    versionHash: string;
+    versionHash: VersionHash;
 }
 
 /**
@@ -135,7 +135,7 @@ interface UpdatePolicyRequest {
  * Publish policy request interface
  */
 interface PublishPolicyRequest {
-    versionHash: string;
+    versionHash: VersionHash;
 }
 
 /**

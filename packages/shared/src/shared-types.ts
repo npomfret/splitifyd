@@ -59,6 +59,7 @@ export type Email = string;
 export type CurrencyISOCode = string;
 export type CommentId = string;
 export type PolicyId = string;
+export type VersionHash = string;
 
 /**
  * Zod schema for expense splits
@@ -886,7 +887,7 @@ export interface AcceptMultiplePoliciesResponse {
     message: string;
     acceptedPolicies: Array<{
         policyId: PolicyId;
-        versionHash: string;
+        versionHash: VersionHash;
         acceptedAt: string;
     }>;
 }
@@ -907,7 +908,7 @@ export interface UserPolicyStatusResponse {
 
 export interface AcceptPolicyRequest {
     policyId: PolicyId;
-    versionHash: string;
+    versionHash: VersionHash;
 }
 
 // ========================================================================
@@ -996,7 +997,7 @@ export interface ListCommentsResponse {
 
 export interface UpdatePolicyResponse {
     success: boolean;
-    versionHash: string;
+    versionHash: VersionHash;
     published: boolean;
     currentVersionHash: string | undefined;
     message: string;
@@ -1011,7 +1012,7 @@ export interface PublishPolicyResponse {
 export interface CreatePolicyResponse {
     success: boolean;
     id: string;
-    versionHash: string;
+    versionHash: VersionHash;
     message: string;
 }
 

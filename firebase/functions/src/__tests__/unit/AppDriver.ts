@@ -28,6 +28,7 @@ import {
     UpdatePolicyResponse,
     UpdateSettlementRequest,
     UserPolicyStatusResponse,
+    VersionHash,
 } from '@splitifyd/shared';
 import { ExpenseId, SettlementId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
@@ -528,7 +529,7 @@ export class AppDriver {
         return (res as any).getJson();
     }
 
-    async getPolicyVersion(userId: string, policyId: PolicyId, versionHash: string): Promise<any> {
+    async getPolicyVersion(userId: string, policyId: PolicyId, versionHash: VersionHash): Promise<any> {
         const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
         const res = createStubResponse();
 
@@ -546,7 +547,7 @@ export class AppDriver {
         return (res as any).getJson() as UpdatePolicyResponse;
     }
 
-    async publishPolicy(userId: string, policyId: PolicyId, versionHash: string): Promise<PublishPolicyResponse> {
+    async publishPolicy(userId: string, policyId: PolicyId, versionHash: VersionHash): Promise<PublishPolicyResponse> {
         const req = createStubRequest(userId, { versionHash }, { id: policyId });
         const res = createStubResponse();
 
@@ -555,7 +556,7 @@ export class AppDriver {
         return (res as any).getJson() as PublishPolicyResponse;
     }
 
-    async deletePolicyVersion(userId: string, policyId: PolicyId, versionHash: string): Promise<DeletePolicyVersionResponse> {
+    async deletePolicyVersion(userId: string, policyId: PolicyId, versionHash: VersionHash): Promise<DeletePolicyVersionResponse> {
         const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
         const res = createStubResponse();
 
@@ -564,7 +565,7 @@ export class AppDriver {
         return (res as any).getJson() as DeletePolicyVersionResponse;
     }
 
-    async acceptMultiplePolicies(userId: string, acceptances: Array<{ policyId: PolicyId; versionHash: string; }>): Promise<AcceptMultiplePoliciesResponse> {
+    async acceptMultiplePolicies(userId: string, acceptances: Array<{ policyId: PolicyId; versionHash: VersionHash; }>): Promise<AcceptMultiplePoliciesResponse> {
         const req = createStubRequest(userId, { acceptances });
         const res = createStubResponse();
 
