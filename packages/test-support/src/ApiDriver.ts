@@ -40,6 +40,7 @@ import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
 import {DisplayName} from "@splitifyd/shared";
+import type {Email} from "@splitifyd/shared";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -89,7 +90,7 @@ export class ApiDriver {
     }
 
     async borrowTestUser(): Promise<PooledTestUser> {
-        const poolUser = (await this.apiRequest('/test-pool/borrow', 'POST', {})) as { email: string; token: string; password: string; };
+        const poolUser = (await this.apiRequest('/test-pool/borrow', 'POST', {})) as { email: Email; token: string; password: string; };
 
         const { email, password, token } = poolUser;
 
@@ -107,7 +108,7 @@ export class ApiDriver {
         };
     }
 
-    private async firebaseSignIn(userInfo: { email: string; password: string; token?: string; }): Promise<UserToken> {
+    private async firebaseSignIn(userInfo: { email: Email; password: string; token?: string; }): Promise<UserToken> {
         // Use Firebase Auth REST API to sign in
 
         let signInResponse: Response;
@@ -150,7 +151,7 @@ export class ApiDriver {
         };
     }
 
-    async returnTestUser(email: string): Promise<void> {
+    async returnTestUser(email: Email): Promise<void> {
         await this.apiRequest('/test-pool/return', 'POST', { email });
     }
 
@@ -324,7 +325,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async register(userData: { email: string; password: string; displayName: DisplayName; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; }): Promise<RegisterResponse> {
+    async register(userData: { email: Email; password: string; displayName: DisplayName; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; }): Promise<RegisterResponse> {
         // Ensure required policy acceptance fields are provided with defaults
         const registrationData = {
             ...userData,

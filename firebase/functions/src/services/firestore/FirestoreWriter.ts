@@ -38,6 +38,7 @@ import {
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
 import { UserNotificationDocumentSchema } from '../../schemas/user-notifications';
 import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
+import type {Email} from "@splitifyd/shared";
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -1313,9 +1314,9 @@ export class FirestoreWriter implements IFirestoreWriter {
      * Note: This bypasses schema validation as test-user-pool is not a canonical collection
      */
     async createTestPoolUser(
-        email: string,
+        email: Email,
         userData: {
-            email: string;
+            email: Email;
             token: string;
             password: string;
             status: 'available' | 'borrowed';
@@ -1352,7 +1353,7 @@ export class FirestoreWriter implements IFirestoreWriter {
      * Update a test pool user document
      * Note: This bypasses schema validation as test-user-pool is not a canonical collection
      */
-    async updateTestPoolUser(email: string, updates: { status?: 'available' | 'borrowed'; }): Promise<WriteResult> {
+    async updateTestPoolUser(email: Email, updates: { status?: 'available' | 'borrowed'; }): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateTestPoolUser', async () => {
             try {
                 await this.db.collection('test-user-pool').doc(email).update(updates);

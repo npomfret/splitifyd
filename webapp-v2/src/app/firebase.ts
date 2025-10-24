@@ -4,6 +4,7 @@ import { FirebaseApp, initializeApp } from 'firebase/app';
 import { Auth, connectAuthEmulator, getAuth, onIdTokenChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
 import { connectFirestoreEmulator, doc, Firestore, getFirestore, onSnapshot } from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
+import type {Email} from "@splitifyd/shared";
 
 declare global {
     interface Window {
@@ -18,8 +19,8 @@ export interface FirebaseService {
     performTokenRefresh(): Promise<string>;
     performUserRefresh(): Promise<void>;
     getCurrentUserId(): string | null;
-    signInWithEmailAndPassword(email: string, password: string): Promise<void>;
-    sendPasswordResetEmail(email: string): Promise<void>;
+    signInWithEmailAndPassword(email: Email, password: string): Promise<void>;
+    sendPasswordResetEmail(email: Email): Promise<void>;
     signOut(): Promise<void>;
     onAuthStateChanged(callback: (user: ClientUser | null, idToken: string | null) => Promise<void>): () => void;
     onDocumentSnapshot(collection: string, documentId: string, onData: (data: any) => void, onError: (error: Error) => void): () => void;
@@ -79,11 +80,11 @@ class FirebaseServiceImpl implements FirebaseService {
     }
 
     // Auth methods
-    async signInWithEmailAndPassword(email: string, password: string) {
+    async signInWithEmailAndPassword(email: Email, password: string) {
         await signInWithEmailAndPassword(this.getAuth(), email, password);
     }
 
-    async sendPasswordResetEmail(email: string) {
+    async sendPasswordResetEmail(email: Email) {
         return sendPasswordResetEmail(this.getAuth(), email);
     }
 

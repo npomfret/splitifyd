@@ -1,6 +1,7 @@
 import type { UserRegistration } from '@splitifyd/shared';
 import { randomBoolean, randomChoice, randomEmail, randomString } from '../test-helpers';
 import {DisplayName} from "@splitifyd/shared";
+import type {Email} from "@splitifyd/shared";
 
 export class RegisterRequestBuilder {
     private request: UserRegistration = {
@@ -11,7 +12,7 @@ export class RegisterRequestBuilder {
         cookiePolicyAccepted: randomBoolean(),
     };
 
-    withEmail(email: string): this {
+    withEmail(email: Email): this {
         this.request.email = email;
         return this;
     }

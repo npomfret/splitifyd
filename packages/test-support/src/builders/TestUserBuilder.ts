@@ -1,8 +1,9 @@
 import { generateShortId, randomChoice } from '../test-helpers';
 import {DisplayName} from "@splitifyd/shared";
+import type {Email} from "@splitifyd/shared";
 
 interface TestUser {
-    email: string;
+    email: Email;
     password: string;
     displayName: DisplayName;
 }
@@ -22,7 +23,7 @@ export class TestUserBuilder {
         };
     }
 
-    withEmail(email: string): this {
+    withEmail(email: Email): this {
         this.user.email = email;
         return this;
     }

@@ -1,6 +1,7 @@
 import type { ClientUser } from '@splitifyd/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
 import {DisplayName} from "@splitifyd/shared";
+import type {Email} from "@splitifyd/shared";
 
 /**
  * Builder for creating ClientUser objects for tests
@@ -25,7 +26,7 @@ export class ClientUserBuilder {
         return this;
     }
 
-    withEmail(email: string): this {
+    withEmail(email: Email): this {
         this.user.email = email;
         return this;
     }

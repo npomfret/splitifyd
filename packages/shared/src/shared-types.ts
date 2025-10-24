@@ -55,6 +55,7 @@ export type SettlementId = string;
 export type GroupName = string;
 export type UserId = string;
 export type DisplayName = string;
+export type Email = string;
 
 /**
  * Zod schema for expense splits
@@ -356,7 +357,7 @@ export interface BaseUser {
 }
 
 export interface UserRegistration extends BaseUser {
-    email: string;
+    email: Email;
     password: string;
     termsAccepted: boolean;
     cookiePolicyAccepted: boolean;
@@ -368,7 +369,7 @@ export interface FirebaseUser extends BaseUser {
 
 export interface PooledTestUser extends UserToken {
     password: string;
-    email: string;
+    email: Email;
 }
 
 export interface UserToken {
@@ -439,7 +440,7 @@ export interface AuthenticatedRequest {
  */
 export interface ClientUser {
     uid: UserId;
-    email: string;
+    email: Email;
     displayName: DisplayName;
     emailVerified: boolean;
     photoURL?: string | null;
@@ -1022,7 +1023,7 @@ export interface DeletePolicyVersionResponse {
 
 export interface ReturnTestUserResponse {
     message: string;
-    email: string;
+    email: Email;
 }
 
 // ========================================================================

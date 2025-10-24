@@ -3,10 +3,11 @@ import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-w
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
+import type {Email} from "@splitifyd/shared";
 
 interface PoolUser {
     token: string;
-    email: string;
+    email: Email;
     password: string;
 }
 
@@ -89,7 +90,7 @@ export class TestUserPoolService {
         return newUser;
     }
 
-    async returnUser(email: string): Promise<void> {
+    async returnUser(email: Email): Promise<void> {
         // Update user status using FirestoreWriter
         try {
             const result = await this.firestoreWriter.updateTestPoolUser(email, {

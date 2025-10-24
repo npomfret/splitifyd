@@ -2,6 +2,7 @@ import type { CreateRequest, DecodedIdToken, GetUsersResult, UpdateRequest, User
 import { HTTP_STATUS } from '../../../constants';
 import type { IAuthService } from '../../../services/auth';
 import { ApiError } from '../../../utils/errors';
+import type {Email} from "@splitifyd/shared";
 
 /**
  * In-memory stub implementation of IAuthService for unit testing
@@ -188,7 +189,7 @@ export class StubAuthService implements IAuthService {
         return token;
     }
 
-    async verifyPassword(email: string, password: string): Promise<boolean> {
+    async verifyPassword(email: Email, password: string): Promise<boolean> {
         const user = Array.from(this.users.values()).find((u) => u.email === email);
         if (!user || this.deletedUsers.has(user.uid)) {
             return false;

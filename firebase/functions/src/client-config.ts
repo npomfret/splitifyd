@@ -5,6 +5,7 @@ import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';
 import { validateAppConfiguration } from './middleware/config-validation';
 import {DisplayName} from "@splitifyd/shared";
+import type {Email} from "@splitifyd/shared";
 
 // Cache for lazy-loaded configurations
 let cachedConfig: ClientConfig | null = null;
@@ -61,7 +62,7 @@ interface ClientConfig {
     };
     formDefaults: {
         displayName: DisplayName;
-        email: string;
+        email: Email;
         password: string;
     };
     warningBanner: string;

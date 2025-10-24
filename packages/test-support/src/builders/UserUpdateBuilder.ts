@@ -1,5 +1,6 @@
 import type { UpdateUserRequest } from '@splitifyd/shared';
 import {DisplayName} from "@splitifyd/shared";
+import type {Email} from "@splitifyd/shared";
 
 /**
  * Builder for creating user update request objects for testing
@@ -13,7 +14,7 @@ export class UserUpdateBuilder {
         return this;
     }
 
-    withEmail(email: string): UserUpdateBuilder {
+    withEmail(email: Email): UserUpdateBuilder {
         this.updateData.email = email;
         return this;
     }

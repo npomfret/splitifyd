@@ -3,6 +3,7 @@ import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { DashboardPage } from './DashboardPage';
+import type {Email} from "@splitifyd/shared";
 
 const translation = translationEn;
 
@@ -164,7 +165,7 @@ export class LoginPage extends BasePage {
     /**
      * Fill the email field using proper Preact handling
      */
-    async fillEmail(email: string): Promise<void> {
+    async fillEmail(email: Email): Promise<void> {
         await this.fillPreactInput(this.getEmailInput(), email);
     }
 
@@ -178,7 +179,7 @@ export class LoginPage extends BasePage {
     /**
      * Fill both email and password fields
      */
-    async fillCredentials(email: string, password: string): Promise<void> {
+    async fillCredentials(email: Email, password: string): Promise<void> {
         await this.fillEmail(email);
         await this.fillPassword(password);
     }
@@ -186,7 +187,7 @@ export class LoginPage extends BasePage {
     /**
      * Fill login form (e2e-tests compatibility method)
      */
-    async fillLoginForm(email: string, password: string, rememberMe = false): Promise<void> {
+    async fillLoginForm(email: Email, password: string, rememberMe = false): Promise<void> {
         await this.fillEmail(email);
         await this.fillPassword(password);
         if (rememberMe) {
@@ -213,7 +214,7 @@ export class LoginPage extends BasePage {
      * Complete login process with credentials
      * Non-fluent version - does not verify navigation or return page object
      */
-    async login(email: string, password: string): Promise<void> {
+    async login(email: Email, password: string): Promise<void> {
         await this.fillCredentials(email, password);
         await this.submitForm();
     }
@@ -223,7 +224,7 @@ export class LoginPage extends BasePage {
      * Fluent version - verifies successful login and returns DashboardPage
      * Use this when you expect login to succeed
      */
-    async loginAndNavigateToDashboard(email: string, password: string): Promise<DashboardPage> {
+    async loginAndNavigateToDashboard(email: Email, password: string): Promise<DashboardPage> {
         await this.fillCredentials(email, password);
         await expect(this.getSubmitButton()).toBeEnabled({ timeout: TEST_TIMEOUTS.BUTTON_STATE });
 
@@ -248,7 +249,7 @@ export class LoginPage extends BasePage {
      * Fluent version - verifies we stay on login page and error appears
      * Use this when you expect login to fail (wrong credentials, network error, etc.)
      */
-    async loginExpectingFailure(email: string, password: string): Promise<void> {
+    async loginExpectingFailure(email: Email, password: string): Promise<void> {
         await this.fillCredentials(email, password);
         await this.submitForm();
 

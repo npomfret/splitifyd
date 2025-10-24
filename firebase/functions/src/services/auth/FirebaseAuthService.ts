@@ -36,7 +36,7 @@ interface AuthOperationContext {
 
 // Internal types used only by FirebaseAuthService for validated data casting
 interface ValidatedCreateUserRequest extends CreateRequest {
-    email: string;
+    email: Email;
     password: string;
     displayName: DisplayName;
     emailVerified?: boolean;
@@ -62,6 +62,7 @@ import { LoggerContext } from '../../utils/logger-context';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateBatchUserIds, validateCreateUser, validateCustomClaims, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
 import {DisplayName} from "@splitifyd/shared";
+import type {Email} from "@splitifyd/shared";
 
 export interface IdentityToolkitConfig {
     apiKey: string;
@@ -398,7 +399,7 @@ export class FirebaseAuthService implements IAuthService {
     // Utility Operations
     // ========================================================================
 
-    async verifyPassword(email: string, password: string): Promise<boolean> {
+    async verifyPassword(email: Email, password: string): Promise<boolean> {
         const context = this.createContext('verifyPassword', email);
 
         LoggerContext.update({

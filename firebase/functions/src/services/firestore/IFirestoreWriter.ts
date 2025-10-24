@@ -19,6 +19,7 @@ import { GroupId } from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { CreateUserNotificationDocument } from '../../schemas/user-notifications';
+import type {Email} from "@splitifyd/shared";
 
 export interface WriteResult {
     id: string;
@@ -235,9 +236,9 @@ export interface IFirestoreWriter {
      * @returns Write result
      */
     createTestPoolUser(
-        email: string,
+        email: Email,
         userData: {
-            email: string;
+            email: Email;
             token: string;
             password: string;
             status: 'available' | 'borrowed';
@@ -250,7 +251,7 @@ export interface IFirestoreWriter {
      * @param updates - The updates to apply
      * @returns Write result
      */
-    updateTestPoolUser(email: string, updates: { status?: 'available' | 'borrowed'; }): Promise<WriteResult>;
+    updateTestPoolUser(email: Email, updates: { status?: 'available' | 'borrowed'; }): Promise<WriteResult>;
 
     // ========================================================================
     // System Operations

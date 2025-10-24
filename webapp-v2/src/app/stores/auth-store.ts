@@ -2,7 +2,7 @@ import { USER_ID_KEY } from '@/constants.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { ClientUser } from '@splitifyd/shared';
+import type { ClientUser, Email } from '@splitifyd/shared';
 import { AuthErrors } from '@splitifyd/shared';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { apiClient } from '../apiClient';
@@ -25,10 +25,10 @@ interface AuthState {
 }
 
 interface AuthActions {
-    login: (email: string, password: string) => Promise<void>;
-    register: (email: string, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
+    login: (email: Email, password: string) => Promise<void>;
+    register: (email: Email, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
     logout: () => Promise<void>;
-    resetPassword: (email: string) => Promise<void>;
+    resetPassword: (email: Email) => Promise<void>;
     updateUserProfile: (updates: { displayName?: string; }) => Promise<void>;
     clearError: () => void;
     refreshAuthToken: () => Promise<string>;
@@ -248,7 +248,7 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    async login(email: string, password: string): Promise<void> {
+    async login(email: Email, password: string): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
 
@@ -263,7 +263,7 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    async register(email: string, password: string, displayName: DisplayName, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true): Promise<void> {
+    async register(email: Email, password: string, displayName: DisplayName, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
 
@@ -312,7 +312,7 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    async resetPassword(email: string): Promise<void> {
+    async resetPassword(email: Email): Promise<void> {
         this.#errorSignal.value = null;
 
         try {

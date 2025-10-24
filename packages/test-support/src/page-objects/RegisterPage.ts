@@ -4,6 +4,7 @@ import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 import { DashboardPage } from './DashboardPage';
 import {DisplayName} from "@splitifyd/shared";
+import type {Email} from "@splitifyd/shared";
 
 const translation = translationEn;
 
@@ -175,7 +176,7 @@ export class RegisterPage extends BasePage {
     /**
      * Fill the email field using proper Preact handling
      */
-    async fillEmail(email: string): Promise<void> {
+    async fillEmail(email: Email): Promise<void> {
         await this.fillPreactInput(this.getEmailInput(), email);
     }
 
@@ -196,7 +197,7 @@ export class RegisterPage extends BasePage {
     /**
      * Fill all registration form fields
      */
-    async fillRegistrationForm(name: string, email: string, password: string, confirmPassword: string = password): Promise<void> {
+    async fillRegistrationForm(name: string, email: Email, password: string, confirmPassword: string = password): Promise<void> {
         await this.fillName(name);
         await this.fillEmail(email);
         await this.fillPassword(password);
@@ -297,7 +298,7 @@ export class RegisterPage extends BasePage {
      * Complete registration process with all fields
      * Non-fluent version - does not verify navigation or return page object
      */
-    async register(name: string, email: string, password: string, confirmPassword: string = password): Promise<void> {
+    async register(name: string, email: Email, password: string, confirmPassword: string = password): Promise<void> {
         await this.fillRegistrationForm(name, email, password, confirmPassword);
         await this.acceptAllPolicies();
         await this.submitForm();
@@ -308,7 +309,7 @@ export class RegisterPage extends BasePage {
      * Fluent version - verifies successful registration and returns DashboardPage
      * Use this when you expect registration to succeed
      */
-    async registerAndNavigateToDashboard(name: string, email: string, password: string, confirmPassword: string = password): Promise<DashboardPage> {
+    async registerAndNavigateToDashboard(name: string, email: Email, password: string, confirmPassword: string = password): Promise<DashboardPage> {
         await this.fillRegistrationForm(name, email, password, confirmPassword);
         await this.acceptAllPolicies();
 
@@ -335,7 +336,7 @@ export class RegisterPage extends BasePage {
      * Fluent version - verifies we stay on register page and error appears
      * Use this when you expect registration to fail (duplicate email, weak password, etc.)
      */
-    async registerExpectingFailure(name: string, email: string, password: string, confirmPassword: string = password): Promise<void> {
+    async registerExpectingFailure(name: string, email: Email, password: string, confirmPassword: string = password): Promise<void> {
         await this.fillRegistrationForm(name, email, password, confirmPassword);
         await this.acceptAllPolicies();
         await this.submitForm();
@@ -470,7 +471,7 @@ export class RegisterPage extends BasePage {
     /**
      * Verify form has persisted values (after error, form should retain user input)
      */
-    async verifyFormPersistedValues(name: string, email: string): Promise<void> {
+    async verifyFormPersistedValues(name: string, email: Email): Promise<void> {
         await expect(this.getNameInput()).toHaveValue(name);
         await expect(this.getEmailInput()).toHaveValue(email);
     }

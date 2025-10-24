@@ -14,6 +14,7 @@
  */
 
 import type { CreateRequest, DecodedIdToken, GetUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type {Email} from "@splitifyd/shared";
 
 export interface IAuthService {
     // ========================================================================
@@ -93,5 +94,5 @@ export interface IAuthService {
      * @returns True if password is correct, false otherwise
      * @throws ApiError if user not found or operation fails
      */
-    verifyPassword(email: string, password: string): Promise<boolean>;
+    verifyPassword(email: Email, password: string): Promise<boolean>;
 }

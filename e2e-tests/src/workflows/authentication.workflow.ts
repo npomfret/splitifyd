@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { DashboardPage, LoginPage } from '../pages';
+import type {Email} from "@splitifyd/shared";
 
 /**
  * Authentication workflow class that handles user creation and login flows.
@@ -12,7 +13,7 @@ export class AuthenticationWorkflow {
      * Logs in an existing test user (for use with user pool)
      * Expects to start from a clean state - will fail fast if not
      */
-    async loginExistingUser(user: { email: string; password: string; }): Promise<void> {
+    async loginExistingUser(user: { email: Email; password: string; }): Promise<void> {
         const loginPage = new LoginPage(this.page);
         await loginPage.navigate();
 
