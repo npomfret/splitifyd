@@ -35,9 +35,12 @@ This note captures the current Firebase configuration workflow, the moving piece
 
 ## Improvement Ideas
 
-1. Add a dedicated flag (for example `INSTANCE_MODE=dev|prod`) to the env templates. Let both `generate-firebase-config` and `client-config` rely on that instead of inferring intent from indirect cues like `FUNCTIONS_SOURCE`.
-2. Define a real production build path inside `firebase/functions/package.json` (or have `conditional-build` call `tsc` directly). That keeps the deployment flow self-contained.
-3. Stop committing the generated `firebase/firebase.json`—ignore it or write per-instance versions under a cache directory so developers don’t churn repo state simply by switching instances.
-4. Guard or delete `/api/env` when `getConfig().isProduction` is true.
-5. Relax the `start-with-data.ts` assertion to allow `NODE_ENV=development`; it keeps downstream scripts simpler and matches how other tooling already behaves.
-6. Update the Firestore emulator validation to allow `localhost`, `127.0.0.1`, or `0.0.0.0` so the environment check mirrors the values the emulator actually exports.
+| Priority | Item | Notes |
+| --- | --- | --- |
+| P0 | Guard or delete `/api/env` when `getConfig().isProduction` is true | Quick security win; change is isolated to `index.ts`. |
+| P0 | Ensure the prod switch works (`generate-firebase-config` vs `.env.instanceprod`) | Blocker for deployments; set `FUNCTIONS_SOURCE` explicitly or add a dedicated mode flag. |
+| P1 | Add a real production build script for functions (or invoke `tsc` directly) | Fixes the missing `npm run build:prod` path that `conditional-build.js` expects. |
+| P1 | Stop committing the generated `firebase/firebase.json` | Add to `.gitignore` or redirect output so instance switches stop dirtying git state. |
+| P2 | Relax `start-with-data.ts` to allow `NODE_ENV=development` | Removes friction during emulator startup without affecting prod. |
+| P2 | Broaden Firestore emulator host validation (`localhost`/`0.0.0.0`/`127.0.0.1`) | Avoid brittle checks when the emulator supplies different hosts. |
+| P3 | Add a dedicated `INSTANCE_MODE=dev|prod` flag and use it across scripts/config loaders | Longer-term cleanup that clarifies intent once critical issues are fixed. |
