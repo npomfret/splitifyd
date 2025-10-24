@@ -1,13 +1,16 @@
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
+import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
 
 export function isProduction() {
-    return process.env.NODE_ENV === 'production';
+    return requireInstanceMode() === 'prod';
 }
 
 export function isEmulator() {
-    return !isProduction();
+    const mode = requireInstanceMode();
+    if (mode === 'test') return false;
+    return isDevInstanceMode(mode);
 }
 
 export interface ScriptEnvironment {
@@ -32,8 +35,8 @@ export function parseEnvironment(args: string[]): ScriptEnvironment {
 }
 
 export function getEnvironmentForModule(): ScriptEnvironment {
-    // For scripts called as modules, detect from NODE_ENV
-    const isEmulatorEnv = !isProduction();
+    const mode = requireInstanceMode();
+    const isEmulatorEnv = isDevInstanceMode(mode);
     return {
         isEmulator: isEmulatorEnv,
         environment: isEmulatorEnv ? 'EMULATOR' : 'PRODUCTION',
@@ -45,7 +48,7 @@ export function getEnvironment(args?: string[]): ScriptEnvironment {
         // Called directly - parse command line args
         return parseEnvironment(args || process.argv.slice(2));
     } else {
-        // Called as a module - detect from NODE_ENV
+        // Called as a module - detect from INSTANCE_MODE
         return getEnvironmentForModule();
     }
 }

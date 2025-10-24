@@ -5,36 +5,22 @@ This note captures the current Firebase configuration workflow, the moving piece
 ## Local Environments
 
 - The root scripts `dev1.sh` … `dev4.sh` call `scripts/dev-common.sh`. That helper kills any running emulators, runs `npm run switch-instance <n>` from the `firebase` project, then executes the monorepo `npm run dev` pipeline.
-- Each local instance owns a dedicated env template (for example `firebase/functions/.env.instance1`). These files define `NODE_ENV=development`, logging flags, and a unique set of `EMULATOR_*` ports so multiple checkouts can run in parallel.
-- Production uses `firebase/functions/.env.instanceprod`. It only publishes the client Firebase credentials that the `/api/config` endpoint serves to the webapp—no emulator ports are defined there.
+- Each instance-specific env template (for example `firebase/functions/.env.instance1`) now carries an explicit `INSTANCE_MODE` (`dev1`, `dev2`, etc.) alongside logging flags and the `EMULATOR_*` port assignments. Multiple checkouts can run side by side without clashing.
+- Production uses `firebase/functions/.env.instanceprod`, which sets `INSTANCE_MODE=prod` and the Firebase client credentials exposed through `/api/config`. Emulator ports are omitted on purpose.
 
 ## Instance Switching Workflow
 
-- `firebase/scripts/switch-instance.ts` copies the selected template into `firebase/functions/.env`, warns before overwriting, loads the values with `dotenv`, then runs `firebase/scripts/generate-firebase-config.ts`.
-- `generate-firebase-config` fills `firebase/firebase.json` from `firebase/firebase.template.json`. It decides whether the build is “production” by checking if `FUNCTIONS_SOURCE` is set to something other than the default `functions`. When the branch is considered dev, the script expects every `EMULATOR_*` port to be present in the env file.
-- `firebase/scripts/start-with-data.ts` is the entry point the emulator stack uses. It requires `GCLOUD_PROJECT` to be exported in the shell up-front, insists that `NODE_ENV` is unset, reloads the `.env` file, pulls port numbers from the freshly generated `firebase.json`, and seeds default data once the emulators are live.
-- `firebase/functions/scripts/conditional-build.js` handles the dual “run TS directly with tsx” vs “compile for deployment” behaviour. If `NODE_ENV` is `production` (or `test`) it shells out to `npm run build:prod`; otherwise it generates a lightweight wrapper that lets the emulator execute TypeScript without compiling.
+- `firebase/scripts/switch-instance.ts` copies the requested template into `firebase/functions/.env`, validates that `INSTANCE_MODE` matches the selected instance, then runs `firebase/scripts/generate-firebase-config.ts`.
+- `generate-firebase-config` fills `firebase/firebase.json` from `firebase/firebase.template.json`. It keys entirely off `INSTANCE_MODE` (rather than `FUNCTIONS_SOURCE`) to decide between emulator and production rules, and refuses to continue if the mode flag is missing or inconsistent.
+- `firebase/scripts/start-with-data.ts` is the entry point for the emulator stack. It now enforces that `INSTANCE_MODE` is one of the dev variants before loading ports from the generated `firebase.json`, seeding policies, and preparing the default test user.
+- `firebase/functions/scripts/conditional-build.js` still bifurcates between TypeScript-on-the-fly and compiled builds, but production or test builds are triggered explicitly via `BUILD_MODE`. The dev wrapper also preloads `.env` so emulator launches always see `INSTANCE_MODE`.
 
 ## Runtime Config Consumption
 
-- `firebase/functions/src/client-config.ts` is the central access point for env-derived values. It parses `process.env` with a Zod schema, memoises the result, and exposes:
-  - `getConfig()` – internal flags and validation limits.
-  - `getAppConfig()` – the object returned to the webapp via `/api/config`.
-  - `getIdentityToolkitConfig()` – credentials for Firebase Identity Toolkit calls.
-- `firebase/functions/src/firebase.ts` is the only place the Admin SDK touches env vars. It detects emulator vs production vs test, enforces required values, and configures emulator hosts.
-- `firebase/functions/src/index.ts` exposes `/api/env` (environment dump for debugging) and `/api/config` (client-facing config). The debug endpoint is currently live for every environment.
+- `firebase/functions/src/client-config.ts` is the single source of truth for environment settings. The Zod schema requires `INSTANCE_MODE` and derives `isProduction` from it, cascading through `getConfig`, `getAppConfig`, and `getIdentityToolkitConfig`.
+- `firebase/functions/src/firebase.ts` relies on the same `INSTANCE_MODE` flag to distinguish emulator (`dev*`), production (`prod`), and Vitest scenarios (`test`), applying the correct Firebase Admin configuration for each. Seeder scripts load `.env` before importing modules to avoid production calls during emulator startup.
+- `/api/env` is now guarded: `firebase/functions/src/index.ts` only registers the endpoint when `INSTANCE_MODE` points at a dev instance, keeping environment details out of any deployed build.
 
-## Problems Observed
+## Remaining Considerations
 
-- `generate-firebase-config` never recognises the prod template: `.env.instanceprod` does not set `FUNCTIONS_SOURCE`, so the script remains in “dev” mode, demands emulator ports that do not exist, and fails. That blocks `npm run switch-instance prod` and—by extension—`npm run deploy:prod`.
-- `conditional-build.js` shells out to `npm run build:prod`, but `firebase/functions/package.json` does not define that script. The first production build attempt therefore halts with a missing-script error.
-- The generated `firebase/firebase.json` is tracked in git. Every time a developer runs `switch-instance`, the file gets overwritten with their local port layout, leaving a dirty working tree and increasing the odds of committing environment-specific config.
-- `/api/env` is still available in the prod branch of the code, so a real deployment would leak every environment variable and various filesystem details.
-- `firebase/scripts/start-with-data.ts` asserts that `NODE_ENV` is `undefined`. That conflicts with the rest of the tooling, which does set `NODE_ENV=development` for the emulator workflow.
-- `client-config.ts` accepts only `127.0.0.1` for `FIRESTORE_EMULATOR_HOST`, but the generated `.env.instance*` values use `0.0.0.0:<port>` when provided by the emulator. The wrapper works today because the env file is cached, yet the validation is brittle.
-
-## Improvement Ideas
-
-| Priority | Item | Notes |
-| --- | --- | --- |
-| P3 | Add a dedicated `INSTANCE_MODE=dev|prod` flag and use it across scripts/config loaders | Longer-term cleanup that clarifies intent once critical issues are fixed. |
+- The toolchain still depends on `GCLOUD_PROJECT` being exported before launching the emulator workflow (`firebase/scripts/start-with-data.ts`). Documenting or automating that export would close the loop for new contributors, but functionally the Firebase config story is now driven entirely by `INSTANCE_MODE`.

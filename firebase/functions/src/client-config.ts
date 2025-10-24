@@ -1,5 +1,6 @@
 import { AppConfiguration, EnvironmentConfig, FirebaseConfig } from '@splitifyd/shared';
 import { z } from 'zod';
+import { assertValidInstanceMode, type InstanceMode } from './shared/instance-mode';
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';
 import { validateAppConfiguration } from './middleware/config-validation';
@@ -10,7 +11,22 @@ let cachedAppConfig: AppConfiguration | null = null;
 let cachedEnv: z.infer<typeof envSchema> | null = null;
 
 // Define environment variable schema
+const instanceModeSchema = z
+    .string()
+    .superRefine((value, ctx) => {
+        try {
+            assertValidInstanceMode(value);
+        } catch (error) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: error instanceof Error ? error.message : String(error),
+            });
+        }
+    })
+    .transform((value) => value as InstanceMode);
+
 const envSchema = z.object({
+    INSTANCE_MODE: instanceModeSchema,
     FUNCTIONS_EMULATOR: z.string().optional(),
     GCLOUD_PROJECT: z.string().optional(),
     CLIENT_API_KEY: z.string().optional(),
@@ -28,6 +44,7 @@ const envSchema = z.object({
 
 // Type for the CONFIG object
 interface ClientConfig {
+    instanceMode: z.infer<typeof instanceModeSchema>;
     isProduction: boolean;
     requestBodyLimit: string;
     validation: {
@@ -71,7 +88,8 @@ function getEnv(): z.infer<typeof envSchema> {
 // Build the CONFIG object lazily
 function buildConfig(): ClientConfig {
     const env = getEnv();
-    const isProduction = process.env.NODE_ENV === 'production';
+    const mode = env.INSTANCE_MODE;
+    const isProduction = mode === 'prod';
 
     // Validate required production variables
     if (isProduction) {
@@ -84,6 +102,7 @@ function buildConfig(): ClientConfig {
     }
 
     return {
+        instanceMode: mode,
         isProduction,
         requestBodyLimit: '1mb',
         validation: {
@@ -187,7 +206,7 @@ function buildAppConfiguration(): AppConfiguration {
         logger.error('Firebase config is incomplete in production', new Error('Missing required Firebase config'), {
             hasApiKey: !!env.CLIENT_API_KEY,
             hasAuthDomain: !!env.CLIENT_AUTH_DOMAIN,
-            nodeEnv: process.env.NODE_ENV,
+            instanceMode: env.INSTANCE_MODE,
         });
         throw new Error('Firebase configuration is incomplete in production');
     }

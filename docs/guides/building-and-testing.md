@@ -21,18 +21,18 @@ Our testing philosophy is guided by the following principles:
 
 #### How It Works
 
-The build system uses conditional logic based on the `NODE_ENV` environment variable:
+The build system uses conditional logic based on the `BUILD_MODE` environment variable:
 
-- **Development** (`NODE_ENV` undefined): Creates lightweight wrapper files that use `tsx` to execute TypeScript directly. No compilation occurs, resulting in instant startup.
-- **Testing**: Tests run directly on TypeScript files using Vitest without requiring compilation.
-- **Production** (`NODE_ENV=production`): Full TypeScript compilation for optimized deployment.
+- **Development** (`BUILD_MODE` unset or `development`): Creates lightweight wrapper files that use `tsx` to execute TypeScript directly. No compilation occurs, resulting in instant startup.
+- **Testing** (`BUILD_MODE=test`): Our test harness sets this automatically before kicking off package builds so integration tests run against the compiled output when they need it.
+- **Production** (`BUILD_MODE=production`): Full TypeScript compilation for optimized deployment. In this mode the Firebase Functions build emits compiled JavaScript rather than the tsx wrapper.
 
 #### Impact on Development
 
 - `npm run dev`: Starts instantly without compilation
 - `npm run test`: Runs tests directly on TypeScript files (no build required)
-- `npm run build`: Creates development wrappers (unless `NODE_ENV=production`)
-- `npm run build:prod` or `NODE_ENV=production npm run build`: Full production compilation
+- `npm run build`: Creates development wrappers (unless `BUILD_MODE` is set to `production` or `test`)
+- `BUILD_MODE=production npm run build`: Full production compilation
 
 ### Traditional Build Process
 
@@ -42,8 +42,8 @@ The root `package.json` provides scripts to build all sub-projects. Run these fr
 
 ```bash
 # From the monorepo root directory
-npm run build       # Builds all workspaces (development mode by default)
-npm run build:prod  # Builds all workspaces for production
+npm run build                      # Builds all workspaces in development mode
+BUILD_MODE=production npm run build  # Builds all workspaces for production
 ```
 
 ## Test Directory Structure

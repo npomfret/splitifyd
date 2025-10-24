@@ -1,18 +1,12 @@
 #!/usr/bin/env npx tsx
 
-assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
-const allowedNodeEnvs = [undefined, 'development', ''];
-assert(
-    allowedNodeEnvs.includes(process.env.NODE_ENV),
-    `NODE_ENV must be one of ${allowedNodeEnvs.map((v) => (v === undefined ? 'undefined' : `"${v}"`)).join(', ')}`,
-);
-
 import { getPorts, getProjectId } from '@splitifyd/test-support';
 import { ChildProcess } from 'child_process';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
+import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
 import { generateBillSplitterUser } from './generate-test-data';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
@@ -67,6 +61,11 @@ if (!fs.existsSync(envPath)) {
 
 // Load environment variables from .env file
 dotenv.config({ path: envPath });
+
+assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
+
+const instanceMode = requireInstanceMode();
+assert(isDevInstanceMode(instanceMode), `INSTANCE_MODE=${instanceMode} is not allowed when starting emulators`);
 
 // Get project ID using centralized loader
 const PROJECT_ID = getProjectId();

@@ -2,17 +2,23 @@ import * as admin from 'firebase-admin';
 import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { isDevInstanceMode, requireInstanceMode } from './shared/instance-mode';
+
+function getInstanceMode() {
+    return requireInstanceMode();
+}
 
 export function isEmulator() {
-    return process.env.NODE_ENV === 'development' && process.env.FUNCTIONS_EMULATOR === 'true';
+    const mode = getInstanceMode();
+    return isDevInstanceMode(mode) && process.env.FUNCTIONS_EMULATOR === 'true';
 }
 
 function isProduction() {
-    return process.env.NODE_ENV === 'production';
+    return getInstanceMode() === 'prod';
 }
 
 function isTest() {
-    return process.env.NODE_ENV !== 'production' && process.env.FUNCTIONS_EMULATOR !== 'true';
+    return getInstanceMode() === 'test';
 }
 
 if (!process.env.GCLOUD_PROJECT) {

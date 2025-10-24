@@ -3,7 +3,7 @@
 /**
  * Conditional build script for @splitifyd/shared
  *
- * This script runs the production build only when NODE_ENV=production.
+ * This script runs the production build only when BUILD_MODE=production.
  * During local development, it creates wrapper files that use tsx to run TypeScript directly.
  */
 
@@ -15,7 +15,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
+const buildMode = process.env.BUILD_MODE || 'development';
+
+if (buildMode === 'production' || buildMode === 'test') {
     console.log('🏗️  Running production build for @splitifyd/shared...');
     execSync('npx tsup', { stdio: 'inherit' });
 } else {

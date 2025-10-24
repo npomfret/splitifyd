@@ -5,6 +5,8 @@ import { ApiDriver, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
 import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
+import * as dotenv from 'dotenv';
+import { requireInstanceMode } from '../functions/src/shared/instance-mode';
 import { getEnvironment, initializeFirebase } from './firebase-init';
 
 /*
@@ -13,6 +15,13 @@ import { getEnvironment, initializeFirebase } from './firebase-init';
  *   tsx seed-policies.ts emulator
  *   tsx seed-policies.ts production
  */
+
+const envPath = path.join(__dirname, '../functions/.env');
+if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+}
+
+requireInstanceMode();
 
 assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
 
@@ -28,20 +37,21 @@ import { FirestoreCollections } from '../functions/src/constants';
 import { getAuth, getFirestore } from '../functions/src/firebase';
 import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder';
 
+type IdentityToolkit = ReturnType<typeof getIdentityToolkitConfig>;
+let identityToolkitConfig: IdentityToolkit;
+
+if (env.isEmulator) {
+    const emulator = getFirebaseEmulatorConfig();
+    process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${emulator.firestorePort}`;
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = emulator.identityToolkit.host;
+    process.env.CLIENT_API_KEY = emulator.identityToolkit.apiKey;
+    identityToolkitConfig = emulator.identityToolkit;
+} else {
+    identityToolkitConfig = getIdentityToolkitConfig();
+}
+
 // Get Firebase instances
 const firestoreDb = getFirestore();
-
-const identityToolkitConfig = (() => {
-    if (env.isEmulator) {
-        const emulator = getFirebaseEmulatorConfig();
-        process.env.FIRESTORE_EMULATOR_HOST = `127.0.0.1:${emulator.firestorePort}`;
-        process.env.FIREBASE_AUTH_EMULATOR_HOST = emulator.identityToolkit.host;
-        process.env.CLIENT_API_KEY = emulator.identityToolkit.apiKey;
-        return emulator.identityToolkit;
-    }
-
-    return getIdentityToolkitConfig();
-})();
 
 const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestoreDb, getAuth(), identityToolkitConfig);
 const policyService = applicationBuilder.buildPolicyService();

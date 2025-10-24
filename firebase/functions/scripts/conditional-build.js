@@ -3,14 +3,16 @@
 /**
  * Conditional build script for Firebase Functions
  *
- * This script runs the production build only when NODE_ENV=production.
+ * This script runs the production build only when BUILD_MODE=production.
  * During local development, it creates a wrapper that uses tsx to run TypeScript directly.
  */
 
 const fs = require('fs');
 const path = require('path');
 
-if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
+const buildMode = process.env.BUILD_MODE || 'development';
+
+if (buildMode === 'production' || buildMode === 'test') {
     console.log('🏗️  Running production build for Firebase Functions...');
     require('child_process').execSync('npm run build:prod', { stdio: 'inherit' });
 } else {
@@ -32,6 +34,15 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
  * without requiring compilation. In production, this file is replaced with
  * the actual compiled JavaScript.
  */
+
+const path = require('path');
+const fs = require('fs');
+const dotenv = require('dotenv');
+
+const envPath = path.join(__dirname, '..', '.env');
+if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+}
 
 // Use tsx to run the TypeScript source directly
 require('tsx');

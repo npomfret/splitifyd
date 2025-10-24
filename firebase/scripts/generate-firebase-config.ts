@@ -3,6 +3,7 @@
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
+import { requireInstanceMode } from '../functions/src/shared/instance-mode';
 import { logger } from './logger';
 
 dotenv.config({ path: path.join(__dirname, '../functions/.env') });
@@ -17,8 +18,8 @@ if (!fs.existsSync(templatePath)) {
 
 let configContent: string = fs.readFileSync(templatePath, 'utf8');
 
-// Determine if this is production mode based on FUNCTIONS_SOURCE
-const isProduction = process.env.FUNCTIONS_SOURCE && process.env.FUNCTIONS_SOURCE !== 'functions';
+const instanceMode = requireInstanceMode();
+const isProduction = instanceMode === 'prod';
 
 const requiredVars: readonly string[] = isProduction ? [] : (['EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT', 'EMULATOR_UI_PORT'] as const);
 
@@ -27,6 +28,11 @@ const optionalVars: Record<string, string> = {
     FUNCTIONS_SOURCE: 'functions',
     FUNCTIONS_PREDEPLOY: 'npm --prefix \\"$RESOURCE_DIR\\" run build',
 };
+
+if (isProduction && !process.env.FUNCTIONS_SOURCE) {
+    logger.error('❌ FUNCTIONS_SOURCE must be defined for production deployments.');
+    process.exit(1);
+}
 
 const missingVars: string[] = requiredVars.filter((varName) => !process.env[varName]);
 if (missingVars.length > 0) {

@@ -18,7 +18,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distDir = path.join(__dirname, '..', 'dist');
 
-const shouldEmitBundles = process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test' || process.env.FORCE_PROD_BUILD === 'true';
+const buildMode = process.env.BUILD_MODE || 'development';
+const shouldEmitBundles = buildMode === 'production' || buildMode === 'test' || process.env.FORCE_PROD_BUILD === 'true';
 
 if (shouldEmitBundles) {
     console.log('🏗️  Building @splitifyd/firebase-simulator bundles with tsup...');

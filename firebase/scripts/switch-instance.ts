@@ -4,6 +4,7 @@ import { execSync } from 'child_process';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
+import { requireInstanceMode } from '../functions/src/shared/instance-mode';
 import { logger } from './logger';
 
 const instance: string | undefined = process.argv[2];
@@ -42,7 +43,18 @@ try {
 
     dotenv.config({ path: targetPath });
 
-    const isProduction: boolean = instance === 'prod';
+    const instanceMode = requireInstanceMode();
+    const expectedMode = instance === 'prod' ? 'prod' : `dev${instance}`;
+    if (instanceMode !== expectedMode) {
+        logger.error('❌ INSTANCE_MODE does not match requested instance', {
+            requested: instance,
+            instanceMode,
+            expected: expectedMode,
+        });
+        process.exit(1);
+    }
+
+    const isProduction: boolean = instanceMode === 'prod';
 
     // Generate firebase.json for both emulator and production environments
     execSync('tsx scripts/generate-firebase-config.ts', {

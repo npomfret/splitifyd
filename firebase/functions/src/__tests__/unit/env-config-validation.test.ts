@@ -39,7 +39,7 @@ describe('Environment Configuration Validation', () => {
         });
 
         it('should contain all expected core environment variables', () => {
-            const expectedVars = ['NODE_ENV', 'LOG_LEVEL', 'EMULATOR_UI_PORT', 'EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT'];
+            const expectedVars = ['INSTANCE_MODE', 'LOG_LEVEL', 'EMULATOR_UI_PORT', 'EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT'];
 
             expectedVars.forEach((varName) => {
                 expect(templateConfig.variables.has(varName)).toBe(true);
