@@ -7,6 +7,7 @@ import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import type { IFirestoreReader } from '../services/firestore';
 import type { NotificationService } from '../services/notification-service';
 import { ChangeType } from '../utils/change-detection';
+import type {CommentId} from "@splitifyd/shared";
 
 export class ChangeTrackerHandlers {
     constructor(private readonly firestoreReader: IFirestoreReader, private readonly notificationService: NotificationService) {}
@@ -127,7 +128,7 @@ export class ChangeTrackerHandlers {
         return { groupId, affectedUserCount: affectedUsers.length };
     };
 
-    async handleGroupCommentChange(event: FirestoreTriggerEvent<{ groupId: GroupId; commentId: string; }>) {
+    async handleGroupCommentChange(event: FirestoreTriggerEvent<{ groupId: GroupId; commentId: CommentId; }>) {
         const groupId = event.params.groupId;
         const commentId = event.params.commentId;
 
@@ -140,7 +141,7 @@ export class ChangeTrackerHandlers {
         logger.info('group-comment-changed', { id: commentId, groupId, usersNotified: affectedUsers.length });
     }
 
-    async handleExpenseCommentChange(event: FirestoreTriggerEvent<{ expenseId: string; commentId: string; }>) {
+    async handleExpenseCommentChange(event: FirestoreTriggerEvent<{ expenseId: string; commentId: CommentId; }>) {
         const expenseId = event.params.expenseId;
         const commentId = event.params.commentId;
 

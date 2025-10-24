@@ -57,6 +57,7 @@ export type UserId = string;
 export type DisplayName = string;
 export type Email = string;
 export type CurrencyISOCode = string;
+export type CommentId = string;
 
 /**
  * Zod schema for expense splits

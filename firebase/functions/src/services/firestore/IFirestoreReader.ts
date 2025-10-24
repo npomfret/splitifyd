@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { ActivityFeedItem, ExpenseId, ISOString, MemberStatus } from '@splitifyd/shared';
+import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus } from '@splitifyd/shared';
 import type { IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
@@ -280,7 +280,7 @@ export interface IFirestoreReader {
      * @param commentId - The comment ID
      * @returns Comment document or null if not found
      */
-    getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<CommentDTO | null>;
+    getComment(targetType: CommentTargetType, targetId: string, commentId: CommentId): Promise<CommentDTO | null>;
 
     // ========================================================================
     // Group Related Collections Operations

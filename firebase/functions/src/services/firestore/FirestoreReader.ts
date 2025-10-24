@@ -60,6 +60,7 @@ import { FirestoreCollections } from '../../constants';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
 import type { BatchGroupFetchOptions, GetGroupsForUserOptions, GroupsPaginationCursor, OrderBy, PaginatedResult, QueryOptions } from './IFirestoreReader';
+import type {CommentId} from "@splitifyd/shared";
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: IFirestoreDatabase) {}
@@ -998,7 +999,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<CommentDTO | null> {
+    async getComment(targetType: CommentTargetType, targetId: string, commentId: CommentId): Promise<CommentDTO | null> {
         try {
             // Get the appropriate subcollection reference using collection path helper
             const collectionPath = this.getCommentCollectionPath(targetType, targetId);

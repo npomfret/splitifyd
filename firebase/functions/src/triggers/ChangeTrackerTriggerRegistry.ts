@@ -3,6 +3,7 @@ import { GroupId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../constants';
 import { measureTrigger } from '../monitoring/measure';
 import { ChangeTrackerHandlers } from './ChangeTrackerHandlers';
+import type {CommentId} from "@splitifyd/shared";
 
 type TriggerName =
     | 'trackGroupChanges'
@@ -23,8 +24,8 @@ type TriggerParamsByName = {
     trackGroupChanges: { groupId: GroupId; };
     trackExpenseChanges: { expenseId: string; };
     trackSettlementChanges: { settlementId: string; };
-    trackGroupCommentChanges: { groupId: GroupId; commentId: string; };
-    trackExpenseCommentChanges: { expenseId: string; commentId: string; };
+    trackGroupCommentChanges: { groupId: GroupId; commentId: CommentId; };
+    trackExpenseCommentChanges: { expenseId: string; commentId: CommentId; };
 };
 
 interface ChangeTrackerTriggerDefinition<
