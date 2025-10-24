@@ -242,7 +242,7 @@ function setupRoutes(app: express.Application): void {
             ];
         }
 
-        res.json({
+        const responsePayload = {
             env: process.env,
             build: {
                 timestamp: BUILD_INFO.timestamp,
@@ -266,7 +266,12 @@ function setupRoutes(app: express.Application): void {
                 currentDirectory: currentDir,
                 files,
             },
-        });
+        };
+
+        // Use standard JSON response for easier manual inspection in browsers
+        res.status(200);
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.send(JSON.stringify(responsePayload, null, 2));
     });
 
     // Async error wrapper to ensure proper error handling
