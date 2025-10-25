@@ -4,28 +4,29 @@
 - Centralize tenant branding (name, palette, logos, marketing flags) in a dedicated descriptor that both web and functions read, so swapping tenants is a config change rather than a code edit.
 - Gate marketing routes/components behind descriptor toggles and default `ROUTES.HOME` to login or dashboard when the landing page is disabled.
 - Feed brand palettes into `themeStore` and `USER_COLORS` so avatars, buttons, and decorative accents stay on-theme without duplicating colour logic.
-- Store legal copy (terms/privacy/cookies) per tenant and have static pages load the appropriate content at runtime for effortless reuse.
+- Keep legal copy centralized; tenants adopt Splitifyd policies so no per-tenant overrides are required.
 
 ## Questions
 - Where should tenant brand data live (Firebase Remote Config, Firestore document, build-time env, etc.) and who owns updates?
-- Do white-label partners provide their own legal documents, or can they inherit defaults with minor tweaks?
 - Are there constraints on acceptable colour palettes (contrast requirements, light/dark variants) that we must validate before applying runtime themes?
 - Should each tenant expose a marketing landing page, or do some embed the app within an existing site and only need the authenticated views?
+
+## Decisions
+- Legal documents remain Splitifyd-owned and global; white-label tenants accept the shared policies without customization.
 
 ## Agent's Ideas (Based on App Analysis)
 
 *   **Extend `AppConfiguration` in `@splitifyd/shared`:**
     *   Introduce a `BrandingConfig` interface to hold `appName`, `logoUrl`, `faviconUrl`, `primaryColor`, `secondaryColor`, and `marketingFlags` (e.g., `showLandingPage`, `showPricingPage`).
-    *   Introduce a `LegalConfig` interface for URLs to tenant-specific legal documents (e.g., `termsOfServiceUrl`, `privacyPolicyUrl`).
     *   Introduce a `FeatureConfig` interface for toggling specific features per tenant (e.g., `enableAdvancedReporting`).
     *   Integrate these new configurations into the existing `AppConfiguration` interface.
 *   **Backend Configuration Source (Recommendation: Firestore Document per Tenant):**
-    *   Create a `tenants` Firestore collection where each document represents a tenant and stores their `BrandingConfig`, `LegalConfig`, and `FeatureConfig`.
+    *   Create a `tenants` Firestore collection where each document represents a tenant and stores their `BrandingConfig` and `FeatureConfig`.
     *   Modify the `getAppConfig()` function in `firebase/functions/src/client-config.ts` to fetch the relevant tenant document based on the identified tenant ID.
 *   **Frontend Implementation:**
     *   **Dynamic Theming:** Use CSS variables for colors, dynamically applying them based on `branding.primaryColor` etc., from the fetched `AppConfiguration`. Tailwind CSS can consume these variables.
     *   **Conditional Rendering & Routing:** Use `branding.marketingFlags` to conditionally render marketing components or redirect routes using `preact-router`.
-    *   **Dynamic Legal Pages:** Fetch legal content dynamically using the URLs provided in `legal` from `AppConfiguration`.
+    *   **Dynamic Legal Pages:** Continue using the existing policy endpoints that serve Splitifyd's global terms, privacy, and cookie policies.
 
 ## Agent's Questions (Based on App Analysis)
 
@@ -96,7 +97,6 @@ export type OrganizationId = string;
 export interface TenantConfig {
     tenantId: TenantId;
     branding: BrandingConfig;
-    legal: LegalConfig;
     features: FeatureConfig;
     createdAt: ISOString;
     updatedAt: ISOString;
@@ -115,13 +115,6 @@ export interface BrandingConfig {
         showPricingPage: boolean;
         showBlogPage: boolean;
     };
-}
-
-export interface LegalConfig {
-    termsOfServiceUrl?: string;         // URL or Firestore doc reference
-    privacyPolicyUrl?: string;
-    cookiePolicyUrl?: string;
-    customLegalText?: Record<string, string>;  // Flexible per-tenant legal text
 }
 
 export interface FeatureConfig {
@@ -217,10 +210,6 @@ app.use(identifyTenantBySubdomain);  // Or chosen strategy
             showPricingPage: false,
             showBlogPage: false
         }
-    },
-    legal: {
-        termsOfServiceUrl: "https://acme.com/terms",
-        privacyPolicyUrl: "https://acme.com/privacy"
     },
     features: {
         enableAdvancedReporting: true,
@@ -489,7 +478,7 @@ export interface UserDTO {
 Create admin panel with:
 1. **Branding Editor**: Upload logo, set colors, preview live
 2. **Feature Toggles**: Enable/disable features per tenant
-3. **Legal Content Manager**: Upload or link to legal docs
+3. **Policy Acceptance Monitoring**: Review tenant users' acceptance status for the global policies
 4. **User Management**: Invite users, assign roles, view audit logs
 5. **Analytics Dashboard**: Tenant-specific usage metrics
 
