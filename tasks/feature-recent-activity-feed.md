@@ -30,6 +30,16 @@ export const ActivityFeedEventTypes = {
     COMMENT_ADDED: 'comment-added',
     SETTLEMENT_CREATED: 'settlement-created',
     SETTLEMENT_UPDATED: 'settlement-updated',
+    GROUP_UPDATED: 'group-updated',
+} as const;
+
+export const ActivityFeedActions = {
+    CREATE: 'create',
+    UPDATE: 'update',
+    DELETE: 'delete',
+    COMMENT: 'comment',
+    JOIN: 'join',
+    LEAVE: 'leave',
 } as const;
 
 export interface ActivityFeedItem {
@@ -37,6 +47,7 @@ export interface ActivityFeedItem {
     groupId: string;
     groupName: string;
     eventType: (typeof ActivityFeedEventTypes)[keyof typeof ActivityFeedEventTypes];
+    action: (typeof ActivityFeedActions)[keyof typeof ActivityFeedActions];
     actorId: string; // The user who performed the action
     actorName: string;
     timestamp: string; // ISO 8601 string
@@ -45,9 +56,12 @@ export interface ActivityFeedItem {
         expenseId?: string;
         expenseDescription?: string;
         commentId?: string;
+        commentPreview?: string;
         settlementId?: string;
+        settlementDescription?: string;
         targetUserId?: string; // For member-joined/left events
         targetUserName?: string;
+        previousGroupName?: string;
     };
 }
 ```
@@ -289,6 +303,7 @@ Translation keys cover:
 - ✅ **ActivityFeedCard component created** with i18n support for all event types
 - ✅ **Dashboard integration complete** - activity feed displayed on main dashboard
 - ✅ **Real-time Firestore listener** implemented with pagination preservation logic
+- ✅ **Action metadata + resource identifiers** persisted with every event (enables deep linking from feed entries)
 
 ### Phase 4: Legacy Notification System Removal ✅ COMPLETE
 

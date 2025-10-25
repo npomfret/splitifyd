@@ -1,4 +1,4 @@
-import { ActivityFeedEventTypes, ActivityFeedItemDTOBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
+import { ActivityFeedItemDTOBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupsApi } from '../../utils/mock-firebase-service';
@@ -270,7 +270,7 @@ test.describe('Activity Feed - Pagination', () => {
         const activityItems = [ActivityFeedItemDTOBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Lunch').build()];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
-        await mockActivityFeedApi(page, activityItems, false);
+        await mockActivityFeedApi(page, activityItems);
         await page.goto('/dashboard');
 
         await dashboardPage.verifyActivityFeedLoadMoreHidden();

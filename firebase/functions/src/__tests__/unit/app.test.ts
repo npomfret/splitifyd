@@ -1,4 +1,4 @@
-import { ActivityFeedEventTypes, amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, UserBalance } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, UserBalance } from '@splitifyd/shared';
 import type { UserId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
@@ -3174,10 +3174,12 @@ describe('app tests', () => {
             const user1ExpenseDescriptions = feedUser1
                 .filter((item) => item.eventType === ActivityFeedEventTypes.EXPENSE_CREATED)
                 .map((item) => item.details?.expenseDescription);
+            const actionsUser1 = feedUser1.map((item) => item.action);
 
             expect(user1ExpenseDescriptions).toContain('Activity Feed Expense 11');
             expect(user1ExpenseDescriptions).not.toContain('Activity Feed Expense 0');
             expect(user1ExpenseDescriptions).not.toContain('Activity Feed Expense 1');
+            expect(actionsUser1).toContain(ActivityFeedActions.CREATE);
         });
 
         it('should prune historical activity entries when a group is deleted', async () => {
@@ -3221,6 +3223,8 @@ describe('app tests', () => {
 
             expect(memberLeftEventsUser1.some((event) => event.details?.targetUserId === user1)).toBe(true);
             expect(memberLeftEventsUser2.some((event) => event.details?.targetUserId === user2)).toBe(true);
+            expect(memberLeftEventsUser1.some((event) => event.action === ActivityFeedActions.LEAVE)).toBe(true);
+            expect(memberLeftEventsUser2.some((event) => event.action === ActivityFeedActions.LEAVE)).toBe(true);
         });
     });
 

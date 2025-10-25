@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { ActivityFeedActions, ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes } from '../shared-types';
 import { ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes, SystemUserRoles } from '../shared-types';
 
 const UserThemeColorSchema = z.object({
@@ -413,6 +414,7 @@ const ExpenseFullDetailsSchema = z.object({
 });
 
 const ActivityFeedEventTypeSchema = z.enum(Object.values(ActivityFeedEventTypes) as [string, ...string[]]);
+const ActivityFeedActionSchema = z.enum(Object.values(ActivityFeedActions) as [string, ...string[]]);
 
 const ActivityFeedItemDetailsSchema = z.object({
     expenseId: z.string().optional(),
@@ -432,6 +434,7 @@ export const ActivityFeedItemSchema = z.object({
     groupId: z.string(),
     groupName: z.string(),
     eventType: ActivityFeedEventTypeSchema,
+    action: ActivityFeedActionSchema,
     actorId: z.string(),
     actorName: z.string(),
     timestamp: z.string().datetime(),

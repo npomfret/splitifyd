@@ -1,5 +1,5 @@
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
-import { ActivityFeedEventTypes, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, test } from 'vitest';
@@ -225,6 +225,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const adminFeed = await firestoreReader.getActivityFeedForUser(adminUserId);
             expect(adminFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                action: ActivityFeedActions.JOIN,
                 actorId: pendingUserId,
                 details: expect.objectContaining({
                     targetUserId: pendingUserId,
@@ -235,6 +236,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const pendingFeed = await firestoreReader.getActivityFeedForUser(pendingUserId);
             expect(pendingFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                action: ActivityFeedActions.JOIN,
                 actorId: pendingUserId,
             });
         });
@@ -383,6 +385,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const remainingFeed = await firestoreReader.getActivityFeedForUser('other-member-123');
             expect(remainingFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                action: ActivityFeedActions.LEAVE,
                 actorId: 'member-user-123',
                 details: expect.objectContaining({
                     targetUserId: 'member-user-123',
@@ -393,6 +396,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const leavingFeed = await firestoreReader.getActivityFeedForUser('member-user-123');
             expect(leavingFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                action: ActivityFeedActions.LEAVE,
                 actorId: 'member-user-123',
             });
         });
@@ -566,6 +570,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const ownerFeed = await firestoreReader.getActivityFeedForUser('creator-user-123');
             expect(ownerFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                action: ActivityFeedActions.LEAVE,
                 actorId: 'creator-user-123',
                 details: expect.objectContaining({
                     targetUserId: 'member-user-123',
@@ -576,6 +581,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             const removedFeed = await firestoreReader.getActivityFeedForUser('member-user-123');
             expect(removedFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                action: ActivityFeedActions.LEAVE,
                 actorId: 'creator-user-123',
             });
         });

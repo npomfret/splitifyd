@@ -1,4 +1,4 @@
-import { ActivityFeedEventTypes, amountToSmallestUnit, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse } from '@splitifyd/shared';
 import { GroupId, UserId } from '@splitifyd/shared';
 import { FirestoreCollections } from '../constants';
 import { FieldValue } from '../firestore-wrapper';
@@ -154,11 +154,12 @@ export class GroupMemberService {
                     this.activityFeedService.recordActivityForUsersWithExistingItems(
                         transaction,
                         recipientIds,
-                        {
-                            groupId,
-                            groupName: group.name,
-                            eventType: ActivityFeedEventTypes.MEMBER_JOINED,
-                            actorId: targetUserId,
+                {
+                    groupId,
+                    groupName: group.name,
+                    eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                    action: ActivityFeedActions.JOIN,
+                    actorId: targetUserId,
                             actorName: actorDisplayName,
                             timestamp: now,
                             details: {
@@ -365,11 +366,12 @@ export class GroupMemberService {
                 this.activityFeedService.recordActivityForUsersWithExistingItems(
                     transaction,
                     activityRecipients,
-                    {
-                        groupId,
-                        groupName: group.name,
-                        eventType: ActivityFeedEventTypes.MEMBER_LEFT,
-                        actorId,
+                {
+                    groupId,
+                    groupName: group.name,
+                    eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                    action: ActivityFeedActions.LEAVE,
+                    actorId,
                         actorName: actorDisplayName,
                         timestamp: now,
                         details: {

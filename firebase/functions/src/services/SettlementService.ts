@@ -1,4 +1,4 @@
-import { ActivityFeedEventTypes, CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { z } from 'zod';
@@ -278,6 +278,7 @@ export class SettlementService {
                     groupId: settlementData.groupId,
                     groupName: groupInTx.name,
                     eventType: ActivityFeedEventTypes.SETTLEMENT_CREATED,
+                    action: ActivityFeedActions.CREATE,
                     actorId: userId,
                     actorName: actorDisplayName,
                     timestamp: now,
@@ -442,6 +443,7 @@ export class SettlementService {
                     groupId: settlement.groupId,
                     groupName: groupInTx.name,
                     eventType: ActivityFeedEventTypes.SETTLEMENT_UPDATED,
+                    action: ActivityFeedActions.UPDATE,
                     actorId: userId,
                     actorName: actorDisplayName,
                     timestamp: updateTimestamp,

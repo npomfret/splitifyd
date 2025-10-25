@@ -239,6 +239,7 @@ export class NotificationListener {
             groupId: data.groupId,
             groupName: data.groupName,
             eventType: data.eventType,
+            action: data.action,
             actorId: data.actorId,
             actorName: data.actorName,
             timestamp,

@@ -1,4 +1,4 @@
-import { ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import type { GroupMembershipDTO, JoinGroupResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { GroupName } from '@splitifyd/shared';
@@ -367,11 +367,12 @@ export class GroupShareService {
                 this.activityFeedService.recordActivityForUsersWithExistingItems(
                     transaction,
                     activityRecipients,
-                    {
-                        groupId,
-                        groupName,
-                        eventType: ActivityFeedEventTypes.MEMBER_JOINED,
-                        actorId: userId,
+                {
+                    groupId,
+                    groupName,
+                    eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                    action: ActivityFeedActions.JOIN,
+                    actorId: userId,
                         actorName: memberDoc.groupDisplayName,
                         timestamp: now,
                         details: {

@@ -1,5 +1,6 @@
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { ActivityFeedEventType, ActivityFeedItem, ActivityFeedResponse } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
+import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedResponse } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 import type { FirebaseService } from '../firebase';
 import { getFirebaseService } from '../firebase';
@@ -9,6 +10,36 @@ import { logError, logWarning } from '@/utils/browser-logger.ts';
 const ACTIVITY_FEED_PAGE_SIZE = 10;
 
 type ActivityFeedEventListener = (event: ActivityFeedItem) => void;
+
+const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
+    [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
+    [ActivityFeedEventTypes.EXPENSE_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.EXPENSE_DELETED]: ActivityFeedActions.DELETE,
+    [ActivityFeedEventTypes.SETTLEMENT_CREATED]: ActivityFeedActions.CREATE,
+    [ActivityFeedEventTypes.SETTLEMENT_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.MEMBER_JOINED]: ActivityFeedActions.JOIN,
+    [ActivityFeedEventTypes.MEMBER_LEFT]: ActivityFeedActions.LEAVE,
+    [ActivityFeedEventTypes.COMMENT_ADDED]: ActivityFeedActions.COMMENT,
+    [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
+};
+
+function deriveAction(eventType: string | undefined, fallback: ActivityFeedAction = ActivityFeedActions.UPDATE): ActivityFeedAction {
+    if (eventType && eventType in EVENT_ACTION_MAP) {
+        return EVENT_ACTION_MAP[eventType as ActivityFeedEventType];
+    }
+    return fallback;
+}
+
+function normalizeItem(item: ActivityFeedItem): ActivityFeedItem {
+    if (item.action) {
+        return item;
+    }
+
+    return {
+        ...item,
+        action: deriveAction(item.eventType as ActivityFeedEventType),
+    };
+}
 
 export interface ActivityFeedStore {
     readonly items: ActivityFeedItem[];
@@ -150,7 +181,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
 
             this.applyLoadMoreResponse(response);
         } catch (error: any) {
-            const message = error instanceof Error ? error.message : 'Failed to load activity feed';
+            const message = error instanceof Error ? error.message : 'We could not load your recent activity right now. Please try again.';
             this.#errorSignal.value = message;
             logError('ActivityFeedStore.loadMore failed', error);
         } finally {
@@ -227,7 +258,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
 
             this.applyInitialResponse(response, markInitialized);
         } catch (error: any) {
-            const message = error instanceof Error ? error.message : 'Failed to load activity feed';
+            const message = error instanceof Error ? error.message : 'We could not load your recent activity right now. Please try again.';
             this.#errorSignal.value = message;
             throw error;
         } finally {
@@ -236,7 +267,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     }
 
     private applyInitialResponse(response: ActivityFeedResponse, markInitialized: boolean): void {
-        const items = response.items ?? [];
+        const items = (response.items ?? []).map(normalizeItem);
 
         this.#itemsSignal.value = items;
         this.#hasMoreSignal.value = Boolean(response.hasMore);
@@ -252,8 +283,9 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         const existing = this.#itemsSignal.value;
         const existingIds = new Set(existing.map((item) => item.id));
         const mergedItems = [...existing];
+        const newItems = (response.items ?? []).map(normalizeItem);
 
-        for (const item of response.items ?? []) {
+        for (const item of newItems) {
             if (!existingIds.has(item.id)) {
                 mergedItems.push(item);
             }
@@ -263,7 +295,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         this.#hasMoreSignal.value = Boolean(response.hasMore);
         this.nextCursor = response.nextCursor ?? null;
 
-        for (const item of response.items ?? []) {
+        for (const item of newItems) {
             this.seenItemIds.add(item.id);
         }
     }
@@ -349,6 +381,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
 
             const timestamp = this.toISOString(data.timestamp, 'timestamp')!;
             const createdAt = this.toISOString(data.createdAt, 'createdAt', true);
+            const action = typeof data.action === 'string' ? (data.action as ActivityFeedAction) : deriveAction(data.eventType);
 
             const details = typeof data.details === 'object' && data.details !== null ? { ...data.details } : {};
 
@@ -358,6 +391,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
                 groupId: data.groupId,
                 groupName: data.groupName,
                 eventType: data.eventType as ActivityFeedEventType,
+                action,
                 actorId: data.actorId,
                 actorName: data.actorName,
                 timestamp,

@@ -1,4 +1,4 @@
-import { ActivityFeedEventTypes } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema } from './common';
 
@@ -23,6 +23,7 @@ const ActivityFeedBaseSchema = z
         groupId: z.string().min(1),
         groupName: z.string().min(1),
         eventType: z.enum(Object.values(ActivityFeedEventTypes) as [string, ...string[]]),
+        action: z.enum(Object.values(ActivityFeedActions) as [string, ...string[]]),
         actorId: z.string().min(1),
         actorName: z.string().min(1),
         timestamp: FirestoreTimestampSchema,

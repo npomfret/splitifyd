@@ -1,4 +1,4 @@
-import type { ActivityFeedEventType, ActivityFeedItem, ActivityFeedItemDetails } from '@splitifyd/shared';
+import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedItemDetails } from '@splitifyd/shared';
 import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
 import type { ITransaction } from '../firestore-wrapper';
 import { measureDb } from '../monitoring/measure';
@@ -9,6 +9,7 @@ interface CreateActivityItemInput {
     groupId: GroupId;
     groupName: GroupName;
     eventType: ActivityFeedEventType;
+    action: ActivityFeedAction;
     actorId: UserId;
     actorName: string;
     timestamp: string;
@@ -69,6 +70,7 @@ export class ActivityFeedService {
                 groupId: item.groupId,
                 groupName: item.groupName,
                 eventType: item.eventType,
+                action: item.action,
                 actorId: item.actorId,
                 actorName: item.actorName,
                 timestamp: item.timestamp,

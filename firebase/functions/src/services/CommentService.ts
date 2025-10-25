@@ -1,4 +1,4 @@
-import { ActivityFeedEventTypes, CommentDTO, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
 import type { GroupName } from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
@@ -215,6 +215,7 @@ export class CommentService {
                     groupId,
                     groupName,
                     eventType: ActivityFeedEventTypes.COMMENT_ADDED,
+                    action: ActivityFeedActions.COMMENT,
                     actorId: userId,
                     actorName: actorDisplayName,
                     timestamp: now,

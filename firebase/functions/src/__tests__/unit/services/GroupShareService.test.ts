@@ -1,5 +1,5 @@
 import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
-import { ActivityFeedEventTypes, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -560,6 +560,7 @@ describe('GroupShareService', () => {
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
             expect(ownerFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                action: ActivityFeedActions.JOIN,
                 actorId: joiningUserId,
                 details: expect.objectContaining({
                     targetUserId: joiningUserId,
@@ -570,6 +571,7 @@ describe('GroupShareService', () => {
             const joiningFeed = await firestoreReader.getActivityFeedForUser(joiningUserId);
             expect(joiningFeed.items[0]).toMatchObject({
                 eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                action: ActivityFeedActions.JOIN,
                 actorId: joiningUserId,
                 details: expect.objectContaining({
                     targetUserId: joiningUserId,

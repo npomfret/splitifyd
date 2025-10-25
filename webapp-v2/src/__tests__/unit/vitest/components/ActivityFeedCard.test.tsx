@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/preact';
 import { ActivityFeedCard } from '@/components/dashboard/ActivityFeedCard.tsx';
-import { signal, type Signal } from '@preact/signals';
-import { ActivityFeedEventTypes, type ActivityFeedItem } from '@splitifyd/shared';
+import { signal, type ReadonlySignal, type Signal } from '@preact/signals';
+import { ActivityFeedActions, ActivityFeedEventTypes, type ActivityFeedAction, type ActivityFeedEventType, type ActivityFeedItem } from '@splitifyd/shared';
 
 // Mock must be defined inline to avoid hoisting issues
 vi.mock('@/app/stores/activity-feed-store', async () => {
@@ -41,7 +41,7 @@ vi.mock('react-i18next', () => ({
             const translations: Record<string, string> = {
                 'activityFeed.title': 'Recent Activity',
                 'activityFeed.loading': 'Loading...',
-                'activityFeed.error.loadFailed': 'Failed to load activity feed',
+                'activityFeed.error.loadFailed': 'We could not load your recent activity right now. Please try again.',
                 'activityFeed.actions.retry': 'Retry',
                 'activityFeed.actions.loadMore': 'Load More',
                 'activityFeed.actions.loadingMore': 'Loading more...',
@@ -82,13 +82,30 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-function buildItem(id: string, eventType: string, overrides?: Partial<ActivityFeedItem>): ActivityFeedItem {
+function setSignalValue<T>(sig: ReadonlySignal<T>, value: T): void {
+    (sig as Signal<T>).value = value;
+}
+
+const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
+    [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
+    [ActivityFeedEventTypes.EXPENSE_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.EXPENSE_DELETED]: ActivityFeedActions.DELETE,
+    [ActivityFeedEventTypes.MEMBER_JOINED]: ActivityFeedActions.JOIN,
+    [ActivityFeedEventTypes.MEMBER_LEFT]: ActivityFeedActions.LEAVE,
+    [ActivityFeedEventTypes.COMMENT_ADDED]: ActivityFeedActions.COMMENT,
+    [ActivityFeedEventTypes.SETTLEMENT_CREATED]: ActivityFeedActions.CREATE,
+    [ActivityFeedEventTypes.SETTLEMENT_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
+};
+
+function buildItem(id: string, eventType: ActivityFeedEventType | string, overrides?: Partial<ActivityFeedItem>): ActivityFeedItem {
     return {
         id,
         userId: 'user-1',
         groupId: 'group-1',
         groupName: 'Test Group',
         eventType: eventType as any,
+        action: EVENT_ACTION_MAP[eventType as ActivityFeedEventType] ?? ActivityFeedActions.UPDATE,
         actorId: 'actor-1',
         actorName: 'Alice',
         timestamp: new Date('2024-01-01T12:00:00.000Z').toISOString(),
@@ -102,12 +119,12 @@ describe('ActivityFeedCard', () => {
     beforeEach(() => {
         // Reset all mocks and signals
         vi.clearAllMocks();
-        mockStore.itemsSignal.value = [];
-        mockStore.loadingSignal.value = false;
-        mockStore.initializedSignal.value = false;
-        mockStore.errorSignal.value = null;
-        mockStore.hasMoreSignal.value = false;
-        mockStore.loadingMoreSignal.value = false;
+        setSignalValue(mockStore.itemsSignal, []);
+        setSignalValue(mockStore.loadingSignal, false);
+        setSignalValue(mockStore.initializedSignal, false);
+        setSignalValue(mockStore.errorSignal, null);
+        setSignalValue(mockStore.hasMoreSignal, false);
+        setSignalValue(mockStore.loadingMoreSignal, false);
     });
 
     afterEach(() => {
@@ -138,8 +155,8 @@ describe('ActivityFeedCard', () => {
 
     describe('Loading States', () => {
         it('shows loading state during initial load', () => {
-            mockStore.loadingSignal.value = true;
-            mockStore.initializedSignal.value = false;
+            setSignalValue(mockStore.loadingSignal, true);
+            setSignalValue(mockStore.initializedSignal, false);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -147,8 +164,8 @@ describe('ActivityFeedCard', () => {
         });
 
         it('does not show loading state after initialization', () => {
-            mockStore.loadingSignal = signal(false);
-            mockStore.initializedSignal = signal(true);
+            setSignalValue(mockStore.loadingSignal, false);
+            setSignalValue(mockStore.initializedSignal, true);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -156,10 +173,10 @@ describe('ActivityFeedCard', () => {
         });
 
         it('shows loading more state on load more button', () => {
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
-            mockStore.hasMoreSignal = signal(true);
-            mockStore.loadingMoreSignal = signal(true);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
+            setSignalValue(mockStore.hasMoreSignal, true);
+            setSignalValue(mockStore.loadingMoreSignal, true);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -169,16 +186,16 @@ describe('ActivityFeedCard', () => {
 
     describe('Error States', () => {
         it('shows error message when error occurs', () => {
-            mockStore.errorSignal = signal('Network error');
+            setSignalValue(mockStore.errorSignal, 'Network error');
 
             render(<ActivityFeedCard userId='user-1' />);
 
             expect(screen.getByTestId('activity-feed-error')).toBeInTheDocument();
-            expect(screen.getByText('Failed to load activity feed')).toBeInTheDocument();
+            expect(screen.getByText('We could not load your recent activity right now. Please try again.')).toBeInTheDocument();
         });
 
         it('shows retry button when error occurs', () => {
-            mockStore.errorSignal = signal('Network error');
+            setSignalValue(mockStore.errorSignal, 'Network error');
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -186,7 +203,7 @@ describe('ActivityFeedCard', () => {
         });
 
         it('calls refresh when retry button clicked', async () => {
-            mockStore.errorSignal = signal('Network error');
+            setSignalValue(mockStore.errorSignal, 'Network error');
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -199,8 +216,8 @@ describe('ActivityFeedCard', () => {
 
     describe('Empty State', () => {
         it('shows empty state when initialized with no items', () => {
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, []);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -210,8 +227,8 @@ describe('ActivityFeedCard', () => {
         });
 
         it('does not show empty state when items exist', () => {
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -219,8 +236,8 @@ describe('ActivityFeedCard', () => {
         });
 
         it('does not show empty state before initialization', () => {
-            mockStore.initializedSignal = signal(false);
-            mockStore.itemsSignal = signal([]);
+            setSignalValue(mockStore.initializedSignal, false);
+            setSignalValue(mockStore.itemsSignal, []);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -233,8 +250,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED, {
                 details: { expenseDescription: 'Lunch' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -245,8 +262,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.EXPENSE_UPDATED, {
                 details: { expenseDescription: 'Dinner' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -257,8 +274,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.EXPENSE_DELETED, {
                 details: { expenseDescription: 'Coffee' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -269,8 +286,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.MEMBER_JOINED, {
                 details: { targetUserId: 'other-user', targetUserName: 'Bob' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -282,8 +299,8 @@ describe('ActivityFeedCard', () => {
                 actorId: 'actor-1',
                 details: { targetUserId: 'actor-1' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -294,8 +311,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.MEMBER_LEFT, {
                 details: { targetUserId: 'other-user', targetUserName: 'Bob' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -307,8 +324,8 @@ describe('ActivityFeedCard', () => {
                 actorId: 'actor-1',
                 details: { targetUserId: 'actor-1' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -319,8 +336,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.COMMENT_ADDED, {
                 details: { expenseDescription: 'Groceries', commentPreview: 'Thanks for picking this up!' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -332,8 +349,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.COMMENT_ADDED, {
                 details: { commentPreview: 'Great group!' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -345,8 +362,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.GROUP_UPDATED, {
                 details: { previousGroupName: 'Old Group Name' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -357,8 +374,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.GROUP_UPDATED, {
                 details: {},
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -369,8 +386,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.SETTLEMENT_CREATED, {
                 details: { settlementDescription: 'Payment to Bob' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -381,8 +398,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.SETTLEMENT_UPDATED, {
                 details: { settlementDescription: 'Updated payment' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -396,8 +413,8 @@ describe('ActivityFeedCard', () => {
                 actorId: 'user-1',
                 details: { expenseDescription: 'Lunch' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -410,8 +427,8 @@ describe('ActivityFeedCard', () => {
                 actorName: 'Alice',
                 details: { expenseDescription: 'Lunch' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-2' />);
 
@@ -426,8 +443,8 @@ describe('ActivityFeedCard', () => {
                 actorName: 'Alice',
                 details: { targetUserId: 'user-1', targetUserName: 'You' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -438,8 +455,8 @@ describe('ActivityFeedCard', () => {
             const item = buildItem('1', ActivityFeedEventTypes.MEMBER_JOINED, {
                 details: { targetUserId: 'other-user', targetUserName: 'Bob' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -449,9 +466,9 @@ describe('ActivityFeedCard', () => {
 
     describe('Pagination', () => {
         it('shows load more button when hasMore is true', () => {
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
-            mockStore.hasMoreSignal = signal(true);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
+            setSignalValue(mockStore.hasMoreSignal, true);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -459,9 +476,9 @@ describe('ActivityFeedCard', () => {
         });
 
         it('does not show load more button when hasMore is false', () => {
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
-            mockStore.hasMoreSignal = signal(false);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
+            setSignalValue(mockStore.hasMoreSignal, false);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -469,9 +486,9 @@ describe('ActivityFeedCard', () => {
         });
 
         it('calls loadMore when load more button clicked', async () => {
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
-            mockStore.hasMoreSignal = signal(true);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
+            setSignalValue(mockStore.hasMoreSignal, true);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -482,10 +499,10 @@ describe('ActivityFeedCard', () => {
         });
 
         it('disables load more button when loading more', () => {
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
-            mockStore.hasMoreSignal = signal(true);
-            mockStore.loadingMoreSignal = signal(true);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
+            setSignalValue(mockStore.hasMoreSignal, true);
+            setSignalValue(mockStore.loadingMoreSignal, true);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -501,8 +518,8 @@ describe('ActivityFeedCard', () => {
                 buildItem('2', ActivityFeedEventTypes.EXPENSE_CREATED, { details: { expenseDescription: 'Second' } }),
                 buildItem('3', ActivityFeedEventTypes.EXPENSE_CREATED, { details: { expenseDescription: 'Third' } }),
             ];
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal(items);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, items);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -515,8 +532,8 @@ describe('ActivityFeedCard', () => {
                 groupName: 'Travel Group',
                 details: { expenseDescription: 'Hotel' },
             });
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -525,8 +542,8 @@ describe('ActivityFeedCard', () => {
 
         it('displays event type as data attribute', () => {
             const item = buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED);
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([item]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
 
             render(<ActivityFeedCard userId='user-1' />);
 
@@ -537,8 +554,8 @@ describe('ActivityFeedCard', () => {
 
     describe('Component Structure', () => {
         it('has proper semantic structure', () => {
-            mockStore.initializedSignal = signal(true);
-            mockStore.itemsSignal = signal([buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED)]);
 
             render(<ActivityFeedCard userId='user-1' />);
 

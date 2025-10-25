@@ -1,4 +1,4 @@
-import { ActivityFeedEventTypes, CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest } from '@splitifyd/shared';
 import { ExpenseId, GroupId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
@@ -315,6 +315,7 @@ export class ExpenseService {
                     groupId: expenseData.groupId,
                     groupName: groupInTx.name,
                     eventType: ActivityFeedEventTypes.EXPENSE_CREATED,
+                    action: ActivityFeedActions.CREATE,
                     actorId: userId,
                     actorName: actorDisplayName,
                     timestamp: now,
@@ -488,6 +489,7 @@ export class ExpenseService {
                     groupId: expense.groupId,
                     groupName: groupData.name,
                     eventType: ActivityFeedEventTypes.EXPENSE_UPDATED,
+                    action: ActivityFeedActions.UPDATE,
                     actorId: userId,
                     actorName: actorDisplayName,
                     timestamp: updates.updatedAt,
@@ -688,6 +690,7 @@ export class ExpenseService {
                         groupId: expense.groupId,
                         groupName: groupInTx.name,
                         eventType: ActivityFeedEventTypes.EXPENSE_DELETED,
+                        action: ActivityFeedActions.DELETE,
                         actorId: userId,
                         actorName: actorDisplayName,
                         timestamp: now,

@@ -1,4 +1,4 @@
-import { ActivityFeedEventTypes, type ActivityFeedEventType, type ActivityFeedItem } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, type ActivityFeedAction, type ActivityFeedEventType, type ActivityFeedItem } from '@splitifyd/shared';
 
 const DEFAULT_TIMESTAMP = () => new Date().toISOString();
 
@@ -24,6 +24,7 @@ export class ActivityFeedItemDTOBuilder {
         groupId: string,
         groupName: string,
         eventType: ActivityFeedEventType,
+        action: ActivityFeedAction,
         actorName: string,
         details: ActivityFeedItem['details'] = {},
     ): ActivityFeedItemDTOBuilder {
@@ -35,6 +36,7 @@ export class ActivityFeedItemDTOBuilder {
             groupId,
             groupName,
             eventType,
+            action,
             actorName,
             actorId: generateActorId(actorName, id),
             timestamp,
@@ -51,7 +53,7 @@ export class ActivityFeedItemDTOBuilder {
         actorName: string,
         expenseDescription: string,
     ): ActivityFeedItemDTOBuilder {
-        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.EXPENSE_CREATED, actorName, {
+        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.EXPENSE_CREATED, ActivityFeedActions.CREATE, actorName, {
             expenseId: `${id}-expense`,
             expenseDescription,
         });
@@ -65,7 +67,7 @@ export class ActivityFeedItemDTOBuilder {
         actorName: string,
         expenseDescription: string,
     ): ActivityFeedItemDTOBuilder {
-        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.EXPENSE_UPDATED, actorName, {
+        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.EXPENSE_UPDATED, ActivityFeedActions.UPDATE, actorName, {
             expenseId: `${id}-expense`,
             expenseDescription,
         });
@@ -79,7 +81,7 @@ export class ActivityFeedItemDTOBuilder {
         actorName: string,
         expenseDescription: string,
     ): ActivityFeedItemDTOBuilder {
-        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.EXPENSE_DELETED, actorName, {
+        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.EXPENSE_DELETED, ActivityFeedActions.DELETE, actorName, {
             expenseId: `${id}-expense`,
             expenseDescription,
         });
@@ -94,7 +96,7 @@ export class ActivityFeedItemDTOBuilder {
         targetUserName: string,
         targetUserId: string = `member-${id}`,
     ): ActivityFeedItemDTOBuilder {
-        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.MEMBER_JOINED, actorName, {
+        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.MEMBER_JOINED, ActivityFeedActions.JOIN, actorName, {
             targetUserId,
             targetUserName,
         });
@@ -109,7 +111,7 @@ export class ActivityFeedItemDTOBuilder {
         targetUserName: string,
         targetUserId: string = `member-${id}`,
     ): ActivityFeedItemDTOBuilder {
-        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.MEMBER_LEFT, actorName, {
+        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.MEMBER_LEFT, ActivityFeedActions.LEAVE, actorName, {
             targetUserId,
             targetUserName,
         });
@@ -135,7 +137,7 @@ export class ActivityFeedItemDTOBuilder {
             details.expenseDescription = expenseDescription;
         }
 
-        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.COMMENT_ADDED, actorName, details);
+        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.COMMENT_ADDED, ActivityFeedActions.COMMENT, actorName, details);
     }
 
     static settlementCreated(
@@ -146,7 +148,7 @@ export class ActivityFeedItemDTOBuilder {
         actorName: string,
         settlementDescription: string,
     ): ActivityFeedItemDTOBuilder {
-        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.SETTLEMENT_CREATED, actorName, {
+        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.SETTLEMENT_CREATED, ActivityFeedActions.CREATE, actorName, {
             settlementId: `${id}-settlement`,
             settlementDescription,
         });
@@ -160,7 +162,7 @@ export class ActivityFeedItemDTOBuilder {
         actorName: string,
         settlementDescription: string,
     ): ActivityFeedItemDTOBuilder {
-        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.SETTLEMENT_UPDATED, actorName, {
+        return this.forEvent(id, userId, groupId, groupName, ActivityFeedEventTypes.SETTLEMENT_UPDATED, ActivityFeedActions.UPDATE, actorName, {
             settlementId: `${id}-settlement`,
             settlementDescription,
         });
@@ -199,6 +201,11 @@ export class ActivityFeedItemDTOBuilder {
 
     withGroupName(groupName: string): ActivityFeedItemDTOBuilder {
         this.item.groupName = groupName;
+        return this;
+    }
+
+    withAction(action: ActivityFeedAction): ActivityFeedItemDTOBuilder {
+        this.item.action = action;
         return this;
     }
 

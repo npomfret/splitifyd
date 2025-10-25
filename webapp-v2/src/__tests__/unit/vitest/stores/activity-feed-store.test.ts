@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import type { FirebaseService } from '@/app/firebase';
 import { ActivityFeedStoreImpl } from '@/app/stores/activity-feed-store';
-import { ActivityFeedEventTypes, type ActivityFeedItem, type ActivityFeedResponse } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, type ActivityFeedItem, type ActivityFeedResponse } from '@splitifyd/shared';
 
 vi.mock('@/app/apiClient', () => ({
     apiClient: {
@@ -36,6 +36,7 @@ function buildItem(id: string, minutes: number, overrides?: Partial<ActivityFeed
         groupId: 'group-1',
         groupName: 'Brunch Buddies',
         eventType: ActivityFeedEventTypes.EXPENSE_CREATED,
+        action: ActivityFeedActions.CREATE,
         actorId: 'actor-1',
         actorName: 'Ada Lovelace',
         timestamp,
@@ -58,6 +59,7 @@ function toDoc(item: ActivityFeedItem) {
             timestamp: item.timestamp,
             details: item.details,
             createdAt: item.createdAt,
+            action: item.action,
         }),
     };
 }

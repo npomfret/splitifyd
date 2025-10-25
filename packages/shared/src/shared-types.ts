@@ -109,6 +109,17 @@ export const ActivityFeedEventTypes = {
 
 export type ActivityFeedEventType = (typeof ActivityFeedEventTypes)[keyof typeof ActivityFeedEventTypes];
 
+export const ActivityFeedActions = {
+    CREATE: 'create',
+    UPDATE: 'update',
+    DELETE: 'delete',
+    COMMENT: 'comment',
+    JOIN: 'join',
+    LEAVE: 'leave',
+} as const;
+
+export type ActivityFeedAction = (typeof ActivityFeedActions)[keyof typeof ActivityFeedActions];
+
 export interface ActivityFeedItemDetails {
     expenseId?: string;
     expenseDescription?: string;
@@ -127,6 +138,7 @@ export interface ActivityFeedItem {
     groupId: GroupId;
     groupName: GroupName;
     eventType: ActivityFeedEventType;
+    action: ActivityFeedAction;
     actorId: UserId;
     actorName: string;
     timestamp: ISOString;

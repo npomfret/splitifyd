@@ -1,5 +1,6 @@
 import {
     Amount,
+    ActivityFeedActions,
     ActivityFeedEventTypes,
     amountToSmallestUnit,
     CommentTargetTypes,
@@ -467,11 +468,12 @@ export class GroupService {
                 this.activityFeedService.recordActivityForUsersWithExistingItems(
                     transaction,
                     memberIds,
-                    {
-                        groupId,
-                        groupName: updatedData.name,
-                        eventType: ActivityFeedEventTypes.GROUP_UPDATED,
-                        actorId: userId,
+                {
+                    groupId,
+                    groupName: updatedData.name,
+                    eventType: ActivityFeedEventTypes.GROUP_UPDATED,
+                    action: ActivityFeedActions.UPDATE,
+                    actorId: userId,
                         actorName: actorDisplayName,
                         timestamp: now,
                         details,
@@ -614,6 +616,8 @@ export class GroupService {
 
             // Record MEMBER_LEFT activity for each member
             for (const memberId of memberIdsInTransaction) {
+                const memberDoc = membershipSnapshot.docs.find((doc) => (doc.data() as { uid?: string; }).uid === memberId);
+                const targetUserName = (memberDoc?.data() as { groupDisplayName?: string; })?.groupDisplayName ?? 'Unknown member';
                 this.activityFeedService.recordActivityForUsersWithExistingItems(
                     transaction,
                     [memberId],
@@ -621,11 +625,13 @@ export class GroupService {
                         groupId,
                         groupName: group.name,
                         eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                        action: ActivityFeedActions.LEAVE,
                         actorId: userId,
                         actorName: actorDisplayName,
                         timestamp: now,
                         details: {
                             targetUserId: memberId,
+                            targetUserName,
                         },
                     },
                     existingActivityItems,

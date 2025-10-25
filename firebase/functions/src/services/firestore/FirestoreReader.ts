@@ -11,6 +11,9 @@
  */
 
 import {
+    ActivityFeedActions,
+    ActivityFeedEventTypes,
+    type ActivityFeedAction,
     type ActivityFeedEventType,
     type ActivityFeedItem,
     type CommentDTO,
@@ -62,6 +65,18 @@ import { FirestoreCollections } from '../../constants';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
 import type { BatchGroupFetchOptions, GetGroupsForUserOptions, GroupsPaginationCursor, PaginatedResult, QueryOptions } from './IFirestoreReader';
+
+const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
+    [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
+    [ActivityFeedEventTypes.EXPENSE_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.EXPENSE_DELETED]: ActivityFeedActions.DELETE,
+    [ActivityFeedEventTypes.SETTLEMENT_CREATED]: ActivityFeedActions.CREATE,
+    [ActivityFeedEventTypes.SETTLEMENT_UPDATED]: ActivityFeedActions.UPDATE,
+    [ActivityFeedEventTypes.MEMBER_JOINED]: ActivityFeedActions.JOIN,
+    [ActivityFeedEventTypes.MEMBER_LEFT]: ActivityFeedActions.LEAVE,
+    [ActivityFeedEventTypes.COMMENT_ADDED]: ActivityFeedActions.COMMENT,
+    [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
+};
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(private readonly db: IFirestoreDatabase) {}
@@ -714,12 +729,16 @@ export class FirestoreReader implements IFirestoreReader {
 
                     const converted = this.convertTimestampsToISO(validated) as ActivityFeedDocument;
 
+                    const eventType = converted.eventType as ActivityFeedEventType;
+                    const action = (converted.action as ActivityFeedAction | undefined) ?? EVENT_ACTION_MAP[eventType];
+
                     const item: ActivityFeedItem = {
                         id: converted.id,
                         userId: converted.userId,
                         groupId: converted.groupId,
                         groupName: converted.groupName,
-                        eventType: converted.eventType as ActivityFeedEventType,
+                        eventType,
+                        action,
                         actorId: converted.actorId,
                         actorName: converted.actorName,
                         timestamp: converted.timestamp,
