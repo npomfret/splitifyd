@@ -20,6 +20,19 @@ export class UserHandlers {
     /**
      * Update current user's profile
      */
+    getUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+        const userId = req.user?.uid;
+        if (!userId) {
+            throw Errors.UNAUTHORIZED();
+        }
+
+        const profile = await this.userService.getProfile(userId);
+        res.status(HTTP_STATUS.OK).json(profile);
+    };
+
+    /**
+     * Update current user's profile
+     */
     updateUserProfile = async (req: AuthenticatedRequest & LocalizedRequest, res: Response): Promise<void> => {
         const userId = req.user?.uid;
         if (!userId) {

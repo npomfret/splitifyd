@@ -1,4 +1,4 @@
-import type { ClientUser } from '@splitifyd/shared';
+import { SystemUserRoles, type ClientUser, type SystemUserRole } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
@@ -18,6 +18,7 @@ export class ClientUserBuilder {
             displayName: `${randomChoice(['Test', 'Demo', 'Sample'])} ${randomChoice(['User', 'Person', 'Account'])}`,
             emailVerified: true,
             photoURL: null,
+            role: SystemUserRoles.SYSTEM_USER,
         };
     }
 
@@ -43,6 +44,11 @@ export class ClientUserBuilder {
 
     withPhotoURL(url: string | null): this {
         this.user.photoURL = url;
+        return this;
+    }
+
+    withRole(role: SystemUserRole): this {
+        this.user.role = role;
         return this;
     }
 

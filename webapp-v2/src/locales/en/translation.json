@@ -840,7 +840,9 @@
     "dashboard": "Dashboard",
     "settings": "Settings",
     "signOut": "Sign out",
-    "signingOut": "Signing out..."
+    "signingOut": "Signing out...",
+    "systemUserBadge": "System User",
+    "systemUserTooltip": "This account is used for automated or system-driven operations."
   },
   "footer": {
     "companyName": "Splitifyd",

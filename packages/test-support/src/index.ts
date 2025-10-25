@@ -26,3 +26,4 @@ export * from './test-constants';
 export * from './test-helpers';
 export * from './test-pool-helpers';
 export * from './utils/page-state-collector';
+export { ActivityFeedEventTypes } from '@splitifyd/shared';

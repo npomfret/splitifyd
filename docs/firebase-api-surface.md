@@ -43,6 +43,7 @@ _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS f
 | POST | `/register` | Create a new user account. | Public | Body `UserRegistration` (see `UserService2.validateRegisterRequest`). | `201` JSON `RegisterUserResult` (`{ success, message, user }`). |
 | POST | `/user/policies/accept-multiple` | Accept multiple policy versions in one call. | `authenticate` | Body with `acceptances[]` validated by `validateAcceptMultiplePolicies`. | `200` `{ success, message, acceptedPolicies }`. |
 | GET | `/user/policies/status` | Fetch user’s outstanding/accepted policies. | `authenticate` | Query optional. | `200` JSON from `UserPolicyService.getUserPolicyStatus`. |
+| GET | `/user/profile` | Fetch current user profile metadata (display name, role). | `authenticate` | None. | `200` `{ displayName, role }`. |
 | PUT | `/user/profile` | Update profile (display name, locale, theme, etc.). | `authenticate` | Body handled by `UserService.updateProfile` (JSON). | `200` updated `RegisteredUser` subset. |
 | POST | `/user/change-password` | Change password with current password verification. | `authenticate` | Body `{ currentPassword, newPassword, ... }`. | `200` JSON `{ success, message }`. |
 

@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes } from '../shared-types';
+import { ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes, SystemUserRoles } from '../shared-types';
 
 const UserThemeColorSchema = z.object({
     light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
@@ -329,6 +329,7 @@ const ListCommentsApiResponseSchema = ListCommentsResponseSchema;
 // User profile schemas
 const UserProfileResponseSchema = z.object({
     displayName: z.string(),
+    role: z.nativeEnum(SystemUserRoles),
 });
 
 // Policy schemas

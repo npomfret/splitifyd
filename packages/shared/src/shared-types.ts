@@ -458,6 +458,7 @@ export interface ClientUser {
     photoURL?: string | null;
     themeColor?: UserThemeColor;
     preferredLanguage?: string;
+    role?: SystemUserRole;
 }
 
 // Base interface for document types with common timestamp fields
@@ -888,6 +889,7 @@ export interface CurrentPolicyResponse {
 
 export interface UserProfileResponse {
     displayName: DisplayName;
+    role: SystemUserRole;
 }
 
 export interface AcceptMultiplePoliciesResponse {

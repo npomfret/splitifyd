@@ -160,6 +160,8 @@ class AuthStoreImpl implements AuthStore {
                     } catch (error) {
                         logError('Failed to get ID token', error);
                     }
+
+                    void this.loadUserProfile(user.uid);
                 } else {
                     this.#userSignal.value = null;
                     apiClient.setAuthToken(null);
@@ -221,6 +223,24 @@ class AuthStoreImpl implements AuthStore {
             await this.refreshAuthToken();
         } catch (error) {
             logError('Visibility-triggered token refresh failed', error);
+        }
+    }
+
+    private async loadUserProfile(userId: string): Promise<void> {
+        try {
+            const profile = await apiClient.getUserProfile();
+            const currentUser = this.#userSignal.value;
+            if (!currentUser || currentUser.uid !== userId) {
+                return;
+            }
+
+            this.#userSignal.value = {
+                ...currentUser,
+                displayName: profile.displayName ?? currentUser.displayName,
+                role: profile.role,
+            };
+        } catch (error) {
+            logError('Failed to load user profile', error);
         }
     }
 
@@ -336,6 +356,7 @@ class AuthStoreImpl implements AuthStore {
                 this.#userSignal.value = {
                     ...this.#userSignal.value,
                     displayName: updatedUser.displayName,
+                    role: updatedUser.role,
                 };
             }
 

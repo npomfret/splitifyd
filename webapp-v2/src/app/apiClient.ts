@@ -941,6 +941,14 @@ class ApiClient {
     }
 
     // User profile management methods
+    async getUserProfile(signal?: AbortSignal): Promise<UserProfileResponse> {
+        return this.request({
+            endpoint: '/user/profile',
+            method: 'GET',
+            signal,
+        });
+    }
+
     async updateUserProfile(data: { displayName?: string; }): Promise<UserProfileResponse> {
         return this.request({
             endpoint: '/user/profile',

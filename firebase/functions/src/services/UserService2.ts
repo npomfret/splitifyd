@@ -1,5 +1,5 @@
-import { AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor } from '@splitifyd/shared';
-import { GroupMember, GroupMembershipDTO, GroupMembersResponse, UserProfileResponse } from '@splitifyd/shared';
+import { AuthErrors, RegisteredUser, SystemUserRoles, UserProfileResponse, UserRegistration, UserThemeColor } from '@splitifyd/shared';
+import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
@@ -170,8 +170,20 @@ export class UserService {
      * @returns The updated user profile
      * @throws ApiError if update fails
      */
+    async getProfile(userId: string): Promise<UserProfileResponse> {
+        return measureDb('UserService2.getProfile', async () => this._getProfile(userId));
+    }
+
     async updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfileResponse> {
         return measureDb('UserService2.updateProfile', async () => this._updateProfile(userId, requestBody, language));
+    }
+
+    private async _getProfile(userId: string): Promise<UserProfileResponse> {
+        const registeredUser = await this.getUser(userId);
+        return {
+            displayName: registeredUser.displayName,
+            role: registeredUser.role ?? SystemUserRoles.SYSTEM_USER,
+        };
     }
 
     private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfileResponse> {
@@ -210,11 +222,7 @@ export class UserService {
             }
 
             // Return the updated profile
-            const registeredUser = await this.getUser(userId);
-            const resp: UserProfileResponse = {
-                displayName: registeredUser.displayName,
-            };
-            return resp;
+            return this._getProfile(userId);
         } catch (error: unknown) {
             // Check if error is from Firebase Auth (user not found)
             if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
