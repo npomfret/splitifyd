@@ -12,9 +12,9 @@
  * WARNING: This grants full admin access to the user. Use with caution in production.
  */
 
+import { SystemUserRoles } from '@splitifyd/shared';
 import * as admin from 'firebase-admin';
 import { Firestore } from 'firebase-admin/firestore';
-import { SystemUserRoles } from '@splitifyd/shared';
 import { FirestoreCollections } from '../functions/src/constants';
 import { initializeFirebase, parseEnvironment } from './firebase-init';
 
@@ -162,7 +162,6 @@ async function promoteUserToAdmin(userId: string): Promise<void> {
         console.log('  - Manage policies via admin panel');
         console.log('  - View and modify all system data');
         console.log('');
-
     } catch (error) {
         console.error('❌ Error promoting user to admin:', error);
         throw error;

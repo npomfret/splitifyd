@@ -1,31 +1,31 @@
 // Endpoint inventory: see docs/firebase-api-surface.md for route descriptions.
 import express from 'express';
-import {onRequest} from 'firebase-functions/v2/https';
-import {getActivityFeed} from './activity/handlers';
-import {register} from './auth/handlers';
-import {authenticate, authenticateAdmin} from './auth/middleware';
-import {getConfig} from './client-config';
-import {createComment, listExpenseComments, listGroupComments} from './comments/handlers';
-import {FirestoreCollections, HTTP_STATUS} from './constants';
-import {createExpense, deleteExpense, getExpenseFullDetails, updateExpense} from './expenses/handlers';
-import {createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName} from './groups/handlers';
-import {archiveGroupForUser, leaveGroup, removeGroupMember, unarchiveGroupForUser} from './groups/memberHandlers';
-import {approveMember, getPendingMembers, rejectMember, updateGroupPermissions, updateMemberRole} from './groups/security';
-import {generateShareableLink, joinGroupByLink, previewGroupByLink} from './groups/shareHandlers';
-import {logger} from './logger';
-import {disableETags} from './middleware/cache-control';
-import {metrics, toAggregatedReport} from './monitoring/lightweight-metrics';
-import {createPolicy, deletePolicyVersion, getPolicy, getPolicyVersion, listPolicies, publishPolicy, updatePolicy} from './policies/handlers';
-import {getCurrentPolicy} from './policies/public-handlers';
-import {acceptMultiplePolicies, getUserPolicyStatus} from './policies/user-handlers';
-import {createSettlement, deleteSettlement, updateSettlement} from './settlements/handlers';
-import {borrowTestUser, returnTestUser} from './test-pool/handlers';
-import {testClearPolicyAcceptances, testPromoteToAdmin} from './test/policy-handlers';
-import {changePassword, getUserProfile, updateUserProfile} from './user/handlers';
-import {getEnhancedConfigResponse} from './utils/config-response';
-import {ApiError} from './utils/errors';
-import {applyStandardMiddleware} from './utils/middleware';
-import {logMetrics} from './scheduled/metrics-logger';
+import { onRequest } from 'firebase-functions/v2/https';
+import { getActivityFeed } from './activity/handlers';
+import { register } from './auth/handlers';
+import { authenticate, authenticateAdmin } from './auth/middleware';
+import { getConfig } from './client-config';
+import { createComment, listExpenseComments, listGroupComments } from './comments/handlers';
+import { FirestoreCollections, HTTP_STATUS } from './constants';
+import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
+import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
+import { archiveGroupForUser, leaveGroup, removeGroupMember, unarchiveGroupForUser } from './groups/memberHandlers';
+import { approveMember, getPendingMembers, rejectMember, updateGroupPermissions, updateMemberRole } from './groups/security';
+import { generateShareableLink, joinGroupByLink, previewGroupByLink } from './groups/shareHandlers';
+import { logger } from './logger';
+import { disableETags } from './middleware/cache-control';
+import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
+import { createPolicy, deletePolicyVersion, getPolicy, getPolicyVersion, listPolicies, publishPolicy, updatePolicy } from './policies/handlers';
+import { getCurrentPolicy } from './policies/public-handlers';
+import { acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
+import { logMetrics } from './scheduled/metrics-logger';
+import { createSettlement, deleteSettlement, updateSettlement } from './settlements/handlers';
+import { borrowTestUser, returnTestUser } from './test-pool/handlers';
+import { testClearPolicyAcceptances, testPromoteToAdmin } from './test/policy-handlers';
+import { changePassword, getUserProfile, updateUserProfile } from './user/handlers';
+import { getEnhancedConfigResponse } from './utils/config-response';
+import { ApiError } from './utils/errors';
+import { applyStandardMiddleware } from './utils/middleware';
 
 let app: express.Application | null = null;
 
@@ -35,7 +35,7 @@ function getApp(): express.Application {
 
         disableETags(app);
 
-    app.use((req, res, next) => {
+        app.use((req, res, next) => {
             if (req.url.startsWith('/api/')) {
                 req.url = req.url.substring(4);
             }
@@ -223,6 +223,6 @@ export const api = onRequest(
 );
 
 export { logMetrics };
+export { env } from './endpoints/env';
 export { health } from './endpoints/health';
 export { status } from './endpoints/status';
-export { env } from './endpoints/env';

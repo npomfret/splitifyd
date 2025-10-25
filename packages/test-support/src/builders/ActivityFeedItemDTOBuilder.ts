@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, type ActivityFeedAction, type ActivityFeedEventType, type ActivityFeedItem } from '@splitifyd/shared';
+import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem } from '@splitifyd/shared';
 
 const DEFAULT_TIMESTAMP = () => new Date().toISOString();
 

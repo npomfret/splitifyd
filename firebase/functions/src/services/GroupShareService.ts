@@ -367,12 +367,12 @@ export class GroupShareService {
                 this.activityFeedService.recordActivityForUsersWithExistingItems(
                     transaction,
                     activityRecipients,
-                {
-                    groupId,
-                    groupName,
-                    eventType: ActivityFeedEventTypes.MEMBER_JOINED,
-                    action: ActivityFeedActions.JOIN,
-                    actorId: userId,
+                    {
+                        groupId,
+                        groupName,
+                        eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                        action: ActivityFeedActions.JOIN,
+                        actorId: userId,
                         actorName: memberDoc.groupDisplayName,
                         timestamp: now,
                         details: {

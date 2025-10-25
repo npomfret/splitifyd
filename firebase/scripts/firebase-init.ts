@@ -1,9 +1,9 @@
-import * as admin from 'firebase-admin';
+import { getPorts, getProjectId } from '@splitifyd/test-support';
 import * as dotenv from 'dotenv';
+import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
 import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
-import { getPorts, getProjectId } from '@splitifyd/test-support';
 
 export function isProduction() {
     return requireInstanceMode() === 'prod';

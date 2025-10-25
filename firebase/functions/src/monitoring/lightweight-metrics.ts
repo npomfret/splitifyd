@@ -152,7 +152,7 @@ export class LightweightMetrics {
     }
 }
 
-export function toAggregatedReport(snapshot: { api: Metric[]; db: Metric[]; trigger: Metric[] }) {
+export function toAggregatedReport(snapshot: { api: Metric[]; db: Metric[]; trigger: Metric[]; }) {
     // Calculate aggregated stats for each metric type
     const calculateStats = (metricsList: any[]) => {
         if (!metricsList.length) return null;

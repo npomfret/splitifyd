@@ -34,8 +34,8 @@ if (typeof window !== 'undefined') {
 }
 
 import { apiClient } from '@/app/apiClient';
-import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { ActivityFeedStore } from '@/app/stores/activity-feed-store';
+import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { CommentDTO, ListCommentsResponse } from '@splitifyd/shared';
 
 const mockedApiClient = apiClient as unknown as {

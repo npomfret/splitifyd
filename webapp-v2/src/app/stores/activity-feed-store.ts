@@ -1,11 +1,11 @@
+import { logError, logWarning } from '@/utils/browser-logger.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
 import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
 import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedResponse } from '@splitifyd/shared';
+import { documentId, Timestamp } from 'firebase/firestore';
 import { apiClient } from '../apiClient';
 import type { FirebaseService } from '../firebase';
 import { getFirebaseService } from '../firebase';
-import { documentId, Timestamp } from 'firebase/firestore';
-import { logError, logWarning } from '@/utils/browser-logger.ts';
 
 const ACTIVITY_FEED_PAGE_SIZE = 10;
 
@@ -344,10 +344,9 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
             }
         }
 
-        const listChanged =
-            hasMore !== this.#hasMoreSignal.value ||
-            mergedItems.length !== previousItems.length ||
-            mergedItems.some((item, index) => previousItems[index]?.id !== item.id);
+        const listChanged = hasMore !== this.#hasMoreSignal.value
+            || mergedItems.length !== previousItems.length
+            || mergedItems.some((item, index) => previousItems[index]?.id !== item.id);
 
         if (listChanged) {
             this.#itemsSignal.value = mergedItems;

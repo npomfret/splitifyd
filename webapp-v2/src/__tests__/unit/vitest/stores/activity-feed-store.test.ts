@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
 import type { FirebaseService } from '@/app/firebase';
 import { ActivityFeedStoreImpl } from '@/app/stores/activity-feed-store';
 import { ActivityFeedActions, ActivityFeedEventTypes, type ActivityFeedItem, type ActivityFeedResponse } from '@splitifyd/shared';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 
 vi.mock('@/app/apiClient', () => ({
     apiClient: {
@@ -288,7 +288,8 @@ describe('ActivityFeedStoreImpl', () => {
 
         it('sets error state when loadMore fails', async () => {
             const items = [buildItem('1', 1)];
-            mockedApiClient.getActivityFeed
+            mockedApiClient
+                .getActivityFeed
                 .mockResolvedValueOnce({
                     items,
                     hasMore: true,
@@ -305,7 +306,8 @@ describe('ActivityFeedStoreImpl', () => {
         });
 
         it('allows retry after initialization failure', async () => {
-            mockedApiClient.getActivityFeed
+            mockedApiClient
+                .getActivityFeed
                 .mockRejectedValueOnce(new Error('First attempt failed'))
                 .mockResolvedValueOnce({ items: [buildItem('1', 1)], hasMore: false, nextCursor: undefined });
 

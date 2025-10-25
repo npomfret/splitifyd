@@ -87,7 +87,8 @@ export class NotificationListener {
         }
 
         return new Promise((resolve, reject) => {
-            const query = this.firestore
+            const query = this
+                .firestore
                 .collection('activity-feed')
                 .doc(this.userId)
                 .collection('items')
@@ -161,7 +162,8 @@ export class NotificationListener {
     }
 
     getGroupEvents(groupId: GroupId, type?: NotificationCategory): NotificationEvent[] {
-        return this.receivedItems
+        return this
+            .receivedItems
             .filter((item) => {
                 if (item.groupId !== groupId) {
                     return false;
@@ -204,7 +206,8 @@ export class NotificationListener {
             throw new Error([
                 `User [${this.userId}] expected ${expectedCount}${type ? ` ${type}` : ''} events for group [${groupId}] but got ${events.length}:`,
                 details || '\t(no events)',
-            ].join('\n'));
+            ]
+                .join('\n'));
         }
     }
 

@@ -1,7 +1,7 @@
 import {
-    Amount,
     ActivityFeedActions,
     ActivityFeedEventTypes,
+    Amount,
     amountToSmallestUnit,
     CommentTargetTypes,
     CreateGroupRequest,
@@ -28,6 +28,7 @@ import { GroupBalanceDTO } from '../schemas';
 import * as dateHelpers from '../utils/dateHelpers';
 import { Errors } from '../utils/errors';
 import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
+import { ActivityFeedService } from './ActivityFeedService';
 import { CommentService } from './CommentService';
 import { ExpenseService } from './ExpenseService';
 import type { GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter } from './firestore';
@@ -35,7 +36,6 @@ import { GroupMemberService } from './GroupMemberService';
 import { GroupShareService } from './GroupShareService';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
-import { ActivityFeedService } from './ActivityFeedService';
 
 /**
  * Service for managing group operations
@@ -421,7 +421,8 @@ export class GroupService {
 
             // Read membership documents that need updating
             const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
-            const memberIds = membershipSnapshot.docs
+            const memberIds = membershipSnapshot
+                .docs
                 .map((doc) => (doc.data().uid as string | null | undefined) ?? null)
                 .filter((id): id is string => Boolean(id));
             const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);
@@ -429,7 +430,7 @@ export class GroupService {
 
             const existingActivityItems = memberIds.length > 0
                 ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds)
-                : new Map<string, Array<{ id: string }>>();
+                : new Map<string, Array<{ id: string; }>>();
 
             // Optimistic locking: Check if group was updated since we fetched it (compare ISO strings)
             if (group.updatedAt !== currentGroup.updatedAt) {
@@ -468,12 +469,12 @@ export class GroupService {
                 this.activityFeedService.recordActivityForUsersWithExistingItems(
                     transaction,
                     memberIds,
-                {
-                    groupId,
-                    groupName: updatedData.name,
-                    eventType: ActivityFeedEventTypes.GROUP_UPDATED,
-                    action: ActivityFeedActions.UPDATE,
-                    actorId: userId,
+                    {
+                        groupId,
+                        groupName: updatedData.name,
+                        eventType: ActivityFeedEventTypes.GROUP_UPDATED,
+                        action: ActivityFeedActions.UPDATE,
+                        actorId: userId,
                         actorName: actorDisplayName,
                         timestamp: now,
                         details,
@@ -595,12 +596,13 @@ export class GroupService {
             }
 
             const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
-            const memberIdsInTransaction = membershipSnapshot.docs
+            const memberIdsInTransaction = membershipSnapshot
+                .docs
                 .map((doc) => (doc.data().uid as string | null | undefined) ?? null)
                 .filter((id): id is string => Boolean(id));
             const existingActivityItems = memberIdsInTransaction.length > 0
                 ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIdsInTransaction)
-                : new Map<string, Array<{ id: string }>>();
+                : new Map<string, Array<{ id: string; }>>();
 
             this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, {
                 deletedAt: now,

@@ -7,9 +7,9 @@
 
 import { ApiSerializer } from '@splitifyd/shared';
 import type {
-    ActivityFeedResponse,
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
+    ActivityFeedResponse,
     AppConfiguration,
     CommentDTO,
     CreateExpenseRequest,

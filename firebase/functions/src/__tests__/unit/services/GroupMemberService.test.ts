@@ -373,7 +373,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             db.seedGroupMember('test-group-id', 'other-member-123', otherMemberDoc);
             db.seed(`groups/test-group-id/metadata/balance`, settledBalanceWithTimestamp);
 
-
             // Act
             const result = await groupMemberService.leaveGroup('member-user-123', 'test-group-id');
 
@@ -557,7 +556,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
             db.seedGroupMember('test-group-id', 'member-user-123', memberDoc);
             db.seedGroupMember('test-group-id', 'creator-user-123', creatorMemberDoc);
             db.seed(`groups/test-group-id/metadata/balance`, settledBalanceWithTimestamp);
-
 
             // Act
             const result = await groupMemberService.removeGroupMember('creator-user-123', 'test-group-id', 'member-user-123');

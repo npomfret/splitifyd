@@ -442,9 +442,10 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             this.disposeSubscription();
             this.currentUserId = null;
         }
-    }    /**
+    } /**
      * Internal method to set up subscription
      */
+
     private async setupSubscription(userId: string): Promise<void> {
         if (this.activityListenerRegistered) {
             this.activityFeed.deregisterListener(this.activityListenerId);

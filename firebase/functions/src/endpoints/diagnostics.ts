@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { getAppBuilder } from '../ApplicationBuilderSingleton';
 import { getConfig } from '../client-config';
-import { SYSTEM, HTTP_STATUS } from '../constants';
+import { HTTP_STATUS, SYSTEM } from '../constants';
 import { getAuth } from '../firebase';
 import { BUILD_INFO } from '../utils/build-info';
 import { timestampToISO } from '../utils/dateHelpers';
@@ -183,5 +183,4 @@ export const buildHealthPayload = (checks: HealthCheckMap) => ({
     checks,
 });
 
-export const resolveHealthStatusCode = (checks: HealthCheckMap) =>
-    calculateOverallHealth(checks) === 'healthy' ? HTTP_STATUS.OK : HTTP_STATUS.SERVICE_UNAVAILABLE;
+export const resolveHealthStatusCode = (checks: HealthCheckMap) => calculateOverallHealth(checks) === 'healthy' ? HTTP_STATUS.OK : HTTP_STATUS.SERVICE_UNAVAILABLE;

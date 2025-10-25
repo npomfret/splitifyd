@@ -13,7 +13,7 @@
 import type { CommentDTO, RegisteredUser, ShareLinkDTO } from '@splitifyd/shared';
 import { type CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
 import { z } from 'zod';
-import { FIRESTORE, FirestoreCollections, HTTP_STATUS } from '../../constants';
+import { FirestoreCollections, HTTP_STATUS } from '../../constants';
 import { FieldValue, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
@@ -969,7 +969,6 @@ export class FirestoreWriter implements IFirestoreWriter {
     generateDocumentId(collection: string): string {
         return this.db.collection(collection).doc().id;
     }
-
 
     // ========================================================================
     // Share Link Operations

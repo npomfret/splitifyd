@@ -1,9 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/preact';
 import { ActivityFeedCard } from '@/components/dashboard/ActivityFeedCard.tsx';
-import { signal, type ReadonlySignal, type Signal } from '@preact/signals';
-import { ActivityFeedActions, ActivityFeedEventTypes, type ActivityFeedAction, type ActivityFeedEventType, type ActivityFeedItem } from '@splitifyd/shared';
+import { type ReadonlySignal, type Signal, signal } from '@preact/signals';
+import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem } from '@splitifyd/shared';
+import { fireEvent, render, screen } from '@testing-library/preact';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock must be defined inline to avoid hoisting issues
 vi.mock('@/app/stores/activity-feed-store', async () => {

@@ -154,12 +154,12 @@ export class GroupMemberService {
                     this.activityFeedService.recordActivityForUsersWithExistingItems(
                         transaction,
                         recipientIds,
-                {
-                    groupId,
-                    groupName: group.name,
-                    eventType: ActivityFeedEventTypes.MEMBER_JOINED,
-                    action: ActivityFeedActions.JOIN,
-                    actorId: targetUserId,
+                        {
+                            groupId,
+                            groupName: group.name,
+                            eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                            action: ActivityFeedActions.JOIN,
+                            actorId: targetUserId,
                             actorName: actorDisplayName,
                             timestamp: now,
                             details: {
@@ -366,12 +366,12 @@ export class GroupMemberService {
                 this.activityFeedService.recordActivityForUsersWithExistingItems(
                     transaction,
                     activityRecipients,
-                {
-                    groupId,
-                    groupName: group.name,
-                    eventType: ActivityFeedEventTypes.MEMBER_LEFT,
-                    action: ActivityFeedActions.LEAVE,
-                    actorId,
+                    {
+                        groupId,
+                        groupName: group.name,
+                        eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                        action: ActivityFeedActions.LEAVE,
+                        actorId,
                         actorName: actorDisplayName,
                         timestamp: now,
                         details: {

@@ -1029,7 +1029,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
             expect(data?.content).toBe('document content');
             expect(data?.lastModified).toBeInstanceOf(Timestamp);
         });
-
     });
 
     describe('Trigger simulation', () => {

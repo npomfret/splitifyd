@@ -11,10 +11,10 @@
  */
 
 import {
-    ActivityFeedActions,
-    ActivityFeedEventTypes,
     type ActivityFeedAction,
+    ActivityFeedActions,
     type ActivityFeedEventType,
+    ActivityFeedEventTypes,
     type ActivityFeedItem,
     type CommentDTO,
     type CommentTargetType,

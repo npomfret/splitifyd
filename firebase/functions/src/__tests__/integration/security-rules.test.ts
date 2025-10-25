@@ -395,7 +395,7 @@ describe('Firestore Security Rules (Production)', () => {
             await assertSucceeds(getDocs(query(collection(user1Db, 'activity-feed', userId, 'items'), limit(5))));
         });
 
-        it("should deny access to someone else's activity feed items", async () => {
+        it('should deny access to someone else\'s activity feed items', async () => {
             await assertFails(getDoc(doc(user2Db, 'activity-feed', userId, 'items', feedItemId)));
             await assertFails(getDocs(collection(user2Db, 'activity-feed', userId, 'items')));
         });
@@ -525,8 +525,7 @@ describe('Firestore Security Rules (Production)', () => {
             // Clean up
             unsubscribe();
         });
-
-        });
+    });
 
     describe('Users Collection', () => {
         it('should allow users to read and write their own user document', async () => {

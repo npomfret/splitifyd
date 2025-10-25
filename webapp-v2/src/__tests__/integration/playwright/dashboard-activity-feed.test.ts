@@ -103,7 +103,9 @@ test.describe('Activity Feed - Event Types', () => {
         await page.goto('/dashboard');
 
         const commentTarget = translationEn.activityFeed.labels.commentOnExpense.replace('{{description}}', 'Groceries');
-        const expectedDescription = translationEn.activityFeed.events['comment-added']
+        const expectedDescription = translationEn
+            .activityFeed
+            .events['comment-added']
             .replace('{{actor}}', 'Alice')
             .replace('{{target}}', commentTarget)
             .replace('{{group}}', 'Test Group');

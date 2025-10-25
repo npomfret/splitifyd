@@ -1,4 +1,4 @@
-import { SystemUserRoles, type ClientUser, type SystemUserRole } from '@splitifyd/shared';
+import { type ClientUser, type SystemUserRole, SystemUserRoles } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { generateShortId, randomChoice } from '../test-helpers';

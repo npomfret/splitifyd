@@ -155,7 +155,8 @@ export class CommentsStoreImpl implements CommentsStore {
             return;
         }
 
-        this.#listenerRegistrationPromise = this.#activityFeed
+        this.#listenerRegistrationPromise = this
+            .#activityFeed
             .registerListener(this.#listenerId, null, this.#handleActivityEvent)
             .then(() => {
                 this.#listenerRegistered = true;
