@@ -426,11 +426,8 @@ service cloud.firestore {
 }
 ```
 
-**Operational safeguards**
-
 - Cloud Functions should double-check claims vs payload to avoid privilege escalation (never trust client-provided `tenantId`).
 - Add smoke tests that sign in as two tenants and ensure cross-tenant reads/writes fail.
-- Plan a migration checklist: backfill existing documents, run validation queries (`SELECT * WHERE tenantId == null` equivalent using Firestore exports), and lock writes behind maintenance mode during the cutover if needed.
 
 #### Phase 7: Organization Hierarchy (Week 9-10)
 
@@ -477,14 +474,35 @@ export interface UserDTO {
 
 #### Phase 8: Tenant Admin Panel (Week 11-12)
 
-**New Routes: `webapp-v2/src/pages/admin/`**
+**Scope**
+- Internal-only for MVP; expose via guarded routes under `webapp-v2/src/pages/admin/`.
+- Requires `tenant-admin` or higher role; leverage existing auth middleware to gate access.
 
-Create admin panel with:
-1. **Branding Editor**: Upload logo, set colors, preview live
-2. **Feature Toggles**: Enable/disable features per tenant
-3. **Policy Acceptance Monitoring**: Review tenant users' acceptance status for the global policies
-4. **User Management**: Invite users, assign roles, view audit logs
-5. **Analytics Dashboard**: Tenant-specific usage metrics
+**Core modules**
+1. **Branding Editor**
+   - Upload logo (SVG preferred) with aspect-ratio guard and transparent background checks.
+   - Pick primary colour; live preview applies generated hover/active states and shows contrast “Pass/Fail”.
+   - Manage additional assets (favicon, marketing toggles).
+
+2. **Domain Management**
+   - List mapped domains, show verification status (CNAME/SSL provisioning).
+   - Provide copy-ready DNS instructions for new domains; expose “showroom” preview link.
+
+3. **Feature Toggles**
+   - Surface boolean/range config (e.g., multi-currency, group limits) with contextual descriptions.
+   - Changes trigger backend validation via the tenant registry service.
+
+4. **User & Access Management**
+   - Invite tenant users, assign roles (`tenant-admin`, `member`), view activity/audit log.
+   - Optional: show pending policy acceptance status to encourage compliance.
+
+5. **Usage Snapshot (stretch)**
+   - Display high-level metrics (active users, groups, storage usage) sourced from existing analytics.
+
+**Implementation notes**
+- Build forms with shared validation schema (`zod`) so the same rules run server-side.
+- Use staged publish: edits save to draft, require confirmation before pushing to live config to avoid partial updates.
+- Ensure every mutation writes audit entries (`tenant_audit_logs`) for later compliance needs.
 
 ### Architecture Decision Matrix
 
