@@ -178,6 +178,28 @@ function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function isAbortError(error: unknown, signal?: AbortSignal | null): boolean {
+    if (signal?.aborted) {
+        return true;
+    }
+
+    if (typeof DOMException !== 'undefined' && error instanceof DOMException) {
+        return error.name === 'AbortError';
+    }
+
+    if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+            return true;
+        }
+
+        if (error.message && /aborted/i.test(error.message)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // Main API client class
 class ApiClient {
     private authToken: string | null = null;
@@ -556,6 +578,10 @@ class ApiClient {
 
             return processedResponse;
         } catch (error) {
+            if (isAbortError(error, signal)) {
+                throw error;
+            }
+
             // Re-throw our custom errors that aren't retryable
             if (error instanceof ApiValidationError) {
                 throw error;
