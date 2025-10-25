@@ -27,7 +27,12 @@ Concise rules for working with the Firebase emulator stack and the instance swit
 - `npm run deploy:prod` runs `switch-instance prod`, rebuilds workspaces with `BUILD_MODE=production`, stages local tarballs for shared packages, installs production deps, and expects `lib/index.js` from `tsconfig.deploy.json`.
 - `firebase/functions/src/firebase.ts` lazily loads `.env` if `INSTANCE_MODE` is missing so Cloud Functions analysis gets the right settings.
 - Export `GCLOUD_PROJECT` before running the deploy pipeline; the tooling assumes it exists.
-- If you run deploy commands with a service account, grant it Firebase Admin + Firebase Rules Admin (or equivalent) so the CLI can publish indexes and rules.
+- If you run deploy commands with a service account, grant it the following:
+  - **Firebase Admin** (`roles/firebase.admin`) – deploy functions, rules, and hosting
+  - **Firebase Rules Admin** (`roles/firebaserules.admin`) – publish Firestore security rules
+  - **Service Account User** (`roles/iam.serviceAccountUser`) – let the deploy impersonate the runtime service account (default is `PROJECT_NUMBER-compute@developer.gserviceaccount.com`)
+  - **Cloud Scheduler Admin** (`roles/cloudscheduler.admin`) – manage scheduled Cloud Functions triggers
+  - Run `bash firebase/scripts/grant-deploy-roles.sh` from the repo root (pass a custom email if you use a different service account) to apply all bindings in one shot.
 
 ## Ports, URLs, and Tests
 

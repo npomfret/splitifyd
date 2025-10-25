@@ -936,7 +936,8 @@ export class FirestoreReader implements IFirestoreReader {
             }
 
             const dataWithId = { ...rawData, id: shareLinkDoc.id };
-            const shareLink = ShareLinkDocumentSchema.parse(dataWithId);
+            const normalizedData = this.convertTimestampsToISO(dataWithId);
+            const shareLink = ShareLinkDocumentSchema.parse(normalizedData);
 
             return { groupId, shareLink };
         } catch (error) {
