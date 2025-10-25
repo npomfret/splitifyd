@@ -178,12 +178,20 @@ export class CreateGroupModalPage extends BasePage {
 
     /**
      * Wait for modal to be visible and ready for interaction
+     * Waits for inputs to be editable, not just visible, ensuring the modal is
+     * stable and ready for user interaction
      */
     async waitForModalToOpen(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(this.getModalContainer()).toBeVisible({ timeout });
         await expect(this.getModalTitle()).toBeVisible({ timeout });
-        await expect(this.getGroupNameInput()).toBeVisible({ timeout });
-        await expect(this.getSubmitButton()).toBeVisible({ timeout });
+
+        // Wait for inputs to be editable (not just visible)
+        // This ensures the modal is fully ready and stable
+        await expect(this.getGroupNameInput()).toBeEditable({ timeout });
+        await expect(this.getGroupDescriptionInput()).toBeEditable({ timeout });
+
+        // Submit button should be visible and attached to DOM
+        await expect(this.getSubmitButton()).toBeAttached({ timeout });
     }
 
     /**

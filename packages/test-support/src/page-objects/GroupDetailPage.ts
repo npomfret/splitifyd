@@ -1614,8 +1614,10 @@ export class GroupDetailPage extends BasePage {
         await this.clickButtonNoWait(button, { buttonName: translation.groupActions.inviteOthers });
 
         // Wait for modal to be fully ready (including share link generation)
-        // This ensures the fluent interface returns a ready-to-use modal
+        // waitForModalToOpen waits for loading to complete and share link to be ready
+        // which ensures the modal is stable and won't close unexpectedly
         await modalPage.waitForModalToOpen();
+
         return modalPage;
     }
 

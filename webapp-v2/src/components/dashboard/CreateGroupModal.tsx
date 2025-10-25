@@ -17,10 +17,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
-    // Guard against the initial click that opens the modal bubbling into the backdrop handler.
-    // Without this, the modal closes immediately after opening during quick pointer sequences,
-    // which breaks our Playwright tests by removing the dialog before assertions run.
-    const shouldIgnoreBackdropClickRef = useRef(true);
     const emitModalDebugLog = (message: string, data?: Record<string, unknown>) => {
         if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
             console.info(
@@ -50,23 +46,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         }
     }, [isOpen]);
 
-    useEffect(() => {
-        if (!isOpen) {
-            shouldIgnoreBackdropClickRef.current = true;
-            return;
-        }
-
-        shouldIgnoreBackdropClickRef.current = true;
-        const timer = setTimeout(() => {
-            shouldIgnoreBackdropClickRef.current = false;
-        }, 200);
-
-        return () => {
-            clearTimeout(timer);
-            shouldIgnoreBackdropClickRef.current = true;
-        };
-    }, [isOpen]);
-
     // Handle escape key to close modal
     useEffect(() => {
         if (!isOpen) return;
@@ -91,15 +70,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             return;
         }
 
-        if (shouldIgnoreBackdropClickRef.current) {
-            // Ignore synthetic backdrop click caused by the opening click bubbling through
-            emitModalDebugLog('[CreateGroupModal] Ignored backdrop click immediately after opening', {
-                isSubmitting,
-                ignoreReason: 'initial-open-guard',
-            });
-            return;
-        }
-
         if (isSubmitting) {
             emitModalDebugLog('[CreateGroupModal] Ignored backdrop click while submitting', {
                 isSubmitting,
@@ -109,6 +79,8 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
         emitModalDebugLog('[CreateGroupModal] Closing modal: Backdrop clicked', {
             isSubmitting,
+            eventType: e.type,
+            timestamp: new Date().toISOString(),
         });
         onClose();
     };
@@ -153,6 +125,10 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             const newGroup = await enhancedGroupsStore.createGroup(groupData);
 
             // Success! Close modal and optionally callback
+            emitModalDebugLog('[CreateGroupModal] Closing modal: Group created successfully', {
+                groupId: newGroup.id,
+                groupName: groupData.name,
+            });
             if (onSuccess) {
                 onSuccess(newGroup.id);
             }

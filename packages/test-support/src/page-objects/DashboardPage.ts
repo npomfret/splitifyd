@@ -572,8 +572,8 @@ export class DashboardPage extends BasePage {
         await this.clickButtonNoWait(button, { buttonName: 'Create Group' });
 
         // Wait for modal to be fully open and ready for interaction
-        // This ensures the fluent interface returns a ready-to-use modal
-        // By checking it wasn't open before and is open after, we prove the click worked
+        // waitForModalToOpen now waits for inputs to be editable, which ensures
+        // the modal is stable and won't close unexpectedly
         try {
             await modalPage.waitForModalToOpen();
         } catch (error) {
