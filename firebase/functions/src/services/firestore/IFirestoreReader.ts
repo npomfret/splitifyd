@@ -249,7 +249,7 @@ export interface IFirestoreReader {
      * @param token - The share link token
      * @returns Object with groupId and share link, or null if not found
      */
-    findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLink: ParsedShareLink; } | null>;
+    findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLinkId: string; shareLink: ParsedShareLink | null; } | null>;
 
     /**
      * Get expired share link document references within a transaction

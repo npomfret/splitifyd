@@ -582,7 +582,6 @@ interface ShareLink {
     token: string; // The actual share token used in URLs
     createdBy: UserId; // UID of the user who created this share link
     expiresAt: ISOString;
-    isActive: boolean; // For soft deletion/deactivation
 }
 
 /**

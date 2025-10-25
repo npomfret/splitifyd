@@ -18,6 +18,7 @@ export const FirestoreCollections = {
     POLICIES: 'policies',
     COMMENTS: 'comments',
     ACTIVITY_FEED: 'activity-feed',
+    SHARE_LINK_TOKENS: 'share-link-tokens',
 } as const;
 
 // HTTP Status Codes

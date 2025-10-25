@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-output/ad-hoc/report/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/expense-and-balance-lifecycle.e2e.test.ts"
-TEST_FILTER="should handle complete expense lifecycle with balance calculations and settlement"
+TEST_FILE="src/__tests__/integration/user-and-access.e2e.test.ts"
+TEST_FILTER="should handle malformed share links"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

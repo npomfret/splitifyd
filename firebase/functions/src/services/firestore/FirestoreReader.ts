@@ -912,15 +912,54 @@ export class FirestoreReader implements IFirestoreReader {
     // Share Link Operations
     // ========================================================================
 
-    async findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLink: ParsedShareLink; } | null> {
+    async findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLinkId: string; shareLink: ParsedShareLink | null; } | null> {
         try {
-            const snapshot = await this.db.collectionGroup('shareLinks').where('token', '==', token).where('isActive', '==', true).limit(1).get();
-
-            if (snapshot.empty) {
+            // Validate token format - Firestore document IDs cannot contain forward slashes
+            if (token.includes('/')) {
+                logger.warn('Invalid token format: contains forward slashes', { token });
                 return null;
             }
 
-            const shareLinkDoc = snapshot.docs[0];
+            const indexDoc = await this.db.collection(FirestoreCollections.SHARE_LINK_TOKENS).doc(token).get();
+
+            if (!indexDoc.exists) {
+                return null;
+            }
+
+            const indexData = indexDoc.data() as {
+                groupId?: GroupId;
+                shareLinkId?: string;
+                expiresAt?: string;
+            } | undefined;
+
+            if (!indexData?.groupId || !indexData?.shareLinkId) {
+                logger.error('Share link index document is missing required fields', undefined, {
+                    token,
+                    indexData,
+                });
+                return null;
+            }
+
+            const shareLinkRef = this.db
+                .collection(FirestoreCollections.GROUPS)
+                .doc(indexData.groupId)
+                .collection('shareLinks')
+                .doc(indexData.shareLinkId);
+
+            const shareLinkDoc = await shareLinkRef.get();
+
+            if (!shareLinkDoc.exists) {
+                logger.warn('Share link index doc points to missing share link', {
+                    token,
+                    groupId: indexData.groupId,
+                    shareLinkId: indexData.shareLinkId,
+                });
+                return {
+                    groupId: indexData.groupId,
+                    shareLinkId: indexData.shareLinkId,
+                    shareLink: null,
+                };
+            }
 
             // Extract group ID from document path: groups/{groupId}/shareLinks/{shareLinkId}
             // shareLinkDoc.ref.parent = shareLinks collection
@@ -939,7 +978,7 @@ export class FirestoreReader implements IFirestoreReader {
             const normalizedData = this.convertTimestampsToISO(dataWithId);
             const shareLink = ShareLinkDocumentSchema.parse(normalizedData);
 
-            return { groupId, shareLink };
+            return { groupId, shareLinkId: shareLinkDoc.id, shareLink };
         } catch (error) {
             logger.error('Failed to find share link by token', error);
             throw error;

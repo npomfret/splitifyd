@@ -54,20 +54,6 @@ export class GroupShareService {
         return new Date(nowMs + SHARE_LINK_DEFAULT_EXPIRATION_MS).toISOString();
     }
 
-    private ensureShareLinkNotExpired(shareLink: ShareLinkDTO): void {
-        const expiresAtIso = shareLink.expiresAt;
-        const expiredMessage = 'This invitation link has expired. Please request a new one from the group admin.';
-
-        const expiresAt = new Date(expiresAtIso);
-        if (Number.isNaN(expiresAt.getTime())) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'LINK_EXPIRED', expiredMessage);
-        }
-
-        if (Date.now() >= expiresAt.getTime()) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'LINK_EXPIRED', expiredMessage);
-        }
-    }
-
     private generateShareToken(): string {
         const bytes = randomBytes(12);
         const base64url = bytes.toString('base64url');
@@ -90,25 +76,51 @@ export class GroupShareService {
         };
     }
 
-    private async findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLink: ShareLinkDTO; }> {
-        const result = await this.firestoreReader.findShareLinkByToken(token);
+    private async findShareLinkByToken(token: string): Promise<
+        | { status: 'valid'; groupId: GroupId; shareLink: ShareLinkDTO; }
+        | { status: 'expired'; }
+        | { status: 'missing'; }
+    > {
+        const lookup = await this.firestoreReader.findShareLinkByToken(token);
 
-        if (!result) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
+        if (!lookup) {
+            return { status: 'missing' };
         }
 
-        // Convert ParsedShareLink to ShareLink format expected by this service
+        if (!lookup.shareLink) {
+            await this.deleteShareLinkAndIndex(lookup.groupId, lookup.shareLinkId, token);
+            return { status: 'missing' };
+        }
+
         const shareLink: ShareLinkDTO = {
-            id: result.shareLink.id,
-            token: result.shareLink.token,
-            createdBy: result.shareLink.createdBy,
-            createdAt: result.shareLink.createdAt,
-            updatedAt: result.shareLink.updatedAt,
-            expiresAt: result.shareLink.expiresAt,
-            isActive: result.shareLink.isActive,
+            id: lookup.shareLink.id,
+            token: lookup.shareLink.token,
+            createdBy: lookup.shareLink.createdBy,
+            createdAt: lookup.shareLink.createdAt,
+            updatedAt: lookup.shareLink.updatedAt,
+            expiresAt: lookup.shareLink.expiresAt,
         };
 
-        return { groupId: result.groupId, shareLink };
+        if (new Date(shareLink.expiresAt).getTime() <= Date.now()) {
+            await this.deleteShareLinkAndIndex(lookup.groupId, shareLink.id, token);
+            return { status: 'expired' };
+        }
+
+        return {
+            status: 'valid',
+            groupId: lookup.groupId,
+            shareLink,
+        };
+    }
+
+    private async deleteShareLinkAndIndex(groupId: GroupId, shareLinkId: string, token: string): Promise<void> {
+        await this.firestoreWriter.deleteShareLink(groupId, shareLinkId, token).catch((error) => {
+            logger.error('Failed to delete expired share link', error, {
+                groupId,
+                shareLinkId,
+                token,
+            });
+        });
     }
 
     async generateShareableLink(
@@ -176,7 +188,6 @@ export class GroupShareService {
                 createdAt: now,
                 updatedAt: now,
                 expiresAt: resolvedExpiresAt,
-                isActive: true,
             };
 
             // Write 1: Create new share link
@@ -239,8 +250,17 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Link ID is required');
         }
 
-        const { groupId, shareLink } = await this.findShareLinkByToken(linkId);
-        this.ensureShareLinkNotExpired(shareLink);
+        const shareLinkLookup = await this.findShareLinkByToken(linkId);
+
+        if (shareLinkLookup.status === 'missing') {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
+        }
+
+        if (shareLinkLookup.status === 'expired') {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'LINK_EXPIRED', 'This invitation link has expired. Please request a new one from the group admin.');
+        }
+
+        const { groupId, shareLink } = shareLinkLookup;
 
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
@@ -273,8 +293,17 @@ export class GroupShareService {
 
         // Performance optimization: Find shareLink outside transaction
         timer.startPhase('query');
-        const { groupId, shareLink } = await this.findShareLinkByToken(linkId);
-        this.ensureShareLinkNotExpired(shareLink);
+        const shareLinkLookup = await this.findShareLinkByToken(linkId);
+
+        if (shareLinkLookup.status === 'missing') {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
+        }
+
+        if (shareLinkLookup.status === 'expired') {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'LINK_EXPIRED', 'This invitation link has expired. Please request a new one from the group admin.');
+        }
+
+        const { groupId, shareLink } = shareLinkLookup;
 
         // Pre-validate group exists outside transaction to fail fast
         const preCheckGroup = await this.firestoreReader.getGroup(groupId);

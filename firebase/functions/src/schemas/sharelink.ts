@@ -14,7 +14,6 @@ export const ShareLinkDocumentSchema = z
         createdAt: z.string().datetime(), // ISO timestamp string
         updatedAt: z.string().datetime(), // ISO timestamp string
         expiresAt: z.string().datetime(), // Expiration timestamp (ISO format)
-        isActive: z.boolean(), // For soft deletion/deactivation
     })
     .strict();
 

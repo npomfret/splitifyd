@@ -3,7 +3,7 @@ import { ActivityFeedActions, ActivityFeedEventTypes, MAX_GROUP_MEMBERS, MemberS
 import type { GroupId } from '@splitifyd/shared';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { HTTP_STATUS } from '../../../constants';
+import { FirestoreCollections, HTTP_STATUS } from '../../../constants';
 import { ActivityFeedService } from '../../../services/ActivityFeedService';
 import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
@@ -49,6 +49,24 @@ describe('GroupShareService', () => {
             .buildDocument();
 
         db.seedGroupMember(groupId, ownerId, membershipDoc);
+    };
+
+    const seedShareLink = (groupId: GroupId, shareLink: {
+        id: string;
+        token: string;
+        createdBy: string;
+        createdAt: string;
+        updatedAt: string;
+        expiresAt: string;
+    }) => {
+        db.seed(`groups/${groupId}/shareLinks/${shareLink.id}`, shareLink);
+        db.seed(`${FirestoreCollections.SHARE_LINK_TOKENS}/${shareLink.token}`, {
+            groupId,
+            shareLinkId: shareLink.id,
+            expiresAt: shareLink.expiresAt,
+            createdBy: shareLink.createdBy,
+            createdAt: shareLink.createdAt,
+        });
     };
 
     describe('previewGroupByLink', () => {
@@ -149,12 +167,11 @@ describe('GroupShareService', () => {
                 id: 'expired-cleanup-doc',
                 token: 'expired-cleanup-token',
                 createdBy: userId,
-                isActive: true,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
             };
-            db.seed(`groups/${groupId}/shareLinks/${expiredShareLink.id}`, expiredShareLink);
+            seedShareLink(groupId, expiredShareLink);
 
             await groupShareService.generateShareableLink(userId, groupId);
 
@@ -179,12 +196,11 @@ describe('GroupShareService', () => {
                 id: 'expired-doc-id',
                 token: expiredToken,
                 createdBy: ownerId,
-                isActive: true,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() - 60 * 1000).toISOString(),
             };
-            db.seed(`groups/${groupId}/shareLinks/${expiredShareLink.id}`, expiredShareLink);
+            seedShareLink(groupId, expiredShareLink);
 
             db.seedUser('joining-user', { displayName: 'Joining User' });
 
@@ -198,12 +214,11 @@ describe('GroupShareService', () => {
                 id: 'preview-expired-doc-id',
                 token: previewToken,
                 createdBy: ownerId,
-                isActive: true,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
             };
-            db.seed(`groups/${groupId}/shareLinks/${expiredShareLink.id}`, expiredShareLink);
+            seedShareLink(groupId, expiredShareLink);
 
             await expect(groupShareService.previewGroupByLink('different-user', previewToken)).rejects.toMatchObject({
                 code: 'LINK_EXPIRED',
@@ -238,12 +253,11 @@ describe('GroupShareService', () => {
                 id: linkId,
                 token: linkId,
                 createdBy: 'owner-id',
-                isActive: true,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             };
-            db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
+            seedShareLink(groupId, shareLink);
         });
 
         it(`should succeed when group has ${MAX_GROUP_MEMBERS - 1} members`, async () => {
@@ -345,12 +359,11 @@ describe('GroupShareService', () => {
                 id: linkId,
                 token: linkId,
                 createdBy: 'owner-id',
-                isActive: true,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             };
-            db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
+            seedShareLink(groupId, shareLink);
         });
 
         it('should return displayNameConflict: false when display name is unique', async () => {
@@ -443,12 +456,11 @@ describe('GroupShareService', () => {
                 id: linkId,
                 token: linkId,
                 createdBy: ownerId,
-                isActive: true,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             };
-            db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
+            seedShareLink(groupId, shareLink);
 
             const ownerMember = new GroupMemberDocumentBuilder()
                 .withUserId(ownerId)
@@ -490,12 +502,11 @@ describe('GroupShareService', () => {
                 id: linkId,
                 token: linkId,
                 createdBy: ownerId,
-                isActive: true,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             };
-            db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
+            seedShareLink(groupId, shareLink);
 
             const ownerMember = new GroupMemberDocumentBuilder()
                 .withUserId(ownerId)
@@ -546,12 +557,11 @@ describe('GroupShareService', () => {
                 id: linkId,
                 token: linkId,
                 createdBy: ownerId,
-                isActive: true,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
             };
-            db.seed(`groups/${groupId}/shareLinks/${linkId}`, shareLink);
+            seedShareLink(groupId, shareLink);
 
             db.seedUser(joiningUserId, { displayName: 'Joining User' });
 

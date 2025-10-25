@@ -118,6 +118,11 @@ export interface IFirestoreWriter {
      */
     deleteExpiredShareLinksInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: ISOString): Promise<number>;
 
+    /**
+     * Hard delete a share link and its token index
+     */
+    deleteShareLink(groupId: GroupId, shareLinkId: string, token: string): Promise<void>;
+
     // ========================================================================
     // Policy Operations
     // ========================================================================

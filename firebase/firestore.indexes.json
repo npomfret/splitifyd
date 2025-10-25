@@ -75,20 +75,6 @@
           "order": "DESCENDING"
         }
       ]
-    },
-    {
-      "collectionGroup": "shareLinks",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "token",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "isActive",
-          "order": "ASCENDING"
-        }
-      ]
     }
   ],
   "fieldOverrides": []

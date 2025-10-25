@@ -1017,6 +1017,18 @@ export class FirestoreWriter implements IFirestoreWriter {
 
         transaction.create(shareLinkRef, finalData);
 
+        const shareLinkIndexRef = this.db
+            .collection(FirestoreCollections.SHARE_LINK_TOKENS)
+            .doc(finalData.token);
+
+        transaction.set(shareLinkIndexRef, {
+            groupId,
+            shareLinkId: shareLinkRef.id,
+            expiresAt: finalData.expiresAt,
+            createdBy: finalData.createdBy,
+            createdAt: finalData.createdAt,
+        });
+
         return shareLinkRef;
     }
 
@@ -1032,11 +1044,38 @@ export class FirestoreWriter implements IFirestoreWriter {
 
         let deleted = 0;
         for (const doc of snapshot.docs) {
+            const data = doc.data() as ShareLinkDTO;
+            if (data?.token) {
+                const indexRef = this.db
+                    .collection(FirestoreCollections.SHARE_LINK_TOKENS)
+                    .doc(data.token);
+                transaction.delete(indexRef);
+            }
             transaction.delete(doc.ref);
             deleted += 1;
         }
 
         return deleted;
+    }
+
+    async deleteShareLink(groupId: GroupId, shareLinkId: string, token: string): Promise<void> {
+        await this.db.runTransaction(async (transaction) => {
+            const shareLinkRef = this
+                .db
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .collection('shareLinks')
+                .doc(shareLinkId);
+
+            transaction.delete(shareLinkRef);
+
+            const tokenRef = this
+                .db
+                .collection(FirestoreCollections.SHARE_LINK_TOKENS)
+                .doc(token);
+
+            transaction.delete(tokenRef);
+        });
     }
 
     // ========================================================================

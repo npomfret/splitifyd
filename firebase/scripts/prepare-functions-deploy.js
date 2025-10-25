@@ -11,7 +11,7 @@ const stageFunctions = path.join(stageRoot, 'functions');
 const productionEnv = {
     ...process.env,
     BUILD_MODE: 'production',
-    SKIP_WORKSPACE_BUILD: 'true',
+    FORCE_PROD_BUILD: 'true',
 };
 
 const workspacePackages = [
@@ -102,6 +102,14 @@ execSync('npm install --omit=dev --package-lock=false', { cwd: stageFunctions, s
 
 // Sanity check: ensure production env mode is present
 const stagedEnvPath = path.join(stageFunctions, '.env');
+if (!fs.existsSync(stagedEnvPath)) {
+    const stagedProdTemplate = path.join(stageFunctions, '.env.instanceprod');
+    if (fs.existsSync(stagedProdTemplate)) {
+        fs.copyFileSync(stagedProdTemplate, stagedEnvPath);
+        console.log('📄 Copied .env.instanceprod to .env for staging');
+    }
+}
+
 if (!fs.existsSync(stagedEnvPath)) {
     console.warn('⚠️  No .env found in staged functions directory. Prod deployments expect .env.instanceprod to be copied earlier.');
 } else {

@@ -4,6 +4,7 @@ import type { CurrencyISOCode } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from './AppDriver';
+import { FirestoreCollections } from '../../constants';
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
@@ -749,13 +750,29 @@ describe('app tests', () => {
 
             const expiredAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
             const shareLinkPath = `groups/${groupId}/shareLinks/${storedDoc!.id}`;
+            const existingData = storedDoc!.data();
+
             db.seed(shareLinkPath, {
-                ...storedDoc!.data(),
+                ...existingData,
+                expiresAt: expiredAt,
+            });
+
+            db.seed(`${FirestoreCollections.SHARE_LINK_TOKENS}/${linkId}`, {
+                groupId,
+                shareLinkId: storedDoc!.id,
+                createdBy: existingData?.createdBy,
+                createdAt: existingData?.createdAt,
                 expiresAt: expiredAt,
             });
 
             await expect(appDriver.previewGroupByLink(user2, linkId)).rejects.toMatchObject({ code: 'LINK_EXPIRED' });
-            await expect(appDriver.joinGroupByLink(user2, linkId)).rejects.toMatchObject({ code: 'LINK_EXPIRED' });
+            await expect(appDriver.joinGroupByLink(user2, linkId)).rejects.toMatchObject({ code: 'INVALID_LINK' });
+
+            const refreshedShareLink = await db.collection('groups').doc(groupId).collection('shareLinks').doc(storedDoc!.id).get();
+            expect(refreshedShareLink.exists).toBe(false);
+
+            const tokenDoc = await db.collection(FirestoreCollections.SHARE_LINK_TOKENS).doc(linkId).get();
+            expect(tokenDoc.exists).toBe(false);
         });
 
         it('should let members update their own group display name', async () => {

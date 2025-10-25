@@ -227,25 +227,21 @@ describe('StubFirestoreDatabase - Example Usage', () => {
             // Set up share links in multiple groups
             await db.collection('groups').doc('group-1').collection('shareLinks').doc('link-1').set({
                 token: 'token-1',
-                isActive: true,
                 createdBy: 'user-1',
             });
 
             await db.collection('groups').doc('group-1').collection('shareLinks').doc('link-2').set({
                 token: 'token-2',
-                isActive: false,
                 createdBy: 'user-1',
             });
 
             await db.collection('groups').doc('group-2').collection('shareLinks').doc('link-3').set({
                 token: 'token-3',
-                isActive: true,
                 createdBy: 'user-2',
             });
 
             await db.collection('groups').doc('group-3').collection('shareLinks').doc('link-4').set({
                 token: 'token-4',
-                isActive: true,
                 createdBy: 'user-3',
             });
         });
@@ -258,10 +254,10 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should filter collection group queries', async () => {
-            const querySnapshot = await db.collectionGroup('shareLinks').where('isActive', '==', true).get();
+            const querySnapshot = await db.collectionGroup('shareLinks').where('createdBy', '==', 'user-1').get();
 
-            expect(querySnapshot.size).toBe(3);
-            expect(querySnapshot.docs.map((d) => d.id)).toEqual(['link-1', 'link-3', 'link-4']);
+            expect(querySnapshot.size).toBe(2);
+            expect(querySnapshot.docs.map((d) => d.id)).toEqual(['link-1', 'link-2']);
         });
 
         it('should find specific document in collection group by token', async () => {
@@ -273,7 +269,7 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should combine where clauses in collection group query', async () => {
-            const querySnapshot = await db.collectionGroup('shareLinks').where('isActive', '==', true).where('createdBy', '==', 'user-1').get();
+            const querySnapshot = await db.collectionGroup('shareLinks').where('createdBy', '==', 'user-1').where('token', '==', 'token-1').get();
 
             expect(querySnapshot.size).toBe(1);
             expect(querySnapshot.docs[0].id).toBe('link-1');
@@ -287,10 +283,10 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle collection group with ordering and limit', async () => {
-            const querySnapshot = await db.collectionGroup('shareLinks').where('isActive', '==', true).orderBy('createdBy').limit(2).get();
+            const querySnapshot = await db.collectionGroup('shareLinks').orderBy('createdBy').limit(2).get();
 
             expect(querySnapshot.size).toBe(2);
-            expect(querySnapshot.docs.map((d) => d.data().createdBy)).toEqual(['user-1', 'user-2']);
+            expect(querySnapshot.docs.map((d) => d.data().createdBy)).toEqual(['user-1', 'user-1']);
         });
     });
 

@@ -403,8 +403,8 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                 {
                     groupId: 'group-1',
                     links: [
-                        { id: 'link-1', token: 'token-1', isActive: true, createdBy: 'user-1', testRunId: testCollectionPrefix },
-                        { id: 'link-2', token: 'token-2', isActive: false, createdBy: 'user-1', testRunId: testCollectionPrefix },
+                        { id: 'link-1', token: 'token-1', createdBy: 'user-1', testRunId: testCollectionPrefix },
+                        { id: 'link-2', token: 'token-2', createdBy: 'user-1', testRunId: testCollectionPrefix },
                     ],
                 },
                 {
@@ -413,11 +413,10 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                         {
                             id: 'link-3',
                             token: 'token-3',
-                            isActive: true,
                             createdBy: 'user-2',
                             testRunId: testCollectionPrefix,
                         },
-                        { id: 'link-4', token: 'token-4', isActive: false, createdBy: 'user-3', testRunId: testCollectionPrefix },
+                        { id: 'link-4', token: 'token-4', createdBy: 'user-3', testRunId: testCollectionPrefix },
                     ],
                 },
             ];
@@ -450,9 +449,9 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
 
         it('should filter collection group queries identically', async () => {
             await testBothImplementations('collection group filter', async (db, isStub) => {
-                const snapshot = await db.collectionGroup('shareLinks').where('testRunId', '==', testCollectionPrefix).where('isActive', '==', true).get();
+                const snapshot = await db.collectionGroup('shareLinks').where('testRunId', '==', testCollectionPrefix).where('createdBy', '==', 'user-1').get();
 
-                expect(snapshot.size, `Active share links (${isStub ? 'stub' : 'real'})`).toBe(2);
+                expect(snapshot.size, `Filtered share links (${isStub ? 'stub' : 'real'})`).toBe(2);
             });
         });
 
@@ -461,12 +460,11 @@ describe('Firestore Stub Compatibility - Integration Test', () => {
                 const snapshot = await db
                     .collectionGroup('shareLinks')
                     .where('testRunId', '==', testCollectionPrefix)
-                    .where('isActive', '==', true)
                     .where('createdBy', '==', 'user-1')
                     .limit(1)
                     .get();
 
-                expect(snapshot.size, `Limited active links (${isStub ? 'stub' : 'real'})`).toBe(1);
+                expect(snapshot.size, `Limited filtered links (${isStub ? 'stub' : 'real'})`).toBe(1);
                 expect(snapshot.docs[0].id, `Limited link ID (${isStub ? 'stub' : 'real'})`).toBe('link-1');
             });
         });
