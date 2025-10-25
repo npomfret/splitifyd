@@ -52,6 +52,8 @@ export class GroupSettingsModalPage extends BasePage {
         if ((await groupNameInput.count()) > 0) {
             try {
                 if (await groupNameInput.isVisible()) {
+                    // Wait for input to be editable to ensure modal is stable
+                    await expect(groupNameInput).toBeEditable({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
                     return;
                 }
             } catch {
@@ -65,7 +67,8 @@ export class GroupSettingsModalPage extends BasePage {
             throw new Error('General tab content was not found in the Group Settings modal.');
         }
 
-        await expect(groupNameInput).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+        // Wait for input to be editable (not just visible) to ensure modal is stable
+        await expect(groupNameInput).toBeEditable({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
     }
 
     async ensureIdentityTab(): Promise<void> {
@@ -74,6 +77,8 @@ export class GroupSettingsModalPage extends BasePage {
         if ((await displayNameInput.count()) > 0) {
             try {
                 if (await displayNameInput.isVisible()) {
+                    // Wait for input to be editable to ensure modal is stable
+                    await expect(displayNameInput).toBeEditable({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
                     return;
                 }
             } catch {
@@ -87,7 +92,8 @@ export class GroupSettingsModalPage extends BasePage {
             throw new Error('Identity tab content was not found in the Group Settings modal.');
         }
 
-        await expect(displayNameInput).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+        // Wait for input to be editable (not just visible) to ensure modal is stable
+        await expect(displayNameInput).toBeEditable({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
     }
 
     async ensureSecurityTab(): Promise<void> {

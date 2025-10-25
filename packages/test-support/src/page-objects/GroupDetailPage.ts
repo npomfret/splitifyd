@@ -1583,10 +1583,19 @@ export class GroupDetailPage extends BasePage {
      * Fluent version - verifies modal opens and returns GroupSettingsModalPage
      */
     async clickEditGroupAndOpenModal(tab: 'identity' | 'general' | 'security' = 'general'): Promise<GroupSettingsModalPage> {
-        await this.clickEditGroup();
-
+        const button = this.getEditGroupButton();
         const modalPage = new GroupSettingsModalPage(this.page);
+
+        // Verify modal is NOT open before we click (establishes baseline state)
+        await expect(modalPage.getModalContainer()).not.toBeVisible();
+
+        // Use clickButtonNoWait since opening a modal doesn't trigger navigation
+        await this.clickButtonNoWait(button, { buttonName: translation.groupActions.settings });
+
+        // Wait for modal to be fully ready
+        // waitForModalToOpen ensures the modal is stable and won't close unexpectedly
         await modalPage.waitForModalToOpen({ tab });
+
         return modalPage;
     }
 
