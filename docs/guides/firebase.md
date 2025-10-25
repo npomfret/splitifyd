@@ -1,45 +1,35 @@
 # Firebase Development Guide
 
-This guide covers the standards and workflow for developing with the Firebase Emulator Suite.
+Concise rules for working with the Firebase emulator stack and the instance switching toolchain.
 
-## Core Principles
+## Core Rules
 
-- **Do not start or stop the emulator** always stop and ask the user to do it
-- **Environment Parity**: The application MUST run identically in the local Firebase Emulator and in the deployed production Firebase environment. Avoid environment-specific code paths.
-- **Emulator First**: The Firebase Emulator is the primary development and testing environment. Do not use the Vite dev server directly.
+- Never start or stop the emulator yourself; ask the user.
+- Keep dev and prod behaviour identical—no environment-specific branches or hard-coded ports.
+- Assume `npm run dev` is already running; refresh the browser after backend edits.
 
-## Environment Configuration
+## Instance Modes & Config Files
 
-Our project supports multiple local Firebase instances to prevent configuration conflicts.
+- Each `firebase/functions/.env.instance*` declares `INSTANCE_MODE`, emulator ports, and logging flags. Prod uses `.env.instanceprod` (no emulator ports, `INSTANCE_MODE=prod`).
+- `npm run switch-instance <n>` (invoked by `dev1.sh` … `dev4.sh`) copies the chosen template to `.env`, validates the mode, then regenerates `firebase/firebase.json` from `firebase/firebase.template.json`.
+- Never edit `firebase.json`; it is always generated.
+- `firebase/scripts/start-with-data.ts` requires a dev `INSTANCE_MODE`, reads ports from the generated config, seeds policies, and provisions the default user.
 
-- **NEVER edit `firebase.json` directly.** This file is generated automatically.
-- To change instance configurations, modify `firebase/firebase.template.json` and the environment files (e.g., `.env.instance1`, `.env.instance2`) located in `firebase/functions/`.
-- The `switch-instance.sh` script uses these files to generate the final `firebase.json`.
+## Runtime Config Consumers
 
-### Ports and URLs
+- `firebase/functions/src/client-config.ts` owns env parsing; everything flows from `INSTANCE_MODE`.
+- `firebase/functions/src/firebase.ts` reads the same mode to select admin credentials for dev, prod, or Vitest (`test`). Seeder scripts load `.env` before imports so production APIs are never hit accidentally.
+- `/api/env` is only mounted when running a dev instance.
 
-- **Never hard-code ports or URLs.**
-- In the client-side code, the base API URL is injected into `window.API_BASE_URL` during the build step.
-- To determine the correct ports for the running instance, inspect the generated `firebase/firebase.json` file.
-- You can get the webapp's base URL for the active instance using: `npm run get-webapp-url`.
-- In a test, use `test-support/firebase-emulator-client-config.ts` to get the local URL.
+## Build & Deploy Pipeline
 
-## Development Workflow
+- `firebase/functions/scripts/conditional-build.js` toggles between tsx wrappers (dev) and compiled output (production/tests) via `BUILD_MODE`.
+- `npm run deploy:prod` runs `switch-instance prod`, rebuilds workspaces with `BUILD_MODE=production`, stages local tarballs for shared packages, installs production deps, and expects `lib/index.js` from `tsconfig.deploy.json`.
+- `firebase/functions/src/firebase.ts` lazily loads `.env` if `INSTANCE_MODE` is missing so Cloud Functions analysis gets the right settings.
+- Export `GCLOUD_PROJECT` before running the deploy pipeline; the tooling assumes it exists.
 
-- **Emulator Status**: Always assume the emulator is already running via the `npm run dev` command. If you suspect it is not running, you must stop and ask the user to start it.
-- **Restarting the Emulator**: If any changes are made to `firebase.template.json` or the `.env` files, the emulator must be restarted for the new `firebase.json` to take effect. You should ask the user to do this.
-- **Auto-Reload**: The emulator automatically picks up most backend changes. However, you **must manually refresh the browser** to see the changes reflected in the web application.
+## Ports, URLs, and Tests
 
-## Logging
-
-- Local Firebase logs are located in the `firebase/` directory (e.g., `firebase/*.log`).
-- The main application log is `firebase/firebase-debug.log`.
-
-## Testing
-
-- The primary integration tests for Firebase are located in the `firebase/functions` directory.
-- Run them with: `cd firebase/functions && npm run test:integration`
-
-## Deployment
-
-- To deploy the Firebase project to production, run: `cd firebase && npm run deploy:prod`
+- Fetch webapp URL with `npm run get-webapp-url`; tests can import `test-support/firebase-emulator-client-config.ts`.
+- Firebase integration tests live in `firebase/functions`; run `npm run test:integration` from that directory.
+- Logs land in `firebase/*.log`, with `firebase/firebase-debug.log` as the primary stream.

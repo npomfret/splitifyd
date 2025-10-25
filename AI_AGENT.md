@@ -1,15 +1,14 @@
 Read these first!
 
-@README.md
-@docs/guides/building-and-testing.md
-@docs/guides/code.md
-@docs/guides/end-to-end_testing.md
-@docs/guides/firebase.md
-@docs/guides/firebase-config.md
-@docs/guides/general.md
-@docs/guides/testing.md
-@docs/guides/types.md
-@docs/guides/webapp-and-style-guide.md
+- [README.md](README.md)
+- [Building and Testing](docs/guides/building-and-testing.md)
+- [Code Guidelines](docs/guides/code.md)
+- [End-to-End Testing](docs/guides/end-to-end_testing.md)
+- [Firebase Guide](docs/guides/firebase.md)
+- [General Development](docs/guides/general.md)
+- [Testing](docs/guides/testing.md)
+- [Type Guidelines](docs/guides/types.md)
+- [Webapp & Style Guide](docs/guides/webapp-and-style-guide.md)
 
 ## Available Tools
 
