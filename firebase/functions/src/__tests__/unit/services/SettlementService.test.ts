@@ -1,5 +1,5 @@
 import { Timestamp } from '@google-cloud/firestore';
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -9,13 +9,13 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let stubAuth: StubAuthService;
     let applicationBuilder: ApplicationBuilder;
 
     beforeEach(() => {
         // Create stub database
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
         applicationBuilder = new ApplicationBuilder(stubAuth, db);

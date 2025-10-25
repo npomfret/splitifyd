@@ -1,4 +1,4 @@
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CommentTargetTypes } from '@splitifyd/shared';
 import type { CommentTargetType, CreateCommentRequest } from '@splitifyd/shared';
 import { AuthUserRecordBuilder, CommentRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
@@ -12,11 +12,11 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let stubAuth: StubAuthService;
 
     beforeEach(() => {
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
         const applicationBuilder = new ApplicationBuilder(stubAuth, db);

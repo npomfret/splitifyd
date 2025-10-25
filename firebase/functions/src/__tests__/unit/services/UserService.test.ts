@@ -1,4 +1,4 @@
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { DisplayName } from '@splitifyd/shared';
 import { PasswordChangeRequestBuilder, ThemeBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -11,7 +11,7 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let stubAuth: StubAuthService;
 
     beforeAll(async () => {
@@ -21,7 +21,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     beforeEach(() => {
         // Create stub database
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
 
         // Create real services using stub database
         stubAuth = new StubAuthService();

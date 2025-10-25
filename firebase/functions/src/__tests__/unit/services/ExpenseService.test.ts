@@ -1,4 +1,4 @@
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -9,10 +9,10 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
 
     beforeEach(() => {
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
         const applicationBuilder = new ApplicationBuilder(new StubAuthService(), db);
         expenseService = applicationBuilder.buildExpenseService();
     });

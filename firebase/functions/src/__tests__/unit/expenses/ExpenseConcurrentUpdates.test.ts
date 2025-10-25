@@ -2,7 +2,7 @@
  * Expense Concurrent Updates - Unit Tests
  *
  * Migrated from integration/expense-locking.test.ts to avoid Firebase emulator dependency.
- * Tests concurrent update behavior using StubFirestoreDatabase.
+ * Tests concurrent update behavior using SplitifydFirestoreTestDatabase.
  *
  * This tests the application-level logic for handling concurrent expense updates.
  * The integration test remains for testing actual Firebase optimistic locking behavior.
@@ -116,7 +116,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         );
 
         // Concurrent updates to the same expense
-        // This tests that StubFirestoreDatabase correctly simulates transaction conflicts
+        // This tests that SplitifydFirestoreTestDatabase correctly simulates transaction conflicts
         const participants = [userId];
         const updatePromises = [
             appDriver.updateExpense(

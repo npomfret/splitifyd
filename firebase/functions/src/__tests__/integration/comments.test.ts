@@ -58,5 +58,5 @@ describe('Comments Integration Tests (Firebase Security Rules Only)', () => {
     // The unit tests provide:
     // - Faster execution (10ms vs 200-300ms per test)
     // - No Firebase emulator dependency
-    // - Identical coverage using StubFirestoreDatabase.onSnapshot()
+    // - Identical coverage using SplitifydFirestoreTestDatabase.onSnapshot()
 });

@@ -6,23 +6,23 @@
  * firestore-read-encapsulation-report.md
  */
 
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreReader } from '../../services/firestore';
 
 describe('FirestoreReader Pagination Performance', () => {
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
     const testUserId = 'test-user';
 
     beforeEach(() => {
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
         firestoreReader = new FirestoreReader(db);
     });
 
     afterEach(() => {
-        // No cleanup needed for StubFirestoreDatabase
+        // No cleanup needed for SplitifydFirestoreTestDatabase
     });
 
     describe('PaginatedResult Interface', () => {

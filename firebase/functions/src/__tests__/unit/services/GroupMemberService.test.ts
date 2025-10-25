@@ -1,4 +1,4 @@
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -10,7 +10,7 @@ import { GroupMemberService } from '../../../services/GroupMemberService';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
 
     const defaultTheme = new ThemeBuilder()
@@ -18,7 +18,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     beforeEach(async () => {
         // Create stub database
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
 
         // Create real services using stub database
         firestoreReader = new FirestoreReader(db);

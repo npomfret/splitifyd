@@ -4,7 +4,7 @@
  * Tests the basic functionality of the FirestoreReader service and MockFirestoreReader
  */
 
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
@@ -51,8 +51,8 @@ describe('FirestoreReader', () => {
     });
 });
 
-// Note: Tests for the old StubFirestoreReader have been removed as we migrate to StubFirestoreDatabase.
-// The StubFirestoreDatabase is tested implicitly through its usage in service tests.
+// Note: Tests for the old StubFirestoreReader have been removed as we migrate to SplitifydFirestoreTestDatabase.
+// The SplitifydFirestoreTestDatabase is tested implicitly through its usage in service tests.
 
 /**
  * Unit tests for data validation and sanitization logic.
@@ -60,7 +60,7 @@ describe('FirestoreReader', () => {
  * but can be tested more efficiently as unit tests.
  */
 describe('Data Validation and Sanitization - Unit Tests', () => {
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
 
     // Helper to convert ISO strings to Timestamps for Firestore storage
@@ -76,7 +76,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
     };
 
     beforeEach(() => {
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
         firestoreReader = new FirestoreReader(db);
     });
 

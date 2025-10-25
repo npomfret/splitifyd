@@ -18,6 +18,7 @@ export * from './ApiDriver';
 export * from './builders';
 export * from './error-proxy';
 export * from './errors/test-errors';
+export * from './firebase/SplitifydFirestoreTestDatabase';
 export * from './firebase-emulator-config';
 export * from './http-stubs';
 export * from './page-objects';

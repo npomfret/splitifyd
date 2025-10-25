@@ -1,4 +1,4 @@
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
@@ -10,13 +10,13 @@ import { GroupMemberService } from '../../../../services/GroupMemberService';
 
 describe('GroupCommentStrategy', () => {
     let strategy: GroupCommentStrategy;
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
     let groupMemberService: GroupMemberService;
 
     beforeEach(() => {
         // Create stub database
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
 
         // Create real services using stub database
         firestoreReader = new FirestoreReader(db);

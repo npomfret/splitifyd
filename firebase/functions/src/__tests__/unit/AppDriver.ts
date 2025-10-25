@@ -1,4 +1,4 @@
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import {
     AcceptMultiplePoliciesResponse,
     ActivityFeedEventType,
@@ -63,7 +63,7 @@ import { StubAuthService } from './mocks/StubAuthService';
  * DO NOT use for load / concurrency testing - it will not accurately simulate firestore bahviour under load
  */
 export class AppDriver {
-    private db = new StubFirestoreDatabase();
+    private db = new SplitifydFirestoreTestDatabase();
     private authService = new StubAuthService();
 
     private applicationBuilder = new ApplicationBuilder(this.authService, this.db);

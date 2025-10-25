@@ -2,7 +2,7 @@
  * FirestoreReader Query and Pagination Unit Tests
  *
  * Migrated from integration/firestore-reader.integration.test.ts to avoid Firebase emulator dependency.
- * Tests query behavior, pagination, and ordering using StubFirestoreDatabase.
+ * Tests query behavior, pagination, and ordering using SplitifydFirestoreTestDatabase.
  */
 
 import { beforeEach, describe, expect, test } from 'vitest';

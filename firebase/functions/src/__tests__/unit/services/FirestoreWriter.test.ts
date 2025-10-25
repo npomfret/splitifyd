@@ -1,4 +1,4 @@
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -9,14 +9,14 @@ import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
     let firestoreWriter: IFirestoreWriter;
     let stubAuth: StubAuthService;
 
     beforeEach(() => {
         // Create stub database
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
 
         // Create reader and writer instances that wrap the database
         firestoreReader = new FirestoreReader(db);

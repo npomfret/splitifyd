@@ -1,4 +1,4 @@
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateGroupRequest } from '@splitifyd/shared';
 import { CreateGroupRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -11,13 +11,13 @@ import { StubAuthService } from './mocks/StubAuthService';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let stubAuth: StubAuthService;
     let applicationBuilder: ApplicationBuilder;
 
     beforeEach(() => {
         // Create stub database
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
         applicationBuilder = new ApplicationBuilder(stubAuth, db);

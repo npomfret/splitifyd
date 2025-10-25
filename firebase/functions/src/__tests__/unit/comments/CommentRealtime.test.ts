@@ -1,4 +1,4 @@
-// Unit tests for comment real-time subscriptions using StubFirestoreDatabase
+// Unit tests for comment real-time subscriptions using SplitifydFirestoreTestDatabase
 // Migrated from integration/comments.test.ts to avoid Firebase emulator dependency
 
 import { beforeEach, describe, expect, test } from 'vitest';

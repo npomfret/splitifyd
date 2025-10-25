@@ -6,7 +6,7 @@
  * - GroupMemberService archive/unarchive methods
  */
 
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { MemberStatuses } from '@splitifyd/shared';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
@@ -16,11 +16,11 @@ import { FirestoreWriter } from '../../services/firestore';
 import { GroupMemberService } from '../../services/GroupMemberService';
 
 describe('Archive Groups - FirestoreReader Status Filtering', () => {
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let reader: FirestoreReader;
 
     beforeEach(() => {
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
         reader = new FirestoreReader(db);
     });
 
@@ -144,13 +144,13 @@ describe('Archive Groups - FirestoreReader Status Filtering', () => {
 });
 
 describe('Archive Groups - GroupMemberService', () => {
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let reader: FirestoreReader;
     let writer: FirestoreWriter;
     let service: GroupMemberService;
 
     beforeEach(() => {
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
         reader = new FirestoreReader(db);
         writer = new FirestoreWriter(db);
         const activityFeedService = new ActivityFeedService(reader, writer);

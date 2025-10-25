@@ -1,4 +1,4 @@
-import { StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ActivityFeedActions, ActivityFeedEventTypes, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
@@ -13,7 +13,7 @@ import { ApiError } from '../../../utils/errors';
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
-    let db: StubFirestoreDatabase;
+    let db: SplitifydFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
     let firestoreWriter: FirestoreWriter;
     let groupMemberService: GroupMemberService;
@@ -21,7 +21,7 @@ describe('GroupShareService', () => {
 
     beforeEach(() => {
         // Create stub database
-        db = new StubFirestoreDatabase();
+        db = new SplitifydFirestoreTestDatabase();
 
         // Create real services using stub database
         firestoreReader = new FirestoreReader(db);

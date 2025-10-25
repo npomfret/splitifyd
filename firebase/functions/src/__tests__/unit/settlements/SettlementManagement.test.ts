@@ -6,7 +6,7 @@ import { AppDriver } from '../AppDriver';
  * Settlement Management Unit Tests
  *
  * These tests verify settlement CRUD operations, access control, and soft delete behavior
- * using the in-memory StubFirestoreDatabase for fast execution (100-300x faster than integration tests).
+ * using the in-memory SplitifydFirestoreTestDatabase for fast execution (100-300x faster than integration tests).
  *
  * Tests converted from balance-settlement-consolidated.test.ts integration tests.
  */
