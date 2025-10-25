@@ -140,6 +140,14 @@ export class ShareGroupModalPage extends BasePage {
     // ============================================================================
 
     /**
+     * Wait for modal container to open (basic check)
+     * Does NOT wait for share link generation - use for error/loading state tests
+     */
+    async waitForModalToOpenBasic(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
+        await expect(this.getModalContainer()).toBeVisible({ timeout });
+    }
+
+    /**
      * Wait for modal to open and share link to be ready
      * Modal opens with a loading spinner while generating the share link
      * This ensures the fluent interface returns a ready-to-use modal

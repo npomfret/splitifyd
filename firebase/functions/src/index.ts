@@ -226,3 +226,8 @@ export { logMetrics };
 export { env } from './endpoints/env';
 export { health } from './endpoints/health';
 export { status } from './endpoints/status';
+
+// Exposed for integration testing to allow direct access to the Express app
+export function getApiAppForTesting(): express.Application {
+    return getApp();
+}

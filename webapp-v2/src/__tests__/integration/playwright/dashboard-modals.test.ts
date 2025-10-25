@@ -135,6 +135,11 @@ test.describe('Dashboard Create Group Functionality', () => {
                 await createGroupModal.fillGroupName('Test Group');
             }
 
+            // Wait for backdrop debounce guard to expire (200ms) before clicking backdrop
+            if (closeMethod.name === 'backdrop click') {
+                await page.waitForTimeout(250);
+            }
+
             await closeMethod.action(createGroupModal);
             await createGroupModal.verifyModalClosed();
         });
@@ -563,7 +568,8 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
+        // Use NoWait version since we expect API failure, not successful share link generation
+        const shareModal = await dashboardPage.clickGroupCardInviteButtonNoWait('Test Group');
 
         // Verify error message displayed
         await shareModal.verifyErrorMessage('Failed to generate share link');
@@ -593,8 +599,8 @@ test.describe('Dashboard Share Group Modal', () => {
         await dashboardPage.navigate();
         await dashboardPage.waitForGroupsToLoad();
 
-        // Click invite button - this triggers the share link API call
-        const shareModal = await dashboardPage.clickGroupCardInviteButton('Test Group');
+        // Use NoWait version to catch the loading state before it completes
+        const shareModal = await dashboardPage.clickGroupCardInviteButtonNoWait('Test Group');
 
         // Verify loading state appears immediately after modal opens
         await shareModal.verifyLoading();

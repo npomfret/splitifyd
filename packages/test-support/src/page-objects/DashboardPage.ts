@@ -817,6 +817,26 @@ export class DashboardPage extends BasePage {
     }
 
     /**
+     * Click group card invite button - basic modal open (no share link wait)
+     * Use for error/loading state tests that don't expect successful share link generation
+     */
+    async clickGroupCardInviteButtonNoWait(groupName: GroupName): Promise<ShareGroupModalPage> {
+        const groupCard = this.getGroupCard(groupName);
+        await expect(groupCard).toBeVisible();
+
+        // Hover to reveal action buttons
+        await groupCard.hover();
+
+        const inviteButton = this.getGroupCardInviteButton(groupName);
+        await expect(inviteButton).toBeVisible();
+        await this.clickButton(inviteButton, { buttonName: `Invite to ${groupName}` });
+
+        const modalPage = new ShareGroupModalPage(this.page);
+        await modalPage.waitForModalToOpenBasic();
+        return modalPage;
+    }
+
+    /**
      * Click group card add expense button to navigate to expense form
      * Non-fluent version - clicks without verification
      * TODO: Add fluent version that returns ExpenseFormPage when it exists

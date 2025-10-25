@@ -48,7 +48,7 @@ const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
 const API_BASE_URL = config.baseUrl;
 
 export class ApiDriver {
-    private readonly baseUrl: string;
+    private baseUrl: string;
     private readonly authPort: number;
     private readonly firebaseApiKey: string;
 
@@ -64,6 +64,10 @@ export class ApiDriver {
 
     getBaseUrl(): string {
         return this.baseUrl;
+    }
+
+    overrideBaseUrl(baseUrl: string): void {
+        this.baseUrl = baseUrl;
     }
 
     async createUser(userRegistration: UserRegistration = new UserRegistrationBuilder()

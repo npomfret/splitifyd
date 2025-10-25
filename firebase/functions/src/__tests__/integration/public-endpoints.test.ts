@@ -1,7 +1,9 @@
 import { ApiSerializer } from '@splitifyd/shared';
 import { ApiDriver, NotificationDriver, RegisterRequestBuilder } from '@splitifyd/test-support';
-import { afterEach, describe, expect, test } from 'vitest';
+import { createServer, type Server } from 'node:http';
+import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
+import { getApiAppForTesting } from '../../index';
 
 const deserializeResponse = async <T>(response: Response): Promise<T> => {
     const raw = await response.text();
@@ -11,6 +13,41 @@ const deserializeResponse = async <T>(response: Response): Promise<T> => {
 describe('Public Endpoints Tests', () => {
     const apiDriver = new ApiDriver();
     const notificationDriver = new NotificationDriver(getFirestore());
+    let server: Server | null = null;
+
+    beforeAll(async () => {
+        const app = getApiAppForTesting();
+        server = createServer(app);
+        await new Promise<void>((resolve, reject) => {
+            const handleError = (error: Error) => {
+                server?.off('error', handleError);
+                reject(error);
+            };
+            server!.listen({ port: 0, host: '127.0.0.1' }, () => {
+                server?.off('error', handleError);
+                resolve();
+            });
+            server!.on('error', handleError);
+        });
+
+        const address = server?.address();
+        if (!address) {
+            throw new Error('Server address unavailable');
+        }
+        if (typeof address === 'string') {
+            apiDriver.overrideBaseUrl(address);
+        } else {
+            apiDriver.overrideBaseUrl(`http://${address.address}:${address.port}`);
+        }
+    });
+
+    afterAll(async () => {
+        if (!server) return;
+        await new Promise<void>((resolve, reject) => {
+            server!.close((error) => (error ? reject(error) : resolve()));
+        });
+        server = null;
+    });
 
     afterEach(async () => {
         // Wait for system to settle before stopping listeners
