@@ -25,7 +25,7 @@ interface AuthState {
 }
 
 interface AuthActions {
-    login: (email: Email, password: string) => Promise<void>;
+    login: (email: Email, password: string, rememberMe?: boolean) => Promise<void>;
     register: (email: Email, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
     logout: () => Promise<void>;
     resetPassword: (email: Email) => Promise<void>;
@@ -278,11 +278,12 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    async login(email: Email, password: string): Promise<void> {
+    async login(email: Email, password: string, rememberMe: boolean = true): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
 
         try {
+            await this.firebase.setPersistence(rememberMe ? 'local' : 'session');
             await this.firebase.signInWithEmailAndPassword(email, password);
             // User state will be updated by onAuthStateChanged listener
         } catch (error: any) {

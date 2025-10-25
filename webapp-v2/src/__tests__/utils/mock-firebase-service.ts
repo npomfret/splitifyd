@@ -143,6 +143,7 @@ export class MockFirebase {
                 connect: () => Promise.resolve(),
                 performTokenRefresh: () => Promise.resolve('mock-token'),
                 performUserRefresh: () => Promise.resolve(),
+                setPersistence: () => Promise.resolve(),
                 sendPasswordResetEmail: () => Promise.resolve(),
                 onAuthStateChanged: (callback) => {
                     // Store callback for future auth state changes

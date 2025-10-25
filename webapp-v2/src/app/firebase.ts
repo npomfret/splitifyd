@@ -2,7 +2,19 @@ import { mapFirebaseUser } from '@/app/stores/auth-store.ts';
 import { ClientUser } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { FirebaseApp, initializeApp } from 'firebase/app';
-import { Auth, connectAuthEmulator, getAuth, onIdTokenChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
+import {
+    Auth,
+    browserLocalPersistence,
+    browserSessionPersistence,
+    connectAuthEmulator,
+    getAuth,
+    onIdTokenChanged,
+    sendPasswordResetEmail,
+    setPersistence,
+    signInWithEmailAndPassword,
+    signOut,
+    User as FirebaseUser,
+} from 'firebase/auth';
 import {
     collection,
     connectFirestoreEmulator,
@@ -31,6 +43,7 @@ export interface FirebaseService {
     performTokenRefresh(): Promise<string>;
     performUserRefresh(): Promise<void>;
     getCurrentUserId(): string | null;
+    setPersistence(persistence: 'local' | 'session'): Promise<void>;
     signInWithEmailAndPassword(email: Email, password: string): Promise<void>;
     sendPasswordResetEmail(email: Email): Promise<void>;
     signOut(): Promise<void>;
@@ -101,6 +114,11 @@ class FirebaseServiceImpl implements FirebaseService {
     }
 
     // Auth methods
+    async setPersistence(persistence: 'local' | 'session'): Promise<void> {
+        const target = persistence === 'local' ? browserLocalPersistence : browserSessionPersistence;
+        await setPersistence(this.getAuth(), target);
+    }
+
     async signInWithEmailAndPassword(email: Email, password: string) {
         await signInWithEmailAndPassword(this.getAuth(), email, password);
     }

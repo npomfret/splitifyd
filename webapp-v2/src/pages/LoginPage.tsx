@@ -30,6 +30,7 @@ export function LoginPage() {
         }
     });
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
 
     // Persist to sessionStorage on changes
     useEffect(() => {
@@ -85,7 +86,7 @@ export function LoginPage() {
         }
 
         try {
-            await authStore.login(trimmedEmail, password);
+            await authStore.login(trimmedEmail, password, rememberMe);
             // Redirect will happen via useEffect when user state updates
         } catch (error) {
             logError('Login attempt failed', error, { email: trimmedEmail });
@@ -130,6 +131,8 @@ export function LoginPage() {
                             data-testid='remember-me-checkbox'
                             class='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
                             disabled={loadingValue}
+                            checked={rememberMe}
+                            onChange={(event) => setRememberMe((event.currentTarget as HTMLInputElement).checked)}
                             autoComplete='off'
                         />
                         <span class='ml-2 block text-sm text-gray-700'>{t('loginPage.rememberMe')}</span>
