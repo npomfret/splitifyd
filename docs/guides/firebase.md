@@ -27,6 +27,7 @@ Concise rules for working with the Firebase emulator stack and the instance swit
 - `npm run deploy:prod` runs `switch-instance prod`, rebuilds workspaces with `BUILD_MODE=production`, stages local tarballs for shared packages, installs production deps, and expects `lib/index.js` from `tsconfig.deploy.json`.
 - `firebase/functions/src/firebase.ts` lazily loads `.env` if `INSTANCE_MODE` is missing so Cloud Functions analysis gets the right settings.
 - Export `GCLOUD_PROJECT` before running the deploy pipeline; the tooling assumes it exists.
+- If you run deploy commands with a service account, grant it Firebase Admin + Firebase Rules Admin (or equivalent) so the CLI can publish indexes and rules.
 
 ## Ports, URLs, and Tests
 
