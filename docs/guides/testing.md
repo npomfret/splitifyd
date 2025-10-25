@@ -1,465 +1,254 @@
-## Testing
+# Testing
 
-We have just 2 types of test:
+## Philosophy
 
-- unit tests - these do not need the emulator to be running
-- integration tests - these DO need the emulator to be running
+**Two test types:**
+- **Unit tests** - No emulator required, test isolated code
+- **Integration tests** - Require Firebase emulator or browser (Playwright)
 
-## Tech choices
+**Principles:**
+- Reliability > Speed > Everything else
+- No flaky tests
+- No skipped tests
+- Test isolation - no dependencies between tests
+- Focus on behavior, not implementation
+- Test complexity < code complexity
 
-We use Vitest as a test runner and Playwright for in-browser testing.
+## Tech Stack
 
-## Example run commands
+- **Vitest** - Unit test runner
+- **Playwright** - Browser testing (E2E + webapp unit tests)
+- **Firebase Emulator** - Backend integration tests
 
-Each build file _should_ follow the same patther with its run targets.
+## Commands
 
+```bash
+# Root (all workspaces)
+npm run test              # All tests
+npm run test:unit         # Unit tests only
+npm run test:integration  # Integration tests (needs emulator running)
+
+# Single test file
+npx vitest run src/__tests__/unit/your-test.test.ts
+
+# Webapp-v2 Playwright tests (MUST use wrapper script)
+cd webapp-v2
+./run-test.sh login                    # Run login.test.ts
+./run-test.sh login "specific test"    # Run specific test
+./run-test.sh login --headed           # Debug with visible browser
+./run-test.sh login --repeat 10        # Flakiness detection
+
+# E2E tests
+cd e2e-tests
+./run-until-fail.sh                    # Debug flaky tests
+npm run test:e2e:normal-flow          # Happy path
+npm run test:e2e:error-testing        # Error handling
+npm run test:e2e:edge-cases           # Edge cases
 ```
-npm run test:unit
-npm run test:integration # runs only the integration tests (the emulator is not needed)
-npm run test # runs all tests (the emulator is not needed)
+
+## Build System: No-Compile Development
+
+**Development mode** (`BUILD_MODE=development`):
+- Uses `tsx` to execute TypeScript directly
+- Instant startup, no compilation
+- `npm run dev` starts immediately
+
+**Test mode** (`BUILD_MODE=test`):
+- Auto-set by test harness
+- Tests run against compiled output where needed
+
+**Production mode** (`BUILD_MODE=production`):
+- Full TypeScript compilation
+- `BUILD_MODE=production npm run build`
+
+## Directory Structure
+
+Co-located tests:
+```
+src/
+  __tests__/
+    unit/
+      vitest/           # Vitest unit tests
+      playwright/       # Browser unit tests (webapp-v2 only)
+    integration/
+      your-test.test.ts
 ```
 
-To run just one test:
-
-```shell
-npx vitest run src/<...path...>.test.ts --reporter=verbose --reporter=json --outputFile=test-report.json
+E2E tests separate:
+```
+e2e-tests/
+  src/tests/
+    normal-flow/
+    error-testing/
+    edge-cases/
 ```
 
-## Guidelines for Writing Tests
+## Builder Pattern (MANDATORY)
 
-- **NEVER** use random sleeps (`await new Promise((resolve) => setTimeout(resolve, 5000))`) - always wait for a state change using notifications or polling (look for exising patterns)
-- When running tests, wait for them to finish, and report which have failed.
-- Skipped tests are not permitted.
-- Test complexity must be lower than the code they exercise
-- Focus on behaviour, not implementation details
-- Avoid complex mocking setups; prefer builder patterns (see below) or in-browser testing
-- Remove pointless, outdated, redundant, duplicated, outdated, pedantic or low‑benefit tests
-- Never test features that don’t exist (yet)
-- Ignore theoretical edge cases that won’t occur (**don't be pedantic**)
-- Avoid high maintenance tests with low benefit
-- Factor out complex setup in order to make tests easy to read
-- Fail fast!!: Test state regularly and early; fail quickly with great error messages
-- Use specific matchers: Test for the exact condition you need, not just "something changed"
-- Set reasonable timeouts: Start with 1 second, then noadjust based on actual operation timing
-- Provide descriptive error messages: Include context about what condition was expected
-
-## Builders ✅
-
-**MANDATORY**: All test data creation MUST use the builder pattern. Manual object creation is prohibited.
-
-Mocks are useful, but the builder pattern is simple and very powerful. It can be used to reduce the lines of coded needed in test setup **and** helps to focus the test on what's important.
-
-### ❌ Avoid Manual Object Creation
+**All test data creation uses builders. Manual object creation is prohibited.**
 
 ```typescript
-const foo = {
-    name: "bob",
-    age: 66,
-    location: "the moon",// only this one is imporant
-    occupation: "stunt guy"
-}
+// ❌ DON'T
+const expense = {
+    amount: "50.00",
+    description: "Lunch",
+    currency: "USD",
+    groupId: "abc123",
+    // ... 10 more fields
+};
 
-const res = app.doSomething(foo);
-
-assert(res)...
-```
-
-### ✅ Use Builder Pattern (Required)
-
-```typescript
-const foo = new FooBuilder()
-    .withLocation("the moon")
+// ✅ DO
+const expense = new CreateExpenseRequestBuilder()
+    .withAmount("50.00")
+    .withDescription("Lunch")
     .build();
-
-const res = app.doSomething(foo);
-
-assert(res)...
 ```
 
-### Available Builders
+**Available builders:**
+- Request: `CreateExpenseRequestBuilder`, `CreateGroupRequestBuilder`, `CreateSettlementRequestBuilder`
+- Documents: `FirestoreGroupBuilder`, `FirestoreExpenseBuilder`, `GroupMemberDocumentBuilder`
+- Updates: `GroupUpdateBuilder`, `UserUpdateBuilder`, `PasswordChangeBuilder`
+- Test Support: `ExpenseSplitBuilder`, `SplitAssertionBuilder`, `ThemeBuilder`
 
-The project provides builders for all common test data types:
+## Async Testing: Polling Pattern
 
-**Request Builders:**
-
-- `CreateExpenseRequestBuilder` - For expense creation requests
-- `CreateGroupRequestBuilder` - For group creation requests
-- `CreateSettlementRequestBuilder` - For settlement creation requests
-- `CommentRequestBuilder` - For comment requests
-- `UserRegistrationBuilder` - For user registration data
-- `RegisterRequestBuilder` - For registration requests
-
-**Document Builders:**
-
-- `FirestoreGroupBuilder` - For Firestore group documents
-- `FirestoreExpenseBuilder` - For Firestore expense documents
-- `GroupMemberDocumentBuilder` - For group membership documents
-
-**Update Builders:**
-
-- `GroupUpdateBuilder` - For group update operations
-- `UserUpdateBuilder` - For user profile updates
-- `PasswordChangeBuilder` - For password change operations
-
-**Test Support Builders:**
-
-- `ExpenseSplitBuilder` - For expense split data
-- `SplitAssertionBuilder` - For test assertions on splits
-- `ChangeMetadataBuilder` - For change tracking metadata
-- `ThemeBuilder` - For user theme objects
-
-### Builder Usage Principles
-
-1. **Focused Testing**: Only specify properties relevant to your test scenario
-2. **Default Sufficiency**: Let builders provide sensible defaults for irrelevant properties
-3. **Readability**: Tests should focus on business logic, not object construction
-4. **Maintainability**: Changes to data structures only require builder updates
-
-### Example: Focused Testing with Builders
+**Never use arbitrary sleeps. Always poll for conditions.**
 
 ```typescript
-// Testing expense validation - only specify what matters
-const invalidExpense = new CreateExpenseRequestBuilder()
-    .withAmount(0) // Invalid amount - this is what we're testing
-    .build();
+// ❌ DON'T
+await new Promise(resolve => setTimeout(resolve, 2000));
+const data = await fetchData();
 
-expect(() => validateCreateExpense(invalidExpense)).toThrow('Amount must be positive');
-```
-
-### Builder Pattern Compliance
-
-As of September 2025, the project maintains **100% builder pattern compliance** across all test files:
-
-- 257+ test instances migrated across 17 test files
-- Zero manual object creation remaining in core tests
-- All new tests must follow this pattern
-
-## Testing Asynchronous Operations with Polling
-
-For testing asynchronous operations where the timing is unpredictable (background jobs, database triggers, eventual consistency, etc.), use a polling pattern rather than fixed delays.
-
-### The Pattern
-
-The polling pattern repeatedly calls a data source until a matcher function returns true, or until a timeout is reached:
-
-```typescript
-// Generic polling method
-async function pollUntil<T>(
-    fetcher: () => Promise<T>, // Function that retrieves data
-    matcher: (value: T) => boolean, // Function that tests the condition
-    options: {
-        timeout?: number; // Total timeout in ms (default: 10000)
-        interval?: number; // Polling interval in ms (default: 500)
-        errorMsg?: string; // Custom error message
-    } = {},
-): Promise<T> {
-    const { timeout = 10000, interval = 500, errorMsg = 'Condition not met' } = options;
-    const startTime = Date.now();
-
-    while (Date.now() - startTime < timeout) {
-        try {
-            const result = await fetcher();
-            if (await matcher(result)) {
-                return result;
-            }
-        } catch (error) {
-            // Log but continue polling (or fail fast if needed)
-        }
-        await new Promise((resolve) => setTimeout(resolve, interval));
-    }
-
-    throw new Error(`${errorMsg} after ${timeout}ms`);
-}
-```
-
-### Usage Example
-
-```typescript
-// Wait for async operation to complete
-const result = await pollUntil(
-    () => api.getResource(id), // How to fetch data
-    (data) => data.status === 'completed', // What condition to check
-    { timeout: 15000, errorMsg: 'Operation did not complete' },
+// ✅ DO
+const data = await pollUntil(
+    () => fetchData(),
+    (result) => result.status === 'completed',
+    { timeout: 5000, errorMsg: 'Operation did not complete' }
 );
-
-// Test the final state
-expect(result.value).toBe(expectedValue);
 ```
 
-## Firebase Trigger Testing Patterns
-
-When testing Firebase triggers (Firestore document changes, Cloud Functions), avoid flaky timing-based approaches.
-
-### ❌ Avoid These Anti-Patterns
-
+**For Firebase triggers:**
 ```typescript
-// DON'T: Fixed timeouts with listeners
-const changePromise = new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-        reject(new Error('Timeout after 2 seconds'));
-    }, 2000); // Arbitrary fixed timeout
-
-    const listener = db.collection('changes').onSnapshot((snapshot) => {
-        // Complex listener logic...
-        clearTimeout(timeout);
-        resolve(data);
-    });
-});
-```
-
-```typescript
-// DON'T: Arbitrary sleep delays
-await new Promise((resolve) => setTimeout(resolve, 2000));
-const changes = await getChanges(); // Hope trigger fired by now
-```
-
-### ✅ Use Condition-Based Polling
-
-```typescript
-// DO: Use the pollForChange helper
+// ✅ Use helper
 import { pollForChange } from '../support/changeCollectionHelpers';
 
-const change = await pollForChange(FirestoreCollections.TRANSACTION_CHANGES, (doc) => doc.id === expectedId && doc.type === 'settlement' && doc.users.includes(userId), { timeout: 5000, groupId });
+const change = await pollForChange(
+    FirestoreCollections.TRANSACTION_CHANGES,
+    (doc) => doc.id === expectedId && doc.type === 'settlement',
+    { timeout: 5000, groupId }
+);
 ```
 
-### Key Principles
+## E2E Testing with Playwright
 
-1. **Poll for specific conditions**, not arbitrary time periods
-2. **Use existing helpers** like `pollForChange` instead of custom listeners
-3. **Check for exact state** you expect (all required fields/values)
-4. **Set reasonable timeouts** (5-10 seconds for triggers)
-5. **Clean up properly** - remove unused listener variables and callbacks
+### Core Principles
 
-## In-Browser Testing with Playwright
+**Speed & Isolation:**
+- 1.5s action timeout - forces reliable selectors
+- 15s test timeout - tests must complete fast or fail
+- 4 parallel workers - absolute test isolation required
+- Browser reuse between tests - never assume clean state
 
-In-browser tests using Playwright serve two distinct purposes in this project:
+**Determinism:**
+- Single execution path per test
+- No `if/else`, no `try/catch` for control flow
+- No conditional regex (`|`) in selectors
+- No `page.waitForTimeout()` - strictly forbidden
 
-1. **Unit tests for the webapp** (`webapp-v2/src/__tests__/unit/playwright/`) - Test individual React/Preact components in isolation within a real browser environment. These are our primary unit tests for UI components.
-2. **End-to-end tests** (`e2e-tests/`) - Test complete user workflows across the entire application stack (frontend + backend + database).
+**State Verification:**
+- Verify state everywhere, fail early
+- Always assert navigation: `await expect(page).toHaveURL(/\/dashboard/)`
+- Use Web-First assertions: `expect(locator).toBeVisible()` (auto-waits)
 
-### ❌ NEVER Use page.setContent() or Similar Hacks
-
-**Absolutely prohibited:** Using `page.setContent()`, `page.setHTML()`, or any similar methods to inject HTML/scripts into the page.
-
-```typescript
-// ❌ NEVER DO THIS
-await page.setContent(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <script type="module">
-            import { store } from '/src/store.ts';
-            window.store = store;
-        </script>
-    </head>
-    <body>Test content</body>
-    </html>
-`);
-```
-
-**Why this is wrong:**
-- Module imports don't work without a proper dev server
-- No bundling, no HMR, no proper module resolution
-- Bypasses the actual app's build/run process
-- Tests fake behavior instead of real user experience
-- Creates maintenance nightmares
-
-**✅ What to do instead:**
-- Always navigate to real pages served by the dev server: `await page.goto('/dashboard')`
-- Use proper fixtures that authenticate and navigate to real routes
-- Test actual UI components as they exist in the running application
-- If testing a specific store, write a Vitest unit test instead
+### Fixtures
 
 ```typescript
-// ✅ CORRECT: Navigate to real pages
-test('should test dashboard', async ({ authenticatedPage }) => {
-    const { page } = authenticatedPage;
-    await page.goto('/dashboard');
+// Most common - pre-authenticated with page objects
+authenticatedPageTest('test name', async ({
+    authenticatedPage,  // { page, user }
+    dashboardPage,
+    groupDetailPage,
+}) => {
+    const { page, user } = authenticatedPage;
+    await expect(page).toHaveURL(/\/dashboard/);
+    // Test actions...
+});
 
-    const dashboardPage = new DashboardPage(page);
-    await dashboardPage.waitForDashboard();
-    // Test real UI...
+// Multi-user scenarios
+multiUserTest('collaboration', async ({
+    authenticatedPage,  // First user
+    secondUser,         // Second user with page objects
+}) => {
+    // User Alice acts, wait for sync, then User Bob acts
+    // NEVER perform actions in parallel
 });
 ```
 
-### Page Object Model (POM) - Mandatory Pattern
+### Page Object Model (MANDATORY)
 
-**All browser interactions MUST go through Page Object Models.** Never use raw selectors or Playwright locators directly in test files.
-
-#### ✅ Correct: Use Page Objects
+**ALL UI interactions through Page Objects. No raw selectors in tests.**
 
 ```typescript
-// In test file
-const loginPage = new LoginPage(page);
-await loginPage.navigate();
-await loginPage.login(email, password);
-
-const dashboardPage = new DashboardPage(page);
-await dashboardPage.waitForDashboard();
-const groupDetailPage = await dashboardPage.createGroupAndNavigate('My Group');
-```
-
-#### ❌ Prohibited: ANY Direct Selector Usage in Tests
-
-**Tests must do NOTHING with selectors.** This means:
-- No `page.getByRole()`, `page.locator()`, `page.getByText()`, etc.
-- No visibility checks like `await page.getByText('X').isVisible()`
-- No enable/disable checks like `await page.getByRole('button').isDisabled()`
-- No direct assertions like `expect(page.getByText('X')).toBeVisible()`
-
-**ALL selector operations, checks, and assertions belong in Page Objects.**
-
-```typescript
-// ❌ DON'T: Never use selectors directly in tests
-await page.goto('/login');
-await page.getByRole('textbox', { name: 'Email' }).fill(email);
-await page.getByRole('button', { name: 'Sign in' }).click();
-
-// ❌ DON'T: Not even for simple visibility checks
+// ❌ PROHIBITED in test files
+await page.getByRole('button', { name: 'Submit' }).click();
 await expect(page.getByText('Welcome')).toBeVisible();
-await expect(page.getByRole('button', { name: 'Submit' })).toBeEnabled();
-const isVisible = await page.getByTestId('modal').isVisible();
+const isDisabled = await page.getByRole('button').isDisabled();
 
-// ❌ DON'T: Not even for reading values
-const userName = await page.getByTestId('user-name').textContent();
-const count = await page.getByText(/\d+ items/).textContent();
-```
-
-#### ✅ Correct: All Checks Through Page Objects
-
-```typescript
-// ✅ DO: Page objects handle selectors and provide semantic methods
+// ✅ REQUIRED - everything through page objects
 const loginPage = new LoginPage(page);
-await loginPage.navigate();
 await loginPage.login(email, password);
 
-// ✅ DO: Page objects provide verification methods
 const dashboardPage = new DashboardPage(page);
 await dashboardPage.verifyWelcomeMessageVisible();
-await dashboardPage.verifySubmitButtonEnabled();
-
-// ✅ DO: Page objects provide value extraction methods
-const userName = await dashboardPage.getUserName();
-const itemCount = await dashboardPage.getItemCount();
-
-// ✅ DO: Even simple checks go through page objects
-await expect(dashboardPage.getWelcomeMessage()).toBeVisible();
 await expect(dashboardPage.getSubmitButton()).toBeEnabled();
 ```
 
-**In Page Object:**
+**Page Object Structure:**
 ```typescript
-export class DashboardPage extends BasePage {
-    // Locator getters (private selectors)
-    getWelcomeMessage(): Locator {
-        return this.page.getByText('Welcome');
+export class SomePage extends BasePage {
+    readonly url = '/some-path';
+
+    async navigate(): Promise<void> {
+        await this.page.goto(this.url);
+        await this.waitForNetworkIdle();
     }
 
+    // Locator getters (synchronous)
     getSubmitButton(): Locator {
         return this.page.getByRole('button', { name: 'Submit' });
     }
 
-    // High-level verification methods (preferred)
-    async verifyWelcomeMessageVisible(): Promise<void> {
-        await expect(this.getWelcomeMessage()).toBeVisible();
+    // Action methods (async, return next page)
+    async submitAndNavigate(): Promise<NextPage> {
+        await this.clickButton(this.getSubmitButton(), { buttonName: 'Submit' });
+        await expect(this.page).toHaveURL(/\/next/);
+        return new NextPage(this.page);
     }
 
-    async verifySubmitButtonEnabled(): Promise<void> {
-        await expect(this.getSubmitButton()).toBeEnabled();
-    }
-
-    // Value extraction methods
-    async getUserName(): Promise<string> {
-        const element = this.page.getByTestId('user-name');
-        const text = await element.textContent();
-        if (!text) throw new Error('User name not found');
-        return text.trim();
+    // Verification methods
+    async verifyPageLoaded(): Promise<void> {
+        await expect(this.getHeading()).toBeVisible();
     }
 }
 ```
 
-### Page Objects Are Not Just for Pages
+### Selector Priority
 
-Create Page Object Models for **all UI components** that have user interactions:
-
-- **Pages**: `LoginPage`, `DashboardPage`, `GroupDetailPage`
-- **Modals/Dialogs**: `CreateGroupModalPage`, `ConfirmationDialogPage`, `ShareModalPage`
-- **Complex Components**: `ExpenseFormPage`, `SettlementFormPage`
-- **Shared Components**: `HeaderPage` (navigation, user menu)
-
-### Semantic Selectors - Find What Users See
-
-**Prefer selectors based on what users can see and interact with**, not implementation details.
-
-#### Priority Order for Selectors
-
-1. **ARIA roles and labels** - `getByRole('button', { name: 'Submit' })`
-2. **Visible text/headings** - `getByRole('heading', { name: 'Group Settings' })`
+1. **ARIA roles/labels** - `getByRole('button', { name: 'Submit' })`
+2. **Visible text** - `getByRole('heading', { name: 'Settings' })`
 3. **Form labels** - `getByLabel('Email address')`
-4. **Placeholder text** - `getByPlaceholder('Enter amount')`
-5. **Test IDs (last resort)** - `getByTestId('user-menu-button')` - only when semantic options don't exist
+4. **Placeholders** - `getByPlaceholder('Enter amount')`
+5. **Test IDs (last resort)** - `getByTestId('user-menu')` - only when semantic options don't exist
 
-#### ❌ Avoid These Selectors
+**Prohibited:**
+- CSS classes: `.text-sm.font-medium`
+- CSS selectors: `div > ul > li:nth-child(2)`
+- XPath: `//div[@class="container"]`
 
-```typescript
-// DON'T: CSS classes (brittle, implementation detail)
-page.locator('.text-sm.font-medium.text-gray-700');
-
-// DON'T: Complex CSS selectors
-page.locator('div > ul > li:nth-child(2) > button');
-
-// DON'T: XPath expressions
-page.locator('//div[@class="container"]//button');
-```
-
-#### ✅ Use Semantic Selectors
+### Fluent Methods
 
 ```typescript
-// DO: Find by what users see
-getGroupNameHeading(): Locator {
-    return this.page.getByRole('heading', { level: 2 });
-}
-
-getSubmitButton(): Locator {
-    return this.page.getByRole('button', { name: 'Create Group' });
-}
-
-getEmailInput(): Locator {
-    return this.page.getByLabel('Email address');
-}
-```
-
-### Modifying Components for Better Testing
-
-**It's encouraged to modify TSX components** to add semantic attributes when natural semantic selectors don't exist.
-
-#### Example: Adding Data Attributes for Testing
-
-```typescript
-// Before: No way to select user display name
-<p className='text-sm font-medium text-gray-700'>{userName}</p>
-
-// After: Added semantic test attribute
-<p className='text-sm font-medium text-gray-700' data-testid='user-menu-display-name'>
-    {userName}
-</p>
-```
-
-**Guidelines for modifying components:**
-
-- Add ARIA attributes first (`role`, `aria-label`, `aria-describedby`)
-- Use `data-testid` when ARIA isn't appropriate
-- Prefer finding containers by headings: `getByRole('heading', { name: 'Settings' })`
-- Never add test-only elements that users don't see
-
-### Fluent Methods - Action Chaining
-
-Page objects should provide fluent methods that perform actions and return the resulting page object. This creates readable, chainable test code.
-
-#### ✅ Correct: Fluent Methods with Single Path
-
-```typescript
-// In LoginPage
+// ✅ Single deterministic path
 async login(email: string, password: string): Promise<DashboardPage> {
     await this.fillEmail(email);
     await this.fillPassword(password);
@@ -468,143 +257,177 @@ async login(email: string, password: string): Promise<DashboardPage> {
     return new DashboardPage(this.page);
 }
 
-// In DashboardPage
-async createGroupAndNavigate(name: string): Promise<GroupDetailPage> {
-    const modal = await this.openCreateGroupModal();
-    await modal.fillName(name);
-    await modal.submit();
-    await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-    return new GroupDetailPage(this.page);
-}
-
-// In test - fluent chaining
+// Test - readable chaining
 const dashboardPage = await loginPage.login(email, password);
 const groupPage = await dashboardPage.createGroupAndNavigate('My Group');
-await groupPage.verifyGroupName('My Group');
 ```
 
-#### ❌ Prohibited: Conditional Logic in Fluent Methods
-
+**Prohibited:**
 ```typescript
-// DON'T: Methods that could return different page objects based on conditions
+// ❌ Conditional returns - test doesn't know what to expect
 async submitForm(): Promise<DashboardPage | ErrorPage> {
     await this.clickSubmit();
-
     if (await this.page.getByText('Error').isVisible()) {
-        return new ErrorPage(this.page);  // ❌ Ambiguous - test doesn't know what to expect
+        return new ErrorPage(this.page);
     }
     return new DashboardPage(this.page);
 }
+
+// ✅ Separate methods for different outcomes
+async submitAndExpectSuccess(): Promise<DashboardPage> { }
+async submitAndExpectError(): Promise<void> { }
 ```
 
-**Why this is wrong:** Tests should have deterministic paths. The test should explicitly handle different scenarios with separate methods.
+### Multi-User Testing
 
-#### ✅ Correct: Explicit Methods for Different Scenarios
+**Serialize ALL operations:**
 
 ```typescript
-// DO: Separate methods for different expected outcomes
-async submitAndExpectSuccess(): Promise<DashboardPage> {
-    await this.clickSubmit();
-    await expect(this.page).toHaveURL(/\/dashboard/);
-    return new DashboardPage(this.page);
+const allPages = [
+    { page: alicePage, groupDetailPage: aliceGroupDetailPage, userName: 'Alice' },
+    { page: bobPage, groupDetailPage: bobGroupDetailPage, userName: 'Bob' }
+];
+
+// Alice acts
+await aliceGroupDetailPage.addExpense(...);
+
+// WAIT for sync on ALL users
+await aliceGroupDetailPage.synchronizeMultiUserState(allPages, 2, groupId);
+
+// ONLY NOW can Bob act
+await bobGroupDetailPage.recordSettlement(...);
+```
+
+**Never perform actions in parallel - creates non-deterministic tests.**
+
+### Real-Time Updates
+
+**Rely on app's real-time sync. `page.reload()` prohibited for state sync.**
+
+Use `page.reload()` ONLY when testing browser refresh behavior (e.g., auth persistence).
+
+### Automatic Error Context (Proxy)
+
+Page Objects automatically wrapped with proxy that captures on error:
+- Method context (class, method name)
+- Current URL
+- Method arguments (sanitized)
+- User info
+- Page state (buttons, headings, errors, form inputs, loading indicators)
+
+**Write clean methods - proxy adds context:**
+```typescript
+// ✅ Simple, clean - proxy handles errors
+async submitForm(): Promise<void> {
+    await this.clickButton(this.getSubmitButton());
+    // No try-catch needed
 }
 
-async submitAndExpectError(): Promise<void> {
-    await this.clickSubmit();
-    await expect(this.getErrorMessage()).toBeVisible();
-    // Stay on current page, verify error state
-}
-
-// In test - explicit intent
-if (testingValidInput) {
-    const dashboard = await loginPage.submitAndExpectSuccess();
-} else {
-    await loginPage.submitAndExpectError();
-    await expect(loginPage.getErrorMessage()).toContainText('Invalid credentials');
+// ❌ Don't add try-catch - loses proxy context
+async submitForm(): Promise<void> {
+    try {
+        await this.clickButton(this.getSubmitButton());
+    } catch (error) {
+        throw new Error('Submit failed'); // Loses rich context
+    }
 }
 ```
 
-### Never Use waitForTimeout
+### i18n Resilience
 
-**Absolutely prohibited:** `page.waitForTimeout()`, `setTimeout()`, `sleep()` and similar arbitrary delays.
-
-#### ❌ Prohibited Patterns
+**Import translation files instead of hardcoding text:**
 
 ```typescript
-// DON'T: Arbitrary waits
-await page.waitForTimeout(2000);  // ❌ Flaky, slow, unreliable
+// In page objects
+import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
-// DON'T: Manual sleep
-await new Promise(resolve => setTimeout(resolve, 1000));  // ❌ Never
+export class CreateGroupModalPage extends BasePage {
+    readonly modalTitle = translationEn.createGroupModal.title;
+
+    async isOpen(): Promise<boolean> {
+        return await this.page.getByRole('heading', { name: this.modalTitle }).isVisible();
+    }
+}
 ```
 
-#### ✅ Use Condition-Based Waiting
+**Benefits:**
+- Single source of truth
+- Automatic test updates when translations change
+- i18n compatible
+- No maintenance for text changes
+
+### Prohibited Practices
+
+**Absolutely forbidden:**
+- ❌ `page.waitForTimeout()` - use condition-based waiting
+- ❌ `page.setContent()` - always navigate to real pages
+- ❌ Raw selectors in tests - use Page Objects
+- ❌ Conditional logic in tests (`if/else`, `try/catch` for control flow)
+- ❌ Skipped tests (`test.skip()`)
+- ❌ Console errors (except tests specifically asserting them)
+- ❌ `page.reload()` for state sync - rely on real-time updates
+- ❌ Parallel multi-user actions - serialize operations
+
+### Configuration
+
+**Timeouts:**
+- Action: 1.5s
+- Test: 15s
+- Total suite: <2 min
+
+**Execution:**
+- 4 workers in parallel
+- Browser reuse between tests
+- 2 retries on CI, none locally
+
+**Reports:**
+- HTML reports: `e2e-tests/playwright-output/<type>/report/`
+- Console logs, screenshots, traces all captured
+
+### Common Patterns
 
 ```typescript
-// DO: Wait for specific conditions with Playwright's built-in waiting
-await expect(this.page.getByText('Loading...')).toBeHidden();
-await expect(this.page.getByRole('button', { name: 'Submit' })).toBeEnabled();
+// Create group
+const groupId = await dashboardPage.createGroupAndNavigate('Group Name');
+await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
 
-// DO: Wait for navigation
-await expect(this.page).toHaveURL(/\/dashboard/);
+// Form validation
+await loginPage.submitAndExpectError();
+await expect(loginPage.getErrorMessage()).toContainText('Invalid credentials');
 
-// DO: Use expect().toPass() for polling
+// Waiting for async state
 await expect(async () => {
-    const count = await this.getMemberCount();
-    expect(count).toBe(expectedCount);
+    const count = await groupDetailPage.getMemberCount();
+    expect(count).toBe(3);
 }).toPass({ timeout: 5000 });
 ```
 
-### Page Object Structure
+### Debugging
 
-A well-structured Page Object follows this template:
+1. **Check `playwright-output/` first** - traces, console logs, screenshots
+2. **Use `run-until-fail.sh`** - reproduce flaky failures
+3. **Read error messages** - proxy provides detailed context
+4. **Never serve HTML report** - use `PLAYWRIGHT_HTML_OPEN=never`
 
-```typescript
-export class ExamplePage extends BasePage {
-    // 1. Navigation
-    readonly url = '/example';
+## Guidelines Summary
 
-    async navigate(): Promise<void> {
-        await this.page.goto(this.url);
-        await this.waitForPageLoad();
-    }
+**DO:**
+- Use builders for all test data
+- Poll for conditions, never sleep
+- Use fixtures for auth and page objects
+- Verify state before/after every action
+- Write deterministic tests (single path)
+- Fail fast with clear error messages
+- Use semantic selectors
+- Keep tests < code complexity
 
-    // 2. Element getters (return Locators, not promises)
-    getSubmitButton(): Locator {
-        return this.page.getByRole('button', { name: 'Submit' });
-    }
-
-    getHeading(): Locator {
-        return this.page.getByRole('heading', { level: 1 });
-    }
-
-    // 3. Action methods (async, do things)
-    async fillForm(data: FormData): Promise<void> {
-        await this.fillPreactInput('#name', data.name);
-        await this.fillPreactInput('#email', data.email);
-    }
-
-    async submitAndExpectSuccess(): Promise<NextPage> {
-        await this.clickButton(this.getSubmitButton(), { buttonName: 'Submit' });
-        await expect(this.page).toHaveURL(/\/success/);
-        return new NextPage(this.page);
-    }
-
-    // 4. Verification methods (assertions)
-    async verifyPageLoaded(): Promise<void> {
-        await expect(this.getHeading()).toBeVisible();
-        await expect(this.getSubmitButton()).toBeEnabled();
-    }
-}
-```
-
-### Key Principles Summary
-
-1. **No raw selectors in tests** - Always use Page Object methods
-2. **Semantic selectors first** - Use what users see (roles, labels, text)
-3. **Modify components when needed** - Add semantic attributes to improve testability
-4. **Page Objects for everything** - Pages, modals, dialogs, complex components
-5. **Fluent methods return page objects** - Enable readable test chaining
-6. **No conditional logic in methods** - Each method has one deterministic outcome
-7. **Never waitForTimeout** - Always wait for specific conditions
-8. **Fail fast with context** - Provide clear error messages when assertions fail
+**DON'T:**
+- Create test data manually
+- Use `waitForTimeout()` or `sleep()`
+- Use raw selectors in tests
+- Write conditional test logic
+- Skip or comment out tests
+- Test non-existent features
+- Ignore console errors
+- Use `page.setContent()`
+- Reload page for state sync

@@ -1,9 +1,8 @@
 Read these first!
 
 - [README.md](README.md)
-- [Building and Testing](docs/guides/building-and-testing.md)
+- [Building](docs/guides/building.md)
 - [Code Guidelines](docs/guides/code.md)
-- [End-to-End Testing](docs/guides/end-to-end_testing.md)
 - [Firebase Guide](docs/guides/firebase.md)
 - [General Development](docs/guides/general.md)
 - [Testing](docs/guides/testing.md)
