@@ -278,6 +278,31 @@ export abstract class BasePage {
     }
 
     /**
+     * Click button without waiting for DOM content to load
+     * Use this for actions that don't trigger navigation (e.g., opening modals)
+     * This avoids unnecessary waits that can cause race conditions with modal state updates
+     */
+    async clickButtonNoWait(
+        button: Locator,
+        options?: {
+            buttonName?: string;
+            timeout?: number;
+        },
+    ): Promise<void> {
+        const { buttonName = 'button', timeout = TEST_TIMEOUTS.ELEMENT_VISIBLE } = options || {};
+
+        try {
+            await expect(button).toBeVisible({ timeout });
+            await this.expectButtonEnabled(button, buttonName);
+            await button.click();
+            // No waitForDomContentLoaded() - caller handles any necessary waiting
+        } catch (error) {
+            const currentUrl = this._page.url();
+            throw new Error(`Failed to click button "${buttonName}" at URL: ${currentUrl}. Original error: ${error}`);
+        }
+    }
+
+    /**
      * Expects the page to match a URL pattern
      */
     async expectUrl(pattern: string | RegExp): Promise<void> {

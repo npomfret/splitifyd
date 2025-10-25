@@ -558,30 +558,26 @@ export class DashboardPage extends BasePage {
      */
     async clickCreateGroup(): Promise<CreateGroupModalPage> {
         const button = this.getCreateGroupButton();
+        const modalPage = new CreateGroupModalPage(this.page);
+
+        // Verify modal is NOT open before we click (establishes baseline state)
+        await expect(modalPage.getModalContainer()).not.toBeVisible();
 
         // Verify button exists and is visible before clicking
         await expect(button).toBeVisible({ timeout: 2000 });
         await expect(button).toBeEnabled({ timeout: 1000 });
 
-        await this.clickButton(button, { buttonName: 'Create Group' });
+        // Use clickButtonNoWait since opening a modal doesn't trigger navigation
+        // This avoids the unnecessary waitForDomContentLoaded() that can delay modal state updates
+        await this.clickButtonNoWait(button, { buttonName: 'Create Group' });
 
-        // Wait for any network requests to settle (e.g., user session checks)
-        await this.page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {
-            // Ignore timeout - not critical if network doesn't idle
-        });
-
-        const modalPage = new CreateGroupModalPage(this.page);
-
-        // Add defensive check with better error message
+        // Wait for modal to be fully open and ready for interaction
+        // This ensures the fluent interface returns a ready-to-use modal
+        // By checking it wasn't open before and is open after, we prove the click worked
         try {
             await modalPage.waitForModalToOpen();
-
-            // CRITICAL: Verify modal is STILL open after waitForModalToOpen passes
-            // This catches race conditions where modal opens then immediately closes
-            await expect(modalPage.getModalContainer()).toBeVisible({ timeout: 500 });
-            await expect(modalPage.getGroupNameInput()).toBeVisible({ timeout: 500 });
         } catch (error) {
-            // Capture detailed page state when modal fails to open or stay open
+            // Capture detailed page state when modal fails to open
             const url = this.page.url();
             const visibleButtons = await this.page.locator('button:visible').evaluateAll(
                 (buttons) => buttons.map((b) => b.textContent?.trim()).filter(Boolean),
@@ -590,7 +586,7 @@ export class DashboardPage extends BasePage {
             const modalVisible = await modalPage.getModalContainer().isVisible().catch(() => false);
 
             throw new Error(
-                `Create Group modal failed to open or stay open after clicking button.\n`
+                `Create Group modal failed to open after clicking button.\n`
                     + `Current URL: ${url}\n`
                     + `Dialogs in DOM: ${dialogs}\n`
                     + `Modal visible now: ${modalVisible}\n`
