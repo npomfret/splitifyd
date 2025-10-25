@@ -3,9 +3,22 @@
 _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS function). All routes are served beneath the `api` Cloud Function; Hosting rewrites add a `/api` prefix that is stripped by middleware before routing._
 
 ## Security Conventions
-- **`authenticate`** – requires a valid Firebase ID token; attaches `req.user`.
-- **`authenticateAdmin`** – as above, additionally enforces the user’s admin role.
-- **No middleware** – endpoint is public unless gated by environment checks.
+
+### Authentication Middleware
+- **`authenticate`** – Verifies Firebase ID token from `Authorization: Bearer <token>` header. On success, fetches the user document from Firestore and attaches `req.user` with `{ uid, displayName, role }`.
+- **`authenticateAdmin`** – Calls `authenticate`, then additionally checks `req.user.role === 'system_admin'`. Returns `403 FORBIDDEN` if the user lacks admin privileges.
+- **No middleware** – Endpoint is public unless explicitly gated by environment checks or other guards.
+
+### Admin Role Storage
+- **Application-specific implementation**: The `role` field is custom application logic, not a Firebase/Firestore built-in feature. We created this authorization system ourselves.
+- **Storage location**: Firestore collection `users/{userId}` with an optional `role?: string` field.
+- **Role values**: `'system_admin'` (grants admin access) or undefined (regular user with no admin privileges).
+- **Setting the role**:
+  - Dev/test: Any authenticated user can self-promote via `/test/user/promote-to-admin` endpoint.
+  - Production: Use `firebase/scripts/promote-user-to-admin.ts` script or manually update the Firestore document.
+- **Authorization check**: The `authenticateAdmin` middleware reads this field from Firestore on every request and checks `role === 'system_admin'`.
+
+### Response Format
 - All responses are JSON unless noted; error payloads follow the `{ error: { code, message, … } }` shape when thrown via `ApiError`.
 
 ## Public Utility Endpoints
