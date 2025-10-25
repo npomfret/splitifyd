@@ -1,0 +1,6 @@
+export const GROUP_DETAIL_ERROR_CODES = {
+    GROUP_DELETED: 'GROUP_DELETED',
+    USER_REMOVED_FROM_GROUP: 'USER_REMOVED_FROM_GROUP',
+} as const;
+
+export type GroupDetailErrorCode = typeof GROUP_DETAIL_ERROR_CODES[keyof typeof GROUP_DETAIL_ERROR_CODES];

@@ -1,3 +1,4 @@
+import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { permissionsStore } from '@/stores/permissions-store.ts';
 import { logError, logInfo } from '@/utils/browser-logger';
 import { batch, signal } from '@preact/signals';
@@ -219,7 +220,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             if (isGroupDeleted) {
                 logInfo('GroupDTO deleted, clearing state', { groupId: this.currentGroupId });
 
-                this.#errorSignal.value = 'GROUP_DELETED';
+                this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.GROUP_DELETED;
                 batch(() => {
                     this.#groupSignal.value = null;
                     this.#membersSignal.value = [];
@@ -238,7 +239,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 // User has been removed from the group - handle gracefully without error
                 logInfo('User removed from group, clearing state', { groupId: this.currentGroupId });
 
-                this.#errorSignal.value = 'GROUP_DELETED';
+                this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.GROUP_DELETED;
                 batch(() => {
                     this.#groupSignal.value = null;
                     this.#membersSignal.value = [];
@@ -368,7 +369,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 eventId: event.id,
             });
             this.#clearGroupData();
-            this.#errorSignal.value = 'USER_REMOVED_FROM_GROUP';
+            this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
             this.currentGroupId = null;
             return;
         }

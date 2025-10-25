@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '@/constants.ts';
 import { CURRENCIES, type Currency, getCurrency, isValidCurrency } from '@/utils/currency';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 
@@ -61,7 +62,7 @@ export class CurrencyService {
             return;
         }
 
-        const stored = this.storage.getItem('recentCurrencies');
+        const stored = this.storage.getItem(STORAGE_KEYS.RECENT_CURRENCIES);
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
@@ -85,7 +86,7 @@ export class CurrencyService {
         }
 
         const recent = Array.from(this.recentCurrencies);
-        this.storage.setItem('recentCurrencies', JSON.stringify(recent));
+        this.storage.setItem(STORAGE_KEYS.RECENT_CURRENCIES, JSON.stringify(recent));
     }
 
     addToRecentCurrencies(currencyCode: string): void {

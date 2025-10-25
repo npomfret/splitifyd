@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +24,7 @@ export function LoginPage() {
             return '';
         }
         try {
-            return sessionStorage.getItem('login-email') || '';
+            return sessionStorage.getItem(STORAGE_KEYS.LOGIN_EMAIL) || '';
         } catch {
             return '';
         }
@@ -36,7 +37,7 @@ export function LoginPage() {
             return;
         }
         try {
-            sessionStorage.setItem('login-email', email);
+            sessionStorage.setItem(STORAGE_KEYS.LOGIN_EMAIL, email);
         } catch {
             // Ignore storage failures (private browsing, disabled storage, etc.)
         }
@@ -44,7 +45,7 @@ export function LoginPage() {
 
     useEffect(() => {
         try {
-            sessionStorage.removeItem('login-password');
+            sessionStorage.removeItem(STORAGE_KEYS.LOGIN_PASSWORD);
         } catch {
             // Ignore storage access errors
         }

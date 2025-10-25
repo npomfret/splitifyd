@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -17,14 +18,14 @@ export function RegisterPage() {
     // Initialize from sessionStorage to persist across potential remounts
     const [name, setName] = useState(() => {
         try {
-            return sessionStorage.getItem('register-form-name') || '';
+            return sessionStorage.getItem(STORAGE_KEYS.REGISTER_NAME) || '';
         } catch {
             return '';
         }
     });
     const [email, setEmail] = useState(() => {
         try {
-            return sessionStorage.getItem('register-form-email') || '';
+            return sessionStorage.getItem(STORAGE_KEYS.REGISTER_EMAIL) || '';
         } catch {
             return '';
         }
@@ -33,14 +34,14 @@ export function RegisterPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [agreeToTerms, setAgreeToTerms] = useState(() => {
         try {
-            return sessionStorage.getItem('register-form-agreeToTerms') === 'true';
+            return sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_TERMS) === 'true';
         } catch {
             return false;
         }
     });
     const [agreeToCookies, setAgreeToCookies] = useState(() => {
         try {
-            return sessionStorage.getItem('register-form-agreeToCookies') === 'true';
+            return sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES) === 'true';
         } catch {
             return false;
         }
@@ -51,8 +52,8 @@ export function RegisterPage() {
     useEffect(() => {
         setLocalError(null);
         try {
-            sessionStorage.removeItem('register-form-password');
-            sessionStorage.removeItem('register-form-confirmPassword');
+            sessionStorage.removeItem(STORAGE_KEYS.REGISTER_PASSWORD);
+            sessionStorage.removeItem(STORAGE_KEYS.REGISTER_CONFIRM_PASSWORD);
         } catch {
             // Ignore storage access errors
         }
@@ -117,10 +118,10 @@ export function RegisterPage() {
             await authStore.register(email.trim(), password, name.trim(), agreeToTerms, agreeToCookies);
             // Clear form data from sessionStorage on successful registration
             try {
-                sessionStorage.removeItem('register-form-name');
-                sessionStorage.removeItem('register-form-email');
-                sessionStorage.removeItem('register-form-agreeToTerms');
-                sessionStorage.removeItem('register-form-agreeToCookies');
+                sessionStorage.removeItem(STORAGE_KEYS.REGISTER_NAME);
+                sessionStorage.removeItem(STORAGE_KEYS.REGISTER_EMAIL);
+                sessionStorage.removeItem(STORAGE_KEYS.REGISTER_AGREE_TERMS);
+                sessionStorage.removeItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES);
             } catch {
                 // Ignore cleanup errors
             }
@@ -152,7 +153,7 @@ export function RegisterPage() {
                             const value = (e.target as HTMLInputElement).value;
                             setName(value);
                             try {
-                                sessionStorage.setItem('register-form-name', value);
+                                sessionStorage.setItem(STORAGE_KEYS.REGISTER_NAME, value);
                             } catch {
                                 // Ignore sessionStorage errors
                             }
@@ -171,7 +172,7 @@ export function RegisterPage() {
                     onInput={(value) => {
                         setEmail(value);
                         try {
-                            sessionStorage.setItem('register-form-email', value);
+                            sessionStorage.setItem(STORAGE_KEYS.REGISTER_EMAIL, value);
                         } catch {
                             // Ignore sessionStorage errors
                         }
@@ -216,7 +217,7 @@ export function RegisterPage() {
                                 const checked = (e.target as HTMLInputElement).checked;
                                 setAgreeToTerms(checked);
                                 try {
-                                    sessionStorage.setItem('register-form-agreeToTerms', checked.toString());
+                                    sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_TERMS, checked.toString());
                                 } catch {
                                     // Ignore sessionStorage errors
                                 }
@@ -243,7 +244,7 @@ export function RegisterPage() {
                                 const checked = (e.target as HTMLInputElement).checked;
                                 setAgreeToCookies(checked);
                                 try {
-                                    sessionStorage.setItem('register-form-agreeToCookies', checked.toString());
+                                    sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES, checked.toString());
                                 } catch {
                                     // Ignore sessionStorage errors
                                 }

@@ -21,8 +21,8 @@ Track the outstanding correctness and maintainability issues surfaced during the
   - Activity feed store now consumes a dedicated `ActivityFeedGateway`, removing direct `FirebaseService` dependencies.
   - Next: replicate the gateway pattern for other stores that reach into Firebase primitives (see `docs/UX-report1.md`).
 
-- [ ] **Eliminate magic strings for storage and error codes**  
-  - Promote keys like `USER_ID_KEY`, `recentCurrencies`, validation codes, etc., into central constants/enums to avoid drift.
+- [x] **Eliminate magic strings for storage and error codes**  
+  - Centralized storage identifiers (session/local) via `STORAGE_KEYS`; `GroupDetail` now relies on `GROUP_DETAIL_ERROR_CODES` rather than string literals.
 
 - [ ] **Review auth registration flow for atomicity and error handling**  
   - Audit `register` paths to ensure partial failures (e.g., user created but profile not updated) roll back cleanly; bolster error messaging as noted in UX report 1.

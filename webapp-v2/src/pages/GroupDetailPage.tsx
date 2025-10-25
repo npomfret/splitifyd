@@ -1,3 +1,4 @@
+import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { CommentsSection } from '@/components/comments';
 import { BalanceSummary, ExpensesList, GroupActions, GroupHeader, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
@@ -135,7 +136,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const errorValue = error.value;
     const groupValue = group.value;
     const shouldRedirectToDashboard =
-        errorValue === 'GROUP_DELETED' || errorValue === 'USER_REMOVED_FROM_GROUP';
+        errorValue === GROUP_DETAIL_ERROR_CODES.GROUP_DELETED || errorValue === GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
     const shouldRedirectToNotFoundFromError =
         typeof errorValue === 'string' && /not found/i.test(errorValue);
     const shouldRedirectToNotFoundFromMissingGroup = isInitialized.value && !groupValue && !errorValue;
