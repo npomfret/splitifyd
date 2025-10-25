@@ -1,11 +1,9 @@
-import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId, JoinGroupPage } from '@splitifyd/test-support';
+import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId, GroupDetailPage, JoinGroupPage } from '@splitifyd/test-support';
 import { expect, simpleTest } from '../../fixtures';
 import { DashboardPage as E2EDashboardPage } from '../../pages/dashboard.page';
 import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page';
-import type { GroupDetailPage as E2EGroupDetailPage } from '../../pages/group-detail.page';
 
-async function navigateToDashboardFromGroup(groupDetailPage: E2EGroupDetailPage): Promise<E2EDashboardPage> {
+async function navigateToDashboardFromGroup(groupDetailPage: GroupDetailPage): Promise<E2EDashboardPage> {
     await groupDetailPage.header.navigateToDashboard();
     const dashboardPage = new E2EDashboardPage(groupDetailPage.page);
     await dashboardPage.waitForDashboard();
@@ -127,7 +125,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         await removeMemberModal.confirmRemoveMember();
 
         // Owner should still be in the group
-        await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
+        await expect(ownerPage).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId));
 
         // Group should show only 1 member (the owner)
         await groupDetailPage.waitForMemberCount(1);
@@ -340,7 +338,7 @@ simpleTest.describe('Group Settings & Management', () => {
         // Create a group
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder());
         const groupId = groupDetailPage.inferGroupId();
-        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
+        await expect(page).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId));
 
         // Wait for group page to load
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -420,8 +418,8 @@ simpleTest.describe('Group Settings & Management', () => {
         const groupId = ownerGroupDetailPage.inferGroupId();
         const groupName = await ownerGroupDetailPage.getGroupNameText();
 
-        await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
-        await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
+        await expect(ownerPage).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId));
+        await expect(memberPage).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId));
 
         // Verify owner CAN see settings button
         const ownerSettingsButton = ownerGroupDetailPage.getEditGroupButton();
@@ -534,7 +532,7 @@ simpleTest.describe('Group Deletion', () => {
         await memberDashboardPage1.waitForGroupToAppear(groupName1);
 
         // Owner clicks on the group from dashboard to navigate to it
-        ownerGroupDetailPage = await ownerDashboardPage.clickGroupCardAndNavigateToDetail<E2EGroupDetailPage>(groupName1);
+        ownerGroupDetailPage = await ownerDashboardPage.clickGroupCardAndNavigateToDetail<GroupDetailPage>(groupName1);
 
         // Delete the group
         const editModal1 = await ownerGroupDetailPage.clickEditGroupAndOpenModal();
@@ -556,7 +554,7 @@ simpleTest.describe('Group Deletion', () => {
         await ownerDashboardPage.waitForGroupToAppear(groupName2);
 
         // Owner clicks on the group from dashboard to delete it
-        ownerGroupDetailPage2 = await ownerDashboardPage.clickGroupCardAndNavigateToDetail<E2EGroupDetailPage>(groupName2);
+        ownerGroupDetailPage2 = await ownerDashboardPage.clickGroupCardAndNavigateToDetail<GroupDetailPage>(groupName2);
 
         // Owner deletes the group while member is still viewing it
         const editModal2 = await ownerGroupDetailPage2.clickEditGroupAndOpenModal();

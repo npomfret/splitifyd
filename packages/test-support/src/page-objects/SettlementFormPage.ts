@@ -1,22 +1,24 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
+import { TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
 
 const translation = translationEn;
 
-/**
- * Shared base class for Settlement Form page object.
- * Contains common selectors and basic actions for settlement forms.
- * E2E tests may extend this with additional e2e-specific functionality.
- */
+type ReadyOptions = {
+    expectedMemberCount?: number;
+    timeout?: number;
+};
+
+const MEMBER_PLACEHOLDER_PATTERN = /select/i;
+
 export class SettlementFormPage extends BasePage {
     constructor(page: Page) {
         super(page);
     }
 
-    // Modal and container selectors
     getModal(): Locator {
         return this.page.getByRole('dialog');
     }
@@ -25,7 +27,6 @@ export class SettlementFormPage extends BasePage {
         return this.getModal().locator('form');
     }
 
-    // Protected selectors - accessible to subclasses but not exposed to tests
     protected getPayerSelect(): Locator {
         return this.getModal().getByRole('combobox', { name: /who paid/i });
     }
@@ -35,7 +36,7 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getAmountInput(): Locator {
-        return this.getModal().locator('input[inputMode="decimal"]').first();
+        return this.getModal().locator('input[inputmode="decimal"]').first();
     }
 
     protected getCurrencyButton(): Locator {
@@ -46,7 +47,6 @@ export class SettlementFormPage extends BasePage {
         return this.getModal().getByRole('textbox', { name: /note/i });
     }
 
-    // Button selectors
     getRecordPaymentButton(): Locator {
         return this.getModal().getByRole('button', { name: translation.settlementForm.recordSettlement });
     }
@@ -56,34 +56,80 @@ export class SettlementFormPage extends BasePage {
     }
 
     getCancelButton(): Locator {
-        return this.getModal().getByRole('button', { name: /cancel/i });
+        return this.getModal().getByRole('button', { name: translation.common.cancel });
     }
 
     getCloseButton(): Locator {
-        // The close button is in the modal header with SVG icon
         return this.getModal().locator('button[aria-label]').first();
     }
 
-    // Navigation
-
-    /**
-     * Navigate to group page and open settlement form modal
-     */
-    async navigateAndOpen(groupId: GroupId): Promise<void> {
+    async navigateAndOpen(groupId: GroupId, options?: ReadyOptions): Promise<void> {
         await this.page.goto(`/groups/${groupId}`);
         const openButton = this.page.getByRole('button', { name: /settle up/i });
-        await expect(openButton).toBeVisible();
-        await expect(openButton).toBeEnabled();
+        await expect(openButton).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+        await expect(openButton).toBeEnabled({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await openButton.click();
-        await expect(this.getModal()).toBeVisible();
+        await this.waitForReady(options);
     }
 
-    // Basic form actions
+    async waitForReady(options: ReadyOptions = {}): Promise<void> {
+        const { expectedMemberCount, timeout = TEST_TIMEOUTS.MODAL_TRANSITION } = options;
 
-    /**
-     * Select currency from the currency dropdown
-     */
+        await expect(this.getModal()).toBeVisible({ timeout });
+
+        await expect(async () => {
+            const amountEditable = await this.getAmountInput().isEditable();
+            const payerEnabled = await this.getPayerSelect().isEnabled();
+            const payeeEnabled = await this.getPayeeSelect().isEnabled();
+            const noteEditable = await this.getNoteInput().isEditable();
+
+            if (!amountEditable || !payerEnabled || !payeeEnabled || !noteEditable) {
+                throw new Error('Settlement form inputs are not ready yet');
+            }
+
+            if (expectedMemberCount !== undefined) {
+                const payerMembers = await this.collectMemberOptions(this.getPayerSelect());
+                if (payerMembers.length < expectedMemberCount) {
+                    throw new Error(`Payer list has ${payerMembers.length} members, expected at least ${expectedMemberCount}`);
+                }
+
+                const payeeMembers = await this.collectMemberOptions(this.getPayeeSelect());
+                const minimumPayeeCount = Math.max(1, expectedMemberCount - 1);
+                if (payeeMembers.length < minimumPayeeCount) {
+                    throw new Error(`Payee list has ${payeeMembers.length} members, expected at least ${minimumPayeeCount}`);
+                }
+            }
+
+            const actionButton = await this.resolvePrimaryActionButton();
+            const visible = await actionButton.isVisible().catch(() => false);
+
+            if (!visible) {
+                throw new Error('Settlement form action button is not visible');
+            }
+        })
+            .toPass({
+                timeout,
+                intervals: [75, 150, 250, 400],
+            });
+
+        if (expectedMemberCount !== undefined) {
+            const payerMembers = await this.collectMemberOptions(this.getPayerSelect());
+            if (payerMembers.length < expectedMemberCount) {
+                throw new Error(`Payer list regressed to ${payerMembers.length} members after ready check`);
+            }
+        }
+    }
+
+    async waitForFormReady(expectedMemberCount?: number, timeout?: number): Promise<void> {
+        await this.waitForReady({
+            expectedMemberCount,
+            timeout,
+        });
+    }
+
     async selectCurrency(currency: CurrencyISOCode): Promise<void> {
+        await this.waitForReady();
+
         const currencyButton = this.getCurrencyButton();
         await this.clickButton(currencyButton, { buttonName: 'Select currency' });
 
@@ -92,7 +138,7 @@ export class SettlementFormPage extends BasePage {
 
         if (searchVisible) {
             await this.fillPreactInput(searchInput, currency);
-            await this.page.waitForTimeout(350);
+            await this.page.waitForTimeout(300);
             await searchInput.press('ArrowDown');
             await searchInput.press('Enter');
             await expect(searchInput).not.toBeVisible({ timeout: 2000 });
@@ -100,8 +146,16 @@ export class SettlementFormPage extends BasePage {
         }
 
         const currencyOption = this.getModal().getByRole('option', { name: new RegExp(currency, 'i') });
-        await expect(currencyOption).toBeVisible({ timeout: 2000 });
+        await expect(currencyOption).toBeVisible({ timeout: 3000 });
         await currencyOption.click();
+
+        await expect(async () => {
+            const buttonText = await currencyButton.textContent();
+            if (!buttonText || !buttonText.includes(currency)) {
+                throw new Error(`Currency button does not reflect selection of ${currency}`);
+            }
+        })
+            .toPass({ timeout: 2000 });
     }
 
     async expectCurrencySelectionDisplays(symbol: string, currencyCode: string): Promise<void> {
@@ -110,123 +164,134 @@ export class SettlementFormPage extends BasePage {
         await expect(currencyButton).toContainText(currencyCode);
     }
 
-    /**
-     * Fill the amount field
-     * Note: Using simple fill() + blur() pattern for number inputs
-     * because number inputs can't be truly "cleared" to empty string - they default to 0
-     */
     async fillAmount(amount: string): Promise<void> {
+        await this.waitForReady();
+
         const input = this.getAmountInput();
         await input.fill(amount);
         await input.blur();
+
+        await expect(async () => {
+            const value = await input.inputValue();
+            if (value !== amount) {
+                throw new Error(`Amount input shows "${value}" instead of "${amount}"`);
+            }
+        })
+            .toPass({ timeout: 1000 });
     }
 
     async expectAmountValue(value: string): Promise<void> {
         await expect(this.getAmountInput()).toHaveValue(value);
     }
 
-    /**
-     * Fill the note field
-     */
     async fillNote(note: string): Promise<void> {
+        await this.waitForReady();
         const noteInput = this.getNoteInput();
         await this.fillPreactInput(noteInput, note);
+        await expect(noteInput).toHaveValue(note);
     }
 
-    /**
-     * Clear and fill amount field
-     * Note: fill() automatically clears the input first, which should work fine
-     * for number inputs as they don't trigger validation on programmatic clear
-     */
     async clearAndFillAmount(amount: string): Promise<void> {
+        await this.waitForReady();
+
         const input = this.getAmountInput();
         await input.fill(amount);
         await input.blur();
+        await expect(input).toHaveValue(amount, { timeout: 2000 });
     }
 
-    /**
-     * Select payer from the payer dropdown
-     */
     async selectPayer(payerName: string): Promise<void> {
+        await this.waitForReady();
+
         const payerSelect = this.getPayerSelect();
-        await payerSelect.selectOption({ label: payerName });
+        await expect(async () => {
+            const options = await this.collectMemberOptions(payerSelect);
+            if (!options.some((option) => option.includes(payerName))) {
+                throw new Error(`Payer "${payerName}" not available in dropdown: [${options.join(', ')}]`);
+            }
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+
+        const value = await this.findOptionValue(payerSelect, payerName);
+        await payerSelect.selectOption(value);
+        await expect(payerSelect).toHaveValue(value);
     }
 
-    /**
-     * Select payee from the payee dropdown
-     */
     async selectPayee(payeeName: string): Promise<void> {
+        await this.waitForReady();
+
         const payeeSelect = this.getPayeeSelect();
-        await payeeSelect.selectOption({ label: payeeName });
+        await expect(async () => {
+            const options = await this.collectMemberOptions(payeeSelect);
+            if (!options.some((option) => option.includes(payeeName))) {
+                throw new Error(`Payee "${payeeName}" not available in dropdown: [${options.join(', ')}]`);
+            }
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
+
+        const value = await this.findOptionValue(payeeSelect, payeeName);
+        await payeeSelect.selectOption(value);
+        await expect(payeeSelect).toHaveValue(value);
     }
 
-    /**
-     * Simplified method to fill and submit settlement form
-     * Used when the form is already open and ready
-     */
     async fillAndSubmitSettlement(payeeName: string, amount: string, currency: CurrencyISOCode, note?: string): Promise<void> {
-        // Set currency - MANDATORY, no defaults allowed
+        await this.waitForReady();
+
         await this.selectCurrency(currency);
-
-        // Fill amount
         await this.fillAmount(amount);
-
-        // Select payee by label
         await this.selectPayee(payeeName);
 
-        // Fill note if provided
         if (note) {
             await this.fillNote(note);
         }
 
-        // Submit
-        const submitButton = this.getRecordPaymentButton();
-        await this.clickButton(submitButton, { buttonName: 'Record Payment' });
-
-        // Wait for modal to close
-        await expect(this.getModal()).not.toBeVisible({ timeout: 5000 });
+        await this.clickSubmitButton();
+        await this.waitForModalClosed();
     }
 
     async expectSubmitDisabled(): Promise<void> {
-        await expect(this.getRecordPaymentButton()).toBeDisabled();
+        const button = await this.resolvePrimaryActionButton();
+        await expect(button).toBeDisabled();
     }
 
     async expectSubmitEnabled(): Promise<void> {
-        await expect(this.getRecordPaymentButton()).toBeEnabled();
+        const button = await this.resolvePrimaryActionButton();
+        await expect(button).toBeEnabled();
     }
 
     async clickSubmitButton(): Promise<void> {
-        const button = this.getRecordPaymentButton();
-        await this.clickButton(button, { buttonName: 'Record Payment' });
+        await this.waitForReady();
+
+        const button = await this.resolvePrimaryActionButton();
+        const name = (await button.textContent())?.trim() || 'Submit settlement';
+        await this.clickButton(button, { buttonName: name });
     }
 
-    /**
-     * Wait for modal to close
-     */
     async waitForModalClosed(): Promise<void> {
-        const modal = this.getModal();
-        await expect(modal).not.toBeVisible({ timeout: 3000 });
+        await expect(this.getModal()).not.toBeVisible({ timeout: 3000 });
     }
 
     async expectModalClosed(): Promise<void> {
         await expect(this.getModal()).not.toBeVisible();
     }
 
-    /**
-     * Click the close (X) button
-     */
     async clickCloseButton(): Promise<void> {
         const closeButton = this.getCloseButton();
+        await expect(closeButton).toBeVisible();
         await closeButton.click();
+        await this.waitForModalClosed();
     }
 
     async setDate(value: string): Promise<void> {
+        await this.waitForReady();
         const dateInput = this.getModal().getByTestId('settlement-date-input');
         await dateInput.fill(value);
         await dateInput.blur();
+        await expect(dateInput).toHaveValue(value);
     }
 
     async requestSubmit(): Promise<void> {
+        await this.waitForReady();
         const form = this.getForm();
         await expect(form).toBeVisible();
         await form.evaluate((el) => (el as HTMLFormElement).requestSubmit());
@@ -244,79 +309,111 @@ export class SettlementFormPage extends BasePage {
         await this.expectValidationErrorContains(text);
     }
 
-    /**
-     * Close the modal
-     */
     async closeModal(): Promise<void> {
         const closeButton = this.getCloseButton();
         const cancelButton = this.getCancelButton();
 
-        // Try close button first, then cancel
-        if (await closeButton.isVisible()) {
+        if (await closeButton.isVisible().catch(() => false)) {
             await closeButton.click();
-        } else if (await cancelButton.isVisible()) {
+        } else if (await cancelButton.isVisible().catch(() => false)) {
             await cancelButton.click();
         }
+
+        await this.waitForModalClosed();
     }
 
-    /**
-     * Verify the form is in update mode
-     */
     async verifyUpdateMode(): Promise<void> {
-        const modal = this.getModal();
-        await expect(modal).toBeVisible();
-        await expect(modal.getByRole('heading', { name: translation.settlementForm.updateSettlement })).toBeVisible();
+        await expect(this.getModal()).toBeVisible();
+        await expect(this.getModal().getByRole('heading', { name: translation.settlementForm.updateSettlement })).toBeVisible();
     }
 
-    /**
-     * Verify form values match expected
-     */
     async verifyFormValues(expected: { amount: string; note: string; }): Promise<void> {
         const amountInput = this.getAmountInput();
         const noteInput = this.getNoteInput();
 
-        // For amount, compare numeric values to handle trailing zeros (100.50 vs 100.5)
         const expectedAmount = parseFloat(expected.amount).toString();
         await expect(amountInput).toHaveValue(expectedAmount);
         await expect(noteInput).toHaveValue(expected.note);
     }
 
-    /**
-     * Update a settlement (form should already be in edit mode)
-     */
     async updateSettlement(data: { amount: string; note: string; }): Promise<void> {
-        // Assert form is in update mode before updating
         await this.verifyUpdateMode();
 
         const amountInput = this.getAmountInput();
         const noteInput = this.getNoteInput();
 
-        // Update amount
         await amountInput.fill(data.amount);
         await amountInput.blur();
 
-        // Update note
         await this.fillPreactInput(noteInput, data.note);
 
-        // Submit update
         const updateButton = this.getUpdatePaymentButton();
         await expect(updateButton).toBeEnabled();
         await this.clickButton(updateButton, { buttonName: 'Update Payment' });
     }
 
-    /**
-     * Verify update button is disabled
-     */
     async verifyUpdateButtonDisabled(): Promise<void> {
         const updateButton = this.getUpdatePaymentButton();
         await expect(updateButton).toBeDisabled();
     }
 
-    /**
-     * Verify update button is enabled
-     */
     async verifyUpdateButtonEnabled(): Promise<void> {
         const updateButton = this.getUpdatePaymentButton();
         await expect(updateButton).toBeEnabled();
+    }
+
+    private async resolvePrimaryActionButton(): Promise<Locator> {
+        const recordButton = this.getRecordPaymentButton();
+        const updateButton = this.getUpdatePaymentButton();
+
+        // Check which button is visible (used inside retry loop, so keep it fast)
+        const recordVisible = await recordButton.isVisible().catch(() => false);
+        if (recordVisible) {
+            return recordButton;
+        }
+
+        const updateVisible = await updateButton.isVisible().catch(() => false);
+        if (updateVisible) {
+            return updateButton;
+        }
+
+        // Default to record button if neither is visible yet
+        return recordButton;
+    }
+
+    private async collectMemberOptions(select: Locator): Promise<string[]> {
+        const options = await select.locator('option').all();
+        const members: string[] = [];
+
+        for (const option of options) {
+            const text = await option.textContent();
+            if (!text) {
+                continue;
+            }
+
+            const trimmed = text.trim();
+            if (!trimmed || MEMBER_PLACEHOLDER_PATTERN.test(trimmed)) {
+                continue;
+            }
+            members.push(trimmed);
+        }
+
+        return members;
+    }
+
+    private async findOptionValue(select: Locator, displayName: string): Promise<string> {
+        const options = await select.locator('option').all();
+
+        for (const option of options) {
+            const text = await option.textContent();
+            if (text && text.includes(displayName)) {
+                const value = await option.getAttribute('value');
+                if (value) {
+                    return value;
+                }
+            }
+        }
+
+        throw new Error(`Unable to locate option value for display name "${displayName}"`);
     }
 }

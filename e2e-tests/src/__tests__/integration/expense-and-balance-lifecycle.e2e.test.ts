@@ -1,7 +1,6 @@
-import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId, SettlementFormDataBuilder } from '@splitifyd/test-support';
+import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId, GroupDetailPage, SettlementFormDataBuilder } from '@splitifyd/test-support';
 import { expect, simpleTest } from '../../fixtures';
 import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 /**
  * Consolidated Expense and Balance Lifecycle E2E Tests
@@ -82,15 +81,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Step 4: Record partial settlement and verify balance update
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
-        await settlementForm.submitSettlement(
-            new SettlementFormDataBuilder()
-                .withPayerName(user2DisplayName)
-                .withPayeeName(user1DisplayName)
-                .withAmount(50.00, 'EUR')
-                .withNote('Partial settlement test')
-                .build(),
-            2,
-        );
+        await settlementForm.selectPayer(user2DisplayName);
+        await settlementForm.fillAndSubmitSettlement(user1DisplayName, '50.00', 'EUR', 'Partial settlement test');
 
         // Verify partial settlement reduces debt (€75.00 - €50.00 = €25.00)
         await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€25.00');
@@ -101,7 +93,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseDetailPage2.deleteExpense();
 
         // Should be back to group page with expense deleted
-        await expect(groupDetailPage1.page).toHaveURL(groupDetailUrlPattern(groupId));
+        await expect(groupDetailPage1.page).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId));
         await expect(groupDetailPage1.getExpenseByDescription(updatedDescription)).not.toBeVisible();
 
         // Balance should still show the settlement amount as the only transaction
@@ -186,15 +178,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // PHASE 4: Test cross-currency settlement (settle with different currency)
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
-        await settlementForm.submitSettlement(
-            new SettlementFormDataBuilder()
-                .withPayerName(user2DisplayName)
-                .withPayeeName(user1DisplayName)
-                .withAmount(25, 'EUR')
-                .withNote('Cross-currency settlement test')
-                .build(),
-            2,
-        );
+        await settlementForm.selectPayer(user2DisplayName);
+        await settlementForm.fillAndSubmitSettlement(user1DisplayName, '25', 'EUR', 'Cross-currency settlement test');
 
         // Verify cross-currency settlement recorded while original debts remain
         await groupDetailPage.verifySettlementDetails({ note: 'Cross-currency settlement test' });
@@ -252,7 +237,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         await expenseFormPage.clickSaveExpenseButton();
 
         // Verify success and currency display
-        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
+        await expect(page).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId));
         await groupDetailPage.verifyExpenseInList(expenseDescription, '€89.99');
 
         // Should remain settled up since only one person
@@ -314,15 +299,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // User2 makes partial settlement of €60
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
-        await settlementForm.submitSettlement(
-            new SettlementFormDataBuilder()
-                .withPayerName(user2DisplayName)
-                .withPayeeName(user1DisplayName)
-                .withAmount(60.00, 'EUR')
-                .withNote('Partial settlement in complex scenario')
-                .build(),
-            2,
-        );
+        await settlementForm.selectPayer(user2DisplayName);
+        await settlementForm.fillAndSubmitSettlement(user1DisplayName, '60.00', 'EUR', 'Partial settlement in complex scenario');
 
         // Final balance: €100 - €60 = €40
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€40.00');
@@ -405,15 +383,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 1: User2 makes partial settlement of ¥30 (leaving ¥10 debt)
         const settlementNote1 = 'Partial payment from user2';
         const settlementFormPage2 = await groupDetailPage1.clickSettleUpButton(memberCount);
-        await settlementFormPage2.submitSettlement(
-            new SettlementFormDataBuilder()
-                .withPayerName(user2DisplayName)
-                .withPayeeName(user1DisplayName)
-                .withAmount(30, 'JPY')
-                .withNote(settlementNote1)
-                .build(),
-            memberCount,
-        );
+        await settlementFormPage2.selectPayer(user2DisplayName);
+        await settlementFormPage2.fillAndSubmitSettlement(user1DisplayName, '30', 'JPY', settlementNote1);
 
         // Verify real-time updates for partial settlement
         for (const page of pages) {
@@ -430,15 +401,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 2: User2 makes final settlement of ¥10 (fully settled)
         const settlementNote2 = 'Final payment from user2 - all settled!';
         const settlementFormPage1 = await groupDetailPage1.clickSettleUpButton(memberCount);
-        await settlementFormPage1.submitSettlement(
-            new SettlementFormDataBuilder()
-                .withPayerName(user2DisplayName)
-                .withPayeeName(user1DisplayName)
-                .withAmount(10, 'JPY')
-                .withNote(settlementNote2)
-                .build(),
-            memberCount,
-        );
+        await settlementFormPage1.selectPayer(user2DisplayName);
+        await settlementFormPage1.fillAndSubmitSettlement(user1DisplayName, '10', 'JPY', settlementNote2);
 
         // Verify real-time updates for final settlement
         for (const page of pages) {
@@ -455,15 +419,8 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 3: Test additional real-time scenarios - User3 partial settlement
         const settlementNote3 = 'User3 partial payment';
         const settlementFormPage = await groupDetailPage1.clickSettleUpButton(memberCount);
-        await settlementFormPage.submitSettlement(
-            new SettlementFormDataBuilder()
-                .withPayerName(user3DisplayName)
-                .withPayeeName(user1DisplayName)
-                .withAmount(25, 'JPY')
-                .withNote(settlementNote3)
-                .build(),
-            memberCount,
-        );
+        await settlementFormPage.selectPayer(user3DisplayName);
+        await settlementFormPage.fillAndSubmitSettlement(user1DisplayName, '25', 'JPY', settlementNote3);
 
         // Verify final real-time state
         for (const page of pages) {
@@ -632,7 +589,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
             .withNote('Test payment for history')
             .build();
 
-        await settlementForm1.submitSettlement(settlementData1, 2);
+        await settlementForm1.selectPayer(settlementData1.payerName);
+        await settlementForm1.fillAndSubmitSettlement(settlementData1.payeeName, '101', 'JPY', settlementData1.note);
         await groupDetailPage.openHistoryIfClosed();
         await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
         await groupDetailPage.verifySettlementDetails(settlementData1);
@@ -646,7 +604,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
             .withNote('Creator receives payment')
             .build();
 
-        await settlementForm2.submitSettlement(settlementData2, 2);
+        await settlementForm2.selectPayer(settlementData2.payerName);
+        await settlementForm2.fillAndSubmitSettlement(settlementData2.payeeName, '75', 'JPY', settlementData2.note);
         await groupDetailPage.openHistoryIfClosed();
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
@@ -677,7 +636,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
             .withNote('Initial test payment')
             .build();
 
-        await settlementForm.submitSettlement(initialData, 2);
+        await settlementForm.selectPayer(initialData.payerName);
+        await settlementForm.fillAndSubmitSettlement(initialData.payeeName, '101', 'JPY', initialData.note);
         await groupDetailPage.verifySettlementDetails({ note: initialData.note });
 
         // Test successful edit flow
@@ -746,7 +706,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
             .withNote('Payment to be deleted')
             .build();
 
-        await settlementForm1.submitSettlement(settlementData1, 2);
+        await settlementForm1.selectPayer(settlementData1.payerName);
+        await settlementForm1.fillAndSubmitSettlement(settlementData1.payeeName, '100', 'JPY', settlementData1.note);
         await groupDetailPage.verifySettlementDetails({ note: settlementData1.note });
 
         const settlementForm2 = await groupDetailPage.clickSettleUpButton(2);
@@ -757,7 +718,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
             .withNote('Payment to keep')
             .build();
 
-        await settlementForm2.submitSettlement(settlementData2, 2);
+        await settlementForm2.selectPayer(settlementData2.payerName);
+        await settlementForm2.fillAndSubmitSettlement(settlementData2.payeeName, '75', 'JPY', settlementData2.note);
         await groupDetailPage.verifySettlementDetails({ note: settlementData2.note });
 
         // Test 1: Successful deletion with confirmation

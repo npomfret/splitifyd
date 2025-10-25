@@ -425,18 +425,12 @@ export class GroupDetailPage extends BasePage {
 
         const settlementFormPage = createSettlementFormPage(this.page);
 
-        const guards = settlementFormPage as unknown as {
-            waitForFormReady?: (expectedMemberCount: number) => Promise<void>;
-            getModal?: () => Locator;
-        };
-
-        if ((options.ensureModalVisible ?? true) && typeof guards.getModal === 'function') {
-            const modal = guards.getModal();
-            await expect(modal).toBeVisible();
+        if (options.ensureModalVisible ?? true) {
+            await expect(settlementFormPage.getModal()).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
         }
 
-        if ((options.waitForFormReady ?? true) && typeof guards.waitForFormReady === 'function') {
-            await guards.waitForFormReady(expectedMemberCount);
+        if (options.waitForFormReady ?? true) {
+            await settlementFormPage.waitForReady({ expectedMemberCount });
         }
 
         return settlementFormPage;
@@ -1284,26 +1278,20 @@ export class GroupDetailPage extends BasePage {
         const settlementFormPage = createFormPage(this.page);
         await expect(settlementFormPage.getModal()).toBeVisible();
 
-        const shouldWaitForFormReady = options.waitForFormReady ?? true;
-        if (shouldWaitForFormReady) {
-            const guards = settlementFormPage as unknown as {
-                waitForFormReady?: (expectedMemberCount: number) => Promise<void>;
-            };
-
-            if (typeof guards.waitForFormReady === 'function') {
-                let expectedMemberCount = options.expectedMemberCount;
-                if (expectedMemberCount === undefined) {
-                    try {
-                        expectedMemberCount = await this.getCurrentMemberCount();
-                    } catch {
-                        expectedMemberCount = undefined;
-                    }
-                }
-
-                if (expectedMemberCount !== undefined) {
-                    await guards.waitForFormReady(expectedMemberCount);
+        if (options.waitForFormReady ?? true) {
+            let expectedMemberCount = options.expectedMemberCount;
+            if (expectedMemberCount === undefined) {
+                try {
+                    expectedMemberCount = await this.getCurrentMemberCount();
+                } catch {
+                    expectedMemberCount = undefined;
                 }
             }
+
+            await settlementFormPage.waitForReady({
+                expectedMemberCount,
+                timeout: TEST_TIMEOUTS.MODAL_TRANSITION,
+            });
         }
 
         return settlementFormPage;
