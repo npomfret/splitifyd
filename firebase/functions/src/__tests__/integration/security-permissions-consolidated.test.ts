@@ -2,15 +2,12 @@
 // Combines tests from security-and-permissions.test.ts, permission-edge-cases.test.ts, and security-preset-validation.integration.test.ts
 
 import { GroupDTO, PooledTestUser, UserToken } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, GroupUpdateBuilder, NotificationDriver } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
-import { getFirestore } from '../../firebase';
 
 describe('Security and Permissions - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
-    const firestore = getFirestore();
-    const notificationDriver = new NotificationDriver(firestore);
     let users: PooledTestUser[];
 
     beforeEach(async () => {
@@ -19,8 +16,6 @@ describe('Security and Permissions - Consolidated Tests', () => {
 
     afterEach(async () => {
         // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     describe('API Security Headers and Infrastructure', () => {

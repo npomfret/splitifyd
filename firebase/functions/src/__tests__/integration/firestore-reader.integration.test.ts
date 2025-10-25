@@ -9,7 +9,7 @@
  */
 
 import { GroupId } from '@splitifyd/shared';
-import { ApiDriver, CreateGroupRequestBuilder, NotificationDriver, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { afterEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
@@ -18,12 +18,8 @@ import { FirestoreReader } from '../../services/firestore';
 describe('FirestoreReader Integration Tests (Firebase-Specific Behavior)', () => {
     const apiDriver = new ApiDriver();
     const firestoreReader = new FirestoreReader(createFirestoreDatabase(getFirestore()));
-    const notificationDriver = new NotificationDriver(getFirestore());
 
     afterEach(async () => {
-        // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     describe('Real Firebase Pagination Behavior', () => {

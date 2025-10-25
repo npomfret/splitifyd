@@ -56,15 +56,6 @@ export const formatDateTimeInUserTimeZone = (date: Date): string => {
         const dateComponent = year && month && day ? `${year}-${month}-${day}` : undefined;
         const timeComponent = hour && minute && second ? `${hour}:${minute}:${second}` : undefined;
 
-        const timeZoneFormatter = new Intl.DateTimeFormat('en-US', {
-            timeZone,
-            timeZoneName: 'shortOffset',
-        });
-        const offsetPart = timeZoneFormatter
-            .formatToParts(date)
-            .find((part) => part.type === 'timeZoneName')
-            ?.value;
-
         if (dateComponent && timeComponent) {
             return `${dateComponent} ${timeComponent}`;
         }

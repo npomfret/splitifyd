@@ -2,6 +2,22 @@ import { NextFunction, Request, Response } from 'express';
 import { getConfig } from '../client-config';
 
 export function applySecurityHeaders(req: Request, res: Response, next: NextFunction): void {
+    // CORS headers
+    const origin = req.headers.origin;
+    if (origin) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Correlation-ID');
+    res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+
+    // Handle preflight OPTIONS requests
+    if (req.method === 'OPTIONS') {
+        res.status(204).end();
+        return;
+    }
+
     res.setHeader('X-Content-Type-Options', 'nosniff'); // Prevent MIME type sniffing
     res.setHeader('X-Frame-Options', 'DENY'); // Prevent clickjacking attacks
     res.setHeader('X-XSS-Protection', '1; mode=block'); // Enable browser XSS filter

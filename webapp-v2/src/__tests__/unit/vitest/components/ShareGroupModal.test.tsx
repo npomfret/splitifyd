@@ -40,7 +40,6 @@ const mockedApiClient = apiClient as unknown as {
 // Test constants to avoid magic numbers
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const ONE_HOUR_MS = 60 * 60 * 1000;
-const FIFTEEN_MINUTES_MS = 15 * 60 * 1000;
 
 describe('ShareGroupModal', () => {
     beforeEach(() => {
@@ -126,7 +125,6 @@ describe('ShareGroupModal', () => {
     });
 
     it('requests a new link when the expiration option changes', async () => {
-        const origin = window.location.origin;
         const firstExpiresAt = new Date(Date.now() + ONE_DAY_MS).toISOString();
         const secondExpiresAt = new Date(Date.now() + ONE_HOUR_MS).toISOString();
 

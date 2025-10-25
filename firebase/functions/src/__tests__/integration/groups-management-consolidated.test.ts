@@ -8,7 +8,6 @@ import {
     ExpenseUpdateBuilder,
     getFirebaseEmulatorConfig,
     GroupUpdateBuilder,
-    NotificationDriver,
     SettlementUpdateBuilder,
 } from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
@@ -24,7 +23,6 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
 describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
     const apiDriver = new ApiDriver();
-    const notificationDriver = new NotificationDriver(getFirestore());
     const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
     const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), identityToolkit);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
@@ -35,9 +33,6 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
     });
 
     afterEach(async () => {
-        // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     describe('Concurrent Operations and Optimistic Locking', () => {
@@ -386,37 +381,6 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             await expect(apiDriver.getGroupFullDetails(group.id, users[1].token)).rejects.toThrow(/404|not found/i);
         });
 
-        test('should handle single user group deletion', async () => {
-            // Set up notification listener before any operations
-            const [user1Listener] = await notificationDriver.setupListeners([users[0].uid]);
-
-            // Create a group with just the owner
-            const groupData = new CreateGroupRequestBuilder()
-                .withName(`Single User Test ${uuidv4()}`)
-                .withDescription('Testing single user group deletion')
-                .build();
-
-            const group = await apiDriver.createGroup(groupData, users[0].token);
-
-            // Wait for group creation notification
-            await user1Listener.waitForGroupEvent(group.id, 1, 1000);
-
-            // Verify event count after group creation
-            user1Listener.assertEventCount(group.id, 1, 'group');
-
-            // Clear events to isolate deletion operation
-            notificationDriver.clearEvents();
-
-            // Delete the group
-            await apiDriver.deleteGroup(group.id, users[0].token);
-
-            const deletedGroup = await firestoreReader.getGroup(group.id, { includeDeleted: true });
-            expect(deletedGroup).not.toBeNull();
-            expect(deletedGroup?.deletedAt).not.toBeNull();
-
-            // Verify the group is actually deleted from the backend
-            await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
-        });
     });
 
     describe('Comprehensive Group Deletion Tests', () => {

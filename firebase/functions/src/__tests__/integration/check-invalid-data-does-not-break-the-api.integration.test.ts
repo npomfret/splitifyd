@@ -12,7 +12,7 @@
  * Add new invalid data scenarios here as they're discovered in production.
  */
 
-import { ApiDriver, CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, NotificationDriver } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { FirestoreCollections } from '../../constants';
@@ -24,7 +24,6 @@ import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '..
 describe('Invalid Data Resilience - API should not break with bad data', () => {
     const firestore = getFirestore();
     const apiDriver = new ApiDriver();
-    const notificationDriver = new NotificationDriver(firestore);
     let testUser: any;
     let validGroupId: string;
 
@@ -43,9 +42,6 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
     });
 
     afterEach(async () => {
-        // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     describe('Invalid permissions values', () => {

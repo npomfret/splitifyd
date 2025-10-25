@@ -50,47 +50,6 @@ export class SettlementFormPage extends BaseSettlementFormPage {
     }
 
     /**
-     * Wait for the settlement form to be fully ready with all members loaded
-     */
-    async waitForFormReady(expectedMemberCount: number): Promise<void> {
-        // Wait for modal to be visible
-        await expect(this.getModal()).toBeVisible();
-
-        // Wait for both dropdowns to have the expected number of members
-        const payerSelect = this.getPayerSelect();
-        const payeeSelect = this.getPayeeSelect();
-
-        // Payer dropdown should have all group members
-        await this.waitForDropdownOptions(payerSelect, expectedMemberCount);
-
-        // Payee dropdown may have all members initially, or may have one less if a payer is pre-selected
-        // Check that it has at least expectedMemberCount - 1 members
-        await expect(async () => {
-            const options = await payeeSelect.locator('option').all();
-            const optionTexts: string[] = [];
-
-            for (const option of options) {
-                const text = await option.textContent();
-                if (text) optionTexts.push(text);
-            }
-
-            // Filter out placeholder options
-            const realOptions = optionTexts.filter((text) => !text.toLowerCase().includes('select') && text.trim().length > 0);
-
-            if (realOptions.length === 0) {
-                throw new Error(`Payee dropdown not populated yet. Only found: [${optionTexts.join(', ')}]`);
-            }
-
-            // Payee dropdown should have at least expectedMemberCount - 1 (when payer is filtered out)
-            // or expectedMemberCount (when no payer selected yet)
-            if (realOptions.length < expectedMemberCount - 1) {
-                throw new Error(`Payee dropdown has ${realOptions.length} members but expected at least ${expectedMemberCount - 1}. Found: [${realOptions.join(', ')}]`);
-            }
-        })
-            .toPass({ timeout: 5000 });
-    }
-
-    /**
      * Submit a settlement with all required fields
      * Note: The form should already be open and ready (use openSettlementForm() and waitForFormReady() first)
      */

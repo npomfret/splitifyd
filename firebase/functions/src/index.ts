@@ -7,6 +7,7 @@ import { authenticate, authenticateAdmin } from './auth/middleware';
 import { getConfig } from './client-config';
 import { createComment, listExpenseComments, listGroupComments } from './comments/handlers';
 import { FirestoreCollections, HTTP_STATUS } from './constants';
+import { buildEnvPayload, buildHealthPayload, buildStatusPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
 import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
 import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
 import { archiveGroupForUser, leaveGroup, removeGroupMember, unarchiveGroupForUser } from './groups/memberHandlers';
@@ -58,6 +59,39 @@ function setupRoutes(app: express.Application): void {
     const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
         Promise.resolve(fn(req, res, next)).catch(next);
     };
+
+    // Health check endpoint
+    app.get('/health', asyncHandler(async (req: express.Request, res: express.Response) => {
+        const checks = await runHealthChecks();
+        const payload = buildHealthPayload(checks);
+        const statusCode = resolveHealthStatusCode(checks);
+        res.status(statusCode).json(payload);
+    }));
+
+    app.head('/health', asyncHandler(async (req: express.Request, res: express.Response) => {
+        const checks = await runHealthChecks();
+        const statusCode = resolveHealthStatusCode(checks);
+        res.status(statusCode).end();
+    }));
+
+    // Status endpoint
+    app.get('/status', (req: express.Request, res: express.Response) => {
+        res.json(buildStatusPayload());
+    });
+
+    // Environment endpoint (non-production only)
+    app.get('/env', (req: express.Request, res: express.Response) => {
+        if (getConfig().isProduction) {
+            res.status(HTTP_STATUS.NOT_FOUND).json({
+                error: {
+                    code: 'NOT_FOUND',
+                    message: 'Endpoint not found',
+                },
+            });
+            return;
+        }
+        res.json(buildEnvPayload());
+    });
 
     app.get(
         '/config',

@@ -20,7 +20,6 @@ export * from './error-proxy';
 export * from './errors/test-errors';
 export * from './firebase-emulator-config';
 export * from './http-stubs';
-export * from './NotificationDriver';
 export * from './page-objects';
 export * from './Polling';
 export * from './test-constants';

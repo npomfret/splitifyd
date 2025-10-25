@@ -10,13 +10,12 @@ import {
     groupPreviewHandler,
     groupsMetadataHandler,
     joinGroupHandler,
-    policiesStatusHandler,
     registerFailureHandler,
     registerSuccessHandler,
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 import type { Page, Response, Route } from '@playwright/test';
-import { ActivityFeedEventTypes, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
+import { ActivityFeedEventTypes, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse } from '@splitifyd/shared';
 
 interface AuthError {
     code: string;
@@ -471,40 +470,6 @@ function getApiDelay(explicitDelay?: number): number {
         return explicitDelay;
     }
     return Number(process.env.PLAYWRIGHT_API_DELAY ?? 0);
-}
-
-/**
- * Mock a single API endpoint with explicit request/response mapping
- * @param delayMs - Optional delay in milliseconds before responding (defaults to env PLAYWRIGHT_API_DELAY or 0)
- */
-export async function mockApiRoute(
-    page: Page,
-    url: string,
-    response: any,
-    options: MockApiOptions = {},
-): Promise<void> {
-    const { status = 200, delayMs } = options;
-    const delay = getApiDelay(delayMs);
-
-    await registerMswHandlers(
-        page,
-        createJsonHandler('GET', url, response, {
-            status,
-            delayMs: delay,
-        }),
-    );
-}
-
-/**
- * Mock policies API endpoint
- * @param delayMs - Optional delay in milliseconds before responding
- */
-export async function mockPoliciesApi(
-    page: Page,
-    response: UserPolicyStatusResponse,
-    options: { delayMs?: number; } = {},
-): Promise<void> {
-    await registerMswHandlers(page, policiesStatusHandler(response, { delayMs: options.delayMs }));
 }
 
 export async function mockFullyAcceptedPoliciesApi(page: Page) {

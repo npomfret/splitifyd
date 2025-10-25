@@ -11,17 +11,12 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, generateTestEmail, NotificationDriver, TestUserBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
-import { getFirestore } from '../../firebase';
+import { ApiDriver, borrowTestUsers, generateTestEmail, TestUserBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 
 describe('Authentication and Registration - Integration Tests (Essential Firebase Behavior Only)', () => {
     const apiDriver = new ApiDriver();
-    const notificationDriver = new NotificationDriver(getFirestore());
 
     afterEach(async () => {
-        // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     describe('Basic Authentication', () => {

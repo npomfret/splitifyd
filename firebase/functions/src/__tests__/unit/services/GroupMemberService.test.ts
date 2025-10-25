@@ -295,13 +295,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withGroupDisplayName('Member To Remove')
                 .buildDocument();
 
-            const creatorMemberDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user-123')
-                .withGroupId('test-group-id')
-                .withGroupDisplayName('Group Owner')
-                .asAdmin()
-                .buildDocument();
-
             // Set up balance document with outstanding balance
             const balanceWithDebt = new GroupBalanceDTOBuilder('test-group-id')
                 .withUserBalance(
@@ -477,13 +470,6 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .withUserId('member-user-123')
                 .withGroupId('test-group-id')
                 .withGroupDisplayName('Member To Remove')
-                .buildDocument();
-
-            const creatorMemberDoc = new GroupMemberDocumentBuilder()
-                .withUserId('creator-user-123')
-                .withGroupId('test-group-id')
-                .withGroupDisplayName('Group Owner')
-                .asAdmin()
                 .buildDocument();
 
             // Set up balance document with outstanding balance

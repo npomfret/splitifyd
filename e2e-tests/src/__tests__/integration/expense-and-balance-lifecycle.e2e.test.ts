@@ -551,7 +551,7 @@ simpleTest.describe('Date and Time Selection', () => {
 });
 
 simpleTest.describe('Real-time Comments', () => {
-    simpleTest('should support real-time expense comments', async ({ createLoggedInBrowsers }, testInfo) => {
+    simpleTest('should support real-time expense comments', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - Alice and Bob
         const [{ dashboardPage: user1DashboardPage }, { dashboardPage: user2DashboardPage }] = await createLoggedInBrowsers(2);
 

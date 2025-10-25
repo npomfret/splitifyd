@@ -1,6 +1,5 @@
 import type { ActivityFeedItem } from '@splitifyd/shared';
 import type { Response } from 'express';
-import { getAppBuilder } from '../ApplicationBuilderSingleton';
 import type { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { getIdentityToolkitConfig } from '../client-config';
@@ -67,10 +66,4 @@ export class ActivityFeedHandlers {
 
         return result;
     }
-}
-
-export function getActivityFeedHandlers() {
-    const appBuilder = getAppBuilder();
-    const activityFeedService = appBuilder.buildActivityFeedService();
-    return new ActivityFeedHandlers(activityFeedService);
 }

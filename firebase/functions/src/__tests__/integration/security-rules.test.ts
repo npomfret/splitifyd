@@ -1,15 +1,13 @@
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { ExpenseDTOBuilder, getFirestorePort, GroupBalanceDocumentBuilder, GroupDTOBuilder, NotificationDriver, PolicyDocumentBuilder, SettlementDTOBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, getFirestorePort, GroupBalanceDocumentBuilder, GroupDTOBuilder, PolicyDocumentBuilder, SettlementDTOBuilder } from '@splitifyd/test-support';
 import { collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc, Timestamp } from 'firebase/firestore';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { getFirestore } from '../../firebase';
 
 // Security rules test to verify production rules work correctly
 describe('Firestore Security Rules (Production)', () => {
     const projectId = 'security-rules-test';
-    const notificationDriver = new NotificationDriver(getFirestore());
     let testEnv: any;
     let user1Context: any;
     let user2Context: any;
@@ -61,9 +59,6 @@ describe('Firestore Security Rules (Production)', () => {
     });
 
     afterEach(async () => {
-        // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     describe('Groups Collection', () => {

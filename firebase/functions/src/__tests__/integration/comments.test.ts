@@ -1,7 +1,6 @@
 import { PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, generateShortId, NotificationDriver } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, generateShortId } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
-import { getFirestore } from '../../firebase';
 
 /**
  * Minimal Comments integration tests - ONLY testing Firebase security rules
@@ -13,7 +12,6 @@ import { getFirestore } from '../../firebase';
  */
 describe('Comments Integration Tests (Firebase Security Rules Only)', () => {
     const apiDriver = new ApiDriver();
-    const notificationDriver = new NotificationDriver(getFirestore());
     let testGroup: any;
     let users: PooledTestUser[];
 
@@ -39,9 +37,6 @@ describe('Comments Integration Tests (Firebase Security Rules Only)', () => {
     });
 
     afterEach(async () => {
-        // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     describe('Firebase Security Rules and Authentication', () => {

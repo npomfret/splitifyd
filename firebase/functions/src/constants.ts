@@ -77,15 +77,3 @@ export const SYSTEM = {
     BYTES_PER_KB: 1024,
     AUTH_LIST_LIMIT: 1,
 } as const;
-
-// Firestore Transaction Limits (Phase 3: Atomic Group Deletion)
-export const FIRESTORE = {
-    /** Maximum writes allowed in a single transaction */
-    TRANSACTION_MAX_WRITES: 500,
-    /** Conservative batch size for deletion operations */
-    DELETION_BATCH_SIZE: 20,
-    /** Maximum deletion attempts before marking as permanently failed */
-    MAX_DELETION_ATTEMPTS: 3,
-    /** Timeout for individual transaction operations (milliseconds) */
-    TRANSACTION_TIMEOUT_MS: 5000,
-} as const;

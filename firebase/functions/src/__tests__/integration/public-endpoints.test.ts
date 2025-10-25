@@ -1,8 +1,7 @@
 import { ApiSerializer } from '@splitifyd/shared';
-import { ApiDriver, NotificationDriver, RegisterRequestBuilder } from '@splitifyd/test-support';
+import { ApiDriver, RegisterRequestBuilder } from '@splitifyd/test-support';
 import { createServer, type Server } from 'node:http';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
-import { getFirestore } from '../../firebase';
 import { getApiAppForTesting } from '../../index';
 
 const deserializeResponse = async <T>(response: Response): Promise<T> => {
@@ -12,7 +11,6 @@ const deserializeResponse = async <T>(response: Response): Promise<T> => {
 
 describe('Public Endpoints Tests', () => {
     const apiDriver = new ApiDriver();
-    const notificationDriver = new NotificationDriver(getFirestore());
     let server: Server | null = null;
 
     beforeAll(async () => {
@@ -50,9 +48,6 @@ describe('Public Endpoints Tests', () => {
     });
 
     afterEach(async () => {
-        // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     describe('Health Check Endpoint', () => {

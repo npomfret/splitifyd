@@ -7,7 +7,7 @@ import {
     CreateGroupRequestBuilder,
     CreateSettlementRequestBuilder,
     getFirebaseEmulatorConfig,
-    NotificationDriver,
+
 } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
@@ -59,7 +59,6 @@ describe('Concurrent Operations Integration Tests', () => {
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();
     const expenseService = applicationBuilder.buildExpenseService();
-    const notificationDriver = new NotificationDriver(getFirestore());
 
     let users: PooledTestUser[];
     let testUser1: PooledTestUser;
@@ -89,9 +88,6 @@ describe('Concurrent Operations Integration Tests', () => {
     });
 
     afterEach(async () => {
-        // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     describe('Concurrent Member Operations', () => {

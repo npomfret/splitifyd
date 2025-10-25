@@ -314,23 +314,6 @@ class FirestoreDatabaseWrapper implements IFirestoreDatabase {
         return collections.map((collection) => new CollectionReferenceWrapper(collection));
     }
 
-    registerTrigger(): () => void {
-        throw new Error('registerTrigger is not supported on real Firestore');
-    }
-
-    clearTriggers(): void {
-        // no-op for real Firestore
-    }
-
-    beginAtomicOperation(): void {
-        // no-op for real Firestore
-    }
-
-    endAtomicOperation(): Promise<void> {
-        // no-op for real Firestore
-        return Promise.resolve();
-    }
-
     seed(): void {
         throw new Error('seed is only available on StubFirestoreDatabase');
     }
@@ -339,13 +322,6 @@ class FirestoreDatabaseWrapper implements IFirestoreDatabase {
         throw new Error('clear is only available on StubFirestoreDatabase');
     }
 
-    getAllDocuments(): Map<string, any> {
-        throw new Error('getAllDocuments is only available on StubFirestoreDatabase');
-    }
-
-    recordTrigger(): Promise<void> {
-        throw new Error('recordTrigger is only available on StubFirestoreDatabase');
-    }
 }
 
 export function createFirestoreDatabase(firestore: FirebaseAdmin.Firestore): IFirestoreDatabase {

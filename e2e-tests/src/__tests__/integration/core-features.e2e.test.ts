@@ -285,7 +285,6 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
 
         const creatorDisplayName = await creatorDashboardPage.header.getCurrentUserDisplayName();
         const leavingDisplayName = await leavingDashboardPage.header.getCurrentUserDisplayName();
-        const watchingDisplayName = await watchingDashboardPage.header.getCurrentUserDisplayName();
 
         // Setup group
         const [creatorGroupDetailPage, leavingGroupDetailPage, watchingGroupDetailPage] = await creatorDashboardPage.createMultiUserGroup(
@@ -570,13 +569,11 @@ simpleTest.describe('Group Deletion', () => {
 });
 
 simpleTest.describe('Group Comments - Real-time Communication', () => {
-    simpleTest('should support real-time group-level comments between multiple users', async ({ createLoggedInBrowsers }, testInfo) => {
+    simpleTest('should support real-time group-level comments between multiple users', async ({ createLoggedInBrowsers }) => {
         const [{ dashboardPage: aliceDashboardPage }, { dashboardPage: bobDashboardPage }] = await createLoggedInBrowsers(2);
 
         // Create a group with Alice as owner and Bob as member
         const [aliceGroupDetailPage, bobGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup(new CreateGroupFormDataBuilder(), bobDashboardPage);
-
-        const groupId = aliceGroupDetailPage.inferGroupId();
 
         // Verify both users can see the comments section
         await aliceGroupDetailPage.verifyCommentsSection();

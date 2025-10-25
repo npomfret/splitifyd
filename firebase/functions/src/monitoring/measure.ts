@@ -30,8 +30,3 @@ async function measure<T>(type: MetricType, operation: string, fn: () => Promise
  * Convenience function for database operations
  */
 export const measureDb = <T>(operation: string, fn: () => Promise<T>): Promise<T> => measure('db', operation, fn);
-
-/**
- * Convenience function for trigger operations
- */
-export const measureTrigger = <T>(operation: string, fn: () => Promise<T>): Promise<T> => measure('trigger', operation, fn);

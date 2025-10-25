@@ -12,13 +12,11 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { calculateEqualSplits, UserToken } from '@splitifyd/shared';
-import { borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder, NotificationDriver } from '@splitifyd/test-support';
+import { borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { ApiDriver } from '@splitifyd/test-support';
-import { getFirestore } from '../../firebase';
 
 describe('Expense Locking - Firebase Transaction Behavior', () => {
     const apiDriver = new ApiDriver();
-    const notificationDriver = new NotificationDriver(getFirestore());
 
     let user1: UserToken;
 
@@ -27,9 +25,6 @@ describe('Expense Locking - Firebase Transaction Behavior', () => {
     });
 
     afterEach(async () => {
-        // Wait for system to settle before stopping listeners
-        await notificationDriver.waitForQuiet();
-        await notificationDriver.stopAllListeners();
     });
 
     test('should verify Firebase optimistic locking prevents data loss in concurrent updates', async () => {
