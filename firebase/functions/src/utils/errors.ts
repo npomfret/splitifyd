@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
-import { timestampToISO } from './dateHelpers';
 
 /**
  * Standard error response interface
@@ -13,22 +12,6 @@ interface ErrorResponse {
         details?: any;
         correlationId?: string;
     };
-}
-
-/**
- * Health check response interface
- */
-interface HealthCheckResponse {
-    status: 'healthy' | 'unhealthy';
-    timestamp: string;
-    checks: Record<
-        string,
-        {
-            status: 'healthy' | 'unhealthy';
-            responseTime?: number;
-            error?: string;
-        }
-    >;
 }
 
 /**
@@ -64,21 +47,6 @@ export const sendError = (res: Response, error: ApiError | Error, correlationId?
         logger.error('Unexpected error', error);
         throw error;
     }
-};
-
-/**
- * Send standardized health check response
- */
-export const sendHealthCheckResponse = (res: Response, checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string; }>): void => {
-    const overallStatus = Object.values(checks).every((check) => check.status === 'healthy') ? 'healthy' : 'unhealthy';
-    const response: HealthCheckResponse = {
-        status: overallStatus,
-        timestamp: timestampToISO(new Date()),
-        checks,
-    };
-
-    const statusCode = overallStatus === 'healthy' ? HTTP_STATUS.OK : HTTP_STATUS.SERVICE_UNAVAILABLE;
-    res.status(statusCode).json(response);
 };
 
 /**

@@ -1,60 +1,40 @@
+// Endpoint inventory: see docs/firebase-api-surface.md for route descriptions.
 import express from 'express';
-import { onRequest } from 'firebase-functions/v2/https';
-import * as fs from 'fs';
-import * as path from 'path';
-import { getActivityFeed } from './activity/handlers';
-import { register } from './auth/handlers';
-import { authenticate } from './auth/middleware';
-import { authenticateAdmin } from './auth/middleware';
-import { getConfig } from './client-config';
-import { createComment, listExpenseComments, listGroupComments } from './comments/handlers';
-import { HTTP_STATUS, SYSTEM } from './constants';
-import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
-import { getAuth } from './firebase';
-import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
-import { archiveGroupForUser, leaveGroup, removeGroupMember, unarchiveGroupForUser } from './groups/memberHandlers';
-import { approveMember, getPendingMembers, rejectMember, updateGroupPermissions, updateMemberRole } from './groups/security';
-import { generateShareableLink, joinGroupByLink, previewGroupByLink } from './groups/shareHandlers';
-import { logger } from './logger';
-import { disableETags } from './middleware/cache-control';
-import { metrics } from './monitoring/lightweight-metrics';
-import { createPolicy, deletePolicyVersion, getPolicy, getPolicyVersion, listPolicies, publishPolicy, updatePolicy } from './policies/handlers';
-import { getCurrentPolicy } from './policies/public-handlers';
-import { acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
-import { createSettlement, deleteSettlement, updateSettlement } from './settlements/handlers';
-import { borrowTestUser, returnTestUser } from './test-pool/handlers';
-import { testClearPolicyAcceptances, testPromoteToAdmin } from './test/policy-handlers';
-import { changePassword, updateUserProfile } from './user/handlers';
-import { BUILD_INFO } from './utils/build-info';
-import { getEnhancedConfigResponse } from './utils/config-response';
-import { timestampToISO } from './utils/dateHelpers';
-import { ApiError, sendHealthCheckResponse } from './utils/errors';
-import { applyStandardMiddleware } from './utils/middleware';
-import { APP_VERSION } from './utils/version';
+import {onRequest} from 'firebase-functions/v2/https';
+import {getActivityFeed} from './activity/handlers';
+import {register} from './auth/handlers';
+import {authenticate, authenticateAdmin} from './auth/middleware';
+import {getConfig} from './client-config';
+import {createComment, listExpenseComments, listGroupComments} from './comments/handlers';
+import {FirestoreCollections, HTTP_STATUS} from './constants';
+import {createExpense, deleteExpense, getExpenseFullDetails, updateExpense} from './expenses/handlers';
+import {createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName} from './groups/handlers';
+import {archiveGroupForUser, leaveGroup, removeGroupMember, unarchiveGroupForUser} from './groups/memberHandlers';
+import {approveMember, getPendingMembers, rejectMember, updateGroupPermissions, updateMemberRole} from './groups/security';
+import {generateShareableLink, joinGroupByLink, previewGroupByLink} from './groups/shareHandlers';
+import {logger} from './logger';
+import {disableETags} from './middleware/cache-control';
+import {metrics, toAggregatedReport} from './monitoring/lightweight-metrics';
+import {createPolicy, deletePolicyVersion, getPolicy, getPolicyVersion, listPolicies, publishPolicy, updatePolicy} from './policies/handlers';
+import {getCurrentPolicy} from './policies/public-handlers';
+import {acceptMultiplePolicies, getUserPolicyStatus} from './policies/user-handlers';
+import {createSettlement, deleteSettlement, updateSettlement} from './settlements/handlers';
+import {borrowTestUser, returnTestUser} from './test-pool/handlers';
+import {testClearPolicyAcceptances, testPromoteToAdmin} from './test/policy-handlers';
+import {changePassword, updateUserProfile} from './user/handlers';
+import {getEnhancedConfigResponse} from './utils/config-response';
+import {ApiError} from './utils/errors';
+import {applyStandardMiddleware} from './utils/middleware';
+import {logMetrics} from './scheduled/metrics-logger';
 
-// Firebase instances are now accessed through ApplicationBuilder for better encapsulation
-
-// Import triggers and scheduled functions
-import { getAppBuilder } from './ApplicationBuilderSingleton';
-import { FirestoreCollections } from './constants';
-import { logMetrics } from './scheduled/metrics-logger';
-
-// Removed emulator connection test at module level to prevent connection creation
-// The emulator connection will be tested lazily when first needed
-
-// Lazy-initialize Express app
 let app: express.Application | null = null;
 
 function getApp(): express.Application {
     if (!app) {
         app = express();
 
-        // No need to initialize services - ApplicationBuilder handles it lazily
-
-        // Disable ETags to prevent 304 responses
         disableETags(app);
 
-        // Strip /api prefix for hosting rewrites
     app.use((req, res, next) => {
             if (req.url.startsWith('/api/')) {
                 req.url = req.url.substring(4);
@@ -62,7 +42,6 @@ function getApp(): express.Application {
             next();
         });
 
-        // Apply standard middleware stack (includes CORS and cache control)
         applyStandardMiddleware(app);
 
         setupRoutes(app);
@@ -71,239 +50,26 @@ function getApp(): express.Application {
 }
 
 function setupRoutes(app: express.Application): void {
-    // Enhanced health check endpoint (no auth required)
-    app.get('/health', async (req: express.Request, res: express.Response) => {
-        const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string; }> = {};
-
-        // Use encapsulated health check operation
-        const appBuilder = getAppBuilder();
-        const firestoreWriter = appBuilder.buildFirestoreWriter();
-
-        const firestoreHealthCheck = await firestoreWriter.performHealthCheck();
-        checks.firestore = {
-            status: firestoreHealthCheck.success ? 'healthy' : 'unhealthy',
-            responseTime: firestoreHealthCheck.responseTime,
-        };
-
-        // Lightweight auth health check - just verify auth service is accessible
-        const authStart = Date.now();
-        try {
-            const auth = getAuth();
-            // Just verify auth instance exists and is accessible (no operations needed)
-            if (auth) {
-                checks.auth = {
-                    status: 'healthy',
-                    responseTime: Date.now() - authStart,
-                };
-            } else {
-                checks.auth = {
-                    status: 'unhealthy',
-                    responseTime: Date.now() - authStart,
-                    error: 'Auth service not available',
-                };
-            }
-        } catch (error) {
-            checks.auth = {
-                status: 'unhealthy',
-                responseTime: Date.now() - authStart,
-                error: error instanceof Error ? error.message : 'Unknown auth error',
-            };
-        }
-
-        sendHealthCheckResponse(res, checks);
-    });
-
-    // Detailed status endpoint for monitoring systems
-    app.get('/status', async (req: express.Request, res: express.Response) => {
-        const memUsage = process.memoryUsage();
-
-        res.json({
-            timestamp: timestampToISO(new Date()),
-            uptime: process.uptime(),
-            memory: {
-                rss: `${Math.round(memUsage.rss / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
-                heapUsed: `${Math.round(memUsage.heapUsed / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
-                heapTotal: `${Math.round(memUsage.heapTotal / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
-                external: `${Math.round(memUsage.external / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
-            },
-            version: APP_VERSION,
-            nodeVersion: process.version,
-            environment: getConfig().instanceMode,
-        });
-    });
-
-    // Performance metrics endpoint (for monitoring current stats)
     app.get('/metrics', (req: express.Request, res: express.Response) => {
         const snapshot = metrics.getSnapshot();
-
-        // Calculate aggregated stats for each metric type
-        const calculateStats = (metricsList: any[]) => {
-            if (!metricsList.length) return null;
-
-            const durations = metricsList.map((m) => m.duration).sort((a, b) => a - b);
-            const successCount = metricsList.filter((m) => m.success).length;
-
-            return {
-                count: metricsList.length,
-                successRate: successCount / metricsList.length,
-                avgDuration: Math.round(durations.reduce((a, b) => a + b, 0) / durations.length),
-                p50: durations[Math.floor(durations.length * 0.5)] || 0,
-                p95: durations[Math.floor(durations.length * 0.95)] || 0,
-                p99: durations[Math.floor(durations.length * 0.99)] || 0,
-                minDuration: durations[0] || 0,
-                maxDuration: durations[durations.length - 1] || 0,
-            };
-        };
-
-        const report = {
-            timestamp: new Date().toISOString(),
-            samplingRate: '5%',
-            bufferSize: 100,
-            metrics: {
-                api: calculateStats(snapshot.api),
-                db: calculateStats(snapshot.db),
-                trigger: calculateStats(snapshot.trigger),
-            },
-            rawCounts: {
-                api: snapshot.api.length,
-                db: snapshot.db.length,
-                trigger: snapshot.trigger.length,
-                total: snapshot.api.length + snapshot.db.length + snapshot.trigger.length,
-            },
-        };
-
-        res.json(report);
+        res.json(toAggregatedReport(snapshot));
     });
 
-    if (!getConfig().isProduction) {
-        // Environment variables endpoint (for debugging)
-        app.get('/env', (req: express.Request, res: express.Response) => {
-            const uptimeSeconds = process.uptime();
-            const memUsage = process.memoryUsage();
-
-            // Format uptime as human readable
-            const days = Math.floor(uptimeSeconds / 86400);
-            const hours = Math.floor((uptimeSeconds % 86400) / 3600);
-            const minutes = Math.floor((uptimeSeconds % 3600) / 60);
-            const seconds = Math.floor(uptimeSeconds % 60);
-
-            let uptimeText = '';
-            if (days > 0) uptimeText += `${days}d `;
-            if (hours > 0) uptimeText += `${hours}h `;
-            if (minutes > 0) uptimeText += `${minutes}m `;
-            uptimeText += `${seconds}s`;
-
-            // Format bytes to human readable
-            const formatBytes = (bytes: number): string => {
-                if (bytes === 0) return '0 B';
-                const k = 1024;
-                const sizes = ['B', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-            };
-
-            // List files in current directory
-            const currentDir = process.cwd();
-            let files: any[];
-
-            try {
-                const entries = fs.readdirSync(currentDir);
-                files = entries
-                    .map((name) => {
-                        try {
-                            const fullPath = path.join(currentDir, name);
-                            const stats = fs.statSync(fullPath);
-                            return {
-                                name,
-                                type: stats.isDirectory() ? 'dir' : 'file',
-                                size: stats.isDirectory() ? null : formatBytes(stats.size),
-                                modified: stats.mtime.toISOString(),
-                                mode: stats.mode.toString(8),
-                                isSymbolicLink: stats.isSymbolicLink(),
-                            };
-                        } catch (err) {
-                            return {
-                                name,
-                                error: err instanceof Error ? err.message : 'Unable to stat',
-                            };
-                        }
-                    })
-                    .sort((a, b) => {
-                        // Sort directories first, then by name
-                        if (a.type === 'dir' && b.type !== 'dir') return -1;
-                        if (a.type !== 'dir' && b.type === 'dir') return 1;
-                        return a.name.localeCompare(b.name);
-                    });
-            } catch (err) {
-                files = [
-                    {
-                        error: err instanceof Error ? err.message : 'Unable to read directory',
-                    },
-                ];
-            }
-
-            const responsePayload = {
-                env: process.env,
-                build: {
-                    timestamp: BUILD_INFO.timestamp,
-                    date: BUILD_INFO.date,
-                    version: APP_VERSION,
-                },
-                runtime: {
-                    startTime: new Date(Date.now() - uptimeSeconds * 1000).toISOString(),
-                    uptime: uptimeSeconds,
-                    uptimeHuman: uptimeText.trim(),
-                },
-                memory: {
-                    rss: formatBytes(memUsage.rss),
-                    heapTotal: formatBytes(memUsage.heapTotal),
-                    heapUsed: formatBytes(memUsage.heapUsed),
-                    external: formatBytes(memUsage.external),
-                    arrayBuffers: formatBytes(memUsage.arrayBuffers),
-                    heapAvailable: formatBytes(memUsage.heapTotal - memUsage.heapUsed),
-                },
-                filesystem: {
-                    currentDirectory: currentDir,
-                    files,
-                },
-            };
-
-            // Use standard JSON response for easier manual inspection in browsers
-            res.status(200);
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            res.send(JSON.stringify(responsePayload, null, 2));
-        });
-    } else {
-        app.all('/env', (req: express.Request, res: express.Response) => {
-            res.status(404).json({
-                error: {
-                    code: 'NOT_FOUND',
-                    message: 'Endpoint not found',
-                },
-            });
-        });
-    }
-
-    // Async error wrapper to ensure proper error handling
     const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
         Promise.resolve(fn(req, res, next)).catch(next);
     };
 
-    // Firebase configuration endpoint (public - for client initialization)
     app.get(
         '/config',
         asyncHandler((req: express.Request, res: express.Response) => {
-            // Always use enhanced config now
             const config = getEnhancedConfigResponse();
 
             res.json(config);
         }),
     );
 
-    // CSP violation reporting endpoint
     app.post('/csp-violation-report', (req: express.Request, res: express.Response) => {
         try {
-            // CSP violations are logged but not acted upon
             res.status(204).send();
         } catch (error) {
             logger.error('Error processing CSP violation report', error);
@@ -313,10 +79,7 @@ function setupRoutes(app: express.Application): void {
 
     app.get('/policies/:id/current', asyncHandler(getCurrentPolicy));
 
-    // Test endpoints - only available in non-production environments
     if (getConfig().isProduction) {
-        // Return 404 for test endpoints in production to prevent privilege escalation
-        // Use regex pattern for wildcard matching in Express 5
         app.all(/^\/test-pool.*/, (req, res) => {
             logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
             res.status(404).json({ error: 'Not found' });
@@ -326,43 +89,33 @@ function setupRoutes(app: express.Application): void {
             res.status(404).json({ error: 'Not found' });
         });
     } else {
-        // Test pool endpoints (emulator only, no auth required)
-        // @deprecated - Endpoints not used by ApiClient, will be removed
         app.post('/test-pool/borrow', asyncHandler(borrowTestUser));
         app.post('/test-pool/return', asyncHandler(returnTestUser));
 
-        // Test user endpoints (dev only, requires auth)
-        // @deprecated - Endpoint not used by ApiClient, will be removed
         app.post('/test/user/clear-policy-acceptances', asyncHandler(testClearPolicyAcceptances));
         app.post('/test/user/promote-to-admin', asyncHandler(testPromoteToAdmin));
     }
 
-    // User policy endpoints (requires auth)
     app.post('/user/policies/accept-multiple', authenticate, asyncHandler(acceptMultiplePolicies));
     app.get('/user/policies/status', authenticate, asyncHandler(getUserPolicyStatus));
 
     app.put('/user/profile', authenticate, asyncHandler(updateUserProfile));
     app.post('/user/change-password', authenticate, asyncHandler(changePassword));
 
-    // Auth endpoints (no auth required)
     app.post('/register', asyncHandler(register));
 
-    // Expense endpoints (requires auth)
     app.post(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(createExpense));
     app.put(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(updateExpense));
     app.delete(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(deleteExpense));
     app.get(`/${FirestoreCollections.EXPENSES}/:id/full-details`, authenticate, asyncHandler(getExpenseFullDetails));
 
-    // NEW Group endpoints (requires auth) - RESTful API
     app.post(`/${FirestoreCollections.GROUPS}`, authenticate, asyncHandler(createGroup));
     app.get(`/${FirestoreCollections.GROUPS}`, authenticate, asyncHandler(listGroups));
 
-    // Specific group endpoints must come BEFORE :id routes
     app.post(`/${FirestoreCollections.GROUPS}/share`, authenticate, asyncHandler(generateShareableLink));
     app.post(`/${FirestoreCollections.GROUPS}/preview`, authenticate, asyncHandler(previewGroupByLink));
     app.post(`/${FirestoreCollections.GROUPS}/join`, authenticate, asyncHandler(joinGroupByLink));
 
-    // Parameterized routes come last
     app.get(`/${FirestoreCollections.GROUPS}/:id/full-details`, authenticate, asyncHandler(getGroupFullDetails));
     app.get('/activity-feed', authenticate, asyncHandler(getActivityFeed));
     app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
@@ -378,18 +131,15 @@ function setupRoutes(app: express.Application): void {
     app.post(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/reject`, authenticate, asyncHandler(rejectMember));
     app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
 
-    // Settlement endpoints (requires auth)
     app.post(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(createSettlement));
     app.put(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(updateSettlement));
     app.delete(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(deleteSettlement));
 
-    // Comment endpoints (requires auth)
     app.get(`/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(listGroupComments));
     app.post(`/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(createComment));
     app.get(`/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(listExpenseComments));
     app.post(`/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(createComment));
 
-    // Admin Policy endpoints (requires admin auth)
     app.post(`/admin/${FirestoreCollections.POLICIES}`, authenticateAdmin, asyncHandler(createPolicy));
     app.get(`/admin/${FirestoreCollections.POLICIES}`, authenticateAdmin, asyncHandler(listPolicies));
     app.get(`/admin/${FirestoreCollections.POLICIES}/:id`, authenticateAdmin, asyncHandler(getPolicy));
@@ -409,7 +159,6 @@ function setupRoutes(app: express.Application): void {
     app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
         const correlationId = req.headers['x-correlation-id'] as string;
 
-        // Check if response was already sent - this is a critical error
         if (res.headersSent) {
             logger.error('Error occurred after headers were sent - client may have received partial/corrupted data', err, {
                 correlationId,
@@ -417,11 +166,9 @@ function setupRoutes(app: express.Application): void {
                 path: req.path,
                 errorType: err.constructor.name,
             });
-            // Cannot recover - client already received headers and possibly partial body
             return;
         }
 
-        // Handle ApiError objects properly
         if (err instanceof ApiError) {
             logger.error('API error occurred', err, {
                 correlationId,
@@ -442,7 +189,6 @@ function setupRoutes(app: express.Application): void {
             return;
         }
 
-        // Handle unexpected errors
         logger.error('Unhandled error occurred', err, {
             correlationId,
             method: req.method,
@@ -461,27 +207,21 @@ function setupRoutes(app: express.Application): void {
     });
 }
 
-// Main API export - using Firebase Functions v2 for better performance
 export const api = onRequest(
     {
-        invoker: 'public', // Allow unauthenticated access for CORS and public endpoints
-        maxInstances: 1, // Single instance required for test pool in-memory state
+        invoker: 'public',
+        maxInstances: 1,
         timeoutSeconds: 20,
         region: 'us-central1',
-        memory: '512MiB', // Optimized for API workload with authentication and database operations
+        memory: '512MiB',
     },
     (req, res) => {
-        // Initialize app lazily on first request to avoid loading config at deploy time
         const app = getApp();
         app(req, res);
     },
 );
 
-// Export Firestore triggers for realtime change tracking
-
-// Note: User notification lifecycle is now handled directly in UserService business logic
-// - Notification document creation: UserService.createUserDirect()
-// - Notification document deletion: UserService.deleteAccount()
-
-// Export scheduled functions
 export { logMetrics };
+export { health } from './endpoints/health';
+export { status } from './endpoints/status';
+export { env } from './endpoints/env';

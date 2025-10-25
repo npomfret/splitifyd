@@ -152,5 +152,44 @@ export class LightweightMetrics {
     }
 }
 
+export function toAggregatedReport(snapshot: { api: Metric[]; db: Metric[]; trigger: Metric[] }) {
+    // Calculate aggregated stats for each metric type
+    const calculateStats = (metricsList: any[]) => {
+        if (!metricsList.length) return null;
+
+        const durations = metricsList.map((m) => m.duration).sort((a, b) => a - b);
+        const successCount = metricsList.filter((m) => m.success).length;
+
+        return {
+            count: metricsList.length,
+            successRate: successCount / metricsList.length,
+            avgDuration: Math.round(durations.reduce((a, b) => a + b, 0) / durations.length),
+            p50: durations[Math.floor(durations.length * 0.5)] || 0,
+            p95: durations[Math.floor(durations.length * 0.95)] || 0,
+            p99: durations[Math.floor(durations.length * 0.99)] || 0,
+            minDuration: durations[0] || 0,
+            maxDuration: durations[durations.length - 1] || 0,
+        };
+    };
+
+    const report = {
+        timestamp: new Date().toISOString(),
+        samplingRate: '5%',
+        bufferSize: 100,
+        metrics: {
+            api: calculateStats(snapshot.api),
+            db: calculateStats(snapshot.db),
+            trigger: calculateStats(snapshot.trigger),
+        },
+        rawCounts: {
+            api: snapshot.api.length,
+            db: snapshot.db.length,
+            trigger: snapshot.trigger.length,
+            total: snapshot.api.length + snapshot.db.length + snapshot.trigger.length,
+        },
+    };
+    return report;
+}
+
 // Export singleton instance
 export const metrics = LightweightMetrics.getInstance();
