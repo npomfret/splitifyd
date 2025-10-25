@@ -116,6 +116,20 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Activity feed collection - per-user subcollections
+    match /activity-feed/{userId} {
+      // No direct document reads or writes at the user scope
+      allow read, write: if false;
+
+      match /items/{itemId} {
+        // Users can read their own activity feed items
+        allow read: if request.auth != null && request.auth.uid == userId;
+
+        // Activity feed items are populated by backend services only
+        allow write: if false;
+      }
+    }
+
     // Default deny rule for any other collections
     match /{document=**} {
       allow read, write: if false;

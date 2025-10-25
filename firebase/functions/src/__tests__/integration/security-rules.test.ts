@@ -364,6 +364,67 @@ describe('Firestore Security Rules (Production)', () => {
         });
     });
 
+    describe('Activity Feed Collection', () => {
+        const userId = 'user1-id';
+        const feedItemId = 'feed-item-1';
+
+        beforeAll(async () => {
+            await testEnv.withSecurityRulesDisabled(async (context: any) => {
+                const db = context.firestore();
+                const now = Timestamp.now();
+
+                await setDoc(doc(db, 'activity-feed', userId, 'items', feedItemId), {
+                    userId,
+                    groupId: 'test-group-1',
+                    groupName: 'Test Group',
+                    eventType: 'expense-created',
+                    actorId: userId,
+                    actorName: 'User One',
+                    timestamp: now,
+                    createdAt: now,
+                    updatedAt: now,
+                    details: {
+                        expenseId: 'expense-1',
+                    },
+                });
+            });
+        });
+
+        it('should allow the owner to read their activity feed items', async () => {
+            await assertSucceeds(getDoc(doc(user1Db, 'activity-feed', userId, 'items', feedItemId)));
+            await assertSucceeds(getDocs(query(collection(user1Db, 'activity-feed', userId, 'items'), limit(5))));
+        });
+
+        it("should deny access to someone else's activity feed items", async () => {
+            await assertFails(getDoc(doc(user2Db, 'activity-feed', userId, 'items', feedItemId)));
+            await assertFails(getDocs(collection(user2Db, 'activity-feed', userId, 'items')));
+        });
+
+        it('should deny unauthenticated users from reading activity feed items', async () => {
+            await assertFails(getDoc(doc(unauthDb, 'activity-feed', userId, 'items', feedItemId)));
+        });
+
+        it('should deny all client writes to activity feed items', async () => {
+            const newItemRef = doc(user1Db, 'activity-feed', userId, 'items', 'feed-item-2');
+            const now = Timestamp.now();
+
+            await assertFails(
+                setDoc(newItemRef, {
+                    userId,
+                    groupId: 'test-group-1',
+                    groupName: 'Test Group',
+                    eventType: 'expense-created',
+                    actorId: userId,
+                    actorName: 'User One',
+                    timestamp: now,
+                    createdAt: now,
+                    updatedAt: now,
+                    details: {},
+                }),
+            );
+        });
+    });
+
     describe('Policies Collection', () => {
         const policyId = 'privacy-policy';
 
