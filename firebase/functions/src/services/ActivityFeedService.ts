@@ -1,6 +1,7 @@
 import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedItemDetails } from '@splitifyd/shared';
 import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
 import type { ITransaction } from '../firestore-wrapper';
+import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
@@ -73,7 +74,10 @@ export class ActivityFeedService {
             // This happens outside the critical path and doesn't block the response
             this.cleanupOldActivityItems(userId).catch((error) => {
                 // Log but don't fail the request
-                console.warn(`Failed to cleanup activity feed for user ${userId}:`, error);
+                logger.warn('activity-feed-cleanup-failed', {
+                    userId,
+                    error: error instanceof Error ? { name: error.name, message: error.message } : error,
+                });
             });
 
             return result;

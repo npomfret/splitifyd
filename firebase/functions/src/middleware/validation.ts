@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { getConfig } from '../client-config';
+import { logger } from '../logger';
 import { Errors, sendError } from '../utils/errors';
 import { checkForDangerousPatterns } from '../utils/security';
 
@@ -63,7 +64,11 @@ export const validateRequestStructure = (req: Request, res: Response, next: Next
 
     const dangerCheck = checkForDangerousPatterns(requestString);
     if (dangerCheck.isDangerous) {
-        console.warn('Request blocked due to dangerous pattern:', dangerCheck.matchedPattern);
+        logger.warn('request-blocked-dangerous-pattern', {
+            matchedPattern: dangerCheck.matchedPattern,
+            path: req.path,
+            method: req.method,
+        });
         throw Errors.INVALID_INPUT(`Request contains potentially dangerous content: ${dangerCheck.matchedPattern}`);
     }
 

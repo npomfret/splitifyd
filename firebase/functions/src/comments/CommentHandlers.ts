@@ -43,20 +43,11 @@ export class CommentHandlers {
             });
 
             const comment = await this.commentService.createComment(targetType, targetId, validatedRequest, userId);
-
-            logger.info('Comment created successfully', {
-                commentId: comment.id,
-                targetType,
-                targetId,
-                authorId: userId,
-            });
-
             res.status(HTTP_STATUS.OK).json(comment);
         } catch (error) {
             logger.error('Failed to create comment', error, {
                 userId: req.user?.uid,
                 path: req.path,
-                body: req.body,
             });
             throw error;
         }
@@ -85,13 +76,6 @@ export class CommentHandlers {
                     limit: parseInt(limit as string, 10) || 8,
                 },
             );
-
-            logger.info('Group comments retrieved successfully', {
-                groupId,
-                userId,
-                commentCount: comments.comments.length,
-                hasMore: comments.hasMore,
-            });
 
             res.status(HTTP_STATUS.OK).json(comments);
         } catch (error) {
@@ -127,13 +111,6 @@ export class CommentHandlers {
                     limit: parseInt(limit as string, 10) || 8,
                 },
             );
-
-            logger.info('Expense comments retrieved successfully', {
-                expenseId,
-                userId,
-                commentCount: comments.comments.length,
-                hasMore: comments.hasMore,
-            });
 
             res.status(HTTP_STATUS.OK).json(comments);
         } catch (error) {

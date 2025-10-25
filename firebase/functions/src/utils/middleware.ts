@@ -137,7 +137,7 @@ function i18nMiddleware() {
 
             next();
         } catch (error) {
-            console.error('i18n middleware error:', error);
+            logger.error('i18n-middleware-error', error, { path: req.path, acceptLanguage: req.get('Accept-Language') });
             // Continue with English as fallback
             req.language = 'en';
             req.t = getTranslationFunction('en');

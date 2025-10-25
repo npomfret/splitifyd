@@ -27,11 +27,6 @@ export class PolicyHandlers {
         try {
             const result = await this.policyService.listPolicies();
 
-            logger.info('Policies listed', {
-                userId: req.user?.uid,
-                count: result.count,
-            });
-
             res.json(result);
         } catch (error) {
             logger.error('Failed to list policies', error as Error, {
@@ -49,11 +44,6 @@ export class PolicyHandlers {
 
         try {
             const policy = await this.policyService.getPolicy(id);
-
-            logger.info('Policy retrieved', {
-                userId: req.user?.uid,
-                policyId: id,
-            });
 
             res.json(policy);
         } catch (error) {
@@ -73,12 +63,6 @@ export class PolicyHandlers {
 
         try {
             const version = await this.policyService.getPolicyVersion(id, hash);
-
-            logger.info('Policy version retrieved', {
-                userId: req.user?.uid,
-                policyId: id,
-                versionHash: hash,
-            });
 
             res.json(version);
         } catch (error) {
@@ -103,13 +87,6 @@ export class PolicyHandlers {
 
         try {
             const result = await this.policyService.updatePolicy(id, text, publish);
-
-            logger.info('Policy updated', {
-                userId: req.user?.uid,
-                policyId: id,
-                versionHash: result.versionHash,
-                published: publish,
-            });
 
             const response: UpdatePolicyResponse = {
                 success: true,
@@ -140,12 +117,6 @@ export class PolicyHandlers {
         try {
             const result = await this.policyService.publishPolicy(id, versionHash);
 
-            logger.info('Policy published', {
-                userId: req.user?.uid,
-                policyId: id,
-                versionHash,
-            });
-
             const response: PublishPolicyResponse = {
                 success: true,
                 message: 'Policy published successfully',
@@ -173,13 +144,6 @@ export class PolicyHandlers {
         try {
             const result = await this.policyService.createPolicy(policyName, text);
 
-            logger.info('Policy created', {
-                userId: req.user?.uid,
-                policyId: result.id,
-                policyName,
-                versionHash: result.currentVersionHash,
-            });
-
             const response: CreatePolicyResponse = {
                 success: true,
                 id: result.id,
@@ -204,12 +168,6 @@ export class PolicyHandlers {
 
         try {
             await this.policyService.deletePolicyVersion(id, hash);
-
-            logger.info('Policy version deleted', {
-                userId: req.user?.uid,
-                policyId: id,
-                versionHash: hash,
-            });
 
             const response: DeletePolicyVersionResponse = {
                 success: true,

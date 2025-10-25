@@ -2,6 +2,7 @@ import { Request } from 'express';
 import i18next from 'i18next';
 import Backend from 'i18next-fs-backend';
 import path from 'path';
+import { logger } from '../logger';
 
 export interface LocalizedRequest extends Request {
     language?: string;
@@ -47,9 +48,9 @@ export async function initializeI18n(): Promise<void> {
         });
 
         isInitialized = true;
-        console.log('Backend i18n initialized successfully');
+        logger.info('i18n-initialized');
     } catch (error) {
-        console.error('Failed to initialize backend i18n:', error);
+        logger.error('i18n-initialization-failed', error);
         throw error;
     }
 }

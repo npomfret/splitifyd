@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PolicyDocumentSchema } from '../schemas';
 import { ApiError } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
@@ -60,9 +61,6 @@ export class PolicyService {
     async listPolicies(): Promise<{ policies: PolicyDTO[]; count: number; }> {
         try {
             const policies = await this.firestoreReader.getAllPolicies();
-
-            logger.info('Policies listed', { count: policies.length });
-
             return {
                 policies: policies as PolicyDTO[],
                 count: policies.length,
@@ -86,8 +84,6 @@ export class PolicyService {
             if (!policy) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
             }
-
-            logger.info('Policy retrieved', { policyId: id });
 
             return policy as PolicyDTO;
         } catch (error) {
@@ -119,8 +115,6 @@ export class PolicyService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'VERSION_NOT_FOUND', 'Policy version not found');
             }
 
-            logger.info('Policy version retrieved', { policyId: id, versionHash: hash });
-
             return {
                 versionHash: hash,
                 ...version,
@@ -143,9 +137,12 @@ export class PolicyService {
 
     private async _updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: VersionHash; currentVersionHash?: string; }> {
         LoggerContext.update({ policyId: id, operation: 'update-policy', publish });
+        const timer = new PerformanceTimer();
 
         try {
+            timer.startPhase('read');
             const doc = await this.firestoreReader.getRawPolicyDocument(id);
+            timer.endPhase();
 
             if (!doc) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
@@ -185,15 +182,20 @@ export class PolicyService {
                 currentVersionHash = versionHash;
             }
 
+            timer.startPhase('write');
             await this.firestoreWriter.updatePolicy(id, updates);
+            timer.endPhase();
 
             // Validate the updated document to ensure it's still valid
+            timer.startPhase('validate');
             await this.validatePolicyAfterUpdate(id, 'update');
+            timer.endPhase();
 
             logger.info('Policy updated', {
                 policyId: id,
                 versionHash,
                 published: publish,
+                timings: timer.getTimings(),
             });
 
             return { versionHash, currentVersionHash };
@@ -215,7 +217,11 @@ export class PolicyService {
         }
 
         try {
+            const timer = new PerformanceTimer();
+
+            timer.startPhase('read');
             const doc = await this.firestoreReader.getRawPolicyDocument(id);
+            timer.endPhase();
 
             if (!doc) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
@@ -232,14 +238,18 @@ export class PolicyService {
             }
 
             // Update current version hash (updatedAt is automatically added by FirestoreWriter)
+            timer.startPhase('write');
             await this.firestoreWriter.updatePolicy(id, {
                 currentVersionHash: versionHash,
             });
+            timer.endPhase();
 
             // Validate the updated document to ensure it's still valid
+            timer.startPhase('validate');
             await this.validatePolicyAfterUpdate(id, 'publish', { versionHash });
+            timer.endPhase();
 
-            logger.info('Policy published', { policyId: id, versionHash });
+            logger.info('Policy published', { policyId: id, versionHash, timings: timer.getTimings() });
 
             return { currentVersionHash: versionHash };
         } catch (error) {
@@ -283,11 +293,15 @@ export class PolicyService {
         }
 
         try {
+            const timer = new PerformanceTimer();
+
             // Use custom ID if provided, otherwise generate ID from policy name (kebab-case)
             const id = customId || this.generatePolicyId(policyName);
 
             // Check if policy already exists
+            timer.startPhase('read');
             const existingDoc = await this.firestoreReader.getRawPolicyDocument(id);
+            timer.endPhase();
             if (existingDoc) {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'POLICY_EXISTS', 'Policy already exists');
             }
@@ -312,9 +326,11 @@ export class PolicyService {
             // 1. Convert ISO strings → Timestamps
             // 2. Add createdAt/updatedAt with FieldValue.serverTimestamp()
             // 3. Validate the final data with PolicyDataSchema
+            timer.startPhase('write');
             await this.firestoreWriter.createPolicy(id, policyData);
+            timer.endPhase();
 
-            logger.info('Policy created successfully', { policyId: id, policyName, versionHash });
+            logger.info('Policy created successfully', { policyId: id, policyName, versionHash, timings: timer.getTimings() });
 
             return { id, currentVersionHash: versionHash };
         } catch (error) {
@@ -344,7 +360,11 @@ export class PolicyService {
      */
     async deletePolicyVersion(id: string, hash: string): Promise<void> {
         try {
+            const timer = new PerformanceTimer();
+
+            timer.startPhase('read');
             const doc = await this.firestoreReader.getRawPolicyDocument(id);
+            timer.endPhase();
 
             if (!doc) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
@@ -377,14 +397,18 @@ export class PolicyService {
             delete updatedVersions[hash];
 
             // updatedAt is automatically added by FirestoreWriter
+            timer.startPhase('write');
             await this.firestoreWriter.updatePolicy(id, {
                 versions: updatedVersions,
             });
+            timer.endPhase();
 
             // Validate the updated document to ensure it's still valid
+            timer.startPhase('validate');
             await this.validatePolicyAfterUpdate(id, 'version deletion', { deletedVersionHash: hash });
+            timer.endPhase();
 
-            logger.info('Policy version deleted', { policyId: id, versionHash: hash });
+            logger.info('Policy version deleted', { policyId: id, versionHash: hash, timings: timer.getTimings() });
         } catch (error) {
             if (error instanceof ApiError) {
                 throw error;
@@ -419,8 +443,6 @@ export class PolicyService {
             if (!currentVersion) {
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'VERSION_NOT_FOUND', 'Current policy version not found in versions map');
             }
-
-            logger.info('policy-retrieved', { id });
 
             return {
                 id,

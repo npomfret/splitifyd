@@ -137,8 +137,6 @@ export class UserPolicyService {
 
             const needsAcceptance = totalPending > 0;
 
-            logger.info('User policy status retrieved', { userId, totalPending, needsAcceptance });
-
             return {
                 needsAcceptance,
                 policies,
