@@ -78,10 +78,9 @@ Splitifyd has **excellent technical foundations** (strong types, modular archite
    - All tenants get identical functionality
    - **Impact**: Cannot offer tiered features or A/B test
 
-5. **Groups ≠ Organizations**
-   - Current "groups" are expense groups, not tenant organizations
-   - No organization-level admin capabilities or hierarchy
-   - **Impact**: Need new `Organization`/`Tenant` type with members and admins
+5. **Groups ≠ Organizations (Future consideration)**
+   - Current "groups" are expense groups, not tenant-level org units
+   - For MVP we can equate “tenant” with “organization”; revisit hierarchy only when multiple orgs per tenant becomes a real requirement
 
 ### Specific Implementation Plan
 
@@ -429,48 +428,11 @@ service cloud.firestore {
 - Cloud Functions should double-check claims vs payload to avoid privilege escalation (never trust client-provided `tenantId`).
 - Add smoke tests that sign in as two tenants and ensure cross-tenant reads/writes fail.
 
-#### Phase 7: Organization Hierarchy (Week 9-10)
+#### Phase 7: Organization Hierarchy (Future / Optional)
 
-**New Type: `packages/shared/src/shared-types.ts`**
-
-```typescript
-export interface Organization {
-    organizationId: OrganizationId;
-    tenantId: TenantId;              // Links org to tenant config
-    name: string;
-    createdAt: ISOString;
-    settings: OrganizationSettings;
-}
-
-export interface OrganizationSettings {
-    defaultCurrency: CurrencyISOCode;
-    defaultGroupVisibility: 'public' | 'private';
-    allowExternalSharing: boolean;
-}
-
-export interface OrganizationMember {
-    userId: UserId;
-    organizationId: OrganizationId;
-    role: 'admin' | 'member';
-    joinedAt: ISOString;
-}
-```
-
-**Firestore Collections:**
-- `organizations/{organizationId}` - Organization metadata
-- `organization-members/{userId}_{organizationId}` - User memberships
-
-**Modify User type:**
-```typescript
-export interface UserDTO {
-    userId: UserId;
-    email: Email;
-    displayName: DisplayName;
-    organizationId?: OrganizationId;  // NEW: User's primary organization
-    tenantId?: TenantId;              // NEW: Derived from organization
-    // ... existing fields
-}
-```
+- Defer building a dedicated organization layer until a tenant explicitly needs multiple orgs under one tenant.
+- When revisited, introduce `Organization` and `OrganizationMember` types, plus scoped collections (`organizations`, `organization-members`) with `tenantId` backreferences.
+- User DTOs would then add optional `organizationId` while keeping `tenantId` as the primary isolation key.
 
 #### Phase 8: Tenant Admin Panel (Week 11-12)
 
@@ -504,14 +466,18 @@ export interface UserDTO {
 - Use staged publish: edits save to draft, require confirmation before pushing to live config to avoid partial updates.
 - Ensure every mutation writes audit entries (`tenant_audit_logs`) for later compliance needs.
 
-### Architecture Decision Matrix
+**Backend/Frontend interface**
+- **APIs (new endpoints under `/tenant-admin`)**
+  - `GET /tenant-admin/tenant` → returns current tenant config, domain info, draft state.
+  - `PUT /tenant-admin/tenant` → updates branding/features; payload validated via shared schemas, writes audit log.
+  - `GET /tenant-admin/domains` / `POST /tenant-admin/domains` → enumerate/add domains, trigger verification workflow.
+  - `GET /tenant-admin/users` / `POST /tenant-admin/users/invite` / `PATCH /tenant-admin/users/:id` → manage tenant members & roles.
+  - All routes require auth middleware that enforces `tenantId` + `tenant-admin` claim; rate-limit mutations.
 
-| Decision | Option A | Option B | Option C | Recommendation |
-|----------|----------|----------|----------|----------------|
-| **Tenant ID** | Subdomain | Custom domain | User org after login | **Option A** (subdomain) for simplicity, Option B for white-label |
-| **Firebase Arch** | Separate projects per tenant | Single project, tenant-keyed docs | Single project, separate DBs | **Option B** for MVP, Option C for growth |
-| **Config Storage** | Firestore | Remote Config | Postgres | **Option A** (Firestore) for consistency |
-| **Org Hierarchy** | Simple (Org→Users→Groups) | Complex (Org→Teams→Users) | - | **Option A** for MVP |
+- **Frontend structure**
+  - Add guarded routes (`/admin`, `/admin/branding`, `/admin/domains`, `/admin/users`, `/admin/features`) that lazy-load module pages.
+  - Admin layout component pulls `/tenant-admin/tenant` on mount, provides context store for child tabs, and shows draft/published status with publish button.
+  - Use shared form components with inline validation + live preview, wiring submissions to the corresponding API endpoints.
 
 ### Implementation Timeline
 
@@ -523,38 +489,10 @@ export interface UserDTO {
 | Phase 4: Frontend Branding | 1 week | Low | Low |
 | Phase 5: Feature Flags | 1 week | Medium | Low |
 | Phase 6: Data Isolation | 2-3 weeks | High | **CRITICAL** |
-| Phase 7: Org Hierarchy | 2-3 weeks | High | Medium |
+| Phase 7: Org Hierarchy (optional) | TBD | Medium | Medium |
 | Phase 8: Admin Panel | 2-3 weeks | Medium | Low |
 
 **Total: 12-16 weeks (3-4 months)** for production-ready multi-tenant SaaS
-
-### Additional Questions
-
-1. **Performance**: How many concurrent tenants do you expect? (impacts caching strategy)
-2. **Custom Domains**: Will tenants bring their own domains (e.g., `app.acme.com`)? (requires DNS verification flow)
-3. **Tenant Onboarding**: Self-service signup or manual provisioning by ops team?
-4. **Billing Integration**: Per-tenant billing/subscription management needed?
-5. **Audit Logging**: What level of audit logging for tenant admins? (compliance requirements)
-6. **SSO/SAML**: Will enterprise tenants need SSO integration?
-7. **Data Residency**: Any requirements for tenant data to be stored in specific regions?
-8. **Tenant Isolation Level**: Shared infrastructure OK, or fully isolated deployments required?
-
-### Risk Mitigation
-
-| Risk | Severity | Mitigation |
-|------|----------|-----------|
-| Data isolation failure | **CRITICAL** | Comprehensive security rules, penetration testing before launch |
-| Tenant routing errors | **CRITICAL** | Extensive integration tests, canary deployments |
-| Performance degradation | HIGH | Query optimization, Firestore indexing strategy, caching |
-| Branding limitations | MEDIUM | Extensible config design, custom CSS escape hatch |
-| Feature flag complexity | MEDIUM | Start simple (boolean flags), add targeting later |
-
-### Next Steps
-
-1. **Decision Required**: Choose tenant identification strategy (blocks all other work)
-2. **Proof of Concept**: Build Phase 1-3 (types + tenant ID + config) in 2 weeks to validate approach
-3. **Security Review**: Engage security team to review multi-tenancy design before Phase 6
-4. **User Research**: Interview potential white-label partners to validate admin panel requirements
 
 ---
 
