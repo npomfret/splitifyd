@@ -1,6 +1,5 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
-import type { GroupName } from '@splitifyd/shared';
-import type { GroupId } from '@splitifyd/shared';
+import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -33,7 +32,7 @@ export class CommentService {
     /**
      * Verify user has access to comment on the target entity
      */
-    private async verifyCommentAccess(targetType: CommentTargetType, targetId: string, userId: string): Promise<void> {
+    private async verifyCommentAccess(targetType: CommentTargetType, targetId: string, userId: UserId): Promise<void> {
         const strategy = this.strategyFactory.getStrategy(targetType);
         await strategy.verifyAccess(targetId, userId);
     }
@@ -44,7 +43,7 @@ export class CommentService {
     async listComments(
         targetType: CommentTargetType,
         targetId: string,
-        userId: string,
+        userId: UserId,
         options: {
             limit?: number;
             cursor?: string;
@@ -57,7 +56,7 @@ export class CommentService {
     private async _listComments(
         targetType: CommentTargetType,
         targetId: string,
-        userId: string,
+        userId: UserId,
         options: {
             limit?: number;
             cursor?: string;
@@ -108,11 +107,11 @@ export class CommentService {
     /**
      * Create a new comment
      */
-    async createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: string): Promise<CommentDTO> {
+    async createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: UserId): Promise<CommentDTO> {
         return measure.measureDb('CommentService.createComment', async () => this._createComment(targetType, targetId, commentData, userId));
     }
 
-    private async _createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: string): Promise<CommentDTO> {
+    private async _createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: UserId): Promise<CommentDTO> {
         const timer = new PerformanceTimer();
 
         loggerContext.LoggerContext.update({ targetType, targetId, userId, operation: 'create-comment' });

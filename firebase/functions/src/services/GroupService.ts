@@ -18,7 +18,7 @@ import {
 } from '@splitifyd/shared';
 import { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalances } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
 import { DOCUMENT_CONFIG, FirestoreCollections } from '../constants';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -57,7 +57,7 @@ export class GroupService {
      * Add computed fields to Group (balance, last activity)
      * Now reads pre-computed balance from Firestore instead of calculating on-the-fly
      */
-    private async addComputedFields(group: GroupDTO, userId: string): Promise<GroupDTO> {
+    private async addComputedFields(group: GroupDTO, userId: UserId): Promise<GroupDTO> {
         // Read pre-computed balance from Firestore (O(1) read vs O(N) calculation)
         const groupBalance = await this.firestoreReader.getGroupBalance(group.id);
 
@@ -77,7 +77,7 @@ export class GroupService {
 
         if (groupBalance.balancesByCurrency) {
             for (const [currency, currencyBalances] of Object.entries(groupBalance.balancesByCurrency)) {
-                const currencyUserBalance = currencyBalances[userId];
+        const currencyUserBalance = currencyBalances[userId];
                 if (currencyUserBalance) {
                     const netBalanceUnits = amountToSmallestUnit(currencyUserBalance.netBalance, currency);
                     if (netBalanceUnits === 0) {
@@ -117,7 +117,7 @@ export class GroupService {
      */
     private async fetchGroupWithAccess(
         groupId: GroupId,
-        userId: string,
+        userId: UserId,
         requireWriteAccess: boolean = false,
         options: { includeDeleted?: boolean; } = {},
     ): Promise<{ group: GroupDTO; }> {
@@ -177,7 +177,7 @@ export class GroupService {
     /**
      * Enrich a group with balance information and last activity timestamp
      */
-    private enrichGroupWithBalance(group: GroupDTO, groupBalances: GroupBalanceDTO, userId: string): GroupDTO {
+    private enrichGroupWithBalance(group: GroupDTO, groupBalances: GroupBalanceDTO, userId: UserId): GroupDTO {
         // Calculate currency-specific balances with proper typing
         const balancesByCurrency: Record<
             string,
@@ -229,13 +229,13 @@ export class GroupService {
      * List all groups for a user with pagination and balance information
      * PERFORMANCE OPTIMIZED: Batches database operations to prevent N+1 queries
      */
-    async listGroups(userId: string, options: GetGroupsForUserOptions = {}): Promise<ListGroupsResponse> {
+    async listGroups(userId: UserId, options: GetGroupsForUserOptions = {}): Promise<ListGroupsResponse> {
         return measure.measureDb('list-groups', async () => {
             return this._executeListGroups(userId, options);
         });
     }
 
-    private async _executeListGroups(userId: string, options: GetGroupsForUserOptions = {}): Promise<ListGroupsResponse> {
+    private async _executeListGroups(userId: UserId, options: GetGroupsForUserOptions = {}): Promise<ListGroupsResponse> {
         const timer = new PerformanceTimer();
 
         // Parse options with defaults
@@ -297,11 +297,11 @@ export class GroupService {
      * Create a new group with the creator as the owner/admin
      * IMPORTANT: The creator is automatically added as a member with 'owner' role
      */
-    async createGroup(userId: string, groupData: CreateGroupRequest): Promise<GroupDTO> {
+    async createGroup(userId: UserId, groupData: CreateGroupRequest): Promise<GroupDTO> {
         return measure.measureDb('createGroup', async () => this._createGroup(userId, groupData));
     }
 
-    private async _createGroup(userId: string, createGroupRequest: CreateGroupRequest): Promise<GroupDTO> {
+    private async _createGroup(userId: UserId, createGroupRequest: CreateGroupRequest): Promise<GroupDTO> {
         const timer = new PerformanceTimer();
 
         // Initialize group structure with ISO strings (DTOs)
@@ -399,7 +399,7 @@ export class GroupService {
      * Update an existing group
      * Only the owner can update a group
      */
-    async updateGroup(groupId: GroupId, userId: string, updates: UpdateGroupRequest): Promise<MessageResponse> {
+    async updateGroup(groupId: GroupId, userId: UserId, updates: UpdateGroupRequest): Promise<MessageResponse> {
         const timer = new PerformanceTimer();
 
         // Fetch group with write access check
@@ -492,7 +492,7 @@ export class GroupService {
         return { message: 'Group updated successfully' };
     }
 
-    async updateGroupPermissions(groupId: GroupId, userId: string, updates: Partial<GroupPermissions>): Promise<MessageResponse> {
+    async updateGroupPermissions(groupId: GroupId, userId: UserId, updates: Partial<GroupPermissions>): Promise<MessageResponse> {
         if (!updates || Object.values(updates).every((value) => value === undefined)) {
             throw Errors.INVALID_INPUT({ message: 'No permissions provided for update' });
         }
@@ -550,7 +550,7 @@ export class GroupService {
         return { message: 'Permissions updated successfully' };
     }
 
-    async deleteGroup(groupId: GroupId, userId: string): Promise<MessageResponse> {
+    async deleteGroup(groupId: GroupId, userId: UserId): Promise<MessageResponse> {
         // Fetch group with write access check
         const { group } = await this.fetchGroupWithAccess(groupId, userId, true, { includeDeleted: true });
 
@@ -654,7 +654,7 @@ export class GroupService {
      */
     async getGroupFullDetails(
         groupId: GroupId,
-        userId: string,
+        userId: UserId,
         options: {
             expenseLimit?: number;
             expenseCursor?: string;

@@ -18,7 +18,7 @@ export class ExpenseCommentStrategy implements ICommentStrategy {
         private readonly groupMemberService: GroupMemberService,
     ) {}
 
-    async verifyAccess(targetId: string, userId: string): Promise<void> {
+    async verifyAccess(targetId: string, userId: UserId): Promise<void> {
         // Get the expense and verify it exists and is not deleted
         const expense = await this.firestoreReader.getExpense(targetId);
         if (!expense || expense.deletedAt) {
@@ -37,3 +37,4 @@ export class ExpenseCommentStrategy implements ICommentStrategy {
         }
     }
 }
+import type { UserId } from '@splitifyd/shared';

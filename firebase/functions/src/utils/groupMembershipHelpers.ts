@@ -1,4 +1,4 @@
-import type { GroupMembershipDTO, ISOString } from '@splitifyd/shared';
+import type { GroupMembershipDTO, ISOString, UserId } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { TopLevelGroupMemberDocument } from '../types';
 
@@ -31,6 +31,6 @@ export function createTopLevelMembershipDocument(memberDoc: GroupMembershipDTO |
  * @param groupId - The group ID
  * @returns Document ID string for top-level collection
  */
-export function getTopLevelMembershipDocId(userId: string, groupId: GroupId): string {
+export function getTopLevelMembershipDocId(userId: UserId, groupId: GroupId): string {
     return `${userId}_${groupId}`;
 }

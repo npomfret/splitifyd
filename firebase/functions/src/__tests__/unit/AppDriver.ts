@@ -30,6 +30,7 @@ import {
     UpdatePolicyResponse,
     UpdateSettlementRequest,
     UserPolicyStatusResponse,
+    UserId,
     VersionHash,
 } from '@splitifyd/shared';
 import { ExpenseId, SettlementId } from '@splitifyd/shared';
@@ -76,7 +77,7 @@ export class AppDriver {
     private policyHandlers = new PolicyHandlers(this.applicationBuilder.buildPolicyService());
     private policyUserHandlers = new PolicyUserHandlers(this.applicationBuilder.buildUserPolicyService());
 
-    seedUser(userId: string, userData: Record<string, any> = {}) {
+    seedUser(userId: UserId, userData: Record<string, any> = {}) {
         const user = this.db.seedUser(userId, userData);
 
         this.authService.setUser(userId, {
@@ -101,7 +102,7 @@ export class AppDriver {
     dispose() {}
 
     async listGroups(
-        userId1: string,
+        userId1: UserId,
         options: {
             limit?: number;
             cursor?: string;
@@ -138,7 +139,7 @@ export class AppDriver {
     }
 
     async getGroupFullDetails(
-        userId1: string,
+        userId1: UserId,
         groupId: GroupId,
         options: {
             expenseLimit?: number;
@@ -179,7 +180,7 @@ export class AppDriver {
         return (res as any).getJson() as GroupFullDetailsDTO;
     }
 
-    async createGroup(userId1: string, groupRequest = new CreateGroupRequestBuilder().build()) {
+    async createGroup(userId1: UserId, groupRequest = new CreateGroupRequestBuilder().build()) {
         const req = createStubRequest(userId1, groupRequest);
         const res = createStubResponse();
 
@@ -188,7 +189,7 @@ export class AppDriver {
         return (res as any).getJson() as GroupDTO;
     }
 
-    async generateShareableLink(userId1: string, groupId: GroupId, expiresAt?: string): Promise<ShareLinkResponse> {
+    async generateShareableLink(userId1: UserId, groupId: GroupId, expiresAt?: string): Promise<ShareLinkResponse> {
         const body: Record<string, unknown> = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;
@@ -202,7 +203,7 @@ export class AppDriver {
         return (res as any).getJson() as ShareLinkResponse;
     }
 
-    async joinGroupByLink(userId1: string, linkId: string): Promise<JoinGroupResponse> {
+    async joinGroupByLink(userId1: UserId, linkId: string): Promise<JoinGroupResponse> {
         const req = createStubRequest(userId1, { linkId });
         const res = createStubResponse();
 
@@ -211,7 +212,7 @@ export class AppDriver {
         return (res as any).getJson() as JoinGroupResponse;
     }
 
-    async previewGroupByLink(userId: string, linkId: string): Promise<PreviewGroupResponse> {
+    async previewGroupByLink(userId: UserId, linkId: string): Promise<PreviewGroupResponse> {
         const req = createStubRequest(userId, { linkId });
         const res = createStubResponse();
 
@@ -220,7 +221,7 @@ export class AppDriver {
         return (res as any).getJson() as PreviewGroupResponse;
     }
 
-    async updateGroup(userId: string, groupId: GroupId, updates: Partial<UpdateGroupRequest>) {
+    async updateGroup(userId: UserId, groupId: GroupId, updates: Partial<UpdateGroupRequest>) {
         const req = createStubRequest(userId, updates, { id: groupId });
         const res = createStubResponse();
 
@@ -229,7 +230,7 @@ export class AppDriver {
         return (res as any).getJson() as GroupDTO;
     }
 
-    async deleteGroup(userId: string, groupId: GroupId) {
+    async deleteGroup(userId: UserId, groupId: GroupId) {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
@@ -238,22 +239,22 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async getGroup(userId: string, groupId: GroupId): Promise<GroupDTO> {
+    async getGroup(userId: UserId, groupId: GroupId): Promise<GroupDTO> {
         const details = await this.getGroupFullDetails(userId, groupId);
         return details.group;
     }
 
-    async getGroupBalances(userId: string, groupId: GroupId) {
+    async getGroupBalances(userId: UserId, groupId: GroupId) {
         const details = await this.getGroupFullDetails(userId, groupId);
         return details.balances;
     }
 
-    async getGroupExpenses(userId: string, groupId: GroupId, options?: { expenseLimit?: number; expenseCursor?: string; }) {
+    async getGroupExpenses(userId: UserId, groupId: GroupId, options?: { expenseLimit?: number; expenseCursor?: string; }) {
         const details = await this.getGroupFullDetails(userId, groupId, options);
         return details.expenses;
     }
 
-    async leaveGroup(userId: string, groupId: GroupId): Promise<MessageResponse> {
+    async leaveGroup(userId: UserId, groupId: GroupId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
@@ -262,7 +263,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async removeGroupMember(userId: string, groupId: GroupId, memberId: string): Promise<MessageResponse> {
+    async removeGroupMember(userId: UserId, groupId: GroupId, memberId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId, memberId });
         const res = createStubResponse();
 
@@ -271,7 +272,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async archiveGroupForUser(userId: string, groupId: GroupId): Promise<MessageResponse> {
+    async archiveGroupForUser(userId: UserId, groupId: GroupId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
@@ -280,7 +281,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async unarchiveGroupForUser(userId: string, groupId: GroupId): Promise<MessageResponse> {
+    async unarchiveGroupForUser(userId: UserId, groupId: GroupId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
@@ -289,7 +290,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async updateGroupMemberDisplayName(userId: string, groupId: GroupId, displayName: DisplayName): Promise<MessageResponse> {
+    async updateGroupMemberDisplayName(userId: UserId, groupId: GroupId, displayName: DisplayName): Promise<MessageResponse> {
         const req = createStubRequest(userId, { displayName }, { id: groupId });
         const res = createStubResponse();
 
@@ -298,7 +299,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async createExpense(userId1: string, expenseRequest: CreateExpenseRequest): Promise<ExpenseDTO> {
+    async createExpense(userId1: UserId, expenseRequest: CreateExpenseRequest): Promise<ExpenseDTO> {
         const req = createStubRequest(userId1, expenseRequest);
         const res = createStubResponse();
 
@@ -307,7 +308,7 @@ export class AppDriver {
         return (res as any).getJson() as ExpenseDTO;
     }
 
-    async updateExpense(userId: string, expenseId: ExpenseId, updateBody: any): Promise<ExpenseDTO> {
+    async updateExpense(userId: UserId, expenseId: ExpenseId, updateBody: any): Promise<ExpenseDTO> {
         const req = createStubRequest(userId, updateBody);
         req.query = { id: expenseId };
         const res = createStubResponse();
@@ -317,7 +318,7 @@ export class AppDriver {
         return (res as any).getJson() as ExpenseDTO;
     }
 
-    async deleteExpense(userId: string, expenseId: ExpenseId) {
+    async deleteExpense(userId: UserId, expenseId: ExpenseId) {
         const req = createStubRequest(userId, {});
         req.query = { id: expenseId };
         const res = createStubResponse();
@@ -327,12 +328,12 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async getExpense(userId: string, expenseId: ExpenseId): Promise<ExpenseDTO> {
+    async getExpense(userId: UserId, expenseId: ExpenseId): Promise<ExpenseDTO> {
         const fullDetails = await this.getExpenseFullDetails(userId, expenseId);
         return fullDetails.expense;
     }
 
-    async getExpenseFullDetails(userId: string, expenseId: ExpenseId) {
+    async getExpenseFullDetails(userId: UserId, expenseId: ExpenseId) {
         const req = createStubRequest(userId, {}, { id: expenseId });
         const res = createStubResponse();
 
@@ -341,7 +342,7 @@ export class AppDriver {
         return (res as any).getJson() as ExpenseFullDetailsDTO;
     }
 
-    async createSettlement(userId: string, settlementRequest: CreateSettlementRequest): Promise<SettlementDTO> {
+    async createSettlement(userId: UserId, settlementRequest: CreateSettlementRequest): Promise<SettlementDTO> {
         const req = createStubRequest(userId, settlementRequest);
         const res = createStubResponse();
 
@@ -350,7 +351,7 @@ export class AppDriver {
         return (res as any).getJson() as SettlementDTO;
     }
 
-    async updateSettlement(userId: string, settlementId: SettlementId, updateRequest: UpdateSettlementRequest): Promise<SettlementWithMembers> {
+    async updateSettlement(userId: UserId, settlementId: SettlementId, updateRequest: UpdateSettlementRequest): Promise<SettlementWithMembers> {
         const req = createStubRequest(userId, updateRequest, { settlementId });
         const res = createStubResponse();
 
@@ -359,7 +360,7 @@ export class AppDriver {
         return (res as any).getJson() as SettlementWithMembers;
     }
 
-    async deleteSettlement(userId: string, settlementId: SettlementId): Promise<MessageResponse> {
+    async deleteSettlement(userId: UserId, settlementId: SettlementId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { settlementId });
         const res = createStubResponse();
 
@@ -368,7 +369,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async getSettlement(userId: string, groupId: GroupId, settlementId: SettlementId): Promise<SettlementWithMembers> {
+    async getSettlement(userId: UserId, groupId: GroupId, settlementId: SettlementId): Promise<SettlementWithMembers> {
         let fullDetails;
 
         try {
@@ -404,7 +405,7 @@ export class AppDriver {
         return settlement;
     }
 
-    async createGroupComment(userId: string, groupId: GroupId, text: string): Promise<CommentDTO> {
+    async createGroupComment(userId: UserId, groupId: GroupId, text: string): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { groupId });
         req.path = `/groups/${groupId}/comments`;
         const res = createStubResponse();
@@ -415,7 +416,7 @@ export class AppDriver {
     }
 
     async listGroupComments(
-        userId: string,
+        userId: UserId,
         groupId: GroupId,
         options: { cursor?: string; limit?: number; } = {},
     ): Promise<ListCommentsResponse> {
@@ -436,7 +437,7 @@ export class AppDriver {
         return (res as any).getJson() as ListCommentsResponse;
     }
 
-    async createExpenseComment(userId: string, expenseId: ExpenseId, text: string): Promise<CommentDTO> {
+    async createExpenseComment(userId: UserId, expenseId: ExpenseId, text: string): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { expenseId });
         req.path = `/expenses/${expenseId}/comments`;
         const res = createStubResponse();
@@ -447,7 +448,7 @@ export class AppDriver {
     }
 
     async listExpenseComments(
-        userId: string,
+        userId: UserId,
         expenseId: ExpenseId,
         options: { cursor?: string; limit?: number; } = {},
     ): Promise<ListCommentsResponse> {
@@ -468,7 +469,7 @@ export class AppDriver {
         return (res as any).getJson() as ListCommentsResponse;
     }
 
-    async updateUserProfile(userId: string, updateRequest: any): Promise<RegisteredUser> {
+    async updateUserProfile(userId: UserId, updateRequest: any): Promise<RegisteredUser> {
         const req = createStubRequest(userId, updateRequest);
         const res = createStubResponse();
 
@@ -477,7 +478,7 @@ export class AppDriver {
         return (res as any).getJson() as RegisteredUser;
     }
 
-    async changePassword(userId: string, passwordRequest: any): Promise<MessageResponse> {
+    async changePassword(userId: UserId, passwordRequest: any): Promise<MessageResponse> {
         const req = createStubRequest(userId, passwordRequest);
         const res = createStubResponse();
 
@@ -486,7 +487,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async createPolicy(userId: string, policyData: { policyName: string; text: string; }): Promise<CreatePolicyResponse> {
+    async createPolicy(userId: UserId, policyData: { policyName: string; text: string; }): Promise<CreatePolicyResponse> {
         const req = createStubRequest(userId, policyData);
         const res = createStubResponse();
 
@@ -495,7 +496,7 @@ export class AppDriver {
         return (res as any).getJson() as CreatePolicyResponse;
     }
 
-    async listPolicies(userId: string): Promise<{ policies: any[]; count: number; }> {
+    async listPolicies(userId: UserId): Promise<{ policies: any[]; count: number; }> {
         const req = createStubRequest(userId, {});
         const res = createStubResponse();
 
@@ -504,7 +505,7 @@ export class AppDriver {
         return (res as any).getJson() as { policies: any[]; count: number; };
     }
 
-    async getPolicy(userId: string, policyId: PolicyId): Promise<any> {
+    async getPolicy(userId: UserId, policyId: PolicyId): Promise<any> {
         const req = createStubRequest(userId, {}, { id: policyId });
         const res = createStubResponse();
 
@@ -513,7 +514,7 @@ export class AppDriver {
         return (res as any).getJson();
     }
 
-    async getPolicyVersion(userId: string, policyId: PolicyId, versionHash: VersionHash): Promise<any> {
+    async getPolicyVersion(userId: UserId, policyId: PolicyId, versionHash: VersionHash): Promise<any> {
         const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
         const res = createStubResponse();
 
@@ -522,7 +523,7 @@ export class AppDriver {
         return (res as any).getJson();
     }
 
-    async updatePolicy(userId: string, policyId: PolicyId, updateData: { text: string; publish?: boolean; }): Promise<UpdatePolicyResponse> {
+    async updatePolicy(userId: UserId, policyId: PolicyId, updateData: { text: string; publish?: boolean; }): Promise<UpdatePolicyResponse> {
         const req = createStubRequest(userId, updateData, { id: policyId });
         const res = createStubResponse();
 
@@ -531,7 +532,7 @@ export class AppDriver {
         return (res as any).getJson() as UpdatePolicyResponse;
     }
 
-    async publishPolicy(userId: string, policyId: PolicyId, versionHash: VersionHash): Promise<PublishPolicyResponse> {
+    async publishPolicy(userId: UserId, policyId: PolicyId, versionHash: VersionHash): Promise<PublishPolicyResponse> {
         const req = createStubRequest(userId, { versionHash }, { id: policyId });
         const res = createStubResponse();
 
@@ -540,7 +541,7 @@ export class AppDriver {
         return (res as any).getJson() as PublishPolicyResponse;
     }
 
-    async deletePolicyVersion(userId: string, policyId: PolicyId, versionHash: VersionHash): Promise<DeletePolicyVersionResponse> {
+    async deletePolicyVersion(userId: UserId, policyId: PolicyId, versionHash: VersionHash): Promise<DeletePolicyVersionResponse> {
         const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
         const res = createStubResponse();
 
@@ -549,7 +550,7 @@ export class AppDriver {
         return (res as any).getJson() as DeletePolicyVersionResponse;
     }
 
-    async acceptMultiplePolicies(userId: string, acceptances: Array<{ policyId: PolicyId; versionHash: VersionHash; }>): Promise<AcceptMultiplePoliciesResponse> {
+    async acceptMultiplePolicies(userId: UserId, acceptances: Array<{ policyId: PolicyId; versionHash: VersionHash; }>): Promise<AcceptMultiplePoliciesResponse> {
         const req = createStubRequest(userId, { acceptances });
         const res = createStubResponse();
 
@@ -558,7 +559,7 @@ export class AppDriver {
         return (res as any).getJson() as AcceptMultiplePoliciesResponse;
     }
 
-    async getUserPolicyStatus(userId: string): Promise<UserPolicyStatusResponse> {
+    async getUserPolicyStatus(userId: UserId): Promise<UserPolicyStatusResponse> {
         const req = createStubRequest(userId, {});
         const res = createStubResponse();
 
@@ -576,13 +577,13 @@ export class AppDriver {
         return (res as any).getJson() as CurrentPolicyResponse;
     }
 
-    async getActivityFeedItems(userId: string) {
+    async getActivityFeedItems(userId: UserId) {
         const snapshot = await this.db.collection('activity-feed').doc(userId).collection('items').get();
         return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     }
 
     async expectNotificationUpdate(
-        userId: string,
+        userId: UserId,
         groupId: GroupId,
         expectedChanges: {
             transactionChangeCount?: number;

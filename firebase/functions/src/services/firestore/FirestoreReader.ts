@@ -29,6 +29,7 @@ import {
     type PolicyDTO,
     type RegisteredUser,
     type SettlementDTO,
+    type UserId,
 } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
 import { FieldPath, Filter, type IDocumentReference, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp } from '../../firestore-wrapper';
@@ -180,7 +181,7 @@ export class FirestoreReader implements IFirestoreReader {
     // Document Read Operations
     // ========================================================================
 
-    async getUser(userId: string): Promise<RegisteredUser | null> {
+    async getUser(userId: UserId): Promise<RegisteredUser | null> {
         try {
             const userDoc = await this.db.collection(FirestoreCollections.USERS).doc(userId).get();
 
@@ -476,7 +477,7 @@ export class FirestoreReader implements IFirestoreReader {
      * @param options - Query options including limit, cursor, and orderBy
      * @returns Paginated result with groups ordered by most recent activity
      */
-    async getGroupsForUserV2(userId: string, options: GetGroupsForUserOptions = {}): Promise<PaginatedResult<GroupDTO[]>> {
+    async getGroupsForUserV2(userId: UserId, options: GetGroupsForUserOptions = {}): Promise<PaginatedResult<GroupDTO[]>> {
         return measureDb('USER_GROUPS_V2', async () => {
             const limit = options.limit || 10;
 
@@ -590,7 +591,7 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getGroupMember(groupId: GroupId, userId: string): Promise<GroupMembershipDTO | null> {
+    async getGroupMember(groupId: GroupId, userId: UserId): Promise<GroupMembershipDTO | null> {
         return measureDb('GET_MEMBER', async () => {
             // Use top-level collection instead of subcollection
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
@@ -614,7 +615,7 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getAllGroupMemberIds(groupId: GroupId): Promise<string[]> {
+    async getAllGroupMemberIds(groupId: GroupId): Promise<UserId[]> {
         return measureDb('GET_MEMBER_IDS', async () => {
             // Optimized: Only fetch uid field from Firestore
             const membersQuery = this
@@ -632,7 +633,7 @@ export class FirestoreReader implements IFirestoreReader {
             }
 
             // Extract uids directly without schema validation or timestamp conversion
-            return snapshot.docs.map((doc) => doc.data().uid).filter((uid): uid is string => typeof uid === 'string');
+            return snapshot.docs.map((doc) => doc.data().uid).filter((uid): uid is UserId => typeof uid === 'string');
         });
     }
 
@@ -682,7 +683,7 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getActivityFeedForUser(
-        userId: string,
+        userId: UserId,
         options: {
             limit?: number;
             cursor?: string;
@@ -1187,7 +1188,7 @@ export class FirestoreReader implements IFirestoreReader {
     // New Methods Implementation
     // ========================================================================
 
-    async verifyGroupMembership(groupId: GroupId, userId: string): Promise<boolean> {
+    async verifyGroupMembership(groupId: GroupId, userId: UserId): Promise<boolean> {
         try {
             // Check if user is a member using top-level collection lookup
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);

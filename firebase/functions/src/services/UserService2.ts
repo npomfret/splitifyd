@@ -2,7 +2,7 @@ import { AuthErrors, RegisteredUser, SystemUserRoles, UserProfileResponse, UserR
 import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
+import type { Email, UserId } from '@splitifyd/shared';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';
@@ -73,11 +73,11 @@ export class UserService {
      * @returns The user's profile data
      * @throws If user is not found or an error occurs
      */
-    async getUser(userId: string): Promise<RegisteredUser> {
+    async getUser(userId: UserId): Promise<RegisteredUser> {
         return measureDb('UserService2.getUser', async () => this._getUser(userId));
     }
 
-    private async _getUser(userId: string): Promise<RegisteredUser> {
+    private async _getUser(userId: UserId): Promise<RegisteredUser> {
         LoggerContext.update({ userId });
 
         try {
@@ -117,14 +117,14 @@ export class UserService {
     /**
      * Get multiple user profiles by UIDs (batch operation)
      */
-    async getUsers(uids: string[]): Promise<Map<string, RegisteredUser>> {
+    async getUsers(uids: UserId[]): Promise<Map<UserId, RegisteredUser>> {
         return measureDb('UserService2.getUsers', async () => this._getUsers(uids));
     }
 
-    private async _getUsers(uids: string[]): Promise<Map<string, RegisteredUser>> {
+    private async _getUsers(uids: UserId[]): Promise<Map<UserId, RegisteredUser>> {
         LoggerContext.update({ operation: 'batch-get-users', userCount: uids.length });
 
-        const result = new Map<string, RegisteredUser>();
+        const result = new Map<UserId, RegisteredUser>();
 
         // Fetch all users in batches (Firebase Auth supports up to 100 users per batch)
         if (uids.length > 0) {
@@ -141,7 +141,7 @@ export class UserService {
     /**
      * Fetch a batch of users and add to result map
      */
-    private async fetchUserBatch(uids: string[], result: Map<string, RegisteredUser>): Promise<void> {
+    private async fetchUserBatch(uids: UserId[], result: Map<UserId, RegisteredUser>): Promise<void> {
         const getUsersResult = await this.authService.getUsers(uids.map((uid) => ({ uid })));
 
         // Process found users
@@ -170,15 +170,15 @@ export class UserService {
      * @returns The updated user profile
      * @throws ApiError if update fails
      */
-    async getProfile(userId: string): Promise<UserProfileResponse> {
+    async getProfile(userId: UserId): Promise<UserProfileResponse> {
         return measureDb('UserService2.getProfile', async () => this._getProfile(userId));
     }
 
-    async updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfileResponse> {
+    async updateProfile(userId: UserId, requestBody: unknown, language: string = 'en'): Promise<UserProfileResponse> {
         return measureDb('UserService2.updateProfile', async () => this._updateProfile(userId, requestBody, language));
     }
 
-    private async _getProfile(userId: string): Promise<UserProfileResponse> {
+    private async _getProfile(userId: UserId): Promise<UserProfileResponse> {
         const registeredUser = await this.getUser(userId);
         return {
             displayName: registeredUser.displayName,
@@ -186,7 +186,7 @@ export class UserService {
         };
     }
 
-    private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfileResponse> {
+    private async _updateProfile(userId: UserId, requestBody: unknown, language: string = 'en'): Promise<UserProfileResponse> {
         LoggerContext.update({ userId, operation: 'update-profile' });
 
         // Validate the request body with localized error messages
@@ -242,7 +242,7 @@ export class UserService {
      * @returns Success message
      * @throws ApiError if password change fails
      */
-    async changePassword(userId: string, requestBody: unknown): Promise<{ message: string; }> {
+    async changePassword(userId: UserId, requestBody: unknown): Promise<{ message: string; }> {
         LoggerContext.update({ userId, operation: 'change-password' });
 
         // Validate the request body

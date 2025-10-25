@@ -18,7 +18,7 @@ export class GroupCommentStrategy implements ICommentStrategy {
         private readonly groupMemberService: GroupMemberService,
     ) {}
 
-    async verifyAccess(targetId: string, userId: string): Promise<void> {
+    async verifyAccess(targetId: string, userId: UserId): Promise<void> {
         // For group comments, verify user is a group member
         const group = await this.firestoreReader.getGroup(targetId);
         if (!group) {
@@ -30,3 +30,4 @@ export class GroupCommentStrategy implements ICommentStrategy {
         }
     }
 }
+import type { UserId } from '@splitifyd/shared';

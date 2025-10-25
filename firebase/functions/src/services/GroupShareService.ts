@@ -1,5 +1,5 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
-import type { GroupMembershipDTO, JoinGroupResponse } from '@splitifyd/shared';
+import type { GroupMembershipDTO, JoinGroupResponse, UserId } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { GroupName } from '@splitifyd/shared';
 import { randomBytes } from 'crypto';
@@ -112,7 +112,7 @@ export class GroupShareService {
     }
 
     async generateShareableLink(
-        userId: string,
+        userId: UserId,
         groupId: GroupId,
         expiresAt?: string,
     ): Promise<{
@@ -124,7 +124,7 @@ export class GroupShareService {
     }
 
     private async _generateShareableLink(
-        userId: string,
+        userId: UserId,
         groupId: GroupId,
         expiresAt?: string,
     ): Promise<{
@@ -226,7 +226,7 @@ export class GroupShareService {
     }
 
     async previewGroupByLink(
-        userId: string,
+        userId: UserId,
         linkId: string,
     ): Promise<{
         groupId: GroupId;
@@ -260,11 +260,11 @@ export class GroupShareService {
         };
     }
 
-    async joinGroupByLink(userId: string, linkId: string): Promise<JoinGroupResponse> {
+    async joinGroupByLink(userId: UserId, linkId: string): Promise<JoinGroupResponse> {
         return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, linkId));
     }
 
-    private async _joinGroupByLink(userId: string, linkId: string): Promise<JoinGroupResponse> {
+    private async _joinGroupByLink(userId: UserId, linkId: string): Promise<JoinGroupResponse> {
         const timer = new PerformanceTimer();
 
         if (!linkId) {

@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'async_hooks';
+import type { UserId } from '@splitifyd/shared';
 
 /**
  * Context fields that can be stored in the logging context
@@ -11,7 +12,7 @@ export interface LogContext {
     requestMethod?: string;
 
     // User context
-    userId?: string;
+    userId?: UserId;
     userDisplayName?: string;
     userRole?: string;
 
@@ -71,7 +72,7 @@ export class LoggerContext {
      * Add user context to the current logging context
      * Typically called after authentication
      */
-    static setUser(userId: string, displayName?: string, role?: string): void {
+    static setUser(userId: UserId, displayName?: string, role?: string): void {
         this.update({
             userId,
             userDisplayName: displayName,

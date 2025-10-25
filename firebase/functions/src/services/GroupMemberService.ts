@@ -17,15 +17,15 @@ export class GroupMemberService {
         private readonly activityFeedService: ActivityFeedService,
     ) {}
 
-    async leaveGroup(userId: string, groupId: GroupId): Promise<MessageResponse> {
+    async leaveGroup(userId: UserId, groupId: GroupId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));
     }
 
-    async removeGroupMember(userId: string, groupId: GroupId, memberId: string): Promise<MessageResponse> {
+    async removeGroupMember(userId: UserId, groupId: GroupId, memberId: UserId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
     }
 
-    async updateMemberRole(requestingUserId: string, groupId: GroupId, targetUserId: UserId, newRole: MemberRole): Promise<MessageResponse> {
+    async updateMemberRole(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId, newRole: MemberRole): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.updateMemberRole', async () => {
             if (!requestingUserId) {
                 throw Errors.UNAUTHORIZED();
@@ -86,7 +86,7 @@ export class GroupMemberService {
         });
     }
 
-    async approveMember(requestingUserId: string, groupId: GroupId, targetUserId: UserId): Promise<MessageResponse> {
+    async approveMember(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.approveMember', async () => {
             if (!requestingUserId) {
                 throw Errors.UNAUTHORIZED();
@@ -129,9 +129,9 @@ export class GroupMemberService {
                 }
 
                 const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
-                const activityRecipients = new Set<string>();
+                const activityRecipients = new Set<UserId>();
                 for (const doc of membershipsSnapshot.docs) {
-                    const data = doc.data() as { uid: string; memberStatus: string; };
+                    const data = doc.data() as { uid: UserId; memberStatus: string; };
                     if (data.memberStatus === MemberStatuses.ACTIVE) {
                         activityRecipients.add(data.uid);
                     }
@@ -178,7 +178,7 @@ export class GroupMemberService {
         });
     }
 
-    async rejectMember(requestingUserId: string, groupId: GroupId, targetUserId: UserId): Promise<MessageResponse> {
+    async rejectMember(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.rejectMember', async () => {
             if (!requestingUserId) {
                 throw Errors.UNAUTHORIZED();
@@ -219,7 +219,7 @@ export class GroupMemberService {
         });
     }
 
-    async getPendingMembers(requestingUserId: string, groupId: GroupId): Promise<GroupMembershipDTO[]> {
+    async getPendingMembers(requestingUserId: UserId, groupId: GroupId): Promise<GroupMembershipDTO[]> {
         return measure.measureDb('GroupMemberService.getPendingMembers', async () => {
             const requesterMembership = await this.firestoreReader.getGroupMember(groupId, requestingUserId);
             if (!requesterMembership || requesterMembership.memberRole !== MemberRoles.ADMIN || requesterMembership.memberStatus !== MemberStatuses.ACTIVE) {
@@ -238,7 +238,7 @@ export class GroupMemberService {
      * @param targetUserId - The user being removed (could be same as requesting user for leave)
      * @param isLeaving - true for self-leave, false for admin removal
      */
-    private async _removeMemberFromGroup(requestingUserId: string, groupId: GroupId, targetUserId: UserId, isLeaving: boolean): Promise<MessageResponse> {
+    private async _removeMemberFromGroup(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId, isLeaving: boolean): Promise<MessageResponse> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ groupId });
@@ -344,10 +344,10 @@ export class GroupMemberService {
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
             const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
-            const memberIdsInTransaction = membershipsSnapshot.docs.map((doc) => (doc.data() as { uid: string; }).uid);
+            const memberIdsInTransaction = membershipsSnapshot.docs.map((doc) => (doc.data() as { uid: UserId; }).uid);
             const remainingMemberIds = memberIdsInTransaction.filter((uid) => uid !== targetUserId);
 
-            const activityRecipients = Array.from(new Set<string>([...remainingMemberIds, targetUserId]));
+            const activityRecipients = Array.from(new Set<UserId>([...remainingMemberIds, targetUserId]));
 
             const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
             const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
@@ -390,12 +390,12 @@ export class GroupMemberService {
         };
     }
 
-    async isGroupMemberAsync(groupId: GroupId, userId: string): Promise<boolean> {
+    async isGroupMemberAsync(groupId: GroupId, userId: UserId): Promise<boolean> {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
         return member !== null;
     }
 
-    async isGroupOwnerAsync(groupId: GroupId, userId: string): Promise<boolean> {
+    async isGroupOwnerAsync(groupId: GroupId, userId: UserId): Promise<boolean> {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
         return member?.memberRole === MemberRoles.ADMIN || false;
     }
@@ -404,7 +404,7 @@ export class GroupMemberService {
      * Archive a group for the current user (user-specific view control)
      * This hides the group from the user's dashboard without leaving or deleting it
      */
-    async archiveGroupForUser(groupId: GroupId, userId: string): Promise<MessageResponse> {
+    async archiveGroupForUser(groupId: GroupId, userId: UserId): Promise<MessageResponse> {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
 
         if (!member) {
@@ -435,7 +435,7 @@ export class GroupMemberService {
     /**
      * Unarchive a group for the current user (restore to active view)
      */
-    async unarchiveGroupForUser(groupId: GroupId, userId: string): Promise<MessageResponse> {
+    async unarchiveGroupForUser(groupId: GroupId, userId: UserId): Promise<MessageResponse> {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
 
         if (!member) {

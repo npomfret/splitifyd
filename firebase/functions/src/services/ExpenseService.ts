@@ -1,5 +1,5 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest } from '@splitifyd/shared';
-import { ExpenseId, GroupId } from '@splitifyd/shared';
+import { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import * as expenseValidation from '../expenses/validation';
@@ -85,7 +85,7 @@ export class ExpenseService {
      * Handles both current members and departed members (who have left the group)
      * to allow viewing historical transaction data
      */
-    private async fetchParticipantData(groupId: GroupId, userId: string): Promise<GroupMember> {
+    private async fetchParticipantData(groupId: GroupId, userId: UserId): Promise<GroupMember> {
         const [userData, memberData] = await Promise.all([
             this.firestoreReader.getUser(userId),
             this.firestoreReader.getGroupMember(groupId, userId),
@@ -161,11 +161,11 @@ export class ExpenseService {
     /**
      * Get a single expense by ID
      */
-    async getExpense(expenseId: ExpenseId, userId: string): Promise<ExpenseDTO> {
+    async getExpense(expenseId: ExpenseId, userId: UserId): Promise<ExpenseDTO> {
         return measure.measureDb('ExpenseService.getExpense', async () => this._getExpense(expenseId, userId));
     }
 
-    private async _getExpense(expenseId: ExpenseId, _userId: string): Promise<ExpenseDTO> {
+    private async _getExpense(expenseId: ExpenseId, _userId: UserId): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         timer.startPhase('query');
@@ -188,11 +188,11 @@ export class ExpenseService {
     /**
      * Create a new expense
      */
-    async createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<ExpenseDTO> {
+    async createExpense(userId: UserId, expenseData: CreateExpenseRequest): Promise<ExpenseDTO> {
         return measure.measureDb('ExpenseService.createExpense', async () => this._createExpense(userId, expenseData));
     }
 
-    private async _createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<ExpenseDTO> {
+    private async _createExpense(userId: UserId, expenseData: CreateExpenseRequest): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         // Validate the input data early
@@ -344,11 +344,11 @@ export class ExpenseService {
     /**
      * Update an existing expense
      */
-    async updateExpense(expenseId: ExpenseId, userId: string, updateData: UpdateExpenseRequest): Promise<ExpenseDTO> {
+    async updateExpense(expenseId: ExpenseId, userId: UserId, updateData: UpdateExpenseRequest): Promise<ExpenseDTO> {
         return measure.measureDb('ExpenseService.updateExpense', async () => this._updateExpense(expenseId, userId, updateData));
     }
 
-    private async _updateExpense(expenseId: ExpenseId, userId: string, updateData: UpdateExpenseRequest): Promise<ExpenseDTO> {
+    private async _updateExpense(expenseId: ExpenseId, userId: UserId, updateData: UpdateExpenseRequest): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         // Fetch the existing expense
@@ -522,7 +522,7 @@ export class ExpenseService {
      */
     async listGroupExpenses(
         groupId: GroupId,
-        userId: string,
+        userId: UserId,
         options: {
             limit?: number;
             cursor?: string;
@@ -539,7 +539,7 @@ export class ExpenseService {
 
     private async _listGroupExpenses(
         groupId: GroupId,
-        userId: string,
+        userId: UserId,
         options: {
             limit?: number;
             cursor?: string;
@@ -596,11 +596,11 @@ export class ExpenseService {
     /**
      * Delete an expense (soft delete)
      */
-    async deleteExpense(expenseId: ExpenseId, userId: string): Promise<void> {
+    async deleteExpense(expenseId: ExpenseId, userId: UserId): Promise<void> {
         return measure.measureDb('ExpenseService.deleteExpense', async () => this._deleteExpense(expenseId, userId));
     }
 
-    private async _deleteExpense(expenseId: ExpenseId, userId: string): Promise<void> {
+    private async _deleteExpense(expenseId: ExpenseId, userId: UserId): Promise<void> {
         const timer = new PerformanceTimer();
 
         // Fetch the existing expense
@@ -710,7 +710,7 @@ export class ExpenseService {
      * Get consolidated expense details (expense + group + members)
      * Eliminates race conditions by providing all needed data in one request
      */
-    async getExpenseFullDetails(expenseId: ExpenseId, _userId: string): Promise<ExpenseFullDetailsDTO> {
+    async getExpenseFullDetails(expenseId: ExpenseId, _userId: UserId): Promise<ExpenseFullDetailsDTO> {
         const timer = new PerformanceTimer();
 
         // Fetch the expense

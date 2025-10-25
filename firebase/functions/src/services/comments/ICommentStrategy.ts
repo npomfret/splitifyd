@@ -13,5 +13,6 @@ export interface ICommentStrategy {
      * @param userId - ID of the user attempting to comment
      * @throws ApiError if access is denied or entity not found
      */
-    verifyAccess(targetId: string, userId: string): Promise<void>;
+    verifyAccess(targetId: string, userId: UserId): Promise<void>;
 }
+import type { UserId } from '@splitifyd/shared';

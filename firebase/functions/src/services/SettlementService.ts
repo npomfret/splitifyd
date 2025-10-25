@@ -1,5 +1,5 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
+import { GroupId, UserId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
@@ -39,7 +39,7 @@ export class SettlementService {
      * Handles both current members and departed members (who have left the group)
      * to allow viewing historical transaction data
      */
-    private async fetchGroupMemberData(groupId: GroupId, userId: string): Promise<GroupMember> {
+    private async fetchGroupMemberData(groupId: GroupId, userId: UserId): Promise<GroupMember> {
         const [userData, memberData] = await Promise.all([this.firestoreReader.getUser(userId), this.firestoreReader.getGroupMember(groupId, userId)]);
 
         if (!userData) {
@@ -115,7 +115,7 @@ export class SettlementService {
      */
     async listSettlements(
         groupId: GroupId,
-        userId: string,
+        userId: UserId,
         options: {
             limit?: number;
             cursor?: string;
@@ -135,7 +135,7 @@ export class SettlementService {
 
     private async _listSettlements(
         groupId: GroupId,
-        userId: string,
+        userId: UserId,
         options: {
             limit?: number;
             cursor?: string;
@@ -172,11 +172,11 @@ export class SettlementService {
     /**
      * Create a new settlement
      */
-    async createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<SettlementDTO> {
+    async createSettlement(settlementData: CreateSettlementRequest, userId: UserId): Promise<SettlementDTO> {
         return measure.measureDb('SettlementService.createSettlement', async () => this._createSettlement(settlementData, userId));
     }
 
-    private async _createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<SettlementDTO> {
+    private async _createSettlement(settlementData: CreateSettlementRequest, userId: UserId): Promise<SettlementDTO> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ groupId: settlementData.groupId });
@@ -314,11 +314,11 @@ export class SettlementService {
     /**
      * Update an existing settlement
      */
-    async updateSettlement(settlementId: SettlementId, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementWithMembers> {
+    async updateSettlement(settlementId: SettlementId, updateData: UpdateSettlementRequest, userId: UserId): Promise<SettlementWithMembers> {
         return measure.measureDb('SettlementService.updateSettlement', async () => this._updateSettlement(settlementId, updateData, userId));
     }
 
-    private async _updateSettlement(settlementId: SettlementId, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementWithMembers> {
+    private async _updateSettlement(settlementId: SettlementId, updateData: UpdateSettlementRequest, userId: UserId): Promise<SettlementWithMembers> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ settlementId });
@@ -502,11 +502,11 @@ export class SettlementService {
      * @throws {ApiError} INSUFFICIENT_PERMISSIONS if user lacks permission to delete
      * @throws {ApiError} CONFLICT if concurrent update detected
      */
-    async softDeleteSettlement(settlementId: SettlementId, userId: string): Promise<void> {
+    async softDeleteSettlement(settlementId: SettlementId, userId: UserId): Promise<void> {
         return measure.measureDb('SettlementService.softDeleteSettlement', async () => this._softDeleteSettlement(settlementId, userId));
     }
 
-    private async _softDeleteSettlement(settlementId: SettlementId, userId: string): Promise<void> {
+    private async _softDeleteSettlement(settlementId: SettlementId, userId: UserId): Promise<void> {
         const timer = new PerformanceTimer();
 
         LoggerContext.setBusinessContext({ settlementId });

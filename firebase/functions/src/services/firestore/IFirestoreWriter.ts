@@ -14,8 +14,8 @@
  * - Performance monitoring with sampling
  */
 
-import type { CommentDTO, CommentTargetType, RegisteredUser, ShareLinkDTO } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
+import type {CommentDTO, CommentTargetType, ISOString, RegisteredUser, ShareLinkDTO, UserId} from '@splitifyd/shared';
+import { GroupId, DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, ITransaction, IWriteBatch } from '../../firestore-wrapper';
@@ -44,7 +44,7 @@ export interface IFirestoreWriter {
      * @param userData - The user data to write (DTO with ISO strings, excluding uid/emailVerified which are not stored in Firestore)
      * @returns Write result with document ID
      */
-    createUser(userId: string, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'>): Promise<WriteResult>;
+    createUser(userId: UserId, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'>): Promise<WriteResult>;
 
     /**
      * Update an existing user document
@@ -52,7 +52,7 @@ export interface IFirestoreWriter {
      * @param updates - Partial user data to update (DTO with ISO strings)
      * @returns Write result
      */
-    updateUser(userId: string, updates: Partial<Omit<RegisteredUser, 'id' | 'photoURL'>>): Promise<WriteResult>;
+    updateUser(userId: UserId, updates: Partial<Omit<RegisteredUser, 'id' | 'photoURL'>>): Promise<WriteResult>;
 
     // ========================================================================
     // Group Write Operations
@@ -75,7 +75,7 @@ export interface IFirestoreWriter {
      * @throws ApiError with code 'GROUP_NOT_FOUND' if group doesn't exist
      * @throws ApiError with code 'DISPLAY_NAME_TAKEN' if name is already in use by another member
      */
-    updateGroupMemberDisplayName(groupId: GroupId, userId: string, newDisplayName: string): Promise<void>;
+    updateGroupMemberDisplayName(groupId: GroupId, userId: UserId, newDisplayName: DisplayName): Promise<void>;
 
     // ========================================================================
     // Expense Write Operations
@@ -116,7 +116,7 @@ export interface IFirestoreWriter {
      * @param cutoffIso - Expiration cutoff timestamp (ISO 8601)
      * @returns Number of deleted share links
      */
-    deleteExpiredShareLinksInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: string): Promise<number>;
+    deleteExpiredShareLinksInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: ISOString): Promise<number>;
 
     // ========================================================================
     // Policy Operations
@@ -174,17 +174,17 @@ export interface IFirestoreWriter {
     /**
      * Create an activity feed document within a user-scoped subcollection during a transaction.
      */
-    createActivityFeedItemInTransaction(transaction: ITransaction, userId: string, documentId: string | null, data: Record<string, any>): IDocumentReference;
+    createActivityFeedItemInTransaction(transaction: ITransaction, userId: UserId, documentId: string | null, data: Record<string, any>): IDocumentReference;
 
     /**
      * Fetch recent activity feed snapshots for a user within a transaction.
      */
-    getActivityFeedItemsForUserInTransaction(transaction: ITransaction, userId: string, limit: number): Promise<IDocumentSnapshot[]>;
+    getActivityFeedItemsForUserInTransaction(transaction: ITransaction, userId: UserId, limit: number): Promise<IDocumentSnapshot[]>;
 
     /**
      * Delete an activity feed document within a transaction.
      */
-    deleteActivityFeedItemInTransaction(transaction: ITransaction, userId: string, documentId: string): void;
+    deleteActivityFeedItemInTransaction(transaction: ITransaction, userId: UserId, documentId: string): void;
 
     // ========================================================================
     // Utility Operations
@@ -298,5 +298,5 @@ export interface IFirestoreWriter {
      * @param userId - The user ID to remove from notifications
      * @returns Batch write result
      */
-    leaveGroupAtomic(groupId: GroupId, userId: string): Promise<BatchWriteResult>;
+    leaveGroupAtomic(groupId: GroupId, userId: UserId): Promise<BatchWriteResult>;
 }

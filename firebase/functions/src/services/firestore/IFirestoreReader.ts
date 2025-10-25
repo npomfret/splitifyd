@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus } from '@splitifyd/shared';
+import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, UserId } from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
@@ -41,7 +41,7 @@ interface FilterOptions {
         start?: ISOString;
         end?: ISOString;
     };
-    filterUserId?: string; // For filtering by user involvement (e.g., payer OR payee in settlements)
+    filterUserId?: UserId; // For filtering by user involvement (e.g., payer OR payee in settlements)
 }
 
 export interface QueryOptions extends PaginationOptions, FilterOptions {
@@ -89,7 +89,7 @@ export interface IFirestoreReader {
      * @param userId - The user ID
      * @returns User document or null if not found
      */
-    getUser(userId: string): Promise<RegisteredUser | null>;
+    getUser(userId: UserId): Promise<RegisteredUser | null>;
 
     /**
      * Get a group document by ID
@@ -136,7 +136,7 @@ export interface IFirestoreReader {
      * @param options - Query options for pagination and filtering
      * @returns Paginated result containing group DTOs, hasMore flag, and nextCursor
      */
-    getGroupsForUserV2(userId: string, options?: GetGroupsForUserOptions): Promise<PaginatedResult<GroupDTO[]>>;
+    getGroupsForUserV2(userId: UserId, options?: GetGroupsForUserOptions): Promise<PaginatedResult<GroupDTO[]>>;
 
     /**
      * Get a single member from a group
@@ -144,7 +144,7 @@ export interface IFirestoreReader {
      * @param userId - The user ID to find
      * @returns Group membership DTO or null if not found
      */
-    getGroupMember(groupId: GroupId, userId: string): Promise<GroupMembershipDTO | null>;
+    getGroupMember(groupId: GroupId, userId: UserId): Promise<GroupMembershipDTO | null>;
 
     /**
      * Get all members for a group (simplified method)
@@ -153,14 +153,14 @@ export interface IFirestoreReader {
      */
     getAllGroupMembers(groupId: GroupId): Promise<GroupMembershipDTO[]>;
 
-    getAllGroupMemberIds(groupId: GroupId): Promise<string[]>;
+    getAllGroupMemberIds(groupId: GroupId): Promise<UserId[]>;
 
     // ========================================================================
     // Activity Feed Operations
     // ========================================================================
 
     getActivityFeedForUser(
-        userId: string,
+        userId: UserId,
         options?: {
             limit?: number;
             cursor?: string;
@@ -338,7 +338,7 @@ export interface IFirestoreReader {
      * @param userId - The user ID
      * @returns True if user is a member, false otherwise
      */
-    verifyGroupMembership(groupId: GroupId, userId: string): Promise<boolean>;
+    verifyGroupMembership(groupId: GroupId, userId: UserId): Promise<boolean>;
 
     // ========================================================================
     // Subcollection Operations

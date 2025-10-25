@@ -1,4 +1,5 @@
 import { PolicyAcceptanceStatusDTO, PolicyId, UserPolicyStatusResponse, VersionHash } from '@splitifyd/shared';
+import type { UserId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
@@ -42,11 +43,11 @@ export class UserPolicyService {
     /**
      * Accept multiple policy versions for a user
      */
-    async acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: PolicyId; versionHash: VersionHash; acceptedAt: string; }>> {
+    async acceptMultiplePolicies(userId: UserId, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: PolicyId; versionHash: VersionHash; acceptedAt: string; }>> {
         return measureDb('UserPolicyService.acceptMultiplePolicies', async () => this._acceptMultiplePolicies(userId, acceptances));
     }
 
-    private async _acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: PolicyId; versionHash: VersionHash; acceptedAt: string; }>> {
+    private async _acceptMultiplePolicies(userId: UserId, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: PolicyId; versionHash: VersionHash; acceptedAt: string; }>> {
         LoggerContext.update({ userId, operation: 'accept-multiple-policies', count: acceptances.length });
 
         try {
@@ -99,7 +100,7 @@ export class UserPolicyService {
     /**
      * Get user's policy acceptance status
      */
-    async getUserPolicyStatus(userId: string): Promise<UserPolicyStatusResponse> {
+    async getUserPolicyStatus(userId: UserId): Promise<UserPolicyStatusResponse> {
         try {
             // Get all policies
             const allPolicies = await this.firestoreReader.getAllPolicies();

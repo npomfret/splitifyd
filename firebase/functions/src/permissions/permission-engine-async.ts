@@ -1,16 +1,17 @@
 import { ExpenseDTO, GroupDTO, GroupPermissions, MemberRoles, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
 import { GroupMembership } from '@splitifyd/shared';
+import type { UserId } from '@splitifyd/shared';
 
 interface PermissionCheckOptions {
     expense?: ExpenseDTO;
-    targetUserId?: string;
+    targetUserId?: UserId;
 }
 
 export class PermissionEngineAsync {
     /**
      * Check if a user has permission to perform an action in a group (async version)
      */
-    static checkPermission(member: GroupMembership | null, group: GroupDTO, userId: string, action: keyof GroupPermissions | 'viewGroup', options: PermissionCheckOptions = {}): boolean {
+    static checkPermission(member: GroupMembership | null, group: GroupDTO, userId: UserId, action: keyof GroupPermissions | 'viewGroup', options: PermissionCheckOptions = {}): boolean {
         if (!group.permissions) {
             throw new Error(`Group ${group.id} is missing permissions configuration`);
         }

@@ -10,7 +10,7 @@
  */
 
 // Import types
-import type { CommentDTO, RegisteredUser, ShareLinkDTO } from '@splitifyd/shared';
+import type {CommentDTO, ISOString, RegisteredUser, ShareLinkDTO, UserId} from '@splitifyd/shared';
 import { type CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../../constants';
@@ -585,7 +585,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // User Write Operations
     // ========================================================================
 
-    async createUser(userId: string, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'>): Promise<WriteResult> {
+    async createUser(userId: UserId, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createUser', async () => {
             try {
                 // Remove undefined values (Firestore doesn't accept them)
@@ -630,7 +630,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async updateUser(userId: string, updates: Partial<Omit<RegisteredUser, 'id' | 'photoURL'>>): Promise<WriteResult> {
+    async updateUser(userId: UserId, updates: Partial<Omit<RegisteredUser, 'id' | 'photoURL'>>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateUser', async () => {
             try {
                 // LENIENT: Convert ISO strings to Timestamps in the updates
@@ -684,7 +684,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         }
     }
 
-    async updateGroupMemberDisplayName(groupId: GroupId, userId: string, newDisplayName: string): Promise<void> {
+    async updateGroupMemberDisplayName(groupId: GroupId, userId: UserId, newDisplayName: DisplayName): Promise<void> {
         return measureDb('FirestoreWriter.updateGroupMemberDisplayName', async () => {
             // Validate display name before transaction
             if (!newDisplayName || newDisplayName.trim().length === 0) {
@@ -926,7 +926,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         transaction.update(docRef, finalUpdates);
     }
 
-    createActivityFeedItemInTransaction(transaction: ITransaction, userId: string, documentId: string | null, data: Record<string, any>) {
+    createActivityFeedItemInTransaction(transaction: ITransaction, userId: UserId, documentId: string | null, data: Record<string, any>) {
         const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
         const docRef = documentId ? collectionRef.doc(documentId) : collectionRef.doc();
 
@@ -949,14 +949,14 @@ export class FirestoreWriter implements IFirestoreWriter {
         return docRef;
     }
 
-    async getActivityFeedItemsForUserInTransaction(transaction: ITransaction, userId: string, limit: number) {
+    async getActivityFeedItemsForUserInTransaction(transaction: ITransaction, userId: UserId, limit: number) {
         const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
         const query = collectionRef.orderBy('createdAt', 'desc').limit(limit);
         const snapshot = await transaction.get(query);
         return snapshot.docs;
     }
 
-    deleteActivityFeedItemInTransaction(transaction: ITransaction, userId: string, documentId: string) {
+    deleteActivityFeedItemInTransaction(transaction: ITransaction, userId: UserId, documentId: string) {
         const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
         const docRef = collectionRef.doc(documentId);
         transaction.delete(docRef);
@@ -1020,7 +1020,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         return shareLinkRef;
     }
 
-    async deleteExpiredShareLinksInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: string): Promise<number> {
+    async deleteExpiredShareLinksInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: ISOString): Promise<number> {
         const shareLinksCollection = this
             .db
             .collection(FirestoreCollections.GROUPS)
@@ -1322,7 +1322,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         return this.db.collection(collection).doc(documentId);
     }
 
-    async leaveGroupAtomic(groupId: GroupId, userId: string): Promise<BatchWriteResult> {
+    async leaveGroupAtomic(groupId: GroupId, userId: UserId): Promise<BatchWriteResult> {
         return measureDb('FirestoreWriter.leaveGroupAtomic', async () => {
             try {
                 const membershipDocId = await this.db.runTransaction(async (transaction) => {

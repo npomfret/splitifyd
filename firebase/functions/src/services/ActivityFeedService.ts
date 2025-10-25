@@ -31,7 +31,7 @@ export class ActivityFeedService {
      */
     recordActivityForUsers(
         transaction: ITransaction,
-        userIds: string[],
+        userIds: UserId[],
         item: CreateActivityItemInput,
     ): void {
         if (userIds.length === 0) {
@@ -56,7 +56,7 @@ export class ActivityFeedService {
     }
 
     async getActivityFeedForUser(
-        userId: string,
+        userId: UserId,
         options?: {
             limit?: number;
             cursor?: string;
@@ -84,7 +84,7 @@ export class ActivityFeedService {
      * Async cleanup of old activity feed items (fire-and-forget)
      * Keeps the last CLEANUP_KEEP_COUNT items, deletes older ones
      */
-    private async cleanupOldActivityItems(userId: string): Promise<void> {
+    private async cleanupOldActivityItems(userId: UserId): Promise<void> {
         const items = await this.firestoreWriter.getActivityFeedItemsForUser(userId, CLEANUP_KEEP_COUNT + 10);
 
         if (items.length > CLEANUP_KEEP_COUNT) {
