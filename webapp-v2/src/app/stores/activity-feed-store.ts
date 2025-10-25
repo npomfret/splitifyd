@@ -1,45 +1,14 @@
 import { logError, logWarning } from '@/utils/browser-logger.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
-import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
-import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedResponse } from '@splitifyd/shared';
-import { documentId, Timestamp } from 'firebase/firestore';
+import type { ActivityFeedItem, ActivityFeedResponse } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
-import type { FirebaseService } from '../firebase';
+import { FirebaseActivityFeedGateway, type ActivityFeedGateway, type ActivityFeedRealtimeUpdate } from '../gateways/activity-feed-gateway';
+import { normalizeActivityFeedItem } from '../utils/activity-feed-utils';
 import { getFirebaseService } from '../firebase';
 
 const ACTIVITY_FEED_PAGE_SIZE = 10;
 
 type ActivityFeedEventListener = (event: ActivityFeedItem) => void;
-
-const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
-    [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
-    [ActivityFeedEventTypes.EXPENSE_UPDATED]: ActivityFeedActions.UPDATE,
-    [ActivityFeedEventTypes.EXPENSE_DELETED]: ActivityFeedActions.DELETE,
-    [ActivityFeedEventTypes.SETTLEMENT_CREATED]: ActivityFeedActions.CREATE,
-    [ActivityFeedEventTypes.SETTLEMENT_UPDATED]: ActivityFeedActions.UPDATE,
-    [ActivityFeedEventTypes.MEMBER_JOINED]: ActivityFeedActions.JOIN,
-    [ActivityFeedEventTypes.MEMBER_LEFT]: ActivityFeedActions.LEAVE,
-    [ActivityFeedEventTypes.COMMENT_ADDED]: ActivityFeedActions.COMMENT,
-    [ActivityFeedEventTypes.GROUP_UPDATED]: ActivityFeedActions.UPDATE,
-};
-
-function deriveAction(eventType: string | undefined, fallback: ActivityFeedAction = ActivityFeedActions.UPDATE): ActivityFeedAction {
-    if (eventType && eventType in EVENT_ACTION_MAP) {
-        return EVENT_ACTION_MAP[eventType as ActivityFeedEventType];
-    }
-    return fallback;
-}
-
-function normalizeItem(item: ActivityFeedItem): ActivityFeedItem {
-    if (item.action) {
-        return item;
-    }
-
-    return {
-        ...item,
-        action: deriveAction(item.eventType as ActivityFeedEventType),
-    };
-}
 
 export interface ActivityFeedStore {
     readonly items: ActivityFeedItem[];
@@ -78,7 +47,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     readonly #hasMoreSignal = signal<boolean>(false);
     readonly #loadingMoreSignal = signal<boolean>(false);
 
-    private readonly firebaseService: FirebaseService;
+    private readonly gateway: ActivityFeedGateway;
     private readonly componentSubscribers = new Map<string, string>();
     private readonly listeners = new Map<string, ListenerEntry>();
     private currentUserId: string | null = null;
@@ -87,8 +56,8 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     private nextCursor: string | null = null;
     private seenItemIds = new Set<string>();
 
-    constructor(firebaseService: FirebaseService) {
-        this.firebaseService = firebaseService;
+    constructor(activityFeedGateway: ActivityFeedGateway) {
+        this.gateway = activityFeedGateway;
     }
 
     get items() {
@@ -242,7 +211,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     }
 
     private async initialize(userId: string): Promise<void> {
-        await this.firebaseService.connect();
+        await this.gateway.connect();
         await this.fetchInitialFeed(true);
         this.setupRealtimeListener(userId);
     }
@@ -267,7 +236,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     }
 
     private applyInitialResponse(response: ActivityFeedResponse, markInitialized: boolean): void {
-        const items = (response.items ?? []).map(normalizeItem);
+        const items = (response.items ?? []).map(normalizeActivityFeedItem);
 
         this.#itemsSignal.value = items;
         this.#hasMoreSignal.value = Boolean(response.hasMore);
@@ -283,7 +252,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         const existing = this.#itemsSignal.value;
         const existingIds = new Set(existing.map((item) => item.id));
         const mergedItems = [...existing];
-        const newItems = (response.items ?? []).map(normalizeItem);
+        const newItems = (response.items ?? []).map(normalizeActivityFeedItem);
 
         for (const item of newItems) {
             if (!existingIds.has(item.id)) {
@@ -303,40 +272,24 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     private setupRealtimeListener(userId: string): void {
         this.teardownRealtime();
 
-        this.realtimeUnsubscribe = this.firebaseService.onCollectionSnapshot(
-            ['activity-feed', userId, 'items'],
-            {
-                orderBy: [
-                    { field: 'createdAt', direction: 'desc' },
-                    { field: documentId(), direction: 'desc' },
-                ],
-                limit: ACTIVITY_FEED_PAGE_SIZE + 1,
-            },
-            (snapshot: any) => this.handleRealtimeSnapshot(snapshot),
+        this.realtimeUnsubscribe = this.gateway.subscribeToFeed(
+            userId,
+            ACTIVITY_FEED_PAGE_SIZE,
+            (update) => this.handleRealtimeUpdate(update),
             (error) => this.handleRealtimeError(error),
         );
     }
 
-    private handleRealtimeSnapshot(snapshot: any): void {
-        const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
-        const parsed: ActivityFeedItem[] = [];
-
-        for (const docSnapshot of docs) {
-            const item = this.convertDocSnapshot(docSnapshot);
-            if (item) {
-                parsed.push(item);
-            }
-        }
-
-        const hasMore = parsed.length > ACTIVITY_FEED_PAGE_SIZE;
-        const trimmed = hasMore ? parsed.slice(0, ACTIVITY_FEED_PAGE_SIZE) : parsed;
+    private handleRealtimeUpdate(update: ActivityFeedRealtimeUpdate): void {
+        const { items, hasMore, nextCursor } = update;
+        const normalizedItems = items.map(normalizeActivityFeedItem);
 
         const previousItems = this.#itemsSignal.value;
         const previousIds = new Set(previousItems.map((item) => item.id));
-        const trimmedIds = new Set(trimmed.map((item) => item.id));
-        const newItems = trimmed.filter((item) => !previousIds.has(item.id));
+        const trimmedIds = new Set(normalizedItems.map((item) => item.id));
+        const newItems = normalizedItems.filter((item) => !previousIds.has(item.id));
 
-        const mergedItems: ActivityFeedItem[] = [...trimmed];
+        const mergedItems: ActivityFeedItem[] = [...normalizedItems];
 
         for (const item of previousItems) {
             if (!trimmedIds.has(item.id)) {
@@ -344,15 +297,20 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
             }
         }
 
-        const listChanged = hasMore !== this.#hasMoreSignal.value
-            || mergedItems.length !== previousItems.length
+        const listChanged = mergedItems.length !== previousItems.length
             || mergedItems.some((item, index) => previousItems[index]?.id !== item.id);
 
         if (listChanged) {
             this.#itemsSignal.value = mergedItems;
-            this.#hasMoreSignal.value = hasMore;
-            this.nextCursor = hasMore && trimmed.length > 0 ? trimmed[trimmed.length - 1]!.id : null;
         }
+
+        if (hasMore !== this.#hasMoreSignal.value) {
+            this.#hasMoreSignal.value = hasMore;
+        }
+
+        this.nextCursor = hasMore
+            ? nextCursor ?? (normalizedItems.length > 0 ? normalizedItems[normalizedItems.length - 1]!.id : null)
+            : null;
 
         if (!this.#initializedSignal.value) {
             this.#initializedSignal.value = true;
@@ -369,58 +327,6 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     private handleRealtimeError(error: Error): void {
         logError('ActivityFeedStore: realtime listener error', error);
         this.#errorSignal.value = error.message || 'Failed to subscribe to activity feed';
-    }
-
-    private convertDocSnapshot(docSnapshot: any): ActivityFeedItem | null {
-        try {
-            const data = docSnapshot?.data?.() ?? docSnapshot?.data;
-            if (!data) {
-                return null;
-            }
-
-            const timestamp = this.toISOString(data.timestamp, 'timestamp')!;
-            const createdAt = this.toISOString(data.createdAt, 'createdAt', true);
-            const action = typeof data.action === 'string' ? (data.action as ActivityFeedAction) : deriveAction(data.eventType);
-
-            const details = typeof data.details === 'object' && data.details !== null ? { ...data.details } : {};
-
-            const item: ActivityFeedItem = {
-                id: docSnapshot.id,
-                userId: data.userId,
-                groupId: data.groupId,
-                groupName: data.groupName,
-                eventType: data.eventType as ActivityFeedEventType,
-                action,
-                actorId: data.actorId,
-                actorName: data.actorName,
-                timestamp,
-                details,
-                createdAt: createdAt ?? undefined,
-            };
-
-            return item;
-        } catch (error) {
-            logError('ActivityFeedStore: failed to parse realtime document', error, {
-                docId: docSnapshot?.id,
-            });
-            return null;
-        }
-    }
-
-    private toISOString(value: unknown, field: string, optional: boolean = false): string | null {
-        if (value instanceof Timestamp) {
-            return value.toDate().toISOString();
-        }
-
-        if (typeof value === 'string') {
-            return value;
-        }
-
-        if (optional && (value === null || value === undefined)) {
-            return null;
-        }
-
-        throw new Error(`Activity feed document missing ${field}`);
     }
 
     private notifyListeners(newItems: ActivityFeedItem[]): void {
@@ -454,4 +360,5 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     }
 }
 
-export const activityFeedStore = new ActivityFeedStoreImpl(getFirebaseService());
+const defaultActivityFeedGateway = new FirebaseActivityFeedGateway(getFirebaseService());
+export const activityFeedStore = new ActivityFeedStoreImpl(defaultActivityFeedGateway);

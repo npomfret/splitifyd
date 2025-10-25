@@ -18,7 +18,8 @@ Track the outstanding correctness and maintainability issues surfaced during the
   - `/group/:id` alias removed; `/groups/:id` is the single group detail path and 404 detection updated accordingly.
 
 - [ ] **Abstract Firebase coupling in stores/services**  
-  - Several stores depend directly on Firebase service specifics. Introduce interfaces or service-layer abstractions to ease future backend swaps and improve testability (referenced in `docs/UX-report1.md`).
+  - Activity feed store now consumes a dedicated `ActivityFeedGateway`, removing direct `FirebaseService` dependencies.
+  - Next: replicate the gateway pattern for other stores that reach into Firebase primitives (see `docs/UX-report1.md`).
 
 - [ ] **Eliminate magic strings for storage and error codes**  
   - Promote keys like `USER_ID_KEY`, `recentCurrencies`, validation codes, etc., into central constants/enums to avoid drift.
