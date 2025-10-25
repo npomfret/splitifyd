@@ -6,6 +6,7 @@ export const logMetrics = onSchedule(
     {
         schedule: 'every 30 minutes',
         timeZone: 'UTC',
+        timeoutSeconds: 10,
         region: 'us-central1',
         memory: '256MiB',
         maxInstances: 1,
