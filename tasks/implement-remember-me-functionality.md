@@ -103,3 +103,17 @@ class AuthStore {
 - **Improved Convenience:** Users on trusted devices can avoid logging in repeatedly.
 - **Enhanced Security:** Users on public or shared devices can ensure their session is not persisted after they leave.
 - **Standard Feature:** Meets user expectations for a standard login flow.
+
+## Current Implementation Check (July 2024)
+
+- A checkbox labeled "Remember me" already exists in `webapp-v2/src/pages/LoginPage.tsx`, but it is uncontrolled and its value is never consumed.
+- `authStore.login` only accepts `(email, password)` and forwards the call directly to `firebase.signInWithEmailAndPassword`, so no persistence choice is respected.
+- `FirebaseService` (`webapp-v2/src/app/firebase.ts`) does not expose a way to call Firebase Auth's `setPersistence`, so adding the feature requires extending the service contract (and the associated test mocks in `webapp-v2/src/__tests__/utils/mock-firebase-service.ts`).
+
+## Implementation Plan
+
+1. Control the checkbox in `LoginPage.tsx`, store the boolean in component state, and pass it to `authStore.login`.
+2. Update `AuthStore.login` (and the `AuthActions` interface) to accept a `rememberMe: boolean` parameter, defaulting to the current behaviour when omitted.
+3. Extend `FirebaseService` with `setPersistence` that maps `rememberMe` to `browserLocalPersistence` vs `browserSessionPersistence`, and implement it in both the real service and test mocks.
+4. Inject the persistence call in `AuthStore.login` before `signInWithEmailAndPassword`.
+5. Add/refresh tests (unit or e2e) that cover both states of the checkbox to prevent regressions.
