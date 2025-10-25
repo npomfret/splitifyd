@@ -4,6 +4,14 @@ import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventTyp
 import { fireEvent, render, screen } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/services/navigation.service', () => ({
+    navigationService: {
+        goToGroup: vi.fn().mockResolvedValue(undefined),
+        goToExpenseDetail: vi.fn().mockResolvedValue(undefined),
+        navigateTo: vi.fn().mockResolvedValue(undefined),
+    },
+}));
+
 // Mock must be defined inline to avoid hoisting issues
 vi.mock('@/app/stores/activity-feed-store', async () => {
     const { signal } = await import('@preact/signals');
@@ -33,6 +41,7 @@ vi.mock('@/utils/browser-logger', () => ({
 
 // Import the mocked store after mocking
 import { activityFeedStore as mockStore } from '@/app/stores/activity-feed-store';
+import { navigationService as mockNavigationService } from '@/services/navigation.service';
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -241,6 +250,83 @@ describe('ActivityFeedCard', () => {
             render(<ActivityFeedCard userId='user-1' />);
 
             expect(screen.queryByTestId('activity-feed-empty')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('Navigation', () => {
+        it('navigates to expense detail for expense-created events', () => {
+            const item = buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED, {
+                details: { expenseId: 'expense-1', expenseDescription: 'Lunch' },
+            });
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
+
+            render(<ActivityFeedCard userId='user-1' />);
+
+            const eventButton = screen.getByRole('button', { name: 'Alice added "Lunch" in Test Group' });
+            fireEvent.click(eventButton);
+
+            expect(mockNavigationService.goToExpenseDetail).toHaveBeenCalledWith('group-1', 'expense-1');
+        });
+
+        it('navigates to expense detail when comment targets an expense', () => {
+            const item = buildItem('1', ActivityFeedEventTypes.COMMENT_ADDED, {
+                details: { expenseId: 'expense-2', expenseDescription: 'Brunch' },
+            });
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
+
+            render(<ActivityFeedCard userId='user-1' />);
+
+            const eventButton = screen.getByRole('button', { name: 'Alice commented on Brunch in Test Group' });
+            fireEvent.click(eventButton);
+
+            expect(mockNavigationService.goToExpenseDetail).toHaveBeenCalledWith('group-1', 'expense-2');
+        });
+
+        it('navigates to the settlements section for settlement events', () => {
+            const item = buildItem('1', ActivityFeedEventTypes.SETTLEMENT_CREATED, {
+                details: { settlementId: 'settlement-1', settlementDescription: 'Dinner payback' },
+            });
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
+
+            render(<ActivityFeedCard userId='user-1' />);
+
+            const eventButton = screen.getByRole('button', { name: 'Alice added "Dinner payback" in Test Group' });
+            fireEvent.click(eventButton);
+
+            expect(mockNavigationService.navigateTo).toHaveBeenCalledWith('/groups/group-1#settlements');
+        });
+
+        it('navigates to the comments section when a comment targets the group', () => {
+            const item = buildItem('1', ActivityFeedEventTypes.COMMENT_ADDED, {
+                details: { commentId: 'comment-1' },
+            });
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
+
+            render(<ActivityFeedCard userId='user-1' />);
+
+            const eventButton = screen.getByRole('button', { name: 'Alice commented on the group in Test Group' });
+            fireEvent.click(eventButton);
+
+            expect(mockNavigationService.navigateTo).toHaveBeenCalledWith('/groups/group-1#comments');
+        });
+
+        it('falls back to group detail when specific target is unavailable', () => {
+            const item = buildItem('1', ActivityFeedEventTypes.MEMBER_JOINED, {
+                details: { targetUserName: 'Bob' },
+            });
+            setSignalValue(mockStore.initializedSignal, true);
+            setSignalValue(mockStore.itemsSignal, [item]);
+
+            render(<ActivityFeedCard userId='user-1' />);
+
+            const eventButton = screen.getByRole('button', { name: 'Alice added Bob to Test Group' });
+            fireEvent.click(eventButton);
+
+            expect(mockNavigationService.goToGroup).toHaveBeenCalledWith('group-1');
         });
     });
 

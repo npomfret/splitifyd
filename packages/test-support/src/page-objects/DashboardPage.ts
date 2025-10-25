@@ -983,6 +983,20 @@ export class DashboardPage extends BasePage {
     }
 
     /**
+     * Activity feed loading more button (during pagination)
+     */
+    private getActivityFeedLoadingMoreButton(): Locator {
+        return this.getActivityFeedContainer().getByRole('button', { name: 'Loading more...' });
+    }
+
+    /**
+     * Activity feed item button by description
+     */
+    private getActivityFeedItemButton(description: string): Locator {
+        return this.getActivityFeedContainer().getByRole('button', { name: description });
+    }
+
+    /**
      * Verify activity feed is visible
      */
     async verifyActivityFeedVisible(): Promise<void> {
@@ -1026,6 +1040,14 @@ export class DashboardPage extends BasePage {
      */
     async verifyActivityFeedContainsPreview(preview: string): Promise<void> {
         await expect(this.getActivityFeedContainer().getByText(preview, { exact: true })).toBeVisible();
+    }
+
+    /**
+     * Click an activity feed item by its description
+     */
+    async clickActivityFeedItem(description: string): Promise<void> {
+        const button = this.getActivityFeedItemButton(description);
+        await this.clickButton(button, { buttonName: `Activity Feed Item: ${description}` });
     }
 
     /**

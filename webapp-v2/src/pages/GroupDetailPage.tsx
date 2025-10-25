@@ -44,6 +44,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const showDeletedExpenses = useComputed(() => enhancedGroupDetailStore.showDeletedExpenses);
     const showDeletedSettlements = useComputed(() => enhancedGroupDetailStore.showDeletedSettlements);
 
+    const locationHash = typeof window !== 'undefined' ? window.location.hash : '';
+    const expandSettlementSection = locationHash === '#settlements';
+    const expandCommentsSection = locationHash === '#comments';
+
     // Auth store via hook
     const authStore = useAuthRequired();
     const currentUser = useComputed(() => authStore.user);
@@ -367,6 +371,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Settlement History Section */}
                         <SidebarCard
+                            id='settlements'
                             title={
                                 <div className='flex items-center gap-2'>
                                     <BanknotesIcon className='h-5 w-5 text-gray-600' aria-hidden='true' />
@@ -374,7 +379,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                                 </div>
                             }
                             collapsible
-                            defaultCollapsed
+                            defaultCollapsed={!expandSettlementSection}
                             collapseToggleTestId='toggle-settlements-section'
                             collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.paymentHistory') })}
                         >
@@ -394,6 +399,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Comments Section */}
                         <SidebarCard
+                            id='comments'
                             title={
                                 <div className='flex items-center gap-2'>
                                     <ChatBubbleLeftIcon className='h-5 w-5 text-gray-600' aria-hidden='true' />
@@ -402,7 +408,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             }
                             className='flex-1'
                             collapsible
-                            defaultCollapsed
+                            defaultCollapsed={!expandCommentsSection}
                             collapseToggleTestId='toggle-comments-section'
                             collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.comments') })}
                         >

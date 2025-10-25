@@ -196,21 +196,6 @@ export interface IFirestoreWriter {
      */
     deleteActivityFeedItem(userId: UserId, documentId: string): Promise<void>;
 
-    /**
-     * Get activity feed items for a user (non-transaction version for async cleanup)
-     * @param userId - The user ID
-     * @param limit - Maximum number of items to retrieve
-     * @returns Array of activity feed items with at least an id field
-     */
-    getActivityFeedItemsForUser(userId: string, limit: number): Promise<Array<{ id: string; }>>;
-
-    /**
-     * Delete an activity feed item (non-transaction version for async cleanup)
-     * @param userId - The user ID
-     * @param documentId - The document ID to delete
-     */
-    deleteActivityFeedItem(userId: string, documentId: string): Promise<void>;
-
     // ========================================================================
     // Utility Operations
     // ========================================================================

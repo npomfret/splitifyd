@@ -1,7 +1,29 @@
-import { ActivityFeedItemDTOBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
+import {
+    ActivityFeedItemDTOBuilder,
+    CommentBuilder,
+    DashboardPage,
+    ExpenseDTOBuilder,
+    ExpenseDetailPage,
+    ExpenseFullDetailsBuilder,
+    GroupBalancesBuilder,
+    GroupDetailPage,
+    GroupDTOBuilder,
+    GroupFullDetailsBuilder,
+    GroupMemberBuilder,
+    ListGroupsResponseBuilder,
+    SettlementWithMembersBuilder,
+    ThemeBuilder,
+} from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
-import { test } from '../../utils/console-logging-fixture';
-import { mockActivityFeedApi, mockGroupsApi } from '../../utils/mock-firebase-service';
+import { expect, test } from '../../utils/console-logging-fixture';
+import {
+    mockActivityFeedApi,
+    mockExpenseCommentsApi,
+    mockExpenseDetailApi,
+    mockGroupCommentsApi,
+    mockGroupDetailApi,
+    mockGroupsApi,
+} from '../../utils/mock-firebase-service';
 
 // ============================================================================
 // Dashboard Activity Feed Browser Unit Tests
@@ -276,5 +298,228 @@ test.describe('Activity Feed - Pagination', () => {
         await page.goto('/dashboard');
 
         await dashboardPage.verifyActivityFeedLoadMoreHidden();
+    });
+});
+
+test.describe('Activity Feed - Navigation', () => {
+    test('should navigate to expense detail when clicking expense activity item', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const dashboardPage = new DashboardPage(page);
+        const expenseDetailPage = new ExpenseDetailPage(page);
+
+        const groupId = 'group-nav-expense';
+        const groupName = 'Navigation Group';
+        const actorName = 'Alice';
+        const activityId = 'nav-expense-item';
+        const expenseDescription = 'Team Lunch';
+        const currentUserName = user.displayName ?? 'Current User';
+
+        const group = GroupDTOBuilder.groupForUser(user.uid).withId(groupId).withName(groupName).build();
+
+        const activityItem = ActivityFeedItemDTOBuilder.expenseCreated(activityId, user.uid, groupId, groupName, actorName, expenseDescription).build();
+        const expenseId = activityItem.details?.expenseId!;
+
+        const actorMember = new GroupMemberBuilder()
+            .withUid(activityItem.actorId)
+            .withDisplayName(actorName)
+            .withGroupDisplayName(actorName)
+            .withTheme(ThemeBuilder.red().build())
+            .build();
+
+        const currentUserMember = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(currentUserName)
+            .withGroupDisplayName(currentUserName)
+            .withTheme(ThemeBuilder.blue().build())
+            .build();
+
+        const expense = new ExpenseDTOBuilder()
+            .withId(expenseId)
+            .withGroupId(groupId)
+            .withDescription(expenseDescription)
+            .withAmount(48.75, 'USD')
+            .withPaidBy(actorMember.uid)
+            .withCreatedBy(actorMember.uid)
+            .withParticipants([actorMember.uid, currentUserMember.uid])
+            .build();
+
+        const fullDetails = new ExpenseFullDetailsBuilder()
+            .withExpense(expense)
+            .withGroup(group)
+            .withMembers([actorMember, currentUserMember])
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        await mockActivityFeedApi(page, [activityItem]);
+        await mockExpenseDetailApi(page, expenseId, fullDetails);
+        await mockExpenseCommentsApi(page, expenseId, []);
+
+        await page.goto('/dashboard');
+
+        const expectedDescription = translationEn.activityFeed.events['expense-created']
+            .replace('{{actor}}', actorName)
+            .replace('{{expense}}', `"${expenseDescription}"`)
+            .replace('{{group}}', groupName);
+
+        await dashboardPage.verifyActivityFeedContainsText(expectedDescription);
+        await dashboardPage.clickActivityFeedItem(expectedDescription);
+
+        await expect(page).toHaveURL(`/groups/${groupId}/expenses/${expenseId}`);
+        await expenseDetailPage.waitForExpenseDescription(expenseDescription);
+    });
+
+    test('should navigate to group comments when clicking comment activity without expense target', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const dashboardPage = new DashboardPage(page);
+        const groupDetailPage = new GroupDetailPage(page);
+
+        const groupId = 'group-nav-comments';
+        const groupName = 'Navigation Comments Group';
+        const actorName = 'Priya';
+        const activityId = 'nav-comment-item';
+        const commentPreview = 'Excited for this trip!';
+        const currentUserName = user.displayName ?? 'Current User';
+
+        const group = GroupDTOBuilder.groupForUser(user.uid).withId(groupId).withName(groupName).build();
+
+        const activityItem = ActivityFeedItemDTOBuilder.commentAdded(activityId, user.uid, groupId, groupName, actorName, commentPreview).build();
+
+        const currentUserMember = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(currentUserName)
+            .withGroupDisplayName(currentUserName)
+            .withTheme(ThemeBuilder.blue().build())
+            .build();
+
+        const actorMember = new GroupMemberBuilder()
+            .withUid(activityItem.actorId)
+            .withDisplayName(actorName)
+            .withGroupDisplayName(actorName)
+            .withTheme(ThemeBuilder.red().build())
+            .build();
+
+        const balances = new GroupBalancesBuilder()
+            .withGroupId(groupId)
+            .withNoDebts(
+                { uid: currentUserMember.uid, displayName: currentUserMember.displayName! },
+                { uid: actorMember.uid, displayName: actorMember.displayName! },
+            )
+            .build();
+
+        const comment = new CommentBuilder()
+            .withId(activityItem.details?.commentId ?? 'comment-nav')
+            .withAuthor(actorMember.uid, actorName)
+            .withText(commentPreview)
+            .build();
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers([currentUserMember, actorMember])
+            .withBalances(balances)
+            .withExpenses([], false)
+            .withSettlements([], false)
+            .withComments({ comments: [comment], hasMore: false })
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        await mockActivityFeedApi(page, [activityItem]);
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId, [comment]);
+
+        await page.goto('/dashboard');
+
+        const commentTarget = translationEn.activityFeed.labels.commentOnGroup;
+        const expectedDescription = translationEn.activityFeed.events['comment-added']
+            .replace('{{actor}}', actorName)
+            .replace('{{target}}', commentTarget)
+            .replace('{{group}}', groupName);
+
+        await dashboardPage.verifyActivityFeedContainsText(expectedDescription);
+        await dashboardPage.clickActivityFeedItem(expectedDescription);
+
+        await expect(page).toHaveURL(`/groups/${groupId}#comments`);
+        await groupDetailPage.waitForGroupToLoad();
+        await groupDetailPage.ensureCommentsSectionExpanded();
+        await expect(page.getByText(commentPreview)).toBeVisible();
+    });
+
+    test('should navigate to settlements section when clicking settlement activity item', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const dashboardPage = new DashboardPage(page);
+        const groupDetailPage = new GroupDetailPage(page);
+
+        const groupId = 'group-nav-settlements';
+        const groupName = 'Navigation Settlements Group';
+        const actorName = 'Miguel';
+        const activityId = 'nav-settlement-item';
+        const settlementDescription = 'Repaid dinner tab';
+        const currentUserName = user.displayName ?? 'Current User';
+
+        const group = GroupDTOBuilder.groupForUser(user.uid).withId(groupId).withName(groupName).build();
+
+        const activityItem = ActivityFeedItemDTOBuilder
+            .settlementCreated(activityId, user.uid, groupId, groupName, actorName, settlementDescription)
+            .build();
+
+        const settlementId = activityItem.details?.settlementId!;
+
+        const currentUserMember = new GroupMemberBuilder()
+            .withUid(user.uid)
+            .withDisplayName(currentUserName)
+            .withGroupDisplayName(currentUserName)
+            .withTheme(ThemeBuilder.blue().build())
+            .build();
+
+        const actorMember = new GroupMemberBuilder()
+            .withUid(activityItem.actorId)
+            .withDisplayName(actorName)
+            .withGroupDisplayName(actorName)
+            .withTheme(ThemeBuilder.red().build())
+            .build();
+
+        const balances = new GroupBalancesBuilder()
+            .withGroupId(groupId)
+            .withNoDebts(
+                { uid: currentUserMember.uid, displayName: currentUserMember.displayName! },
+                { uid: actorMember.uid, displayName: actorMember.displayName! },
+            )
+            .build();
+
+        const settlement = new SettlementWithMembersBuilder()
+            .withId(settlementId)
+            .withGroupId(groupId)
+            .withPayer(actorMember)
+            .withPayee(currentUserMember)
+            .withAmount(120, 'USD')
+            .withNote(settlementDescription)
+            .build();
+
+        const fullDetails = new GroupFullDetailsBuilder()
+            .withGroup(group)
+            .withMembers([currentUserMember, actorMember])
+            .withBalances(balances)
+            .withExpenses([], false)
+            .withSettlements([settlement], false)
+            .build();
+
+        await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
+        await mockActivityFeedApi(page, [activityItem]);
+        await mockGroupDetailApi(page, groupId, fullDetails);
+        await mockGroupCommentsApi(page, groupId);
+
+        await page.goto('/dashboard');
+
+        const expectedDescription = translationEn.activityFeed.events['settlement-created']
+            .replace('{{actor}}', actorName)
+            .replace('{{settlement}}', `"${settlementDescription}"`)
+            .replace('{{group}}', groupName);
+
+        await dashboardPage.verifyActivityFeedContainsText(expectedDescription);
+        await dashboardPage.clickActivityFeedItem(expectedDescription);
+
+        await expect(page).toHaveURL(`/groups/${groupId}#settlements`);
+        await groupDetailPage.waitForGroupToLoad();
+        await groupDetailPage.ensureSettlementsSectionExpanded();
+        await expect(page.getByText(settlementDescription)).toBeVisible();
     });
 });
