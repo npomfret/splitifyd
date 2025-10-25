@@ -330,6 +330,14 @@ Dynamic favicon:
 </script>
 ```
 
+#### Palette Validation (shared infra)
+
+- Branding updates must provide both light and dark primary values (and optional accent colours). Normalise to uppercase hex without alpha before storing.
+- Validate contrast ratios server-side using a colour utility (e.g., `culori` or `tinycolor2`); require ≥4.5:1 against both `#ffffff` and `#111827` backgrounds to mirror existing theme assumptions.
+- Persist computed metadata (`contrastWithLight`, `contrastWithDark`, `relativeLuminance`) alongside the raw colours so the client can trust the payload without recomputing.
+- Reject invalid submissions with a descriptive error and fall back to the showroom tenant palette; log decisions for auditing.
+- Client still guards against missing/undefined branding by defaulting to the fallback tenant config before applying CSS variables.
+
 #### Phase 5: Feature Flags & Conditional Routing (Week 6)
 
 **New File: `webapp-v2/src/utils/feature-flags.ts`**
