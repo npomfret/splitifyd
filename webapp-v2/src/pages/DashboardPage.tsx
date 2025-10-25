@@ -8,7 +8,6 @@ import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
 import { ActivityFeedCard } from '../components/dashboard/ActivityFeedCard';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { GroupsList } from '../components/dashboard/GroupsList';
-import { QuickActionsCard } from '../components/dashboard/QuickActionsCard';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { DashboardGrid } from '../components/layout/DashboardGrid';
 
@@ -84,9 +83,8 @@ export function DashboardPage() {
             <DashboardGrid
                 mainContent={
                     <>
-                        {/* Quick Actions & Activity Feed - Show at top on mobile, hide on large screens */}
-                        <div class='lg:hidden mb-6 space-y-6'>
-                            <QuickActionsCard onCreateGroup={() => setIsCreateModalOpen(true)} />
+                        {/* Activity Feed - Show at top on mobile, hide on large screens */}
+                        <div class='lg:hidden mb-6'>
                             <ActivityFeedCard userId={user.uid} />
                         </div>
 
@@ -147,11 +145,7 @@ export function DashboardPage() {
                 }
                 sidebarContent={
                     <div class='space-y-4'>
-                        {/* Quick Actions - Show in sidebar on large screens only */}
-                        <div class='hidden lg:block'>
-                            <QuickActionsCard onCreateGroup={() => setIsCreateModalOpen(true)} />
-                        </div>
-                        {/* Activity Feed - Below quick actions on large screens */}
+                        {/* Activity Feed - Sidebar on large screens */}
                         <div class='hidden lg:block'>
                             <ActivityFeedCard userId={user.uid} />
                         </div>

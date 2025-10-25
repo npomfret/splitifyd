@@ -64,20 +64,6 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Quick actions sidebar/card container
-     */
-    getQuickActionsContainer(): Locator {
-        // Find the container with Quick Actions text (title is now a div, not a heading)
-        return this
-            .page
-            .locator('div')
-            .filter({
-                has: this.page.getByText(translation.quickActions.title, { exact: true }),
-            })
-            .first();
-    }
-
-    /**
      * Activity feed card container
      */
     private getActivityFeedContainer(): Locator {
@@ -371,13 +357,6 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Mobile "Create Group" button (in quick actions card)
-     */
-    getMobileCreateGroupButton(): Locator {
-        return this.getQuickActionsContainer().getByRole('button', { name: 'Create New Group' });
-    }
-
-    /**
      * "Try Again" button for error recovery
      */
     getTryAgainButton(): Locator {
@@ -390,20 +369,6 @@ export class DashboardPage extends BasePage {
      */
     getUserMenuButton(): Locator {
         return this.page.getByTestId('user-menu-button');
-    }
-
-    /**
-     * Quick Actions - Create Group button
-     */
-    getQuickActionsCreateButton(): Locator {
-        return this.getQuickActionsContainer().getByRole('button', { name: translation.quickActions.createNewGroup });
-    }
-
-    /**
-     * Quick Actions - View All Expenses button (disabled future feature)
-     */
-    getQuickActionsViewExpensesButton(): Locator {
-        return this.getQuickActionsContainer().getByRole('button', { name: /view.*expenses/i });
     }
 
     /**
@@ -634,19 +599,6 @@ export class DashboardPage extends BasePage {
             );
         }
 
-        return modalPage;
-    }
-
-    /**
-     * Create a new group using mobile/quick actions button
-     * Returns CreateGroupModalPage for fluent interface
-     */
-    async clickMobileCreateGroup(): Promise<CreateGroupModalPage> {
-        const button = this.getMobileCreateGroupButton();
-        await this.clickButton(button, { buttonName: 'Create Group (Mobile)' });
-
-        const modalPage = new CreateGroupModalPage(this.page);
-        await modalPage.waitForModalToOpen();
         return modalPage;
     }
 
@@ -885,19 +837,6 @@ export class DashboardPage extends BasePage {
         await this.clickButton(addExpenseButton, { buttonName: `Add expense to ${groupName}` });
     }
 
-    /**
-     * Click Quick Actions create group button
-     * Fluent version - opens modal, verifies it opened, returns CreateGroupModalPage
-     */
-    async clickQuickActionsCreateGroup(): Promise<CreateGroupModalPage> {
-        const button = this.getQuickActionsCreateButton();
-        await this.clickButton(button, { buttonName: 'Quick Actions Create Group' });
-
-        const modalPage = new CreateGroupModalPage(this.page);
-        await modalPage.waitForModalToOpen();
-        return modalPage;
-    }
-
     // ============================================================================
     // VERIFICATION METHODS FOR SPECIFIC STATES
     // ============================================================================
@@ -959,21 +898,6 @@ export class DashboardPage extends BasePage {
         if (expectedCount !== undefined) {
             await expect(this.getGroupCards()).toHaveCount(expectedCount);
         }
-    }
-
-    /**
-     * Verify quick actions card is displayed
-     */
-    async verifyQuickActionsDisplayed(): Promise<void> {
-        await expect(this.getQuickActionsContainer()).toBeVisible();
-        await expect(this.getQuickActionsCreateButton()).toBeVisible();
-    }
-
-    /**
-     * Verify view expenses button is disabled
-     */
-    async verifyViewExpensesDisabled(): Promise<void> {
-        await expect(this.getQuickActionsViewExpensesButton()).toBeDisabled();
     }
 
     /**

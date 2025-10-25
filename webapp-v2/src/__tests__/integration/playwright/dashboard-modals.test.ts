@@ -199,33 +199,6 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyModalOpen();
     });
 
-    test('should open create group modal from mobile button using fluent interface', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const dashboardPage = new DashboardPage(page);
-        const group = GroupDTOBuilder
-            .groupForUser(user.uid)
-            .withName('Existing Group')
-            .build();
-        await mockGroupsApi(
-            page,
-            ListGroupsResponseBuilder
-                .responseWithMetadata([group], 1)
-                .build(),
-        );
-        await mockActivityFeedApi(page, []);
-
-        await page.goto('/dashboard');
-        await dashboardPage.waitForGroupsToLoad();
-
-        // Click mobile create group button - fluent interface returns modal
-        const createGroupModal = await dashboardPage.clickMobileCreateGroup();
-
-        // Verify modal is open with correct initial state
-        await createGroupModal.verifyModalOpen();
-        await createGroupModal.verifyFormEmpty();
-        await createGroupModal.verifyHelpTextDisplayed();
-    });
-
     test('should allow filling only group name without description', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);

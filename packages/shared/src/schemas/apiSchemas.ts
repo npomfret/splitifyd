@@ -6,8 +6,7 @@
  */
 
 import { z } from 'zod';
-import { ActivityFeedActions, ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes } from '../shared-types';
-import { ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes, SystemUserRoles } from '../shared-types';
+import { ActivityFeedActions, ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes, SystemUserRoles } from '../shared-types';
 
 const UserThemeColorSchema = z.object({
     light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
