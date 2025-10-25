@@ -10,7 +10,7 @@
  */
 
 // Import types
-import type {CommentDTO, ISOString, RegisteredUser, ShareLinkDTO, UserId} from '@splitifyd/shared';
+import type {CommentDTO, DisplayName, ISOString, RegisteredUser, ShareLinkDTO, UserId} from '@splitifyd/shared';
 import { type CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../../constants';
@@ -965,7 +965,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     /**
      * Get activity feed items for a user (non-transaction version for async cleanup)
      */
-    async getActivityFeedItemsForUser(userId: string, limit: number): Promise<Array<{ id: string; }>> {
+    async getActivityFeedItemsForUser(userId: UserId, limit: number): Promise<Array<{ id: string; }>> {
         const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
         const query = collectionRef.orderBy('createdAt', 'desc').limit(limit);
         const snapshot = await query.get();
@@ -975,7 +975,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     /**
      * Delete an activity feed item (non-transaction version for async cleanup)
      */
-    async deleteActivityFeedItem(userId: string, documentId: string): Promise<void> {
+    async deleteActivityFeedItem(userId: UserId, documentId: string): Promise<void> {
         const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
         const docRef = collectionRef.doc(documentId);
         await docRef.delete();
