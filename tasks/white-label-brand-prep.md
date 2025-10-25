@@ -147,48 +147,34 @@ export interface AppConfiguration {
 ```typescript
 import { Request, Response, NextFunction } from 'express';
 import { TenantId } from '@splitifyd/shared';
+import { getTenantRegistry } from '../services/tenant-registry';
 
 export interface TenantRequest extends Request {
     tenantId?: TenantId;
 }
 
-// Strategy 1: Subdomain-based (acme.splitifyd.app -> "acme")
-export function identifyTenantBySubdomain(req: TenantRequest, res: Response, next: NextFunction) {
-    const host = req.get('host') || '';
-    const subdomain = host.split('.')[0];
+export async function resolveTenant(req: TenantRequest, res: Response, next: NextFunction) {
+    const host = (req.get('host') || '').toLowerCase();
+    const registry = await getTenantRegistry(); // caches Firestore tenants + domain mappings
+    const tenant = registry.findByDomain(host);
 
-    if (subdomain && subdomain !== 'www' && subdomain !== 'splitifyd') {
-        req.tenantId = subdomain;
-    } else {
-        req.tenantId = 'default'; // Or reject request
-    }
-
-    next();
-}
-
-// Strategy 2: Custom domain (acme.com -> lookup in Firestore domains collection)
-export function identifyTenantByCustomDomain(req: TenantRequest, res: Response, next: NextFunction) {
-    const host = req.get('host') || '';
-    // TODO: Query Firestore `domains` collection to map host -> tenantId
-    // Requires caching for performance
-    next();
-}
-
-// Strategy 3: User's organization (after auth)
-export async function identifyTenantByUserOrg(req: TenantRequest, res: Response, next: NextFunction) {
-    // After authentication middleware, extract user's organizationId
-    // Requires new User.organizationId field
+    req.tenantId = tenant?.tenantId ?? registry.getFallbackTenantId();
     next();
 }
 ```
+
+**Implementation notes**
+- Maintain a cached domain→tenant map hydrated from Firestore (`tenants/{tenantId}.domains`).
+- Seed a “showroom” tenant with its own demo domain that mirrors client-facing branding.
+- Support multiple domains per tenant so the same config works for both our managed subdomains and customer-owned hosts.
 
 **Modify: `firebase/functions/src/index.ts`**
 
 Apply tenant middleware before routes:
 ```typescript
-import { identifyTenantBySubdomain } from './middleware/tenant-identification';
+import { resolveTenant } from './middleware/tenant-identification';
 
-app.use(identifyTenantBySubdomain);  // Or chosen strategy
+app.use(resolveTenant);
 ```
 
 #### Phase 3: Tenant Configuration Storage (Week 3-4)
@@ -198,10 +184,11 @@ app.use(identifyTenantBySubdomain);  // Or chosen strategy
 ```typescript
 {
     tenantId: "acme",
+    domains: ["acme.hosted-app.com", "app.acmeclient.com"],
     branding: {
         appName: "Acme Bill Splitter",
-        logoUrl: "gs://splitifyd-prod.appspot.com/tenants/acme/logo.svg",
-        faviconUrl: "gs://splitifyd-prod.appspot.com/tenants/acme/favicon.ico",
+        logoUrl: "gs://white-label-prod.appspot.com/tenants/acme/logo.svg",
+        faviconUrl: "gs://white-label-prod.appspot.com/tenants/acme/favicon.ico",
         primaryColor: "#0066CC",
         secondaryColor: "#FF6600",
         themePalette: "ocean-blue",
