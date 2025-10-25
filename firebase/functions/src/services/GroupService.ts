@@ -426,7 +426,9 @@ export class GroupService {
             const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);
             const actorDisplayName = actorMembershipDoc?.data().groupDisplayName ?? 'Unknown member';
 
-            const existingActivityItems = new Map<string, Array<{ id: string }>>();
+            const existingActivityItems = memberIds.length > 0
+                ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds)
+                : new Map<string, Array<{ id: string }>>();
 
             // Optimistic locking: Check if group was updated since we fetched it (compare ISO strings)
             if (group.updatedAt !== currentGroup.updatedAt) {
@@ -574,11 +576,6 @@ export class GroupService {
         let performedDeletion = false;
 
         // Fetch existing activity items for all members (MUST be before transaction writes)
-        const existingActivityItemsPromise = this.firestoreWriter.runTransaction(async (readTransaction) => {
-            return this.activityFeedService.fetchExistingItemsForUsers(readTransaction, memberIds);
-        });
-        const existingActivityItems = await existingActivityItemsPromise;
-
         await this.firestoreWriter.runTransaction(async (transaction) => {
             const currentGroup = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
             if (!currentGroup) {
@@ -596,6 +593,12 @@ export class GroupService {
             }
 
             const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
+            const memberIdsInTransaction = membershipSnapshot.docs
+                .map((doc) => (doc.data().uid as string | null | undefined) ?? null)
+                .filter((id): id is string => Boolean(id));
+            const existingActivityItems = memberIdsInTransaction.length > 0
+                ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIdsInTransaction)
+                : new Map<string, Array<{ id: string }>>();
 
             this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, {
                 deletedAt: now,
@@ -610,7 +613,7 @@ export class GroupService {
             });
 
             // Record MEMBER_LEFT activity for each member
-            for (const memberId of memberIds) {
+            for (const memberId of memberIdsInTransaction) {
                 this.activityFeedService.recordActivityForUsersWithExistingItems(
                     transaction,
                     [memberId],

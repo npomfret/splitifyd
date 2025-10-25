@@ -605,5 +605,13 @@ simpleTest.describe('Group Comments - Real-time Communication', () => {
         await aliceGroupDetailPage.verifyCommentVisible(comment2);
         await bobGroupDetailPage.verifyCommentVisible(comment1);
         await bobGroupDetailPage.verifyCommentVisible(comment2);
+
+        const aliceDashboard = await navigateToDashboardFromGroup(aliceGroupDetailPage);
+        await aliceDashboard.verifyActivityFeedShows('commented on');
+        await aliceDashboard.verifyActivityFeedShows(comment2);
+
+        const bobDashboard = await navigateToDashboardFromGroup(bobGroupDetailPage);
+        await bobDashboard.verifyActivityFeedShows('commented on');
+        await bobDashboard.verifyActivityFeedShows(comment1);
     });
 });

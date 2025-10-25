@@ -1,7 +1,26 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 import type { FirebaseService } from '@/app/firebase';
 import { ActivityFeedStoreImpl } from '@/app/stores/activity-feed-store';
 import { ActivityFeedEventTypes, type ActivityFeedItem, type ActivityFeedResponse } from '@splitifyd/shared';
+
+vi.mock('@/app/apiClient', () => ({
+    apiClient: {
+        getActivityFeed: vi.fn(),
+    },
+}));
+
+vi.mock('@/utils/browser-logger', () => ({
+    logInfo: vi.fn(),
+    logError: vi.fn(),
+    logWarning: vi.fn(),
+}));
+
+import { apiClient } from '@/app/apiClient';
+
+const mockedApiClient = apiClient as unknown as {
+    getActivityFeed: Mock;
+};
 
 const baseTimestamp = new Date('2024-01-01T12:00:00.000Z').getTime();
 
@@ -9,7 +28,7 @@ function minutesAgo(minutes: number): string {
     return new Date(baseTimestamp - minutes * 60_000).toISOString();
 }
 
-function buildItem(id: string, minutes: number): ActivityFeedItem {
+function buildItem(id: string, minutes: number, overrides?: Partial<ActivityFeedItem>): ActivityFeedItem {
     const timestamp = minutesAgo(minutes);
     return {
         id,
@@ -22,6 +41,7 @@ function buildItem(id: string, minutes: number): ActivityFeedItem {
         timestamp,
         details: {},
         createdAt: timestamp,
+        ...overrides,
     };
 }
 
@@ -42,59 +62,355 @@ function toDoc(item: ActivityFeedItem) {
     };
 }
 
-const firebaseServiceStub: FirebaseService = {
-    connect: vi.fn().mockResolvedValue(undefined),
-    performTokenRefresh: vi.fn().mockResolvedValue('token'),
-    performUserRefresh: vi.fn().mockResolvedValue(undefined),
-    getCurrentUserId: vi.fn().mockReturnValue(null),
-    signInWithEmailAndPassword: vi.fn().mockResolvedValue(undefined),
-    sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
-    signOut: vi.fn().mockResolvedValue(undefined),
-    onAuthStateChanged: vi.fn().mockReturnValue(() => {}),
-    onDocumentSnapshot: vi.fn().mockReturnValue(() => {}),
-    onCollectionSnapshot: vi.fn().mockReturnValue(() => {}),
-};
+function createFirebaseServiceStub(): FirebaseService {
+    return {
+        connect: vi.fn().mockResolvedValue(undefined),
+        performTokenRefresh: vi.fn().mockResolvedValue('token'),
+        performUserRefresh: vi.fn().mockResolvedValue(undefined),
+        getCurrentUserId: vi.fn().mockReturnValue(null),
+        signInWithEmailAndPassword: vi.fn().mockResolvedValue(undefined),
+        sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
+        signOut: vi.fn().mockResolvedValue(undefined),
+        onAuthStateChanged: vi.fn().mockReturnValue(() => {}),
+        onDocumentSnapshot: vi.fn().mockReturnValue(() => {}),
+        onCollectionSnapshot: vi.fn().mockReturnValue(() => {}),
+    };
+}
 
 describe('ActivityFeedStoreImpl', () => {
-    it('preserves paginated items when realtime snapshot updates the first page', () => {
-        const store = new ActivityFeedStoreImpl(firebaseServiceStub);
+    let firebaseServiceStub: FirebaseService;
+    let store: ActivityFeedStoreImpl;
 
-        const initialItems = Array.from({ length: 10 }, (_, index) => buildItem(`item-${index}`, index));
-        const olderItems = [buildItem('older-0', 10), buildItem('older-1', 11), buildItem('older-2', 12)];
+    beforeEach(() => {
+        firebaseServiceStub = createFirebaseServiceStub();
+        store = new ActivityFeedStoreImpl(firebaseServiceStub);
+        mockedApiClient.getActivityFeed.mockReset();
+    });
 
-        const initialResponse: ActivityFeedResponse = {
-            items: initialItems,
-            hasMore: true,
-            nextCursor: initialItems[initialItems.length - 1]!.id,
-        };
+    afterEach(() => {
+        vi.clearAllMocks();
+    });
 
-        const loadMoreResponse: ActivityFeedResponse = {
-            items: olderItems,
-            hasMore: false,
-            nextCursor: undefined,
-        };
+    describe('Pagination with Real-time Updates', () => {
+        it('preserves paginated items when realtime snapshot updates the first page', () => {
+            const initialItems = Array.from({ length: 10 }, (_, index) => buildItem(`item-${index}`, index));
+            const olderItems = [buildItem('older-0', 10), buildItem('older-1', 11), buildItem('older-2', 12)];
 
-        (store as any).applyInitialResponse(initialResponse, true);
-        (store as any).applyLoadMoreResponse(loadMoreResponse);
+            const initialResponse: ActivityFeedResponse = {
+                items: initialItems,
+                hasMore: true,
+                nextCursor: initialItems[initialItems.length - 1]!.id,
+            };
 
-        expect(store.items).toHaveLength(13);
+            const loadMoreResponse: ActivityFeedResponse = {
+                items: olderItems,
+                hasMore: false,
+                nextCursor: undefined,
+            };
 
-        const newTopItem = buildItem('realtime-new', -1);
-        const realtimeFirstPage = [newTopItem, ...initialItems.slice(0, 9)];
-        const extraDocument = buildItem('extra', 9.5);
+            (store as any).applyInitialResponse(initialResponse, true);
+            (store as any).applyLoadMoreResponse(loadMoreResponse);
 
-        const snapshot = {
-            docs: [...realtimeFirstPage.map(toDoc), toDoc(extraDocument)],
-        };
+            expect(store.items).toHaveLength(13);
 
-        (store as any).handleRealtimeSnapshot(snapshot);
+            const newTopItem = buildItem('realtime-new', -1);
+            const realtimeFirstPage = [newTopItem, ...initialItems.slice(0, 9)];
+            const extraDocument = buildItem('extra', 9.5);
 
-        const expectedOrder = [
-            ...realtimeFirstPage,
-            initialItems[9]!,
-            ...olderItems,
-        ];
+            const snapshot = {
+                docs: [...realtimeFirstPage.map(toDoc), toDoc(extraDocument)],
+            };
 
-        expect(store.items).toEqual(expectedOrder);
+            (store as any).handleRealtimeSnapshot(snapshot);
+
+            const expectedOrder = [...realtimeFirstPage, initialItems[9]!, ...olderItems];
+
+            expect(store.items).toEqual(expectedOrder);
+        });
+
+        it('merges load more response without duplicates', () => {
+            const initialItems = Array.from({ length: 10 }, (_, index) => buildItem(`item-${index}`, index));
+
+            const initialResponse: ActivityFeedResponse = {
+                items: initialItems,
+                hasMore: true,
+                nextCursor: 'item-9',
+            };
+
+            (store as any).applyInitialResponse(initialResponse, true);
+
+            const olderItems = [buildItem('older-0', 10), buildItem('item-9', 9), buildItem('older-1', 11)];
+
+            const loadMoreResponse: ActivityFeedResponse = {
+                items: olderItems,
+                hasMore: false,
+                nextCursor: undefined,
+            };
+
+            (store as any).applyLoadMoreResponse(loadMoreResponse);
+
+            expect(store.items).toHaveLength(12);
+            expect(store.items.filter((item) => item.id === 'item-9')).toHaveLength(1);
+        });
+    });
+
+    describe('Component Registration Lifecycle', () => {
+        it('initializes on first component registration', async () => {
+            const items = [buildItem('1', 1)];
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items,
+                hasMore: false,
+                nextCursor: undefined,
+            });
+
+            await store.registerComponent('comp-1', 'user-1');
+
+            expect(firebaseServiceStub.connect).toHaveBeenCalledTimes(1);
+            expect(mockedApiClient.getActivityFeed).toHaveBeenCalledTimes(1);
+            expect(store.initialized).toBe(true);
+            expect(store.items).toEqual(items);
+        });
+
+        it('does not reinitialize when second component registers', async () => {
+            const items = [buildItem('1', 1)];
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items,
+                hasMore: false,
+                nextCursor: undefined,
+            });
+
+            await store.registerComponent('comp-1', 'user-1');
+            await store.registerComponent('comp-2', 'user-1');
+
+            expect(firebaseServiceStub.connect).toHaveBeenCalledTimes(1);
+            expect(mockedApiClient.getActivityFeed).toHaveBeenCalledTimes(1);
+        });
+
+        it('tears down subscription when all components deregister', async () => {
+            const items = [buildItem('1', 1)];
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items,
+                hasMore: false,
+                nextCursor: undefined,
+            });
+
+            const unsubscribeMock = vi.fn();
+            (firebaseServiceStub.onCollectionSnapshot as Mock).mockReturnValue(unsubscribeMock);
+
+            await store.registerComponent('comp-1', 'user-1');
+            await store.registerComponent('comp-2', 'user-1');
+
+            store.deregisterComponent('comp-1');
+            expect(unsubscribeMock).not.toHaveBeenCalled();
+
+            store.deregisterComponent('comp-2');
+            expect(unsubscribeMock).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('Listener Notifications', () => {
+        it('notifies listeners when new items arrive via realtime', async () => {
+            const items = [buildItem('1', 1)];
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items,
+                hasMore: false,
+                nextCursor: undefined,
+            });
+
+            const listenerCallback = vi.fn();
+            await store.registerListener('listener-1', 'user-1', listenerCallback);
+
+            const newItem = buildItem('new-item', -1);
+            const snapshot = {
+                docs: [toDoc(newItem), toDoc(items[0]!)],
+            };
+
+            (store as any).handleRealtimeSnapshot(snapshot);
+
+            expect(listenerCallback).toHaveBeenCalledTimes(1);
+            expect(listenerCallback).toHaveBeenCalledWith(newItem);
+        });
+
+        it('does not notify listeners for items already in the feed', async () => {
+            const items = [buildItem('1', 1), buildItem('2', 2)];
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items,
+                hasMore: false,
+                nextCursor: undefined,
+            });
+
+            const listenerCallback = vi.fn();
+            await store.registerListener('listener-1', 'user-1', listenerCallback);
+
+            const snapshot = {
+                docs: items.map(toDoc),
+            };
+
+            (store as any).handleRealtimeSnapshot(snapshot);
+
+            expect(listenerCallback).not.toHaveBeenCalled();
+        });
+
+        it('tears down subscription when all listeners deregister', async () => {
+            const items = [buildItem('1', 1)];
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items,
+                hasMore: false,
+                nextCursor: undefined,
+            });
+
+            const unsubscribeMock = vi.fn();
+            (firebaseServiceStub.onCollectionSnapshot as Mock).mockReturnValue(unsubscribeMock);
+
+            await store.registerListener('listener-1', 'user-1', vi.fn());
+            await store.registerListener('listener-2', 'user-1', vi.fn());
+
+            store.deregisterListener('listener-1');
+            expect(unsubscribeMock).not.toHaveBeenCalled();
+
+            store.deregisterListener('listener-2');
+            expect(unsubscribeMock).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('Error Handling', () => {
+        it('sets error state when API fetch fails', async () => {
+            const error = new Error('Network error');
+            mockedApiClient.getActivityFeed.mockRejectedValue(error);
+
+            await expect(store.registerComponent('comp-1', 'user-1')).rejects.toThrow('Network error');
+
+            expect(store.error).toBe('Network error');
+            expect(store.initialized).toBe(false);
+        });
+
+        it('sets error state when loadMore fails', async () => {
+            const items = [buildItem('1', 1)];
+            mockedApiClient.getActivityFeed
+                .mockResolvedValueOnce({
+                    items,
+                    hasMore: true,
+                    nextCursor: '1',
+                })
+                .mockRejectedValueOnce(new Error('Load more failed'));
+
+            await store.registerComponent('comp-1', 'user-1');
+
+            await store.loadMore();
+
+            expect(store.error).toBe('Load more failed');
+            expect(store.loadingMore).toBe(false);
+        });
+
+        it('allows retry after initialization failure', async () => {
+            mockedApiClient.getActivityFeed
+                .mockRejectedValueOnce(new Error('First attempt failed'))
+                .mockResolvedValueOnce({ items: [buildItem('1', 1)], hasMore: false, nextCursor: undefined });
+
+            await expect(store.registerComponent('comp-1', 'user-1')).rejects.toThrow('First attempt failed');
+
+            expect(store.error).toBe('First attempt failed');
+            expect(store.initialized).toBe(false);
+        });
+    });
+
+    describe('Load More', () => {
+        it('prevents concurrent load more operations', async () => {
+            const items = [buildItem('1', 1)];
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items,
+                hasMore: true,
+                nextCursor: '1',
+            });
+
+            await store.registerComponent('comp-1', 'user-1');
+
+            const loadMore1 = store.loadMore();
+            const loadMore2 = store.loadMore();
+
+            await Promise.all([loadMore1, loadMore2]);
+
+            expect(mockedApiClient.getActivityFeed).toHaveBeenCalledTimes(2);
+        });
+
+        it('does not load more when hasMore is false', async () => {
+            const items = [buildItem('1', 1)];
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items,
+                hasMore: false,
+                nextCursor: undefined,
+            });
+
+            await store.registerComponent('comp-1', 'user-1');
+
+            await store.loadMore();
+
+            expect(mockedApiClient.getActivityFeed).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not load more when no cursor available', async () => {
+            const items = [buildItem('1', 1)];
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items,
+                hasMore: true,
+                nextCursor: undefined,
+            });
+
+            await store.registerComponent('comp-1', 'user-1');
+
+            await store.loadMore();
+
+            expect(mockedApiClient.getActivityFeed).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('Empty State', () => {
+        it('handles empty initial response', async () => {
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items: [],
+                hasMore: false,
+                nextCursor: undefined,
+            });
+
+            await store.registerComponent('comp-1', 'user-1');
+
+            expect(store.items).toEqual([]);
+            expect(store.initialized).toBe(true);
+            expect(store.hasMore).toBe(false);
+        });
+
+        it('sets initialized when realtime snapshot is empty', () => {
+            const snapshot = { docs: [] };
+
+            (store as any).handleRealtimeSnapshot(snapshot);
+
+            expect(store.initialized).toBe(true);
+            expect(store.items).toEqual([]);
+        });
+    });
+
+    describe('Reset', () => {
+        it('clears all state and subscriptions', async () => {
+            const items = [buildItem('1', 1)];
+            mockedApiClient.getActivityFeed.mockResolvedValue({
+                items,
+                hasMore: true,
+                nextCursor: '1',
+            });
+
+            const unsubscribeMock = vi.fn();
+            (firebaseServiceStub.onCollectionSnapshot as Mock).mockReturnValue(unsubscribeMock);
+
+            await store.registerComponent('comp-1', 'user-1');
+
+            store.reset();
+
+            expect(store.items).toEqual([]);
+            expect(store.initialized).toBe(false);
+            expect(store.loading).toBe(false);
+            expect(store.error).toBe(null);
+            expect(store.hasMore).toBe(false);
+            expect(unsubscribeMock).toHaveBeenCalledTimes(1);
+        });
     });
 });

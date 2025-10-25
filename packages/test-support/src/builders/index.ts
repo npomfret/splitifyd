@@ -1,4 +1,5 @@
 export { AuthUserRecordBuilder } from './AuthUserRecordBuilder';
+export { ActivityFeedItemDTOBuilder } from './ActivityFeedItemDTOBuilder';
 export { ClientUserBuilder } from './ClientUserBuilder';
 export { CommentBuilder } from './CommentBuilder';
 export { CommentQueryBuilder } from './CommentQueryBuilder';

@@ -78,6 +78,13 @@ export class DashboardPage extends BasePage {
     }
 
     /**
+     * Activity feed card container
+     */
+    private getActivityFeedContainer(): Locator {
+        return this.page.locator('[data-testid="activity-feed-card"]:visible').first();
+    }
+
+    /**
      * Welcome section for new users
      */
     getWelcomeSection(): Locator {
@@ -152,6 +159,16 @@ export class DashboardPage extends BasePage {
      */
     async verifyGroupsGridVisible(): Promise<void> {
         await expect(this.getGroupsGrid()).toBeVisible();
+    }
+
+    /**
+     * Verify activity feed shows a description string.
+     * Used by e2e flows to assert backend-triggered events appear on the dashboard.
+     */
+    async verifyActivityFeedShows(description: string): Promise<void> {
+        await expect(this.getActivityFeedContainer()).toBeVisible();
+        const matchingItems = this.getActivityFeedItems().filter({ hasText: description });
+        await expect(matchingItems).not.toHaveCount(0);
     }
 
     /**
@@ -977,5 +994,135 @@ export class DashboardPage extends BasePage {
         const balanceBadge = this.getGroupCardBalance(groupName);
         await expect(balanceBadge).toBeVisible();
         await expect(balanceBadge).toContainText(expectedText);
+    }
+
+    // ============================================================================
+    // ACTIVITY FEED SELECTORS AND METHODS
+    // ============================================================================
+
+    /**
+     * Activity feed heading
+     */
+    private getActivityFeedHeading(): Locator {
+        return this.getActivityFeedContainer().getByRole('heading', { name: 'Recent Activity' });
+    }
+
+    /**
+     * Activity feed empty state
+     */
+    private getActivityFeedEmptyState(): Locator {
+        return this.getActivityFeedContainer().getByTestId('activity-feed-empty');
+    }
+
+    /**
+     * Activity feed error message
+     */
+    private getActivityFeedError(): Locator {
+        return this.getActivityFeedContainer().getByTestId('activity-feed-error');
+    }
+
+    /**
+     * Activity feed items
+     */
+    private getActivityFeedItems(): Locator {
+        return this.getActivityFeedContainer().getByTestId('activity-feed-item');
+    }
+
+    /**
+     * Activity feed retry button
+     */
+    private getActivityFeedRetryButton(): Locator {
+        return this.getActivityFeedContainer().getByRole('button', { name: 'Retry' });
+    }
+
+    /**
+     * Activity feed load more button
+     */
+    private getActivityFeedLoadMoreButton(): Locator {
+        return this.getActivityFeedContainer().getByRole('button', { name: 'Load More' });
+    }
+
+    /**
+     * Activity feed loading more button (during pagination)
+     */
+    private getActivityFeedLoadingMoreButton(): Locator {
+        return this.getActivityFeedContainer().getByRole('button', { name: 'Loading more...' });
+    }
+
+    /**
+     * Verify activity feed is visible
+     */
+    async verifyActivityFeedVisible(): Promise<void> {
+        await expect(this.getActivityFeedContainer()).toBeVisible();
+        await expect(this.getActivityFeedHeading()).toBeVisible();
+    }
+
+    /**
+     * Verify activity feed shows empty state
+     */
+    async verifyActivityFeedEmptyState(): Promise<void> {
+        await expect(this.getActivityFeedEmptyState()).toBeVisible();
+        await expect(this.getActivityFeedEmptyState().getByText('No activity yet')).toBeVisible();
+    }
+
+    /**
+     * Verify activity feed shows error
+     */
+    async verifyActivityFeedError(): Promise<void> {
+        const errorText = translation.activityFeed.error.loadFailed;
+        await expect(this.getActivityFeedError()).toBeVisible();
+        await expect(this.getActivityFeedError().getByText(errorText)).toBeVisible();
+    }
+
+    /**
+     * Verify activity feed has specific number of items
+     */
+    async verifyActivityFeedItemCount(expectedCount: number): Promise<void> {
+        await expect(this.getActivityFeedItems()).toHaveCount(expectedCount);
+    }
+
+    /**
+     * Verify activity feed contains text
+     */
+    async verifyActivityFeedContainsText(text: string): Promise<void> {
+        await expect(this.getActivityFeedItems().filter({ hasText: text })).toHaveCount(1);
+    }
+
+    /**
+     * Verify activity feed contains a comment preview
+     */
+    async verifyActivityFeedContainsPreview(preview: string): Promise<void> {
+        await expect(this.getActivityFeedContainer().getByText(preview, { exact: true })).toBeVisible();
+    }
+
+    /**
+     * Click activity feed retry button
+     */
+    async clickActivityFeedRetry(): Promise<void> {
+        const button = this.getActivityFeedRetryButton();
+        await this.clickButton(button, { buttonName: 'Activity Feed Retry' });
+    }
+
+    /**
+     * Click activity feed load more button
+     */
+    async clickActivityFeedLoadMore(): Promise<void> {
+        const button = this.getActivityFeedLoadMoreButton();
+        await this.clickButton(button, { buttonName: 'Activity Feed Load More' });
+    }
+
+    /**
+     * Verify load more button is visible and enabled
+     */
+    async verifyActivityFeedLoadMoreVisible(): Promise<void> {
+        await expect(this.getActivityFeedLoadMoreButton()).toBeVisible();
+        await expect(this.getActivityFeedLoadMoreButton()).toBeEnabled();
+    }
+
+    /**
+     * Verify load more button is not visible
+     */
+    async verifyActivityFeedLoadMoreHidden(): Promise<void> {
+        await expect(this.getActivityFeedLoadMoreButton()).not.toBeVisible();
     }
 }

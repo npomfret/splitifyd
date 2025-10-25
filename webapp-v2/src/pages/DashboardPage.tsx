@@ -84,9 +84,10 @@ export function DashboardPage() {
             <DashboardGrid
                 mainContent={
                     <>
-                        {/* Quick Actions - Show at top on mobile, hide on large screens */}
-                        <div class='lg:hidden mb-6'>
+                        {/* Quick Actions & Activity Feed - Show at top on mobile, hide on large screens */}
+                        <div class='lg:hidden mb-6 space-y-6'>
                             <QuickActionsCard onCreateGroup={() => setIsCreateModalOpen(true)} />
+                            <ActivityFeedCard userId={user.uid} />
                         </div>
 
                         {/* Welcome Section - Only show for first-time users (no groups) after loading is complete */}
@@ -96,10 +97,6 @@ export function DashboardPage() {
                                 <p class='text-gray-600'>{t('dashboard.welcomeDescription')}</p>
                             </div>
                         )}
-
-                        <div class='mb-6'>
-                            <ActivityFeedCard userId={user.uid} />
-                        </div>
 
                         {/* Groups Section */}
                         <div class='bg-white rounded-lg shadow-sm border border-gray-200 p-6' data-testid='groups-container'>
@@ -153,6 +150,10 @@ export function DashboardPage() {
                         {/* Quick Actions - Show in sidebar on large screens only */}
                         <div class='hidden lg:block'>
                             <QuickActionsCard onCreateGroup={() => setIsCreateModalOpen(true)} />
+                        </div>
+                        {/* Activity Feed - Below quick actions on large screens */}
+                        <div class='hidden lg:block'>
+                            <ActivityFeedCard userId={user.uid} />
                         </div>
                     </div>
                 }

@@ -199,6 +199,75 @@ useEffect(() => {
 - Frontend real-time updates will use Firestore listeners (no WebSockets) to take advantage of the existing infrastructure and test mocks.
 - The legacy `user-notifications` triggers and related code can be removed outright once the new feed ships; no dual-running period is required.
 
+## 7.1. Implementation Design Decisions (2025-10-24)
+
+### Store Architecture
+**Decision**: Use private class fields (`#signal`) for all signals in `ActivityFeedStoreImpl`
+**Rationale**: Enforces proper encapsulation per `docs/guides/code.md`, preventing external mutation of state. Only actions can modify state.
+**Pattern**:
+```typescript
+class ActivityFeedStoreImpl {
+    readonly #itemsSignal = signal<ActivityFeedItem[]>([]);
+    get itemsSignal(): ReadonlySignal<ActivityFeedItem[]> {
+        return this.#itemsSignal;
+    }
+}
+```
+
+### Subscription Lifecycle Management
+**Decision**: Component/listener registration system with reference counting
+**Rationale**: Avoids subscription churn documented in `docs/guides/webapp-and-style-guide.md`. Multiple components can share a single Firestore subscription.
+**Implementation**:
+- `registerComponent(id, userId)` - UI components register for data
+- `registerListener(id, userId, callback)` - External listeners subscribe to new events
+- Subscription created only once when first component/listener registers
+- Subscription torn down only when all components/listeners deregister
+- `useEffect` dependencies only include `userId`, not `initialized` state
+
+### Pagination + Real-time Merge Strategy
+**Decision**: Real-time snapshot updates first page (10 items), preserves paginated items below
+**Rationale**: Balances real-time updates with pagination UX. Users see new events immediately without losing their scroll position.
+**Algorithm**:
+1. REST API loads initial 10 items + pagination cursor
+2. Real-time listener monitors same 10-item window
+3. When snapshot updates: merge with existing paginated items
+4. Preserve items beyond first page that user loaded via "load more"
+5. Update `hasMore` flag based on snapshot size (>10 means more available)
+
+### Error Handling Strategy
+**Decision**: No try-catch in store methods; errors bubble to component level
+**Rationale**: Follows `docs/guides/code.md` principle: "Let it break, centralized error handling"
+**Implementation**:
+- Store methods throw errors naturally
+- Component catches in async handlers: `void store.loadMore().catch(error => logError(...))`
+- Error state stored in signal for UI display
+- Retry mechanism provided via `refresh()` method
+
+### i18n Integration
+**Decision**: Event descriptions rendered with react-i18next, translation keys per event type
+**Rationale**: Supports future internationalization, centralizes all user-facing text
+**Pattern**:
+```typescript
+t('activityFeed.events.expense-created', { actor, expense, group })
+```
+Translation keys cover:
+- 9+ event types (expense/member/comment/group/settlement events)
+- Actor/target name resolution ("You" vs actual name)
+- Error messages, loading states, empty states
+
+### Type Safety
+**Decision**: `ActivityFeedItem` uses ISO 8601 strings for timestamps (not Firestore Timestamp)
+**Rationale**: Follows DTO-everywhere architecture from `docs/guides/types.md`
+**Pattern**:
+- Backend `ActivityFeedService` stores Firestore `Timestamp` objects
+- Frontend store converts to ISO strings via `toISOString()` in `convertDocSnapshot()`
+- Application logic works exclusively with ISO strings
+
+### Component Decomposition
+**Decision**: Single `ActivityFeedCard` component handles all rendering logic
+**Rationale**: Simple feature with limited complexity doesn't justify multiple components
+**Trade-off**: Acknowledged that `renderEventDescription()` function (50 lines) could be extracted if event types expand significantly
+
 ## 8. Implementation Plan (Agent)
 
 1. Introduce shared activity feed types and integrate them across backend and frontend packages.
@@ -209,9 +278,46 @@ useEffect(() => {
 
 ## 9. Progress Log
 
+### Phase 1-3: Backend & Frontend Implementation ✅ COMPLETE
+
 - ✅ Shared activity-feed DTOs and response schemas added in `@splitifyd/shared`, including API validation for `GET /activity-feed`.
 - ✅ Backend `ActivityFeedService` implemented with transactional write + prune helpers; Firestore reader/writer extended for user-scoped feeds.
 - ✅ Expense, settlement, and comment services now emit activity entries within their existing transactions.
 - ✅ New authenticated `/activity-feed` endpoint wired through Express/Firebase Functions with cursor pagination (limit 10).
-- ✅ Member join/leave events now emit activity feed entries, with transactional pruning + unit tests covering approvals, leave/remove flows, and share-link joins (`vitest run src/__tests__/unit/services/GroupMemberService.test.ts src/__tests__/unit/services/GroupShareService.test.ts`).
-- ⏳ Frontend UI/listener work and legacy notification removal still pending.
+- ✅ Member join/leave events now emit activity feed entries, with transactional pruning + unit tests covering approvals, leave/remove flows, and share-link joins.
+- ✅ **Frontend activity feed store implemented** (`webapp-v2/src/app/stores/activity-feed-store.ts`)
+- ✅ **ActivityFeedCard component created** with i18n support for all event types
+- ✅ **Dashboard integration complete** - activity feed displayed on main dashboard
+- ✅ **Real-time Firestore listener** implemented with pagination preservation logic
+
+### Phase 4: Legacy Notification System Removal ✅ COMPLETE
+
+- ✅ **Deleted NotificationService** and all notification-related backend code (~600 lines)
+- ✅ **Removed Firestore triggers**: `trackExpenseChanges`, `trackGroupChanges`, `trackExpenseCommentChanges`, `trackGroupCommentChanges`, `trackSettlementChanges`
+- ✅ **Deleted ChangeTracker infrastructure**: `ChangeTrackerHandlers.ts`, `ChangeTrackerTriggerRegistry.ts`, `change-tracker.ts`
+- ✅ **Removed user-notifications collection** from Firestore rules
+- ✅ **Deleted UserNotificationDetector** (`webapp-v2/src/utils/user-notification-detector.ts` - 499 lines)
+- ✅ **Cleaned up FirestoreWriter**: Removed `createUserNotification`, `removeGroupFromUserNotifications` methods (~220 lines)
+- ✅ **Updated all services**: GroupService, GroupMemberService, ExpenseService, SettlementService now use ActivityFeedService
+- ✅ **Test cleanup**: Removed obsolete notification tests (8 test files, ~1,600 lines)
+- ✅ **E2E test updates**: Updated dashboard tests to work with new activity feed
+
+### Net Impact
+- **Deleted**: ~3,600 lines (notification system, triggers, detector, tests)
+- **Added**: ~1,600 lines (activity feed service, store, UI, tests)
+- **Net reduction**: ~2,000 lines of code
+- **Architecture**: Simpler, more maintainable, better UX
+
+## 10. Testing Status & Follow-ups
+
+### Current Coverage
+- ✅ **ActivityFeedStore unit suite** expanded (error handling, listener notifications, lifecycle) in `webapp-v2/src/__tests__/unit/vitest/stores/activity-feed-store.test.ts`.
+- ✅ **ActivityFeedCard component tests** validating event rendering, actor/target resolution, empty/error/loading states, previews, and pagination controls in `webapp-v2/src/__tests__/unit/vitest/components/ActivityFeedCard.test.tsx`.
+- ✅ **Playwright dashboard activity feed tests** (`webapp-v2/src/__tests__/integration/playwright/dashboard-activity-feed.test.ts`) exercise all event types, retries, pagination, and “You” actor logic.
+- ✅ **Core end-to-end flows** now assert feed updates during expense, settlement, and comment scenarios (`e2e-tests/src/__tests__/integration/core-features.e2e.test.ts`).
+
+### Remaining Follow-ups
+- 🔄 Add targeted Playwright coverage for settlement update events once UI supports them (tracked separately).
+- 🔄 Consider adding a regression hook to verify pruning behaviour beyond 10 items using emulator data snapshots.
+
+The feed is now exercised from unit through e2e layers; new work should keep tests in sync and extend as additional event types ship.

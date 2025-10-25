@@ -113,6 +113,25 @@ fi
 SERVER_LOG=$(mktemp -t playwright-dev-XXXX.log)
 SERVER_PID=""
 
+# Create output directory and log file
+OUTPUT_DIR="playwright-report/run-test"
+mkdir -p "$OUTPUT_DIR"
+TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
+OUTPUT_LOG="${OUTPUT_DIR}/${TEST_FILE}-${TIMESTAMP}.log"
+
+# Function to log to both console and file
+log() {
+    echo -e "$@" | tee -a "$OUTPUT_LOG"
+}
+
+# Function to log without color codes to file
+log_clean() {
+    # Remove color codes for file output
+    local message="$@"
+    echo -e "$message" >&1
+    echo -e "$message" | sed 's/\x1b\[[0-9;]*m//g' >> "$OUTPUT_LOG"
+}
+
 cleanup() {
     if [ -n "$SERVER_PID" ] && kill -0 "$SERVER_PID" 2>/dev/null; then
         kill "$SERVER_PID" >/dev/null 2>&1 || true
@@ -132,9 +151,9 @@ start_dev_server() {
     until curl -s "http://${HOST}:${DEV_PORT}/" >/dev/null 2>&1; do
         ATTEMPTS=$((ATTEMPTS + 1))
         if [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ]; then
-            echo -e "${RED}Failed to start dev server on http://${HOST}:${DEV_PORT}/${NC}"
-            echo -e "${YELLOW}Server log:${NC}"
-            cat "$SERVER_LOG"
+            log_clean "${RED}Failed to start dev server on http://${HOST}:${DEV_PORT}/${NC}"
+            log_clean "${YELLOW}Server log:${NC}"
+            cat "$SERVER_LOG" | tee -a "$OUTPUT_LOG"
             cleanup
             exit 1
         fi
@@ -143,6 +162,23 @@ start_dev_server() {
 }
 
 trap cleanup EXIT
+
+# Write log header
+log_clean "=============================================="
+log_clean "Playwright Test Run"
+log_clean "Started: $(date)"
+log_clean "Test File: ${TEST_PATH}"
+if [ -n "$TEST_NAME" ]; then
+    log_clean "Test Name: ${TEST_NAME}"
+fi
+log_clean "Repeat Count: ${REPEAT_COUNT}"
+if [ -n "$HEADED_FLAG" ]; then
+    log_clean "Browser Mode: HEADED"
+else
+    log_clean "Browser Mode: HEADLESS"
+fi
+log_clean "=============================================="
+log_clean ""
 
 start_dev_server
 
@@ -166,37 +202,43 @@ if [ "$REPEAT_COUNT" -gt 1 ]; then
     SUCCESS_COUNT=0
     START_TIME=$(date +%s)
 
-    echo -e "${YELLOW}Running test repeatedly (up to ${REPEAT_COUNT} times until failure)${NC}"
+    log_clean "${YELLOW}Running test repeatedly (up to ${REPEAT_COUNT} times until failure)${NC}"
     if [ -n "$HEADED_FLAG" ]; then
-        echo -e "${YELLOW}Browser mode: HEADED (visible browser window)${NC}"
+        log_clean "${YELLOW}Browser mode: HEADED (visible browser window)${NC}"
     else
-        echo -e "${YELLOW}Browser mode: HEADLESS (background execution)${NC}"
+        log_clean "${YELLOW}Browser mode: HEADLESS (background execution)${NC}"
     fi
-    echo ""
+    log_clean ""
 
     for ((RUN=1; RUN<=REPEAT_COUNT; RUN++)); do
         CURRENT_TIME=$(date +%s)
         ELAPSED=$((CURRENT_TIME - START_TIME))
 
-        echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        echo -e "${GREEN}Run #${RUN}/${REPEAT_COUNT} (${ELAPSED}s elapsed) - $(date '+%H:%M:%S')${NC}"
-        echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        log_clean "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        log_clean "${GREEN}Run #${RUN}/${REPEAT_COUNT} (${ELAPSED}s elapsed) - $(date '+%H:%M:%S')${NC}"
+        log_clean "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
-        # Run the test
-        if ! eval $CMD; then
+        # Run the test (output goes to both console and log file)
+        # Use PIPESTATUS to get the actual command exit code, not tee's exit code
+        set +e
+        eval $CMD 2>&1 | tee -a "$OUTPUT_LOG"
+        TEST_EXIT_CODE=${PIPESTATUS[0]}
+        set -e
+
+        if [ $TEST_EXIT_CODE -ne 0 ]; then
             FINAL_TIME=$(date +%s)
             TOTAL_ELAPSED=$((FINAL_TIME - START_TIME))
-            echo ""
-            echo -e "${RED}💥 TEST FAILED on run #${RUN}!${NC}"
-            echo -e "${YELLOW}⏱️  Total time: ${TOTAL_ELAPSED}s${NC}"
-            echo -e "${YELLOW}📊 Average time per run: $((TOTAL_ELAPSED / RUN))s${NC}"
-            echo -e "${YELLOW}🏁 Stopped at: $(date)${NC}"
+            log_clean ""
+            log_clean "${RED}💥 TEST FAILED on run #${RUN}!${NC}"
+            log_clean "${YELLOW}⏱️  Total time: ${TOTAL_ELAPSED}s${NC}"
+            log_clean "${YELLOW}📊 Average time per run: $((TOTAL_ELAPSED / RUN))s${NC}"
+            log_clean "${YELLOW}🏁 Stopped at: $(date)${NC}"
             exit 1
         fi
 
         SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-        echo -e "${GREEN}✅ Run #${RUN} completed successfully (${SUCCESS_COUNT}/${REPEAT_COUNT} successes)${NC}"
-        echo ""
+        log_clean "${GREEN}✅ Run #${RUN} completed successfully (${SUCCESS_COUNT}/${REPEAT_COUNT} successes)${NC}"
+        log_clean ""
 
         # Small delay to avoid overwhelming the system
         if [ $RUN -lt $REPEAT_COUNT ]; then
@@ -206,21 +248,38 @@ if [ "$REPEAT_COUNT" -gt 1 ]; then
 
     FINAL_TIME=$(date +%s)
     TOTAL_ELAPSED=$((FINAL_TIME - START_TIME))
-    echo ""
-    echo -e "${GREEN}🎉 SUCCESS! Completed ${REPEAT_COUNT} runs without failure${NC}"
-    echo -e "${YELLOW}⏱️  Total time: ${TOTAL_ELAPSED}s${NC}"
-    echo -e "${YELLOW}📊 Average time per run: $((TOTAL_ELAPSED / REPEAT_COUNT))s${NC}"
-    echo -e "${YELLOW}🏁 Stopped at: $(date)${NC}"
+    log_clean ""
+    log_clean "${GREEN}🎉 SUCCESS! Completed ${REPEAT_COUNT} runs without failure${NC}"
+    log_clean "${YELLOW}⏱️  Total time: ${TOTAL_ELAPSED}s${NC}"
+    log_clean "${YELLOW}📊 Average time per run: $((TOTAL_ELAPSED / REPEAT_COUNT))s${NC}"
+    log_clean "${YELLOW}🏁 Stopped at: $(date)${NC}"
 else
     # Single run
     if [ -n "$TEST_NAME" ]; then
-        echo -e "${YELLOW}Note: Running single tests requires browser startup/shutdown.${NC}"
-        echo -e "${YELLOW}For faster execution, run: ./run-test.sh ${TEST_FILE}${NC}"
-        echo ""
+        log_clean "${YELLOW}Note: Running single tests requires browser startup/shutdown.${NC}"
+        log_clean "${YELLOW}For faster execution, run: ./run-test.sh ${TEST_FILE}${NC}"
+        log_clean ""
     fi
 
-    echo -e "${GREEN}Running:${NC} ${CMD}"
-    echo ""
+    log_clean "${GREEN}Running:${NC} ${CMD}"
+    log_clean ""
 
-    eval $CMD
+    # Run the test (output goes to both console and log file)
+    # Use PIPESTATUS to preserve the actual command exit code
+    set +e
+    eval $CMD 2>&1 | tee -a "$OUTPUT_LOG"
+    TEST_EXIT_CODE=${PIPESTATUS[0]}
+    set -e
+fi
+
+# Write log footer
+log_clean ""
+log_clean "=============================================="
+log_clean "Test Run Completed: $(date)"
+log_clean "Log saved to: webapp-v2/${OUTPUT_LOG}"
+log_clean "=============================================="
+
+# Exit with the test's exit code (for single run case)
+if [ "$REPEAT_COUNT" -eq 1 ]; then
+    exit $TEST_EXIT_CODE
 fi

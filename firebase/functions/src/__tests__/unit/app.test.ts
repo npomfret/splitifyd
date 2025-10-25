@@ -1,4 +1,4 @@
-import { amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, UserBalance } from '@splitifyd/shared';
+import { ActivityFeedEventTypes, amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, UserBalance } from '@splitifyd/shared';
 import type { UserId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
@@ -3141,6 +3141,86 @@ describe('app tests', () => {
             await appDriver.expectNotificationUpdate(user1, group.id, {
                 groupDetailsChangeCount: 2,
             });
+        });
+
+        it('should prune activity feed entries beyond the latest 10 items inside transactional writes', async () => {
+            const group = await appDriver.createGroup(user1);
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            const participants = [user1, user2];
+
+            for (let i = 0; i < 12; i += 1) {
+                await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withAmount(25, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(25, 'USD', participants))
+                        .withDescription(`Activity Feed Expense ${i}`)
+                        .build(),
+                );
+            }
+
+            const feedUser1 = await appDriver.getActivityFeedItems(user1);
+            const feedUser2 = await appDriver.getActivityFeedItems(user2);
+
+            expect(feedUser1.length).toBeLessThanOrEqual(10);
+            expect(feedUser2.length).toBeLessThanOrEqual(10);
+
+            const user1ExpenseDescriptions = feedUser1
+                .filter((item) => item.eventType === ActivityFeedEventTypes.EXPENSE_CREATED)
+                .map((item) => item.details?.expenseDescription);
+
+            expect(user1ExpenseDescriptions).toContain('Activity Feed Expense 11');
+            expect(user1ExpenseDescriptions).not.toContain('Activity Feed Expense 0');
+            expect(user1ExpenseDescriptions).not.toContain('Activity Feed Expense 1');
+        });
+
+        it('should prune historical activity entries when a group is deleted', async () => {
+            const group = await appDriver.createGroup(user1);
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            const participants = [user1, user2];
+
+            for (let i = 0; i < 10; i += 1) {
+                await appDriver.createExpense(
+                    user1,
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withAmount(30, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(30, 'USD', participants))
+                        .withDescription(`Deletion Feed Expense ${i}`)
+                        .build(),
+                );
+            }
+
+            await appDriver.deleteGroup(user1, group.id);
+
+            const feedUser1 = await appDriver.getActivityFeedItems(user1);
+            const feedUser2 = await appDriver.getActivityFeedItems(user2);
+
+            expect(feedUser1.length).toBeLessThanOrEqual(10);
+            expect(feedUser2.length).toBeLessThanOrEqual(10);
+
+            const user1Descriptions = feedUser1
+                .filter((item) => item.eventType === ActivityFeedEventTypes.EXPENSE_CREATED)
+                .map((item) => item.details?.expenseDescription);
+
+            expect(user1Descriptions).not.toContain('Deletion Feed Expense 0');
+
+            const memberLeftEventsUser1 = feedUser1.filter((item) => item.eventType === ActivityFeedEventTypes.MEMBER_LEFT);
+            const memberLeftEventsUser2 = feedUser2.filter((item) => item.eventType === ActivityFeedEventTypes.MEMBER_LEFT);
+
+            expect(memberLeftEventsUser1.some((event) => event.details?.targetUserId === user1)).toBe(true);
+            expect(memberLeftEventsUser2.some((event) => event.details?.targetUserId === user2)).toBe(true);
         });
     });
 
