@@ -40,6 +40,16 @@ export interface AuthStore extends AuthState, AuthActions {
     refreshingTokenSignal: ReadonlySignal<boolean>;
 }
 
+class PostRegistrationLoginError extends Error {
+    constructor(
+        public readonly originalError: unknown,
+        public readonly userMessage: string,
+    ) {
+        super('PostRegistrationLoginError');
+        this.name = 'PostRegistrationLoginError';
+    }
+}
+
 export function mapFirebaseUser(firebaseUser: FirebaseUser): ClientUser {
     return {
         uid: firebaseUser.uid!,
@@ -289,13 +299,24 @@ class AuthStoreImpl implements AuthStore {
 
         try {
             // Use server-side registration which creates both Firebase Auth user and Firestore document
-            await apiClient.register(email, password, displayName, termsAccepted, cookiePolicyAccepted);
+            const registrationResult = await apiClient.register(email, password, displayName, termsAccepted, cookiePolicyAccepted);
+
+            if (!registrationResult?.success) {
+                const message = registrationResult?.message ?? 'Registration failed. Please try again.';
+                this.#errorSignal.value = message;
+                throw new Error(message);
+            }
 
             // Now sign in the user to get the Firebase Auth state
-            await this.login(email, password);
+            await this.signInAfterRegistration(email, password);
 
             // User state will be updated by onAuthStateChanged listener
         } catch (error: any) {
+            if (error instanceof PostRegistrationLoginError) {
+                this.#errorSignal.value = error.userMessage;
+                throw new Error(error.userMessage);
+            }
+
             this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
         } finally {
@@ -439,6 +460,25 @@ class AuthStoreImpl implements AuthStore {
         this.refreshPromise = null;
         this.tokenExpiryTime = null;
         this.#isRefreshingTokenSignal.value = false;
+    }
+
+    private async signInAfterRegistration(email: Email, password: string): Promise<void> {
+        try {
+            await this.firebase.signInWithEmailAndPassword(email, password);
+        } catch (error) {
+            throw new PostRegistrationLoginError(error, this.buildPostRegistrationLoginErrorMessage(error));
+        }
+    }
+
+    private buildPostRegistrationLoginErrorMessage(error: unknown): string {
+        const baseMessage = 'Your account was created, but we could not sign you in automatically.';
+        const detailedMessage = this.getAuthErrorMessage(error);
+
+        if (!detailedMessage || detailedMessage === 'An authentication error occurred.') {
+            return `${baseMessage} Please sign in manually.`;
+        }
+
+        return `${baseMessage} ${detailedMessage}`;
     }
 
     private getAuthErrorMessage(error: any): string {

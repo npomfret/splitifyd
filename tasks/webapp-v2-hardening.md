@@ -24,8 +24,8 @@ Track the outstanding correctness and maintainability issues surfaced during the
 - [x] **Eliminate magic strings for storage and error codes**  
   - Centralized storage identifiers (session/local) via `STORAGE_KEYS`; `GroupDetail` now relies on `GROUP_DETAIL_ERROR_CODES` rather than string literals.
 
-- [ ] **Review auth registration flow for atomicity and error handling**  
-  - Audit `register` paths to ensure partial failures (e.g., user created but profile not updated) roll back cleanly; bolster error messaging as noted in UX report 1.
+- [x] **Review auth registration flow for atomicity and error handling**  
+  - `auth-store` now verifies the `/register` response, attempts Firebase sign-in directly, and surfaces a clear fallback message if automatic login fails so users can retry manually.
 
 - [ ] **Simplify complex store logic where possible**  
   - `enhancedGroupsStore` and `enhancedGroupDetailStore` have large surface areas. Identify opportunities to split concerns (e.g., pagination, subscriptions) into focused helpers to reduce cognitive load.

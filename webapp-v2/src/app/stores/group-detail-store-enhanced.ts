@@ -220,7 +220,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             if (isGroupDeleted) {
                 logInfo('GroupDTO deleted, clearing state', { groupId: this.currentGroupId });
 
-                this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.GROUP_DELETED;
+                this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
                 batch(() => {
                     this.#groupSignal.value = null;
                     this.#membersSignal.value = [];
