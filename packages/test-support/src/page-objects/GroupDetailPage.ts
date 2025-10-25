@@ -1604,9 +1604,17 @@ export class GroupDetailPage extends BasePage {
      * Fluent version - verifies modal opens and returns ShareGroupModalPage
      */
     async clickShareGroupAndOpenModal(): Promise<ShareGroupModalPage> {
-        await this.clickShareGroup();
-
+        const button = this.getShareGroupButton();
         const modalPage = new ShareGroupModalPage(this.page);
+
+        // Verify modal is NOT open before we click (establishes baseline state)
+        await expect(modalPage.getModalContainer()).not.toBeVisible();
+
+        // Use clickButtonNoWait since opening a modal doesn't trigger navigation
+        await this.clickButtonNoWait(button, { buttonName: translation.groupActions.inviteOthers });
+
+        // Wait for modal to be fully ready (including share link generation)
+        // This ensures the fluent interface returns a ready-to-use modal
         await modalPage.waitForModalToOpen();
         return modalPage;
     }
