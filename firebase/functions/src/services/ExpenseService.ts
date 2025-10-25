@@ -288,9 +288,6 @@ export class ExpenseService {
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expenseData.groupId);
 
-            // Fetch existing activity feed items for all members (required for pruning logic)
-            const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
-
             // ===== WRITE PHASE: All writes happen after reads =====
 
             // Create the expense with the pre-generated ID
@@ -307,8 +304,8 @@ export class ExpenseService {
             // Apply incremental balance update
             this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expense, memberIds);
 
-            // Record activity feed items using pre-fetched data
-            this.activityFeedService.recordActivityForUsersWithExistingItems(
+            // Record activity feed items
+            this.activityFeedService.recordActivityForUsers(
                 transaction,
                 memberIds,
                 {
@@ -324,7 +321,6 @@ export class ExpenseService {
                         expenseDescription: expense.description,
                     },
                 },
-                existingActivityItems,
             );
         });
         timer.endPhase();
@@ -461,9 +457,6 @@ export class ExpenseService {
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
 
-            // Fetch existing activity feed items for all members (required for pruning logic)
-            const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
-
             // ===== WRITE PHASE: All writes happen after reads =====
 
             // Create history entry with ISO timestamp
@@ -481,8 +474,8 @@ export class ExpenseService {
             const newExpense: ExpenseDTO = { ...expense, ...updates };
             this.incrementalBalanceService.applyExpenseUpdated(transaction, expense.groupId, currentBalance, expense, newExpense, memberIds);
 
-            // Record activity feed items using pre-fetched data
-            this.activityFeedService.recordActivityForUsersWithExistingItems(
+            // Record activity feed items
+            this.activityFeedService.recordActivityForUsers(
                 transaction,
                 memberIds,
                 {
@@ -498,7 +491,6 @@ export class ExpenseService {
                         expenseDescription: newExpense.description,
                     },
                 },
-                existingActivityItems,
             );
         });
 
@@ -658,9 +650,6 @@ export class ExpenseService {
                 // Read current balance BEFORE any writes (Firestore transaction rule)
                 const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
 
-                // Fetch existing activity feed items for all members (required for pruning logic)
-                const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
-
                 // Check for concurrent updates (compare ISO strings)
                 if (expense.updatedAt !== currentExpense.updatedAt) {
                     throw Errors.CONCURRENT_UPDATE();
@@ -682,8 +671,8 @@ export class ExpenseService {
                 // Apply incremental balance update to remove this expense's contribution
                 this.incrementalBalanceService.applyExpenseDeleted(transaction, expense.groupId, currentBalance, expense, memberIds);
 
-                // Record activity feed items using pre-fetched data
-                this.activityFeedService.recordActivityForUsersWithExistingItems(
+                // Record activity feed items
+                this.activityFeedService.recordActivityForUsers(
                     transaction,
                     memberIds,
                     {
@@ -699,7 +688,6 @@ export class ExpenseService {
                             expenseDescription: expense.description,
                         },
                     },
-                    existingActivityItems,
                 );
             });
             timer.endPhase();

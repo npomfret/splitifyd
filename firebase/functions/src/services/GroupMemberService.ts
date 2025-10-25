@@ -139,9 +139,6 @@ export class GroupMemberService {
                 activityRecipients.add(targetUserId);
 
                 const recipientIds = Array.from(activityRecipients);
-                const existingActivityItems = recipientIds.length > 0
-                    ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, recipientIds)
-                    : new Map();
 
                 transaction.update(membershipRef, {
                     memberStatus: MemberStatuses.ACTIVE,
@@ -151,7 +148,7 @@ export class GroupMemberService {
                 await this.firestoreWriter.touchGroup(groupId, transaction);
 
                 if (recipientIds.length > 0) {
-                    this.activityFeedService.recordActivityForUsersWithExistingItems(
+                    this.activityFeedService.recordActivityForUsers(
                         transaction,
                         recipientIds,
                         {
@@ -167,7 +164,6 @@ export class GroupMemberService {
                                 targetUserName: actorDisplayName,
                             },
                         },
-                        existingActivityItems,
                     );
                 }
             });
@@ -352,9 +348,6 @@ export class GroupMemberService {
             const remainingMemberIds = memberIdsInTransaction.filter((uid) => uid !== targetUserId);
 
             const activityRecipients = Array.from(new Set<string>([...remainingMemberIds, targetUserId]));
-            const existingActivityItems = activityRecipients.length > 0
-                ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, activityRecipients)
-                : new Map();
 
             const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
             const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
@@ -363,7 +356,7 @@ export class GroupMemberService {
             await this.firestoreWriter.touchGroup(groupId, transaction);
 
             if (activityRecipients.length > 0) {
-                this.activityFeedService.recordActivityForUsersWithExistingItems(
+                this.activityFeedService.recordActivityForUsers(
                     transaction,
                     activityRecipients,
                     {
@@ -379,7 +372,6 @@ export class GroupMemberService {
                             targetUserName: targetDisplayName,
                         },
                     },
-                    existingActivityItems,
                 );
             }
         });

@@ -18,7 +18,7 @@
 
 # edit these to pick your test cases
 TEST_FILE="src/__tests__/integration/core-features.e2e.test.ts"
-TEST_FILTER=" comprehensive group deletion scenarios with dashboard updates and member redirects"
+TEST_FILTER=""
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

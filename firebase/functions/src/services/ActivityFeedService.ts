@@ -17,7 +17,7 @@ interface CreateActivityItemInput {
 }
 
 const MAX_ITEMS_PER_USER = 10;
-const PRUNE_FETCH_LIMIT = MAX_ITEMS_PER_USER + 10;
+const CLEANUP_KEEP_COUNT = 20; // Keep last 20 items, cleanup happens async during reads
 
 export class ActivityFeedService {
     constructor(
@@ -26,37 +26,13 @@ export class ActivityFeedService {
     ) {}
 
     /**
-     * Fetch existing activity feed items for users (must be called BEFORE any writes in transaction)
+     * Record activity for users in a transaction (simplified - no pruning in transaction)
+     * Pruning happens asynchronously during reads to avoid transaction overhead
      */
-    async fetchExistingItemsForUsers(
-        transaction: ITransaction,
-        userIds: string[],
-    ): Promise<Map<string, Array<{ id: string; }>>> {
-        const existingItemsMap = new Map<string, Array<{ id: string; }>>();
-
-        for (const userId of userIds) {
-            const existingSnapshots = await this.firestoreWriter.getActivityFeedItemsForUserInTransaction(
-                transaction,
-                userId,
-                PRUNE_FETCH_LIMIT,
-            );
-            existingItemsMap.set(
-                userId,
-                existingSnapshots.map((snap) => ({ id: snap.id })),
-            );
-        }
-
-        return existingItemsMap;
-    }
-
-    /**
-     * Record activity for users using pre-fetched existing items (call AFTER reads, during writes phase)
-     */
-    recordActivityForUsersWithExistingItems(
+    recordActivityForUsers(
         transaction: ITransaction,
         userIds: string[],
         item: CreateActivityItemInput,
-        existingItemsMap: Map<string, Array<{ id: string; }>>,
     ): void {
         if (userIds.length === 0) {
             return;
@@ -76,14 +52,6 @@ export class ActivityFeedService {
                 timestamp: item.timestamp,
                 details,
             });
-
-            const existingItems = existingItemsMap.get(userId) ?? [];
-            if (existingItems.length >= MAX_ITEMS_PER_USER) {
-                const itemsToDelete = existingItems.slice(MAX_ITEMS_PER_USER - 1);
-                for (const item of itemsToDelete) {
-                    this.firestoreWriter.deleteActivityFeedItemInTransaction(transaction, userId, item.id);
-                }
-            }
         }
     }
 
@@ -99,7 +67,32 @@ export class ActivityFeedService {
         nextCursor?: string;
     }> {
         return measureDb('ActivityFeedService.getActivityFeedForUser', async () => {
-            return this.firestoreReader.getActivityFeedForUser(userId, options);
+            const result = await this.firestoreReader.getActivityFeedForUser(userId, options);
+
+            // Async cleanup (fire-and-forget) - prune old items beyond CLEANUP_KEEP_COUNT
+            // This happens outside the critical path and doesn't block the response
+            this.cleanupOldActivityItems(userId).catch((error) => {
+                // Log but don't fail the request
+                console.warn(`Failed to cleanup activity feed for user ${userId}:`, error);
+            });
+
+            return result;
         });
+    }
+
+    /**
+     * Async cleanup of old activity feed items (fire-and-forget)
+     * Keeps the last CLEANUP_KEEP_COUNT items, deletes older ones
+     */
+    private async cleanupOldActivityItems(userId: string): Promise<void> {
+        const items = await this.firestoreWriter.getActivityFeedItemsForUser(userId, CLEANUP_KEEP_COUNT + 10);
+
+        if (items.length > CLEANUP_KEEP_COUNT) {
+            const itemsToDelete = items.slice(CLEANUP_KEEP_COUNT);
+            const deletePromises = itemsToDelete.map((item) =>
+                this.firestoreWriter.deleteActivityFeedItem(userId, item.id),
+            );
+            await Promise.all(deletePromises);
+        }
     }
 }

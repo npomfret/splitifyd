@@ -255,9 +255,6 @@ export class SettlementService {
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlementData.groupId);
 
-            // Fetch existing activity feed items for all members (required for pruning logic)
-            const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
-
             // ===== WRITE PHASE: All writes happen after reads =====
 
             // Create settlement in transaction
@@ -270,8 +267,8 @@ export class SettlementService {
             const settlementToApply: SettlementDTO = { id: settlementId, ...settlementDataToCreate };
             this.incrementalBalanceService.applySettlementCreated(transaction, settlementData.groupId, currentBalance, settlementToApply, memberIds);
 
-            // Record activity feed items using pre-fetched data
-            this.activityFeedService.recordActivityForUsersWithExistingItems(
+            // Record activity feed items
+            this.activityFeedService.recordActivityForUsers(
                 transaction,
                 memberIds,
                 {
@@ -287,7 +284,6 @@ export class SettlementService {
                         settlementDescription: settlementData.note,
                     },
                 },
-                existingActivityItems,
             );
         });
         timer.endPhase();
@@ -413,9 +409,6 @@ export class SettlementService {
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
 
-            // Fetch existing activity feed items for all members (required for pruning logic)
-            const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
-
             // ===== WRITE PHASE: All writes happen after reads =====
 
             const updateTimestamp = new Date().toISOString();
@@ -435,8 +428,8 @@ export class SettlementService {
             }
             this.incrementalBalanceService.applySettlementUpdated(transaction, settlement.groupId, currentBalance, settlement, newSettlement, memberIds);
 
-            // Record activity feed items using pre-fetched data
-            this.activityFeedService.recordActivityForUsersWithExistingItems(
+            // Record activity feed items
+            this.activityFeedService.recordActivityForUsers(
                 transaction,
                 memberIds,
                 {
@@ -452,7 +445,6 @@ export class SettlementService {
                         settlementDescription: updatedNote,
                     },
                 },
-                existingActivityItems,
             );
         });
         timer.endPhase();

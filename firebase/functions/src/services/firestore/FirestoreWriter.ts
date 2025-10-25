@@ -962,6 +962,25 @@ export class FirestoreWriter implements IFirestoreWriter {
         transaction.delete(docRef);
     }
 
+    /**
+     * Get activity feed items for a user (non-transaction version for async cleanup)
+     */
+    async getActivityFeedItemsForUser(userId: string, limit: number): Promise<Array<{ id: string; }>> {
+        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
+        const query = collectionRef.orderBy('createdAt', 'desc').limit(limit);
+        const snapshot = await query.get();
+        return snapshot.docs.map((doc) => ({ id: doc.id }));
+    }
+
+    /**
+     * Delete an activity feed item (non-transaction version for async cleanup)
+     */
+    async deleteActivityFeedItem(userId: string, documentId: string): Promise<void> {
+        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
+        const docRef = collectionRef.doc(documentId);
+        await docRef.delete();
+    }
+
     // ========================================================================
     // Utility Operations
     // ========================================================================

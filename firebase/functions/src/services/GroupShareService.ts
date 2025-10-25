@@ -342,10 +342,6 @@ export class GroupShareService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
-            const existingActivityItems = shouldEmitJoinedActivity && activityRecipients.length > 0
-                ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, activityRecipients)
-                : new Map();
-
             // Update group timestamp to reflect membership change
             await this.firestoreWriter.touchGroup(groupId, transaction);
 
@@ -364,7 +360,7 @@ export class GroupShareService {
 
             if (shouldEmitJoinedActivity && activityRecipients.length > 0) {
                 const groupName = (groupSnapshot.data() as { name?: string; } | undefined)?.name ?? preCheckGroup.name;
-                this.activityFeedService.recordActivityForUsersWithExistingItems(
+                this.activityFeedService.recordActivityForUsers(
                     transaction,
                     activityRecipients,
                     {
@@ -380,7 +376,6 @@ export class GroupShareService {
                             targetUserName: memberDoc.groupDisplayName,
                         },
                     },
-                    existingActivityItems,
                 );
             }
 

@@ -428,10 +428,6 @@ export class GroupService {
             const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);
             const actorDisplayName = actorMembershipDoc?.data().groupDisplayName ?? 'Unknown member';
 
-            const existingActivityItems = memberIds.length > 0
-                ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds)
-                : new Map<string, Array<{ id: string; }>>();
-
             // Optimistic locking: Check if group was updated since we fetched it (compare ISO strings)
             if (group.updatedAt !== currentGroup.updatedAt) {
                 throw Errors.CONCURRENT_UPDATE();
@@ -466,7 +462,7 @@ export class GroupService {
             if (memberIds.length > 0) {
                 const details = updatedData.name !== group.name ? { previousGroupName: group.name } : {};
 
-                this.activityFeedService.recordActivityForUsersWithExistingItems(
+                this.activityFeedService.recordActivityForUsers(
                     transaction,
                     memberIds,
                     {
@@ -479,7 +475,6 @@ export class GroupService {
                         timestamp: now,
                         details,
                     },
-                    existingActivityItems,
                 );
             }
         });
@@ -600,9 +595,6 @@ export class GroupService {
                 .docs
                 .map((doc) => (doc.data().uid as string | null | undefined) ?? null)
                 .filter((id): id is string => Boolean(id));
-            const existingActivityItems = memberIdsInTransaction.length > 0
-                ? await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIdsInTransaction)
-                : new Map<string, Array<{ id: string; }>>();
 
             this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, {
                 deletedAt: now,
@@ -620,7 +612,7 @@ export class GroupService {
             for (const memberId of memberIdsInTransaction) {
                 const memberDoc = membershipSnapshot.docs.find((doc) => (doc.data() as { uid?: string; }).uid === memberId);
                 const targetUserName = (memberDoc?.data() as { groupDisplayName?: string; })?.groupDisplayName ?? 'Unknown member';
-                this.activityFeedService.recordActivityForUsersWithExistingItems(
+                this.activityFeedService.recordActivityForUsers(
                     transaction,
                     [memberId],
                     {
@@ -636,7 +628,6 @@ export class GroupService {
                             targetUserName,
                         },
                     },
-                    existingActivityItems,
                 );
             }
 

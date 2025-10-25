@@ -186,12 +186,7 @@ export class CommentService {
         // Writer handles conversion to Firestore Timestamps and schema validation
         timer.startPhase('write');
         const commentId = await this.firestoreWriter.runTransaction(async (transaction) => {
-            // ===== READ PHASE: All reads must happen before any writes =====
-
-            // Fetch existing activity feed items for all members (required for pruning logic)
-            const existingActivityItems = await this.activityFeedService.fetchExistingItemsForUsers(transaction, memberIds);
-
-            // ===== WRITE PHASE: All writes happen after reads =====
+            // ===== WRITE PHASE =====
 
             const commentRef = this.firestoreWriter.createCommentInTransaction(transaction, targetType, targetId, commentCreateData);
 
@@ -207,8 +202,8 @@ export class CommentService {
                 }
             }
 
-            // Record activity feed items using pre-fetched data
-            this.activityFeedService.recordActivityForUsersWithExistingItems(
+            // Record activity feed items
+            this.activityFeedService.recordActivityForUsers(
                 transaction,
                 memberIds,
                 {
@@ -221,7 +216,6 @@ export class CommentService {
                     timestamp: now,
                     details,
                 },
-                existingActivityItems,
             );
 
             return commentRef.id;
