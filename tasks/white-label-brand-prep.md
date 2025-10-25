@@ -211,51 +211,46 @@ app.use(resolveTenant);
 
 **Modify: `firebase/functions/src/client-config.ts:177`**
 
-Extend `buildAppConfiguration()` to fetch tenant config:
+Extend `buildAppConfiguration()` to fetch tenant config via the registry:
 ```typescript
+import { TenantId } from '@splitifyd/shared';
+import { getTenantRegistry } from './services/tenant-registry';
+
 async function buildAppConfiguration(tenantId?: TenantId): Promise<AppConfiguration> {
     const config = getConfig();
     const env = getEnv();
-
-    // Existing firebase config building...
-
-    // NEW: Fetch tenant config from Firestore
-    let tenantConfig: TenantConfig | undefined;
-    if (tenantId) {
-        const tenantDoc = await getFirestore().collection('tenants').doc(tenantId).get();
-        if (tenantDoc.exists) {
-            tenantConfig = tenantDoc.data() as TenantConfig;
-        } else {
-            logger.warn(`Tenant ${tenantId} not found, using defaults`);
-        }
-    }
+    const registry = await getTenantRegistry();
+    const tenant = tenantId ? registry.getConfig(tenantId) : null;
 
     return {
         firebase,
         environment,
         formDefaults: config.formDefaults,
-        tenant: tenantConfig,  // NEW
+        tenant: tenant ?? registry.getFallbackTenantConfig(),
         firebaseAuthUrl: getFirebaseAuthUrl(config, env),
         firebaseFirestoreUrl: getFirebaseFirestoreUrl(config, env),
     };
 }
 ```
 
-**New Endpoint: `GET /api/app-config?tenantId=acme`**
+**Modify: `firebase/functions/src/index.ts:90`**
 
+Reuse the existing `/config` route but make it tenant-aware:
 ```typescript
-// In firebase/functions/src/index.ts
-app.get('/api/app-config', async (req: TenantRequest, res) => {
-    try {
-        const tenantId = req.tenantId || req.query.tenantId as TenantId;
-        const appConfig = await buildAppConfiguration(tenantId);
-        res.json(appConfig);
-    } catch (error) {
-        logger.error('Failed to get app config', error);
-        res.status(500).json({ error: 'Configuration error' });
-    }
-});
+app.get(
+    '/config',
+    asyncHandler(async (req: TenantRequest, res: express.Response) => {
+        const config = await buildAppConfiguration(req.tenantId);
+        res.json(config);
+    }),
+);
 ```
+
+**Implementation notes**
+- `getTenantRegistry()` caches Firestore data with a snapshot listener so `/config` stays fast even with many tenants.
+- Registry exposes helpers: `findByDomain(host)`, `getConfig(tenantId)`, `getFallbackTenantConfig()`, and `getFallbackTenantId()` for middleware reuse.
+- Seed a “showroom” tenant whose branding powers the public demo domain; fallback tenant config can mirror this branding so unknown hosts still render a polished experience.
+- Policies remain global—`PolicyService` logic is unchanged, so all tenants point to the same legal copy until we explicitly support overrides.
 
 #### Phase 4: Frontend Dynamic Branding (Week 5)
 
@@ -263,10 +258,17 @@ app.get('/api/app-config', async (req: TenantRequest, res) => {
 
 Fetch tenant-aware config:
 ```typescript
-// Add tenantId detection (from URL subdomain or custom domain)
-const tenantId = detectTenantFromURL();
-const response = await fetch(`/api/app-config?tenantId=${tenantId}`);
+const response = await fetch('/config', { credentials: 'include' });
 const config = await response.json();
+
+// Apply branding immediately
+if (config.tenant?.branding) {
+    themeStore.applyThemeToDOM(
+        mapTenantBrandingToUserTheme(config.tenant.branding),
+        themeStore.isDarkMode,
+    );
+    applyFavicon(config.tenant.branding.faviconUrl);
+}
 ```
 
 **Modify: `webapp-v2/src/components/layout/Header.tsx:64`**
