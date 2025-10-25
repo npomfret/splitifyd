@@ -389,47 +389,48 @@ function App() {
 
 #### Phase 6: Data Isolation (Week 7-8)
 
-**Add `tenantId` to all user-created documents:**
+**Persist tenant context everywhere**
 
-1. **Users**: `firebase/functions/src/auth/users.ts`
-   - Add `tenantId` field when creating users
-   - Store user's tenant in custom claims for quick access
+- Users: when registering (`firebase/functions/src/auth/register.ts`), inject `tenantId` from the resolved request and propagate it into the stored user doc plus custom auth claims. Existing admin promotion flows must retain the claim.
+- Groups/Expenses/Settlements/Comments/etc.: enforce `tenantId` at creation time via service constructors—extend DTO builders to require a tenant and ensure every Firestore write includes it. For legacy data, plan a one-time backfill script keyed off existing ownership.
+- APIs: decorate `request.auth.token.tenantId` in the auth middleware so downstream handlers can trust the claim; add guard helpers (e.g., `assertTenantAccess(docTenantId, requestTenantId)`) in each service before returning data.
 
-2. **Groups**: Add `tenantId` to group documents in `groups/{groupId}`
-
-3. **Expenses**: Add `tenantId` to expense documents
-
-4. **Settlements**: Add `tenantId` to settlement documents
-
-**Firestore Security Rules: `firebase/firestore.rules`**
+**Firestore security rules (`firebase/firestore.rules`)**
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
-    match /databases/{database}/documents {
-        // Helper function to get user's tenant
-        function getUserTenant() {
-            return request.auth.token.tenantId;
-        }
-
-        // Tenant isolation: users can only access their tenant's data
-        match /groups/{groupId} {
-            allow read, write: if resource.data.tenantId == getUserTenant();
-        }
-
-        match /expenses/{expenseId} {
-            allow read, write: if resource.data.tenantId == getUserTenant();
-        }
-
-        // Tenant config: read-only for tenant users, write for admins
-        match /tenants/{tenantId} {
-            allow read: if tenantId == getUserTenant();
-            allow write: if tenantId == getUserTenant()
-                         && request.auth.token.role == 'tenant-admin';
-        }
+  match /databases/{database}/documents {
+    function userTenant() {
+      return request.auth != null ? request.auth.token.tenantId : null;
     }
+
+    match /users/{userId} {
+      allow read, update: if userTenant() != null && resource.data.tenantId == userTenant();
+      allow create: if userTenant() != null && request.resource.data.tenantId == userTenant();
+    }
+
+    match /groups/{groupId} {
+      allow read, write: if userTenant() != null && resource.data.tenantId == userTenant();
+    }
+
+    match /expenses/{expenseId} {
+      allow read, write: if userTenant() != null && resource.data.tenantId == userTenant();
+    }
+
+    match /tenants/{tenantId} {
+      allow read: if tenantId == userTenant();
+      allow write: if tenantId == userTenant() && request.auth.token.role == 'tenant-admin';
+    }
+  }
 }
 ```
+
+**Operational safeguards**
+
+- Cloud Functions should double-check claims vs payload to avoid privilege escalation (never trust client-provided `tenantId`).
+- Add smoke tests that sign in as two tenants and ensure cross-tenant reads/writes fail.
+- Plan a migration checklist: backfill existing documents, run validation queries (`SELECT * WHERE tenantId == null` equivalent using Firestore exports), and lock writes behind maintenance mode during the cutover if needed.
 
 #### Phase 7: Organization Hierarchy (Week 9-10)
 
