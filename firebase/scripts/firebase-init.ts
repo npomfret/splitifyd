@@ -1,7 +1,9 @@
 import * as admin from 'firebase-admin';
+import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
+import { getPorts, getProjectId } from '@splitifyd/test-support';
 
 export function isProduction() {
     return requireInstanceMode() === 'prod';
@@ -78,5 +80,46 @@ export function initializeFirebase(env: ScriptEnvironment): void {
         }
     } else {
         console.log('   Using Firebase Emulator Suite');
+
+        const envPath = path.join(__dirname, '../functions/.env');
+        if (fs.existsSync(envPath)) {
+            dotenv.config({ path: envPath });
+        }
+
+        const projectId = process.env.GCLOUD_PROJECT ?? (() => {
+            try {
+                const id = getProjectId();
+                process.env.GCLOUD_PROJECT = id;
+                return id;
+            } catch {
+                return undefined;
+            }
+        })();
+
+        try {
+            const ports = getPorts();
+
+            if (!process.env.FUNCTIONS_EMULATOR) {
+                process.env.FUNCTIONS_EMULATOR = 'true';
+            }
+
+            if (!process.env.FIRESTORE_EMULATOR_HOST) {
+                process.env.FIRESTORE_EMULATOR_HOST = `localhost:${ports.firestore}`;
+            }
+
+            if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+                process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${ports.auth}`;
+            }
+
+            if (!process.env.FIREBASE_CONFIG) {
+                const resolvedProjectId = projectId ?? 'local-test';
+                process.env.FIREBASE_CONFIG = JSON.stringify({
+                    projectId: resolvedProjectId,
+                    storageBucket: `${resolvedProjectId}.appspot.com`,
+                });
+            }
+        } catch (error) {
+            console.warn('⚠️  Failed to load emulator ports from firebase.json', error);
+        }
     }
 }

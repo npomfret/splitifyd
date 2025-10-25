@@ -55,6 +55,20 @@ async function initializeAppServices() {
 /**
  * Format user data as single line JSON
  */
+function stringToIso(value: unknown, field: string, docId: string): string | undefined {
+    if (typeof value !== 'string') {
+        return undefined;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        console.warn(`⚠️  Invalid date string for ${field} on user ${docId}: ${value}`);
+        return undefined;
+    }
+
+    return date.toISOString();
+}
+
 function formatUserData(doc: DocumentSnapshot): string {
     const data = doc.data();
     if (!data) return JSON.stringify({ id: doc.id, data: null });
@@ -63,18 +77,23 @@ function formatUserData(doc: DocumentSnapshot): string {
     const cleanData = { ...data };
 
     // Handle createdAt timestamp
-    if (cleanData.createdAt && cleanData.createdAt.toDate) {
-        cleanData.createdAt = cleanData.createdAt.toDate().toISOString();
+    const createdAtIso = stringToIso(cleanData.createdAt, 'createdAt', doc.id);
+    if (createdAtIso) {
+        cleanData.createdAt = createdAtIso;
     }
 
     // Handle updatedAt timestamp
-    if (cleanData.updatedAt && cleanData.updatedAt.toDate) {
-        cleanData.updatedAt = cleanData.updatedAt.toDate().toISOString();
+    const updatedAtIso = stringToIso(cleanData.updatedAt, 'updatedAt', doc.id);
+    if (updatedAtIso) {
+        cleanData.updatedAt = updatedAtIso;
     }
 
     // Handle any other timestamp fields
     if (cleanData.themeColor && cleanData.themeColor.assignedAt) {
-        cleanData.themeColor.assignedAt = new Date(cleanData.themeColor.assignedAt).toISOString();
+        const assignedAtIso = stringToIso(cleanData.themeColor.assignedAt, 'themeColor.assignedAt', doc.id);
+        if (assignedAtIso) {
+            cleanData.themeColor.assignedAt = assignedAtIso;
+        }
     }
 
     // Create final document with ID
