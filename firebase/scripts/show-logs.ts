@@ -63,7 +63,7 @@ function parseArgs(): ParsedArgs {
     let functionName: string | undefined;
     let lines = 50;
     let tail = false;
-    let provider: LogProvider = 'logging';
+    let provider: LogProvider = 'firebase';
     let region = process.env.FIREBASE_DEFAULT_REGION || 'us-central1';
     let filter: string | undefined;
     let format: LogFormat = 'text';
