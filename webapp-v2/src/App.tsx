@@ -1,5 +1,7 @@
 import Router, { Route } from 'preact-router';
 import { lazy, Suspense } from 'preact/compat';
+import type { ComponentProps, ComponentType, FunctionalComponent, VNode } from 'preact';
+import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './app/hooks/useAuth';
 import { TokenRefreshIndicator } from './components/auth/TokenRefreshIndicator';
@@ -8,6 +10,17 @@ import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal
 import { LoadingState, WarningBanner } from './components/ui';
 import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
 import { navigationService } from './services/navigation.service';
+
+type RouterInjectedProps = Partial<{
+    matches: Record<string, string | undefined>;
+    path: string;
+    url: string;
+    default: boolean;
+}>;
+
+type ComponentOwnProps<T extends ComponentType<any>> = Omit<ComponentProps<T>, 'children'>;
+type LazyRouteProps<T extends ComponentType<any>> = ComponentOwnProps<T> & RouterInjectedProps & { component: T; };
+type ProtectedRouteProps<T extends ComponentType<any>> = ComponentOwnProps<T> & RouterInjectedProps & { component: T; };
 
 // Lazy-loaded page components for code splitting
 const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
@@ -27,19 +40,22 @@ const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ 
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 
 // Wrapper component to handle Suspense for lazy-loaded components
-function LazyRoute({ component: Component, ...props }: any) {
+function LazyRoute<T extends ComponentType<any>>({ component: Component, ...props }: LazyRouteProps<T>): VNode {
     const { t } = useTranslation();
+    const componentProps = props as unknown as ComponentProps<T>;
+
     return (
         <Suspense fallback={<LoadingState fullPage message={t('app.loadingPage')} />}>
-            <Component {...props} />
+            <Component {...componentProps} />
         </Suspense>
     );
 }
 
 // Auth guard wrapper for protected routes
-function ProtectedRoute({ component: Component, ...props }: any) {
+function ProtectedRoute<T extends ComponentType<any>>({ component: Component, ...props }: ProtectedRouteProps<T>): VNode | null {
     const { t } = useTranslation();
     const authStore = useAuth();
+    const componentProps = props as unknown as ComponentProps<T>;
 
     // Handle SSG case where useAuth returns null
     if (!authStore) {
@@ -51,23 +67,61 @@ function ProtectedRoute({ component: Component, ...props }: any) {
         return <LoadingState fullPage message={t('app.loading')} />;
     }
 
-    // Redirect to login if not authenticated (declarative approach)
-    if (authStore.initialized && !authStore.user) {
-        // Store current URL for redirect after login
-        const locationRef = (globalThis as Record<string, any>).location as Location | undefined;
+    const shouldRedirectToLogin = authStore.initialized && !authStore.user;
+
+    useEffect(() => {
+        if (!shouldRedirectToLogin) {
+            return;
+        }
+
+        const locationRef = (globalThis as Record<string, unknown>).location as Location | undefined;
         const pathname = locationRef?.pathname ?? '';
         const search = locationRef?.search ?? '';
         const currentUrl = `${pathname}${search}`;
-        navigationService.goToLogin(currentUrl.length > 0 ? currentUrl : undefined);
-        return null;
+
+        void navigationService.goToLogin(currentUrl.length > 0 ? currentUrl : undefined);
+    }, [shouldRedirectToLogin]);
+
+    if (shouldRedirectToLogin) {
+        return <LoadingState fullPage message={t('app.loading')} />;
     }
 
     return (
         <Suspense fallback={<LoadingState fullPage message={t('app.loadingPage')} />}>
-            <Component {...props} />
+            <Component {...componentProps} />
         </Suspense>
     );
 }
+
+function createLazyRoute<T extends ComponentType<any>>(Component: T): FunctionalComponent<ComponentOwnProps<T> & RouterInjectedProps> {
+    const WrappedComponent: FunctionalComponent<ComponentOwnProps<T> & RouterInjectedProps> = (routeProps) => (
+        <LazyRoute component={Component} {...routeProps} />
+    );
+    return WrappedComponent;
+}
+
+function createProtectedRoute<T extends ComponentType<any>>(Component: T): FunctionalComponent<ComponentOwnProps<T> & RouterInjectedProps> {
+    const WrappedComponent: FunctionalComponent<ComponentOwnProps<T> & RouterInjectedProps> = (routeProps) => (
+        <ProtectedRoute component={Component} {...routeProps} />
+    );
+    return WrappedComponent;
+}
+
+const LandingRoute = createLazyRoute(LandingPage);
+const NotFoundRoute = createLazyRoute(NotFoundPage);
+const LoginRoute = createLazyRoute(LoginPage);
+const RegisterRoute = createLazyRoute(RegisterPage);
+const ResetPasswordRoute = createLazyRoute(ResetPasswordPage);
+const DashboardRoute = createProtectedRoute(DashboardPage);
+const GroupDetailRoute = createProtectedRoute(GroupDetailPage);
+const AddExpenseRoute = createProtectedRoute(AddExpensePage);
+const ExpenseDetailRoute = createProtectedRoute(ExpenseDetailPage);
+const PricingRoute = createLazyRoute(PricingPage);
+const TermsRoute = createLazyRoute(TermsOfServicePage);
+const PrivacyRoute = createLazyRoute(PrivacyPolicyPage);
+const CookieRoute = createLazyRoute(CookiePolicyPage);
+const JoinGroupRoute = createProtectedRoute(JoinGroupPage);
+const SettingsRoute = createProtectedRoute(SettingsPage);
 
 export function App() {
     const authStore = useAuth();
@@ -88,45 +142,44 @@ export function App() {
             <WarningBanner />
             <TokenRefreshIndicator />
             <Router>
-                <Route path='/' component={(props: any) => <LazyRoute component={LandingPage} {...props} />} />
+                <Route path='/' component={LandingRoute} />
 
                 {/* Auth Routes */}
-                <Route path='/login' component={(props: any) => <LazyRoute component={LoginPage} {...props} />} />
-                <Route path='/register' component={(props: any) => <LazyRoute component={RegisterPage} {...props} />} />
-                <Route path='/reset-password' component={(props: any) => <LazyRoute component={ResetPasswordPage} {...props} />} />
+                <Route path='/login' component={LoginRoute} />
+                <Route path='/register' component={RegisterRoute} />
+                <Route path='/reset-password' component={ResetPasswordRoute} />
 
                 {/* Dashboard Routes - Protected */}
-                <Route path='/dashboard' component={(props: any) => <ProtectedRoute component={DashboardPage} {...props} />} />
+                <Route path='/dashboard' component={DashboardRoute} />
 
                 {/* Settings Routes - Protected */}
-                <Route path='/settings' component={(props: any) => <ProtectedRoute component={SettingsPage} {...props} />} />
+                <Route path='/settings' component={SettingsRoute} />
 
                 {/* Group Routes - Protected */}
-                <Route path='/groups/:id' component={(props: any) => <ProtectedRoute component={GroupDetailPage} {...props} />} />
-                <Route path='/group/:id' component={(props: any) => <ProtectedRoute component={GroupDetailPage} {...props} />} />
+                <Route path='/groups/:id' component={GroupDetailRoute} />
 
                 {/* Add Expense Route - Protected */}
-                <Route path='/groups/:groupId/add-expense' component={(props: any) => <ProtectedRoute component={AddExpensePage} {...props} />} />
+                <Route path='/groups/:groupId/add-expense' component={AddExpenseRoute} />
 
                 {/* Expense Detail Route - Protected */}
-                <Route path='/groups/:groupId/expenses/:expenseId' component={(props: any) => <ProtectedRoute component={ExpenseDetailPage} {...props} />} />
+                <Route path='/groups/:groupId/expenses/:expenseId' component={ExpenseDetailRoute} />
 
                 {/* Join Group Route - Protected */}
-                <Route path='/join' component={(props: any) => <ProtectedRoute component={JoinGroupPage} {...props} />} />
+                <Route path='/join' component={JoinGroupRoute} />
 
                 {/* Static Pages */}
-                <Route path='/pricing' component={(props: any) => <LazyRoute component={PricingPage} {...props} />} />
-                <Route path='/terms-of-service' component={(props: any) => <LazyRoute component={TermsOfServicePage} {...props} />} />
-                <Route path='/terms' component={(props: any) => <LazyRoute component={TermsOfServicePage} {...props} />} />
-                <Route path='/privacy-policy' component={(props: any) => <LazyRoute component={PrivacyPolicyPage} {...props} />} />
-                <Route path='/privacy' component={(props: any) => <LazyRoute component={PrivacyPolicyPage} {...props} />} />
-                <Route path='/cookies-policy' component={(props: any) => <LazyRoute component={CookiePolicyPage} {...props} />} />
-                <Route path='/cookies' component={(props: any) => <LazyRoute component={CookiePolicyPage} {...props} />} />
+                <Route path='/pricing' component={PricingRoute} />
+                <Route path='/terms-of-service' component={TermsRoute} />
+                <Route path='/terms' component={TermsRoute} />
+                <Route path='/privacy-policy' component={PrivacyRoute} />
+                <Route path='/privacy' component={PrivacyRoute} />
+                <Route path='/cookies-policy' component={CookieRoute} />
+                <Route path='/cookies' component={CookieRoute} />
 
                 {/* Explicit 404 route */}
-                <Route path='/404' component={(props: any) => <LazyRoute component={NotFoundPage} {...props} />} />
+                <Route path='/404' component={NotFoundRoute} />
 
-                <Route default component={(props: any) => <LazyRoute component={NotFoundPage} {...props} />} />
+                <Route default component={NotFoundRoute} />
             </Router>
 
             {/* Policy Acceptance Modal - shows when user has pending policy acceptances */}

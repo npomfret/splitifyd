@@ -1,8 +1,7 @@
-import { routes } from '@/constants/routes';
 import { logError } from '@/utils/browser-logger.ts';
+import { navigationService } from '@/services/navigation.service';
 import { useComputed } from '@preact/signals';
 import { GroupId, UserId } from '@splitifyd/shared';
-import { route } from 'preact-router';
 import { useEffect } from 'preact/hooks';
 import { expenseFormStore } from '../stores/expense-form-store';
 
@@ -52,11 +51,11 @@ export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, 
             if (isEditMode && expenseId) {
                 await expenseFormStore.updateExpense(groupId, expenseId);
                 // Navigate back to expense detail after successful update
-                route(routes.expenseDetail(groupId, expenseId));
+                await navigationService.goToExpenseDetail(groupId, expenseId);
             } else {
                 await expenseFormStore.saveExpense(groupId);
                 // Navigate back to group detail after creating new expense (including copy mode)
-                route(routes.groupDetail(groupId));
+                await navigationService.goToGroup(groupId);
             }
         } catch (error) {
             logError('Failed to save expense', error);
@@ -73,10 +72,10 @@ export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, 
 
         if (isEditMode && expenseId) {
             // Navigate back to expense detail when canceling edit
-            route(routes.expenseDetail(groupId, expenseId));
+            void navigationService.goToExpenseDetail(groupId, expenseId);
         } else {
             // Navigate back to group detail when canceling create
-            route(routes.groupDetail(groupId));
+            void navigationService.goToGroup(groupId);
         }
     };
 

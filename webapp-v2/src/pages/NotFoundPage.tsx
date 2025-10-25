@@ -13,7 +13,7 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
     const isAuthenticated = useComputed(() => !!authStore?.user);
 
     // Check if this is a group-related 404
-    const isGroupPath = path?.includes('/groups/') || path?.includes('/group/');
+    const isGroupPath = path?.includes('/groups/');
 
     return (
         <div className='min-h-screen bg-gray-50 flex items-center justify-center'>

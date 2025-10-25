@@ -132,6 +132,40 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         };
     }, [groupId]); // Only depend on groupId to prevent subscription churn
 
+    const errorValue = error.value;
+    const groupValue = group.value;
+    const shouldRedirectToDashboard =
+        errorValue === 'GROUP_DELETED' || errorValue === 'USER_REMOVED_FROM_GROUP';
+    const shouldRedirectToNotFoundFromError =
+        typeof errorValue === 'string' && /not found/i.test(errorValue);
+    const shouldRedirectToNotFoundFromMissingGroup = isInitialized.value && !groupValue;
+    const shouldShowInlineError =
+        Boolean(errorValue) && !shouldRedirectToDashboard && !shouldRedirectToNotFoundFromError;
+
+    useEffect(() => {
+        if (!shouldRedirectToDashboard) {
+            return;
+        }
+
+        void navigationService.goToDashboard();
+    }, [shouldRedirectToDashboard]);
+
+    useEffect(() => {
+        if (!shouldRedirectToNotFoundFromError) {
+            return;
+        }
+
+        void navigationService.goToNotFound();
+    }, [shouldRedirectToNotFoundFromError]);
+
+    useEffect(() => {
+        if (!shouldRedirectToNotFoundFromMissingGroup) {
+            return;
+        }
+
+        void navigationService.goToNotFound();
+    }, [shouldRedirectToNotFoundFromMissingGroup]);
+
     // Handle loading state
     if (loading.value && !isInitialized.value) {
         return (
@@ -143,36 +177,23 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         );
     }
 
-    // Handle error state
-    if (error.value) {
-        // Check if the group was deleted while being viewed
-        if (error.value === 'GROUP_DELETED') {
-            // Navigate immediately to dashboard for predictable behavior
-            navigationService.goToDashboard();
-            return null;
-        }
+    if (shouldRedirectToDashboard || shouldRedirectToNotFoundFromError || shouldRedirectToNotFoundFromMissingGroup) {
+        return (
+            <BaseLayout>
+                <div className='container mx-auto px-4 py-8'>
+                    <LoadingSpinner />
+                </div>
+            </BaseLayout>
+        );
+    }
 
-        // Check if user was removed from the group while viewing it
-        if (error.value === 'USER_REMOVED_FROM_GROUP') {
-            // Redirect immediately to dashboard - no need to show message
-            navigationService.goToDashboard();
-            return null;
-        }
-
-        // Check if it's a 404 error (group not found or no access)
-        if (error.value.includes('not found') || error.value.includes('Not Found')) {
-            // Navigate to 404 page for consistent experience
-            navigationService.goToNotFound();
-            return null;
-        }
-
-        // Other errors show inline
+    if (shouldShowInlineError && typeof errorValue === 'string') {
         return (
             <BaseLayout>
                 <div className='container mx-auto px-4 py-8' data-testid='error-container'>
                     <Card className='p-6 text-center'>
                         <h2 className='text-xl font-semibold mb-2'>{t('pages.groupDetailPage.errorLoadingGroup')}</h2>
-                        <p className='text-gray-600 mb-4'>{error.value}</p>
+                        <p className='text-gray-600 mb-4'>{errorValue}</p>
                         <Button variant='primary' onClick={() => navigationService.goToDashboard()}>
                             {t('pages.groupDetailPage.backToDashboard')}
                         </Button>
@@ -182,22 +203,14 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         );
     }
 
-    // Handle no group found or still loading
-    if (!group.value) {
-        if (isInitialized.value) {
-            // Group not found after loading - navigate to 404
-            navigationService.goToNotFound();
-            return null;
-        } else {
-            // Still loading
-            return (
-                <BaseLayout>
-                    <div className='container mx-auto px-4 py-8'>
-                        <LoadingSpinner />
-                    </div>
-                </BaseLayout>
-            );
-        }
+    if (!groupValue) {
+        return (
+            <BaseLayout>
+                <div className='container mx-auto px-4 py-8'>
+                    <LoadingSpinner />
+                </div>
+            </BaseLayout>
+        );
     }
 
     // Handle click events
