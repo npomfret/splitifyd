@@ -120,9 +120,9 @@ export class GroupDetailPage extends BasePage {
         const targetPattern = GroupDetailPage.groupDetailUrlPattern(groupId);
 
         await this.expectUrl(targetPattern);
-        await this.header.getCurrentUserDisplayName();
+        await this.header.getCurrentUserDisplayName();// just wait for it to be visible, we don't care what it is
 
-        await this.waitForMemberCount(expectedMemberCount);
+        await this.waitForMemberCount(expectedMemberCount, 10000);
         await this.expectUrl(targetPattern);
 
         await this.waitForBalancesSection(groupId);

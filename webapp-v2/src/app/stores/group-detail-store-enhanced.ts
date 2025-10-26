@@ -1,6 +1,6 @@
 import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { permissionsStore } from '@/stores/permissions-store.ts';
-import { logError, logInfo } from '@/utils/browser-logger';
+import { logError, logInfo, logWarning } from '@/utils/browser-logger';
 import { batch, signal } from '@preact/signals';
 import { ActivityFeedItem, ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers, UserId } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
@@ -10,6 +10,8 @@ import { activityFeedStore } from './activity-feed-store';
 const GROUP_EXPENSE_PAGE_SIZE = 8;
 const GROUP_SETTLEMENT_PAGE_SIZE = 8;
 const GROUP_COMMENT_PAGE_SIZE = 8;
+
+type GroupDetailRefreshReason = 'manual' | 'activity-event' | 'mutation' | 'register-component';
 
 interface EnhancedGroupDetailStore {
     // State accessors (wrap these in useComputed() in components)
@@ -36,7 +38,7 @@ interface EnhancedGroupDetailStore {
 
     reset(): void;
 
-    refreshAll(): Promise<void>;
+    refreshAll(reason: GroupDetailRefreshReason): Promise<void>;
 
     registerComponent(groupId: GroupId, userId: UserId): Promise<void>;
 
@@ -169,6 +171,12 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     async loadGroup(groupId: GroupId): Promise<void> {
+        logInfo('GroupDetailStore.loadGroup.start', {
+            groupId,
+            showDeletedExpenses: this.#showDeletedExpensesSignal.value,
+            showDeletedSettlements: this.#showDeletedSettlementsSignal.value,
+        });
+
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
         this.currentGroupId = groupId;
@@ -200,18 +208,43 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             this.settlementCursor = fullDetails.settlements.nextCursor ?? null;
 
             permissionsStore.updateGroupData(fullDetails.group, fullDetails.members.members);
+            logInfo('GroupDetailStore.loadGroup.success', {
+                groupId,
+                memberCount: fullDetails.members.members.length,
+                memberNamesSample: fullDetails.members.members.slice(0, 5).map((member) => member.displayName),
+                expenseCount: fullDetails.expenses.expenses.length,
+                settlementCount: fullDetails.settlements.settlements.length,
+                simplifiedDebtCount: fullDetails.balances.simplifiedDebts?.length ?? 0,
+            });
         } catch (error: any) {
+            logError('GroupDetailStore.loadGroup.failed', error, { groupId });
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
             this.#loadingSignal.value = false;
             throw error;
         }
     }
 
-    async refreshAll(): Promise<void> {
-        if (!this.currentGroupId) return;
+    async refreshAll(reason: GroupDetailRefreshReason = 'manual'): Promise<void> {
+        if (!this.currentGroupId) {
+            logWarning('GroupDetailStore.refreshAll.skipped', {
+                reason,
+                cause: 'missing-current-group',
+            });
+            return;
+        }
+
+        const targetGroupId = this.currentGroupId;
+        logInfo('GroupDetailStore.refreshAll.start', {
+            groupId: targetGroupId,
+            reason,
+        });
 
         try {
-            await this.loadGroup(this.currentGroupId);
+            await this.loadGroup(targetGroupId);
+            logInfo('GroupDetailStore.refreshAll.success', {
+                groupId: targetGroupId,
+                reason,
+            });
             // Data refresh successful (routine operation)
         } catch (error: any) {
             const isGroupDeleted = error?.status === 404 || (error?.message && error.message.includes('404')) || error?.code === 'NOT_FOUND';
@@ -255,6 +288,10 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             }
 
             logError('RefreshAll: Failed to refresh all data', { error, groupId: this.currentGroupId });
+            logError('GroupDetailStore.refreshAll.failed', error, {
+                groupId: targetGroupId,
+                reason,
+            });
             throw error;
         }
     }
@@ -264,7 +301,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.#errorSignal.value = null;
         try {
             await apiClient.archiveGroup(this.currentGroupId);
-            await this.refreshAll();
+            await this.refreshAll('mutation');
         } catch (error: any) {
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to archive group';
             throw error;
@@ -276,7 +313,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.#errorSignal.value = null;
         try {
             await apiClient.unarchiveGroup(this.currentGroupId);
-            await this.refreshAll();
+            await this.refreshAll('mutation');
         } catch (error: any) {
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to unarchive group';
             throw error;
@@ -311,12 +348,24 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
         this.#subscriberCounts.set(groupId, currentCount + 1);
 
+        logInfo('GroupDetailStore.registerComponent', {
+            groupId,
+            userId,
+            subscriberCount: currentCount + 1,
+            activityListenerRegistered: this.activityListenerRegistered,
+            currentUserId: this.currentUserId,
+        });
+
         await this.loadGroup(groupId);
 
         const shouldRegisterListener = !this.activityListenerRegistered || this.currentUserId !== userId;
         if (shouldRegisterListener) {
             this.currentUserId = userId;
             try {
+                logInfo('GroupDetailStore.activityListener.register', {
+                    groupId,
+                    userId,
+                });
                 await this.activityFeed.registerListener(this.activityListenerId, userId, this.handleActivityEvent);
                 this.activityListenerRegistered = true;
             } catch (error) {
@@ -345,8 +394,19 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             if (this.#subscriberCounts.size === 0) {
                 this.disposeSubscription();
             }
+
+            logInfo('GroupDetailStore.deregisterComponent', {
+                groupId,
+                subscriberCount: 0,
+                activityListenerRegistered: this.activityListenerRegistered,
+            });
         } else {
             this.#subscriberCounts.set(groupId, currentCount - 1);
+            logInfo('GroupDetailStore.deregisterComponent', {
+                groupId,
+                subscriberCount: currentCount - 1,
+                activityListenerRegistered: this.activityListenerRegistered,
+            });
         }
 
         permissionsStore.deregisterComponent(groupId);
@@ -355,11 +415,30 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     private handleActivityEvent = (event: ActivityFeedItem): void => {
         const { groupId, eventType, details } = event;
 
+        logInfo('GroupDetailStore.activityEvent.received', {
+            eventId: event.id,
+            eventType,
+            groupId,
+            currentGroupId: this.currentGroupId,
+            subscriberCount: groupId ? this.#subscriberCounts.get(groupId) ?? 0 : 0,
+            activityListenerRegistered: this.activityListenerRegistered,
+        });
+
         if (!groupId || !this.#subscriberCounts.has(groupId)) {
+            logInfo('GroupDetailStore.activityEvent.ignored', {
+                eventId: event.id,
+                eventType,
+                reason: 'no-subscribers-for-group',
+            });
             return;
         }
 
         if (this.currentGroupId !== groupId) {
+            logInfo('GroupDetailStore.activityEvent.ignored', {
+                eventId: event.id,
+                eventType,
+                reason: 'not-current-group',
+            });
             return;
         }
 
@@ -391,7 +470,12 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         })();
 
         if (shouldRefresh) {
-            this.refreshAll().catch((error) =>
+            logInfo('GroupDetailStore.activityEvent.trigger-refresh', {
+                groupId,
+                eventType,
+                eventId: event.id,
+            });
+            this.refreshAll('activity-event').catch((error) =>
                 logError('Failed to refresh group detail after activity event', {
                     error: error instanceof Error ? error.message : String(error),
                     groupId,
@@ -405,6 +489,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     private disposeSubscription(): void {
         if (this.activityListenerRegistered) {
             this.activityFeed.deregisterListener(this.activityListenerId);
+            logInfo('GroupDetailStore.activityListener.deregister', {
+                currentUserId: this.currentUserId,
+            });
             this.activityListenerRegistered = false;
             this.currentUserId = null;
         }

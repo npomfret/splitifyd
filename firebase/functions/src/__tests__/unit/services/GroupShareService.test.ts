@@ -587,5 +587,147 @@ describe('GroupShareService', () => {
                 }),
             });
         });
+
+        it('notifies all existing active members when a new member joins (transaction-based recipient fetch)', async () => {
+            const groupId = toGroupId('multi-member-group');
+            const linkId = 'multi-member-link-1234567890';
+            const ownerId = 'owner-user';
+            const existingMemberId = 'existing-member';
+            const joiningUserId = 'joining-user';
+
+            // Create group with automatic approval
+            const group = new GroupDTOBuilder()
+                .withId(groupId)
+                .withCreatedBy(ownerId)
+                .withPermissions({ memberApproval: 'automatic' })
+                .build();
+
+            db.seedGroup(groupId, group);
+            db.initializeGroupBalance(groupId);
+
+            // Seed owner (active)
+            const ownerMembership = new GroupMemberDocumentBuilder()
+                .withUserId(ownerId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .asActive()
+                .buildDocument();
+            db.seedGroupMember(groupId, ownerId, ownerMembership);
+
+            // Seed existing active member
+            const existingMembership = new GroupMemberDocumentBuilder()
+                .withUserId(existingMemberId)
+                .withGroupId(groupId)
+                .asActive()
+                .buildDocument();
+            db.seedGroupMember(groupId, existingMemberId, existingMembership);
+
+            // Set up share link
+            const shareLink = {
+                id: linkId,
+                token: linkId,
+                createdBy: ownerId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            };
+            seedShareLink(groupId, shareLink);
+
+            db.seedUser(joiningUserId, { displayName: 'New Joiner' });
+
+            // Third user joins the group
+            await groupShareService.joinGroupByLink(joiningUserId, linkId);
+
+            // CRITICAL: All three users should receive the activity feed event
+            // This verifies that the transaction-based recipient fetching includes
+            // all existing active members PLUS the newly joined member
+
+            // Owner should receive notification
+            const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
+            expect(ownerFeed.items).toHaveLength(1);
+            expect(ownerFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                actorId: joiningUserId,
+            });
+
+            // Existing member should receive notification
+            const existingMemberFeed = await firestoreReader.getActivityFeedForUser(existingMemberId);
+            expect(existingMemberFeed.items).toHaveLength(1);
+            expect(existingMemberFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                actorId: joiningUserId,
+            });
+
+            // Joining user should also receive their own join notification
+            const joiningFeed = await firestoreReader.getActivityFeedForUser(joiningUserId);
+            expect(joiningFeed.items).toHaveLength(1);
+            expect(joiningFeed.items[0]).toMatchObject({
+                eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                actorId: joiningUserId,
+            });
+        });
+
+        it('excludes pending members from activity notifications when a new member joins', async () => {
+            const groupId = toGroupId('pending-exclusion-group');
+            const linkId = 'pending-link-1234567890';
+            const ownerId = 'owner-user';
+            const pendingMemberId = 'pending-member';
+            const joiningUserId = 'joining-user';
+
+            // Create group with automatic approval
+            const group = new GroupDTOBuilder()
+                .withId(groupId)
+                .withCreatedBy(ownerId)
+                .withPermissions({ memberApproval: 'automatic' })
+                .build();
+
+            db.seedGroup(groupId, group);
+            db.initializeGroupBalance(groupId);
+
+            // Seed owner (active)
+            const ownerMembership = new GroupMemberDocumentBuilder()
+                .withUserId(ownerId)
+                .withGroupId(groupId)
+                .asAdmin()
+                .asActive()
+                .buildDocument();
+            db.seedGroupMember(groupId, ownerId, ownerMembership);
+
+            // Seed pending member (should NOT receive notifications)
+            const pendingMembership = new GroupMemberDocumentBuilder()
+                .withUserId(pendingMemberId)
+                .withGroupId(groupId)
+                .asPending()
+                .buildDocument();
+            db.seedGroupMember(groupId, pendingMemberId, pendingMembership);
+
+            // Set up share link
+            const shareLink = {
+                id: linkId,
+                token: linkId,
+                createdBy: ownerId,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            };
+            seedShareLink(groupId, shareLink);
+
+            db.seedUser(joiningUserId, { displayName: 'New Joiner' });
+
+            // New user joins the group
+            await groupShareService.joinGroupByLink(joiningUserId, linkId);
+
+            // Owner should receive notification (active member)
+            const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
+            expect(ownerFeed.items).toHaveLength(1);
+
+            // Pending member should NOT receive notification
+            const pendingFeed = await firestoreReader.getActivityFeedForUser(pendingMemberId);
+            expect(pendingFeed.items).toHaveLength(0);
+
+            // Joining user should receive their own notification
+            const joiningFeed = await firestoreReader.getActivityFeedForUser(joiningUserId);
+            expect(joiningFeed.items).toHaveLength(1);
+        });
     });
 });

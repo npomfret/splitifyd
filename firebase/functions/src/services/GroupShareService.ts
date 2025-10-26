@@ -315,6 +315,13 @@ export class GroupShareService {
         const joinedAt = new Date().toISOString();
         const existingMembersIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
 
+        logger.info('JOIN: Fetched existing members before transaction', {
+            groupId,
+            joiningUserId: userId,
+            existingMembersIds,
+            existingMembersCount: existingMembersIds.length,
+        });
+
         // Enforce hard cap on group size
         if (existingMembersIds.length >= MAX_GROUP_MEMBERS) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_AT_CAPACITY', `Cannot add member. Group has reached maximum size of ${MAX_GROUP_MEMBERS} members`);
@@ -349,17 +356,15 @@ export class GroupShareService {
         const now = new Date().toISOString();
         timer.endPhase();
 
-        const shouldEmitJoinedActivity = !requiresApproval;
-        const activityRecipients = shouldEmitJoinedActivity ? Array.from(new Set<string>([...existingMembersIds, userId])) : [];
-
         // Atomic transaction: check group exists and create member subcollection
         timer.startPhase('transaction');
         const result = await this.firestoreWriter.runTransaction(async (transaction) => {
-            const groupSnapshot = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
-
-            if (!groupSnapshot) {
+            const groupInTransaction = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
+            if (!groupInTransaction) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
+
+            const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
 
             // Update group timestamp to reflect membership change
             await this.firestoreWriter.touchGroup(groupId, transaction);
@@ -377,25 +382,51 @@ export class GroupShareService {
             // Note: Group notifications are handled by the trackGroupChanges trigger
             // which fires when the group's updatedAt timestamp is modified above
 
-            if (shouldEmitJoinedActivity && activityRecipients.length > 0) {
-                const groupName = (groupSnapshot.data() as { name?: string; } | undefined)?.name ?? preCheckGroup.name;
-                this.activityFeedService.recordActivityForUsers(
-                    transaction,
-                    activityRecipients,
-                    {
+            if (!requiresApproval) {
+                const activityRecipients = new Set<string>();
+                for (const doc of membershipsSnapshot.docs) {
+                    const data = doc.data() as { uid?: string; memberStatus?: string; };
+                    const uid = typeof data?.uid === 'string' ? data.uid : undefined;
+                    if (!uid) {
+                        continue;
+                    }
+                    if (data?.memberStatus && data.memberStatus !== MemberStatuses.ACTIVE) {
+                        continue;
+                    }
+                    activityRecipients.add(uid);
+                }
+
+                activityRecipients.add(userId);
+
+                if (activityRecipients.size > 0) {
+                    const groupName = groupInTransaction.name;
+
+                    logger.info('JOIN: Recording activity feed for member join', {
                         groupId,
-                        groupName,
-                        eventType: ActivityFeedEventTypes.MEMBER_JOINED,
-                        action: ActivityFeedActions.JOIN,
-                        actorId: userId,
+                        joiningUserId: userId,
                         actorName: memberDoc.groupDisplayName,
-                        timestamp: now,
-                        details: {
-                            targetUserId: userId,
-                            targetUserName: memberDoc.groupDisplayName,
+                        recipients: Array.from(activityRecipients),
+                        recipientCount: activityRecipients.size,
+                    });
+
+                    this.activityFeedService.recordActivityForUsers(
+                        transaction,
+                        Array.from(activityRecipients),
+                        {
+                            groupId,
+                            groupName,
+                            eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                            action: ActivityFeedActions.JOIN,
+                            actorId: userId,
+                            actorName: memberDoc.groupDisplayName,
+                            timestamp: now,
+                            details: {
+                                targetUserId: userId,
+                                targetUserName: memberDoc.groupDisplayName,
+                            },
                         },
-                    },
-                );
+                    );
+                }
             }
 
             return {
