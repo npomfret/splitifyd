@@ -5,9 +5,8 @@ import { ReadonlySignal, signal } from '@preact/signals';
 import type { ClientUser, Email, UserId } from '@splitifyd/shared';
 import { AuthErrors } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
-import type { User as FirebaseUser } from 'firebase/auth';
 import { apiClient } from '../apiClient';
-import { getFirebaseService } from '../firebase';
+import { getDefaultAuthGateway, type AuthGateway } from '../gateways/auth-gateway';
 import { CurrencyService } from '../services/currencyService';
 import { expenseFormStore } from './expense-form-store';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
@@ -50,16 +49,6 @@ class PostRegistrationLoginError extends Error {
     }
 }
 
-export function mapFirebaseUser(firebaseUser: FirebaseUser): ClientUser {
-    return {
-        uid: firebaseUser.uid!,
-        email: firebaseUser.email!,
-        displayName: firebaseUser.displayName!,
-        emailVerified: firebaseUser.emailVerified,
-        photoURL: firebaseUser.photoURL,
-    };
-}
-
 class AuthStoreImpl implements AuthStore {
     // Private signals - encapsulated within the class
     readonly #userSignal = signal<ClientUser | null>(null);
@@ -68,6 +57,30 @@ class AuthStoreImpl implements AuthStore {
     readonly #initializedSignal = signal<boolean>(false);
     readonly #isUpdatingProfileSignal = signal<boolean>(false);
     readonly #isRefreshingTokenSignal = signal<boolean>(false);
+
+    // Token refresh management
+    private refreshPromise: Promise<string> | null = null;
+    private refreshTimer: NodeJS.Timeout | null = null;
+    private tokenExpiryTime: number | null = null;
+    private visibilityListenersRegistered = false;
+    private readonly handleVisibilityChange = () => {
+        if (typeof document === 'undefined') {
+            return;
+        }
+        if (document.visibilityState === 'visible') {
+            void this.refreshAuthTokenIfNeeded();
+        }
+    };
+    private readonly handleWindowFocus = () => {
+        void this.refreshAuthTokenIfNeeded();
+    };
+
+    // User-scoped storage for preferences and auth data
+    private userStorage = createUserScopedStorage(() => this.#userSignal.value?.uid || null);
+
+    constructor(private readonly gateway: AuthGateway) {
+        // Private constructor - use static create() method instead
+    }
 
     // State getters - readonly values for external consumers
     get user() {
@@ -100,44 +113,15 @@ class AuthStoreImpl implements AuthStore {
         return this.#isRefreshingTokenSignal;
     }
 
-    // Token refresh management
-    private refreshPromise: Promise<string> | null = null;
-    private refreshTimer: NodeJS.Timeout | null = null;
-    private tokenExpiryTime: number | null = null;
-    private visibilityListenersRegistered = false;
-    private readonly handleVisibilityChange = () => {
-        if (typeof document === 'undefined') {
-            return;
-        }
-        if (document.visibilityState === 'visible') {
-            void this.refreshAuthTokenIfNeeded();
-        }
-    };
-    private readonly handleWindowFocus = () => {
-        void this.refreshAuthTokenIfNeeded();
-    };
-
-    // User-scoped storage for preferences and auth data
-    private userStorage = createUserScopedStorage(() => this.#userSignal.value?.uid || null);
-
-    private constructor() {
-        // Private constructor - use static create() method instead
-    }
-
-    private get firebase() {
-        return getFirebaseService();
-    }
-
-    static async create(): Promise<AuthStoreImpl> {
-        const store = new AuthStoreImpl();
+    static async create(gateway: AuthGateway = getDefaultAuthGateway()): Promise<AuthStoreImpl> {
+        const store = new AuthStoreImpl(gateway);
         await store.initializeAuth();
         return store;
     }
 
     private async initializeAuth() {
         try {
-            const firebase = this.firebase;
-            await firebase.connect();
+            await this.gateway.connect();
             this.setupVisibilityListeners();
 
             // Set up API client auth callbacks to avoid circular dependencies
@@ -149,7 +133,7 @@ class AuthStoreImpl implements AuthStore {
             );
 
             // Set up auth state listener
-            firebase.onAuthStateChanged(async (user, idToken) => {
+            this.gateway.onAuthStateChanged(async (user, idToken) => {
                 if (user) {
                     this.#userSignal.value = user;
 
@@ -166,7 +150,9 @@ class AuthStoreImpl implements AuthStore {
                         expenseFormStore.setStorage(this.userStorage);
 
                         // Schedule token refresh
-                        this.scheduleNextRefresh(idToken!);
+                        if (idToken) {
+                            this.scheduleNextRefresh(idToken);
+                        }
                     } catch (error) {
                         logError('Failed to get ID token', error);
                     }
@@ -232,7 +218,7 @@ class AuthStoreImpl implements AuthStore {
         try {
             await this.refreshAuthToken();
         } catch (error) {
-            logError('Visibility-triggered token refresh failed', error);
+            logError('Visibility-based token refresh failed', error);
         }
     }
 
@@ -250,31 +236,7 @@ class AuthStoreImpl implements AuthStore {
                 role: profile.role,
             };
         } catch (error) {
-            logError('Failed to load user profile', error);
-        }
-    }
-
-    private decodeTokenExpiry(token: string): number | null {
-        const parts = token.split('.');
-        if (parts.length < 2) {
-            return null;
-        }
-
-        if (typeof atob !== 'function') {
-            return null;
-        }
-
-        const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-        const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
-
-        try {
-            const payload = JSON.parse(atob(padded));
-            if (typeof payload?.exp === 'number') {
-                return payload.exp * 1000;
-            }
-            return null;
-        } catch {
-            return null;
+            logError('Failed to load user profile', error, { userId });
         }
     }
 
@@ -283,8 +245,8 @@ class AuthStoreImpl implements AuthStore {
         this.#errorSignal.value = null;
 
         try {
-            await this.firebase.setPersistence(rememberMe ? 'local' : 'session');
-            await this.firebase.signInWithEmailAndPassword(email, password);
+            await this.gateway.setPersistence(rememberMe ? 'local' : 'session');
+            await this.gateway.signInWithEmailAndPassword(email, password);
             // User state will be updated by onAuthStateChanged listener
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);
@@ -333,7 +295,7 @@ class AuthStoreImpl implements AuthStore {
             // Clear user-scoped storage before signing out
             this.userStorage.clear();
 
-            await this.firebase.signOut();
+            await this.gateway.signOut();
             apiClient.setAuthToken(null);
             localStorage.removeItem(USER_ID_KEY);
 
@@ -358,7 +320,7 @@ class AuthStoreImpl implements AuthStore {
         this.#errorSignal.value = null;
 
         try {
-            await this.firebase.sendPasswordResetEmail(email);
+            await this.gateway.sendPasswordResetEmail(email);
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
@@ -383,7 +345,7 @@ class AuthStoreImpl implements AuthStore {
             }
 
             // Also update the Firebase Auth user object to keep it in sync
-            void this.firebase.performUserRefresh();
+            void this.gateway.performUserRefresh();
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
@@ -415,7 +377,7 @@ class AuthStoreImpl implements AuthStore {
     private async performTokenRefresh(): Promise<string> {
         this.#isRefreshingTokenSignal.value = true;
         try {
-            const freshToken = await this.firebase.performTokenRefresh();
+            const freshToken = await this.gateway.performTokenRefresh();
             apiClient.setAuthToken(freshToken);
             this.scheduleNextRefresh(freshToken);
             return freshToken;
@@ -453,6 +415,32 @@ class AuthStoreImpl implements AuthStore {
         }, refreshDelay);
     }
 
+    private decodeTokenExpiry(token: string | null | undefined): number | null {
+        if (!token) {
+            return null;
+        }
+
+        try {
+            const [, payload] = token.split('.');
+            if (!payload) {
+                return null;
+            }
+
+            const padded = payload.padEnd(payload.length + (4 - (payload.length % 4)) % 4, '=');
+
+            const decoded = atob(padded);
+            const parsed = JSON.parse(decoded);
+
+            if (typeof parsed?.exp === 'number') {
+                return parsed.exp * 1000;
+            }
+        } catch (error) {
+            logError('Failed to decode token expiry', error);
+        }
+
+        return null;
+    }
+
     private cleanup(): void {
         if (this.refreshTimer) {
             clearTimeout(this.refreshTimer);
@@ -465,7 +453,7 @@ class AuthStoreImpl implements AuthStore {
 
     private async signInAfterRegistration(email: Email, password: string): Promise<void> {
         try {
-            await this.firebase.signInWithEmailAndPassword(email, password);
+            await this.gateway.signInWithEmailAndPassword(email, password);
         } catch (error) {
             throw new PostRegistrationLoginError(error, this.buildPostRegistrationLoginErrorMessage(error));
         }
@@ -510,6 +498,8 @@ class AuthStoreImpl implements AuthStore {
         }
         return error?.message || 'An unexpected error occurred.';
     }
+
+    // State getters - defined after methods for clarity but before export
 }
 
 // Singleton instance promise

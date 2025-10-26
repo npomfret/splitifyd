@@ -1,4 +1,4 @@
-import { mapFirebaseUser } from '@/app/stores/auth-store.ts';
+import { mapFirebaseUser } from './utils/mapFirebaseUser.ts';
 import { ClientUser } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { FirebaseApp, initializeApp } from 'firebase/app';

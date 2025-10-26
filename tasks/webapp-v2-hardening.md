@@ -19,7 +19,8 @@ Track the outstanding correctness and maintainability issues surfaced during the
 
 - [ ] **Abstract Firebase coupling in stores/services**  
   - Activity feed store now consumes a dedicated `ActivityFeedGateway`, removing direct `FirebaseService` dependencies.
-  - Next: replicate the gateway pattern for other stores that reach into Firebase primitives (see `docs/UX-report1.md`).
+  - Auth store now routes all Firebase auth calls through an `AuthGateway`, isolating sign-in/refresh logic for easier substitution.
+  - Next: replicate the gateway pattern for any remaining realtime consumers (see `docs/UX-report1.md`).
 
 - [x] **Eliminate magic strings for storage and error codes**  
   - Centralized storage identifiers (session/local) via `STORAGE_KEYS`; `GroupDetail` now relies on `GROUP_DETAIL_ERROR_CODES` rather than string literals.

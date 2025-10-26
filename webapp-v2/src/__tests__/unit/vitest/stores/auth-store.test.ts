@@ -7,24 +7,20 @@ async function setupAuthStore() {
     const signInWithEmailAndPasswordMock = vi.fn().mockResolvedValue(undefined);
     const onAuthStateChangedMock = vi.fn().mockReturnValue(() => {});
 
-    vi.doMock('@/app/firebase', () => {
-        const firebaseService = {
-            connect: vi.fn().mockResolvedValue(undefined),
-            performTokenRefresh: vi.fn().mockResolvedValue('mock-token'),
-            performUserRefresh: vi.fn().mockResolvedValue(undefined),
-            getCurrentUserId: vi.fn().mockReturnValue(null),
-            setPersistence: setPersistenceMock,
-            signInWithEmailAndPassword: signInWithEmailAndPasswordMock,
-            sendPasswordResetEmail: vi.fn(),
-            signOut: vi.fn(),
-            onAuthStateChanged: onAuthStateChangedMock,
-            onDocumentSnapshot: vi.fn().mockReturnValue(() => {}),
-            onCollectionSnapshot: vi.fn().mockReturnValue(() => {}),
-        };
-        return {
-            getFirebaseService: vi.fn(() => firebaseService),
-        };
-    });
+    const mockAuthGateway = {
+        connect: vi.fn().mockResolvedValue(undefined),
+        onAuthStateChanged: onAuthStateChangedMock,
+        setPersistence: setPersistenceMock,
+        signInWithEmailAndPassword: signInWithEmailAndPasswordMock,
+        sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
+        signOut: vi.fn().mockResolvedValue(undefined),
+        performTokenRefresh: vi.fn().mockResolvedValue('mock-token'),
+        performUserRefresh: vi.fn().mockResolvedValue(undefined),
+    };
+
+    vi.doMock('@/app/gateways/auth-gateway', () => ({
+        getDefaultAuthGateway: vi.fn(() => mockAuthGateway),
+    }));
 
     vi.doMock('@/app/apiClient', () => ({
         apiClient: {
