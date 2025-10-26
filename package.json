@@ -41,5 +41,8 @@
     "workerDirectory": [
       "webapp-v2/public"
     ]
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
   }
 }
