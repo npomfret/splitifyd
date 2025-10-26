@@ -25,6 +25,7 @@ Concise rules for working with the Firebase emulator stack and the instance swit
 
 - `firebase/functions/scripts/conditional-build.js` toggles between tsx wrappers (dev) and compiled output (production/tests) via `BUILD_MODE`.
 - `npm run deploy:prod` runs `switch-instance prod`, rebuilds workspaces with `BUILD_MODE=production`, stages local tarballs for shared packages, installs production deps, and expects `lib/index.js` from `tsconfig.deploy.json`.
+- If the Firebase CLI throws `Authentication Error: Your credentials are no longer valid` during deploy, clear the stale interactive login (`firebase logout` or remove `~/.config/configstore/firebase-tools.json`) so the CLI falls back to `firebase/service-account-key.json`.
 - `firebase/functions/src/firebase.ts` lazily loads `.env` if `INSTANCE_MODE` is missing so Cloud Functions analysis gets the right settings.
 - Export `GCLOUD_PROJECT` before running the deploy pipeline; the tooling assumes it exists.
 - If you run deploy commands with a service account, grant it the following:
