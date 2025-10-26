@@ -20,10 +20,10 @@ describe('IncrementalBalanceService - Unit Tests', () => {
         service = new IncrementalBalanceService(new FirestoreWriter(stubDb));
     });
 
-    const createEmptyBalance = (): GroupBalanceDTO => new GroupBalanceDTOBuilder(groupId).build();
+    const createEmptyBalance = (): GroupBalanceDTO => new GroupBalanceDTOBuilder().build();
 
     const createBalanceWithUSD = (): GroupBalanceDTO =>
-        new GroupBalanceDTOBuilder(groupId)
+        new GroupBalanceDTOBuilder()
             .withVersion(1)
             .withUserBalance('USD', userId1, {
                 netBalance: '50',
@@ -209,7 +209,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const currency = 'EUR';
                 const participants = [userId1, userId2];
 
-                const currentBalance = new GroupBalanceDTOBuilder(groupId)
+                const currentBalance = new GroupBalanceDTOBuilder()
                     .withGroupId(groupId)
                     .withUserBalance(currency, userId1, {
                         uid: userId1,

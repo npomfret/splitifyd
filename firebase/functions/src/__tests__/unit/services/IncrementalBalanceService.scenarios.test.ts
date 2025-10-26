@@ -47,7 +47,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
         it('should handle mixed currency settlements without currency conversion', async () => {
             // === SETUP ===
             // Start with empty balance and create USD expense
-            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+            const initialBalance = new GroupBalanceDTOBuilder()
                 .withVersion(0)
                 .build();
             stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
@@ -133,7 +133,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
         it('should not perform implicit currency conversion on settlements', async () => {
             // === SETUP ===
             // Complex scenario: Multiple expenses creating USD debt
-            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+            const initialBalance = new GroupBalanceDTOBuilder()
                 .withVersion(0)
                 .build();
             stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
@@ -222,7 +222,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
         it('should maintain currency independence in complex multi-currency scenarios', async () => {
             // === SETUP ===
             // Start with existing debts in USD and GBP
-            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+            const initialBalance = new GroupBalanceDTOBuilder()
                 .withUserBalance(
                     'USD',
                     user1,
@@ -318,7 +318,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
     describe('Partial and Overpayment Settlement Scenarios', () => {
         it('should handle partial settlement in same currency correctly', async () => {
             // === SETUP ===
-            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+            const initialBalance = new GroupBalanceDTOBuilder()
                 .withSimpleUSDDebt(user1, user2, 100)
                 .build();
 
@@ -359,7 +359,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
         it('should handle multiple sequential partial settlements correctly', async () => {
             // === SETUP ===
             // User2 owes User1 €100
-            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+            const initialBalance = new GroupBalanceDTOBuilder()
                 .withUserBalance(
                     'EUR',
                     user1,
@@ -483,7 +483,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
         it('should handle overpayment settlement creating reverse debt', async () => {
             // === SETUP ===
-            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+            const initialBalance = new GroupBalanceDTOBuilder()
                 .withSimpleUSDDebt(user1, user2, 100)
                 .build();
 
@@ -525,7 +525,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
         it('should handle exact settlement resulting in zero balance', async () => {
             // === SETUP ===
-            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+            const initialBalance = new GroupBalanceDTOBuilder()
                 .withSimpleUSDDebt(user1, user2, 100)
                 .build();
 
@@ -569,7 +569,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // Create complex multi-currency scenario:
             // - User2 owes User1 $100 USD
             // - User1 owes User2 €75 EUR
-            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+            const initialBalance = new GroupBalanceDTOBuilder()
                 .withUserBalance(
                     'USD',
                     user1,
@@ -723,7 +723,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
         it('should update balances correctly when expense currency is changed', async () => {
             // === SETUP ===
             // Create initial expense in USD
-            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+            const initialBalance = new GroupBalanceDTOBuilder()
                 .withVersion(0)
                 .build();
             stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
@@ -819,7 +819,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
         it('should update balances correctly when settlement currency is changed', async () => {
             // === SETUP ===
             // Create initial expense in USD: User1 pays $300, User2 owes $150
-            const initialBalance = new GroupBalanceDTOBuilder(groupId)
+            const initialBalance = new GroupBalanceDTOBuilder()
                 .withVersion(0)
                 .build();
             stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);

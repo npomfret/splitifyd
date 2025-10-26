@@ -296,7 +296,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .buildDocument();
 
             // Set up balance document with outstanding balance
-            const balanceWithDebt = new GroupBalanceDTOBuilder('test-group-id')
+            const balanceWithDebt = new GroupBalanceDTOBuilder()
                 .withUserBalance(
                     'USD',
                     'member-user-123',
@@ -343,7 +343,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .buildDocument();
 
             // Set up balance document with zero balance
-            const settledBalance = new GroupBalanceDTOBuilder('test-group-id')
+            const settledBalance = new GroupBalanceDTOBuilder()
                 .withUserBalance(
                     'USD',
                     'member-user-123',
@@ -473,7 +473,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .buildDocument();
 
             // Set up balance document with outstanding balance
-            const balanceWithCredit = new GroupBalanceDTOBuilder('test-group-id')
+            const balanceWithCredit = new GroupBalanceDTOBuilder()
                 .withUserBalance(
                     'USD',
                     'member-user-123',
@@ -520,7 +520,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
                 .buildDocument();
 
             // Set up balance document with zero balance
-            const settledBalance = new GroupBalanceDTOBuilder('test-group-id')
+            const settledBalance = new GroupBalanceDTOBuilder()
                 .withUserBalance(
                     'USD',
                     'member-user-123',

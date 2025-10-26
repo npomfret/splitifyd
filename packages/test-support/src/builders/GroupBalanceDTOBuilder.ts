@@ -24,9 +24,9 @@ interface GroupBalanceDTO {
 export class GroupBalanceDTOBuilder {
     private balance: GroupBalanceDTO;
 
-    constructor(groupId?: string) {
+    constructor() {
         this.balance = {
-            groupId: groupId || `group-${generateShortId()}`,
+            groupId: `group-${generateShortId()}`,
             balancesByCurrency: {},
             simplifiedDebts: [],
             lastUpdatedAt: new Date().toISOString(),
