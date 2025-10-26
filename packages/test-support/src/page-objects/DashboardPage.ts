@@ -631,11 +631,12 @@ export class DashboardPage extends BasePage {
         const groupName = `g-${++multiUserGroupCounter} ${randomString(4)} ${randomString(6)} ${randomString(8)}`;
         const expectedMemberCount = dashboardPages.length + 1;
         const groupDescription = `descr for ${groupName} which should have ${expectedMemberCount} users`;
+        const creatorDisplayName = await this.header.getCurrentUserDisplayName();
 
         const ownerGroupDetailPage = await this.createGroupAndNavigate(groupName, groupDescription);
         const groupId = ownerGroupDetailPage.inferGroupId();
 
-        console.log(`New group created: "${groupName}" (id: ${groupId}, members: ${expectedMemberCount})`);
+        console.log(`${creatorDisplayName} created new group "${groupName}" (id: ${groupId}) and ${dashboardPages.length} users will join...`);
 
         const groupDetailPages: GroupDetailPage[] = [ownerGroupDetailPage];
 
