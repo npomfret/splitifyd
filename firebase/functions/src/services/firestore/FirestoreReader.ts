@@ -143,19 +143,12 @@ export class FirestoreReader implements IFirestoreReader {
         return result as T;
     }
 
-    /**
-     * Get the Firestore collection path for comments on a target entity
-     * This eliminates type-dispatching conditionals in comment methods
-     */
-    private getCommentCollectionPath(targetType: CommentTargetType, targetId: string): string {
-        switch (targetType) {
-            case CommentTargetTypes.GROUP:
-                return `${FirestoreCollections.GROUPS}/${targetId}/${FirestoreCollections.COMMENTS}`;
-            case CommentTargetTypes.EXPENSE:
-                return `${FirestoreCollections.EXPENSES}/${targetId}/${FirestoreCollections.COMMENTS}`;
-            default:
-                throw new Error(`Unsupported comment target type: ${targetType}`);
-        }
+    private getGroupCommentCollectionPath(groupId: string): string {
+        return `${FirestoreCollections.GROUPS}/${groupId}/${FirestoreCollections.COMMENTS}`;
+    }
+
+    private getExpenseCommentCollectionPath(expenseId: string): string {
+        return `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}`;
     }
 
     private normalizeStatusFilter(statusFilter?: MemberStatus | MemberStatus[]): MemberStatus | MemberStatus[] | undefined {
@@ -997,9 +990,8 @@ export class FirestoreReader implements IFirestoreReader {
     // Comment Operations
     // ========================================================================
 
-    async getCommentsForTarget(
-        targetType: CommentTargetType,
-        targetId: string,
+    async getGroupComments(
+        groupId: GroupId,
         options: {
             limit?: number;
             cursor?: string;
@@ -1009,15 +1001,10 @@ export class FirestoreReader implements IFirestoreReader {
     ): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string; }> {
         try {
             const { limit = 50, cursor, orderBy = 'createdAt', direction = 'desc' } = options;
+            const commentsCollection = this.db.collection(this.getGroupCommentCollectionPath(groupId));
 
-            // Get the appropriate subcollection reference using collection path helper
-            const collectionPath = this.getCommentCollectionPath(targetType, targetId);
-            const commentsCollection = this.db.collection(collectionPath);
+            let query = commentsCollection.orderBy(orderBy, direction).limit(limit + 1);
 
-            // Build the query
-            let query = commentsCollection.orderBy(orderBy, direction).limit(limit + 1); // +1 to check if there are more
-
-            // Apply cursor-based pagination if provided
             if (cursor) {
                 const cursorDoc = await commentsCollection.doc(cursor).get();
                 if (cursorDoc.exists) {
@@ -1028,23 +1015,19 @@ export class FirestoreReader implements IFirestoreReader {
             const snapshot = await query.get();
             const docs = snapshot.docs;
 
-            // Determine if there are more comments
             const hasMore = docs.length > limit;
             const commentsToReturn = hasMore ? docs.slice(0, limit) : docs;
 
-            // Transform documents to CommentDTO objects
             const comments: CommentDTO[] = [];
             for (const doc of commentsToReturn) {
                 try {
                     const rawData = doc.data();
                     const dataWithId = { ...rawData, id: doc.id };
                     const comment = CommentDocumentSchema.parse(dataWithId);
-                    // Convert Timestamps to ISO strings for DTO
                     const convertedComment = this.convertTimestampsToISO(comment);
                     comments.push(convertedComment as unknown as CommentDTO);
                 } catch (error) {
-                    logger.error('Invalid comment document in getCommentsForTarget', error);
-                    // Skip invalid documents rather than failing the entire query
+                    logger.error('Invalid group comment document in getGroupComments', error);
                 }
             }
 
@@ -1054,15 +1037,76 @@ export class FirestoreReader implements IFirestoreReader {
                 nextCursor: hasMore && commentsToReturn.length > 0 ? commentsToReturn[commentsToReturn.length - 1].id : undefined,
             };
         } catch (error) {
-            logger.error('Failed to get comments for target', error);
+            logger.error('Failed to get group comments', error);
+            throw error;
+        }
+    }
+
+    async getExpenseComments(
+        expenseId: ExpenseId,
+        options: {
+            limit?: number;
+            cursor?: string;
+            orderBy?: FirestoreOrderField;
+            direction?: 'asc' | 'desc';
+        } = {},
+    ): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string; }> {
+        try {
+            const { limit = 50, cursor, orderBy = 'createdAt', direction = 'desc' } = options;
+            const commentsCollection = this.db.collection(this.getExpenseCommentCollectionPath(expenseId));
+
+            let query = commentsCollection.orderBy(orderBy, direction).limit(limit + 1);
+
+            if (cursor) {
+                const cursorDoc = await commentsCollection.doc(cursor).get();
+                if (cursorDoc.exists) {
+                    query = query.startAfter(cursorDoc);
+                }
+            }
+
+            const snapshot = await query.get();
+            const docs = snapshot.docs;
+
+            const hasMore = docs.length > limit;
+            const commentsToReturn = hasMore ? docs.slice(0, limit) : docs;
+
+            const comments: CommentDTO[] = [];
+            for (const doc of commentsToReturn) {
+                try {
+                    const rawData = doc.data();
+                    const dataWithId = { ...rawData, id: doc.id };
+                    const comment = CommentDocumentSchema.parse(dataWithId);
+                    const convertedComment = this.convertTimestampsToISO(comment);
+                    comments.push(convertedComment as unknown as CommentDTO);
+                } catch (error) {
+                    logger.error('Invalid expense comment document in getExpenseComments', error);
+                }
+            }
+
+            return {
+                comments,
+                hasMore,
+                nextCursor: hasMore && commentsToReturn.length > 0 ? commentsToReturn[commentsToReturn.length - 1].id : undefined,
+            };
+        } catch (error) {
+            logger.error('Failed to get expense comments', error);
             throw error;
         }
     }
 
     async getComment(targetType: CommentTargetType, targetId: string, commentId: CommentId): Promise<CommentDTO | null> {
         try {
-            // Get the appropriate subcollection reference using collection path helper
-            const collectionPath = this.getCommentCollectionPath(targetType, targetId);
+            let collectionPath: string;
+            switch (targetType) {
+                case CommentTargetTypes.GROUP:
+                    collectionPath = this.getGroupCommentCollectionPath(targetId);
+                    break;
+                case CommentTargetTypes.EXPENSE:
+                    collectionPath = this.getExpenseCommentCollectionPath(targetId);
+                    break;
+                default:
+                    throw new Error(`Unsupported comment target type: ${targetType}`);
+            }
             const commentsCollection = this.db.collection(collectionPath);
 
             const doc = await commentsCollection.doc(commentId).get();

@@ -58,44 +58,74 @@ export class CommentService {
     }
 
     async listGroupComments(groupId: GroupId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
-        return measure.measureDb('CommentService.listGroupComments', async () => this.listTargetComments(CommentTargetTypes.GROUP, groupId, userId, options));
+        return measure.measureDb('CommentService.listGroupComments', async () => this.listGroupCommentsInternal(groupId, userId, options));
     }
 
     async listExpenseComments(expenseId: ExpenseId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
-        return measure.measureDb('CommentService.listExpenseComments', async () => this.listTargetComments(CommentTargetTypes.EXPENSE, expenseId, userId, options));
+        return measure.measureDb('CommentService.listExpenseComments', async () => this.listExpenseCommentsInternal(expenseId, userId, options));
     }
 
-    private async listTargetComments(targetType: CommentTargetType, targetId: GroupId | ExpenseId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
+    private async listGroupCommentsInternal(groupId: GroupId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
         const timer = new PerformanceTimer();
 
-        const defaultLimit = Math.min(options.limit ?? 8, 100);
-        loggerContext.LoggerContext.update({ targetType, targetId, userId, operation: 'list-comments', limit: defaultLimit });
+        const limit = Math.min(options.limit ?? 8, 100);
+        loggerContext.LoggerContext.update({ targetType: CommentTargetTypes.GROUP, groupId, userId, operation: 'list-comments', limit });
 
-        const limit = defaultLimit;
-        const { cursor } = options;
-
-        // Verify user has access to view comments on this target
         timer.startPhase('query');
-        await this.verifyCommentAccess(targetType, targetId, userId);
+        await this.groupCommentStrategy.verifyAccess(groupId, userId);
 
-        // Use FirestoreReader to get comments with pagination
-        const result = await this.firestoreReader.getCommentsForTarget(targetType, targetId, {
+        const result = await this.firestoreReader.getGroupComments(groupId, {
             limit,
-            cursor,
+            cursor: options.cursor,
             orderBy: 'createdAt',
             direction: 'desc',
         });
         timer.endPhase();
 
-        // Reader already returns DTOs with ISO strings - just normalize avatar field
         const comments: CommentDTO[] = result.comments.map((comment) => ({
             ...comment,
             authorAvatar: comment.authorAvatar || undefined,
         }));
 
         logger.info('comments-listed', {
-            targetType,
-            targetId,
+            targetType: CommentTargetTypes.GROUP,
+            targetId: groupId,
+            count: comments.length,
+            timings: timer.getTimings(),
+        });
+
+        return {
+            comments,
+            hasMore: result.hasMore,
+            nextCursor: result.nextCursor,
+        };
+    }
+
+    private async listExpenseCommentsInternal(expenseId: ExpenseId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
+        const timer = new PerformanceTimer();
+
+        const limit = Math.min(options.limit ?? 8, 100);
+        loggerContext.LoggerContext.update({ targetType: CommentTargetTypes.EXPENSE, targetId: expenseId, userId, operation: 'list-comments', limit });
+
+        timer.startPhase('query');
+        await this.expenseCommentStrategy.verifyAccess(expenseId, userId);
+
+        const result = await this.firestoreReader.getExpenseComments(expenseId, {
+            limit,
+            cursor: options.cursor,
+            orderBy: 'createdAt',
+            direction: 'desc',
+        });
+        timer.endPhase();
+
+        const comments: CommentDTO[] = result.comments.map((comment) => ({
+            ...comment,
+            authorAvatar: comment.authorAvatar || undefined,
+        }));
+
+        logger.info('comments-listed', {
+            targetType: CommentTargetTypes.EXPENSE,
+            targetId: expenseId,
             count: comments.length,
             timings: timer.getTimings(),
         });

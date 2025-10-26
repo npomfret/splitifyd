@@ -265,15 +265,29 @@ export interface IFirestoreReader {
     // ========================================================================
 
     /**
-     * Get paginated comments for a target (group or expense)
-     * @param targetType - The target type (group or expense)
-     * @param targetId - The target ID
+     * Get paginated comments for a group
+     * @param groupId - The group ID
      * @param options - Pagination and ordering options
      * @returns Object with comments array, hasMore flag, and nextCursor
      */
-    getCommentsForTarget(
-        targetType: CommentTargetType,
-        targetId: string,
+    getGroupComments(
+        groupId: GroupId,
+        options?: {
+            limit?: number;
+            cursor?: string;
+            orderBy?: FirestoreOrderField;
+            direction?: 'asc' | 'desc';
+        },
+    ): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string; }>;
+
+    /**
+     * Get paginated comments for an expense
+     * @param expenseId - The expense ID
+     * @param options - Pagination and ordering options
+     * @returns Object with comments array, hasMore flag, and nextCursor
+     */
+    getExpenseComments(
+        expenseId: ExpenseId,
         options?: {
             limit?: number;
             cursor?: string;
