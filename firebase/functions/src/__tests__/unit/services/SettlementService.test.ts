@@ -1,5 +1,5 @@
 import { Timestamp } from '@google-cloud/firestore';
-import { toGroupId } from '@splitifyd/shared';
+import { toGroupId, toSettlementId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -566,7 +566,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should soft delete settlement with correct metadata', async () => {
             // Arrange
-            const settlementId = 'test-settlement-id';
+            const settlementId = toSettlementId('test-settlement-id');
             const creatorId = 'creator-user';
             const groupId = toGroupId('test-group');
 
@@ -622,7 +622,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should prevent soft deleting already deleted settlement', async () => {
             // Arrange
-            const settlementId = 'deleted-settlement-id';
+            const settlementId = toSettlementId('deleted-settlement-id');
             const creatorId = 'creator-user';
             const groupId = toGroupId('test-group');
 
@@ -666,7 +666,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should allow settlement creator to soft delete', async () => {
             // Arrange
-            const settlementId = 'test-settlement-id';
+            const settlementId = toSettlementId('test-settlement-id');
             const creatorId = 'creator-user';
             const groupId = toGroupId('test-group');
 
@@ -719,7 +719,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should allow group admin to soft delete settlement', async () => {
             // Arrange
-            const settlementId = 'test-settlement-id';
+            const settlementId = toSettlementId('test-settlement-id');
             const creatorId = 'creator-user';
             const adminId = 'admin-user';
             const groupId = toGroupId('test-group');
@@ -781,7 +781,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should prevent non-creator non-admin from soft deleting settlement', async () => {
             // Arrange
-            const settlementId = 'test-settlement-id';
+            const settlementId = toSettlementId('test-settlement-id');
             const creatorId = 'creator-user';
             const otherId = 'other-user';
             const groupId = toGroupId('test-group');
@@ -822,7 +822,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should prevent soft deleting non-existent settlement', async () => {
             // Arrange
-            const settlementId = 'non-existent-settlement-id';
+            const settlementId = toSettlementId('non-existent-settlement-id');
             const userId = 'user-id';
 
             // Don't seed settlement data (simulating non-existent settlement)
@@ -838,7 +838,7 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should prevent soft deleting settlement when user not in group', async () => {
             // Arrange
-            const settlementId = 'test-settlement-id';
+            const settlementId = toSettlementId('test-settlement-id');
             const creatorId = 'creator-user';
             const nonMemberId = 'non-member-user';
             const groupId = toGroupId('test-group');

@@ -351,7 +351,7 @@ export class AppDriver {
         return (res as any).getJson() as SettlementDTO;
     }
 
-    async updateSettlement(userId: UserId, settlementId: SettlementId, updateRequest: UpdateSettlementRequest): Promise<SettlementWithMembers> {
+    async updateSettlement(userId: UserId, settlementId: SettlementId | string, updateRequest: UpdateSettlementRequest): Promise<SettlementWithMembers> {
         const req = createStubRequest(userId, updateRequest, { settlementId });
         const res = createStubResponse();
 
@@ -360,7 +360,7 @@ export class AppDriver {
         return (res as any).getJson() as SettlementWithMembers;
     }
 
-    async deleteSettlement(userId: UserId, settlementId: SettlementId): Promise<MessageResponse> {
+    async deleteSettlement(userId: UserId, settlementId: SettlementId | string): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { settlementId });
         const res = createStubResponse();
 
@@ -369,7 +369,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async getSettlement(userId: UserId, groupId: GroupId | string, settlementId: SettlementId): Promise<SettlementWithMembers> {
+    async getSettlement(userId: UserId, groupId: GroupId | string, settlementId: SettlementId | string): Promise<SettlementWithMembers> {
         let fullDetails;
 
         try {

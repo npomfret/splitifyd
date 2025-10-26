@@ -4,6 +4,7 @@ import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
+import {SettlementId, toSettlementId} from "@splitifyd/shared";
 
 /**
  * Builder for creating Settlement objects for tests
@@ -20,7 +21,7 @@ export class SettlementDTOBuilder {
     private note?: string;
 
     // Audit metadata
-    private id: string;
+    private id: SettlementId;
     private createdAt: Date;
     private updatedAt: Date;
 
@@ -45,7 +46,7 @@ export class SettlementDTOBuilder {
         this.note = `Settlement ${randomString(6)}`;
 
         // Default metadata
-        this.id = 'settlement-1';
+        this.id = toSettlementId('settlement-1');
         this.createdAt = new Date();
         this.updatedAt = new Date();
         this.createdBy = 'default-user-id';
@@ -99,8 +100,8 @@ export class SettlementDTOBuilder {
     }
 
     // SettlementDTO-specific builder methods
-    withId(id: string): SettlementDTOBuilder {
-        this.id = id;
+    withId(id: SettlementId | string): SettlementDTOBuilder {
+        this.id = typeof id === "string" ? toSettlementId(id) : id;
         return this;
     }
 

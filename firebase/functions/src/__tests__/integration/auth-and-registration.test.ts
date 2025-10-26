@@ -69,8 +69,8 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                 const firstResponse = await apiDriver.register(userData);
                 expect(firstResponse).toHaveProperty('user');
 
-                // Second registration with same email should fail
-                await expect(apiDriver.register(userData)).rejects.toThrow(/409|email.*exists|already.*registered/i);
+                // Second registration with same email should fail with generic error (email enumeration prevention)
+                await expect(apiDriver.register(userData)).rejects.toThrow(/REGISTRATION_FAILED|Unable to create account/i);
             });
 
             test('should return consistent error message for duplicate emails', async () => {
@@ -80,21 +80,13 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                 // Create user first
                 await apiDriver.register(userData);
 
-                // Try to register again and check exact error
+                // Try to register again and check exact error (email enumeration prevention returns generic error)
                 try {
                     await apiDriver.register(userData);
                     throw 'Should have thrown an error';
                 } catch (error: any) {
-                    expect(error.message).toContain('409');
-                    // The actual error response should contain the proper error structure
-                    if (error.response && error.response.data) {
-                        expect(error.response.data).toMatchObject({
-                            error: {
-                                code: 'EMAIL_EXISTS',
-                                message: expect.stringContaining('email already exists'),
-                            },
-                        });
-                    }
+                    expect(error.message).toContain('400');
+                    expect(error.message).toMatch(/REGISTRATION_FAILED|Unable to create account/i);
                 }
             });
         });
@@ -118,9 +110,9 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                 expect(successes.length).toBe(1);
                 expect(failures.length).toBe(4);
 
-                // All failures should be due to duplicate email
+                // All failures should have generic error (email enumeration prevention)
                 failures.forEach((failure) => {
-                    expect(failure.message).toMatch(/409|email.*exists/i);
+                    expect(failure.message).toMatch(/REGISTRATION_FAILED|Unable to create account/i);
                 });
             });
 
@@ -131,10 +123,10 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                 // First registration
                 await apiDriver.register(userData);
 
-                // Rapid sequential attempts
+                // Rapid sequential attempts should fail with generic error (email enumeration prevention)
                 const attempts = 3;
                 for (let i = 0; i < attempts; i++) {
-                    await expect(apiDriver.register(userData)).rejects.toThrow(/409|email.*exists/i);
+                    await expect(apiDriver.register(userData)).rejects.toThrow(/REGISTRATION_FAILED|Unable to create account/i);
                 }
             });
         });
@@ -149,23 +141,23 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                 // Register with lowercase
                 await apiDriver.register(userData);
 
-                // Try with uppercase - should fail
+                // Try with uppercase - should fail with generic error (email enumeration prevention)
                 const upperCaseData = new UserRegistrationBuilder()
                     .withEmail(baseEmail.toUpperCase())
                     .withPassword(userData.password)
                     .withDisplayName(userData.displayName)
                     .build();
 
-                await expect(apiDriver.register(upperCaseData)).rejects.toThrow(/409|email.*exists/i);
+                await expect(apiDriver.register(upperCaseData)).rejects.toThrow(/REGISTRATION_FAILED|Unable to create account/i);
 
-                // Try with mixed case - should also fail
+                // Try with mixed case - should also fail with generic error
                 const mixedCaseData = new UserRegistrationBuilder()
                     .withEmail(baseEmail.charAt(0).toUpperCase() + baseEmail.slice(1).toLowerCase())
                     .withPassword(userData.password)
                     .withDisplayName(userData.displayName)
                     .build();
 
-                await expect(apiDriver.register(mixedCaseData)).rejects.toThrow(/409|email.*exists/i);
+                await expect(apiDriver.register(mixedCaseData)).rejects.toThrow(/REGISTRATION_FAILED|Unable to create account/i);
             });
         });
 
@@ -186,8 +178,8 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                     .withDisplayName(userData.displayName)
                     .build();
 
-                // Server trims email spaces and detects duplicate email
-                await expect(apiDriver.register(spacedData)).rejects.toThrow(/409|email.*exists|already.*registered/i);
+                // Server trims email spaces and detects duplicate email (returns generic error due to email enumeration prevention)
+                await expect(apiDriver.register(spacedData)).rejects.toThrow(/REGISTRATION_FAILED|Unable to create account/i);
             });
 
             test('should allow different users with different emails', async () => {

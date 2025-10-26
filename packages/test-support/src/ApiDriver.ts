@@ -181,12 +181,12 @@ export class ApiDriver {
         return response as SettlementDTO;
     }
 
-    async updateSettlement(settlementId: SettlementId, updateData: UpdateSettlementRequest, token: string): Promise<SettlementWithMembers> {
+    async updateSettlement(settlementId: SettlementId | string, updateData: UpdateSettlementRequest, token: string): Promise<SettlementWithMembers> {
         const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', updateData, token);
         return response;
     }
 
-    async deleteSettlement(settlementId: SettlementId, token: string): Promise<MessageResponse> {
+    async deleteSettlement(settlementId: SettlementId | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
     }
 
@@ -469,7 +469,7 @@ export class ApiDriver {
         return res.expenses;
     }
 
-    async getSettlement(groupId: GroupId | string, settlementId: SettlementId, token: string) {
+    async getSettlement(groupId: GroupId | string, settlementId: SettlementId | string, token: string) {
         let res;
 
         try {

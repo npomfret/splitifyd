@@ -11,7 +11,7 @@ import { validateAmountPrecision } from '../utils/amount-validation';
 import { logger } from '../utils/contextual-logger';
 import { ApiError } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
-import { createSettlementSchema, settlementIdSchema, updateSettlementSchema } from './validation';
+import { createSettlementSchema, settlementIdSchema, updateSettlementSchema, validateSettlementId } from './validation';
 
 export class SettlementHandlers {
     constructor(private readonly settlementService: SettlementService) {
@@ -52,10 +52,12 @@ export class SettlementHandlers {
     updateSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = validateUserAuth(req);
 
-        const { error: idError, value: settlementId } = settlementIdSchema.validate(req.params.settlementId);
+        const { error: idError } = settlementIdSchema.validate(req.params.settlementId);
         if (idError) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SETTLEMENT_ID', idError.details[0].message);
         }
+
+        const settlementId = validateSettlementId(req.params.settlementId);
 
         const { error, value } = updateSettlementSchema.validate(req.body);
         if (error) {
@@ -86,12 +88,13 @@ export class SettlementHandlers {
     deleteSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = validateUserAuth(req);
 
-        const { error, value: settlementId } = settlementIdSchema.validate(req.params.settlementId);
+        const { error } = settlementIdSchema.validate(req.params.settlementId);
         if (error) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SETTLEMENT_ID', error.details[0].message);
         }
 
         // Use soft delete instead of hard delete
+        const settlementId = validateSettlementId(req.params.settlementId);
         await this.settlementService.softDeleteSettlement(settlementId, userId);
 
         LoggerContext.setBusinessContext({ settlementId });

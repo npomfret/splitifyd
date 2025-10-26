@@ -50,7 +50,9 @@ export const toGroupId = (value: string): GroupId => value as GroupId;
 export type ExpenseId = Brand<string, 'ExpenseId'>;
 export const toExpenseId = (value: string): ExpenseId => value as ExpenseId;
 
-export type SettlementId = string;
+export type SettlementId = Brand<string, 'SettlementId'>;
+export const toSettlementId = (value: string): SettlementId => value as SettlementId;
+
 export type GroupName = string;
 export type UserId = string;
 export type DisplayName = string;
@@ -815,7 +817,7 @@ export type UpdateSettlementRequest = Partial<Omit<CreateSettlementRequest, 'gro
  * - SettlementWithMembers: Settlement + resolved members (wire format for settlement lists)
  */
 export interface SettlementWithMembers extends SoftDeletable {
-    id: string;
+    id: SettlementId;
     groupId: GroupId;
     payer: GroupMember;
     payee: GroupMember;

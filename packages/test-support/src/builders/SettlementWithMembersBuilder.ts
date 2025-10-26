@@ -5,6 +5,7 @@ import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
 import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
+import {SettlementId, toSettlementId} from "@splitifyd/shared";
 
 /**
  * Builder for creating SettlementWithMembers objects for tests
@@ -30,7 +31,7 @@ export class SettlementWithMembersBuilder {
         const { currency, amount } = randomValidCurrencyAmountPair(10, 500);
 
         this.settlement = {
-            id: `settlement-${generateShortId()}`,
+            id: toSettlementId(`settlement-${generateShortId()}`),
             groupId: toGroupId(`group-${generateShortId()}`),
             payer,
             payee,
@@ -44,8 +45,8 @@ export class SettlementWithMembersBuilder {
         };
     }
 
-    withId(id: string): this {
-        this.settlement.id = id;
+    withId(id: string | SettlementId): this {
+        this.settlement.id = typeof id === "string" ? toSettlementId(id) : id;
         return this;
     }
 

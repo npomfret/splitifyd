@@ -1,4 +1,4 @@
-import { CreateSettlementRequest, UpdateSettlementRequest } from '@splitifyd/shared';
+import { CreateSettlementRequest, UpdateSettlementRequest, toSettlementId, type SettlementId } from '@splitifyd/shared';
 import * as Joi from 'joi';
 import { createJoiAmountSchema } from '../utils/amount-validation';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
@@ -99,7 +99,21 @@ export const updateSettlementSchema = Joi
         'object.min': 'At least one field must be provided for update',
     });
 
-export const settlementIdSchema = Joi.string().required().messages({
-    'any.required': 'Settlement ID is required',
-    'string.empty': 'Settlement ID cannot be empty',
-});
+const baseSettlementIdSchema = Joi
+    .string()
+    .required()
+    .custom((value: string) => toSettlementId(value))
+    .messages({
+        'any.required': 'Settlement ID is required',
+        'string.empty': 'Settlement ID cannot be empty',
+    });
+
+export const settlementIdSchema = baseSettlementIdSchema as Joi.StringSchema;
+
+export const validateSettlementId = (value: string): SettlementId => {
+    const { error, value: parsed } = settlementIdSchema.validate(value);
+    if (error) {
+        throw error;
+    }
+    return parsed as SettlementId;
+};
