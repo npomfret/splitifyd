@@ -13,6 +13,8 @@
 
 ## Decisions
 - Legal documents remain Splitifyd-owned and global; white-label tenants accept the shared policies without customization.
+- All white-label tenants share a single Firebase project and Functions instance.
+- Tenant identification will resolve from the request host via a cached domain→tenant registry, with guarded `DEFAULT_TENANT_ID` and non-production `x-tenant-id` overrides for localhost/testing.
 
 ## Agent's Ideas (Based on App Analysis)
 
@@ -30,9 +32,9 @@
 
 ## Agent's Questions (Based on App Analysis)
 
-1.  **Tenant Identification:** How will the application identify the current tenant? (e.g., subdomain, custom domain, query parameter, user's organization ID after login). This is the most crucial decision for the architecture.
+1.  **Tenant Identification:** How will the application identify the current tenant? (e.g., subdomain, custom domain, query parameter, user's organization ID after login). This is the most crucial decision for the architecture. *(Answered: resolve via request host mapped through the tenant registry, with localhost/test overrides guarded.)*
 2.  **Configuration Storage:** What is the preferred approach for storing tenant-specific branding and configuration? (Firestore document per tenant, Firebase Remote Config, or a combination?)
-3.  **Deployment Strategy:** Will each white-label instance be a separate Firebase project, or will multiple tenants share a single Firebase project? This impacts how tenant data and configurations are isolated and managed.
+3.  **Deployment Strategy:** Will each white-label instance be a separate Firebase project, or will multiple tenants share a single Firebase project? This impacts how tenant data and configurations are isolated and managed. *(Answered: all tenants live in the same Firebase project/Functions instance.)*
 4.  **Admin Interface for Tenants:** Will there be an admin interface for white-label partners to manage their branding and configurations, or will this be a manual process (e.g., updating Firestore documents directly)?
 5.  **Color Palette Constraints:** Are there any specific constraints on acceptable color palettes (e.g., contrast requirements, light/dark variants) that we must validate before applying runtime themes?
 6.  **Marketing Landing Pages:** Should each tenant expose a marketing landing page, or do some embed the app within an existing site and only need the authenticated views?
@@ -163,9 +165,15 @@ export async function resolveTenant(req: TenantRequest, res: Response, next: Nex
 ```
 
 **Implementation notes**
-- Maintain a cached domain→tenant map hydrated from Firestore (`tenants/{tenantId}.domains`).
+- Maintain a cached domain→tenant map hydrated from Firestore (`tenants/{tenantId}.domains`) and reused across requests.
+- Treat the request `Host` header as the primary signal; normalize to lowercase before lookup.
+- For localhost/emulator hosts fall back to a validated `DEFAULT_TENANT_ID` env var; reject values that do not exist in the registry.
+- Allow an `x-tenant-id` header override only when `NODE_ENV !== 'production'`, again validating against the registry.
 - Seed a “showroom” tenant with its own demo domain that mirrors client-facing branding.
-- Support multiple domains per tenant so the same config works for both our managed subdomains and customer-owned hosts.
+- Support multiple domains per tenant so the same config works for both hosted subdomains and customer-owned domains.
+- Ensure downstream middleware (auth/config) expects `req.tenantId` and asserts Firebase custom claims match.
+
+Follow-up work in this phase: wire `resolveTenant` into `setupRoutes`, update `getEnhancedConfigResponse()` / `getAppConfig()` to accept the resolved tenant ID, and extend authentication middleware to enforce `customClaims.tenantId === req.tenantId` with a clear 403 when mismatched.
 
 **Modify: `firebase/functions/src/index.ts`**
 
