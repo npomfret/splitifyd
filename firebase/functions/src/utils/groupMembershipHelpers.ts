@@ -1,11 +1,7 @@
 import type { GroupMembershipDTO, ISOString, UserId } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { TopLevelGroupMemberDocument } from '../types';
-
-/**
- * Helper functions for group membership document operations
- * Supports the dual-write pattern between subcollection and top-level collection
- */
+import {newTopLevelMembershipDocId} from "@splitifyd/shared";
 
 /**
  * Creates a top-level membership document from a subcollection membership document
@@ -22,15 +18,4 @@ export function createTopLevelMembershipDocument(memberDoc: GroupMembershipDTO |
         // groupUpdatedAt is ISO string, FirestoreWriter converts to Timestamp
         groupUpdatedAt,
     };
-}
-
-/**
- * Generates a consistent document ID for top-level membership documents
- * Format: {userId}_{groupId}
- * @param userId - The user ID
- * @param groupId - The group ID
- * @returns Document ID string for top-level collection
- */
-export function getTopLevelMembershipDocId(userId: UserId, groupId: GroupId): string {
-    return `${userId}_${groupId}`;
 }

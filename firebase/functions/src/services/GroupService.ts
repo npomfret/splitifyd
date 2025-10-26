@@ -1,12 +1,17 @@
+import type {CurrencyISOCode, UserId} from '@splitifyd/shared';
 import {
     ActivityFeedActions,
     ActivityFeedEventTypes,
     Amount,
     amountToSmallestUnit,
+    BalanceDisplaySchema,
     CommentTargetTypes,
     CreateGroupRequest,
+    CurrencyBalanceDisplaySchema,
+    GroupBalances,
     GroupDTO,
     GroupFullDetailsDTO,
+    GroupId,
     GroupPermissions,
     ListGroupsResponse,
     MemberRoles,
@@ -16,26 +21,23 @@ import {
     smallestUnitToAmountString,
     UpdateGroupRequest,
 } from '@splitifyd/shared';
-import { BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupBalances } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
-import { DOCUMENT_CONFIG, FirestoreCollections } from '../constants';
-import { logger, LoggerContext } from '../logger';
+import {DOCUMENT_CONFIG, FirestoreCollections} from '../constants';
+import {logger, LoggerContext} from '../logger';
 import * as measure from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { PermissionEngine } from '../permissions';
-import { GroupBalanceDTO } from '../schemas';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
+import {PermissionEngine} from '../permissions';
+import {GroupBalanceDTO} from '../schemas';
 import * as dateHelpers from '../utils/dateHelpers';
-import { Errors } from '../utils/errors';
-import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
-import { ActivityFeedService } from './ActivityFeedService';
-import { CommentService } from './CommentService';
-import { ExpenseService } from './ExpenseService';
-import type { GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter } from './firestore';
-import { GroupMemberService } from './GroupMemberService';
-import { GroupShareService } from './GroupShareService';
-import { SettlementService } from './SettlementService';
-import { UserService } from './UserService2';
+import {Errors} from '../utils/errors';
+import {ActivityFeedService} from './ActivityFeedService';
+import {CommentService} from './CommentService';
+import {ExpenseService} from './ExpenseService';
+import type {GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter} from './firestore';
+import {GroupMemberService} from './GroupMemberService';
+import {GroupShareService} from './GroupShareService';
+import {SettlementService} from './SettlementService';
+import {UserService} from './UserService2';
+import {newTopLevelMembershipDocId} from "@splitifyd/shared";
 
 /**
  * Service for managing group operations
@@ -362,7 +364,7 @@ export class GroupService {
             };
 
             // FirestoreWriter.createInTransaction handles conversion and validation
-            this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), topLevelMemberDoc);
+            this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, newTopLevelMembershipDocId(userId, groupId), topLevelMemberDoc);
 
             // Initialize balance document atomically with group creation
             this.firestoreWriter.setGroupBalanceInTransaction(transaction, groupId, initialBalance);

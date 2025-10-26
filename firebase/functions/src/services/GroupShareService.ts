@@ -1,21 +1,17 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
-import type { GroupMembershipDTO, JoinGroupResponse, UserId } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import type { GroupName } from '@splitifyd/shared';
-import { randomBytes } from 'crypto';
-import { z } from 'zod';
-import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections } from '../constants';
-import { logger, LoggerContext } from '../logger';
+import type {GroupMembershipDTO, GroupName, JoinGroupResponse, UserId} from '@splitifyd/shared';
+import {ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, generateShareToken, GroupId, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor} from '@splitifyd/shared';
+import {z} from 'zod';
+import {FirestoreCollections, HTTP_STATUS} from '../constants';
+import {logger, LoggerContext} from '../logger';
 import * as measure from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { ShareLinkDataSchema } from '../schemas';
-import { ApiError } from '../utils/errors';
-import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
-import { ActivityFeedService } from './ActivityFeedService';
-import type { IFirestoreReader } from './firestore';
-import type { IFirestoreWriter } from './firestore';
-import type { GroupMemberService } from './GroupMemberService';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
+import {ShareLinkDataSchema} from '../schemas';
+import {ApiError} from '../utils/errors';
+import {createTopLevelMembershipDocument} from '../utils/groupMembershipHelpers';
+import {ActivityFeedService} from './ActivityFeedService';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import type {GroupMemberService} from './GroupMemberService';
+import {newTopLevelMembershipDocId} from "@splitifyd/shared";
 
 const SHARE_LINK_DEFAULT_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
 const SHARE_LINK_MAX_EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
@@ -52,12 +48,6 @@ export class GroupShareService {
         }
 
         return new Date(nowMs + SHARE_LINK_DEFAULT_EXPIRATION_MS).toISOString();
-    }
-
-    private generateShareToken(): string {
-        const bytes = randomBytes(12);
-        const base64url = bytes.toString('base64url');
-        return base64url.substring(0, 16);
     }
 
     getThemeColorForMember(memberIndex: number): UserThemeColor {
@@ -162,7 +152,7 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
         }
 
-        const shareToken = this.generateShareToken();
+        const shareToken = generateShareToken();
         timer.endPhase();
 
         timer.startPhase('transaction');
@@ -382,7 +372,7 @@ export class GroupShareService {
             };
 
             // FirestoreWriter.createInTransaction handles conversion and validation
-            this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), topLevelMemberDoc);
+            this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, newTopLevelMembershipDocId(userId, groupId), topLevelMemberDoc);
 
             // Note: Group notifications are handled by the trackGroupChanges trigger
             // which fires when the group's updatedAt timestamp is modified above

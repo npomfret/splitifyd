@@ -10,21 +10,17 @@
  */
 
 // Import types
-import type {CommentDTO, DisplayName, ISOString, RegisteredUser, ShareLinkDTO, UserId} from '@splitifyd/shared';
-import { type CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
-import { z } from 'zod';
-import { FirestoreCollections, HTTP_STATUS } from '../../constants';
-import { FieldValue, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
-import { logger } from '../../logger';
-import { measureDb } from '../../monitoring/measure';
-import { ApiError } from '../../utils/errors';
-import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
-
-import type { GroupBalanceDTO } from '../../schemas';
+import type {CommentDTO, DisplayName, Email, ISOString, RegisteredUser, ShareLinkDTO, UserId} from '@splitifyd/shared';
 // Import schemas for validation
-import { GroupId } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
-import { PolicyId } from '@splitifyd/shared';
+import {type CommentTargetType, CommentTargetTypes, GroupId, PolicyId} from '@splitifyd/shared';
+import {z} from 'zod';
+import {FirestoreCollections, HTTP_STATUS} from '../../constants';
+import {FieldValue, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp} from '../../firestore-wrapper';
+import {logger} from '../../logger';
+import {measureDb} from '../../monitoring/measure';
+import {ApiError} from '../../utils/errors';
+
+import type {GroupBalanceDTO} from '../../schemas';
 import {
     ActivityFeedDocumentSchema,
     CommentDataSchema,
@@ -37,7 +33,8 @@ import {
     UserDocumentSchema,
     validateUpdate,
 } from '../../schemas';
-import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
+import type {BatchWriteResult, IFirestoreWriter, WriteResult} from './IFirestoreWriter';
+import {newTopLevelMembershipDocId} from "@splitifyd/shared";
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -1381,7 +1378,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                         throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_A_MEMBER', 'User is not a member of this group');
                     }
 
-                    const membershipDocId = getTopLevelMembershipDocId(userId, groupId);
+                    const membershipDocId = newTopLevelMembershipDocId(userId, groupId);
 
                     const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
                     transaction.update(groupRef, {

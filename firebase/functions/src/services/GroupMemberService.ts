@@ -1,14 +1,13 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse } from '@splitifyd/shared';
-import { GroupId, UserId } from '@splitifyd/shared';
-import { FirestoreCollections } from '../constants';
-import { FieldValue } from '../firestore-wrapper';
-import { logger, LoggerContext } from '../logger';
+import {ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, GroupId, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse, UserId} from '@splitifyd/shared';
+import {FirestoreCollections} from '../constants';
+import {FieldValue} from '../firestore-wrapper';
+import {logger, LoggerContext} from '../logger';
 import * as measure from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { ApiError, Errors } from '../utils/errors';
-import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
-import { ActivityFeedService } from './ActivityFeedService';
-import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
+import {ApiError, Errors} from '../utils/errors';
+import {ActivityFeedService} from './ActivityFeedService';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import {newTopLevelMembershipDocId} from "@splitifyd/shared";
 
 export class GroupMemberService {
     constructor(
@@ -60,7 +59,7 @@ export class GroupMemberService {
             }
 
             await this.firestoreWriter.runTransaction(async (transaction) => {
-                const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
+                const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
                 const membershipSnap = await transaction.get(membershipRef);
                 if (!membershipSnap.exists) {
@@ -121,7 +120,7 @@ export class GroupMemberService {
             const now = new Date().toISOString();
 
             await this.firestoreWriter.runTransaction(async (transaction) => {
-                const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
+                const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
                 const membershipSnap = await transaction.get(membershipRef);
                 if (!membershipSnap.exists) {
@@ -198,7 +197,7 @@ export class GroupMemberService {
             }
 
             await this.firestoreWriter.runTransaction(async (transaction) => {
-                const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
+                const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
                 const membershipSnap = await transaction.get(membershipRef);
                 if (!membershipSnap.exists) {
@@ -349,7 +348,7 @@ export class GroupMemberService {
 
             const activityRecipients = Array.from(new Set<UserId>([...remainingMemberIds, targetUserId]));
 
-            const membershipDocId = getTopLevelMembershipDocId(targetUserId, groupId);
+            const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
             const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
             transaction.delete(membershipRef);
 
@@ -418,7 +417,7 @@ export class GroupMemberService {
         }
 
         const now = new Date().toISOString();
-        const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
+        const topLevelDocId = newTopLevelMembershipDocId(userId, groupId);
         const documentPath = `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`;
 
         await this.firestoreWriter.runTransaction(async (transaction) => {
@@ -449,7 +448,7 @@ export class GroupMemberService {
         }
 
         const now = new Date().toISOString();
-        const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
+        const topLevelDocId = newTopLevelMembershipDocId(userId, groupId);
         const documentPath = `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`;
 
         await this.firestoreWriter.runTransaction(async (transaction) => {

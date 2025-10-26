@@ -9,7 +9,7 @@ import { z } from 'zod';
 export const ShareLinkDocumentSchema = z
     .object({
         id: z.string().min(1), // Document ID
-        token: z.string().min(1), // The actual share token used in URLs
+        token: z.string().min(16), // The actual share token used in URLs
         createdBy: z.string().min(1), // UID of the user who created this share link
         createdAt: z.string().datetime(), // ISO timestamp string
         updatedAt: z.string().datetime(), // ISO timestamp string

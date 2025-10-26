@@ -10,6 +10,9 @@
  * for migration guidance.
  */
 
+import type {CommentId} from '@splitifyd/shared';
+// Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
+// FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
 import {
     type ActivityFeedAction,
     ActivityFeedActions,
@@ -22,50 +25,44 @@ import {
     type ExpenseDTO,
     ExpenseId,
     type GroupDTO,
+    GroupId,
     type GroupMembershipDTO,
     MAX_GROUP_MEMBERS,
     type MemberStatus,
     MemberStatuses,
     type PolicyDTO,
+    PolicyId,
     type RegisteredUser,
     type SettlementDTO,
+    SettlementId,
     type UserId,
 } from '@splitifyd/shared';
-import { HTTP_STATUS } from '../../constants';
-import { FieldPath, Filter, type IDocumentReference, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp } from '../../firestore-wrapper';
-import { logger } from '../../logger';
-import { measureDb } from '../../monitoring/measure';
-import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelpers';
-import { ApiError } from '../../utils/errors';
-import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
+import {FirestoreCollections, HTTP_STATUS} from '../../constants';
+import {FieldPath, Filter, type IDocumentReference, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp} from '../../firestore-wrapper';
+import {logger} from '../../logger';
+import {measureDb} from '../../monitoring/measure';
+import {assertTimestamp, safeParseISOToTimestamp} from '../../utils/dateHelpers';
+import {ApiError} from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,
+    CommentDocumentSchema,
     ExpenseDocumentSchema,
     GroupBalanceDocumentSchema,
     type GroupBalanceDTO,
     GroupDocumentSchema,
+    type ParsedShareLink,
     PolicyDocumentSchema,
     SettlementDocumentSchema,
+    ShareLinkDocumentSchema,
+    TopLevelGroupMemberSchema,
     UserDocumentSchema,
-    // Note: GroupChangeDocumentSchema removed as unused
 } from '../../schemas';
-import { TopLevelGroupMemberSchema } from '../../schemas';
-import { type ParsedShareLink, ShareLinkDocumentSchema } from '../../schemas';
-import { CommentDocumentSchema } from '../../schemas';
-
-// Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
-// FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
-import { GroupId } from '@splitifyd/shared';
-import { SettlementId } from '@splitifyd/shared';
-import type { CommentId } from '@splitifyd/shared';
-import { PolicyId } from '@splitifyd/shared';
-import { FirestoreCollections } from '../../constants';
-import type { TopLevelGroupMemberDocument } from '../../types';
-import type { FirestoreOrderField, IFirestoreReader } from './IFirestoreReader';
-import type { BatchGroupFetchOptions, GetGroupsForUserOptions, GroupsPaginationCursor, PaginatedResult, QueryOptions } from './IFirestoreReader';
+import type {TopLevelGroupMemberDocument} from '../../types';
+import type {BatchGroupFetchOptions, FirestoreOrderField, GetGroupsForUserOptions, GroupsPaginationCursor, IFirestoreReader, PaginatedResult, QueryOptions} from './IFirestoreReader';
+import {newTopLevelMembershipDocId} from "@splitifyd/shared";
 
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
@@ -594,7 +591,7 @@ export class FirestoreReader implements IFirestoreReader {
     async getGroupMember(groupId: GroupId, userId: UserId): Promise<GroupMembershipDTO | null> {
         return measureDb('GET_MEMBER', async () => {
             // Use top-level collection instead of subcollection
-            const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
+            const topLevelDocId = newTopLevelMembershipDocId(userId, groupId);
             const memberRef = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId);
 
             const memberDoc = await memberRef.get();
@@ -1231,7 +1228,7 @@ export class FirestoreReader implements IFirestoreReader {
     async verifyGroupMembership(groupId: GroupId, userId: UserId): Promise<boolean> {
         try {
             // Check if user is a member using top-level collection lookup
-            const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
+            const topLevelDocId = newTopLevelMembershipDocId(userId, groupId);
             const memberDoc = await this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId).get();
 
             return memberDoc.exists;

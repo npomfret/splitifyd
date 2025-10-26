@@ -15,7 +15,6 @@ describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
     let db: SplitifydFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
-    let firestoreWriter: FirestoreWriter;
     let groupMemberService: GroupMemberService;
     let activityFeedService: ActivityFeedService;
 
@@ -25,7 +24,7 @@ describe('GroupShareService', () => {
 
         // Create real services using stub database
         firestoreReader = new FirestoreReader(db);
-        firestoreWriter = new FirestoreWriter(db);
+        const firestoreWriter = new FirestoreWriter(db);
         activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
         groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService);
 
@@ -184,7 +183,7 @@ describe('GroupShareService', () => {
     describe('share link expiration enforcement', () => {
         const groupId = 'expired-group';
         const ownerId = 'owner-expiration';
-        const expiredToken = 'expired-token';
+        const expiredToken = `expired-token-1234567890`;
         const previewToken = 'preview-expired-token';
 
         beforeEach(() => {
@@ -236,7 +235,7 @@ describe('GroupShareService', () => {
 
     describe('group member cap enforcement', () => {
         const groupId = 'test-group';
-        const linkId = 'test-link-123';
+        const linkId = 'test-link-1234567890';
         const newUserId = 'new-user-id';
 
         beforeEach(() => {
@@ -342,7 +341,7 @@ describe('GroupShareService', () => {
 
     describe('display name conflict detection', () => {
         const groupId = 'test-group';
-        const linkId = 'test-link-123';
+        const linkId = 'test-link-1234567890';
         const newUserId = 'new-user-id';
 
         beforeEach(() => {
@@ -433,7 +432,7 @@ describe('GroupShareService', () => {
 
     describe('member approval workflow - admin required', () => {
         const groupId = 'managed-group';
-        const linkId = 'managed-link';
+        const linkId = 'managed-link-1234567890';
         const ownerId = 'owner-id';
         const pendingUserId = 'pending-user-id';
 
@@ -486,7 +485,7 @@ describe('GroupShareService', () => {
 
     describe('member approval workflow - automatic', () => {
         const groupId = 'open-group';
-        const linkId = 'open-link';
+        const linkId = 'open-link-1234567890';
         const ownerId = 'open-owner';
         const joiningUserId = 'joining-user';
 
@@ -532,7 +531,7 @@ describe('GroupShareService', () => {
     describe('activity feed integration', () => {
         it('emits MEMBER_JOINED activity for auto-approved joins', async () => {
             const groupId = 'activity-group';
-            const linkId = 'activity-link';
+            const linkId = 'activity-link-1234567890';
             const ownerId = 'owner-user';
             const joiningUserId = 'joining-user';
 

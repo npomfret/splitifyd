@@ -2,6 +2,7 @@
 // This file contains all type definitions used by the webapp client
 import { z } from 'zod';
 import type { ColorPattern } from './user-colors';
+import {randomBytes} from "crypto";
 
 // ========================================================================
 // Type aliases for Firebase types (browser-safe)
@@ -583,6 +584,23 @@ interface ShareLink {
     token: ShareLinkToken; // The actual share token used in URLs
     createdBy: UserId; // UID of the user who created this share link
     expiresAt: ISOString;
+}
+
+export function generateShareToken(): ShareLinkToken {
+    const bytes = randomBytes(12);
+    const base64url = bytes.toString('base64url');
+    return base64url.substring(0, 16);
+}
+
+/**
+ * Generates a consistent document ID for top-level membership documents
+ * Format: {userId}_{groupId}
+ * @param userId - The user ID
+ * @param groupId - The group ID
+ * @returns Document ID string for top-level collection
+ */
+export function newTopLevelMembershipDocId(userId: UserId, groupId: GroupId): string {
+    return `${userId}_${groupId}`;
 }
 
 /**
