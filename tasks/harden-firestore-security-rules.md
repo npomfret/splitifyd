@@ -9,7 +9,7 @@ Owner: Platform Engineering
 | --- | --- | --- | --- |
 | 1 | Registration abuse (edge-level control) | Delegated | Registration rate limiting must be enforced before traffic reaches Cloud Functions. No function-level throttling is planned; coordinate with the platform gateway team. |
 | 3 | Auth field duplication | Partially done | Email and photo URL are no longer written to Firestore, but `displayName` is still duplicated on create/update (firebase/functions/src/services/UserService2.ts:212,401). Schema still allows legacy email fields for backward compatibility (firebase/functions/src/schemas/user.ts:27). |
-| 4 | Health and diagnostics endpoints | Open | `/health` is minimal, but `/status` and `/env` still leak environment variables, filesystem contents, and runtime details without auth (firebase/functions/src/index.ts:78,83). |
+| 4 | Health and diagnostics endpoints | Done | `/status` and `/env` now require system-level roles via `authenticateSystemUser` (firebase/functions/src/index.ts:83-99). |
 | 5 | Email enumeration hardening | Open | Registration still surfaces `auth/email-already-exists` via structured error responses (firebase/functions/src/services/UserService2.ts:443) and lacks constant-time failure paths. |
 | 6 | Log sanitization | Open | `ContextualLoggerImpl` forwards arbitrary payload keys without redaction (firebase/functions/src/utils/contextual-logger.ts:32-118). No redaction helper exists. |
 | 7 | Admin audit logging | Open | No audit logger, firestore collection, or rules for admin operations are present. |
@@ -19,12 +19,11 @@ Legend: Done = implemented and verified, Partially done = partially mitigated, N
 
 ## Outstanding Work
 
-1. Lock down `/status` and `/env` (Issue 4). Either require authenticated admins, or remove sensitive payloads (environment variables, filesystem listings, process identifiers).
-2. Ship a registration flow that avoids leaking whether an email exists (Issue 5). Standardise error messaging and insert a minimum response delay.
-3. Introduce log sanitisation (Issue 6). Add redaction for password, token, key, and bearer fields before forwarding payloads to Cloud Logging.
-4. Create an audit logging service for admin actions (Issue 7) and enforce read/write rules for the backing collection.
-5. Finish the input sanitisation audit (Issue 9). Document coverage, add regression tests, and close any gaps (group names, notification payloads, etc.).
-6. Consider removing the remaining `displayName` duplication from Firestore (Issue 3 follow-up) once frontend dependencies are reviewed.
+1. Ship a registration flow that avoids leaking whether an email exists (Issue 5). Standardise error messaging and insert a minimum response delay.
+2. Introduce log sanitisation (Issue 6). Add redaction for password, token, key, and bearer fields before forwarding payloads to Cloud Logging.
+3. Create an audit logging service for admin actions (Issue 7) and enforce read/write rules for the backing collection.
+4. Finish the input sanitisation audit (Issue 9). Document coverage, add regression tests, and close any gaps (group names, notification payloads, etc.).
+5. Consider removing the remaining `displayName` duplication from Firestore (Issue 3 follow-up) once frontend dependencies are reviewed.
 
 ## Issue Details
 
@@ -42,9 +41,9 @@ Legend: Done = implemented and verified, Partially done = partially mitigated, N
 
 ### Issue 4 - Health and diagnostics endpoints
 
-- **Status:** Open  
-- **Evidence:** `/health` now returns only aggregated service status via `sendHealthCheckResponse` (firebase/functions/src/index.ts:64-118). Nevertheless, `/status` (firebase/functions/src/index.ts:78-80) and `/env` (firebase/functions/src/index.ts:83-94) remain unauthenticated and leak environment variables, runtime metrics, and filesystem listings.  
-- **Next:** Collapse `/status` and `/env` behind admin authentication, or remove sensitive fields. Add regression tests to confirm secrets never reach public responses.
+- **Status:** Done  
+- **Evidence:** Both `/status` and `/env` routes now run behind `authenticateSystemUser`, limiting responses to authenticated system-level users (system admin or elevated system user) in every environment (firebase/functions/src/index.ts:83-99).  
+- **Next:** Add regression coverage that verifies users without system roles receive authorization errors and ensure payloads stay limited to the intended diagnostics set.
 
 ### Issue 5 - Email enumeration hardening
 

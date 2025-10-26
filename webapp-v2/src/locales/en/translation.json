@@ -842,7 +842,11 @@
     "signOut": "Sign out",
     "signingOut": "Signing out...",
     "systemUserBadge": "System User",
-    "systemUserTooltip": "This account is used for automated or system-driven operations."
+    "systemUserTooltip": "This account is used for automated or system-driven operations.",
+    "statusLink": "status",
+    "environmentLink": "env",
+    "diagnosticsLoading": "Loading diagnostics...",
+    "diagnosticsError": "Unable to load diagnostics:"
   },
   "footer": {
     "companyName": "Splitifyd",

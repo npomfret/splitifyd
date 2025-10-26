@@ -121,3 +121,34 @@ export const authenticateAdmin = async (req: AuthenticatedRequest, res: Response
         await requireAdmin(req, res, next);
     });
 };
+
+const requireSystemRole = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+    if (req.method === 'OPTIONS') {
+        next();
+        return;
+    }
+
+    const correlationId = req.headers['x-correlation-id'] as string;
+
+    if (!req.user) {
+        sendError(res, Errors.UNAUTHORIZED(), correlationId);
+        return;
+    }
+
+    if (req.user.role !== SystemUserRoles.SYSTEM_USER && req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
+        sendError(res, Errors.FORBIDDEN(), correlationId);
+        return;
+    }
+
+    next();
+};
+
+export const authenticateSystemUser = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+    await authenticate(req, res, async (error?: any) => {
+        if (error) {
+            next(error);
+            return;
+        }
+        await requireSystemRole(req, res, next);
+    });
+};

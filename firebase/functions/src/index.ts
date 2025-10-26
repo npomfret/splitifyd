@@ -3,7 +3,7 @@ import express from 'express';
 import { onRequest } from 'firebase-functions/v2/https';
 import { getActivityFeed } from './activity/handlers';
 import { register } from './auth/handlers';
-import { authenticate, authenticateAdmin } from './auth/middleware';
+import { authenticate, authenticateAdmin, authenticateSystemUser } from './auth/middleware';
 import { getConfig } from './client-config';
 import { createComment, listExpenseComments, listGroupComments } from './comments/handlers';
 import { FirestoreCollections, HTTP_STATUS } from './constants';
@@ -80,24 +80,23 @@ function setupRoutes(app: express.Application): void {
         }),
     );
 
-    // Status endpoint
-    app.get('/status', (req: express.Request, res: express.Response) => {
-        res.json(buildStatusPayload());
-    });
+    // Status endpoint (restricted to system administrators)
+    app.get(
+        '/status',
+        authenticateSystemUser,
+        (req: express.Request, res: express.Response) => {
+            res.json(buildStatusPayload());
+        },
+    );
 
-    // Environment endpoint (non-production only)
-    app.get('/env', (req: express.Request, res: express.Response) => {
-        if (getConfig().isProduction) {
-            res.status(HTTP_STATUS.NOT_FOUND).json({
-                error: {
-                    code: 'NOT_FOUND',
-                    message: 'Endpoint not found',
-                },
-            });
-            return;
-        }
-        res.json(buildEnvPayload());
-    });
+    // Environment endpoint (restricted to system administrators)
+    app.get(
+        '/env',
+        authenticateSystemUser,
+        (req: express.Request, res: express.Response) => {
+            res.json(buildEnvPayload());
+        },
+    );
 
     app.get(
         '/config',

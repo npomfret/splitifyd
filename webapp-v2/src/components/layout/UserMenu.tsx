@@ -2,6 +2,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { Tooltip } from '@/components/ui/Tooltip.tsx';
 import { navigationService } from '@/services/navigation.service';
 import { type SystemUserRole, SystemUserRoles } from '@splitifyd/shared';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
@@ -40,6 +41,169 @@ export function UserMenu({ user }: UserMenuProps) {
 
     const userName = user.displayName || user.email.split('@')[0];
     const isSystemUser = user.role === SystemUserRoles.SYSTEM_USER;
+    const hasDiagnosticsAccess = user.role === SystemUserRoles.SYSTEM_USER || user.role === SystemUserRoles.SYSTEM_ADMIN;
+
+    const openDiagnosticsWindow = (title: string, endpoint: string, heading: string, loadingMessage: string, errorLabel: string) => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const diagnosticsWindow = window.open('about:blank', '_blank');
+
+        if (!diagnosticsWindow) {
+            console.error('Failed to open diagnostics window');
+            return;
+        }
+
+        diagnosticsWindow.opener = null;
+
+        let diagnosticsDocument: Document | null = null;
+
+        const timestamp = new Date().toLocaleString();
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const darkModeClass = prefersDark ? ' class="dark-mode"' : '';
+
+        try {
+            diagnosticsDocument = diagnosticsWindow.document;
+            if (!diagnosticsDocument) {
+                throw new Error('Missing diagnostics document');
+            }
+            diagnosticsDocument.open('text/html', 'replace');
+        } catch (error) {
+            console.error('Unable to initialize diagnostics window', error);
+            diagnosticsWindow.close();
+            return;
+        }
+
+        diagnosticsDocument.write(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="utf-8" />
+                <title>${title}</title>
+                <style>
+                    :root {
+                        color-scheme: light dark;
+                    }
+                    body {
+                        margin: 0;
+                        padding: 24px;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+                        background-color: #f8fafc;
+                        color: #0f172a;
+                    }
+                    body.dark-mode {
+                        background-color: #0f172a;
+                        color: #e2e8f0;
+                    }
+                    h1 {
+                        margin: 0 0 12px;
+                        font-size: 20px;
+                    }
+                    p {
+                        margin: 0 0 16px;
+                        font-size: 14px;
+                        color: inherit;
+                        opacity: 0.75;
+                    }
+                    pre {
+                        background-color: rgba(15, 23, 42, 0.07);
+                        padding: 16px;
+                        border-radius: 8px;
+                        overflow-x: auto;
+                        white-space: pre;
+                        font-size: 13px;
+                        line-height: 1.5;
+                        max-height: calc(100vh - 140px);
+                    }
+                    body.dark-mode pre {
+                        background-color: rgba(226, 232, 240, 0.08);
+                    }
+                    .diagnostic-error {
+                        color: #b91c1c;
+                        font-weight: 600;
+                    }
+                </style>
+            </head>
+            <body${darkModeClass}>
+                <main>
+                    <h1 id="diagnostic-heading">${heading}</h1>
+                    <p id="diagnostic-subheading">${timestamp}</p>
+                    <pre id="diagnostic-content">${loadingMessage}</pre>
+                </main>
+            </body>
+            </html>
+        `);
+
+        diagnosticsDocument.close();
+
+        try {
+            const targetPath = endpoint === '/status' ? '/diagnostics/status' : '/diagnostics/env';
+            diagnosticsWindow.history.replaceState(null, '', targetPath);
+        } catch (error) {
+            console.warn('Unable to update diagnostics window URL', error);
+        }
+
+        const headingElement = diagnosticsDocument.getElementById('diagnostic-heading');
+        const subheadingElement = diagnosticsDocument.getElementById('diagnostic-subheading');
+        const contentElement = diagnosticsDocument.getElementById('diagnostic-content') as HTMLPreElement | null;
+
+        if (headingElement) {
+            headingElement.textContent = heading;
+        }
+
+        if (subheadingElement) {
+            subheadingElement.textContent = timestamp;
+        }
+
+        if (contentElement) {
+            contentElement.textContent = loadingMessage;
+            contentElement.classList.remove('diagnostic-error');
+        }
+
+        void (async () => {
+            try {
+                const token = await authStore.refreshAuthToken();
+                const response = await fetch(`/api${endpoint}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'omit',
+                });
+
+                if (diagnosticsWindow.closed) {
+                    return;
+                }
+
+                if (!contentElement) {
+                    return;
+                }
+
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    contentElement.textContent = `${errorLabel}\n${response.status} ${response.statusText}\n${errorBody}`;
+                    contentElement.classList.add('diagnostic-error');
+                    return;
+                }
+
+                const payload = await response.json();
+                contentElement.textContent = JSON.stringify(payload, null, 2);
+                contentElement.classList.remove('diagnostic-error');
+            } catch (error) {
+                if (diagnosticsWindow.closed) {
+                    return;
+                }
+                if (!contentElement) {
+                    return;
+                }
+                const message = error instanceof Error ? error.message : String(error);
+                contentElement.textContent = `${errorLabel}\n${message}`;
+                contentElement.classList.add('diagnostic-error');
+            }
+        })();
+    };
 
     return (
         <div class='relative' ref={menuRef}>
@@ -117,6 +281,58 @@ export function UserMenu({ user }: UserMenuProps) {
                     >
                         {t('userMenu.settings')}
                     </button>
+
+                    {hasDiagnosticsAccess && (
+                        <>
+                            <button
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    event.preventDefault();
+                                    setIsOpen(false);
+                                    openDiagnosticsWindow(
+                                        t('userMenu.statusLink'),
+                                        '/status',
+                                        t('userMenu.statusLink'),
+                                        t('userMenu.diagnosticsLoading'),
+                                        t('userMenu.diagnosticsError'),
+                                    );
+                                }}
+                                class='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                                data-testid='user-menu-status-link'
+                                role='menuitem'
+                                type='button'
+                            >
+                                <span class='flex items-center justify-between'>
+                                    <span>{t('userMenu.statusLink')}</span>
+                                    <ArrowTopRightOnSquareIcon class='ml-2 h-4 w-4 text-gray-400' aria-hidden='true' />
+                                </span>
+                            </button>
+
+                            <button
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    event.preventDefault();
+                                    setIsOpen(false);
+                                    openDiagnosticsWindow(
+                                        t('userMenu.environmentLink'),
+                                        '/env',
+                                        t('userMenu.environmentLink'),
+                                        t('userMenu.diagnosticsLoading'),
+                                        t('userMenu.diagnosticsError'),
+                                    );
+                                }}
+                                class='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                                data-testid='user-menu-environment-link'
+                                role='menuitem'
+                                type='button'
+                            >
+                                <span class='flex items-center justify-between'>
+                                    <span>{t('userMenu.environmentLink')}</span>
+                                    <ArrowTopRightOnSquareIcon class='ml-2 h-4 w-4 text-gray-400' aria-hidden='true' />
+                                </span>
+                            </button>
+                        </>
+                    )}
 
                     <hr class='my-1 border-gray-100' />
 
