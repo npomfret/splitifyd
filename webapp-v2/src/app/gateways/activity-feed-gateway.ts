@@ -2,6 +2,7 @@ import { logError } from '@/utils/browser-logger';
 import type { ActivityFeedItem, UserId } from '@splitifyd/shared';
 import { documentId, Timestamp } from 'firebase/firestore';
 import type { FirebaseService } from '../firebase';
+import { getFirebaseService } from '../firebase';
 import { deriveActivityFeedAction, normalizeActivityFeedItem } from '../utils/activity-feed-utils';
 
 export interface ActivityFeedRealtimeUpdate {
@@ -121,3 +122,7 @@ export class FirebaseActivityFeedGateway implements ActivityFeedGateway {
         throw new Error(`Activity feed document missing ${field}`);
     }
 }
+
+const defaultActivityFeedGateway = new FirebaseActivityFeedGateway(getFirebaseService());
+
+export const getDefaultActivityFeedGateway = (): ActivityFeedGateway => defaultActivityFeedGateway;

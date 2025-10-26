@@ -27,8 +27,6 @@ vi.mock('@/app/stores/activity-feed-store', async () => {
             deregisterComponent: vi.fn(),
             refresh: vi.fn().mockResolvedValue(undefined),
             loadMore: vi.fn().mockResolvedValue(undefined),
-            registerListener: vi.fn().mockResolvedValue(undefined),
-            deregisterListener: vi.fn(),
             reset: vi.fn(),
         },
     };

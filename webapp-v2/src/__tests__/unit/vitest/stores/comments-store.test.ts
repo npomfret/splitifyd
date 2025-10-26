@@ -15,6 +15,16 @@ vi.mock('@/utils/browser-logger', () => ({
     logError: vi.fn(),
 }));
 
+vi.mock('@/app/stores/auth-store', () => ({
+    getAuthStore: vi.fn().mockResolvedValue({
+        user: {
+            uid: 'test-user-id',
+            email: 'test@example.com',
+            displayName: 'Test User',
+        },
+    }),
+}));
+
 const matchMediaMock = vi.fn().mockImplementation(() => ({
     matches: false,
     addListener: vi.fn(),
@@ -34,7 +44,7 @@ if (typeof window !== 'undefined') {
 }
 
 import { apiClient } from '@/app/apiClient';
-import type { ActivityFeedStore } from '@/app/stores/activity-feed-store';
+import type { ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { CommentsStoreTarget } from '@/stores/comments-store';
 import type { CommentDTO, GroupId, ListCommentsResponse } from '@splitifyd/shared';
@@ -71,19 +81,20 @@ const groupTarget = (groupId: GroupId | string): CommentsStoreTarget => ({
 });
 
 describe('CommentsStoreImpl', () => {
-    let registerListenerMock: Mock;
-    let deregisterListenerMock: Mock;
-    let activityFeedMock: ActivityFeedStore;
+    let registerConsumerMock: Mock;
+    let deregisterConsumerMock: Mock;
+    let activityFeedMock: ActivityFeedRealtimeService;
     let store: CommentsStoreImpl;
 
     beforeEach(() => {
-        registerListenerMock = vi.fn().mockResolvedValue(undefined);
-        deregisterListenerMock = vi.fn();
+        registerConsumerMock = vi.fn().mockResolvedValue(undefined);
+        deregisterConsumerMock = vi.fn();
 
         activityFeedMock = {
-            registerListener: registerListenerMock,
-            deregisterListener: deregisterListenerMock,
-        } as unknown as ActivityFeedStore;
+            registerConsumer: registerConsumerMock,
+            deregisterConsumer: deregisterConsumerMock,
+            reset: vi.fn(),
+        } as unknown as ActivityFeedRealtimeService;
 
         store = new CommentsStoreImpl(activityFeedMock);
         mockedApiClient.getGroupComments.mockReset();
@@ -114,8 +125,8 @@ describe('CommentsStoreImpl', () => {
 
         // Comments should be cleared immediately while new fetch is in-flight
         expect(store.comments).toEqual([]);
-        expect(registerListenerMock).toHaveBeenCalledTimes(1);
-        expect(deregisterListenerMock).not.toHaveBeenCalled();
+        expect(registerConsumerMock).toHaveBeenCalledTimes(1);
+        expect(deregisterConsumerMock).not.toHaveBeenCalled();
 
         await mockedApiClient.getGroupComments.mock.results[1]!.value;
 
@@ -136,7 +147,7 @@ describe('CommentsStoreImpl', () => {
         store.registerComponent(groupTarget('group-1'));
 
         expect(mockedApiClient.getGroupComments).toHaveBeenCalledTimes(1);
-        expect(registerListenerMock).toHaveBeenCalledTimes(1);
+        expect(registerConsumerMock).toHaveBeenCalledTimes(1);
         expect(store.comments).toEqual([first]);
     });
 });

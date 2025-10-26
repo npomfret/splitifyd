@@ -4,8 +4,8 @@ import { batch, computed, ReadonlySignal, signal } from '@preact/signals';
 import { ActivityFeedItem, CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@splitifyd/shared';
 import type { GroupId, UserId } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
-import type { ActivityFeedStore } from './activity-feed-store';
-import { activityFeedStore } from './activity-feed-store';
+import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
+import { activityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 
 interface EnhancedGroupsStore {
     groups: GroupDTO[];
@@ -72,7 +72,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #pageSizeSignal = signal<number>(8);
     readonly #showArchivedSignal = signal<boolean>(false);
 
-    private readonly activityFeed: ActivityFeedStore;
+    private readonly activityFeed: ActivityFeedRealtimeService;
     private readonly activityListenerId = 'groups-store';
     private activityListenerRegistered = false;
     private nextCursor: string | null = null;
@@ -88,7 +88,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     private refreshDebounceDelay: number;
     private pendingRefresh = false;
 
-    constructor(activityFeed: ActivityFeedStore = activityFeedStore, debounceDelay: number = 300) {
+    constructor(activityFeed: ActivityFeedRealtimeService = activityFeedRealtimeService, debounceDelay: number = 300) {
         this.activityFeed = activityFeed;
         this.refreshDebounceDelay = debounceDelay;
     }
@@ -448,11 +448,19 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
     private async setupSubscription(userId: UserId): Promise<void> {
         if (this.activityListenerRegistered) {
-            this.activityFeed.deregisterListener(this.activityListenerId);
+            this.activityFeed.deregisterConsumer(this.activityListenerId);
             this.activityListenerRegistered = false;
         }
 
-        await this.activityFeed.registerListener(this.activityListenerId, userId, this.handleActivityEvent);
+        await this.activityFeed.registerConsumer(this.activityListenerId, userId, {
+            onUpdate: this.handleRealtimeUpdate,
+            onError: (error) => {
+                logWarning('Failed to process activity feed update for groups store', {
+                    error: error instanceof Error ? error.message : String(error),
+                    userId,
+                });
+            },
+        });
         this.activityListenerRegistered = true;
 
         this.refreshGroups().catch((error) =>
@@ -462,6 +470,12 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             })
         );
     }
+
+    private handleRealtimeUpdate = (payload: ActivityFeedRealtimePayload): void => {
+        for (const item of payload.newItems) {
+            this.handleActivityEvent(item);
+        }
+    };
 
     private handleActivityEvent = (event: ActivityFeedItem): void => {
         const { groupId, eventType, details } = event;
@@ -534,7 +548,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
      */
     private disposeSubscription(): void {
         if (this.activityListenerRegistered) {
-            this.activityFeed.deregisterListener(this.activityListenerId);
+            this.activityFeed.deregisterConsumer(this.activityListenerId);
             this.activityListenerRegistered = false;
         }
     }
@@ -642,4 +656,4 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 // Export singleton instance with environment-aware debounce delay
 // Use 10ms in test environments for fast unit tests, 300ms in production
 const debounceDelay = import.meta.env.MODE === 'test' ? 10 : 300;
-export const enhancedGroupsStore = new EnhancedGroupsStoreImpl(activityFeedStore, debounceDelay);
+export const enhancedGroupsStore = new EnhancedGroupsStoreImpl(activityFeedRealtimeService, debounceDelay);

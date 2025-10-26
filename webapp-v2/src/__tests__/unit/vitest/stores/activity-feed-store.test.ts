@@ -1,4 +1,4 @@
-import type { ActivityFeedGateway, ActivityFeedRealtimeUpdate } from '@/app/gateways/activity-feed-gateway';
+import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { ActivityFeedStoreImpl } from '@/app/stores/activity-feed-store';
 import { ActivityFeedActions, ActivityFeedEventTypes, type ActivityFeedItem, type ActivityFeedResponse, toGroupId } from '@splitifyd/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -46,20 +46,35 @@ function buildItem(id: string, minutes: number, overrides?: Partial<ActivityFeed
     };
 }
 
-function createActivityFeedGatewayStub(): ActivityFeedGateway {
-    return {
-        connect: vi.fn().mockResolvedValue(undefined),
-        subscribeToFeed: vi.fn().mockReturnValue(() => {}),
-    };
+class ActivityFeedRealtimeServiceStub {
+    public registerConsumer = vi.fn(async (_id: string, _userId: string | null, consumer: ActivityFeedRealtimeConsumer) => {
+        this.consumer = consumer;
+    });
+
+    public deregisterConsumer = vi.fn((_id: string) => {
+        this.consumer = null;
+    });
+
+    public reset = vi.fn();
+
+    private consumer: ActivityFeedRealtimeConsumer | null = null;
+
+    emit(update: ActivityFeedRealtimePayload) {
+        this.consumer?.onUpdate(update);
+    }
+
+    emitError(error: Error) {
+        this.consumer?.onError?.(error);
+    }
 }
 
 describe('ActivityFeedStoreImpl', () => {
-    let gatewayStub: ActivityFeedGateway;
+    let realtimeStub: ActivityFeedRealtimeServiceStub;
     let store: ActivityFeedStoreImpl;
 
     beforeEach(() => {
-        gatewayStub = createActivityFeedGatewayStub();
-        store = new ActivityFeedStoreImpl(gatewayStub);
+        realtimeStub = new ActivityFeedRealtimeServiceStub();
+        store = new ActivityFeedStoreImpl(realtimeStub as unknown as ActivityFeedRealtimeService);
         mockedApiClient.getActivityFeed.mockReset();
     });
 
@@ -91,8 +106,9 @@ describe('ActivityFeedStoreImpl', () => {
 
             const newTopItem = buildItem('realtime-new', -1);
             const realtimeFirstPage = [newTopItem, ...initialItems.slice(0, 9)];
-            const realtimeUpdate: ActivityFeedRealtimeUpdate = {
+            const realtimeUpdate: ActivityFeedRealtimePayload = {
                 items: realtimeFirstPage,
+                newItems: [newTopItem],
                 hasMore: true,
                 nextCursor: realtimeFirstPage[realtimeFirstPage.length - 1]!.id,
             };
@@ -139,11 +155,14 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: undefined,
             });
 
-            (gatewayStub.subscribeToFeed as Mock).mockReturnValue(() => {});
-
             await store.registerComponent('comp-1', 'user-1');
 
-            expect(gatewayStub.connect).toHaveBeenCalledTimes(1);
+            expect(realtimeStub.registerConsumer).toHaveBeenCalledTimes(1);
+            expect(realtimeStub.registerConsumer).toHaveBeenCalledWith(
+                'activity-feed-store',
+                'user-1',
+                expect.objectContaining({ onUpdate: expect.any(Function) }),
+            );
             expect(mockedApiClient.getActivityFeed).toHaveBeenCalledTimes(1);
             expect(store.initialized).toBe(true);
             expect(store.items).toEqual(items);
@@ -157,12 +176,10 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: undefined,
             });
 
-            (gatewayStub.subscribeToFeed as Mock).mockReturnValue(() => {});
-
             await store.registerComponent('comp-1', 'user-1');
             await store.registerComponent('comp-2', 'user-1');
 
-            expect(gatewayStub.connect).toHaveBeenCalledTimes(1);
+            expect(realtimeStub.registerConsumer).toHaveBeenCalledTimes(1);
             expect(mockedApiClient.getActivityFeed).toHaveBeenCalledTimes(1);
         });
 
@@ -174,88 +191,13 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: undefined,
             });
 
-            const unsubscribeMock = vi.fn();
-            (gatewayStub.subscribeToFeed as Mock).mockReturnValue(unsubscribeMock);
-
             await store.registerComponent('comp-1', 'user-1');
             await store.registerComponent('comp-2', 'user-1');
 
             store.deregisterComponent('comp-1');
-            expect(unsubscribeMock).not.toHaveBeenCalled();
-
             store.deregisterComponent('comp-2');
-            expect(unsubscribeMock).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('Listener Notifications', () => {
-        it('notifies listeners when new items arrive via realtime', async () => {
-            const items = [buildItem('1', 1)];
-            mockedApiClient.getActivityFeed.mockResolvedValue({
-                items,
-                hasMore: false,
-                nextCursor: undefined,
-            });
-
-            const listenerCallback = vi.fn();
-            (gatewayStub.subscribeToFeed as Mock).mockReturnValue(() => {});
-            await store.registerListener('listener-1', 'user-1', listenerCallback);
-
-            const newItem = buildItem('new-item', -1);
-            const update: ActivityFeedRealtimeUpdate = {
-                items: [newItem, ...items],
-                hasMore: false,
-                nextCursor: null,
-            };
-
-            (store as any).handleRealtimeUpdate(update);
-
-            expect(listenerCallback).toHaveBeenCalledTimes(1);
-            expect(listenerCallback).toHaveBeenCalledWith(newItem);
-        });
-
-        it('does not notify listeners for items already in the feed', async () => {
-            const items = [buildItem('1', 1), buildItem('2', 2)];
-            mockedApiClient.getActivityFeed.mockResolvedValue({
-                items,
-                hasMore: false,
-                nextCursor: undefined,
-            });
-
-            const listenerCallback = vi.fn();
-            (gatewayStub.subscribeToFeed as Mock).mockReturnValue(() => {});
-            await store.registerListener('listener-1', 'user-1', listenerCallback);
-
-            const update: ActivityFeedRealtimeUpdate = {
-                items,
-                hasMore: false,
-                nextCursor: null,
-            };
-
-            (store as any).handleRealtimeUpdate(update);
-
-            expect(listenerCallback).not.toHaveBeenCalled();
-        });
-
-        it('tears down subscription when all listeners deregister', async () => {
-            const items = [buildItem('1', 1)];
-            mockedApiClient.getActivityFeed.mockResolvedValue({
-                items,
-                hasMore: false,
-                nextCursor: undefined,
-            });
-
-            const unsubscribeMock = vi.fn();
-            (gatewayStub.subscribeToFeed as Mock).mockReturnValue(unsubscribeMock);
-
-            await store.registerListener('listener-1', 'user-1', vi.fn());
-            await store.registerListener('listener-2', 'user-1', vi.fn());
-
-            store.deregisterListener('listener-1');
-            expect(unsubscribeMock).not.toHaveBeenCalled();
-
-            store.deregisterListener('listener-2');
-            expect(unsubscribeMock).toHaveBeenCalledTimes(1);
+            expect(realtimeStub.deregisterConsumer).toHaveBeenCalledTimes(1);
+            expect(realtimeStub.deregisterConsumer).toHaveBeenCalledWith('activity-feed-store');
         });
     });
 
@@ -368,8 +310,9 @@ describe('ActivityFeedStoreImpl', () => {
         });
 
         it('sets initialized when realtime update is empty', () => {
-            const update: ActivityFeedRealtimeUpdate = {
+            const update: ActivityFeedRealtimePayload = {
                 items: [],
+                newItems: [],
                 hasMore: false,
                 nextCursor: null,
             };
@@ -390,9 +333,6 @@ describe('ActivityFeedStoreImpl', () => {
                 nextCursor: '1',
             });
 
-            const unsubscribeMock = vi.fn();
-            (gatewayStub.subscribeToFeed as Mock).mockReturnValue(unsubscribeMock);
-
             await store.registerComponent('comp-1', 'user-1');
 
             store.reset();
@@ -402,7 +342,7 @@ describe('ActivityFeedStoreImpl', () => {
             expect(store.loading).toBe(false);
             expect(store.error).toBe(null);
             expect(store.hasMore).toBe(false);
-            expect(unsubscribeMock).toHaveBeenCalledTimes(1);
+            expect(realtimeStub.deregisterConsumer).toHaveBeenCalledWith('activity-feed-store');
         });
     });
 });

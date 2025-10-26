@@ -4,8 +4,8 @@ import { logError, logInfo, logWarning } from '@/utils/browser-logger';
 import { batch, signal } from '@preact/signals';
 import { ActivityFeedItem, ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers, UserId } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
-import type { ActivityFeedStore } from './activity-feed-store';
-import { activityFeedStore } from './activity-feed-store';
+import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
+import { activityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 
 const GROUP_EXPENSE_PAGE_SIZE = 8;
 const GROUP_SETTLEMENT_PAGE_SIZE = 8;
@@ -82,7 +82,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     // Reference counting infrastructure for multi-group support
     readonly #subscriberCounts = new Map<string, number>();
 
-    private readonly activityFeed: ActivityFeedStore;
+    private readonly activityFeed: ActivityFeedRealtimeService;
     private readonly activityListenerId = 'group-detail-store';
     private activityListenerRegistered = false;
     private currentUserId: string | null = null;
@@ -92,7 +92,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     private expenseCursor: string | null = null;
     private settlementCursor: string | null = null;
 
-    constructor(activityFeed: ActivityFeedStore = activityFeedStore) {
+    constructor(activityFeed: ActivityFeedRealtimeService = activityFeedRealtimeService) {
         this.activityFeed = activityFeed;
     }
 
@@ -366,7 +366,16 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                     groupId,
                     userId,
                 });
-                await this.activityFeed.registerListener(this.activityListenerId, userId, this.handleActivityEvent);
+                await this.activityFeed.registerConsumer(this.activityListenerId, userId, {
+                    onUpdate: this.handleRealtimeUpdate,
+                    onError: (error) => {
+                        logError('Failed to process activity feed update for group detail store', {
+                            error: error instanceof Error ? error.message : String(error),
+                            groupId,
+                            userId,
+                        });
+                    },
+                });
                 this.activityListenerRegistered = true;
             } catch (error) {
                 logError('Failed to register activity feed listener for group detail store', {
@@ -411,6 +420,12 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
         permissionsStore.deregisterComponent(groupId);
     }
+
+    private handleRealtimeUpdate = (payload: ActivityFeedRealtimePayload): void => {
+        for (const item of payload.newItems) {
+            this.handleActivityEvent(item);
+        }
+    };
 
     private handleActivityEvent = (event: ActivityFeedItem): void => {
         const { groupId, eventType, details } = event;
@@ -488,7 +503,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     private disposeSubscription(): void {
         if (this.activityListenerRegistered) {
-            this.activityFeed.deregisterListener(this.activityListenerId);
+            this.activityFeed.deregisterConsumer(this.activityListenerId);
             logInfo('GroupDetailStore.activityListener.deregister', {
                 currentUserId: this.currentUserId,
             });
@@ -625,4 +640,4 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 }
 
-export const enhancedGroupDetailStore = new EnhancedGroupDetailStoreImpl(activityFeedStore);
+export const enhancedGroupDetailStore = new EnhancedGroupDetailStoreImpl();

@@ -2,13 +2,13 @@ import { logError, logWarning } from '@/utils/browser-logger.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
 import type { ActivityFeedItem, ActivityFeedResponse, UserId } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
-import { getFirebaseService } from '../firebase';
-import { type ActivityFeedGateway, type ActivityFeedRealtimeUpdate, FirebaseActivityFeedGateway } from '../gateways/activity-feed-gateway';
+import {
+    activityFeedRealtimeService,
+    ACTIVITY_FEED_PAGE_SIZE,
+    type ActivityFeedRealtimePayload,
+    ActivityFeedRealtimeService,
+} from '../services/activity-feed-realtime-service';
 import { normalizeActivityFeedItem } from '../utils/activity-feed-utils';
-
-const ACTIVITY_FEED_PAGE_SIZE = 10;
-
-type ActivityFeedEventListener = (event: ActivityFeedItem) => void;
 
 export interface ActivityFeedStore {
     readonly items: ActivityFeedItem[];
@@ -27,16 +27,9 @@ export interface ActivityFeedStore {
 
     registerComponent(componentId: string, userId: UserId): Promise<void>;
     deregisterComponent(componentId: string): void;
-    registerListener(listenerId: string, userId: UserId | null, callback: ActivityFeedEventListener): Promise<void>;
-    deregisterListener(listenerId: string): void;
     loadMore(): Promise<void>;
     refresh(): Promise<void>;
     reset(): void;
-}
-
-interface ListenerEntry {
-    userId: UserId | null;
-    callback: ActivityFeedEventListener;
 }
 
 export class ActivityFeedStoreImpl implements ActivityFeedStore {
@@ -47,17 +40,17 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     readonly #hasMoreSignal = signal<boolean>(false);
     readonly #loadingMoreSignal = signal<boolean>(false);
 
-    private readonly gateway: ActivityFeedGateway;
+    private readonly realtimeService: ActivityFeedRealtimeService;
+    private readonly storeConsumerId = 'activity-feed-store';
+    private storeRegistered = false;
     private readonly componentSubscribers = new Map<string, string>();
-    private readonly listeners = new Map<string, ListenerEntry>();
     private currentUserId: string | null = null;
-    private realtimeUnsubscribe: (() => void) | null = null;
     private initializationPromise: Promise<void> | null = null;
     private nextCursor: string | null = null;
     private seenItemIds = new Set<string>();
 
-    constructor(activityFeedGateway: ActivityFeedGateway) {
-        this.gateway = activityFeedGateway;
+    constructor(realtimeService: ActivityFeedRealtimeService = activityFeedRealtimeService) {
+        this.realtimeService = realtimeService;
     }
 
     get items() {
@@ -118,23 +111,6 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         this.evaluateTeardown();
     }
 
-    async registerListener(listenerId: string, userId: UserId | null, callback: ActivityFeedEventListener): Promise<void> {
-        const effectiveUserId = userId ?? this.currentUserId;
-
-        this.listeners.set(listenerId, { userId: userId ?? null, callback });
-
-        if (!effectiveUserId) {
-            throw new Error('Cannot register activity feed listener without a known user id');
-        }
-
-        await this.ensureConnection(effectiveUserId);
-    }
-
-    deregisterListener(listenerId: string): void {
-        this.listeners.delete(listenerId);
-        this.evaluateTeardown();
-    }
-
     async loadMore(): Promise<void> {
         if (this.#loadingMoreSignal.value || !this.hasMore || !this.nextCursor) {
             return;
@@ -167,9 +143,11 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     }
 
     reset(): void {
-        this.teardownRealtime();
+        if (this.storeRegistered) {
+            this.realtimeService.deregisterConsumer(this.storeConsumerId);
+            this.storeRegistered = false;
+        }
         this.componentSubscribers.clear();
-        this.listeners.clear();
         this.currentUserId = null;
         this.initializationPromise = null;
         this.nextCursor = null;
@@ -201,6 +179,10 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
             this.initializationPromise.catch((error) => {
                 // Reset promise so future attempts can retry
                 this.initializationPromise = null;
+                if (this.storeRegistered) {
+                    this.realtimeService.deregisterConsumer(this.storeConsumerId);
+                    this.storeRegistered = false;
+                }
                 logError('ActivityFeedStore: initialization failed', error);
             });
         }
@@ -211,9 +193,12 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
     }
 
     private async initialize(userId: UserId): Promise<void> {
-        await this.gateway.connect();
         await this.fetchInitialFeed(true);
-        this.setupRealtimeListener(userId);
+        await this.realtimeService.registerConsumer(this.storeConsumerId, userId, {
+            onUpdate: (payload) => this.handleRealtimeUpdate(payload),
+            onError: (error) => this.handleRealtimeError(error),
+        });
+        this.storeRegistered = true;
     }
 
     private async fetchInitialFeed(markInitialized: boolean): Promise<void> {
@@ -269,25 +254,13 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         }
     }
 
-    private setupRealtimeListener(userId: UserId): void {
-        this.teardownRealtime();
-
-        this.realtimeUnsubscribe = this.gateway.subscribeToFeed(
-            userId,
-            ACTIVITY_FEED_PAGE_SIZE,
-            (update) => this.handleRealtimeUpdate(update),
-            (error) => this.handleRealtimeError(error),
-        );
-    }
-
-    private handleRealtimeUpdate(update: ActivityFeedRealtimeUpdate): void {
-        const { items, hasMore, nextCursor } = update;
-        const normalizedItems = items.map(normalizeActivityFeedItem);
+    private handleRealtimeUpdate(payload: ActivityFeedRealtimePayload): void {
+        const normalizedItems = payload.items;
 
         const previousItems = this.#itemsSignal.value;
         const previousIds = new Set(previousItems.map((item) => item.id));
         const trimmedIds = new Set(normalizedItems.map((item) => item.id));
-        const newItems = normalizedItems.filter((item) => !previousIds.has(item.id));
+        const newItems = payload.newItems.filter((item) => !previousIds.has(item.id));
 
         const mergedItems: ActivityFeedItem[] = [...normalizedItems];
 
@@ -304,12 +277,12 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
             this.#itemsSignal.value = mergedItems;
         }
 
-        if (hasMore !== this.#hasMoreSignal.value) {
-            this.#hasMoreSignal.value = hasMore;
+        if (payload.hasMore !== this.#hasMoreSignal.value) {
+            this.#hasMoreSignal.value = payload.hasMore;
         }
 
-        this.nextCursor = hasMore
-            ? nextCursor ?? (normalizedItems.length > 0 ? normalizedItems[normalizedItems.length - 1]!.id : null)
+        this.nextCursor = payload.hasMore
+            ? payload.nextCursor ?? (normalizedItems.length > 0 ? normalizedItems[normalizedItems.length - 1]!.id : null)
             : null;
 
         if (!this.#initializedSignal.value) {
@@ -320,7 +293,6 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
             for (const item of newItems) {
                 this.seenItemIds.add(item.id);
             }
-            this.notifyListeners(newItems);
         }
     }
 
@@ -329,36 +301,13 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         this.#errorSignal.value = error.message || 'Failed to subscribe to activity feed';
     }
 
-    private notifyListeners(newItems: ActivityFeedItem[]): void {
-        if (this.listeners.size === 0) {
-            return;
-        }
-
-        for (const listener of this.listeners.values()) {
-            for (const item of newItems) {
-                try {
-                    listener.callback(item);
-                } catch (error) {
-                    logError('ActivityFeedStore: listener callback failed', error);
-                }
-            }
-        }
-    }
-
     private evaluateTeardown(): void {
-        if (this.componentSubscribers.size === 0 && this.listeners.size === 0) {
-            this.teardownRealtime();
+        if (this.componentSubscribers.size === 0 && this.storeRegistered) {
+            this.realtimeService.deregisterConsumer(this.storeConsumerId);
+            this.storeRegistered = false;
             this.initializationPromise = null;
-        }
-    }
-
-    private teardownRealtime(): void {
-        if (this.realtimeUnsubscribe) {
-            this.realtimeUnsubscribe();
-            this.realtimeUnsubscribe = null;
         }
     }
 }
 
-const defaultActivityFeedGateway = new FirebaseActivityFeedGateway(getFirebaseService());
-export const activityFeedStore = new ActivityFeedStoreImpl(defaultActivityFeedGateway);
+export const activityFeedStore = new ActivityFeedStoreImpl();

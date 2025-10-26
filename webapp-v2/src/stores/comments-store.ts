@@ -1,8 +1,9 @@
 import { ReadonlySignal, signal } from '@preact/signals';
 import type { ActivityFeedItem, CommentDTO, CommentTargetType, ExpenseId, GroupId, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
-import type { ActivityFeedStore } from '../app/stores/activity-feed-store';
-import { activityFeedStore } from '../app/stores/activity-feed-store';
+import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
+import { activityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
+import { getAuthStore } from '../app/stores/auth-store';
 import { logError, logInfo } from '../utils/browser-logger';
 
 type GroupTarget = { type: 'group'; groupId: GroupId; };
@@ -81,12 +82,12 @@ export class CommentsStoreImpl implements CommentsStore {
     #apiHasMore: boolean = false;
 
     // Activity feed dependencies
-    #activityFeed: ActivityFeedStore;
+    #activityFeed: ActivityFeedRealtimeService;
     #listenerId = 'comments-store';
     #listenerRegistered = false;
     #listenerRegistrationPromise: Promise<void> | null = null;
 
-    constructor(activityFeed: ActivityFeedStore = activityFeedStore) {
+    constructor(activityFeed: ActivityFeedRealtimeService = activityFeedRealtimeService) {
         this.#activityFeed = activityFeed;
     }
 
@@ -191,24 +192,39 @@ export class CommentsStoreImpl implements CommentsStore {
         });
     }
 
-    #ensureActivityListener() {
+    async #ensureActivityListener() {
         if (this.#listenerRegistered || this.#listenerRegistrationPromise) {
             return;
         }
 
-        this.#listenerRegistrationPromise = this
-            .#activityFeed
-            .registerListener(this.#listenerId, null, this.#handleActivityEvent)
-            .then(() => {
+        this.#listenerRegistrationPromise = (async () => {
+            try {
+                const authStore = await getAuthStore();
+                const userId = authStore.user?.uid ?? null;
+
+                await this.#activityFeed.registerConsumer(this.#listenerId, userId, {
+                    onUpdate: this.#handleRealtimeUpdate,
+                    onError: (error) => {
+                        logError('CommentsStore realtime listener error', error);
+                    },
+                });
+
                 this.#listenerRegistered = true;
-            })
-            .catch((error) => {
+            } catch (error) {
                 logError('Failed to register activity feed listener for comments store', error);
-            })
-            .finally(() => {
+            } finally {
                 this.#listenerRegistrationPromise = null;
-            });
+            }
+        })();
+
+        await this.#listenerRegistrationPromise;
     }
+
+    #handleRealtimeUpdate = (payload: ActivityFeedRealtimePayload): void => {
+        for (const item of payload.newItems) {
+            this.#handleActivityEvent(item);
+        }
+    };
 
     #handleActivityEvent = (event: ActivityFeedItem): void => {
         if (event.eventType !== 'comment-added') {
@@ -238,7 +254,7 @@ export class CommentsStoreImpl implements CommentsStore {
 
     #disposeActivityListener(): void {
         if (this.#listenerRegistered) {
-            this.#activityFeed.deregisterListener(this.#listenerId);
+            this.#activityFeed.deregisterConsumer(this.#listenerId);
             this.#listenerRegistered = false;
         }
         this.#listenerRegistrationPromise = null;
@@ -426,4 +442,4 @@ export class CommentsStoreImpl implements CommentsStore {
 }
 
 // Export singleton instance
-export const commentsStore = new CommentsStoreImpl(activityFeedStore);
+export const commentsStore = new CommentsStoreImpl(activityFeedRealtimeService);
