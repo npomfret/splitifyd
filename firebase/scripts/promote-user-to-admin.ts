@@ -90,7 +90,7 @@ async function resolveUserId(identifier: string): Promise<string> {
 /**
  * Get current user data from Firestore
  */
-async function getUserData(userId: string) {
+async function getUserData(userId: UserId) {
     const userDoc = await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).get();
 
     if (!userDoc.exists) {
@@ -103,7 +103,7 @@ async function getUserData(userId: string) {
 /**
  * Promote user to admin role
  */
-async function promoteUserToAdmin(userId: string): Promise<void> {
+async function promoteUserToAdmin(userId: UserId): Promise<void> {
     console.log('');
     console.log('═══════════════════════════════════════════════════════');
     console.log('👑 PROMOTING USER TO SYSTEM ADMIN...');

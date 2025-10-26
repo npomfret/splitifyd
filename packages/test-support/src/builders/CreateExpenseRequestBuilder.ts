@@ -1,7 +1,7 @@
 import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, CreateExpenseRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
 import { generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class CreateExpenseRequestBuilder {
@@ -54,7 +54,7 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withPaidBy(userId: string): this {
+    withPaidBy(userId: UserId): this {
         this.expense.paidBy = userId;
         return this;
     }

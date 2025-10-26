@@ -1,4 +1,4 @@
-import type { ExpenseDTO } from '@splitifyd/shared';
+import type { ExpenseDTO, UserId } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
@@ -60,7 +60,7 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withDeletedBy(userId: string | null): this {
+    withDeletedBy(userId: UserId | null): this {
         this.expense.deletedBy = userId;
         return this;
     }
@@ -97,12 +97,12 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withPaidBy(userId: string): this {
+    withPaidBy(userId: UserId): this {
         this.expense.paidBy = userId;
         return this;
     }
 
-    withCreatedBy(userId: string): this {
+    withCreatedBy(userId: UserId): this {
         this.expense.createdBy = userId;
         return this;
     }

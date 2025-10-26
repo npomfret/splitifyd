@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals';
-import type { UserThemeColor } from '@splitifyd/shared';
+import type {UserId, UserThemeColor } from '@splitifyd/shared';
 import type { ClientUser } from '@splitifyd/shared';
 
 interface ThemeState {
@@ -9,7 +9,7 @@ interface ThemeState {
 }
 
 interface ThemeActions {
-    setUserTheme: (userId: string, themeColor: UserThemeColor) => void;
+    setUserTheme: (userId: UserId, themeColor: UserThemeColor) => void;
     setDarkMode: (isDark: boolean) => void;
     getCurrentUserTheme: (user: ClientUser | null) => UserThemeColor | null;
     applyThemeToDOM: (themeColor: UserThemeColor | null, isDark: boolean) => void;
@@ -67,7 +67,7 @@ class ThemeStoreImpl implements ThemeStore {
         }
     }
 
-    setUserTheme(userId: string, themeColor: UserThemeColor): void {
+    setUserTheme(userId: UserId, themeColor: UserThemeColor): void {
         const newMap = new Map(this.#userThemesSignal.value);
         newMap.set(userId, themeColor);
         this.#userThemesSignal.value = newMap;
@@ -138,7 +138,7 @@ class ThemeStoreImpl implements ThemeStore {
     }
 
     // Get theme colors for other users (for avatars, etc.)
-    getThemeForUser(userId: string): UserThemeColor | null {
+    getThemeForUser(userId: UserId): UserThemeColor | null {
         return this.#userThemesSignal.value.get(userId) || null;
     }
 

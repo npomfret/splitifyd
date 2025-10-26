@@ -1,5 +1,5 @@
 import { logError } from '@/utils/browser-logger';
-import type { ActivityFeedItem } from '@splitifyd/shared';
+import type { ActivityFeedItem, UserId } from '@splitifyd/shared';
 import { documentId, Timestamp } from 'firebase/firestore';
 import type { FirebaseService } from '../firebase';
 import { deriveActivityFeedAction, normalizeActivityFeedItem } from '../utils/activity-feed-utils';
@@ -13,7 +13,7 @@ export interface ActivityFeedRealtimeUpdate {
 export interface ActivityFeedGateway {
     connect(): Promise<void>;
     subscribeToFeed(
-        userId: string,
+        userId: UserId,
         limit: number,
         onUpdate: (update: ActivityFeedRealtimeUpdate) => void,
         onError: (error: Error) => void,
@@ -28,7 +28,7 @@ export class FirebaseActivityFeedGateway implements ActivityFeedGateway {
     }
 
     subscribeToFeed(
-        userId: string,
+        userId: UserId,
         limit: number,
         onUpdate: (update: ActivityFeedRealtimeUpdate) => void,
         onError: (error: Error) => void,

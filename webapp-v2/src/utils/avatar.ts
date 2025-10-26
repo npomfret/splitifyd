@@ -1,8 +1,8 @@
-import { DisplayName } from '@splitifyd/shared';
+import { DisplayName, UserId } from '@splitifyd/shared';
 
 export interface AvatarProps {
     displayName: DisplayName;
-    userId: string;
+    userId: UserId;
     size?: 'xs' | 'sm' | 'md' | 'lg';
 }
 

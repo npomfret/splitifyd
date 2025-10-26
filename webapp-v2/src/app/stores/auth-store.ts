@@ -2,7 +2,7 @@ import { USER_ID_KEY } from '@/constants.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { ClientUser, Email } from '@splitifyd/shared';
+import type { ClientUser, Email, UserId } from '@splitifyd/shared';
 import { AuthErrors } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { User as FirebaseUser } from 'firebase/auth';
@@ -236,7 +236,7 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    private async loadUserProfile(userId: string): Promise<void> {
+    private async loadUserProfile(userId: UserId): Promise<void> {
         try {
             const profile = await apiClient.getUserProfile();
             const currentUser = this.#userSignal.value;

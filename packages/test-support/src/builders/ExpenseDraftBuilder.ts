@@ -1,4 +1,4 @@
-import type { ExpenseDraft } from '@splitifyd/shared';
+import type { ExpenseDraft, UserId } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
@@ -52,7 +52,7 @@ export class ExpenseDraftBuilder {
         return this;
     }
 
-    withPaidBy(userId: string): this {
+    withPaidBy(userId: UserId): this {
         this.draft.paidBy = userId;
         return this;
     }
@@ -72,7 +72,7 @@ export class ExpenseDraftBuilder {
         return this;
     }
 
-    withSplits(splits: Array<{ userId: string; amount: Amount; percentage?: number; }>): this {
+    withSplits(splits: Array<{ userId: UserId; amount: Amount; percentage?: number; }>): this {
         this.draft.splits = [...splits];
         return this;
     }

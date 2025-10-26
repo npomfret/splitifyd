@@ -37,7 +37,7 @@ export class GroupMemberDocumentBuilder {
         };
     }
 
-    withUserId(userId: string): this {
+    withUserId(userId: UserId): this {
         this.memberDoc.uid = userId;
         return this;
     }

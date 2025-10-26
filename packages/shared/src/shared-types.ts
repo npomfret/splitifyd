@@ -59,6 +59,7 @@ export type Email = string;
 export type CurrencyISOCode = string;
 export type CommentId = string;
 export type PolicyId = string;
+export type ShareLinkToken = string;
 export type VersionHash = string;
 
 /**
@@ -474,8 +475,8 @@ export interface ClientUser {
 }
 
 // Base interface for document types with common timestamp fields
-export interface BaseDTO {
-    id: string;
+interface BaseDTO<T> {
+    id: T;
     createdAt: ISOString;
     updatedAt: ISOString;
 }
@@ -491,7 +492,7 @@ interface Policy {
     versions: Record<string, PolicyVersion>; // Map of versionHash -> PolicyVersion
 }
 
-export interface PolicyDTO extends Policy, BaseDTO {}
+export interface PolicyDTO extends Policy, BaseDTO<PolicyId> {}
 
 // ========================================================================
 // Balance Types
@@ -579,7 +580,7 @@ export interface GroupMember {
  * ShareLink business fields (without metadata)
  */
 interface ShareLink {
-    token: string; // The actual share token used in URLs
+    token: ShareLinkToken; // The actual share token used in URLs
     createdBy: UserId; // UID of the user who created this share link
     expiresAt: ISOString;
 }
@@ -591,7 +592,7 @@ interface ShareLink {
  * The canonical storage format is ShareLinkDocument in firebase/functions/src/schemas/sharelink.ts
  * which uses Firestore Timestamp objects.
  */
-export interface ShareLinkDTO extends ShareLink, BaseDTO {}
+export interface ShareLinkDTO extends ShareLink, BaseDTO<ShareLinkToken> {}
 
 /**
  * Group business fields (without metadata)
@@ -629,7 +630,7 @@ interface Group {
 /**
  * Group DTO = Business fields + Metadata
  */
-export interface GroupDTO extends Group, BaseDTO {
+export interface GroupDTO extends Group, BaseDTO<GroupId> {
     deletedAt: ISOString | null;
 }
 
@@ -733,7 +734,7 @@ interface Expense extends SoftDeletable {
  * The canonical storage format is ExpenseDocument in firebase/functions/src/schemas/expense.ts
  * which uses Firestore Timestamp objects.
  */
-export interface ExpenseDTO extends Expense, BaseDTO {
+export interface ExpenseDTO extends Expense, BaseDTO<ExpenseId> {
     isLocked?: boolean; // True if any participant has left the group
 }
 
@@ -778,7 +779,7 @@ interface Settlement extends SoftDeletable {
  * The canonical storage format is SettlementDocument in firebase/functions/src/schemas/settlement.ts
  * which uses Firestore Timestamp objects.
  */
-export interface SettlementDTO extends Settlement, BaseDTO {
+export interface SettlementDTO extends Settlement, BaseDTO<SettlementId> {
     isLocked?: boolean; // True if payer or payee has left the group
 }
 
@@ -979,7 +980,7 @@ interface Comment {
 /**
  * Comment DTO = Business fields + Metadata
  */
-export interface CommentDTO extends Comment, BaseDTO {}
+export interface CommentDTO extends Comment, BaseDTO<CommentId> {}
 
 export interface CreateCommentRequest {
     text: string;

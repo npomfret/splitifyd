@@ -1,4 +1,4 @@
-import { absAmount, type Amount, amountToSmallestUnit, GroupDTO } from '@splitifyd/shared';
+import { absAmount, type Amount, amountToSmallestUnit, GroupDTO, GroupId } from '@splitifyd/shared';
 import type { JSX } from 'preact';
 import { useTranslation } from 'react-i18next';
 import { Card, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
@@ -6,8 +6,8 @@ import { Card, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
 interface GroupCardProps {
     group: GroupDTO;
     onClick: () => void;
-    onInvite?: (groupId: string) => void;
-    onAddExpense?: (groupId: string) => void;
+    onInvite?: (groupId: GroupId) => void;
+    onAddExpense?: (groupId: GroupId) => void;
     isArchivedView?: boolean;
 }
 

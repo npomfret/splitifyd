@@ -1,7 +1,7 @@
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { logInfo } from '@/utils/browser-logger';
 import { signal } from '@preact/signals';
-import { CreateGroupRequest } from '@splitifyd/shared';
+import { CreateGroupRequest, GroupId } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, Tooltip } from '../ui';
@@ -9,7 +9,7 @@ import { Button, Form, Input, Tooltip } from '../ui';
 interface CreateGroupModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess?: (groupId: string) => void;
+    onSuccess?: (groupId: GroupId) => void;
 }
 
 export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModalProps) {

@@ -1,4 +1,4 @@
-import type { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
+import type { SimplifiedDebt, UserBalance, UserId } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
@@ -53,7 +53,7 @@ export class GroupBalanceDTOBuilder {
      * Add a user balance for a specific currency
      * Creates the currency structure if it doesn't exist
      */
-    withUserBalance(currency: CurrencyISOCode, userId: string, balance: Partial<UserBalance>): this {
+    withUserBalance(currency: CurrencyISOCode, userId: UserId, balance: Partial<UserBalance>): this {
         if (!this.balance.balancesByCurrency[currency]) {
             this.balance.balancesByCurrency[currency] = {};
         }

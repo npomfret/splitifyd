@@ -2,7 +2,7 @@ import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { permissionsStore } from '@/stores/permissions-store.ts';
 import { logError, logInfo } from '@/utils/browser-logger';
 import { batch, signal } from '@preact/signals';
-import { ActivityFeedItem, ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
+import { ActivityFeedItem, ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers, UserId } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 import type { ActivityFeedStore } from './activity-feed-store';
 import { activityFeedStore } from './activity-feed-store';
@@ -38,7 +38,7 @@ interface EnhancedGroupDetailStore {
 
     refreshAll(): Promise<void>;
 
-    registerComponent(groupId: GroupId, userId: string): Promise<void>;
+    registerComponent(groupId: GroupId, userId: UserId): Promise<void>;
 
     deregisterComponent(groupId: GroupId): void;
 
@@ -307,7 +307,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     // Reference-counted registration - single detector approach
-    async registerComponent(groupId: GroupId, userId: string): Promise<void> {
+    async registerComponent(groupId: GroupId, userId: UserId): Promise<void> {
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
         this.#subscriberCounts.set(groupId, currentCount + 1);
 

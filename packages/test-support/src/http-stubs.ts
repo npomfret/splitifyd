@@ -1,9 +1,11 @@
+import { UserId } from "@splitifyd/shared";
+
 /**
  * Creates a stub request for testing.
  * Returns any to allow compatibility with different AuthenticatedRequest implementations
  * (e.g., middleware's Express-based version vs shared minimal interface).
  */
-export function createStubRequest(userId: string, body: any = {}, params: any = {}): any {
+export function createStubRequest(userId: UserId, body: any = {}, params: any = {}): any {
     return {
         // these tests skip the auth middlewhere (firebase/functions/src/auth/middleware.ts) which adds a `user` object to the request
         user: {

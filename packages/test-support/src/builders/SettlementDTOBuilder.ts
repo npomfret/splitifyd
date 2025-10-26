@@ -103,7 +103,7 @@ export class SettlementDTOBuilder {
         return this;
     }
 
-    withCreatedBy(userId: string): SettlementDTOBuilder {
+    withCreatedBy(userId: UserId): SettlementDTOBuilder {
         this.createdBy = userId;
         return this;
     }

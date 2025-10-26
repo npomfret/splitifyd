@@ -2,6 +2,7 @@ import { apiClient } from '@/app/apiClient.ts';
 import { Tooltip } from '@/components/ui';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
+import { GroupId } from "@splitifyd/shared";
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 interface ShareGroupModalProps {
     isOpen: boolean;
     onClose: () => void;
-    groupId: string;
+    groupId: GroupId;
     groupName: string;
 }
 

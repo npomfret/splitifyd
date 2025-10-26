@@ -10,11 +10,13 @@ import {
     amountToSmallestUnit,
     CreateSettlementRequest,
     getCurrencyDecimals,
+    GroupId,
     GroupMember,
     normalizeAmount,
     SettlementWithMembers,
     SimplifiedDebt,
     smallestUnitToAmountString,
+    UserId,
     ZERO,
 } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
@@ -38,7 +40,7 @@ function getMaxAmountForCurrency(currency: string): string {
 interface SettlementFormProps {
     isOpen: boolean;
     onClose: () => void;
-    groupId: string;
+    groupId: GroupId;
     preselectedDebt?: SimplifiedDebt;
     onSuccess?: () => void;
     editMode?: boolean;
@@ -120,7 +122,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     }, [isOpen, editMode, settlementToEdit, preselectedDebt, currentUser]); // Include all dependencies
 
     // Helper functions - defined before useEffects that use them
-    const getMemberName = (userId: string): string => {
+    const getMemberName = (userId: UserId): string => {
         const member = members.find((m: GroupMember) => m.uid === userId);
         if (!member) {
             throw new Error(`SettlementForm: member ${userId} not found`);

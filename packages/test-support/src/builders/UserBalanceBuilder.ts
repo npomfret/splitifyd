@@ -1,4 +1,4 @@
-import type { Amount, UserBalance } from '@splitifyd/shared';
+import type { Amount, UserBalance, UserId } from '@splitifyd/shared';
 import { ZERO } from '@splitifyd/shared';
 
 /**
@@ -13,17 +13,17 @@ export class UserBalanceBuilder {
         netBalance: ZERO,
     };
 
-    withUserId(userId: string): UserBalanceBuilder {
+    withUserId(userId: UserId): UserBalanceBuilder {
         this.userBalance.uid = userId;
         return this;
     }
 
-    owesUser(userId: string, amount: Amount | number): UserBalanceBuilder {
+    owesUser(userId: UserId, amount: Amount | number): UserBalanceBuilder {
         this.userBalance.owes[userId] = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
 
-    owedByUser(userId: string, amount: Amount | number): UserBalanceBuilder {
+    owedByUser(userId: UserId, amount: Amount | number): UserBalanceBuilder {
         this.userBalance.owedBy[userId] = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }

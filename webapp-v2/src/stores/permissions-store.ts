@@ -1,5 +1,5 @@
 import { computed, signal } from '@preact/signals';
-import { GroupDTO, GroupMember, GroupPermissions, MemberRole } from '@splitifyd/shared';
+import { GroupDTO, GroupMember, GroupPermissions, MemberRole, UserId } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 
 /**
@@ -41,7 +41,7 @@ class PermissionCache {
  * Mirrors the backend permission logic for immediate UI feedback
  */
 class ClientPermissionEngine {
-    static checkPermission(group: GroupDTO, members: GroupMember[], userId: string, action: keyof GroupPermissions | 'viewGroup', options: { expense?: any; } = {}): boolean {
+    static checkPermission(group: GroupDTO, members: GroupMember[], userId: UserId, action: keyof GroupPermissions | 'viewGroup', options: { expense?: any; } = {}): boolean {
         const member = members.find((m) => m.uid === userId);
         if (!member) {
             return false;
@@ -66,7 +66,7 @@ class ClientPermissionEngine {
         return this.evaluatePermission(permission, member.memberRole, userId, options);
     }
 
-    private static evaluatePermission(permission: string, userRole: MemberRole, userId: string, options: { expense?: any; }): boolean {
+    private static evaluatePermission(permission: string, userRole: MemberRole, userId: UserId, options: { expense?: any; }): boolean {
         switch (permission) {
             case 'anyone':
                 return userRole !== 'viewer';
@@ -90,7 +90,7 @@ class ClientPermissionEngine {
         }
     }
 
-    static getUserPermissions(group: GroupDTO, members: GroupMember[], userId: string): Record<string, boolean> {
+    static getUserPermissions(group: GroupDTO, members: GroupMember[], userId: UserId): Record<string, boolean> {
         return {
             canEditAnyExpense: this.checkPermission(group, members, userId, 'expenseEditing'),
             canDeleteAnyExpense: this.checkPermission(group, members, userId, 'expenseDeletion'),
@@ -129,7 +129,7 @@ class PermissionsStore {
      * Register a component that needs permissions for this group.
      * Uses reference counting to manage state efficiently.
      */
-    registerComponent(groupId: GroupId, userId: string): void {
+    registerComponent(groupId: GroupId, userId: UserId): void {
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
         this.#subscriberCounts.set(groupId, currentCount + 1);
 
@@ -163,7 +163,7 @@ class PermissionsStore {
      * Initialize with user ID
      * @deprecated Use registerComponent instead for proper reference counting
      */
-    setCurrentUser(userId: string | null): void {
+    setCurrentUser(userId: UserId | null): void {
         this.currentUserId = userId;
         this.userIdSignal.value = userId;
         this.updatePermissions();

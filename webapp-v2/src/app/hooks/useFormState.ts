@@ -1,5 +1,5 @@
 import { useComputed } from '@preact/signals';
-import { Amount } from '@splitifyd/shared';
+import { Amount, UserId } from '@splitifyd/shared';
 import { expenseFormStore } from '../stores/expense-form-store';
 
 /**
@@ -68,7 +68,7 @@ export function useFormState() {
         handleAmountChange,
         handleParticipantToggle,
         validateOnBlur: (field: string) => expenseFormStore.validateOnBlur(field as any),
-        updateSplitAmount: (userId: string, amount: Amount) => expenseFormStore.updateSplitAmount(userId, amount),
-        updateSplitPercentage: (userId: string, percentage: number) => expenseFormStore.updateSplitPercentage(userId, percentage),
+        updateSplitAmount: (userId: UserId, amount: Amount) => expenseFormStore.updateSplitAmount(userId, amount),
+        updateSplitPercentage: (userId: UserId, percentage: number) => expenseFormStore.updateSplitPercentage(userId, percentage),
     };
 }

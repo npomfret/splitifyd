@@ -10,12 +10,13 @@ import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { DashboardGrid } from '../components/layout/DashboardGrid';
+import { GroupId } from "@splitifyd/shared";
 
 export function DashboardPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [shareModalState, setShareModalState] = useState<{ isOpen: boolean; groupId: string; groupName: string; }>({
+    const [shareModalState, setShareModalState] = useState<{ isOpen: boolean; groupId: GroupId; groupName: string; }>({
         isOpen: false,
         groupId: '',
         groupName: '',
@@ -63,7 +64,7 @@ export function DashboardPage() {
     const user = authStore.user;
 
     // Action handlers for group shortcuts
-    const handleInvite = (groupId: string) => {
+    const handleInvite = (groupId: GroupId) => {
         const group = enhancedGroupsStore.groups.find((g) => g.id === groupId);
         if (group) {
             setShareModalState({
@@ -74,7 +75,7 @@ export function DashboardPage() {
         }
     };
 
-    const handleAddExpense = (groupId: string) => {
+    const handleAddExpense = (groupId: GroupId) => {
         navigationService.goToAddExpense(groupId);
     };
 

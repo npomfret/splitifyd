@@ -3,12 +3,13 @@ import { ConfirmDialog } from '@/components/ui';
 import { useNavigation } from '@/hooks/useNavigation';
 import { logError } from '@/utils/browser-logger';
 import { useSignal } from '@preact/signals';
+import { GroupId } from "@splitifyd/shared";
 import { useTranslation } from 'react-i18next';
 
 interface LeaveGroupDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    groupId: string;
+    groupId: GroupId;
     hasOutstandingBalance: boolean;
 }
 

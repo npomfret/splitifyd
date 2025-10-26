@@ -2,7 +2,7 @@ import { logInfo, logWarning } from '@/utils/browser-logger.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
 import { batch, computed, ReadonlySignal, signal } from '@preact/signals';
 import { ActivityFeedItem, CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@splitifyd/shared';
-import type { GroupId } from '@splitifyd/shared';
+import type { GroupId, UserId } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import type { ActivityFeedStore } from './activity-feed-store';
 import { activityFeedStore } from './activity-feed-store';
@@ -49,10 +49,10 @@ interface EnhancedGroupsStore {
     clearError(): void;
     clearValidationError(): void;
     reset(): void;
-    registerComponent(componentId: string, userId: string): void;
+    registerComponent(componentId: string, userId: UserId): void;
     deregisterComponent(componentId: string): void;
     // Legacy API - kept for backward compatibility
-    subscribeToChanges(userId: string): void;
+    subscribeToChanges(userId: UserId): void;
     dispose(): void;
 }
 
@@ -404,7 +404,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
      * Register a component to use the groups store
      * Uses reference counting to manage subscriptions
      */
-    registerComponent(componentId: string, userId: string): void {
+    registerComponent(componentId: string, userId: UserId): void {
         // Add to subscriber tracking
         this.subscriberIds.add(componentId);
         this.subscriberCount++;
@@ -446,7 +446,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
      * Internal method to set up subscription
      */
 
-    private async setupSubscription(userId: string): Promise<void> {
+    private async setupSubscription(userId: UserId): Promise<void> {
         if (this.activityListenerRegistered) {
             this.activityFeed.deregisterListener(this.activityListenerId);
             this.activityListenerRegistered = false;
@@ -490,7 +490,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         );
     };
 
-    private handleGroupRemoval(groupId: string, groupNameHint?: string): void {
+    private handleGroupRemoval(groupId: GroupId, groupNameHint?: string): void {
         const currentGroups = this.#groupsSignal.value;
         const removedGroup = currentGroups.find((group) => group.id === groupId);
         const groupName = groupNameHint || removedGroup?.name || 'Unknown Group';
@@ -543,7 +543,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
      * Legacy API - subscribes without reference counting
      * @deprecated Use registerComponent/deregisterComponent instead
      */
-    subscribeToChanges(userId: string): void {
+    subscribeToChanges(userId: UserId): void {
         this.setupSubscription(userId).catch((error) =>
             logWarning('Legacy subscribeToChanges failed to register listener', {
                 error: error instanceof Error ? error.message : String(error),

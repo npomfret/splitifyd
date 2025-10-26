@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { LoadingSpinner, Pagination } from '../ui';
 import { EmptyGroupsState } from './EmptyGroupsState';
 import { GroupCard } from './GroupCard';
+import { GroupId } from "@splitifyd/shared";
 
 interface GroupsListProps {
     onCreateGroup: () => void;
-    onInvite?: (groupId: string) => void;
-    onAddExpense?: (groupId: string) => void;
+    onInvite?: (groupId: GroupId) => void;
+    onAddExpense?: (groupId: GroupId) => void;
 }
 
 export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsListProps) {

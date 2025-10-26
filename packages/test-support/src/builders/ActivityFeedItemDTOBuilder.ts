@@ -1,4 +1,4 @@
-import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem } from '@splitifyd/shared';
+import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem, GroupId, GroupName, UserId } from '@splitifyd/shared';
 
 const DEFAULT_TIMESTAMP = () => new Date().toISOString();
 
@@ -20,9 +20,9 @@ export class ActivityFeedItemDTOBuilder {
 
     static forEvent(
         id: string,
-        userId: string,
-        groupId: string,
-        groupName: string,
+        userId: UserId,
+        groupId: GroupId,
+        groupName: GroupName,
         eventType: ActivityFeedEventType,
         action: ActivityFeedAction,
         actorName: string,
@@ -47,8 +47,8 @@ export class ActivityFeedItemDTOBuilder {
 
     static expenseCreated(
         id: string,
-        userId: string,
-        groupId: string,
+        userId: UserId,
+        groupId: GroupId,
         groupName: string,
         actorName: string,
         expenseDescription: string,
@@ -61,8 +61,8 @@ export class ActivityFeedItemDTOBuilder {
 
     static expenseUpdated(
         id: string,
-        userId: string,
-        groupId: string,
+        userId: UserId,
+        groupId: GroupId,
         groupName: string,
         actorName: string,
         expenseDescription: string,
@@ -75,8 +75,8 @@ export class ActivityFeedItemDTOBuilder {
 
     static expenseDeleted(
         id: string,
-        userId: string,
-        groupId: string,
+        userId: UserId,
+        groupId: GroupId,
         groupName: string,
         actorName: string,
         expenseDescription: string,
@@ -89,8 +89,8 @@ export class ActivityFeedItemDTOBuilder {
 
     static memberJoined(
         id: string,
-        userId: string,
-        groupId: string,
+        userId: UserId,
+        groupId: GroupId,
         groupName: string,
         actorName: string,
         targetUserName: string,
@@ -104,8 +104,8 @@ export class ActivityFeedItemDTOBuilder {
 
     static memberLeft(
         id: string,
-        userId: string,
-        groupId: string,
+        userId: UserId,
+        groupId: GroupId,
         groupName: string,
         actorName: string,
         targetUserName: string,
@@ -119,8 +119,8 @@ export class ActivityFeedItemDTOBuilder {
 
     static commentAdded(
         id: string,
-        userId: string,
-        groupId: string,
+        userId: UserId,
+        groupId: GroupId,
         groupName: string,
         actorName: string,
         commentPreview: string,
@@ -142,8 +142,8 @@ export class ActivityFeedItemDTOBuilder {
 
     static settlementCreated(
         id: string,
-        userId: string,
-        groupId: string,
+        userId: UserId,
+        groupId: GroupId,
         groupName: string,
         actorName: string,
         settlementDescription: string,
@@ -156,8 +156,8 @@ export class ActivityFeedItemDTOBuilder {
 
     static settlementUpdated(
         id: string,
-        userId: string,
-        groupId: string,
+        userId: UserId,
+        groupId: GroupId,
         groupName: string,
         actorName: string,
         settlementDescription: string,
@@ -214,12 +214,12 @@ export class ActivityFeedItemDTOBuilder {
         return this;
     }
 
-    withUserId(userId: string): ActivityFeedItemDTOBuilder {
+    withUserId(userId: UserId): ActivityFeedItemDTOBuilder {
         this.item.userId = userId;
         return this;
     }
 
-    withGroupId(groupId: string): ActivityFeedItemDTOBuilder {
+    withGroupId(groupId: GroupId): ActivityFeedItemDTOBuilder {
         this.item.groupId = groupId;
         return this;
     }

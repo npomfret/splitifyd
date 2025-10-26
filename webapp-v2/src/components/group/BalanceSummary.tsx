@@ -6,7 +6,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { BanknotesIcon, ScaleIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
-import type { SimplifiedDebt } from '@splitifyd/shared';
+import type { SimplifiedDebt, UserId } from '@splitifyd/shared';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/Card';
@@ -27,7 +27,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
     const members = useComputed(() => enhancedGroupDetailStore.members);
 
     // Helper to get user display name
-    const getUserName = (userId: string) => {
+    const getUserName = (userId: UserId) => {
         const member = members.value.find((m) => m.uid === userId);
         if (!member) {
             throw new Error(`BalanceSummary: member ${userId} not found`);
@@ -35,7 +35,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
         return getGroupDisplayName(member);
     };
 
-    const renderMemberName = (userId: string) => {
+    const renderMemberName = (userId: UserId) => {
         const name = getUserName(userId);
         const isCurrentUser = currentUser?.uid === userId;
 

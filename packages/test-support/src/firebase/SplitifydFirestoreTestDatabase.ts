@@ -1,4 +1,4 @@
-import { PolicyId } from '@splitifyd/shared';
+import { PolicyId, UserId } from '@splitifyd/shared';
 import { StubFirestoreDatabase, Timestamp } from '@splitifyd/firebase-simulator';
 
 type GroupId = string;
@@ -10,7 +10,7 @@ type SettlementId = string;
  * with application-specific seed methods for testing.
  */
 export class SplitifydFirestoreTestDatabase extends StubFirestoreDatabase {
-    seedUser(userId: string, userData: Record<string, any> = {}) {
+    seedUser(userId: UserId, userData: Record<string, any> = {}) {
         const defaultUser = {
             id: userId,
             email: userData.email || `${userId}@test.com`,
@@ -61,7 +61,7 @@ export class SplitifydFirestoreTestDatabase extends StubFirestoreDatabase {
         this.seed(`groups/${groupId}`, firestoreData);
     }
 
-    seedGroupMember(groupId: GroupId, userId: string, memberData: Record<string, any>): void {
+    seedGroupMember(groupId: GroupId, userId: UserId, memberData: Record<string, any>): void {
         const firestoreData = this.convertDatesToTimestamps(memberData);
         this.seed(`group-memberships/${userId}_${groupId}`, firestoreData);
     }

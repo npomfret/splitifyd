@@ -15,7 +15,7 @@ import {
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 import type { Page, Response, Route } from '@playwright/test';
-import { ActivityFeedEventTypes, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse } from '@splitifyd/shared';
+import { ActivityFeedEventTypes, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserId } from '@splitifyd/shared';
 
 interface AuthError {
     code: string;
@@ -282,7 +282,7 @@ export class MockFirebase {
         await this.registerSuccessHandler(user, { delayMs });
     }
 
-    public async triggerNotificationUpdate(userId: string, data: any): Promise<void> {
+    public async triggerNotificationUpdate(userId: UserId, data: any): Promise<void> {
         const changeVersion = typeof data?.changeVersion === 'number' ? data.changeVersion : 0;
         const lastVersion = this.notificationVersions.get(userId) ?? 0;
 
@@ -305,7 +305,7 @@ export class MockFirebase {
         // Detect removed groups
         const removedGroups = Array.from(previousGroups).filter(groupId => !currentGroups.has(groupId));
 
-        const events: Array<{ groupId: string; type: 'transaction' | 'balance' | 'group' | 'comment' | 'member-left'; }> = [];
+        const events: Array<{ groupId: GroupId; type: 'transaction' | 'balance' | 'group' | 'comment' | 'member-left'; }> = [];
 
         // Generate member-left events for removed groups
         for (const groupId of removedGroups) {
@@ -384,7 +384,7 @@ export class MockFirebase {
         );
     }
 
-    private async emitActivityFeedSnapshot(userId: string, items: Array<{ id: string; data: any; }>): Promise<void> {
+    private async emitActivityFeedSnapshot(userId: UserId, items: Array<{ id: string; data: any; }>): Promise<void> {
         await this.page.evaluate(
             ({ userId, items }) => {
                 const path = `collection:activity-feed/${userId}/items`;

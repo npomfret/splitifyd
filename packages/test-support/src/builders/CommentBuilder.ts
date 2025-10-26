@@ -28,7 +28,7 @@ export class CommentBuilder {
         return this;
     }
 
-    withAuthorId(userId: string): this {
+    withAuthorId(userId: UserId): this {
         this.comment.authorId = userId;
         return this;
     }

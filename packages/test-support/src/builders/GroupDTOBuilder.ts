@@ -38,8 +38,8 @@ export class GroupDTOBuilder {
 
     // Server-specific fields (for Firestore)
     private firestoreFields: {
-        members?: Record<string, any>;
-        memberIds?: string[];
+        members?: Record<UserId, any>;
+        memberIds?: UserId[];
     } = {};
 
     // Client-specific fields (for API responses)
@@ -75,7 +75,7 @@ export class GroupDTOBuilder {
         return this;
     }
 
-    withCreatedBy(userId: string): this {
+    withCreatedBy(userId: UserId): this {
         this.businessFields.createdBy = userId;
 
         // Also add as default admin member for Firestore format
@@ -192,28 +192,9 @@ export class GroupDTOBuilder {
         return result;
     }
 
-    static groupForUser(userId: string): GroupDTOBuilder {
+    static groupForUser(userId: UserId): GroupDTOBuilder {
         return new GroupDTOBuilder()
             .withCreatedBy(userId)
             .withName(`${userId}'s Group`);
-    }
-
-    /**
-     * Creates multiple groups with sequential IDs for testing pagination
-     */
-    /**
-     * Creates multiple groups with sequential IDs for testing pagination
-     */
-    static buildMany(count: number, customizer?: (builder: GroupDTOBuilder, index: number) => void): GroupDTO[] {
-        return Array.from({ length: count }, (_, i) => {
-            const builder = new GroupDTOBuilder()
-                .withId(`group-${i + 1}`);
-
-            if (customizer) {
-                customizer(builder, i);
-            }
-
-            return builder.build();
-        });
     }
 }

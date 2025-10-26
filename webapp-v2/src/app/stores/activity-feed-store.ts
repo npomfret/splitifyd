@@ -1,6 +1,6 @@
 import { logError, logWarning } from '@/utils/browser-logger.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { ActivityFeedItem, ActivityFeedResponse } from '@splitifyd/shared';
+import type { ActivityFeedItem, ActivityFeedResponse, UserId } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 import { FirebaseActivityFeedGateway, type ActivityFeedGateway, type ActivityFeedRealtimeUpdate } from '../gateways/activity-feed-gateway';
 import { normalizeActivityFeedItem } from '../utils/activity-feed-utils';
@@ -25,9 +25,9 @@ export interface ActivityFeedStore {
     readonly hasMoreSignal: ReadonlySignal<boolean>;
     readonly loadingMoreSignal: ReadonlySignal<boolean>;
 
-    registerComponent(componentId: string, userId: string): Promise<void>;
+    registerComponent(componentId: string, userId: UserId): Promise<void>;
     deregisterComponent(componentId: string): void;
-    registerListener(listenerId: string, userId: string | null, callback: ActivityFeedEventListener): Promise<void>;
+    registerListener(listenerId: string, userId: UserId | null, callback: ActivityFeedEventListener): Promise<void>;
     deregisterListener(listenerId: string): void;
     loadMore(): Promise<void>;
     refresh(): Promise<void>;
@@ -35,7 +35,7 @@ export interface ActivityFeedStore {
 }
 
 interface ListenerEntry {
-    userId: string | null;
+    userId: UserId | null;
     callback: ActivityFeedEventListener;
 }
 
@@ -108,7 +108,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         return this.#loadingMoreSignal;
     }
 
-    async registerComponent(componentId: string, userId: string): Promise<void> {
+    async registerComponent(componentId: string, userId: UserId): Promise<void> {
         this.componentSubscribers.set(componentId, userId);
         await this.ensureConnection(userId);
     }
@@ -118,7 +118,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         this.evaluateTeardown();
     }
 
-    async registerListener(listenerId: string, userId: string | null, callback: ActivityFeedEventListener): Promise<void> {
+    async registerListener(listenerId: string, userId: UserId | null, callback: ActivityFeedEventListener): Promise<void> {
         const effectiveUserId = userId ?? this.currentUserId;
 
         this.listeners.set(listenerId, { userId: userId ?? null, callback });
@@ -182,7 +182,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         this.#loadingMoreSignal.value = false;
     }
 
-    private async ensureConnection(userId: string): Promise<void> {
+    private async ensureConnection(userId: UserId): Promise<void> {
         if (!userId) {
             throw new Error('Cannot initialize activity feed without a user id');
         }
@@ -210,7 +210,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         }
     }
 
-    private async initialize(userId: string): Promise<void> {
+    private async initialize(userId: UserId): Promise<void> {
         await this.gateway.connect();
         await this.fetchInitialFeed(true);
         this.setupRealtimeListener(userId);
@@ -269,7 +269,7 @@ export class ActivityFeedStoreImpl implements ActivityFeedStore {
         }
     }
 
-    private setupRealtimeListener(userId: string): void {
+    private setupRealtimeListener(userId: UserId): void {
         this.teardownRealtime();
 
         this.realtimeUnsubscribe = this.gateway.subscribeToFeed(
