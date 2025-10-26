@@ -1,4 +1,5 @@
-import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
+import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
+import { ActivityFeedItemDTOBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
@@ -8,7 +9,7 @@ import { mockActivityFeedApi, mockGroupsApi } from '../../utils/mock-firebase-se
 // All notification types (balance, transaction, group details) trigger the same
 // refresh mechanism. These tests verify the core notification system works correctly.
 test.describe('Dashboard Real-time Notifications', () => {
-    test('should refresh dashboard when notification received (covers balance/transaction/group changes)', async ({ authenticatedPage }) => {
+    test('should refresh dashboard when activity feed update arrives (covers balance/transaction/group changes)', async ({ authenticatedPage }) => {
         const { page, user, mockFirebase } = authenticatedPage;
         const dashboardPage = new DashboardPage(page);
 
@@ -34,15 +35,6 @@ test.describe('Dashboard Real-time Notifications', () => {
         await dashboardPage.waitForGroupsToLoad();
         await dashboardPage.verifyGroupDisplayed('Test Group');
 
-        // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            user.uid,
-            UserNotificationDocumentBuilder
-                .withBaseline('group-test', 1)
-                .withLastModified(new Date())
-                .build(),
-        );
-
         // Setup updated response
         await page.unroute((routeUrl) => {
             if (routeUrl.pathname !== '/api/groups') return false;
@@ -57,13 +49,21 @@ test.describe('Dashboard Real-time Notifications', () => {
         );
         await mockActivityFeedApi(page, []);
 
-        // Trigger change notification (could be balance, transaction, or group details - all trigger same refresh)
-        await mockFirebase.triggerNotificationUpdate(
+        // Trigger change notification via activity feed (could be balance, transaction, or group details - all trigger same refresh)
+        await mockFirebase.emitActivityFeedItems(
             user.uid,
-            UserNotificationDocumentBuilder
-                .withGroupDetailsChange('group-test', 2)
-                .withLastModified(new Date())
-                .build(),
+            [
+                ActivityFeedItemDTOBuilder.forEvent(
+                    'activity-group-test-update',
+                    user.uid,
+                    'group-test',
+                    'Updated Group',
+                    ActivityFeedEventTypes.GROUP_UPDATED,
+                    ActivityFeedActions.UPDATE,
+                    'System',
+                    {},
+                ).build(),
+            ],
         );
 
         // Verify dashboard refreshed
@@ -95,16 +95,6 @@ test.describe('Dashboard Real-time Notifications', () => {
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
 
-        // Send baseline
-        await mockFirebase.triggerNotificationUpdate(
-            user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-1', 1)
-                .withGroupDetails('group-2', 1)
-                .build(),
-        );
-
         // Send multiple rapid notifications
         await page.unroute((routeUrl) => {
             if (routeUrl.pathname !== '/api/groups') return false;
@@ -119,13 +109,30 @@ test.describe('Dashboard Real-time Notifications', () => {
                     .build(),
             );
             await mockActivityFeedApi(page, []);
-            await mockFirebase.triggerNotificationUpdate(
+            await mockFirebase.emitActivityFeedItems(
                 user.uid,
-                new UserNotificationDocumentBuilder()
-                    .withChangeVersion(i)
-                    .withGroupChangeCounts('group-1', { groupDetailsChangeCount: 1, transactionChangeCount: i - 1, balanceChangeCount: i - 1, commentChangeCount: 0 })
-                    .withGroupChangeCounts('group-2', { groupDetailsChangeCount: 1, transactionChangeCount: 0, balanceChangeCount: 0, commentChangeCount: 0 })
-                    .build(),
+                [
+                    ActivityFeedItemDTOBuilder.forEvent(
+                        `activity-${i}-group-1`,
+                        user.uid,
+                        'group-1',
+                        'Group One',
+                        ActivityFeedEventTypes.GROUP_UPDATED,
+                        ActivityFeedActions.UPDATE,
+                        'System',
+                        {},
+                    ).build(),
+                    ActivityFeedItemDTOBuilder.forEvent(
+                        `activity-${i}-group-2`,
+                        user.uid,
+                        'group-2',
+                        'Group Two',
+                        ActivityFeedEventTypes.GROUP_UPDATED,
+                        ActivityFeedActions.UPDATE,
+                        'System',
+                        {},
+                    ).build(),
+                ],
             );
         }
 
@@ -153,26 +160,50 @@ test.describe('Dashboard Real-time Notifications', () => {
         await page.goto('/dashboard');
         await dashboardPage.waitForGroupsToLoad();
 
-        // Send baseline
-        await mockFirebase.triggerNotificationUpdate(
+        // Send initial activity to ensure subscription is active
+        await mockFirebase.emitActivityFeedItems(
             user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('valid-group', 1)
-                .build(),
+            [
+                ActivityFeedItemDTOBuilder.forEvent(
+                    'activity-valid-baseline',
+                    user.uid,
+                    'valid-group',
+                    'Valid Group',
+                    ActivityFeedEventTypes.GROUP_UPDATED,
+                    ActivityFeedActions.UPDATE,
+                    'System',
+                    {},
+                ).build(),
+            ],
         );
 
-        // Send malformed notification (missing required fields)
-        await mockFirebase.triggerNotificationUpdate(user.uid, { changeVersion: 2, groups: { 'valid-group': { lastGroupDetailsChange: new Date() } } });
+        // Send malformed activity feed document (missing required fields)
+        await mockFirebase.emitRawActivityFeedDocuments(user.uid, [
+            {
+                data: {
+                    userId: user.uid,
+                    eventType: ActivityFeedEventTypes.GROUP_UPDATED,
+                    timestamp: new Date().toISOString(),
+                    details: {},
+                },
+            },
+        ]);
 
-        // Send notification with invalid group ID
-        await mockFirebase.triggerNotificationUpdate(
+        // Send activity update referencing invalid group ID
+        await mockFirebase.emitActivityFeedItems(
             user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(3)
-                .withGroupDetails('non-existent-id', 1)
-                .withGroupDetails('valid-group', 1)
-                .build(),
+            [
+                ActivityFeedItemDTOBuilder.forEvent(
+                    'activity-invalid-group',
+                    user.uid,
+                    'non-existent-id',
+                    'Ghost Group',
+                    ActivityFeedEventTypes.GROUP_UPDATED,
+                    ActivityFeedActions.UPDATE,
+                    'System',
+                    {},
+                ).build(),
+            ],
         );
 
         // Verify dashboard remains stable despite malformed/invalid notifications

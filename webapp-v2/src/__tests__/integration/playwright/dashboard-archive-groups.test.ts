@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import { MemberStatuses } from '@splitifyd/shared';
-import { DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder, UserNotificationDocumentBuilder } from '@splitifyd/test-support';
+import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
+import { ActivityFeedItemDTOBuilder, DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockArchiveGroupApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi, mockUnarchiveGroupApi } from '../../utils/mock-firebase-service';
 
@@ -91,12 +92,20 @@ test.describe('Dashboard group archiving', () => {
         await expect(page).toHaveURL(/\/groups\/group-archive-demo$/);
         await groupDetailPage.ensureUnarchiveActionVisible({ expectedGroupId: group.id });
 
-        await mockFirebase.triggerNotificationUpdate(
+        await mockFirebase.emitActivityFeedItems(
             user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails(group.id, 1)
-                .build(),
+            [
+                ActivityFeedItemDTOBuilder.forEvent(
+                    'activity-archive-demo-archived',
+                    user.uid,
+                    group.id,
+                    group.name,
+                    ActivityFeedEventTypes.GROUP_UPDATED,
+                    ActivityFeedActions.UPDATE,
+                    'System',
+                    {},
+                ).build(),
+            ],
         );
 
         // Return to dashboard and verify archived/active filters reflect new state
@@ -141,12 +150,20 @@ test.describe('Dashboard group archiving', () => {
         await archivedDetailPage.clickUnarchiveGroup({ expectedGroupId: group.id });
         await archivedDetailPage.ensureArchiveActionVisible({ expectedGroupId: group.id });
 
-        await mockFirebase.triggerNotificationUpdate(
+        await mockFirebase.emitActivityFeedItems(
             user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(3)
-                .withGroupDetails(group.id, 1)
-                .build(),
+            [
+                ActivityFeedItemDTOBuilder.forEvent(
+                    'activity-archive-demo-unarchived',
+                    user.uid,
+                    group.id,
+                    group.name,
+                    ActivityFeedEventTypes.GROUP_UPDATED,
+                    ActivityFeedActions.UPDATE,
+                    'System',
+                    {},
+                ).build(),
+            ],
         );
 
         await queueActive(activeResponse, { once: false });

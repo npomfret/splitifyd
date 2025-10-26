@@ -39,6 +39,5 @@ export { TestUserBuilder } from './TestUserBuilder';
 export { ThemeBuilder } from './ThemeBuilder';
 export { TransactionChangeDocumentBuilder } from './TransactionChangeDocumentBuilder';
 export { DebtScenarios, UserBalanceBuilder } from './UserBalanceBuilder';
-export { UserNotificationDocumentBuilder } from './UserNotificationDocumentBuilder';
 export { UserRegistrationBuilder } from './UserRegistrationBuilder';
 export { UserUpdateBuilder } from './UserUpdateBuilder';

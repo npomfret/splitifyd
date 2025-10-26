@@ -15,7 +15,7 @@ import {
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 import type { Page, Response, Route } from '@playwright/test';
-import { ActivityFeedEventTypes, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserId } from '@splitifyd/shared';
+import { ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserId, type ActivityFeedItem } from '@splitifyd/shared';
 
 interface AuthError {
     code: string;
@@ -98,9 +98,6 @@ export class MockFirebase {
     private page: Page;
     private state: MockFirebaseState;
     private initialized = false;
-    private notificationVersions = new Map<string, number>();
-    private notificationCounters = new Map<string, { transaction: number; balance: number; group: number; comment: number; }>();
-    private userGroupMemberships = new Map<string, Set<string>>(); // Track which groups each user is in
 
     constructor(page: Page) {
         this.page = page;
@@ -282,89 +279,44 @@ export class MockFirebase {
         await this.registerSuccessHandler(user, { delayMs });
     }
 
-    public async triggerNotificationUpdate(userId: UserId, data: any): Promise<void> {
-        const changeVersion = typeof data?.changeVersion === 'number' ? data.changeVersion : 0;
-        const lastVersion = this.notificationVersions.get(userId) ?? 0;
-
-        // Track group membership BEFORE early returns (so baseline is recorded)
-        const previousGroups = this.userGroupMemberships.get(userId) ?? new Set<string>();
-        const currentGroups = new Set<string>(Object.keys(data?.groups ?? {}));
-        this.userGroupMemberships.set(userId, currentGroups);
-
-        if (lastVersion === 0 && changeVersion <= 1) {
-            this.notificationVersions.set(userId, changeVersion);
+    public async emitActivityFeedItems(userId: UserId, items: ActivityFeedItem[]): Promise<void> {
+        if (!Array.isArray(items) || items.length === 0) {
             return;
         }
 
-        if (changeVersion <= lastVersion) {
-            return;
-        }
-
-        this.notificationVersions.set(userId, changeVersion);
-
-        // Detect removed groups
-        const removedGroups = Array.from(previousGroups).filter(groupId => !currentGroups.has(groupId));
-
-        const events: Array<{ groupId: GroupId | string; type: 'transaction' | 'balance' | 'group' | 'comment' | 'member-left'; }> = [];
-
-        // Generate member-left events for removed groups
-        for (const groupId of removedGroups) {
-            events.push({ groupId, type: 'member-left' });
-        }
-
-        if (Array.isArray(data?.recentChanges) && data.recentChanges.length > 0) {
-            for (const change of data.recentChanges) {
-                events.push({ groupId: change.groupId, type: change.type });
-            }
-        } else if (data?.groups) {
-            for (const [groupId, groupState] of Object.entries<any>(data.groups)) {
-                const state = groupState ?? {};
-                const key = `${userId}:${groupId}`;
-                const previous = this.notificationCounters.get(key) ?? { transaction: 0, balance: 0, group: 0, comment: 0 };
-
-                const counts: Array<[keyof typeof previous, number]> = [
-                    ['transaction', state.transactionChangeCount ?? 0],
-                    ['balance', state.balanceChangeCount ?? 0],
-                    ['group', state.groupDetailsChangeCount ?? 0],
-                    ['comment', state.commentChangeCount ?? 0],
-                ];
-
-                for (const [category, count] of counts) {
-                    if (count > previous[category]) {
-                        events.push({ groupId, type: category });
-                    }
-                }
-
-                this.notificationCounters.set(key, {
-                    transaction: state.transactionChangeCount ?? previous.transaction,
-                    balance: state.balanceChangeCount ?? previous.balance,
-                    group: state.groupDetailsChangeCount ?? previous.group,
-                    comment: state.commentChangeCount ?? previous.comment,
-                });
-            }
-        }
-
-        if (events.length === 0) {
-            return;
-        }
-
-        const timestamp = new Date().toISOString();
-        const items = events.map(({ groupId, type }) => ({
-            id: `mock-activity-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        const docs = items.map((item) => ({
+            id: item.id,
             data: {
-                userId,
-                groupId,
-                groupName: data.groups?.[groupId]?.name ?? 'Mock Group',
-                eventType: this.mapNotificationCategoryToActivityType(type),
-                actorId: 'system',
-                actorName: 'System',
-                timestamp,
-                createdAt: timestamp,
-                details: type === 'member-left' ? { targetUserId: userId } : {},
+                userId: item.userId ?? userId,
+                groupId: item.groupId,
+                groupName: item.groupName,
+                eventType: item.eventType,
+                action: item.action,
+                actorId: item.actorId,
+                actorName: item.actorName,
+                timestamp: item.timestamp,
+                createdAt: item.createdAt ?? item.timestamp,
+                details: item.details,
             },
         }));
 
-        await this.emitActivityFeedSnapshot(userId, items);
+        await this.emitActivityFeedSnapshot(userId, docs);
+    }
+
+    public async emitRawActivityFeedDocuments(
+        userId: UserId,
+        documents: Array<{ id?: string; data: Record<string, unknown>; }>,
+    ): Promise<void> {
+        if (!Array.isArray(documents) || documents.length === 0) {
+            return;
+        }
+
+        const docs = documents.map((doc) => ({
+            id: doc.id ?? `mock-activity-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            data: doc.data,
+        }));
+
+        await this.emitActivityFeedSnapshot(userId, docs);
     }
 
     public async emitFirestoreSnapshot(collection: string, documentId: string, data: any): Promise<void> {
@@ -384,7 +336,7 @@ export class MockFirebase {
         );
     }
 
-    private async emitActivityFeedSnapshot(userId: UserId, items: Array<{ id: string; data: any; }>): Promise<void> {
+    private async emitActivityFeedSnapshot(userId: UserId, items: Array<{ id: string; data: Record<string, unknown>; }>): Promise<void> {
         await this.page.evaluate(
             ({ userId, items }) => {
                 const path = `collection:activity-feed/${userId}/items`;
@@ -402,23 +354,6 @@ export class MockFirebase {
             },
             { userId, items },
         );
-    }
-
-    private mapNotificationCategoryToActivityType(type: 'transaction' | 'balance' | 'group' | 'comment' | 'member-left'): string {
-        switch (type) {
-            case 'transaction':
-                return ActivityFeedEventTypes.EXPENSE_UPDATED;
-            case 'balance':
-                return ActivityFeedEventTypes.SETTLEMENT_UPDATED;
-            case 'group':
-                return ActivityFeedEventTypes.GROUP_UPDATED;
-            case 'comment':
-                return ActivityFeedEventTypes.COMMENT_ADDED;
-            case 'member-left':
-                return ActivityFeedEventTypes.MEMBER_LEFT;
-            default:
-                return ActivityFeedEventTypes.EXPENSE_UPDATED;
-        }
     }
 
     private async registerSuccessHandler(user: ClientUser, options: { delayMs?: number; }): Promise<void> {
@@ -538,7 +473,7 @@ export async function mockApiFailure(
  */
 export async function mockGroupDetailApi(
     page: Page,
-    groupId: GroupId | string,
+    groupId: GroupId,
     group: any,
     options: { delayMs?: number; status?: number; once?: boolean; } = {},
 ): Promise<void> {
@@ -560,7 +495,7 @@ export async function mockGroupDetailApi(
  */
 export async function mockGroupCommentsApi(
     page: Page,
-    groupId: GroupId | string,
+    groupId: GroupId,
     comments: any[] = [],
     options: { delayMs?: number; } = {},
 ): Promise<void> {
@@ -640,7 +575,7 @@ export async function mockCreateGroupApi(
 
 export async function mockUpdateGroupDisplayNameApi(
     page: Page,
-    groupId: GroupId | string,
+    groupId: GroupId,
     response: any,
     options: { delayMs?: number; status?: number; once?: boolean; bodyMatcher?: SerializedBodyMatcher; } = {},
 ): Promise<void> {
@@ -665,7 +600,7 @@ export async function mockUpdateGroupDisplayNameApi(
  */
 export async function mockGenerateShareLinkApi(
     page: Page,
-    groupId: GroupId | string,
+    groupId: GroupId,
     shareToken: string = 'test-share-token-123',
     options: { delayMs?: number; expiresAt?: string; } = {},
 ): Promise<void> {
@@ -693,7 +628,7 @@ export async function mockGenerateShareLinkApi(
 
 export async function mockArchiveGroupApi(
     page: Page,
-    groupId: GroupId | string,
+    groupId: GroupId,
     response: MessageResponse = { message: 'Group archived successfully' },
     options: { delayMs?: number; status?: number; once?: boolean; } = {},
 ): Promise<void> {
@@ -711,7 +646,7 @@ export async function mockArchiveGroupApi(
 
 export async function mockUnarchiveGroupApi(
     page: Page,
-    groupId: GroupId | string,
+    groupId: GroupId,
     response: MessageResponse = { message: 'Group unarchived successfully' },
     options: { delayMs?: number; status?: number; once?: boolean; } = {},
 ): Promise<void> {
@@ -771,7 +706,7 @@ export async function mockJoinGroupApi(
 
 export async function mockPendingMembersApi(
     page: Page,
-    groupId: GroupId | string,
+    groupId: GroupId,
     members: any[] = [],
     options: { delayMs?: number; } = {},
 ): Promise<void> {
@@ -785,7 +720,7 @@ export async function mockPendingMembersApi(
 
 export async function mockUpdateGroupPermissionsApi(
     page: Page,
-    groupId: GroupId | string,
+    groupId: GroupId,
     response: any = { message: 'Permissions updated.' },
     options: { delayMs?: number; } = {},
 ): Promise<void> {

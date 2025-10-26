@@ -6,7 +6,7 @@ import {
     HeaderPage,
     ListGroupsResponseBuilder,
     ThemeBuilder,
-    UserNotificationDocumentBuilder,
+    ActivityFeedItemDTOBuilder,
 } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';
@@ -156,16 +156,6 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await dashboardPage.verifyGroupDisplayed('Will Be Removed');
         await dashboardPage.verifyGroupDisplayed('Will Stay');
 
-        // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-to-remove', 1)
-                .withGroupDetails('group-to-keep', 1)
-                .build(),
-        );
-
         // Setup new response without the removed group
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(
@@ -176,13 +166,20 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         );
         await mockActivityFeedApi(page, []);
 
-        // Simulate user being removed from group - group disappears from notification
-        await mockFirebase.triggerNotificationUpdate(
+        // Simulate user being removed from group via activity feed
+        await mockFirebase.emitActivityFeedItems(
             user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-to-keep', 1)
-                .build(),
+            [
+                ActivityFeedItemDTOBuilder.memberLeft(
+                    'activity-group-to-remove',
+                    user.uid,
+                    'group-to-remove',
+                    'Will Be Removed',
+                    'System',
+                    user.displayName ?? 'You',
+                    user.uid,
+                ).build(),
+            ],
         );
 
         // Verify removed group disappears
@@ -224,16 +221,6 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await dashboardPage.verifyGroupDisplayed('Will Be Deleted');
         await dashboardPage.verifyGroupDisplayed('Will Survive');
 
-        // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-to-delete', 1)
-                .withGroupDetails('group-to-survive', 1)
-                .build(),
-        );
-
         // Setup new response without the deleted group
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(
@@ -244,13 +231,20 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         );
         await mockActivityFeedApi(page, []);
 
-        // Simulate group deletion - group disappears from notification
-        await mockFirebase.triggerNotificationUpdate(
+        // Simulate group deletion via activity feed
+        await mockFirebase.emitActivityFeedItems(
             user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-to-survive', 1)
-                .build(),
+            [
+                ActivityFeedItemDTOBuilder.memberLeft(
+                    'activity-group-to-delete',
+                    user.uid,
+                    'group-to-delete',
+                    'Will Be Deleted',
+                    'System',
+                    user.displayName ?? 'You',
+                    user.uid,
+                ).build(),
+            ],
         );
 
         // Verify deleted group disappears
@@ -285,15 +279,6 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await dashboardPage.verifyGroupsDisplayed(1);
         await dashboardPage.verifyGroupDisplayed('Only Group');
 
-        // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('only-group', 1)
-                .build(),
-        );
-
         // Setup empty groups response
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(
@@ -304,12 +289,20 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         );
         await mockActivityFeedApi(page, []);
 
-        // Simulate removal from last group
-        await mockFirebase.triggerNotificationUpdate(
+        // Simulate removal from last group via activity feed
+        await mockFirebase.emitActivityFeedItems(
             user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .build(),
+            [
+                ActivityFeedItemDTOBuilder.memberLeft(
+                    'activity-only-group',
+                    user.uid,
+                    'only-group',
+                    'Only Group',
+                    'System',
+                    user.displayName ?? 'You',
+                    user.uid,
+                ).build(),
+            ],
         );
 
         // Verify empty state appears
@@ -355,17 +348,6 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         // Verify all groups are displayed
         await dashboardPage.verifyGroupsDisplayed(3);
 
-        // Send baseline notification
-        await mockFirebase.triggerNotificationUpdate(
-            user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(1)
-                .withGroupDetails('group-1', 1)
-                .withGroupDetails('group-2', 1)
-                .withGroupDetails('group-3', 1)
-                .build(),
-        );
-
         // Setup response with only one group remaining
         await page.unroute('/api/groups?includeMetadata=true');
         await mockGroupsApi(
@@ -376,13 +358,29 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         );
         await mockActivityFeedApi(page, []);
 
-        // Simulate two groups being removed simultaneously
-        await mockFirebase.triggerNotificationUpdate(
+        // Simulate two groups being removed simultaneously via activity feed
+        await mockFirebase.emitActivityFeedItems(
             user.uid,
-            new UserNotificationDocumentBuilder()
-                .withChangeVersion(2)
-                .withGroupDetails('group-3', 1)
-                .build(),
+            [
+                ActivityFeedItemDTOBuilder.memberLeft(
+                    'activity-group-1-left',
+                    user.uid,
+                    'group-1',
+                    'Group One',
+                    'System',
+                    user.displayName ?? 'You',
+                    user.uid,
+                ).build(),
+                ActivityFeedItemDTOBuilder.memberLeft(
+                    'activity-group-2-left',
+                    user.uid,
+                    'group-2',
+                    'Group Two',
+                    'System',
+                    user.displayName ?? 'You',
+                    user.uid,
+                ).build(),
+            ],
         );
 
         // Verify removed groups disappear
