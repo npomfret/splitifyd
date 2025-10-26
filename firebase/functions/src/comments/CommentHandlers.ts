@@ -1,4 +1,4 @@
-import { CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
+import { CommentDTO, CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
@@ -9,7 +9,7 @@ import { logger } from '../logger';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { CommentService } from '../services/CommentService';
 import { ApiError } from '../utils/errors';
-import { validateCreateComment } from './validation';
+import { validateCreateExpenseComment, validateCreateGroupComment } from './validation';
 
 export class CommentHandlers {
     constructor(private readonly commentService: CommentService) {
@@ -35,14 +35,24 @@ export class CommentHandlers {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_ID', 'Target ID is required');
             }
 
-            // Validate request body
-            const validatedRequest = validateCreateComment({
-                ...req.body,
-                targetType,
-                targetId,
-            });
-
-            const comment = await this.commentService.createComment(targetType, targetId, validatedRequest, userId);
+            let comment: CommentDTO;
+            if (targetType === CommentTargetTypes.GROUP) {
+                const validatedRequest = validateCreateGroupComment(targetId, req.body);
+                comment = await this.commentService.createComment(
+                    CommentTargetTypes.GROUP,
+                    validatedRequest.targetId,
+                    validatedRequest,
+                    userId,
+                );
+            } else {
+                const validatedRequest = validateCreateExpenseComment(targetId, req.body);
+                comment = await this.commentService.createComment(
+                    CommentTargetTypes.EXPENSE,
+                    validatedRequest.targetId,
+                    validatedRequest,
+                    userId,
+                );
+            }
             res.status(HTTP_STATUS.OK).json(comment);
         } catch (error) {
             logger.error('Failed to create comment', error, {

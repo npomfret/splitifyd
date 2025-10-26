@@ -1,5 +1,5 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
-import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CommentTargetType, CommentTargetTypes, CreateCommentRequest, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
+import type { ExpenseId, GroupId, GroupName, UserId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -107,7 +107,24 @@ export class CommentService {
     /**
      * Create a new comment
      */
-    async createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: UserId): Promise<CommentDTO> {
+    async createComment(
+        targetType: typeof CommentTargetTypes.GROUP,
+        targetId: GroupId,
+        commentData: CreateGroupCommentRequest,
+        userId: UserId,
+    ): Promise<CommentDTO>;
+    async createComment(
+        targetType: typeof CommentTargetTypes.EXPENSE,
+        targetId: ExpenseId,
+        commentData: CreateExpenseCommentRequest,
+        userId: UserId,
+    ): Promise<CommentDTO>;
+    async createComment(
+        targetType: CommentTargetType,
+        targetId: string,
+        commentData: CreateCommentRequest,
+        userId: UserId,
+    ): Promise<CommentDTO> {
         return measure.measureDb('CommentService.createComment', async () => this._createComment(targetType, targetId, commentData, userId));
     }
 

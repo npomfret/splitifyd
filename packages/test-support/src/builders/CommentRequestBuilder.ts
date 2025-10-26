@@ -1,5 +1,6 @@
 import { CommentTargetTypes } from '@splitifyd/shared';
-import type { CreateCommentRequest } from '@splitifyd/shared';
+import type { CreateCommentRequest, CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
+import type { ExpenseId } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 
 /**
@@ -36,20 +37,14 @@ export class CommentRequestBuilder {
         return this;
     }
 
-    withExpenseTarget(targetId: string, groupId: GroupId): this {
+    withExpenseTarget(targetId: ExpenseId): this {
         this.request.targetType = CommentTargetTypes.EXPENSE;
         this.request.targetId = targetId;
-        this.request.groupId = groupId;
         return this;
     }
 
     withTargetId(targetId: string | null | undefined): this {
         (this.request as any).targetId = targetId;
-        return this;
-    }
-
-    withGroupId(groupId: GroupId | undefined): this {
-        this.request.groupId = groupId;
         return this;
     }
 
@@ -73,12 +68,12 @@ export class CommentRequestBuilder {
         return this;
     }
 
-    withMissingField(field: keyof CreateCommentRequest): this {
+    withMissingField(field: keyof (CreateGroupCommentRequest | CreateExpenseCommentRequest)): this {
         delete this.request[field];
         return this;
     }
 
-    withEmptyField(field: keyof CreateCommentRequest): this {
+    withEmptyField(field: keyof (CreateGroupCommentRequest | CreateExpenseCommentRequest)): this {
         (this.request as any)[field] = '';
         return this;
     }

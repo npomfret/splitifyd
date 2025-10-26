@@ -93,9 +93,9 @@ _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS f
 | Method | Path | Summary | Security | Request | Response |
 | --- | --- | --- | --- | --- | --- |
 | GET | `/groups/:groupId/comments` | Paginated group comments. | `authenticate` | Query `cursor`, `limit` (default 8). | `200` `{ comments, hasMore, nextCursor }`. |
-| POST | `/groups/:groupId/comments` | Create comment on group. | `authenticate` | Body validated by `validateCreateComment` (includes `content`). | `200` `CommentDTO`. |
+| POST | `/groups/:groupId/comments` | Create comment on group. | `authenticate` | Body `{ text }` validated by `validateCreateGroupComment`. | `200` `CommentDTO`. |
 | GET | `/expenses/:expenseId/comments` | Paginated expense comments. | `authenticate` | Query `cursor`, `limit` (default 8). | `200` `{ comments, hasMore, nextCursor }`. |
-| POST | `/expenses/:expenseId/comments` | Create comment on expense. | `authenticate` | Body validated by `validateCreateComment`. | `200` `CommentDTO`. |
+| POST | `/expenses/:expenseId/comments` | Create comment on expense. | `authenticate` | Body `{ text }` validated by `validateCreateExpenseComment`. | `200` `CommentDTO`. |
 
 ## Admin Policy Management (Admin-only)
 | Method | Path | Summary | Security | Request | Response |

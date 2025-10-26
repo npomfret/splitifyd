@@ -1,25 +1,21 @@
-import { CommentTargetType, CommentTargetTypes, CreateCommentRequest } from '@splitifyd/shared';
+import { CommentTargetType, CommentTargetTypes, CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
 import * as Joi from 'joi';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
 
-// Joi validation schema for creating comments
-const createCommentSchema = Joi.object({
-    text: Joi.string().trim().min(1).max(500).required().messages({
-        'string.empty': 'Comment text is required',
-        'string.min': 'Comment cannot be empty',
-        'string.max': 'Comment cannot exceed 500 characters',
-    }),
-    targetType: Joi.string().valid(CommentTargetTypes.GROUP, CommentTargetTypes.EXPENSE).required().messages({
-        'any.only': 'Target type must be either "group" or "expense"',
-        'any.required': 'Target type is required',
-    }),
-    targetId: Joi.string().trim().required().messages({
-        'string.empty': 'Target ID is required',
-        'any.required': 'Target ID is required',
-    }),
-    groupId: Joi.string().trim().optional(),
+const commentTextSchema = Joi.string().trim().min(1).max(500).required().messages({
+    'string.empty': 'Comment text is required',
+    'string.min': 'Comment cannot be empty',
+    'string.max': 'Comment cannot exceed 500 characters',
+});
+
+const createGroupCommentSchema = Joi.object({
+    text: commentTextSchema,
+});
+
+const createExpenseCommentSchema = Joi.object({
+    text: commentTextSchema,
 });
 
 // Joi validation schema for listing comments query parameters
@@ -28,45 +24,66 @@ const listCommentsQuerySchema = Joi.object({
     limit: Joi.number().integer().min(1).max(100).default(8).optional(),
 });
 
-/**
- * Sanitizes comment data to prevent XSS attacks
- */
-const sanitizeCommentData = (data: CreateCommentRequest): CreateCommentRequest => {
-    return {
-        ...data,
-        text: sanitizeString(data.text),
-        targetId: sanitizeString(data.targetId),
-        groupId: data.groupId ? sanitizeString(data.groupId) : undefined,
-    };
-};
+const sanitizeCommentText = (text: string): string => sanitizeString(text);
+
+const sanitizeTargetId = (targetId: string): string => sanitizeString(targetId);
 
 /**
- * Validates the request body for creating a comment
+ * Validates the request body for creating a group comment
  */
-export const validateCreateComment = (body: any): CreateCommentRequest => {
-    const { error, value } = createCommentSchema.validate(body, { abortEarly: false });
+export const validateCreateGroupComment = (targetId: string, body: any): CreateGroupCommentRequest => {
+    const { error, value } = createGroupCommentSchema.validate(body, { abortEarly: false });
 
     if (error) {
         const firstError = error.details[0];
         let errorCode = 'INVALID_INPUT';
         let errorMessage = firstError.message;
 
-        // Provide specific error codes for different validation failures
         if (firstError.path.includes('text')) {
             errorCode = 'INVALID_COMMENT_TEXT';
-        } else if (firstError.path.includes('targetType')) {
-            errorCode = 'INVALID_TARGET_TYPE';
-        } else if (firstError.path.includes('targetId')) {
-            errorCode = 'INVALID_TARGET_ID';
-        } else if (firstError.path.includes('groupId')) {
-            errorCode = 'MISSING_GROUP_ID';
         }
 
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
     }
 
-    // Sanitize the validated data
-    return sanitizeCommentData(value as CreateCommentRequest);
+    const validatedTargetId = sanitizeTargetId(validateTargetId(targetId, CommentTargetTypes.GROUP));
+
+    const { text } = value as { text: string };
+
+    return {
+        targetType: CommentTargetTypes.GROUP,
+        targetId: validatedTargetId,
+        text: sanitizeCommentText(text),
+    };
+};
+
+/**
+ * Validates the request body for creating an expense comment
+ */
+export const validateCreateExpenseComment = (targetId: string, body: any): CreateExpenseCommentRequest => {
+    const { error, value } = createExpenseCommentSchema.validate(body, { abortEarly: false });
+
+    if (error) {
+        const firstError = error.details[0];
+        let errorCode = 'INVALID_INPUT';
+        let errorMessage = firstError.message;
+
+        if (firstError.path.includes('text')) {
+            errorCode = 'INVALID_COMMENT_TEXT';
+        }
+
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
+    }
+
+    const validatedTargetId = sanitizeTargetId(validateTargetId(targetId, CommentTargetTypes.EXPENSE));
+
+    const { text } = value as { text: string };
+
+    return {
+        targetType: CommentTargetTypes.EXPENSE,
+        targetId: validatedTargetId,
+        text: sanitizeCommentText(text),
+    };
 };
 
 /**

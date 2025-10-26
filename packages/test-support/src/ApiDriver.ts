@@ -1,3 +1,4 @@
+import type {Email, VersionHash} from '@splitifyd/shared';
 import {
     ApiSerializer,
     AuthenticatedFirebaseUser,
@@ -6,8 +7,10 @@ import {
     type CreateGroupRequest,
     type CreateSettlementRequest,
     CurrentPolicyResponse,
+    DisplayName,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
+    ExpenseId,
     GroupBalances,
     GroupDTO,
     GroupFullDetailsDTO,
@@ -20,9 +23,11 @@ import {
     type MemberRole,
     type MemberStatus,
     MessageResponse,
+    PolicyId,
     PooledTestUser,
     RegisterResponse,
     type SettlementDTO,
+    SettlementId,
     SettlementWithMembers,
     ShareLinkResponse,
     type UpdateGroupRequest,
@@ -32,15 +37,9 @@ import {
     UserRegistration,
     UserToken,
 } from '@splitifyd/shared';
-
-import { ExpenseId } from '@splitifyd/shared';
-import { SettlementId } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import type { Email, VersionHash } from '@splitifyd/shared';
-import { PolicyId } from '@splitifyd/shared';
-import { UserRegistrationBuilder } from './builders';
-import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
-import { Matcher, PollOptions, pollUntil } from './Polling';
+import {UserRegistrationBuilder} from './builders';
+import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
+import {Matcher, PollOptions, pollUntil} from './Polling';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -401,8 +400,7 @@ export class ApiDriver {
         if (limit) params.append('limit', limit.toString());
         const query = params.toString() ? `?${params.toString()}` : '';
 
-        const response = await this.apiRequest(`/groups/${groupId}/comments${query}`, 'GET', null, token);
-        return response;
+        return await this.apiRequest(`/groups/${groupId}/comments${query}`, 'GET', null, token);
     }
 
     async listExpenseComments(expenseId: ExpenseId, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {

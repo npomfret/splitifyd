@@ -982,12 +982,21 @@ interface Comment {
  */
 export interface CommentDTO extends Comment, BaseDTO<CommentId> {}
 
-export interface CreateCommentRequest {
+interface BaseCreateCommentRequest {
     text: string;
-    targetType: CommentTargetType;
-    targetId: string;
-    groupId?: string; // Required for expense comments
 }
+
+export interface CreateGroupCommentRequest extends BaseCreateCommentRequest {
+    targetType: typeof CommentTargetTypes.GROUP;
+    targetId: GroupId;
+}
+
+export interface CreateExpenseCommentRequest extends BaseCreateCommentRequest {
+    targetType: typeof CommentTargetTypes.EXPENSE;
+    targetId: ExpenseId;
+}
+
+export type CreateCommentRequest = CreateGroupCommentRequest | CreateExpenseCommentRequest;
 
 export interface ListMembersResponse { // todo: there should be no pagination - all members are returned
     members: GroupMember[];
