@@ -98,8 +98,8 @@ describe('CommentService - Consolidated Tests', () => {
         });
     });
 
-    describe('listComments', () => {
-        it('should return empty list when no comments exist for GROUP target', async () => {
+    describe('listGroupComments', () => {
+        it('should return empty list when no comments exist', async () => {
             const testGroup = new GroupDTOBuilder()
                 .withId('test-group')
                 .build();
@@ -114,13 +114,20 @@ describe('CommentService - Consolidated Tests', () => {
                 .build();
             db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
 
-            const result = await commentService.listComments(CommentTargetTypes.GROUP, testGroup.id, 'user-id', { limit: 10 });
+            const result = await commentService.listGroupComments(testGroup.id, 'user-id', { limit: 10 });
 
             expect(result.comments).toHaveLength(0);
             expect(result.hasMore).toBe(false);
         });
 
-        it('should return paginated comments for EXPENSE target', async () => {
+        it('should throw error when user lacks access', async () => {
+            // No group or membership data set up, so access should be denied
+            await expect(commentService.listGroupComments(toGroupId('nonexistent-group'), 'user-id')).rejects.toThrow();
+        });
+    });
+
+    describe('listExpenseComments', () => {
+        it('should return paginated comments', async () => {
             const testGroup = new GroupDTOBuilder()
                 .withId('test-group')
                 .build();
@@ -140,15 +147,15 @@ describe('CommentService - Consolidated Tests', () => {
                 .build();
             db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
 
-            const result = await commentService.listComments(CommentTargetTypes.EXPENSE, 'test-expense', 'user-id', { limit: 5, cursor: 'start-cursor' });
+            const result = await commentService.listExpenseComments('test-expense', 'user-id', { limit: 5, cursor: 'start-cursor' });
 
             expect(result.comments).toHaveLength(0);
             expect(result.hasMore).toBe(false);
         });
 
         it('should throw error when user lacks access', async () => {
-            // No group or membership data set up, so access should be denied
-            await expect(commentService.listComments(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow();
+            // No expense or membership data set up, so access should be denied
+            await expect(commentService.listExpenseComments('nonexistent-expense', 'user-id')).rejects.toThrow();
         });
     });
 
@@ -264,7 +271,7 @@ describe('CommentService - Consolidated Tests', () => {
             db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
 
             // Test should now pass since all dependencies are set up
-            const result = await commentService.listComments(CommentTargetTypes.EXPENSE, 'test-expense', 'user-id');
+            const result = await commentService.listExpenseComments('test-expense', 'user-id');
 
             // Verify it worked
             expect(result.comments).toEqual([]);
@@ -410,10 +417,9 @@ describe('CommentService - Consolidated Tests', () => {
             });
         });
 
-        describe('listComments - Unit Scenarios', () => {
+        describe('listGroupComments - Unit Scenarios', () => {
             it('should list comments successfully when group exists', async () => {
                 const userId = 'user-123';
-                const targetType: CommentTargetType = 'group';
                 const targetId = toGroupId('group-456');
 
                 // Set up group and membership for real validation
@@ -428,7 +434,7 @@ describe('CommentService - Consolidated Tests', () => {
                     .build();
                 db.seedGroupMember(targetId, userId, membershipDoc);
 
-                const result = await commentService.listComments(targetType, targetId, userId);
+                const result = await commentService.listGroupComments(targetId, userId);
 
                 expect(result).toMatchObject({
                     comments: expect.any(Array),
@@ -438,7 +444,6 @@ describe('CommentService - Consolidated Tests', () => {
 
             it('should return empty list when no comments exist', async () => {
                 const userId = 'user-123';
-                const targetType: CommentTargetType = 'group';
                 const targetId = toGroupId('group-456');
 
                 // Set up group and membership for real validation
@@ -453,7 +458,7 @@ describe('CommentService - Consolidated Tests', () => {
                     .build();
                 db.seedGroupMember(targetId, userId, membershipDoc);
 
-                const result = await commentService.listComments(targetType, targetId, userId);
+                const result = await commentService.listGroupComments(targetId, userId);
 
                 expect(result.comments).toEqual([]);
                 expect(result.hasMore).toBe(false);
@@ -461,11 +466,10 @@ describe('CommentService - Consolidated Tests', () => {
 
             it('should throw error when access verification fails', async () => {
                 const userId = 'user-123';
-                const targetType: CommentTargetType = 'group';
                 const targetId = toGroupId('group-456');
 
                 // Access should be denied since no proper setup
-                await expect(commentService.listComments(targetType, targetId, userId)).rejects.toThrow(ApiError);
+                await expect(commentService.listGroupComments(targetId, userId)).rejects.toThrow(ApiError);
             });
         });
 
@@ -580,7 +584,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const createdComment = await commentService.createGroupComment(targetId, commentData, userId);
 
                 // List comments to verify consistency
-                const listedComments = await commentService.listComments(CommentTargetTypes.GROUP, targetId, userId);
+                const listedComments = await commentService.listGroupComments(targetId, userId);
 
                 expect(listedComments.comments).toHaveLength(1);
                 expect(listedComments.comments[0]).toMatchObject({

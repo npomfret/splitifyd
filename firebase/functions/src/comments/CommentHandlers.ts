@@ -68,8 +68,7 @@ export class CommentHandlers {
 
             const { cursor, limit = 8 } = req.query;
 
-            const comments = await this.commentService.listComments(
-                CommentTargetTypes.GROUP,
+            const comments = await this.commentService.listGroupComments(
                 groupId,
                 userId,
                 {
@@ -103,8 +102,7 @@ export class CommentHandlers {
 
             const { cursor, limit = 8 } = req.query;
 
-            const comments = await this.commentService.listComments(
-                CommentTargetTypes.EXPENSE,
+            const comments = await this.commentService.listExpenseComments(
                 expenseId,
                 userId,
                 {

@@ -5,7 +5,6 @@ import {
     Amount,
     amountToSmallestUnit,
     BalanceDisplaySchema,
-    CommentTargetTypes,
     CreateGroupRequest,
     CurrencyBalanceDisplaySchema,
     GroupBalances,
@@ -703,7 +702,7 @@ export class GroupService {
                 includeDeleted: options.includeDeletedSettlements ?? false,
             }),
             // Get comments for the group using comment service
-            this.commentService.listComments(CommentTargetTypes.GROUP, groupId, userId, {
+            this.commentService.listGroupComments(groupId, userId, {
                 limit: commentLimit,
                 cursor: options.commentCursor,
             }),

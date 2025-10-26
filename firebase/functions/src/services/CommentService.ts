@@ -57,32 +57,15 @@ export class CommentService {
         }
     }
 
-    /**
-     * List comments for a target with pagination
-     */
-    async listComments(
-        targetType: CommentTargetType,
-        targetId: GroupId | ExpenseId,
-        userId: UserId,
-        options: {
-            limit?: number;
-            cursor?: string;
-            groupId?: string;
-        } = {},
-    ): Promise<ListCommentsResponse> {
-        return measure.measureDb('CommentService.listComments', async () => this._listComments(targetType, targetId, userId, options));
+    async listGroupComments(groupId: GroupId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
+        return measure.measureDb('CommentService.listGroupComments', async () => this.listTargetComments(CommentTargetTypes.GROUP, groupId, userId, options));
     }
 
-    private async _listComments(
-        targetType: CommentTargetType,
-        targetId: GroupId | ExpenseId,
-        userId: UserId,
-        options: {
-            limit?: number;
-            cursor?: string;
-            groupId?: string;
-        } = {},
-    ): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
+        return measure.measureDb('CommentService.listExpenseComments', async () => this.listTargetComments(CommentTargetTypes.EXPENSE, expenseId, userId, options));
+    }
+
+    private async listTargetComments(targetType: CommentTargetType, targetId: GroupId | ExpenseId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
         const timer = new PerformanceTimer();
 
         const defaultLimit = Math.min(options.limit ?? 8, 100);
