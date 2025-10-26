@@ -53,7 +53,18 @@ export function UserMenu({ user }: UserMenuProps) {
             return;
         }
 
-        const rawWindow = window.open('about:blank', '_blank');
+        let targetUrl: string | null = null;
+        let displayPath = '/diagnostics';
+
+        try {
+            const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+            displayPath = `/diagnostics${normalizedEndpoint}`;
+            targetUrl = new URL(displayPath, window.location.origin).toString();
+        } catch (error) {
+            console.warn('Unable to compute diagnostics URL, falling back to about:blank', error);
+        }
+
+        const rawWindow = window.open(targetUrl ?? 'about:blank', '_blank');
 
         if (!rawWindow) {
             console.error('Failed to open diagnostics window');
@@ -87,6 +98,15 @@ export function UserMenu({ user }: UserMenuProps) {
             <head>
                 <meta charset="utf-8" />
                 <title>${title}</title>
+                <script>
+                    (function() {
+                        try {
+                            window.history.replaceState(null, '', '${displayPath.replace(/'/g, "\\'")}');
+                        } catch (error) {
+                            console.warn('Unable to update diagnostics URL', error);
+                        }
+                    })();
+                </script>
                 <style>
                     :root {
                         color-scheme: light dark;
@@ -981,12 +1001,6 @@ export function UserMenu({ user }: UserMenuProps) {
         `);
 
         diagnosticsDocument.close();
-
-        try {
-            diagnosticsWindow.history.replaceState(null, '', '/diagnostics/env');
-        } catch (error) {
-            console.warn('Unable to update diagnostics URL', error);
-        }
 
         const contentElement = diagnosticsDocument.getElementById('diagnostic-content');
 
