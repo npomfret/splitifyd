@@ -56,6 +56,46 @@ execSync('npm run build:prod', { cwd: srcFunctions, stdio: 'inherit', env: produ
 console.log('Staging functions directory...');
 fs.cpSync(srcFunctions, stageFunctions, { recursive: true });
 
+const filesToPrune = [
+    '.DS_Store',
+    '.gcloudignore',
+    '.env.devinstance.example',
+    '.env.prod.example',
+    'integration-test-results.json',
+    'package-lock.json',
+    'splitifyd-service-account-key.json',
+    'test-integration-results.json',
+    'tsconfig.build.json',
+    'tsconfig.deploy.json',
+    'tsconfig.json',
+    'vitest.config.ts',
+    'vitest.global-setup.ts',
+    'vitest.setup.ts',
+    '.gitignore',
+];
+
+const directoriesToPrune = [
+    'scripts',
+    'src',
+];
+
+function prune(targetPath) {
+    if (!fs.existsSync(targetPath)) {
+        return;
+    }
+
+    const stat = fs.statSync(targetPath);
+    if (stat.isDirectory()) {
+        fs.rmSync(targetPath, { recursive: true, force: true });
+    } else {
+        fs.rmSync(targetPath, { force: true });
+    }
+    console.log(`Pruned staged artifact: ${path.relative(stageFunctions, targetPath)}`);
+}
+
+filesToPrune.forEach((fileName) => prune(path.join(stageFunctions, fileName)));
+directoriesToPrune.forEach((directoryName) => prune(path.join(stageFunctions, directoryName)));
+
 // Remove any existing node_modules to avoid copying dev-only artifacts
 const stagedNodeModules = path.join(stageFunctions, 'node_modules');
 if (fs.existsSync(stagedNodeModules)) {
@@ -99,6 +139,7 @@ tarballs.forEach(({ filename, sourcePath }) => {
 // Install production dependencies in staged directory
 console.log('Installing production dependencies in staged functions...');
 execSync('npm install --omit=dev --package-lock=false', { cwd: stageFunctions, stdio: 'inherit' });
+prune(path.join(stageFunctions, 'package-lock.json'));
 
 // Sanity check: ensure production env mode is present
 const stagedEnvPath = path.join(stageFunctions, '.env');
@@ -118,6 +159,11 @@ if (!fs.existsSync(stagedEnvPath)) {
         throw new Error('Staged .env does not contain INSTANCE_MODE=prod. Aborting deployment staging.');
     }
     console.log('✅ Verified staged .env contains INSTANCE_MODE=prod');
+
+    // Remove any environment instance templates to avoid leaking non-production configs
+    fs.readdirSync(stageFunctions)
+        .filter((fileName) => fileName.startsWith('.env.instance'))
+        .forEach((fileName) => prune(path.join(stageFunctions, fileName)));
 }
 
 console.log(`\n✓ Deployment stage ready at ${stageFunctions}`);
