@@ -5,13 +5,14 @@ import { getRecentAmounts } from '../stores/expense-form-store';
 import { useFormInitialization } from './useFormInitialization';
 import { useFormState } from './useFormState';
 import { useFormSubmission } from './useFormSubmission';
+import {ExpenseId} from "@splitifyd/shared";
 
 interface UseExpenseFormOptions {
     groupId: GroupId;
-    expenseId?: string | null;
+    expenseId?: ExpenseId | null;
     isEditMode: boolean;
     isCopyMode?: boolean;
-    sourceExpenseId?: string | null;
+    sourceExpenseId?: ExpenseId | null;
 }
 
 export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sourceExpenseId }: UseExpenseFormOptions) {

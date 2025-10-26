@@ -5,6 +5,7 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlemen
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { FirestoreCollections } from '../../constants';
 import { AppDriver } from './AppDriver';
+import {toExpenseId} from "@splitifyd/shared";
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
@@ -2548,7 +2549,7 @@ describe('app tests', () => {
             });
 
             it('should reject malformed expense ID', async () => {
-                await expect(appDriver.getExpenseFullDetails(user1, 'not-a-valid-id'))
+                await expect(appDriver.getExpenseFullDetails(user1, toExpenseId('not-a-valid-id')))
                     .rejects
                     .toMatchObject({ code: 'NOT_FOUND' });
             });

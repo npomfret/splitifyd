@@ -308,7 +308,7 @@ export class AppDriver {
         return (res as any).getJson() as ExpenseDTO;
     }
 
-    async updateExpense(userId: UserId, expenseId: ExpenseId, updateBody: any): Promise<ExpenseDTO> {
+    async updateExpense(userId: UserId, expenseId: ExpenseId | string, updateBody: any): Promise<ExpenseDTO> {
         const req = createStubRequest(userId, updateBody);
         req.query = { id: expenseId };
         const res = createStubResponse();
@@ -318,7 +318,7 @@ export class AppDriver {
         return (res as any).getJson() as ExpenseDTO;
     }
 
-    async deleteExpense(userId: UserId, expenseId: ExpenseId) {
+    async deleteExpense(userId: UserId, expenseId: ExpenseId | string) {
         const req = createStubRequest(userId, {});
         req.query = { id: expenseId };
         const res = createStubResponse();
@@ -328,12 +328,12 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async getExpense(userId: UserId, expenseId: ExpenseId): Promise<ExpenseDTO> {
+    async getExpense(userId: UserId, expenseId: ExpenseId | string): Promise<ExpenseDTO> {
         const fullDetails = await this.getExpenseFullDetails(userId, expenseId);
         return fullDetails.expense;
     }
 
-    async getExpenseFullDetails(userId: UserId, expenseId: ExpenseId) {
+    async getExpenseFullDetails(userId: UserId, expenseId: ExpenseId | string) {
         const req = createStubRequest(userId, {}, { id: expenseId });
         const res = createStubResponse();
 
@@ -437,7 +437,7 @@ export class AppDriver {
         return (res as any).getJson() as ListCommentsResponse;
     }
 
-    async createExpenseComment(userId: UserId, expenseId: ExpenseId, text: string): Promise<CommentDTO> {
+    async createExpenseComment(userId: UserId, expenseId: ExpenseId | string, text: string): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { expenseId });
         req.path = `/expenses/${expenseId}/comments`;
         const res = createStubResponse();
@@ -449,7 +449,7 @@ export class AppDriver {
 
     async listExpenseComments(
         userId: UserId,
-        expenseId: ExpenseId,
+        expenseId: ExpenseId | string,
         options: { cursor?: string; limit?: number; } = {},
     ): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { expenseId });

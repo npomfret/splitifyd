@@ -2,11 +2,12 @@ import * as Joi from 'joi';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 
-import { CreateExpenseRequest, parseMonetaryAmount, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
+import {CreateExpenseRequest, ExpenseId, parseMonetaryAmount, SplitTypes, UpdateExpenseRequest} from '@splitifyd/shared';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 import { sanitizeString } from '../utils/security';
+import {toExpenseId} from "@splitifyd/shared";
 
 /**
  * Create a dual-format amount schema that accepts both numbers and strings.
@@ -135,11 +136,11 @@ const sanitizeExpenseData = <T extends CreateExpenseRequest | UpdateExpenseReque
     return sanitized;
 };
 
-export const validateExpenseId = (id: any): string => {
+export const validateExpenseId = (id: any): ExpenseId => {
     if (typeof id !== 'string' || !id.trim()) {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_ID', 'Invalid expense ID');
     }
-    return id.trim();
+    return toExpenseId(id.trim());
 };
 
 export const validateCreateExpense = (body: any): CreateExpenseRequest => {

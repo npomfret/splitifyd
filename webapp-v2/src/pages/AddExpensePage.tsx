@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { useExpenseForm } from '../app/hooks/useExpenseForm';
 import { BaseLayout } from '../components/layout/BaseLayout';
+import {toExpenseId} from "@splitifyd/shared";
 
 interface AddExpensePageProps {
     groupId?: GroupId;
@@ -49,10 +50,10 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     // Use the custom hook for all form logic
     const formState = useExpenseForm({
         groupId,
-        expenseId,
+        expenseId: expenseId ? toExpenseId(expenseId) : null,
         isEditMode,
         isCopyMode,
-        sourceExpenseId,
+        sourceExpenseId: sourceExpenseId ? toExpenseId(sourceExpenseId) : null,
     });
 
     // Show loading while initializing

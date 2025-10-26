@@ -11,6 +11,7 @@ import { CommentService } from '../services/CommentService';
 import { ComponentBuilder } from '../services/ComponentBuilder';
 import { ApiError } from '../utils/errors';
 import { validateCreateExpenseComment, validateCreateGroupComment } from './validation';
+import {toExpenseId} from "@splitifyd/shared";
 
 export class CommentHandlers {
     constructor(private readonly commentService: CommentService) {
@@ -103,7 +104,7 @@ export class CommentHandlers {
             const { cursor, limit = 8 } = req.query;
 
             const comments = await this.commentService.listExpenseComments(
-                expenseId,
+                toExpenseId(expenseId),
                 userId,
                 {
                     cursor: cursor as string,

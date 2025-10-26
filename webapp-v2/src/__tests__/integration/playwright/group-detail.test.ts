@@ -485,14 +485,14 @@ test.describe('Group Detail - Expenses Display', () => {
 
         const expenses = [
             new ExpenseDTOBuilder()
-                .withId('exp-1')
+                .withExpenseId('exp-1')
                 .withDescription('Groceries')
                 .withPaidBy(testUser.uid)
                 .withParticipants([testUser.uid])
                 .withGroupId(groupId)
                 .build(),
             new ExpenseDTOBuilder()
-                .withId('exp-2')
+                .withExpenseId('exp-2')
                 .withDescription('Dinner')
                 .withPaidBy(testUser.uid)
                 .withParticipants([testUser.uid])
@@ -583,19 +583,19 @@ test.describe('Group Detail - Expenses Display', () => {
 
         const expenses = [
             new ExpenseDTOBuilder()
-                .withId('exp-1')
+                .withExpenseId('exp-1')
                 .withPaidBy(testUser.uid)
                 .withParticipants([testUser.uid])
                 .withGroupId(groupId)
                 .build(),
             new ExpenseDTOBuilder()
-                .withId('exp-2')
+                .withExpenseId('exp-2')
                 .withPaidBy(testUser.uid)
                 .withParticipants([testUser.uid])
                 .withGroupId(groupId)
                 .build(),
             new ExpenseDTOBuilder()
-                .withId('exp-3')
+                .withExpenseId('exp-3')
                 .withPaidBy(testUser.uid)
                 .withParticipants([testUser.uid])
                 .withGroupId(groupId)

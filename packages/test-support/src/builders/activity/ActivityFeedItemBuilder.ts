@@ -1,6 +1,8 @@
 import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, GroupId, GroupName, UserId } from '@splitifyd/shared';
 import { ActivityFeedActions, ActivityFeedEventTypes, toGroupId } from '@splitifyd/shared';
 import { generateShortId, randomString } from '../../test-helpers';
+import {toExpenseId} from "@splitifyd/shared";
+import {CommentId} from "@splitifyd/shared";
 
 const DEFAULT_TIMESTAMP = () => new Date().toISOString();
 
@@ -96,7 +98,7 @@ export class ActivityFeedItemBuilder {
             ActivityFeedActions.CREATE,
             actorName,
             {
-                expenseId: `${id}-expense`,
+                expenseId: toExpenseId(`${id}-expense`),
                 expenseDescription,
             },
         );
@@ -119,7 +121,7 @@ export class ActivityFeedItemBuilder {
             ActivityFeedActions.UPDATE,
             actorName,
             {
-                expenseId: `${id}-expense`,
+                expenseId: toExpenseId(`${id}-expense`),
                 expenseDescription,
             },
         );
@@ -142,7 +144,7 @@ export class ActivityFeedItemBuilder {
             ActivityFeedActions.DELETE,
             actorName,
             {
-                expenseId: `${id}-expense`,
+                expenseId: toExpenseId(`${id}-expense`),
                 expenseDescription,
             },
         );
@@ -204,7 +206,7 @@ export class ActivityFeedItemBuilder {
         actorName: string,
         commentPreview: string,
         expenseDescription?: string,
-        commentId: string = `comment-${id}`,
+        commentId: CommentId= `comment-${id}`,
     ): ActivityFeedItemBuilder {
         const details: ActivityFeedItem['details'] = {
             commentId,
@@ -212,7 +214,7 @@ export class ActivityFeedItemBuilder {
         };
 
         if (expenseDescription) {
-            details.expenseId = `${id}-expense`;
+            details.expenseId = toExpenseId(`${id}-expense`);
             details.expenseDescription = expenseDescription;
         }
 

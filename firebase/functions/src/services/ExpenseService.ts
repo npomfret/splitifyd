@@ -12,6 +12,7 @@ import { ApiError, Errors } from '../utils/errors';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import {toExpenseId} from "@splitifyd/shared";
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -246,7 +247,7 @@ export class ExpenseService {
         const splits = validatedExpenseData.splits;
 
         // Generate expense ID early (local operation, no DB call)
-        const expenseId = this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES);
+        const expenseId = toExpenseId(this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES));
 
         const expense: ExpenseDTO = {
             id: expenseId,

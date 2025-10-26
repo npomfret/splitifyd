@@ -167,7 +167,7 @@ describe('PermissionEngineAsync', () => {
                 .build();
 
             const mockExpense = new ExpenseDTOBuilder()
-                .withId('expense123')
+                .withExpenseId('expense123')
                 .withCreatedBy(testUserId)
                 .withGroupId(testGroupId)
                 .withDescription('Test expense')

@@ -10,6 +10,7 @@ import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
 import { ApiError } from '../../../../utils/errors';
+import {toExpenseId} from "@splitifyd/shared";
 
 describe('ExpenseCommentStrategy', () => {
     let strategy: ExpenseCommentStrategy;
@@ -37,12 +38,12 @@ describe('ExpenseCommentStrategy', () => {
     describe('verifyAccess', () => {
         it('should allow access when expense exists and user is group member', async () => {
             // Arrange
-            const expenseId = 'test-expense';
+            const expenseId = toExpenseId('test-expense');
             const groupId = toGroupId('test-group');
             const userId = 'user-id';
 
             const testExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withGroupId(groupId)
                 .build();
 
@@ -70,7 +71,7 @@ describe('ExpenseCommentStrategy', () => {
 
             // Act
             const error = (await strategy
-                .verifyAccess('nonexistent-expense', 'user-id')
+                .verifyAccess(toExpenseId('nonexistent-expense'), 'user-id')
                 .catch((e: ApiError) => e)) as ApiError;
 
             // Assert
@@ -81,12 +82,12 @@ describe('ExpenseCommentStrategy', () => {
 
         it('should throw NOT_FOUND when expense is soft deleted', async () => {
             // Arrange
-            const expenseId = 'deleted-expense';
+            const expenseId = toExpenseId('deleted-expense');
             const groupId = 'test-group';
             const userId = 'user-id';
 
             const deletedExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withGroupId(groupId)
                 .build();
 
@@ -109,12 +110,12 @@ describe('ExpenseCommentStrategy', () => {
 
         it('should throw NOT_FOUND when expense group does not exist', async () => {
             // Arrange
-            const expenseId = 'test-expense';
+            const expenseId = toExpenseId('test-expense');
             const groupId = 'nonexistent-group';
             const userId = 'user-id';
 
             const testExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withGroupId(groupId)
                 .build();
 
@@ -132,12 +133,12 @@ describe('ExpenseCommentStrategy', () => {
 
         it('should throw FORBIDDEN when user is not a member of expense group', async () => {
             // Arrange
-            const expenseId = 'test-expense';
+            const expenseId = toExpenseId('test-expense');
             const groupId = toGroupId('test-group');
             const userId = 'unauthorized-user';
 
             const testExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withGroupId(groupId)
                 .build();
 

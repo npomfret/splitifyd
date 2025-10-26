@@ -47,7 +47,9 @@ export type Brand<K, T> = K & { __brand: T; };
 export type GroupId = Brand<string, 'GroupId'>;
 export const toGroupId = (value: string): GroupId => value as GroupId;
 
-export type ExpenseId = string;
+export type ExpenseId = Brand<string, 'ExpenseId'>;
+export const toExpenseId = (value: string): ExpenseId => value as ExpenseId;
+
 export type SettlementId = string;
 export type GroupName = string;
 export type UserId = string;
@@ -119,7 +121,7 @@ export const ActivityFeedActions = {
 export type ActivityFeedAction = (typeof ActivityFeedActions)[keyof typeof ActivityFeedActions];
 
 export interface ActivityFeedItemDetails {
-    expenseId?: string;
+    expenseId?: ExpenseId;
     expenseDescription?: string;
     commentId?: string;
     commentPreview?: string;

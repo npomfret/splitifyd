@@ -3,7 +3,6 @@ export { AuthUserRecordBuilder } from './AuthUserRecordBuilder';
 export { ClientUserBuilder } from './ClientUserBuilder';
 export { CommentBuilder } from './CommentBuilder';
 export { CommentQueryBuilder } from './CommentQueryBuilder';
-export { CommentRequestBuilder } from './CommentRequestBuilder';
 export { CreateExpenseRequestBuilder } from './CreateExpenseRequestBuilder';
 export { CreateGroupFormDataBuilder } from './CreateGroupFormDataBuilder';
 export { CreateGroupRequestBuilder } from './CreateGroupRequestBuilder';

@@ -53,7 +53,7 @@ test.describe('Group Detail - Include Deleted Controls', () => {
             .build();
 
         const activeExpense = new ExpenseDTOBuilder()
-            .withId('expense-active-1')
+            .withExpenseId('expense-active-1')
             .withGroupId(groupId)
             .withDescription('Board Games Night')
             .withAmount(45, 'USD')
@@ -147,7 +147,7 @@ test.describe('Group Detail - Include Deleted Controls', () => {
             .build();
 
         const activeExpense = new ExpenseDTOBuilder()
-            .withId('expense-active-1')
+            .withExpenseId('expense-active-1')
             .withGroupId(groupId)
             .withDescription('Museum Tickets')
             .withAmount(30, 'USD')
@@ -157,7 +157,7 @@ test.describe('Group Detail - Include Deleted Controls', () => {
             .build();
 
         const deletedExpense = new ExpenseDTOBuilder()
-            .withId('expense-deleted-1')
+            .withExpenseId('expense-deleted-1')
             .withGroupId(groupId)
             .withDescription('Canceled Tour Deposit')
             .withAmount(120, 'USD')

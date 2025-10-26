@@ -41,6 +41,7 @@ vi.mock('@/utils/browser-logger', () => ({
 import { activityFeedStore as mockStore } from '@/app/stores/activity-feed-store';
 import { navigationService as mockNavigationService } from '@/services/navigation.service';
 import { toGroupId } from '@splitifyd/shared';
+import {toExpenseId} from "@splitifyd/shared";
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -255,7 +256,7 @@ describe('ActivityFeedCard', () => {
     describe('Navigation', () => {
         it('navigates to expense detail for expense-created events', () => {
             const item = buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED, {
-                details: { expenseId: 'expense-1', expenseDescription: 'Lunch' },
+                details: { expenseId: toExpenseId('expense-1'), expenseDescription: 'Lunch' },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
@@ -270,7 +271,7 @@ describe('ActivityFeedCard', () => {
 
         it('navigates to expense detail when comment targets an expense', () => {
             const item = buildItem('1', ActivityFeedEventTypes.COMMENT_ADDED, {
-                details: { expenseId: 'expense-2', expenseDescription: 'Brunch' },
+                details: { expenseId: toExpenseId('expense-2'), expenseDescription: 'Brunch' },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);

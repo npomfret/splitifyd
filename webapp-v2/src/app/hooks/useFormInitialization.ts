@@ -13,10 +13,10 @@ import { useAuth } from './useAuth';
 
 interface UseFormInitializationOptions {
     groupId: GroupId;
-    expenseId?: string | null;
+    expenseId?: ExpenseId | null;
     isEditMode: boolean;
     isCopyMode?: boolean;
-    sourceExpenseId?: string | null;
+    sourceExpenseId?: ExpenseId | null;
 }
 
 /**
@@ -80,7 +80,7 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
     };
 
     // Load expense data for copy mode
-    const loadExpenseForCopy = async (sourceExpenseId: string) => {
+    const loadExpenseForCopy = async (sourceExpenseId: ExpenseId) => {
         const sourceExpenseDetails = await apiClient.getExpenseFullDetails(sourceExpenseId);
         const sourceExpense = sourceExpenseDetails.expense;
 

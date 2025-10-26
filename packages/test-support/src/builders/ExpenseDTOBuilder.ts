@@ -4,6 +4,7 @@ import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
+import {ExpenseId, toExpenseId} from "@splitifyd/shared";
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -18,7 +19,7 @@ export class ExpenseDTOBuilder {
 
         this.expense = {
             // Audit fields (BaseDTO)
-            id: `expense-${generateShortId()}`,
+            id: toExpenseId(`expense-${generateShortId()}`),
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
 
@@ -41,8 +42,8 @@ export class ExpenseDTOBuilder {
     }
 
     // Audit field methods
-    withId(id: string): this {
-        this.expense.id = id;
+    withExpenseId(id: ExpenseId | string): this {
+        this.expense.id = typeof id === 'string' ? toExpenseId(id) : id;
         return this;
     }
 

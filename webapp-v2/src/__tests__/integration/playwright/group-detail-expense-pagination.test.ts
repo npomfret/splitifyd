@@ -39,7 +39,7 @@ test.describe('Group Detail - Expense Pagination', () => {
             .build();
 
         const expensePage1Coffee = new ExpenseDTOBuilder()
-            .withId('expense-p1-1')
+            .withExpenseId('expense-p1-1')
             .withGroupId(groupId)
             .withDescription('Coffee Run Page 1')
             .withAmount(12.5, 'USD')
@@ -49,7 +49,7 @@ test.describe('Group Detail - Expense Pagination', () => {
             .build();
 
         const expensePage1Lunch = new ExpenseDTOBuilder()
-            .withId('expense-p1-2')
+            .withExpenseId('expense-p1-2')
             .withGroupId(groupId)
             .withDescription('Lunch Split Page 1')
             .withAmount(28, 'USD')
@@ -59,7 +59,7 @@ test.describe('Group Detail - Expense Pagination', () => {
             .build();
 
         const expensePage2Taxi = new ExpenseDTOBuilder()
-            .withId('expense-p2-1')
+            .withExpenseId('expense-p2-1')
             .withGroupId(groupId)
             .withDescription('Taxi Ride Page 2')
             .withAmount(18, 'USD')
@@ -69,7 +69,7 @@ test.describe('Group Detail - Expense Pagination', () => {
             .build();
 
         const expensePage2Dinner = new ExpenseDTOBuilder()
-            .withId('expense-p2-2')
+            .withExpenseId('expense-p2-2')
             .withGroupId(groupId)
             .withDescription('Dinner Split Page 2')
             .withAmount(42, 'USD')
@@ -176,7 +176,7 @@ test.describe('Group Detail - Expense Pagination', () => {
             const description = `Expense Item ${index + 1}`;
 
             return new ExpenseDTOBuilder()
-                .withId(`expense-initial-${index + 1}`)
+                .withExpenseId(`expense-initial-${index + 1}`)
                 .withGroupId(groupId)
                 .withDescription(description)
                 .withAmount(10 + index, 'USD')

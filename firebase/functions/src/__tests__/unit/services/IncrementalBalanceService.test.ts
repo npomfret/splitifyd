@@ -55,7 +55,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
         describe('applyExpenseCreated', () => {
             it('should add expense to empty balance', async () => {
                 const expense = new ExpenseDTOBuilder()
-                    .withId('expense-1')
+                    .withExpenseId('expense-1')
                     .withGroupId(groupId)
                     .withAmount(100, 'USD')
                     .withPaidBy(userId1)
@@ -86,7 +86,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
             it('should add expense to existing balance', async () => {
                 const expense = new ExpenseDTOBuilder()
-                    .withId('expense-2')
+                    .withExpenseId('expense-2')
                     .withGroupId(groupId)
                     .withAmount(60, 'USD')
                     .withPaidBy(userId2)
@@ -116,7 +116,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
             it('should handle three-way split correctly', async () => {
                 const expense = new ExpenseDTOBuilder()
-                    .withId('expense-3')
+                    .withExpenseId('expense-3')
                     .withGroupId(groupId)
                     .withAmount(90, 'EUR')
                     .withPaidBy(userId1)
@@ -146,7 +146,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
         describe('applyExpenseDeleted', () => {
             it('should remove expense from balance', async () => {
                 const expense = new ExpenseDTOBuilder()
-                    .withId('expense-1')
+                    .withExpenseId('expense-1')
                     .withGroupId(groupId)
                     .withAmount(100, 'USD')
                     .withPaidBy(userId1)
@@ -184,7 +184,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
                 const expense = new ExpenseDTOBuilder()
-                    .withId('expense-1')
+                    .withExpenseId('expense-1')
                     .withGroupId(groupId)
                     .withAmount(100, 'USD')
                     .withPaidBy(userId1)
@@ -229,7 +229,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 stubDb.seed(`groups/${groupId}/metadata/balance`, currentBalance);
 
                 const expense = new ExpenseDTOBuilder()
-                    .withId('expense-eur')
+                    .withExpenseId('expense-eur')
                     .withGroupId(groupId)
                     .withAmount(150.5, currency)
                     .withPaidBy(userId1)
@@ -259,7 +259,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
                 const originalExpense = new ExpenseDTOBuilder()
-                    .withId('expense-lifecycle')
+                    .withExpenseId('expense-lifecycle')
                     .withGroupId(groupId)
                     .withAmount(100, currency)
                     .withPaidBy(userId1)
@@ -274,7 +274,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const balanceAfterCreate = await getBalance();
 
                 const updatedExpense = new ExpenseDTOBuilder()
-                    .withId('expense-lifecycle')
+                    .withExpenseId('expense-lifecycle')
                     .withGroupId(groupId)
                     .withAmount(150.5, currency)
                     .withPaidBy(userId1)
@@ -316,7 +316,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
         describe('applyExpenseUpdated', () => {
             it('should handle amount change correctly', async () => {
                 const oldExpense = new ExpenseDTOBuilder()
-                    .withId('expense-1')
+                    .withExpenseId('expense-1')
                     .withGroupId(groupId)
                     .withAmount(100, 'USD')
                     .withPaidBy(userId1)
@@ -329,7 +329,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const newExpense = new ExpenseDTOBuilder()
-                    .withId('expense-1')
+                    .withExpenseId('expense-1')
                     .withGroupId(groupId)
                     .withAmount(120, 'USD')
                     .withPaidBy(userId1)
@@ -357,7 +357,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
             it('should handle payer change correctly', async () => {
                 const oldExpense = new ExpenseDTOBuilder()
-                    .withId('expense-1')
+                    .withExpenseId('expense-1')
                     .withGroupId(groupId)
                     .withAmount(100, 'USD')
                     .withPaidBy(userId1)
@@ -370,7 +370,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const newExpense = new ExpenseDTOBuilder()
-                    .withId('expense-1')
+                    .withExpenseId('expense-1')
                     .withGroupId(groupId)
                     .withAmount(100, 'USD')
                     .withPaidBy(userId2) // Changed payer
@@ -400,7 +400,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
             it('should handle currency change correctly', async () => {
                 const oldExpense = new ExpenseDTOBuilder()
-                    .withId('expense-1')
+                    .withExpenseId('expense-1')
                     .withGroupId(groupId)
                     .withAmount(100, 'USD')
                     .withPaidBy(userId1)
@@ -413,7 +413,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const newExpense = new ExpenseDTOBuilder()
-                    .withId('expense-1')
+                    .withExpenseId('expense-1')
                     .withGroupId(groupId)
                     .withAmount(80, 'EUR') // Changed currency
                     .withPaidBy(userId1)
@@ -621,7 +621,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
     describe('Version Tracking', () => {
         it('should increment version on each operation', async () => {
             const expense = new ExpenseDTOBuilder()
-                .withId('expense-1')
+                .withExpenseId('expense-1')
                 .withGroupId(groupId)
                 .withAmount(100, 'USD')
                 .withPaidBy(userId1)
@@ -659,7 +659,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
     describe('Multi-Currency Scenarios', () => {
         it('should handle expenses in different currencies independently', async () => {
             const usdExpense = new ExpenseDTOBuilder()
-                .withId('expense-usd')
+                .withExpenseId('expense-usd')
                 .withGroupId(groupId)
                 .withAmount(100, 'USD')
                 .withPaidBy(userId1)
@@ -672,7 +672,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 .build();
 
             const eurExpense = new ExpenseDTOBuilder()
-                .withId('expense-eur')
+                .withExpenseId('expense-eur')
                 .withGroupId(groupId)
                 .withAmount(80, 'EUR')
                 .withPaidBy(userId2)

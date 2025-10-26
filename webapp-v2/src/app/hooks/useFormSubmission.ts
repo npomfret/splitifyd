@@ -4,10 +4,11 @@ import { useComputed } from '@preact/signals';
 import { GroupId, UserId } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { expenseFormStore } from '../stores/expense-form-store';
+import {ExpenseId} from "@splitifyd/shared";
 
 interface UseFormSubmissionOptions {
     groupId: GroupId;
-    expenseId?: string | null;
+    expenseId?: ExpenseId | null;
     isEditMode: boolean;
     isCopyMode?: boolean;
     isInitialized: boolean;

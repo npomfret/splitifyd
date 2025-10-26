@@ -392,7 +392,7 @@ test.describe('Group Detail - Balance Display: With Expenses', () => {
         // So Alice owes test user $50
         const expenses = [
             new ExpenseDTOBuilder()
-                .withId('expense-1')
+                .withExpenseId('expense-1')
                 .withDescription('Dinner')
                 .withAmount(100.0, 'USD')
                 .withPaidBy(user.uid)

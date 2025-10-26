@@ -327,7 +327,7 @@ test.describe('Activity Feed - Navigation', () => {
             .build();
 
         const expense = new ExpenseDTOBuilder()
-            .withId(expenseId)
+            .withExpenseId(expenseId)
             .withGroupId(groupId)
             .withDescription(expenseDescription)
             .withAmount(48.75, 'USD')

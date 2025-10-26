@@ -518,7 +518,7 @@ export async function mockGroupCommentsApi(
 
 export async function mockExpenseDetailApi(
     page: Page,
-    expenseId: ExpenseId,
+    expenseId: ExpenseId | string,
     response: any,
     options: { delayMs?: number; } = {},
 ): Promise<void> {
@@ -534,7 +534,7 @@ export async function mockExpenseDetailApi(
 
 export async function mockExpenseCommentsApi(
     page: Page,
-    expenseId: ExpenseId,
+    expenseId: ExpenseId | string,
     comments: any[] = [],
     options: { delayMs?: number; } = {},
 ): Promise<void> {

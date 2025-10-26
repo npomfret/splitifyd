@@ -11,7 +11,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
 
         // Mock the expense detail API response with a locked expense
         const expense = new ExpenseDTOBuilder()
-            .withId(expenseId)
+            .withExpenseId(expenseId)
             .withGroupId(groupId)
             .withDescription('Locked Expense')
             .withAmount(100.0, 'EUR')
@@ -67,7 +67,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         const groupId = 'test-group-456';
 
         const expense = new ExpenseDTOBuilder()
-            .withId(expenseId)
+            .withExpenseId(expenseId)
             .withGroupId(groupId)
             .withDescription('Locked Expense')
             .withAmount(100.0, 'EUR')
@@ -120,7 +120,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
 
         // Mock the expense detail API response with a normal (unlocked) expense
         const expense = new ExpenseDTOBuilder()
-            .withId(expenseId)
+            .withExpenseId(expenseId)
             .withGroupId(groupId)
             .withDescription('Normal Expense')
             .withAmount(50.0, 'EUR')

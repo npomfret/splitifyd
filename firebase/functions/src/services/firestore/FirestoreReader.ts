@@ -45,7 +45,7 @@ import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelper
 import { ApiError } from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
-import { toGroupId } from '@splitifyd/shared';
+import { toExpenseId, toGroupId } from '@splitifyd/shared';
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,
@@ -726,6 +726,13 @@ export class FirestoreReader implements IFirestoreReader {
                     const eventType = converted.eventType as ActivityFeedEventType;
                     const action = (converted.action as ActivityFeedAction | undefined) ?? EVENT_ACTION_MAP[eventType];
 
+                    // Convert details to use branded types
+                    const rawDetails = converted.details ?? {};
+                    const details: typeof rawDetails & { expenseId?: ExpenseId; } = {
+                        ...rawDetails,
+                        ...(rawDetails.expenseId && { expenseId: toExpenseId(rawDetails.expenseId) }),
+                    } as any;
+
                     const item: ActivityFeedItem = {
                         id: converted.id,
                         userId: converted.userId,
@@ -736,7 +743,7 @@ export class FirestoreReader implements IFirestoreReader {
                         actorId: converted.actorId,
                         actorName: converted.actorName,
                         timestamp: converted.timestamp,
-                        details: converted.details ?? {},
+                        details,
                         createdAt: converted.createdAt,
                     };
 

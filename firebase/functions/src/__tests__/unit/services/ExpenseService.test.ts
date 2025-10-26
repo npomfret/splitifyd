@@ -6,6 +6,7 @@ import { Timestamp as FirestoreTimestamp } from '../../../firestore-wrapper';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { StubAuthService } from '../mocks/StubAuthService';
+import {toExpenseId} from "@splitifyd/shared";
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
@@ -20,12 +21,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Data Transformation and Validation', () => {
         it('should transform expense document to response format correctly', async () => {
             // Arrange
-            const expenseId = 'test-expense-id';
+            const expenseId = toExpenseId('test-expense-id');
             const userId = 'test-user-id';
             const now = FirestoreTimestamp.now();
 
             const mockExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withGroupId('test-group-id')
                 .withCreatedBy('creator-id')
                 .withPaidBy('payer-id')
@@ -77,11 +78,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should handle expense without receipt URL', async () => {
             // Arrange
-            const expenseId = 'test-expense-id';
+            const expenseId = toExpenseId('test-expense-id');
             const userId = 'test-user-id';
 
             const mockExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withParticipants([userId])
                 .withCreatedAt(FirestoreTimestamp.now())
                 .withUpdatedAt(FirestoreTimestamp.now())
@@ -100,12 +101,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Access Control and Security', () => {
         it('should allow access for non-participants', async () => {
             // Arrange
-            const expenseId = 'test-expense-id';
+            const expenseId = toExpenseId('test-expense-id');
             const participantId = 'participant-user';
             const nonParticipantId = 'non-participant-user';
 
             const mockExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withParticipants([participantId])
                 .withCreatedAt(FirestoreTimestamp.now())
                 .withUpdatedAt(FirestoreTimestamp.now())
@@ -121,12 +122,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should allow access for all participants', async () => {
             // Arrange
-            const expenseId = 'test-expense-id';
+            const expenseId = toExpenseId('test-expense-id');
             const participant1 = 'participant-1';
             const participant2 = 'participant-2';
 
             const mockExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withParticipants([participant1, participant2])
                 .withCreatedAt(FirestoreTimestamp.now())
                 .withUpdatedAt(FirestoreTimestamp.now())
@@ -147,11 +148,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should reject access to soft-deleted expenses', async () => {
             // Arrange
-            const expenseId = 'deleted-expense-id';
+            const expenseId = toExpenseId('deleted-expense-id');
             const userId = 'test-user-id';
 
             const mockDeletedExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withParticipants([userId])
                 .withDeletedAt(FirestoreTimestamp.now())
                 .withCreatedAt(FirestoreTimestamp.now())
@@ -173,7 +174,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Error Handling', () => {
         it('should handle non-existent expense gracefully', async () => {
             // Arrange
-            const nonExistentId = 'non-existent-expense';
+            const nonExistentId = toExpenseId('non-existent-expense');
             const userId = 'test-user-id';
 
             // Don't seed any data - expense doesn't exist
@@ -191,11 +192,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Edge Cases', () => {
         it('should handle decimal precision in amounts and splits correctly', async () => {
             // Arrange
-            const expenseId = 'decimal-precision-expense';
+            const expenseId = toExpenseId('decimal-precision-expense');
             const userId = 'test-user-id';
 
             const mockExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withAmount(100.33, 'USD')
                 .withParticipants([userId])
                 .withSplits([{ uid: userId, amount: '100.33' }])
@@ -263,11 +264,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Category and Metadata Handling', () => {
         it('should handle expense categories correctly', async () => {
             // Arrange
-            const expenseId = 'categorized-expense';
+            const expenseId = toExpenseId('categorized-expense');
             const userId = 'test-user-id';
 
             const mockExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withCategory('Food & Dining')
                 .withParticipants([userId])
                 .withCreatedAt(FirestoreTimestamp.now())
@@ -285,12 +286,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should preserve receipt URLs correctly', async () => {
             // Arrange
-            const expenseId = 'receipt-expense';
+            const expenseId = toExpenseId('receipt-expense');
             const userId = 'test-user-id';
             const receiptUrl = 'https://storage.example.com/receipts/receipt123.jpg';
 
             const mockExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withReceiptUrl(receiptUrl)
                 .withParticipants([userId])
                 .withCreatedAt(FirestoreTimestamp.now())
@@ -310,7 +311,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Database Error Handling', () => {
         it('should handle database read failures gracefully', async () => {
             // Arrange
-            const expenseId = 'failing-expense';
+            const expenseId = toExpenseId('failing-expense');
             const userId = 'test-user-id';
 
             // Make the database throw an error by overriding collection method
@@ -327,10 +328,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should allow participants to access expense (focused)', async () => {
             // Arrange
             const participantId = 'participant-user';
-            const expenseId = 'test-expense';
+            const expenseId = toExpenseId('test-expense');
 
             const expenseData = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withDescription('Test expense')
                 .withParticipants([participantId])
                 .withCreatedAt(FirestoreTimestamp.now())
@@ -352,10 +353,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             // Arrange
             const participantId = 'participant-user';
             const outsiderId = 'outsider-user';
-            const expenseId = 'test-expense';
+            const expenseId = toExpenseId('test-expense');
 
             const expenseData = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withParticipants([participantId])
                 .withCreatedAt(FirestoreTimestamp.now())
                 .withUpdatedAt(FirestoreTimestamp.now())
@@ -374,10 +375,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle soft-deleted expenses correctly (focused)', async () => {
             // Arrange
             const userId = 'test-user';
-            const expenseId = 'deleted-expense';
+            const expenseId = toExpenseId('deleted-expense');
 
             const deletedExpense = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withParticipants([userId])
                 .withDeletedAt(FirestoreTimestamp.now())
                 .withCreatedAt(FirestoreTimestamp.now())
@@ -395,11 +396,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should transform expense data correctly (focused)', async () => {
             // Arrange
             const userId = 'test-user';
-            const expenseId = 'test-expense';
+            const expenseId = toExpenseId('test-expense');
             const now = FirestoreTimestamp.now();
 
             const expenseData = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withGroupId('test-group')
                 .withCreatedBy(userId)
                 .withPaidBy(userId)
@@ -445,10 +446,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle expense without receipt URL (focused)', async () => {
             // Arrange
             const userId = 'test-user';
-            const expenseId = 'test-expense';
+            const expenseId = toExpenseId('test-expense');
 
             const expenseData = new ExpenseDTOBuilder()
-                .withId(expenseId)
+                .withExpenseId(expenseId)
                 .withParticipants([userId])
                 .withCreatedAt(FirestoreTimestamp.now())
                 .withUpdatedAt(FirestoreTimestamp.now())

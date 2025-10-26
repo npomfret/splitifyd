@@ -1,14 +1,15 @@
 import { CommentTargetTypes, toGroupId } from '@splitifyd/shared';
-import type { CommentTargetType, CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
+import type { CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { AuthUserRecordBuilder, ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery, validateTargetId } from '../../../comments/validation';
+import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';
 import { CommentService } from '../../../services/CommentService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
+import {toExpenseId} from "@splitifyd/shared";
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;
@@ -75,7 +76,7 @@ describe('CommentService - Consolidated Tests', () => {
                 .withId('test-group')
                 .build();
             const testExpense = new ExpenseDTOBuilder()
-                .withId('test-expense')
+                .withExpenseId('test-expense')
                 .withGroupId(testGroup.id)
                 .build();
 
@@ -132,7 +133,7 @@ describe('CommentService - Consolidated Tests', () => {
                 .withId('test-group')
                 .build();
             const testExpense = new ExpenseDTOBuilder()
-                .withId('test-expense')
+                .withExpenseId('test-expense')
                 .withGroupId(testGroup.id)
                 .build();
 
@@ -147,7 +148,7 @@ describe('CommentService - Consolidated Tests', () => {
                 .build();
             db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
 
-            const result = await commentService.listExpenseComments('test-expense', 'user-id', { limit: 5, cursor: 'start-cursor' });
+            const result = await commentService.listExpenseComments(toExpenseId('test-expense'), 'user-id', { limit: 5, cursor: 'start-cursor' });
 
             expect(result.comments).toHaveLength(0);
             expect(result.hasMore).toBe(false);
@@ -155,7 +156,7 @@ describe('CommentService - Consolidated Tests', () => {
 
         it('should throw error when user lacks access', async () => {
             // No expense or membership data set up, so access should be denied
-            await expect(commentService.listExpenseComments('nonexistent-expense', 'user-id')).rejects.toThrow();
+            await expect(commentService.listExpenseComments(toExpenseId('nonexistent-expense'), 'user-id')).rejects.toThrow();
         });
     });
 
@@ -255,7 +256,7 @@ describe('CommentService - Consolidated Tests', () => {
                 .withId('test-group')
                 .build();
             const testExpense = new ExpenseDTOBuilder()
-                .withId('test-expense')
+                .withExpenseId('test-expense')
                 .withGroupId(testGroup.id)
                 .build();
 
@@ -271,7 +272,7 @@ describe('CommentService - Consolidated Tests', () => {
             db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
 
             // Test should now pass since all dependencies are set up
-            const result = await commentService.listExpenseComments('test-expense', 'user-id');
+            const result = await commentService.listExpenseComments(toExpenseId('test-expense'), 'user-id');
 
             // Verify it worked
             expect(result.comments).toEqual([]);
@@ -510,7 +511,7 @@ describe('CommentService - Consolidated Tests', () => {
 
             it('should support expense comments', async () => {
                 const userId = 'user-123';
-                const targetId = 'expense-456';
+                const targetId = toExpenseId('expense-456');
                 const groupId = toGroupId('group-789');
                 const commentData: CreateExpenseCommentRequest = {
                     text: 'Expense comment',
@@ -519,7 +520,7 @@ describe('CommentService - Consolidated Tests', () => {
 
                 // Set up expense, group and membership for real validation
                 const testExpense = new ExpenseDTOBuilder()
-                    .withId(targetId)
+                    .withExpenseId(targetId)
                     .withGroupId(groupId)
                     .build();
                 const testGroup = new GroupDTOBuilder()
@@ -657,8 +658,8 @@ describe('CommentService - Consolidated Tests', () => {
                     expect(() => validateCreateGroupComment(id as any, { text: 'Valid' })).toThrow(
                         expect.objectContaining({
                             statusCode: HTTP_STATUS.BAD_REQUEST,
-                            code: 'INVALID_TARGET_ID',
-                            message: 'Invalid group ID',
+                            code: 'INVALID_INPUT',
+                            message: 'group ID is required',
                         }),
                     );
                 }
@@ -716,7 +717,7 @@ describe('CommentService - Consolidated Tests', () => {
                     expect(() => validateCreateExpenseComment(id as any, { text: 'Valid' })).toThrow(
                         expect.objectContaining({
                             statusCode: HTTP_STATUS.BAD_REQUEST,
-                            code: 'INVALID_TARGET_ID',
+                            code: 'INVALID_EXPENSE_ID',
                             message: 'Invalid expense ID',
                         }),
                     );
@@ -815,55 +816,6 @@ describe('CommentService - Consolidated Tests', () => {
             });
         });
 
-        describe('validateTargetId', () => {
-            it('should accept valid target IDs for different target types', () => {
-                const validIds = ['group-123', 'expense-456', 'simple-id'];
-                const targetTypes: CommentTargetType[] = [CommentTargetTypes.GROUP, CommentTargetTypes.EXPENSE];
-
-                for (const id of validIds) {
-                    for (const targetType of targetTypes) {
-                        expect(() => validateTargetId(id, targetType)).not.toThrow();
-                        expect(validateTargetId(id, targetType)).toBe(id);
-                    }
-                }
-            });
-
-            it('should reject invalid target IDs', () => {
-                const invalidIds = [null, undefined, '', '   ', 123, {}, []];
-                const targetType = CommentTargetTypes.GROUP;
-
-                for (const id of invalidIds) {
-                    expect(() => validateTargetId(id, targetType)).toThrow(
-                        expect.objectContaining({
-                            statusCode: HTTP_STATUS.BAD_REQUEST,
-                            code: 'INVALID_TARGET_ID',
-                            message: 'Invalid group ID',
-                        }),
-                    );
-                }
-            });
-
-            it('should trim whitespace from target IDs', () => {
-                const id = '  group-123  ';
-                const result = validateTargetId(id, CommentTargetTypes.GROUP);
-                expect(result).toBe('group-123');
-            });
-
-            it('should include target type in error message', () => {
-                expect(() => validateTargetId('', CommentTargetTypes.GROUP)).toThrow(
-                    expect.objectContaining({
-                        message: 'Invalid group ID',
-                    }),
-                );
-
-                expect(() => validateTargetId('', CommentTargetTypes.EXPENSE)).toThrow(
-                    expect.objectContaining({
-                        message: 'Invalid expense ID',
-                    }),
-                );
-            });
-        });
-
         describe('validateCommentId', () => {
             it('should accept valid comment IDs', () => {
                 const validIds = ['comment-123', 'simple-id', 'id_with_underscores', 'ID-WITH-CAPS'];
@@ -926,8 +878,8 @@ describe('CommentService - Consolidated Tests', () => {
 
             it('should provide specific error codes for different validation failures', () => {
                 expect(() => validateCreateGroupComment(groupTargetId, { text: '' })).toThrow(expect.objectContaining({ code: 'INVALID_COMMENT_TEXT' }));
-                expect(() => validateCreateGroupComment('', { text: 'Valid' })).toThrow(expect.objectContaining({ code: 'INVALID_TARGET_ID' }));
-                expect(() => validateCreateExpenseComment('', { text: 'Valid' })).toThrow(expect.objectContaining({ code: 'INVALID_TARGET_ID' }));
+                expect(() => validateCreateGroupComment('', { text: 'Valid' })).toThrow(expect.objectContaining({ code: 'INVALID_INPUT' }));
+                expect(() => validateCreateExpenseComment('', { text: 'Valid' })).toThrow(expect.objectContaining({ code: 'INVALID_EXPENSE_ID' }));
             });
         });
     });

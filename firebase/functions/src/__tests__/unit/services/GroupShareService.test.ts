@@ -36,6 +36,8 @@ describe('GroupShareService', () => {
         const testGroup = new GroupDTOBuilder()
             .withId(groupId)
             .withCreatedBy(ownerId)
+            .withoutBalance()
+            .withoutLastActivity()
             .build();
 
         db.seedGroup(groupId, testGroup);
@@ -243,6 +245,8 @@ describe('GroupShareService', () => {
             const testGroup = new GroupDTOBuilder()
                 .withId(groupId)
                 .withCreatedBy('owner-id')
+                .withoutBalance()
+                .withoutLastActivity()
                 .build();
             db.seedGroup(groupId, testGroup);
             db.initializeGroupBalance(groupId); // Initialize balance for incremental updates
@@ -349,6 +353,8 @@ describe('GroupShareService', () => {
             const testGroup = new GroupDTOBuilder()
                 .withId(groupId)
                 .withCreatedBy('owner-id')
+                .withoutBalance()
+                .withoutLastActivity()
                 .build();
             db.seedGroup(groupId, testGroup);
             db.initializeGroupBalance(groupId);
@@ -447,6 +453,8 @@ describe('GroupShareService', () => {
                     memberApproval: 'admin-required',
                     settingsManagement: PermissionLevels.ADMIN_ONLY,
                 })
+                .withoutBalance()
+                .withoutLastActivity()
                 .build();
             db.seedGroup(groupId, managedGroup);
             db.initializeGroupBalance(groupId);
@@ -493,6 +501,8 @@ describe('GroupShareService', () => {
             const openGroup = new GroupDTOBuilder()
                 .withId(groupId)
                 .withCreatedBy(ownerId)
+                .withoutBalance()
+                .withoutLastActivity()
                 .build();
             db.seedGroup(groupId, openGroup);
             db.initializeGroupBalance(groupId);
@@ -539,6 +549,8 @@ describe('GroupShareService', () => {
                 .withId(groupId)
                 .withCreatedBy(ownerId)
                 .withPermissions({ memberApproval: 'automatic' })
+                .withoutBalance()
+                .withoutLastActivity()
                 .build();
 
             db.seedGroup(groupId, group);
@@ -600,6 +612,8 @@ describe('GroupShareService', () => {
                 .withId(groupId)
                 .withCreatedBy(ownerId)
                 .withPermissions({ memberApproval: 'automatic' })
+                .withoutBalance()
+                .withoutLastActivity()
                 .build();
 
             db.seedGroup(groupId, group);
@@ -679,6 +693,8 @@ describe('GroupShareService', () => {
                 .withId(groupId)
                 .withCreatedBy(ownerId)
                 .withPermissions({ memberApproval: 'automatic' })
+                .withoutBalance()
+                .withoutLastActivity()
                 .build();
 
             db.seedGroup(groupId, group);

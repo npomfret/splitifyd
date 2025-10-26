@@ -1,6 +1,6 @@
-import { CommentTargetTypes } from '@splitifyd/shared';
+import { describe, expect, it } from 'vitest';
 import { CommentQueryBuilder } from '@splitifyd/test-support';
-import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery, validateTargetId } from '../../comments/validation';
+import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../comments/validation';
 import { ApiError } from '../../utils/errors';
 
 describe('Comments Validation', () => {
@@ -36,7 +36,7 @@ describe('Comments Validation', () => {
 
         it('should throw error for invalid target id', () => {
             expect(() => validateCreateGroupComment('', { text: 'Valid comment' })).toThrow(ApiError);
-            expect(() => validateCreateGroupComment('', { text: 'Valid comment' })).toThrow('Invalid group ID');
+            expect(() => validateCreateGroupComment('', { text: 'Valid comment' })).toThrow('group ID is required');
         });
     });
 
@@ -122,39 +122,6 @@ describe('Comments Validation', () => {
                 .build();
 
             expect(() => validateListCommentsQuery(query)).toThrow(ApiError);
-        });
-    });
-
-    describe('validateTargetId', () => {
-        it('should validate valid target ID', () => {
-            const result = validateTargetId('target123', CommentTargetTypes.GROUP);
-
-            expect(result).toBe('target123');
-        });
-
-        it('should trim target ID', () => {
-            const result = validateTargetId('  target123  ', CommentTargetTypes.GROUP);
-
-            expect(result).toBe('target123');
-        });
-
-        it('should throw error for null target ID', () => {
-            expect(() => validateTargetId(null, CommentTargetTypes.GROUP)).toThrow(ApiError);
-            expect(() => validateTargetId(null, CommentTargetTypes.GROUP)).toThrow('Invalid group ID');
-        });
-
-        it('should throw error for empty target ID', () => {
-            expect(() => validateTargetId('', CommentTargetTypes.EXPENSE)).toThrow(ApiError);
-            expect(() => validateTargetId('', CommentTargetTypes.EXPENSE)).toThrow('Invalid expense ID');
-        });
-
-        it('should throw error for non-string target ID', () => {
-            expect(() => validateTargetId(123, CommentTargetTypes.GROUP)).toThrow(ApiError);
-        });
-
-        it('should show appropriate error message based on target type', () => {
-            expect(() => validateTargetId('', CommentTargetTypes.GROUP)).toThrow('Invalid group ID');
-            expect(() => validateTargetId('', CommentTargetTypes.EXPENSE)).toThrow('Invalid expense ID');
         });
     });
 

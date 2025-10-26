@@ -51,7 +51,7 @@ describe('GroupService - Unit Tests', () => {
             db.seedGroupMember(groupId, userId, membershipDoc);
 
             const activeExpense = new ExpenseDTOBuilder()
-                .withId('expense-active')
+                .withExpenseId('expense-active')
                 .withGroupId(groupId)
                 .withPaidBy(userId)
                 .withCreatedBy(userId)
@@ -63,7 +63,7 @@ describe('GroupService - Unit Tests', () => {
             db.seedExpense(activeExpense.id, activeExpense);
 
             const deletedExpense = new ExpenseDTOBuilder()
-                .withId('expense-deleted')
+                .withExpenseId('expense-deleted')
                 .withGroupId(groupId)
                 .withPaidBy(userId)
                 .withCreatedBy(userId)

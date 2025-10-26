@@ -163,15 +163,15 @@ export class ApiDriver {
         return response as ExpenseDTO;
     }
 
-    async updateExpense(expenseId: ExpenseId, updateData: Partial<ExpenseDTO>, token: string): Promise<ExpenseDTO> {
+    async updateExpense(expenseId: ExpenseId | string, updateData: Partial<ExpenseDTO>, token: string): Promise<ExpenseDTO> {
         return await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', updateData, token);
     }
 
-    async deleteExpense(expenseId: ExpenseId, token: string): Promise<MessageResponse> {
+    async deleteExpense(expenseId: ExpenseId | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/expenses?id=${expenseId}`, 'DELETE', null, token);
     }
 
-    async getExpense(expenseId: ExpenseId, token: string): Promise<ExpenseDTO> {
+    async getExpense(expenseId: ExpenseId | string, token: string): Promise<ExpenseDTO> {
         const response = await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
         return response.expense;
     }
@@ -277,7 +277,7 @@ export class ApiDriver {
         return await this.apiRequest(url, 'GET', null, token);
     }
 
-    async getExpenseFullDetails(expenseId: ExpenseId, token: string): Promise<ExpenseFullDetailsDTO> {
+    async getExpenseFullDetails(expenseId: ExpenseId | string, token: string): Promise<ExpenseFullDetailsDTO> {
         return await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
     }
 
@@ -390,7 +390,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
     }
 
-    async createExpenseComment(expenseId: ExpenseId, text: string, token: string): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId | string, text: string, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
@@ -403,7 +403,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/comments${query}`, 'GET', null, token);
     }
 
-    async listExpenseComments(expenseId: ExpenseId, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId | string, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
         if (cursor) params.append('cursor', cursor);
         if (limit) params.append('limit', limit.toString());

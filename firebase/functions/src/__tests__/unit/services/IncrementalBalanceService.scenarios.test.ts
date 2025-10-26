@@ -55,7 +55,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // User1 pays $200 expense → User2 owes User1 $100
             const usdExpense = new ExpenseDTOBuilder()
-                .withId('expense-usd')
+                .withExpenseId('expense-usd')
                 .withGroupId(groupId)
                 .withAmount(200, 'USD')
                 .withPaidBy(user1)
@@ -141,7 +141,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // Expense 1: User1 pays $150, User2 owes $75
             const expense1 = new ExpenseDTOBuilder()
-                .withId('expense-1')
+                .withExpenseId('expense-1')
                 .withGroupId(groupId)
                 .withAmount(150, 'USD')
                 .withPaidBy(user1)
@@ -164,7 +164,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // Expense 2: User1 pays $50, User2 owes additional $25
             const expense2 = new ExpenseDTOBuilder()
-                .withId('expense-2')
+                .withExpenseId('expense-2')
                 .withGroupId(groupId)
                 .withAmount(50, 'USD')
                 .withPaidBy(user1)
@@ -731,7 +731,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // User1 pays $200 USD expense → User2 owes User1 $100 USD
             const originalExpense = new ExpenseDTOBuilder()
-                .withId('expense-1')
+                .withExpenseId('expense-1')
                 .withGroupId(groupId)
                 .withAmount(200, 'USD')
                 .withPaidBy(user1)
@@ -764,7 +764,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             // === ACTION ===
             // Change expense currency from USD to EUR (keep same amount)
             const updatedExpense = new ExpenseDTOBuilder()
-                .withId('expense-1')
+                .withExpenseId('expense-1')
                 .withGroupId(groupId)
                 .withAmount(200, 'EUR') // Changed from USD to EUR
                 .withPaidBy(user1)
@@ -826,7 +826,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
             const expense = new ExpenseDTOBuilder()
-                .withId('expense-1')
+                .withExpenseId('expense-1')
                 .withGroupId(groupId)
                 .withAmount(300, 'USD')
                 .withPaidBy(user1)
