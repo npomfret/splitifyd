@@ -1,58 +1,31 @@
-import type { GroupDTO, GroupPermissions, UserThemeColor } from '@splitifyd/shared';
-import { MemberRoles, MemberStatuses, UserId } from '@splitifyd/shared';
+import type { CurrencyBalance, GroupDTO, GroupPermissions, InviteLink, PermissionChangeLog, UserId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomChoice, randomString, timestampToISOString } from '../test-helpers';
 
 /**
- * Builder for creating Group objects for tests
- * Supports both client format (Group) and server format (GroupDocument)
+ * Builder for creating GroupDTO objects for tests.
+ * Maintains a single GroupDTO instance to match patterns used by other builders.
  */
 export class GroupDTOBuilder {
-    // Infrastructure audit metadata
-    private auditFields = {
-        id: `group-${generateShortId()}`,
-        createdAt: new Date() as Date | string | { toDate(): Date; },
-        updatedAt: new Date() as Date | string | { toDate(): Date; },
-    };
-    private deletionFields = {
-        deletedAt: null as BuilderTimestamp | null,
-    };
-
-    // Business logic fields
-    private businessFields: {
-        createdBy: UserId;
-        name: string;
-        description?: string;
-        permissions: GroupPermissions;
-    } = {
-        createdBy: `user-${generateShortId()}`,
-        name: `${randomChoice(['Team', 'Group', 'Squad', 'Club', 'Circle'])} ${randomString(4)}`,
-        description: `A test group for ${randomString(6)}`,
-        permissions: {
-            expenseEditing: 'anyone',
-            expenseDeletion: 'anyone',
-            memberInvitation: 'anyone',
-            memberApproval: 'automatic',
-            settingsManagement: 'admin-only',
-        },
-    };
-
-    // Server-specific fields (for Firestore)
-    private firestoreFields: {
-        members?: Record<UserId, any>;
-        memberIds?: UserId[];
-    } = {};
-
-    // Client-specific fields (for API responses)
-    private clientFields: {
-        balance?: {
-            balancesByCurrency: Record<string, any>;
-        };
-        lastActivity?: string;
-    } = {};
+    private group: GroupDTO;
 
     constructor() {
-        // Set up default client fields
-        this.clientFields = {
+        const defaultOwner = `user-${generateShortId()}`;
+
+        this.group = {
+            id: `group-${generateShortId()}`,
+            name: `${randomChoice(['Team', 'Group', 'Squad', 'Club', 'Circle'])} ${randomString(4)}`,
+            description: `A test group for ${randomString(6)}`,
+            createdBy: defaultOwner,
+            permissions: {
+                expenseEditing: 'anyone',
+                expenseDeletion: 'anyone',
+                memberInvitation: 'anyone',
+                memberApproval: 'automatic',
+                settingsManagement: 'admin-only',
+            },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            deletedAt: null,
             balance: {
                 balancesByCurrency: {},
             },
@@ -61,135 +34,137 @@ export class GroupDTOBuilder {
     }
 
     withId(id: string): this {
-        this.auditFields.id = id;
+        this.group.id = id;
         return this;
     }
 
     withName(name: string): this {
-        this.businessFields.name = name;
+        this.group.name = name;
         return this;
     }
 
-    withDescription(description: string): this {
-        this.businessFields.description = description;
+    withDescription(description: string | undefined): this {
+        this.group.description = description;
         return this;
     }
 
     withCreatedBy(userId: UserId): this {
-        this.businessFields.createdBy = userId;
-
-        // Also add as default admin member for Firestore format
-        if (!this.firestoreFields.members) {
-            this.firestoreFields.members = {};
-        }
-        this.firestoreFields.members[userId] = {
-            role: MemberRoles.ADMIN,
-            status: MemberStatuses.ACTIVE,
-            joinedAt: new Date().toISOString(),
-            color: this.createDefaultThemeColor(),
-        };
+        this.group.createdBy = userId;
         return this;
     }
 
     withPermissions(permissions: Partial<GroupPermissions>): this {
-        this.businessFields.permissions = { ...this.businessFields.permissions, ...permissions };
+        this.group.permissions = {
+            ...this.group.permissions,
+            ...permissions,
+        };
+        return this;
+    }
+
+    withPermissionHistory(history: PermissionChangeLog[]): this {
+        this.group.permissionHistory = history.map((entry) => ({
+            ...entry,
+            changes: entry.changes.map((change) => ({ ...change })),
+        }));
+        return this;
+    }
+
+    withInviteLinks(inviteLinks: Record<string, InviteLink>): this {
+        this.group.inviteLinks = Object
+            .entries(inviteLinks)
+            .reduce<Record<string, InviteLink>>((acc, [id, link]) => {
+                acc[id] = { ...link };
+                return acc;
+            }, {});
         return this;
     }
 
     withCreatedAt(timestamp: BuilderTimestamp): this {
-        this.auditFields.createdAt = timestamp;
+        this.group.createdAt = timestampToISOString(timestamp);
         return this;
     }
 
     withUpdatedAt(timestamp: BuilderTimestamp): this {
-        this.auditFields.updatedAt = timestamp;
+        this.group.updatedAt = timestampToISOString(timestamp);
         return this;
     }
 
     withDeletedAt(timestamp: BuilderTimestamp | null): this {
-        this.deletionFields.deletedAt = timestamp;
+        this.group.deletedAt = timestamp ? timestampToISOString(timestamp) : null;
         return this;
     }
 
     withLastActivity(activity: string): this {
-        this.clientFields.lastActivity = activity;
+        this.group.lastActivity = activity;
         return this;
     }
 
-    withBalance(balancesByCurrency: Record<string, any>): this {
-        this.clientFields.balance = { balancesByCurrency };
-        return this;
-    }
-
-    withMembers(members: Record<string, any>): this {
-        this.firestoreFields.members = members;
-        return this;
-    }
-
-    withMemberIds(memberIds: string[]): this {
-        this.firestoreFields.memberIds = memberIds;
-        return this;
-    }
-
-    withoutMemberIds(): this {
-        delete this.firestoreFields.memberIds;
-        return this;
-    }
-
-    /**
-     * Helper method to create theme colors with different patterns for testing
-     */
-    private createDefaultThemeColor(): UserThemeColor {
-        const colors = [
-            { light: '#FF6B6B', dark: '#FF6B6B', name: 'Coral Red' },
-            { light: '#4ECDC4', dark: '#4ECDC4', name: 'Teal' },
-            { light: '#45B7D1', dark: '#45B7D1', name: 'Sky Blue' },
-            { light: '#96CEB4', dark: '#96CEB4', name: 'Mint Green' },
-            { light: '#FFEAA7', dark: '#FFEAA7', name: 'Sunny Yellow' },
-        ];
-
-        const color = randomChoice(colors);
-        return {
-            ...color,
-            pattern: randomChoice(['solid', 'gradient', 'dots']) as any,
-            assignedAt: new Date().toISOString(),
-            colorIndex: Math.floor(Math.random() * 5),
+    withBalance(balancesByCurrency: Record<string, CurrencyBalance>): this {
+        this.group.balance = {
+            balancesByCurrency: Object
+                .entries(balancesByCurrency)
+                .reduce<Record<string, CurrencyBalance>>((acc, [currency, balance]) => {
+                    acc[currency] = { ...balance };
+                    return acc;
+                }, {}),
         };
+        return this;
     }
 
-    /**
-     * Build client-format Group object for API responses
-     */
+    withoutBalance(): this {
+        delete this.group.balance;
+        return this;
+    }
+
+    withoutLastActivity(): this {
+        delete this.group.lastActivity;
+        return this;
+    }
+
     build(): GroupDTO {
-        const result: GroupDTO = {
-            ...this.auditFields,
-            ...this.businessFields,
-            ...this.clientFields,
-            // Convert audit timestamps to ISO strings for client
-            createdAt: timestampToISOString(this.auditFields.createdAt),
-            updatedAt: timestampToISOString(this.auditFields.updatedAt),
-            deletedAt: this.deletionFields.deletedAt ? timestampToISOString(this.deletionFields.deletedAt) : null,
-            // Default client fields if not set
-            balance: this.clientFields.balance || { balancesByCurrency: {} },
-            lastActivity: this.clientFields.lastActivity || '2 hours ago',
-        };
-        return result;
-    }
+        const {
+            balance,
+            permissionHistory,
+            inviteLinks,
+            permissions,
+            ...rest
+        } = this.group;
 
-    /**
-     * Build Firestore-format Group document for database storage
-     * Excludes client-only fields like balance and lastActivity
-     */
-    buildDocument(): Omit<GroupDTO, 'balance' | 'lastActivity'> {
-        const result = {
-            ...this.auditFields,
-            ...this.businessFields,
-            // Convert audit timestamps to ISO strings
-            createdAt: timestampToISOString(this.auditFields.createdAt),
-            updatedAt: timestampToISOString(this.auditFields.updatedAt),
-            deletedAt: this.deletionFields.deletedAt ? timestampToISOString(this.deletionFields.deletedAt) : null,
+        const cloned: GroupDTO = {
+            ...rest,
+            permissions: { ...permissions },
         };
-        return result;
+
+        if (balance) {
+            cloned.balance = {
+                balancesByCurrency: Object
+                    .entries(balance.balancesByCurrency)
+                    .reduce<Record<string, CurrencyBalance>>((acc, [currency, value]) => {
+                        acc[currency] = { ...value };
+                        return acc;
+                    }, {}),
+            };
+        }
+
+        if (this.group.lastActivity !== undefined) {
+            cloned.lastActivity = this.group.lastActivity;
+        }
+
+        if (permissionHistory) {
+            cloned.permissionHistory = permissionHistory.map((entry) => ({
+                ...entry,
+                changes: entry.changes.map((change) => ({ ...change })),
+            }));
+        }
+
+        if (inviteLinks) {
+            cloned.inviteLinks = Object.entries(inviteLinks).reduce<Record<string, InviteLink>>((acc, [id, link]) => {
+                acc[id] = { ...link };
+                return acc;
+            }, {});
+        }
+
+        return cloned;
     }
 
     static groupForUser(userId: UserId): GroupDTOBuilder {

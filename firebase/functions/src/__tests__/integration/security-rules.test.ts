@@ -560,12 +560,17 @@ describe('Firestore Security Rules (Production)', () => {
                     const db = context.firestore();
 
                     // Create a group with empty memberIds
-                    const emptyMembersGroup = new GroupDTOBuilder()
-                        .withName('Empty Members Group')
-                        .withMemberIds([])
-                        .build();
+                    const emptyMembersGroup = {
+                        ...new GroupDTOBuilder()
+                            .withName('Empty Members Group')
+                            .build(),
+                        memberIds: [] as string[],
+                    };
 
-                    await setDoc(doc(db, 'groups', 'empty-members-group'), emptyMembersGroup);
+                    await setDoc(
+                        doc(db, 'groups', 'empty-members-group'),
+                        emptyMembersGroup,
+                    );
                 });
 
             // No one should be able to read a group with empty memberIds
@@ -581,7 +586,6 @@ describe('Firestore Security Rules (Production)', () => {
                     // Create a group without memberIds field
                     const noMembersFieldGroup = new GroupDTOBuilder()
                         .withName('No Members Field Group')
-                        .withoutMemberIds()
                         .build();
 
                     await setDoc(doc(db, 'groups', 'no-members-field'), noMembersFieldGroup);
