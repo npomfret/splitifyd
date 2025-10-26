@@ -66,7 +66,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Navigate to group detail page by ID
      */
-    async navigateToGroup(groupId: GroupId): Promise<void> {
+    async navigateToGroup(groupId: GroupId | string): Promise<void> {
         await this.page.goto(`/groups/${groupId}`);
         await this.waitForNetworkIdle();
     }
@@ -116,7 +116,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Wait for critical parts of the group detail page to load and remain consistent.
      */
-    async waitForPage(groupId: GroupId | string, expectedMemberCount: number): Promise<void> {
+    async waitForPage(groupId: GroupId | string | string, expectedMemberCount: number): Promise<void> {
         const targetPattern = GroupDetailPage.groupDetailUrlPattern(groupId);
 
         await this.expectUrl(targetPattern);
@@ -132,7 +132,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Wait until the browser navigates away from the specified group detail page.
      */
-    async waitForRedirectAwayFromGroup(groupId: GroupId, timeout: number = 5000): Promise<void> {
+    async waitForRedirectAwayFromGroup(groupId: GroupId | string, timeout: number = 5000): Promise<void> {
         await expect(this.page).not.toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId), { timeout });
     }
 
@@ -1073,7 +1073,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Wait for balances section to render and loading indicator (if any) to disappear.
      */
-    async waitForBalancesSection(groupId: GroupId | string, timeout: number = 3000): Promise<void> {
+    async waitForBalancesSection(groupId: GroupId | string | string, timeout: number = 3000): Promise<void> {
         const currentUrl = this.page.url();
         if (!currentUrl.includes(`/groups/${groupId}`)) {
             throw new Error(`waitForBalancesSection called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
@@ -1092,7 +1092,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Utility to ensure a newly created group page is ready for interactions.
      */
-    async ensureNewGroupPageReadyWithOneMember(groupId: GroupId): Promise<void> {
+    async ensureNewGroupPageReadyWithOneMember(groupId: GroupId | string): Promise<void> {
         await this.waitForDomContentLoaded();
         await this.waitForMemberCount(1);
         await this.waitForBalancesSection(groupId);

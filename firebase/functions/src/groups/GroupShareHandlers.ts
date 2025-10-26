@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ComponentBuilder } from '../services/ComponentBuilder';
 import { GroupShareService } from '../services/GroupShareService';
 import { logger } from '../utils/contextual-logger';
 import { ApiError } from '../utils/errors';
@@ -17,7 +17,7 @@ export class GroupShareHandlers {
         }
     }
 
-    static createGroupShareHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
+    static createGroupShareHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const groupShareService = applicationBuilder.buildGroupShareService();
         return new GroupShareHandlers(groupShareService);
     }

@@ -4,6 +4,7 @@ import { MemberRoles } from '@splitifyd/shared';
 import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
+import {toGroupId} from "@splitifyd/shared";
 
 interface GroupTestSetupOptions {
     groupId?: GroupId;
@@ -17,7 +18,7 @@ interface GroupTestSetupResult {
 }
 
 async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTestSetupOptions = {}): Promise<GroupTestSetupResult> {
-    const groupId = options.groupId ?? ('group-display-name-' as GroupId) + user.uid;
+    const groupId = options.groupId ?? toGroupId('group-display-name-' + user.uid);
     const ownerId = options.ownerId ?? 'owner-123';
     let memberDisplayName = options.initialDisplayName ?? 'Current Alias';
 

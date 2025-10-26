@@ -11,6 +11,7 @@ import { GroupsList } from '../components/dashboard/GroupsList';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { DashboardGrid } from '../components/layout/DashboardGrid';
 import { GroupId } from "@splitifyd/shared";
+import {toGroupId} from "@splitifyd/shared";
 
 export function DashboardPage() {
     const { t } = useTranslation();
@@ -18,7 +19,7 @@ export function DashboardPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [shareModalState, setShareModalState] = useState<{ isOpen: boolean; groupId: GroupId; groupName: string; }>({
         isOpen: false,
-        groupId: '',
+        groupId: toGroupId(''),
         groupName: '',
     });
     const showArchived = enhancedGroupsStore.showArchived;
@@ -169,7 +170,7 @@ export function DashboardPage() {
             {/* Share/Invite Group Modal */}
             <ShareGroupModal
                 isOpen={shareModalState.isOpen}
-                onClose={() => setShareModalState({ isOpen: false, groupId: '', groupName: '' })}
+                onClose={() => setShareModalState({ isOpen: false, groupId: toGroupId(''), groupName: '' })}
                 groupId={shareModalState.groupId}
                 groupName={shareModalState.groupName}
             />

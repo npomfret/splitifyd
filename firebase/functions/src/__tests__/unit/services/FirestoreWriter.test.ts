@@ -2,7 +2,7 @@ import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { FirestoreReader } from '../../../services/firestore';
 import type { IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
@@ -24,7 +24,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
         stubAuth = new StubAuthService();
 
         // Create ApplicationBuilder and build FirestoreWriter
-        const applicationBuilder = new ApplicationBuilder(stubAuth, db);
+        const applicationBuilder = new ComponentBuilder(stubAuth, db);
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
     });
 

@@ -4,7 +4,7 @@ import { CreateGroupRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilde
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';
-import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { GroupService } from '../../services/GroupService';
 import { ApiError } from '../../utils/errors';
 import { StubAuthService } from './mocks/StubAuthService';
@@ -13,14 +13,14 @@ describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
     let db: SplitifydFirestoreTestDatabase;
     let stubAuth: StubAuthService;
-    let applicationBuilder: ApplicationBuilder;
+    let applicationBuilder: ComponentBuilder;
 
     beforeEach(() => {
         // Create stub database
         db = new SplitifydFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
-        applicationBuilder = new ApplicationBuilder(stubAuth, db);
+        applicationBuilder = new ComponentBuilder(stubAuth, db);
         groupService = applicationBuilder.buildGroupService();
     });
 

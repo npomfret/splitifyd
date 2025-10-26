@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import { MemberStatuses } from '@splitifyd/shared';
 import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
-import { ActivityFeedItemDTOBuilder, DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { ActivityFeedItemBuilder, DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ListGroupsResponseBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockArchiveGroupApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi, mockUnarchiveGroupApi } from '../../utils/mock-firebase-service';
 
@@ -95,7 +95,7 @@ test.describe('Dashboard group archiving', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemDTOBuilder.forEvent(
+                ActivityFeedItemBuilder.forEvent(
                     'activity-archive-demo-archived',
                     user.uid,
                     group.id,
@@ -153,7 +153,7 @@ test.describe('Dashboard group archiving', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemDTOBuilder.forEvent(
+                ActivityFeedItemBuilder.forEvent(
                     'activity-archive-demo-unarchived',
                     user.uid,
                     group.id,

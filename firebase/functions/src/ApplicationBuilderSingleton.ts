@@ -1,15 +1,15 @@
 // Initialize ApplicationBuilder
 import { getIdentityToolkitConfig } from './client-config';
 import { getAuth, getFirestore } from './firebase';
-import { ApplicationBuilder } from './services/ApplicationBuilder';
+import { ComponentBuilder } from './services/ComponentBuilder';
 
 // Lazy initialization
-let appBuilder: ApplicationBuilder | null = null;
+let appBuilder: ComponentBuilder | null = null;
 
 // Export function to get the initialized ApplicationBuilder
-export function getAppBuilder(): ApplicationBuilder {
+export function getAppBuilder(): ComponentBuilder {
     if (!appBuilder) {
-        appBuilder = ApplicationBuilder.createApplicationBuilder(
+        appBuilder = ComponentBuilder.createApplicationBuilder(
             getFirestore(),
             getAuth(),
             getIdentityToolkitConfig(),

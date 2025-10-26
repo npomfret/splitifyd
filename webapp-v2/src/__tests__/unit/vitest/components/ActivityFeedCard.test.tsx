@@ -42,6 +42,7 @@ vi.mock('@/utils/browser-logger', () => ({
 // Import the mocked store after mocking
 import { activityFeedStore as mockStore } from '@/app/stores/activity-feed-store';
 import { navigationService as mockNavigationService } from '@/services/navigation.service';
+import {toGroupId} from "@splitifyd/shared";
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -110,7 +111,7 @@ function buildItem(id: string, eventType: ActivityFeedEventType | string, overri
     return {
         id,
         userId: 'user-1',
-        groupId: 'group-1',
+        groupId: toGroupId('group-1'),
         groupName: 'Test Group',
         eventType: eventType as any,
         action: EVENT_ACTION_MAP[eventType as ActivityFeedEventType] ?? ActivityFeedActions.UPDATE,

@@ -1,4 +1,4 @@
-export { ActivityFeedItemDTOBuilder } from './ActivityFeedItemDTOBuilder';
+export { ActivityFeedItemBuilder } from './activity/ActivityFeedItemBuilder';
 export { AuthUserRecordBuilder } from './AuthUserRecordBuilder';
 export { ClientUserBuilder } from './ClientUserBuilder';
 export { CommentBuilder } from './CommentBuilder';

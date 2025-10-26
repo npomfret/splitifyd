@@ -11,7 +11,7 @@ import {
 } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
-import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { ComponentBuilder } from '../../services/ComponentBuilder';
 
 async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>, limit: number): Promise<PromiseSettledResult<T>[]> {
     if (operations.length === 0) {
@@ -54,7 +54,7 @@ async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>,
 describe('Concurrent Operations Integration Tests', () => {
     const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
 
-    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), identityToolkit);
+    const applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), identityToolkit);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();

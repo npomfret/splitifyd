@@ -8,6 +8,7 @@ import { ReadonlySignal, signal } from '@preact/signals';
 import { GroupDTO, JoinGroupResponse, MemberStatus } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
+import {toGroupId} from "@splitifyd/shared";
 
 class JoinGroupStore {
     // Private signals - encapsulated within the class
@@ -222,7 +223,7 @@ class JoinGroupStore {
         this.#displayNameUpdateErrorSignal.value = null;
 
         try {
-            await apiClient.updateGroupMemberDisplayName(this.#joinedGroupIdSignal.value, displayName);
+            await apiClient.updateGroupMemberDisplayName(toGroupId(this.#joinedGroupIdSignal.value), displayName);
 
             this.#displayNameConflictSignal.value = false;
             this.#joinSuccessSignal.value = true;

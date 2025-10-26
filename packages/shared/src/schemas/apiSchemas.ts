@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { ActivityFeedActions, ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes, SystemUserRoles } from '../shared-types';
+import { ActivityFeedActions, ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes, SystemUserRoles, toGroupId, UserId } from '../shared-types';
 
 const UserThemeColorSchema = z.object({
     light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
@@ -429,8 +429,8 @@ const ActivityFeedItemDetailsSchema = z.object({
 
 export const ActivityFeedItemSchema = z.object({
     id: z.string(),
-    userId: z.string(),
-    groupId: z.string(),
+    userId: z.string().transform((value) => value as UserId),
+    groupId: z.string().transform((value) => toGroupId(value)),
     groupName: z.string(),
     eventType: ActivityFeedEventTypeSchema,
     action: ActivityFeedActionSchema,

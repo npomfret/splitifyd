@@ -390,7 +390,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Navigate to the add expense page for a group
      */
-    async navigateToAddExpense(groupId: GroupId): Promise<void> {
+    async navigateToAddExpense(groupId: GroupId | string): Promise<void> {
         await this.page.goto(`/groups/${groupId}/add-expense`, { waitUntil: 'domcontentloaded' });
         await this.waitForPageToLoad();
     }

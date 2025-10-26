@@ -7,9 +7,10 @@ import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { useExpenseForm } from '../app/hooks/useExpenseForm';
 import { BaseLayout } from '../components/layout/BaseLayout';
+import { GroupId } from "@splitifyd/shared";
 
 interface AddExpensePageProps {
-    groupId?: string;
+    groupId?: GroupId;
 }
 
 export default function AddExpensePage({ groupId }: AddExpensePageProps) {

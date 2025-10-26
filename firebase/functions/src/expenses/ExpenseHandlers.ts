@@ -6,7 +6,7 @@ import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ComponentBuilder } from '../services/ComponentBuilder';
 import { ExpenseService } from '../services/ExpenseService';
 import { validateCreateExpense, validateExpenseId, validateUpdateExpense } from './validation';
 
@@ -14,7 +14,7 @@ export class ExpenseHandlers {
     constructor(private readonly expenseService: ExpenseService) {
     }
 
-    static createExpenseHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
+    static createExpenseHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const expenseService = applicationBuilder.buildExpenseService();
         return new ExpenseHandlers(expenseService);
     }

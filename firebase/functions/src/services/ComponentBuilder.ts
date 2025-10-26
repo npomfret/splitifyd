@@ -17,7 +17,7 @@ import { SettlementService } from './SettlementService';
 import { UserPolicyService } from './UserPolicyService';
 import { UserService } from './UserService2';
 
-export class ApplicationBuilder {
+export class ComponentBuilder {
     // Base infrastructure - created once
     // Services - created lazily but cached
     private userService?: UserService;
@@ -39,11 +39,7 @@ export class ApplicationBuilder {
         this.firestoreWriter = new FirestoreWriter(db);
     }
 
-    static createApplicationBuilder(
-        firestore: Firestore,
-        auth: Auth,
-        identityToolkit: IdentityToolkitConfig,
-    ) {
+    static createApplicationBuilder(firestore: Firestore, auth: Auth, identityToolkit: IdentityToolkitConfig) {
         // Wrap the Firestore instance with our abstraction layer
         const wrappedDb = createFirestoreDatabase(firestore);
 
@@ -54,7 +50,7 @@ export class ApplicationBuilder {
             true, // enableMetrics
         );
 
-        return new ApplicationBuilder(firebaseAuthService, wrappedDb);
+        return new ComponentBuilder(firebaseAuthService, wrappedDb);
     }
 
     // ========================================================================

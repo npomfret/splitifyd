@@ -4,6 +4,7 @@ import { getRecentAmounts } from '../stores/expense-form-store';
 import { useFormInitialization } from './useFormInitialization';
 import { useFormState } from './useFormState';
 import { useFormSubmission } from './useFormSubmission';
+import {toGroupId} from "@splitifyd/shared";
 
 interface UseExpenseFormOptions {
     groupId: GroupId;
@@ -24,7 +25,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
         sourceExpenseId,
     });
     const formSubmission = useFormSubmission({
-        groupId,
+        groupId: toGroupId(groupId),
         expenseId,
         isEditMode,
         isCopyMode,

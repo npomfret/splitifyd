@@ -13,7 +13,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
-import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { ComponentBuilder } from '../../services/ComponentBuilder';
 
 // NOTE: This integration test suite now focuses exclusively on Firebase-specific features that
 // require the emulator: concurrent operations, optimistic locking, and subcollection cleanup.
@@ -24,7 +24,7 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
     const apiDriver = new ApiDriver();
     const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
-    const applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), identityToolkit);
+    const applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), identityToolkit);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     let users: PooledTestUser[];
 

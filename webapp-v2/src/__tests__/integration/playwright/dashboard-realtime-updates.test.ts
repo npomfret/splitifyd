@@ -1,5 +1,5 @@
 import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
-import { ActivityFeedItemDTOBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
+import { ActivityFeedItemBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
@@ -53,7 +53,7 @@ test.describe('Dashboard Real-time Notifications', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemDTOBuilder.forEvent(
+                ActivityFeedItemBuilder.forEvent(
                     'activity-group-test-update',
                     user.uid,
                     'group-test',
@@ -112,7 +112,7 @@ test.describe('Dashboard Real-time Notifications', () => {
             await mockFirebase.emitActivityFeedItems(
                 user.uid,
                 [
-                    ActivityFeedItemDTOBuilder.forEvent(
+                    ActivityFeedItemBuilder.forEvent(
                         `activity-${i}-group-1`,
                         user.uid,
                         'group-1',
@@ -122,7 +122,7 @@ test.describe('Dashboard Real-time Notifications', () => {
                         'System',
                         {},
                     ).build(),
-                    ActivityFeedItemDTOBuilder.forEvent(
+                    ActivityFeedItemBuilder.forEvent(
                         `activity-${i}-group-2`,
                         user.uid,
                         'group-2',
@@ -164,7 +164,7 @@ test.describe('Dashboard Real-time Notifications', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemDTOBuilder.forEvent(
+                ActivityFeedItemBuilder.forEvent(
                     'activity-valid-baseline',
                     user.uid,
                     'valid-group',
@@ -193,7 +193,7 @@ test.describe('Dashboard Real-time Notifications', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemDTOBuilder.forEvent(
+                ActivityFeedItemBuilder.forEvent(
                     'activity-invalid-group',
                     user.uid,
                     'non-existent-id',

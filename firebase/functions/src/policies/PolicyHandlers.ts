@@ -5,7 +5,7 @@ import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ComponentBuilder } from '../services/ComponentBuilder';
 import { PolicyService } from '../services/PolicyService';
 import { validateCreatePolicy, validatePublishPolicy, validateUpdatePolicy } from './validation';
 
@@ -15,7 +15,7 @@ export class PolicyHandlers {
     ) {
     }
 
-    static createPolicyHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
+    static createPolicyHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const policyService = applicationBuilder.buildPolicyService();
         return new PolicyHandlers(policyService);
     }

@@ -4,7 +4,7 @@ import { navigationService } from '@/services/navigation.service';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { batch, useComputed, useSignal } from '@preact/signals';
-import { ExpenseDTO, GroupDTO, GroupMember } from '@splitifyd/shared';
+import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
@@ -15,8 +15,8 @@ import { logError } from '../utils/browser-logger';
 import { formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime } from '../utils/dateUtils';
 
 interface ExpenseDetailPageProps {
-    groupId?: string;
-    expenseId?: string;
+    groupId?: GroupId;
+    expenseId?: ExpenseId;
 }
 
 // Helper function to truncate description for display

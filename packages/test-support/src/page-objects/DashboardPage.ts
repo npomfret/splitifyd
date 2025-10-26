@@ -679,10 +679,7 @@ export class DashboardPage extends BasePage {
     /**
      * Create a group, optionally invite additional dashboard sessions, and wait for all to sync.
      */
-    async createMultiUserGroup<T extends GroupDetailPage = GroupDetailPage>(
-        optionsOrBuilder: CreateGroupFormData | CreateGroupFormDataBuilder = new CreateGroupFormDataBuilder(),
-        ...dashboardPages: DashboardPage[]
-    ): Promise<T[]> {
+    async createMultiUserGroup<T extends GroupDetailPage = GroupDetailPage>(optionsOrBuilder: CreateGroupFormData | CreateGroupFormDataBuilder = new CreateGroupFormDataBuilder(), ...dashboardPages: DashboardPage[]): Promise<T[]> {
         const options = optionsOrBuilder instanceof CreateGroupFormDataBuilder
             ? optionsOrBuilder.build()
             : optionsOrBuilder;
@@ -691,7 +688,7 @@ export class DashboardPage extends BasePage {
         const groupDescription = options.description ?? `descr for ${groupName}`;
 
         const ownerGroupDetailPage = await this.createGroupAndNavigate<T>(groupName, groupDescription, {
-            expectedMemberCount: 1,
+            expectedMemberCount: 1,/* all groups start with 1 member */
         });
         const groupId = ownerGroupDetailPage.inferGroupId();
 

@@ -45,7 +45,7 @@ import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
 import { PolicyHandlers } from '../../policies/PolicyHandlers';
 import { getCurrentPolicy } from '../../policies/public-handlers';
 import { UserHandlers as PolicyUserHandlers } from '../../policies/UserHandlers';
-import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
@@ -66,7 +66,7 @@ export class AppDriver {
     private db = new SplitifydFirestoreTestDatabase();
     private authService = new StubAuthService();
 
-    private applicationBuilder = new ApplicationBuilder(this.authService, this.db);
+    private applicationBuilder = new ComponentBuilder(this.authService, this.db);
     private settlementHandlers = new SettlementHandlers(this.applicationBuilder.buildSettlementService());
     private groupHandlers = new GroupHandlers(this.applicationBuilder.buildGroupService(), new FirestoreWriter(this.db));
     private groupShareHandlers = new GroupShareHandlers(this.applicationBuilder.buildGroupShareService());

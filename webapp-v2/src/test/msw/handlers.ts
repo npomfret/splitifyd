@@ -87,7 +87,7 @@ export function groupsMetadataHandler(
 }
 
 export function groupDetailHandler(
-    groupId: GroupId,
+    groupId: GroupId | string,
     response: unknown,
     options: HandlerOptions = {},
 ): SerializedMswHandler {
@@ -95,7 +95,7 @@ export function groupDetailHandler(
 }
 
 export function groupCommentsHandler(
-    groupId: GroupId,
+    groupId: GroupId | string,
     response: unknown,
     options: HandlerOptions = {},
 ): SerializedMswHandler {

@@ -86,7 +86,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     private currentUserId: string | null = null;
 
     // Current group tracking for core functionality
-    private currentGroupId: string | null = null;
+    private currentGroupId: GroupId | null = null;
     private expenseCursor: string | null = null;
     private settlementCursor: string | null = null;
 

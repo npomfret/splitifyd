@@ -3,7 +3,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ComponentBuilder } from '../services/ComponentBuilder';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { GroupService } from '../services/GroupService';
 import { Errors } from '../utils/errors';
@@ -15,7 +15,7 @@ export class GroupSecurityHandlers {
         private readonly groupMemberService: GroupMemberService,
     ) {}
 
-    static createGroupSecurityHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
+    static createGroupSecurityHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const groupService = applicationBuilder.buildGroupService();
         const groupMemberService = applicationBuilder.buildGroupMemberService();
         return new GroupSecurityHandlers(groupService, groupMemberService);

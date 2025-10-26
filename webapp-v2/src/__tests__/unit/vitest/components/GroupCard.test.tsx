@@ -1,5 +1,6 @@
 import { GroupCard } from '@/components/dashboard/GroupCard';
 import type { GroupDTO } from '@splitifyd/shared';
+import { GroupDTOBuilder } from '@splitifyd/test-support';
 import { render, screen } from '@testing-library/preact';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -28,27 +29,28 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-const baseGroup: GroupDTO = {
-    id: 'group-1',
-    name: 'Housemates',
-    description: 'Monthly expenses',
-    createdBy: 'user-1',
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z',
-    permissions: {
+const buildBaseGroup = (): GroupDTO => new GroupDTOBuilder()
+    .withId('group-1')
+    .withName('Housemates')
+    .withDescription('Monthly expenses')
+    .withCreatedBy('user-1')
+    .withCreatedAt('2024-01-01T00:00:00.000Z')
+    .withUpdatedAt('2024-01-01T00:00:00.000Z')
+    .withPermissions({
         expenseEditing: 'anyone',
         expenseDeletion: 'admin-only',
         memberInvitation: 'anyone',
         memberApproval: 'automatic',
         settingsManagement: 'admin-only',
-    },
-    deletedAt: null,
-    balance: undefined,
-    lastActivity: '2 days ago',
-};
+    })
+    .withDeletedAt(null)
+    .withBalance({})
+    .withLastActivity('2 days ago')
+    .build();
 
 const renderGroupCard = (groupOverrides: Partial<GroupDTO>, extraProps: Partial<Parameters<typeof GroupCard>[0]> = {}) => {
-    const group = {
+    const baseGroup = buildBaseGroup();
+    const group: GroupDTO = {
         ...baseGroup,
         ...groupOverrides,
     };

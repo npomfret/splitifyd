@@ -3,7 +3,7 @@ import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { Timestamp as FirestoreTimestamp } from '../../../firestore-wrapper';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { StubAuthService } from '../mocks/StubAuthService';
 
@@ -13,7 +13,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
     beforeEach(() => {
         db = new SplitifydFirestoreTestDatabase();
-        const applicationBuilder = new ApplicationBuilder(new StubAuthService(), db);
+        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db);
         expenseService = applicationBuilder.buildExpenseService();
     });
 

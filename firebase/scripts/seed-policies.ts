@@ -36,7 +36,7 @@ import { PolicyId } from '@splitifyd/shared';
 import { getIdentityToolkitConfig } from '../functions/src/client-config';
 import { FirestoreCollections } from '../functions/src/constants';
 import { getAuth, getFirestore } from '../functions/src/firebase';
-import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder';
+import { ComponentBuilder } from '../functions/src/services/ComponentBuilder';
 
 type IdentityToolkit = ReturnType<typeof getIdentityToolkitConfig>;
 let identityToolkitConfig: IdentityToolkit;
@@ -54,7 +54,7 @@ if (env.isEmulator) {
 // Get Firebase instances
 const firestoreDb = getFirestore();
 
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestoreDb, getAuth(), identityToolkitConfig);
+const applicationBuilder = ComponentBuilder.createApplicationBuilder(firestoreDb, getAuth(), identityToolkitConfig);
 const policyService = applicationBuilder.buildPolicyService();
 
 /**

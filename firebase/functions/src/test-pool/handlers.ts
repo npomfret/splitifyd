@@ -3,12 +3,12 @@ import type { Request, Response } from 'express';
 import { getIdentityToolkitConfig } from '../client-config';
 import { getAuth, getFirestore, isEmulator } from '../firebase';
 import { logger } from '../logger';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ComponentBuilder } from '../services/ComponentBuilder';
 import { TestUserPoolService } from './TestUserPoolService';
 
 // todo: use the singleton
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
+const applicationBuilder = ComponentBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
 const firestoreWriter = applicationBuilder.buildFirestoreWriter();
 const userService = applicationBuilder.buildUserService();
 const authService = applicationBuilder.buildAuthService();

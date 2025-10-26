@@ -3,7 +3,7 @@ import { DisplayName } from '@splitifyd/shared';
 import { PasswordChangeRequestBuilder, ThemeBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { UserService } from '../../../services/UserService2';
 import { ApiError } from '../../../utils/errors';
 import { initializeI18n } from '../../../utils/i18n';
@@ -27,7 +27,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         stubAuth = new StubAuthService();
 
         // Create UserService via ApplicationBuilder
-        userService = new ApplicationBuilder(stubAuth, db).buildUserService();
+        userService = new ComponentBuilder(stubAuth, db).buildUserService();
 
         // Clear all stub data
         stubAuth.clear();
@@ -434,7 +434,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         const testUserId = 'test-user-id';
 
         beforeEach(() => {
-            validationUserService = new ApplicationBuilder(stubAuth, db).buildUserService();
+            validationUserService = new ComponentBuilder(stubAuth, db).buildUserService();
 
             const email = `${testUserId}@example.com`;
             const displayName = 'Validation User';

@@ -7,7 +7,7 @@ import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { ActivityFeedService } from '../services/ActivityFeedService';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ComponentBuilder } from '../services/ComponentBuilder';
 
 interface ActivityFeedQuery {
     limit?: number;
@@ -23,7 +23,7 @@ interface ActivityFeedResponse {
 export class ActivityFeedHandlers {
     constructor(private readonly activityFeedService: ActivityFeedService) {}
 
-    static createActivityFeedHandlers(applicationBuilder: ApplicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
+    static createActivityFeedHandlers(applicationBuilder: ComponentBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const activityFeedService = applicationBuilder.buildActivityFeedService();
         return new ActivityFeedHandlers(activityFeedService);
     }

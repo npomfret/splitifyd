@@ -3,7 +3,7 @@ import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { SettlementService } from '../../../services/SettlementService';
 import { StubAuthService } from '../mocks/StubAuthService';
 import {toGroupId} from "@splitifyd/shared";
@@ -12,14 +12,14 @@ describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
     let db: SplitifydFirestoreTestDatabase;
     let stubAuth: StubAuthService;
-    let applicationBuilder: ApplicationBuilder;
+    let applicationBuilder: ComponentBuilder;
 
     beforeEach(() => {
         // Create stub database
         db = new SplitifydFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
-        applicationBuilder = new ApplicationBuilder(stubAuth, db);
+        applicationBuilder = new ComponentBuilder(stubAuth, db);
         settlementService = applicationBuilder.buildSettlementService();
     });
 

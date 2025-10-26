@@ -5,7 +5,7 @@ import { validateUserAuth } from '../auth/utils';
 import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ComponentBuilder } from '../services/ComponentBuilder';
 import { SettlementService } from '../services/SettlementService';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { logger } from '../utils/contextual-logger';
@@ -17,7 +17,7 @@ export class SettlementHandlers {
     constructor(private readonly settlementService: SettlementService) {
     }
 
-    static createSettlementHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
+    static createSettlementHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const settlementService = applicationBuilder.buildSettlementService();
         return new SettlementHandlers(settlementService);
     }

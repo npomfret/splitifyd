@@ -97,7 +97,7 @@ export class ExpenseDetailPage extends BasePage {
     /**
      * Navigate to a specific expense detail page
      */
-    async navigate(groupId: GroupId, expenseId: ExpenseId): Promise<void> {
+    async navigate(groupId: GroupId | string, expenseId: ExpenseId): Promise<void> {
         await this.page.goto(`/groups/${groupId}/expenses/${expenseId}`);
         await this.waitForDomContentLoaded();
     }

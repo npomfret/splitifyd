@@ -6,7 +6,7 @@ import {
     HeaderPage,
     ListGroupsResponseBuilder,
     ThemeBuilder,
-    ActivityFeedItemDTOBuilder,
+    ActivityFeedItemBuilder,
 } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';
@@ -170,7 +170,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemDTOBuilder.memberLeft(
+                ActivityFeedItemBuilder.memberLeft(
                     'activity-group-to-remove',
                     user.uid,
                     'group-to-remove',
@@ -235,7 +235,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemDTOBuilder.memberLeft(
+                ActivityFeedItemBuilder.memberLeft(
                     'activity-group-to-delete',
                     user.uid,
                     'group-to-delete',
@@ -293,7 +293,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemDTOBuilder.memberLeft(
+                ActivityFeedItemBuilder.memberLeft(
                     'activity-only-group',
                     user.uid,
                     'only-group',
@@ -362,7 +362,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemDTOBuilder.memberLeft(
+                ActivityFeedItemBuilder.memberLeft(
                     'activity-group-1-left',
                     user.uid,
                     'group-1',
@@ -371,7 +371,7 @@ test.describe('Dashboard Group Removal and Deletion', () => {
                     user.displayName ?? 'You',
                     user.uid,
                 ).build(),
-                ActivityFeedItemDTOBuilder.memberLeft(
+                ActivityFeedItemBuilder.memberLeft(
                     'activity-group-2-left',
                     user.uid,
                     'group-2',

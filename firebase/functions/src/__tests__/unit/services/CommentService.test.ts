@@ -5,7 +5,7 @@ import { AuthUserRecordBuilder, ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberD
 import { beforeEach, describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery, validateTargetId } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { CommentService } from '../../../services/CommentService';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -19,7 +19,7 @@ describe('CommentService - Consolidated Tests', () => {
         db = new SplitifydFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
-        const applicationBuilder = new ApplicationBuilder(stubAuth, db);
+        const applicationBuilder = new ComponentBuilder(stubAuth, db);
 
         commentService = applicationBuilder.buildCommentService();
 

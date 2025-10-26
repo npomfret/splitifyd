@@ -1,5 +1,5 @@
 import {
-    ActivityFeedItemDTOBuilder,
+    ActivityFeedItemBuilder,
     CommentBuilder,
     DashboardPage,
     ExpenseDTOBuilder,
@@ -38,8 +38,8 @@ test.describe('Activity Feed - Display & Content', () => {
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('Test Group').build();
         const activityItems = [
-            ActivityFeedItemDTOBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Lunch').build(),
-            ActivityFeedItemDTOBuilder.memberJoined('item-2', user.uid, 'group-1', 'Test Group', 'Bob', 'Charlie').build(),
+            ActivityFeedItemBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Lunch').build(),
+            ActivityFeedItemBuilder.memberJoined('item-2', user.uid, 'group-1', 'Test Group', 'Bob', 'Charlie').build(),
         ];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
@@ -73,7 +73,7 @@ test.describe('Activity Feed - Display & Content', () => {
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('Test Group').build();
         const activityItems = [
-            ActivityFeedItemDTOBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', user.uid, 'My Expense').withActorId(user.uid).build(),
+            ActivityFeedItemBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', user.uid, 'My Expense').withActorId(user.uid).build(),
         ];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
@@ -90,7 +90,7 @@ test.describe('Activity Feed - Event Types', () => {
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('Test Group').build();
-        const activityItems = [ActivityFeedItemDTOBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Dinner').build()];
+        const activityItems = [ActivityFeedItemBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Dinner').build()];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
         await mockActivityFeedApi(page, activityItems);
@@ -104,7 +104,7 @@ test.describe('Activity Feed - Event Types', () => {
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('Test Group').build();
-        const activityItems = [ActivityFeedItemDTOBuilder.memberJoined('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Bob').build()];
+        const activityItems = [ActivityFeedItemBuilder.memberJoined('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Bob').build()];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
         await mockActivityFeedApi(page, activityItems);
@@ -118,7 +118,7 @@ test.describe('Activity Feed - Event Types', () => {
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('Test Group').build();
-        const activityItems = [ActivityFeedItemDTOBuilder.commentAdded('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Looks good!', 'Groceries').build()];
+        const activityItems = [ActivityFeedItemBuilder.commentAdded('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Looks good!', 'Groceries').build()];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
         await mockActivityFeedApi(page, activityItems);
@@ -165,7 +165,7 @@ test.describe('Activity Feed - Error Handling', () => {
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('Test Group').build();
-        const activityItems = [ActivityFeedItemDTOBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Lunch').build()];
+        const activityItems = [ActivityFeedItemBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Lunch').build()];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
@@ -203,7 +203,7 @@ test.describe('Activity Feed - Pagination', () => {
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('Test Group').build();
-        const activityItems = [ActivityFeedItemDTOBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Lunch').build()];
+        const activityItems = [ActivityFeedItemBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Lunch').build()];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
@@ -245,8 +245,8 @@ test.describe('Activity Feed - Pagination', () => {
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('Test Group').build();
-        const firstPageItems = [ActivityFeedItemDTOBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'First').build()];
-        const secondPageItems = [ActivityFeedItemDTOBuilder.expenseCreated('item-2', user.uid, 'group-1', 'Test Group', 'Bob', 'Second').build()];
+        const firstPageItems = [ActivityFeedItemBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'First').build()];
+        const secondPageItems = [ActivityFeedItemBuilder.expenseCreated('item-2', user.uid, 'group-1', 'Test Group', 'Bob', 'Second').build()];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
 
@@ -291,7 +291,7 @@ test.describe('Activity Feed - Pagination', () => {
         const dashboardPage = new DashboardPage(page);
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId('group-1').withName('Test Group').build();
-        const activityItems = [ActivityFeedItemDTOBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Lunch').build()];
+        const activityItems = [ActivityFeedItemBuilder.expenseCreated('item-1', user.uid, 'group-1', 'Test Group', 'Alice', 'Lunch').build()];
 
         await mockGroupsApi(page, ListGroupsResponseBuilder.responseWithMetadata([group], 1).build());
         await mockActivityFeedApi(page, activityItems);
@@ -316,7 +316,7 @@ test.describe('Activity Feed - Navigation', () => {
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId(groupId).withName(groupName).build();
 
-        const activityItem = ActivityFeedItemDTOBuilder.expenseCreated(activityId, user.uid, groupId, groupName, actorName, expenseDescription).build();
+        const activityItem = ActivityFeedItemBuilder.expenseCreated(activityId, user.uid, groupId, groupName, actorName, expenseDescription).build();
         const expenseId = activityItem.details?.expenseId!;
 
         const actorMember = new GroupMemberBuilder()
@@ -382,7 +382,7 @@ test.describe('Activity Feed - Navigation', () => {
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId(groupId).withName(groupName).build();
 
-        const activityItem = ActivityFeedItemDTOBuilder.commentAdded(activityId, user.uid, groupId, groupName, actorName, commentPreview).build();
+        const activityItem = ActivityFeedItemBuilder.commentAdded(activityId, user.uid, groupId, groupName, actorName, commentPreview).build();
 
         const currentUserMember = new GroupMemberBuilder()
             .withUid(user.uid)
@@ -457,7 +457,7 @@ test.describe('Activity Feed - Navigation', () => {
 
         const group = GroupDTOBuilder.groupForUser(user.uid).withId(groupId).withName(groupName).build();
 
-        const activityItem = ActivityFeedItemDTOBuilder
+        const activityItem = ActivityFeedItemBuilder
             .settlementCreated(activityId, user.uid, groupId, groupName, actorName, settlementDescription)
             .build();
 

@@ -4,6 +4,7 @@ import { DisplayName } from '@splitifyd/shared';
 import { GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementFormPage, ThemeBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
+import {toGroupId} from "@splitifyd/shared";
 
 type MemberSeed = {
     uid: string;
@@ -56,7 +57,7 @@ async function openSettlementFormForTest(
 
 test.describe('Settlement Form Validation', () => {
     test('should display symbol and code in currency selector button', async ({ authenticatedPage }) => {
-        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, 'test-group-currency-display');
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-currency-display'));
 
         await settlementFormPage.selectCurrency('USD');
         await settlementFormPage.expectCurrencySelectionDisplays('$', 'USD');
@@ -66,12 +67,12 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should keep submit button disabled with only payer pre-selected', async ({ authenticatedPage }) => {
-        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, 'test-group-default');
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-default'));
         await settlementFormPage.expectSubmitDisabled();
     });
 
     test('should keep submit button disabled without payee selection', async ({ authenticatedPage }) => {
-        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, 'test-group-no-payee');
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-no-payee'));
 
         await settlementFormPage.fillAmount('50.00');
         await settlementFormPage.selectCurrency('USD');
@@ -80,7 +81,7 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should keep submit button disabled without amount', async ({ authenticatedPage }) => {
-        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, 'test-group-no-amount');
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-no-amount'));
 
         await settlementFormPage.selectCurrency('USD');
         await settlementFormPage.selectPayee('User 2');
@@ -89,7 +90,7 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should keep submit button disabled without currency', async ({ authenticatedPage }) => {
-        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, 'test-group-no-currency');
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-no-currency'));
 
         await settlementFormPage.selectPayee('User 2');
 
@@ -97,7 +98,7 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should enable submit button when all fields are filled', async ({ authenticatedPage }) => {
-        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, 'test-group-validation');
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-validation'));
 
         await settlementFormPage.expectSubmitDisabled();
 
@@ -119,7 +120,7 @@ test.describe('Settlement Form Validation', () => {
     // but cannot be reached through normal UI interaction.
 
     test('should show validation error when amount is zero', async ({ authenticatedPage }) => {
-        const { settlementFormPage, page } = await openSettlementFormForTest(authenticatedPage, 'test-group-zero-amount');
+        const { settlementFormPage, page } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-zero-amount'));
 
         await settlementFormPage.selectCurrency('USD');
         await settlementFormPage.selectPayee('User 2');
@@ -130,7 +131,7 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should show validation error when amount exceeds maximum', async ({ authenticatedPage }) => {
-        const { settlementFormPage, page } = await openSettlementFormForTest(authenticatedPage, 'test-group-amount-too-large');
+        const { settlementFormPage, page } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-amount-too-large'));
 
         await settlementFormPage.selectCurrency('USD');
         await settlementFormPage.selectPayee('User 2');
@@ -141,7 +142,7 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should show validation error when date is in the future', async ({ authenticatedPage }) => {
-        const { settlementFormPage, page } = await openSettlementFormForTest(authenticatedPage, 'test-group-future-date');
+        const { settlementFormPage, page } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-future-date'));
 
         await settlementFormPage.selectCurrency('USD');
         await settlementFormPage.selectPayee('User 2');
@@ -154,7 +155,7 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should keep submit button disabled when amount precision exceeds currency limit', async ({ authenticatedPage }) => {
-        const { settlementFormPage, page } = await openSettlementFormForTest(authenticatedPage, 'test-group-precision');
+        const { settlementFormPage, page } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-precision'));
 
         await settlementFormPage.selectCurrency('USD');
         await settlementFormPage.selectPayee('User 2');
@@ -173,7 +174,7 @@ test.describe('Settlement Form Validation', () => {
     });
 
     test('should close modal when close button (X) is clicked', async ({ authenticatedPage }) => {
-        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, 'test-group-close');
+        const { settlementFormPage } = await openSettlementFormForTest(authenticatedPage, toGroupId('test-group-close'));
 
         await settlementFormPage.clickCloseButton();
 

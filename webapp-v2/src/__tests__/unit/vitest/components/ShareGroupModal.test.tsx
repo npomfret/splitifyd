@@ -32,6 +32,7 @@ vi.mock('@/utils/dateUtils.ts', () => ({
 }));
 
 import { apiClient } from '@/app/apiClient';
+import {toGroupId} from "@splitifyd/shared";
 
 const mockedApiClient = apiClient as unknown as {
     generateShareLink: Mock;
@@ -61,7 +62,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Design Guild'
             />,
         );
@@ -94,7 +95,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Design Guild'
             />,
         );
@@ -107,7 +108,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-2'
+                groupId={toGroupId('group-2')}
                 groupName='Product Crew'
             />,
         );
@@ -137,7 +138,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Design Guild'
             />,
         );
@@ -184,7 +185,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Test Group'
             />,
         );
@@ -216,7 +217,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Test Group'
             />,
         );
@@ -244,7 +245,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Test Group'
             />,
         );
@@ -272,7 +273,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={onClose}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Test Group'
             />,
         );
@@ -295,7 +296,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={onClose}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Test Group'
             />,
         );
@@ -316,7 +317,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Test Group'
             />,
         );
@@ -336,7 +337,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Test Group'
             />,
         );
@@ -365,7 +366,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Test Group'
             />,
         );
@@ -378,7 +379,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={false}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Test Group'
             />,
         );
@@ -391,7 +392,7 @@ describe('ShareGroupModal', () => {
             <ShareGroupModal
                 isOpen={true}
                 onClose={() => {}}
-                groupId='group-1'
+                groupId={toGroupId('group-1')}
                 groupName='Test Group'
             />,
         );

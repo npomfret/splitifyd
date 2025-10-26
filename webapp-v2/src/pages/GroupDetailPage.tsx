@@ -9,7 +9,7 @@ import { navigationService } from '@/services/navigation.service';
 import { permissionsStore } from '@/stores/permissions-store.ts';
 import { BanknotesIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
-import type { SettlementWithMembers } from '@splitifyd/shared';
+import type {GroupId, SettlementWithMembers } from '@splitifyd/shared';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +22,7 @@ import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
 import { logError, logInfo, logWarning } from '../utils/browser-logger';
 
 interface GroupDetailPageProps {
-    id?: string;
+    id?: GroupId;
 }
 
 export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {

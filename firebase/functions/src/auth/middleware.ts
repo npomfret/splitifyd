@@ -5,11 +5,11 @@ import { AUTH } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ComponentBuilder } from '../services/ComponentBuilder';
 import { Errors, sendError } from '../utils/errors';
 
 const firestore = getFirestore();
-const applicationBuilder = ApplicationBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
+const applicationBuilder = ComponentBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const authService = applicationBuilder.buildAuthService();
 

@@ -63,7 +63,7 @@ export class SettlementFormPage extends BasePage {
         return this.getModal().locator('button[aria-label]').first();
     }
 
-    async navigateAndOpen(groupId: GroupId, options?: ReadyOptions): Promise<void> {
+    async navigateAndOpen(groupId: GroupId | string, options?: ReadyOptions): Promise<void> {
         await this.page.goto(`/groups/${groupId}`);
         const openButton = this.page.getByRole('button', { name: /settle up/i });
         await expect(openButton).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });

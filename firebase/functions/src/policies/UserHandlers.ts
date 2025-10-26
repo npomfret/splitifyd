@@ -3,7 +3,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { ComponentBuilder } from '../services/ComponentBuilder';
 import { UserPolicyService } from '../services/UserPolicyService';
 import { ApiError } from '../utils/errors';
 import { validateAcceptMultiplePolicies } from './validation';
@@ -12,7 +12,7 @@ export class UserHandlers {
     constructor(private readonly userPolicyService: UserPolicyService) {
     }
 
-    static createUserHandlers(applicationBuilder = ApplicationBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
+    static createUserHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const userPolicyService = applicationBuilder.buildUserPolicyService();
         return new UserHandlers(userPolicyService);
     }
