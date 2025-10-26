@@ -140,7 +140,7 @@ export class AppDriver {
 
     async getGroupFullDetails(
         userId1: UserId,
-        groupId: GroupId,
+        groupId: GroupId | string,
         options: {
             expenseLimit?: number;
             expenseCursor?: string;
@@ -189,7 +189,7 @@ export class AppDriver {
         return (res as any).getJson() as GroupDTO;
     }
 
-    async generateShareableLink(userId1: UserId, groupId: GroupId, expiresAt?: string): Promise<ShareLinkResponse> {
+    async generateShareableLink(userId1: UserId, groupId: GroupId | string, expiresAt?: string): Promise<ShareLinkResponse> {
         const body: Record<string, unknown> = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;
@@ -221,7 +221,7 @@ export class AppDriver {
         return (res as any).getJson() as PreviewGroupResponse;
     }
 
-    async updateGroup(userId: UserId, groupId: GroupId, updates: Partial<UpdateGroupRequest>) {
+    async updateGroup(userId: UserId, groupId: GroupId | string, updates: Partial<UpdateGroupRequest>) {
         const req = createStubRequest(userId, updates, { id: groupId });
         const res = createStubResponse();
 
@@ -230,7 +230,7 @@ export class AppDriver {
         return (res as any).getJson() as GroupDTO;
     }
 
-    async deleteGroup(userId: UserId, groupId: GroupId) {
+    async deleteGroup(userId: UserId, groupId: GroupId | string) {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
@@ -239,22 +239,22 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async getGroup(userId: UserId, groupId: GroupId): Promise<GroupDTO> {
+    async getGroup(userId: UserId, groupId: GroupId | string): Promise<GroupDTO> {
         const details = await this.getGroupFullDetails(userId, groupId);
         return details.group;
     }
 
-    async getGroupBalances(userId: UserId, groupId: GroupId) {
+    async getGroupBalances(userId: UserId, groupId: GroupId | string) {
         const details = await this.getGroupFullDetails(userId, groupId);
         return details.balances;
     }
 
-    async getGroupExpenses(userId: UserId, groupId: GroupId, options?: { expenseLimit?: number; expenseCursor?: string; }) {
+    async getGroupExpenses(userId: UserId, groupId: GroupId | string, options?: { expenseLimit?: number; expenseCursor?: string; }) {
         const details = await this.getGroupFullDetails(userId, groupId, options);
         return details.expenses;
     }
 
-    async leaveGroup(userId: UserId, groupId: GroupId): Promise<MessageResponse> {
+    async leaveGroup(userId: UserId, groupId: GroupId | string): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
@@ -263,7 +263,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async removeGroupMember(userId: UserId, groupId: GroupId, memberId: UserId): Promise<MessageResponse> {
+    async removeGroupMember(userId: UserId, groupId: GroupId | string, memberId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId, memberId });
         const res = createStubResponse();
 
@@ -272,7 +272,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async archiveGroupForUser(userId: UserId, groupId: GroupId): Promise<MessageResponse> {
+    async archiveGroupForUser(userId: UserId, groupId: GroupId | string): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
@@ -281,7 +281,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async unarchiveGroupForUser(userId: UserId, groupId: GroupId): Promise<MessageResponse> {
+    async unarchiveGroupForUser(userId: UserId, groupId: GroupId | string): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = createStubResponse();
 
@@ -290,7 +290,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async updateGroupMemberDisplayName(userId: UserId, groupId: GroupId, displayName: DisplayName): Promise<MessageResponse> {
+    async updateGroupMemberDisplayName(userId: UserId, groupId: GroupId | string, displayName: DisplayName): Promise<MessageResponse> {
         const req = createStubRequest(userId, { displayName }, { id: groupId });
         const res = createStubResponse();
 
@@ -369,7 +369,7 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
-    async getSettlement(userId: UserId, groupId: GroupId, settlementId: SettlementId): Promise<SettlementWithMembers> {
+    async getSettlement(userId: UserId, groupId: GroupId | string, settlementId: SettlementId): Promise<SettlementWithMembers> {
         let fullDetails;
 
         try {
@@ -405,7 +405,7 @@ export class AppDriver {
         return settlement;
     }
 
-    async createGroupComment(userId: UserId, groupId: GroupId, text: string): Promise<CommentDTO> {
+    async createGroupComment(userId: UserId, groupId: GroupId | string, text: string): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { groupId });
         req.path = `/groups/${groupId}/comments`;
         const res = createStubResponse();
@@ -417,7 +417,7 @@ export class AppDriver {
 
     async listGroupComments(
         userId: UserId,
-        groupId: GroupId,
+        groupId: GroupId | string,
         options: { cursor?: string; limit?: number; } = {},
     ): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { groupId });
@@ -584,7 +584,7 @@ export class AppDriver {
 
     async expectNotificationUpdate(
         userId: UserId,
-        groupId: GroupId,
+        groupId: GroupId | string,
         expectedChanges: {
             transactionChangeCount?: number;
             balanceChangeCount?: number;
@@ -636,7 +636,7 @@ export class AppDriver {
     }
 
     // convenience function - not a public interface method
-    async addMembersToGroup(groupId: GroupId, ownerUserId: string, memberUserIds: string[]) {
+    async addMembersToGroup(groupId: GroupId | string, ownerUserId: string, memberUserIds: string[]) {
         const shareLink = await this.generateShareableLink(ownerUserId, groupId);
         for (const userId of memberUserIds) {
             await this.joinGroupByLink(userId, shareLink.linkId);

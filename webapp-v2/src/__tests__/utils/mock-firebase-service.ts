@@ -305,7 +305,7 @@ export class MockFirebase {
         // Detect removed groups
         const removedGroups = Array.from(previousGroups).filter(groupId => !currentGroups.has(groupId));
 
-        const events: Array<{ groupId: GroupId; type: 'transaction' | 'balance' | 'group' | 'comment' | 'member-left'; }> = [];
+        const events: Array<{ groupId: GroupId | string; type: 'transaction' | 'balance' | 'group' | 'comment' | 'member-left'; }> = [];
 
         // Generate member-left events for removed groups
         for (const groupId of removedGroups) {
@@ -538,7 +538,7 @@ export async function mockApiFailure(
  */
 export async function mockGroupDetailApi(
     page: Page,
-    groupId: GroupId,
+    groupId: GroupId | string,
     group: any,
     options: { delayMs?: number; status?: number; once?: boolean; } = {},
 ): Promise<void> {
@@ -560,7 +560,7 @@ export async function mockGroupDetailApi(
  */
 export async function mockGroupCommentsApi(
     page: Page,
-    groupId: GroupId,
+    groupId: GroupId | string,
     comments: any[] = [],
     options: { delayMs?: number; } = {},
 ): Promise<void> {
@@ -640,7 +640,7 @@ export async function mockCreateGroupApi(
 
 export async function mockUpdateGroupDisplayNameApi(
     page: Page,
-    groupId: GroupId,
+    groupId: GroupId | string,
     response: any,
     options: { delayMs?: number; status?: number; once?: boolean; bodyMatcher?: SerializedBodyMatcher; } = {},
 ): Promise<void> {
@@ -665,7 +665,7 @@ export async function mockUpdateGroupDisplayNameApi(
  */
 export async function mockGenerateShareLinkApi(
     page: Page,
-    groupId: GroupId,
+    groupId: GroupId | string,
     shareToken: string = 'test-share-token-123',
     options: { delayMs?: number; expiresAt?: string; } = {},
 ): Promise<void> {
@@ -693,7 +693,7 @@ export async function mockGenerateShareLinkApi(
 
 export async function mockArchiveGroupApi(
     page: Page,
-    groupId: GroupId,
+    groupId: GroupId | string,
     response: MessageResponse = { message: 'Group archived successfully' },
     options: { delayMs?: number; status?: number; once?: boolean; } = {},
 ): Promise<void> {
@@ -711,7 +711,7 @@ export async function mockArchiveGroupApi(
 
 export async function mockUnarchiveGroupApi(
     page: Page,
-    groupId: GroupId,
+    groupId: GroupId | string,
     response: MessageResponse = { message: 'Group unarchived successfully' },
     options: { delayMs?: number; status?: number; once?: boolean; } = {},
 ): Promise<void> {
@@ -771,7 +771,7 @@ export async function mockJoinGroupApi(
 
 export async function mockPendingMembersApi(
     page: Page,
-    groupId: GroupId,
+    groupId: GroupId | string,
     members: any[] = [],
     options: { delayMs?: number; } = {},
 ): Promise<void> {
@@ -785,7 +785,7 @@ export async function mockPendingMembersApi(
 
 export async function mockUpdateGroupPermissionsApi(
     page: Page,
-    groupId: GroupId,
+    groupId: GroupId | string,
     response: any = { message: 'Permissions updated.' },
     options: { delayMs?: number; } = {},
 ): Promise<void> {
