@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as v8 from 'v8';
 import { getAppBuilder } from '../ApplicationBuilderSingleton';
 import { getConfig } from '../client-config';
 import { HTTP_STATUS, SYSTEM } from '../constants';
@@ -80,6 +81,9 @@ const describeWorkspace = () => {
 export const buildEnvPayload = () => {
     const uptimeSeconds = process.uptime();
     const memUsage = process.memoryUsage();
+    const config = getConfig();
+    const heapStats = v8.getHeapStatistics();
+    const heapSpaces = v8.getHeapSpaceStatistics();
 
     const days = Math.floor(uptimeSeconds / 86400);
     const hours = Math.floor((uptimeSeconds % 86400) / 3600);
@@ -93,6 +97,18 @@ export const buildEnvPayload = () => {
     uptimeText += `${seconds}s`;
 
     return {
+        status: {
+            timestamp: timestampToISO(new Date()),
+            environment: config.instanceMode,
+            nodeVersion: process.version,
+            uptimeSeconds,
+            memorySummary: {
+                rssMb: Math.round(memUsage.rss / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB),
+                heapUsedMb: Math.round(memUsage.heapUsed / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB),
+                heapTotalMb: Math.round(memUsage.heapTotal / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB),
+                externalMb: Math.round(memUsage.external / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB),
+            },
+        },
         env: process.env,
         build: {
             timestamp: BUILD_INFO.timestamp,
@@ -111,26 +127,22 @@ export const buildEnvPayload = () => {
             external: formatBytes(memUsage.external),
             arrayBuffers: formatBytes(memUsage.arrayBuffers),
             heapAvailable: formatBytes(memUsage.heapTotal - memUsage.heapUsed),
+            heapLimit: formatBytes(heapStats.heap_size_limit),
+            totalHeapSize: formatBytes(heapStats.total_heap_size),
+            totalHeapExecutableSize: formatBytes(heapStats.total_heap_size_executable),
+            totalPhysicalSize: formatBytes(heapStats.total_physical_size),
+            totalAvailableSize: formatBytes(heapStats.total_available_size),
+            mallocedMemory: formatBytes(heapStats.malloced_memory),
+            peakMallocedMemory: formatBytes(heapStats.peak_malloced_memory),
+            heapSpaces: heapSpaces.map((space) => ({
+                spaceName: space.space_name,
+                spaceSize: formatBytes(space.space_size),
+                spaceUsed: formatBytes(space.space_used_size),
+                spaceAvailable: formatBytes(space.space_available_size),
+                physicalSize: formatBytes(space.physical_space_size),
+            })),
         },
         filesystem: describeWorkspace(),
-    };
-};
-
-export const buildStatusPayload = () => {
-    const memUsage = process.memoryUsage();
-
-    return {
-        timestamp: timestampToISO(new Date()),
-        uptime: process.uptime(),
-        memory: {
-            rss: `${Math.round(memUsage.rss / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
-            heapUsed: `${Math.round(memUsage.heapUsed / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
-            heapTotal: `${Math.round(memUsage.heapTotal / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
-            external: `${Math.round(memUsage.external / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
-        },
-        version: APP_VERSION,
-        nodeVersion: process.version,
-        environment: getConfig().instanceMode,
     };
 };
 

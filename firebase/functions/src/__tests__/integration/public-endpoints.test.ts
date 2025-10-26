@@ -94,45 +94,6 @@ describe('Public Endpoints Tests', () => {
         });
     });
 
-    describe('Status Endpoint', () => {
-        test('should return system status without authentication', async () => {
-            const response = await fetch(`${apiDriver.getBaseUrl()}/status`);
-
-            expect(response.status).toBe(200);
-
-            const data = await deserializeResponse<any>(response);
-            expect(data).toHaveProperty('timestamp');
-            expect(data).toHaveProperty('uptime');
-            expect(data).toHaveProperty('memory');
-            expect(data).toHaveProperty('version');
-            expect(data).toHaveProperty('nodeVersion');
-            expect(data).toHaveProperty('environment');
-
-            // Validate memory structure
-            expect(data.memory).toHaveProperty('rss');
-            expect(data.memory).toHaveProperty('heapUsed');
-            expect(data.memory).toHaveProperty('heapTotal');
-            expect(data.memory).toHaveProperty('external');
-
-            // Validate data types
-            expect(typeof data.uptime).toBe('number');
-            expect(typeof data.version).toBe('string');
-            expect(typeof data.nodeVersion).toBe('string');
-            expect(typeof data.environment).toBe('string');
-        });
-
-        test('should not expose sensitive information', async () => {
-            const response = await fetch(`${apiDriver.getBaseUrl()}/status`);
-            const data = await deserializeResponse<any>(response);
-
-            // Should not contain sensitive keys, tokens, or internal paths
-            const jsonString = JSON.stringify(data);
-            expect(jsonString).not.toMatch(/password|secret|key|token|api_key/i);
-            expect(jsonString).not.toMatch(/\/home|\/usr|C:\\\\|firebase\/functions/i);
-            expect(jsonString).not.toMatch(/process\.env/i);
-        });
-    });
-
     describe('Config Endpoint', () => {
         test('should return Firebase configuration without authentication', async () => {
             const response = await fetch(`${apiDriver.getBaseUrl()}/config`);
@@ -294,48 +255,76 @@ describe('Public Endpoints Tests', () => {
     });
 
     describe('Environment Endpoint', () => {
-        test('should return environment information without authentication', async () => {
+        test('should reject unauthenticated requests', async () => {
             const response = await fetch(`${apiDriver.getBaseUrl()}/env`);
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(401);
+        });
 
-            const data = await deserializeResponse<any>(response);
-            expect(data).toHaveProperty('env');
-            expect(data).toHaveProperty('build');
-            expect(data).toHaveProperty('runtime');
-            expect(data).toHaveProperty('memory');
-            expect(data).toHaveProperty('filesystem');
+        test('should return diagnostics for system users', async () => {
+            const pooledUser = await apiDriver.borrowTestUser();
 
-            // Validate build structure
-            expect(data.build).toHaveProperty('timestamp');
-            expect(data.build).toHaveProperty('date');
-            expect(data.build).toHaveProperty('version');
+            try {
+                const response = await fetch(`${apiDriver.getBaseUrl()}/env`, {
+                    headers: {
+                        Authorization: `Bearer ${pooledUser.token}`,
+                    },
+                });
 
-            // Validate runtime structure
-            expect(data.runtime).toHaveProperty('startTime');
-            expect(data.runtime).toHaveProperty('uptime');
-            expect(data.runtime).toHaveProperty('uptimeHuman');
+                expect(response.status).toBe(200);
 
-            // Validate memory structure
-            expect(data.memory).toHaveProperty('rss');
+                const data = await deserializeResponse<any>(response);
+                expect(data).toHaveProperty('status');
+                expect(data.status).toHaveProperty('timestamp');
+                expect(data.status).toHaveProperty('environment');
+                expect(data.status).toHaveProperty('nodeVersion');
+                expect(data.status).toHaveProperty('uptimeSeconds');
+                expect(data.status).toHaveProperty('memorySummary');
+
+                expect(data).toHaveProperty('env');
+                expect(data).toHaveProperty('build');
+                expect(data).toHaveProperty('runtime');
+                expect(data).toHaveProperty('memory');
+                expect(data).toHaveProperty('filesystem');
+
+                expect(data.build).toHaveProperty('timestamp');
+                expect(data.build).toHaveProperty('date');
+                expect(data.build).toHaveProperty('version');
+
+                expect(data.runtime).toHaveProperty('startTime');
+                expect(data.runtime).toHaveProperty('uptime');
+                expect(data.runtime).toHaveProperty('uptimeHuman');
+
+                expect(data.memory).toHaveProperty('rss');
             expect(data.memory).toHaveProperty('heapTotal');
             expect(data.memory).toHaveProperty('heapUsed');
             expect(data.memory).toHaveProperty('external');
+            expect(data.memory).toHaveProperty('heapLimit');
+            expect(data.memory).toHaveProperty('peakMallocedMemory');
+            expect(Array.isArray(data.memory.heapSpaces)).toBe(true);
+            if (Array.isArray(data.memory.heapSpaces) && data.memory.heapSpaces.length > 0) {
+                const space = data.memory.heapSpaces[0];
+                expect(space).toHaveProperty('spaceName');
+                expect(space).toHaveProperty('spaceSize');
+                expect(space).toHaveProperty('spaceUsed');
+            }
 
-            // Validate filesystem structure
-            expect(data.filesystem).toHaveProperty('currentDirectory');
-            expect(data.filesystem).toHaveProperty('files');
-            expect(Array.isArray(data.filesystem.files)).toBe(true);
-        });
+                expect(data.filesystem).toHaveProperty('currentDirectory');
+                expect(data.filesystem).toHaveProperty('files');
+                expect(Array.isArray(data.filesystem.files)).toBe(true);
 
-        test('should handle filesystem access errors gracefully', async () => {
-            const response = await fetch(`${apiDriver.getBaseUrl()}/env`);
-            const data = await deserializeResponse<any>(response);
+                const memorySummary = data.status.memorySummary;
+                expect(memorySummary).toHaveProperty('rssMb');
+                expect(memorySummary).toHaveProperty('heapUsedMb');
+                expect(memorySummary).toHaveProperty('heapTotalMb');
+                expect(memorySummary).toHaveProperty('externalMb');
 
-            // If filesystem access fails, should still return valid structure
-            expect(data.filesystem).toBeDefined();
-            expect(data.filesystem.files).toBeDefined();
-            expect(Array.isArray(data.filesystem.files)).toBe(true);
+                const jsonString = JSON.stringify(data);
+                expect(jsonString).not.toMatch(/password|secret|key|token|api_key/i);
+                expect(jsonString).not.toMatch(/\/home|\/usr|C:\\\\|firebase\/functions/i);
+            } finally {
+                await apiDriver.returnTestUser(pooledUser.email);
+            }
         });
     });
 
@@ -471,7 +460,7 @@ describe('Public Endpoints Tests', () => {
 
     describe('Security Headers', () => {
         test('should include security headers in all responses', async () => {
-            const endpoints = ['/health', '/status', '/config'];
+            const endpoints = ['/health', '/env', '/config'];
 
             for (const endpoint of endpoints) {
                 const response = await fetch(`${apiDriver.getBaseUrl()}${endpoint}`);

@@ -7,7 +7,7 @@ import { authenticate, authenticateAdmin, authenticateSystemUser } from './auth/
 import { getConfig } from './client-config';
 import { createComment, listExpenseComments, listGroupComments } from './comments/handlers';
 import { FirestoreCollections, HTTP_STATUS } from './constants';
-import { buildEnvPayload, buildHealthPayload, buildStatusPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
+import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
 import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
 import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
 import { archiveGroupForUser, leaveGroup, removeGroupMember, unarchiveGroupForUser } from './groups/memberHandlers';
@@ -80,16 +80,7 @@ function setupRoutes(app: express.Application): void {
         }),
     );
 
-    // Status endpoint (restricted to system administrators)
-    app.get(
-        '/status',
-        authenticateSystemUser,
-        (req: express.Request, res: express.Response) => {
-            res.json(buildStatusPayload());
-        },
-    );
-
-    // Environment endpoint (restricted to system administrators)
+    // Environment diagnostics endpoint (restricted to system-level users)
     app.get(
         '/env',
         authenticateSystemUser,
@@ -264,7 +255,6 @@ export const api = onRequest(
 export { logMetrics };
 export { env } from './endpoints/env';
 export { health } from './endpoints/health';
-export { status } from './endpoints/status';
 
 // Exposed for integration testing to allow direct access to the Express app
 export function getApiAppForTesting(): express.Application {

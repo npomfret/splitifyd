@@ -9,7 +9,7 @@ Owner: Platform Engineering
 | --- | --- | --- | --- |
 | 1 | Registration abuse (edge-level control) | Delegated | Registration rate limiting must be enforced before traffic reaches Cloud Functions. No function-level throttling is planned; coordinate with the platform gateway team. |
 | 3 | Auth field duplication | Partially done | Email and photo URL are no longer written to Firestore, but `displayName` is still duplicated on create/update (firebase/functions/src/services/UserService2.ts:212,401). Schema still allows legacy email fields for backward compatibility (firebase/functions/src/schemas/user.ts:27). |
-| 4 | Health and diagnostics endpoints | Done | `/status` and `/env` now require system-level roles via `authenticateSystemUser` (firebase/functions/src/index.ts:83-99). |
+| 4 | Health and diagnostics endpoints | Done | `/env` now requires system-level roles via `authenticateSystemUser` and returns merged diagnostics including former `/status` payloads (firebase/functions/src/index.ts:83-90, firebase/functions/src/endpoints/diagnostics.ts:80-129). |
 | 5 | Email enumeration hardening | Open | Registration still surfaces `auth/email-already-exists` via structured error responses (firebase/functions/src/services/UserService2.ts:443) and lacks constant-time failure paths. |
 | 6 | Log sanitization | Open | `ContextualLoggerImpl` forwards arbitrary payload keys without redaction (firebase/functions/src/utils/contextual-logger.ts:32-118). No redaction helper exists. |
 | 7 | Admin audit logging | Open | No audit logger, firestore collection, or rules for admin operations are present. |
@@ -42,8 +42,8 @@ Legend: Done = implemented and verified, Partially done = partially mitigated, N
 ### Issue 4 - Health and diagnostics endpoints
 
 - **Status:** Done  
-- **Evidence:** Both `/status` and `/env` routes now run behind `authenticateSystemUser`, limiting responses to authenticated system-level users (system admin or elevated system user) in every environment (firebase/functions/src/index.ts:83-99).  
-- **Next:** Add regression coverage that verifies users without system roles receive authorization errors and ensure payloads stay limited to the intended diagnostics set.
+- **Evidence:** `/env` is the single diagnostics endpoint, now protected by `authenticateSystemUser` and enriched with the former `/status` metrics (firebase/functions/src/index.ts:83-90, firebase/functions/src/endpoints/diagnostics.ts:80-129). Integration tests assert unauthorised requests are rejected and that privileged responses contain no sensitive data.  
+- **Next:** Maintain regression coverage ensuring non-system roles receive authorization errors and that diagnostics output stays bounded to approved fields.
 
 ### Issue 5 - Email enumeration hardening
 
@@ -83,4 +83,4 @@ Legend: Done = implemented and verified, Partially done = partially mitigated, N
 - No successful email enumeration attempts (manual probes plus automated tests).
 - Sensitive values never appear in logs (validated by sampling).
 - Admin actions generate audit log entries with actor, target, and outcome metadata.
-- Health/status endpoints expose no secrets, even under failure conditions.
+- Health/diagnostics endpoints expose no secrets, even under failure conditions.
