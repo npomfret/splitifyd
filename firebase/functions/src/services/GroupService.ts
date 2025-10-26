@@ -37,7 +37,7 @@ import {GroupMemberService} from './GroupMemberService';
 import {GroupShareService} from './GroupShareService';
 import {SettlementService} from './SettlementService';
 import {UserService} from './UserService2';
-import {newTopLevelMembershipDocId} from "@splitifyd/shared";
+import { newTopLevelMembershipDocId } from '../utils/idGenerator';
 
 /**
  * Service for managing group operations

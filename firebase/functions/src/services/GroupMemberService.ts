@@ -7,7 +7,7 @@ import {PerformanceTimer} from '../monitoring/PerformanceTimer';
 import {ApiError, Errors} from '../utils/errors';
 import {ActivityFeedService} from './ActivityFeedService';
 import type {IFirestoreReader, IFirestoreWriter} from './firestore';
-import {newTopLevelMembershipDocId} from "@splitifyd/shared";
+import { newTopLevelMembershipDocId } from '../utils/idGenerator';
 
 export class GroupMemberService {
     constructor(

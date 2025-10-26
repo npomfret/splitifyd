@@ -20,7 +20,7 @@ import {getFirestore} from '../../firebase';
 import {createFirestoreDatabase} from '../../firestore-wrapper';
 import {FirestoreReader} from '../../services/firestore';
 import {createTopLevelMembershipDocument} from '../../utils/groupMembershipHelpers';
-import {newTopLevelMembershipDocId} from "@splitifyd/shared";
+import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {
     const firestore = getFirestore();

@@ -62,7 +62,7 @@ import {
 } from '../../schemas';
 import type {TopLevelGroupMemberDocument} from '../../types';
 import type {BatchGroupFetchOptions, FirestoreOrderField, GetGroupsForUserOptions, GroupsPaginationCursor, IFirestoreReader, PaginatedResult, QueryOptions} from './IFirestoreReader';
-import {newTopLevelMembershipDocId} from "@splitifyd/shared";
+import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
 
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,

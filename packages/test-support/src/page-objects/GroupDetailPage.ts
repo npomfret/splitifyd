@@ -481,6 +481,30 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Get the member count from the Members section header/toggle.
+     * This extracts the count from text like "Members (3)" in the section toggle.
+     */
+    async getMembersSectionHeaderCount(): Promise<number> {
+        const membersContainer = this.getMembersContainer();
+        await expect(membersContainer).toBeVisible({ timeout: 1000 });
+
+        // Get the text content of the members container header/toggle area
+        // This should contain text like "Members (3)"
+        const headerText = await membersContainer.textContent();
+        if (!headerText) {
+            throw new Error('Could not find members section header text');
+        }
+
+        // Extract the number from "(X)" pattern
+        const match = headerText.match(/\((\d+)\)/);
+        if (!match) {
+            throw new Error(`Could not parse member count from members section header: "${headerText}"`);
+        }
+
+        return parseInt(match[1], 10);
+    }
+
+    /**
      * Get display names for all members currently rendered
      */
     async getMemberNames(): Promise<string[]> {
@@ -501,18 +525,25 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Wait for the member list and header count to match the expected value.
+     * Checks all three places where the member count is displayed:
+     * 1. Main page header (GroupHeader component)
+     * 2. Members section header/toggle button
+     * 3. Actual number of member items in the list
      */
     async waitForMemberCount(expectedCount: number, timeout: number = 5000): Promise<void> {
         await expect(async () => {
             await this.ensureMembersSectionExpanded();
-            const textCount = await this.getCurrentMemberCount().catch(() => -1);
+            const headerCount = await this.getCurrentMemberCount().catch(() => -1);
+            const sectionHeaderCount = await this.getMembersSectionHeaderCount().catch(() => -1);
             const actualItems = await this.getMemberCards().count();
 
-            if (textCount !== expectedCount || actualItems !== expectedCount) {
+            if (headerCount !== expectedCount || sectionHeaderCount !== expectedCount || actualItems !== expectedCount) {
                 const memberNames = await this.getMemberNames();
                 throw new Error(
                     `Member count mismatch. Expected: ${expectedCount}, `
-                        + `Header shows: ${textCount}, Items: ${actualItems}. `
+                        + `Page header shows: ${headerCount}, `
+                        + `Section header shows: ${sectionHeaderCount}, `
+                        + `Items: ${actualItems}. `
                         + `Members: [${memberNames.join(', ')}]. URL: ${this.page.url()}`,
                 );
             }

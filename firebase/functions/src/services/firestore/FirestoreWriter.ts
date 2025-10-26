@@ -34,7 +34,7 @@ import {
     validateUpdate,
 } from '../../schemas';
 import type {BatchWriteResult, IFirestoreWriter, WriteResult} from './IFirestoreWriter';
-import {newTopLevelMembershipDocId} from "@splitifyd/shared";
+import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
