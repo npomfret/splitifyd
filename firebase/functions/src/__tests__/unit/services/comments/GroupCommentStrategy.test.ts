@@ -7,6 +7,7 @@ import { GroupCommentStrategy } from '../../../../services/comments/GroupComment
 import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
+import {toGroupId} from "@splitifyd/shared";
 
 describe('GroupCommentStrategy', () => {
     let strategy: GroupCommentStrategy;
@@ -31,7 +32,7 @@ describe('GroupCommentStrategy', () => {
     describe('verifyAccess', () => {
         it('should allow access when group exists and user is member', async () => {
             // Arrange
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const userId = 'test-user';
 
             // Seed group data
@@ -53,7 +54,7 @@ describe('GroupCommentStrategy', () => {
 
         it('should throw NOT_FOUND when group does not exist', async () => {
             // Arrange
-            const nonexistentGroupId = 'nonexistent-group';
+            const nonexistentGroupId = toGroupId('nonexistent-group');
             const userId = 'test-user';
 
             // No group data seeded - simulating non-existent group
@@ -69,7 +70,7 @@ describe('GroupCommentStrategy', () => {
 
         it('should throw FORBIDDEN when user is not a group member', async () => {
             // Arrange
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const userId = 'unauthorized-user';
 
             // Seed group but not user membership

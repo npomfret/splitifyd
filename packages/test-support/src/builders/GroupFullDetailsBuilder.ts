@@ -1,4 +1,5 @@
 import type { ExpenseDTO, GroupBalances, GroupDTO, GroupFullDetailsDTO, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
+import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating GroupFullDetails responses for testing
@@ -13,7 +14,7 @@ export class GroupFullDetailsBuilder {
             members: { members: [], hasMore: false },
             expenses: { expenses: [], hasMore: false },
             balances: {
-                groupId: 'default-group-id',
+                groupId: toGroupId('default-group-id'),
                 lastUpdated: new Date().toISOString(),
                 userBalances: {},
                 simplifiedDebts: [],

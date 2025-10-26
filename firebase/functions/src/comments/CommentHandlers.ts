@@ -10,6 +10,7 @@ import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { CommentService } from '../services/CommentService';
 import { ApiError } from '../utils/errors';
 import { validateCreateExpenseComment, validateCreateGroupComment } from './validation';
+import {toGroupId} from "@splitifyd/shared";
 
 export class CommentHandlers {
     constructor(private readonly commentService: CommentService) {
@@ -59,7 +60,7 @@ export class CommentHandlers {
     listGroupComments = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         try {
             const userId = validateUserAuth(req);
-            const groupId = req.params.groupId;
+            const groupId = toGroupId(req.params.groupId);
 
             if (!groupId) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_GROUP_ID', 'Group ID is required');

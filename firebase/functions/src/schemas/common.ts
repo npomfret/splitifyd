@@ -1,4 +1,5 @@
-import { isValidCurrency } from '@splitifyd/shared';
+import { isValidCurrency, toGroupId } from '@splitifyd/shared';
+import type { GroupId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FieldValue, Timestamp } from '../firestore-wrapper';
 
@@ -66,7 +67,7 @@ const DocumentIdSchema = z.object({
 
 export const UserIdSchema = z.string().min(1).describe('Firebase Auth UID');
 
-export const GroupIdSchema = z.string().min(1).describe('Firestore Group document ID');
+export const GroupIdSchema = z.string().min(1).describe('Firestore Group document ID').transform(toGroupId) as z.ZodType<GroupId>;
 
 export const CurrencyCodeSchema = z
     .string()

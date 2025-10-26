@@ -3,6 +3,7 @@ import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
+import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -22,7 +23,7 @@ export class ExpenseDTOBuilder {
             updatedAt: new Date().toISOString(),
 
             // Business fields
-            groupId: `group-${generateShortId()}`,
+            groupId: toGroupId(`group-${generateShortId()}`),
             description: `${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
             amount,
             currency,
@@ -66,8 +67,8 @@ export class ExpenseDTOBuilder {
     }
 
     // Business field methods
-    withGroupId(groupId: GroupId): this {
-        this.expense.groupId = groupId;
+    withGroupId(groupId: GroupId | string): this {
+        this.expense.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
         return this;
     }
 

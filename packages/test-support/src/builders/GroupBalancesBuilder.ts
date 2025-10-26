@@ -4,6 +4,7 @@ import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
+import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Extended UserBalance with optional displayName and balances fields
@@ -51,7 +52,7 @@ export class GroupBalancesBuilder {
 
     constructor() {
         this.balances = {
-            groupId: 'default-group-id',
+            groupId: toGroupId('default-group-id'),
             lastUpdated: new Date().toISOString(),
             userBalances: {},
             simplifiedDebts: [],
@@ -62,8 +63,8 @@ export class GroupBalancesBuilder {
     /**
      * Set the group ID
      */
-    withGroupId(groupId: GroupId): this {
-        this.balances.groupId = groupId;
+    withGroupId(groupId: GroupId | string): this {
+        this.balances.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
         return this;
     }
 

@@ -3,6 +3,7 @@ import * as Joi from 'joi';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
+import {toGroupId} from "@splitifyd/shared";
 
 const commentTextSchema = Joi.string().trim().min(1).max(500).required().messages({
     'string.empty': 'Comment text is required',
@@ -46,7 +47,7 @@ export const validateCreateGroupComment = (targetId: string, body: any): CreateG
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
     }
 
-    const validatedGroupId = sanitizeIdentifier(validateTargetId(targetId, CommentTargetTypes.GROUP));
+    const validatedGroupId = toGroupId(sanitizeIdentifier(validateTargetId(targetId, CommentTargetTypes.GROUP)));
 
     const { text } = value as { text: string };
 

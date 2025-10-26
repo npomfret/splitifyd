@@ -12,15 +12,15 @@ import { ICommentStrategy } from './ICommentStrategy';
  * - Group ID is resolved from the expense's groupId field
  * - Comments are stored in the expense's comments subcollection
  */
-export class ExpenseCommentStrategy implements ICommentStrategy {
+export class ExpenseCommentStrategy implements ICommentStrategy<ExpenseId> {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly groupMemberService: GroupMemberService,
     ) {}
 
-    async verifyAccess(targetId: string, userId: UserId): Promise<void> {
+    async verifyAccess(expenseId: ExpenseId, userId: UserId): Promise<void> {
         // Get the expense and verify it exists and is not deleted
-        const expense = await this.firestoreReader.getExpense(targetId);
+        const expense = await this.firestoreReader.getExpense(expenseId);
         if (!expense || expense.deletedAt) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
         }
@@ -37,4 +37,4 @@ export class ExpenseCommentStrategy implements ICommentStrategy {
         }
     }
 }
-import type { UserId } from '@splitifyd/shared';
+import type {ExpenseId, UserId} from '@splitifyd/shared';

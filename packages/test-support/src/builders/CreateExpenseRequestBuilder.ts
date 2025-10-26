@@ -3,6 +3,7 @@ import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
 import { generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {toGroupId} from "@splitifyd/shared";
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;
@@ -25,7 +26,7 @@ export class CreateExpenseRequestBuilder {
         }
 
         this.expense = {
-            groupId: `group-${generateShortId()}`,
+            groupId: toGroupId(`group-${generateShortId()}`),
             description: `${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
             amount,
             currency,
@@ -38,8 +39,8 @@ export class CreateExpenseRequestBuilder {
         };
     }
 
-    withGroupId(groupId: GroupId): this {
-        this.expense.groupId = groupId;
+    withGroupId(groupId: GroupId | string): this {
+        this.expense.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
         return this;
     }
 

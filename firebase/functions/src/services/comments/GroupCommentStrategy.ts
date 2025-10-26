@@ -3,6 +3,7 @@ import { ApiError } from '../../utils/errors';
 import type { IFirestoreReader } from '../firestore';
 import { GroupMemberService } from '../GroupMemberService';
 import { ICommentStrategy } from './ICommentStrategy';
+import type {GroupId, UserId } from '@splitifyd/shared';
 
 /**
  * Strategy for handling comments on group entities
@@ -12,15 +13,15 @@ import { ICommentStrategy } from './ICommentStrategy';
  * - Group ID is the target ID itself
  * - Comments are stored in the group's comments subcollection
  */
-export class GroupCommentStrategy implements ICommentStrategy {
+export class GroupCommentStrategy implements ICommentStrategy<GroupId> {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly groupMemberService: GroupMemberService,
     ) {}
 
-    async verifyAccess(targetId: string, userId: UserId): Promise<void> {
+    async verifyAccess(groupId: GroupId, userId: UserId): Promise<void> {
         // For group comments, verify user is a group member
-        const group = await this.firestoreReader.getGroup(targetId);
+        const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
@@ -30,4 +31,3 @@ export class GroupCommentStrategy implements ICommentStrategy {
         }
     }
 }
-import type { UserId } from '@splitifyd/shared';

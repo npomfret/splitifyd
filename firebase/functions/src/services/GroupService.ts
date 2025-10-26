@@ -38,6 +38,7 @@ import {GroupShareService} from './GroupShareService';
 import {SettlementService} from './SettlementService';
 import {UserService} from './UserService2';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
+import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Service for managing group operations
@@ -307,7 +308,7 @@ export class GroupService {
         const timer = new PerformanceTimer();
 
         // Initialize group structure with ISO strings (DTOs)
-        const groupId = this.firestoreWriter.generateDocumentId(FirestoreCollections.GROUPS);
+        const groupId = toGroupId(this.firestoreWriter.generateDocumentId(FirestoreCollections.GROUPS));
         const nowISO = new Date().toISOString();
 
         // Create the document to write (using ISO strings - FirestoreWriter converts to Timestamps)
@@ -712,6 +713,7 @@ export class GroupService {
         // Map lastUpdatedAt to lastUpdated for API response compatibility
         const balancesDTO: GroupBalances = {
             ...balancesData,
+            groupId, // Use the branded GroupId parameter instead of spreading string from balancesData
             lastUpdated: balancesData.lastUpdatedAt,
             userBalances: {}, // TODO: Populate from balancesByCurrency if needed by client
         };

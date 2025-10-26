@@ -3,6 +3,7 @@ import { Amount, UserId } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
+import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating Settlement objects for tests
@@ -35,7 +36,7 @@ export class SettlementDTOBuilder {
 
     constructor() {
         const { currency, amount } = randomValidCurrencyAmountPair(5, 200);
-        this.groupId = `group-${generateShortId()}`;
+        this.groupId = toGroupId(`group-${generateShortId()}`);
         this.payerId = `user-${generateShortId()}`;
         this.payeeId = `user-${generateShortId()}`;
         this.amount = amount;
@@ -51,8 +52,8 @@ export class SettlementDTOBuilder {
     }
 
     // CreateSettlementRequest builder methods
-    withGroupId(groupId: GroupId): SettlementDTOBuilder {
-        this.groupId = groupId;
+    withGroupId(groupId: GroupId | string): SettlementDTOBuilder {
+        this.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
         return this;
     }
 

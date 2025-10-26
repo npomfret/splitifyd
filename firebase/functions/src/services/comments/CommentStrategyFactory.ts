@@ -1,4 +1,4 @@
-import { CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
+import {CommentTargetType, CommentTargetTypes, ExpenseId, GroupId} from '@splitifyd/shared';
 import type { IFirestoreReader } from '../firestore';
 import { GroupMemberService } from '../GroupMemberService';
 import { ExpenseCommentStrategy } from './ExpenseCommentStrategy';
@@ -24,7 +24,7 @@ export class CommentStrategyFactory {
      * @returns Strategy implementation for the target type
      * @throws Error if target type is not supported
      */
-    getStrategy(targetType: CommentTargetType): ICommentStrategy {
+    getStrategy(targetType: CommentTargetType): ICommentStrategy<GroupId | ExpenseId> {
         switch (targetType) {
             case CommentTargetTypes.GROUP:
                 return new GroupCommentStrategy(this.firestoreReader, this.groupMemberService);

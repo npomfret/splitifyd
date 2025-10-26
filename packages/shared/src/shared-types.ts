@@ -41,15 +41,12 @@ export type ISOString = string;
 export type Amount = string;
 export const ZERO: Amount = '0';
 
-/*
-todo: introduce branded types:
+// Utility to create branded primitive types for stronger nominal typing
+export type Brand<K, T> = K & { __brand: T };
 
-    export type Brand<K, T> = K & { __brand: T };
+export type GroupId = Brand<string, 'GroupId'>;
+export const toGroupId = (value: string): GroupId => value as GroupId;
 
-    export type GroupId = Brand<string, 'GroupId'>;
- */
-
-export type GroupId = string;
 export type ExpenseId = string;
 export type SettlementId = string;
 export type GroupName = string;

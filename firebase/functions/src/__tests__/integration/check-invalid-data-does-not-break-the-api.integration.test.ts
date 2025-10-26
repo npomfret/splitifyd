@@ -21,6 +21,7 @@ import {createFirestoreDatabase} from '../../firestore-wrapper';
 import {FirestoreReader} from '../../services/firestore';
 import {createTopLevelMembershipDocument} from '../../utils/groupMembershipHelpers';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
+import {toGroupId} from "@splitifyd/shared";
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {
     const firestore = getFirestore();
@@ -112,7 +113,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
                     .build();
 
                 const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
-                const topLevelDocId = newTopLevelMembershipDocId(testUser.uid, groupRef.id);
+                const topLevelDocId = newTopLevelMembershipDocId(testUser.uid, toGroupId(groupRef.id));
                 const topLevelRef = firestore.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId);
                 await topLevelRef.set(topLevelMemberDoc);
             }

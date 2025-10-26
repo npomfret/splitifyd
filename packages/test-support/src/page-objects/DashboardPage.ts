@@ -1,5 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
-import type { CreateGroupFormData } from '@splitifyd/shared';
+import type { CreateGroupFormData, GroupId } from '@splitifyd/shared';
 import type { GroupName } from '@splitifyd/shared';
 import { CreateGroupFormDataBuilder } from '../builders';
 import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
@@ -11,6 +11,7 @@ import { GroupDetailPage } from './GroupDetailPage';
 import { HeaderPage } from './HeaderPage';
 import { JoinGroupPage } from './JoinGroupPage';
 import { ShareGroupModalPage } from './ShareGroupModalPage';
+import {toGroupId} from "@splitifyd/shared";
 
 const translation = translationEn;
 let multiUserGroupCounter = 0;
@@ -618,7 +619,7 @@ export class DashboardPage extends BasePage {
         groupName: GroupName,
         options: {
             createGroupDetailPage?: (page: Page) => T;
-            expectedGroupId?: string;
+            expectedGroupId?: GroupId | string;
             expectedMemberCount?: number;
             verifyGroupName?: boolean;
             waitForReady?: boolean;
@@ -650,7 +651,7 @@ export class DashboardPage extends BasePage {
         if (options.waitForReady) {
             const groupId = options.expectedGroupId ?? groupDetailPage.inferGroupId();
             const expectedMemberCount = options.expectedMemberCount ?? 1;
-            await groupDetailPage.waitForPage(groupId, expectedMemberCount);
+            await groupDetailPage.waitForPage(groupId!, expectedMemberCount);
         }
 
         return groupDetailPage;

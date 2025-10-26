@@ -8,6 +8,7 @@ import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { GroupShareService } from '../services/GroupShareService';
 import { logger } from '../utils/contextual-logger';
 import { ApiError } from '../utils/errors';
+import {toGroupId} from "@splitifyd/shared";
 
 export class GroupShareHandlers {
     constructor(private readonly groupShareService: GroupShareService) {
@@ -28,7 +29,7 @@ export class GroupShareHandlers {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
         }
 
-        const validGroupId = groupId as string;
+        const validGroupId = toGroupId(groupId);
         const sanitizedExpiresAt = typeof body.expiresAt === 'string' ? body.expiresAt : undefined;
         const userId = req.user!.uid;
 

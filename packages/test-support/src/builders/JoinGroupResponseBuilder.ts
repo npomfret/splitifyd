@@ -2,21 +2,22 @@ import type { JoinGroupResponse, MemberStatus } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { GroupName } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
+import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating JoinGroupResponse objects for tests
  */
 export class JoinGroupResponseBuilder {
     private fields: JoinGroupResponse = {
-        groupId: `group-${generateShortId()}`,
+        groupId: toGroupId(`group-${generateShortId()}`),
         groupName: 'Test Group',
         success: true,
         displayNameConflict: false,
         memberStatus: 'active',
     };
 
-    withGroupId(groupId: GroupId): this {
-        this.fields.groupId = groupId;
+    withGroupId(groupId: GroupId | string): this {
+        this.fields.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
         return this;
     }
 

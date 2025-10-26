@@ -1,4 +1,5 @@
 import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem, GroupId, GroupName, UserId } from '@splitifyd/shared';
+import {toGroupId} from "@splitifyd/shared";
 
 const DEFAULT_TIMESTAMP = () => new Date().toISOString();
 
@@ -219,8 +220,8 @@ export class ActivityFeedItemDTOBuilder {
         return this;
     }
 
-    withGroupId(groupId: GroupId): ActivityFeedItemDTOBuilder {
-        this.item.groupId = groupId;
+    withGroupId(groupId: GroupId | string): ActivityFeedItemDTOBuilder {
+        this.item.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
         return this;
     }
 

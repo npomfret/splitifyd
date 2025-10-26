@@ -5,12 +5,13 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
 import { FirestoreWriter } from '../../../services/firestore';
+import {toGroupId} from "@splitifyd/shared";
 
 describe('IncrementalBalanceService - Unit Tests', () => {
     let service: IncrementalBalanceService;
     let stubDb: SplitifydFirestoreTestDatabase;
 
-    const groupId = 'test-group-id';
+    const groupId = toGroupId('test-group-id');
     const userId1 = 'user-1';
     const userId2 = 'user-2';
     const userId3 = 'user-3';

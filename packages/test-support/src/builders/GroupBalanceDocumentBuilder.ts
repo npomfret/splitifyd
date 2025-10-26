@@ -2,6 +2,7 @@ import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
+import {toGroupId} from "@splitifyd/shared";
 
 interface GroupBalanceDocument {
     groupId: GroupId;
@@ -17,7 +18,7 @@ export class GroupBalanceDocumentBuilder {
     private document: GroupBalanceDocument;
 
     constructor() {
-        const groupId = `group-${generateShortId()}`;
+        const groupId = toGroupId(`group-${generateShortId()}`);
         this.document = {
             groupId: groupId,
             balances: {},
@@ -25,8 +26,8 @@ export class GroupBalanceDocumentBuilder {
         };
     }
 
-    withGroupId(groupId: GroupId): this {
-        this.document.groupId = groupId;
+    withGroupId(groupId: GroupId | string): this {
+        this.document.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
         return this;
     }
 

@@ -4,6 +4,7 @@ import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, Simpli
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
 import { FirestoreWriter } from '../../../services/firestore';
+import {toGroupId} from "@splitifyd/shared";
 
 /**
  * IncrementalBalanceService - Scenario Tests
@@ -19,7 +20,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
     let stubDb: SplitifydFirestoreTestDatabase;
     let writer: FirestoreWriter;
 
-    const groupId = 'test-group-id';
+    const groupId = toGroupId('test-group-id');
     const user1 = 'user-1';
     const user2 = 'user-2';
 

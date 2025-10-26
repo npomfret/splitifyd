@@ -63,6 +63,7 @@ import {
 import type {TopLevelGroupMemberDocument} from '../../types';
 import type {BatchGroupFetchOptions, FirestoreOrderField, GetGroupsForUserOptions, GroupsPaginationCursor, IFirestoreReader, PaginatedResult, QueryOptions} from './IFirestoreReader';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
+import {toGroupId} from "@splitifyd/shared";
 
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
@@ -123,9 +124,11 @@ export class FirestoreReader implements IFirestoreReader {
      * - date (for expenses/settlements)
      * - joinedAt (for group members)
      * - lastModified, lastTransactionChange, lastBalanceChange, etc. (for notifications)
+     *
+     * Note: Uses Object.assign to preserve branded types (like GroupId) that would be lost with spread operator
      */
     private convertTimestampsToISO<T extends Record<string, any>>(obj: T): T {
-        const result: any = { ...obj };
+        const result: any = Object.assign({}, obj);
 
         for (const [key, value] of Object.entries(result)) {
             if (value instanceof Timestamp) {
@@ -137,7 +140,7 @@ export class FirestoreReader implements IFirestoreReader {
             }
         }
 
-        return result;
+        return result as T;
     }
 
     /**
@@ -608,7 +611,7 @@ export class FirestoreReader implements IFirestoreReader {
             const parsedMember = TopLevelGroupMemberSchema.parse(topLevelData);
 
             // Convert Timestamps to ISO strings (DTO conversion)
-            return this.convertTimestampsToISO(parsedMember) as GroupMembershipDTO;
+            return this.convertTimestampsToISO(parsedMember) as unknown as GroupMembershipDTO;
         });
     }
 
@@ -668,7 +671,7 @@ export class FirestoreReader implements IFirestoreReader {
                     });
 
                     // Convert Timestamps to ISO strings (DTO conversion)
-                    parsedMembers.push(this.convertTimestampsToISO(memberData) as GroupMembershipDTO);
+                    parsedMembers.push(this.convertTimestampsToISO(memberData) as unknown as GroupMembershipDTO);
                 } catch (error) {
                     logger.error('Invalid group member document in getAllGroupMembers', error);
                     // Skip invalid documents rather than failing the entire query
@@ -725,7 +728,7 @@ export class FirestoreReader implements IFirestoreReader {
                         ...rawData,
                     });
 
-                    const converted = this.convertTimestampsToISO(validated) as ActivityFeedDocument;
+                    const converted = this.convertTimestampsToISO(validated) as unknown as ActivityFeedDocument;
 
                     const eventType = converted.eventType as ActivityFeedEventType;
                     const action = (converted.action as ActivityFeedAction | undefined) ?? EVENT_ACTION_MAP[eventType];
@@ -964,7 +967,7 @@ export class FirestoreReader implements IFirestoreReader {
             if (!shareLinkDoc.ref.parent?.parent) {
                 throw new Error('Invalid share link document structure - cannot determine group ID');
             }
-            const groupId = shareLinkDoc.ref.parent.parent.id;
+            const groupId = toGroupId(shareLinkDoc.ref.parent.parent.id);
 
             const rawData = shareLinkDoc.data();
             if (!rawData) {

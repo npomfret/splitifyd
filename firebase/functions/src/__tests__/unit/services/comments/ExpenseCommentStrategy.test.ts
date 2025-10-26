@@ -9,6 +9,7 @@ import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
 import { ApiError } from '../../../../utils/errors';
+import {toGroupId} from "@splitifyd/shared";
 
 describe('ExpenseCommentStrategy', () => {
     let strategy: ExpenseCommentStrategy;
@@ -37,7 +38,7 @@ describe('ExpenseCommentStrategy', () => {
         it('should allow access when expense exists and user is group member', async () => {
             // Arrange
             const expenseId = 'test-expense';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const userId = 'user-id';
 
             const testExpense = new ExpenseDTOBuilder()
@@ -132,7 +133,7 @@ describe('ExpenseCommentStrategy', () => {
         it('should throw FORBIDDEN when user is not a member of expense group', async () => {
             // Arrange
             const expenseId = 'test-expense';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const userId = 'unauthorized-user';
 
             const testExpense = new ExpenseDTOBuilder()

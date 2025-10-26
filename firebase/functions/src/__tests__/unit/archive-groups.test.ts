@@ -14,6 +14,7 @@ import { ActivityFeedService } from '../../services/ActivityFeedService';
 import { FirestoreReader } from '../../services/firestore';
 import { FirestoreWriter } from '../../services/firestore';
 import { GroupMemberService } from '../../services/GroupMemberService';
+import {toGroupId} from "@splitifyd/shared";
 
 describe('Archive Groups - FirestoreReader Status Filtering', () => {
     let db: SplitifydFirestoreTestDatabase;
@@ -26,9 +27,9 @@ describe('Archive Groups - FirestoreReader Status Filtering', () => {
 
     test('should filter by ACTIVE status by default', async () => {
         const userId = 'user123';
-        const groupId1 = 'group1';
-        const groupId2 = 'group2';
-        const groupId3 = 'group3';
+        const groupId1 = toGroupId('group1');
+        const groupId2 = toGroupId('group2');
+        const groupId3 = toGroupId('group3');
 
         // Create groups
         db.seedGroup(groupId1, { name: 'Active Group', createdBy: userId });
@@ -66,8 +67,8 @@ describe('Archive Groups - FirestoreReader Status Filtering', () => {
 
     test('should filter by ARCHIVED status when specified', async () => {
         const userId = 'user123';
-        const groupId1 = 'group1';
-        const groupId2 = 'group2';
+        const groupId1 = toGroupId('group1');
+        const groupId2 = toGroupId('group2');
 
         // Create groups
         db.seedGroup(groupId1, { name: 'Active Group', createdBy: userId });
@@ -99,9 +100,9 @@ describe('Archive Groups - FirestoreReader Status Filtering', () => {
 
     test('should filter by array of statuses', async () => {
         const userId = 'user123';
-        const groupId1 = 'group1';
-        const groupId2 = 'group2';
-        const groupId3 = 'group3';
+        const groupId1 = toGroupId('group1');
+        const groupId2 = toGroupId('group2');
+        const groupId3 = toGroupId('group3');
 
         // Create groups
         db.seedGroup(groupId1, { name: 'Active Group', createdBy: userId });

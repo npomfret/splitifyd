@@ -30,7 +30,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Build a regex that matches a group detail URL, optionally scoped to a specific group ID.
      */
-    static groupDetailUrlPattern(groupId?: string): RegExp {
+    static groupDetailUrlPattern(groupId?: GroupId | string): RegExp {
         if (groupId) {
             return new RegExp(`/groups/${groupId}$`);
         }
@@ -116,7 +116,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Wait for critical parts of the group detail page to load and remain consistent.
      */
-    async waitForPage(groupId: GroupId, expectedMemberCount: number): Promise<void> {
+    async waitForPage(groupId: GroupId | string, expectedMemberCount: number): Promise<void> {
         const targetPattern = GroupDetailPage.groupDetailUrlPattern(groupId);
 
         await this.expectUrl(targetPattern);
@@ -1073,7 +1073,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Wait for balances section to render and loading indicator (if any) to disappear.
      */
-    async waitForBalancesSection(groupId: GroupId, timeout: number = 3000): Promise<void> {
+    async waitForBalancesSection(groupId: GroupId | string, timeout: number = 3000): Promise<void> {
         const currentUrl = this.page.url();
         if (!currentUrl.includes(`/groups/${groupId}`)) {
             throw new Error(`waitForBalancesSection called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);

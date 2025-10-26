@@ -1,5 +1,5 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CommentTargetType, CommentTargetTypes, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
-import type { ExpenseId, GroupId, GroupName, UserId } from '@splitifyd/shared';
+import type {CommentId, ExpenseId, GroupId, GroupName, UserId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -32,7 +32,7 @@ export class CommentService {
     /**
      * Verify user has access to comment on the target entity
      */
-    private async verifyCommentAccess(targetType: CommentTargetType, targetId: string, userId: UserId): Promise<void> {
+    private async verifyCommentAccess(targetType: CommentTargetType, targetId: GroupId | ExpenseId, userId: UserId): Promise<void> {
         const strategy = this.strategyFactory.getStrategy(targetType);
         await strategy.verifyAccess(targetId, userId);
     }
@@ -42,7 +42,7 @@ export class CommentService {
      */
     async listComments(
         targetType: CommentTargetType,
-        targetId: string,
+        targetId: GroupId | ExpenseId,
         userId: UserId,
         options: {
             limit?: number;
@@ -55,7 +55,7 @@ export class CommentService {
 
     private async _listComments(
         targetType: CommentTargetType,
-        targetId: string,
+        targetId: GroupId | ExpenseId,
         userId: UserId,
         options: {
             limit?: number;

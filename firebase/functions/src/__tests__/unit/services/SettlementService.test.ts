@@ -6,6 +6,7 @@ import { HTTP_STATUS } from '../../../constants';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 import { SettlementService } from '../../../services/SettlementService';
 import { StubAuthService } from '../mocks/StubAuthService';
+import {toGroupId} from "@splitifyd/shared";
 
 describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
@@ -26,7 +27,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should validate settlement amounts correctly', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const validSettlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
@@ -78,7 +79,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should handle optional note field correctly', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const settlementDataWithoutNote = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
@@ -131,7 +132,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should validate user data with complete required fields', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('valid-payer')
@@ -184,7 +185,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should handle user data validation during settlement creation', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
@@ -230,7 +231,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should validate group membership for all users', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
@@ -274,7 +275,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should reject settlement when payer is not group member', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('non-member-payer')
@@ -313,7 +314,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should reject settlement when payee is not group member', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
@@ -378,7 +379,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should handle decimal precision correctly', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
@@ -426,7 +427,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should handle maximum valid amount', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
@@ -471,7 +472,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should handle minimum valid amount', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
@@ -518,7 +519,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should initialize new settlements with deletedAt and deletedBy as null', async () => {
             // Arrange
             const userId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
                 .withPayerId('payer-user')
@@ -567,7 +568,7 @@ describe('SettlementService - Unit Tests', () => {
             // Arrange
             const settlementId = 'test-settlement-id';
             const creatorId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
 
             // Seed settlement
             const settlementData = {
@@ -623,7 +624,7 @@ describe('SettlementService - Unit Tests', () => {
             // Arrange
             const settlementId = 'deleted-settlement-id';
             const creatorId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
 
             // Seed already-deleted settlement
             const deletedSettlementData = {
@@ -667,7 +668,7 @@ describe('SettlementService - Unit Tests', () => {
             // Arrange
             const settlementId = 'test-settlement-id';
             const creatorId = 'creator-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
 
             const settlementData = {
                 id: settlementId,
@@ -721,7 +722,7 @@ describe('SettlementService - Unit Tests', () => {
             const settlementId = 'test-settlement-id';
             const creatorId = 'creator-user';
             const adminId = 'admin-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
 
             const settlementData = {
                 id: settlementId,
@@ -783,7 +784,7 @@ describe('SettlementService - Unit Tests', () => {
             const settlementId = 'test-settlement-id';
             const creatorId = 'creator-user';
             const otherId = 'other-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
 
             const settlementData = {
                 id: settlementId,
@@ -840,7 +841,7 @@ describe('SettlementService - Unit Tests', () => {
             const settlementId = 'test-settlement-id';
             const creatorId = 'creator-user';
             const nonMemberId = 'non-member-user';
-            const groupId = 'test-group';
+            const groupId = toGroupId('test-group');
 
             const settlementData = {
                 id: settlementId,

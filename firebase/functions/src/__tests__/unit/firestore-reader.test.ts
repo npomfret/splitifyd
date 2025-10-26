@@ -12,6 +12,7 @@ import { Timestamp } from '../../firestore-wrapper';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 import { FirestoreReader } from '../../services/firestore';
+import {toGroupId} from "@splitifyd/shared";
 
 const identityToolkitConfig = {
     apiKey: 'test-api-key',
@@ -100,7 +101,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
             db.seed('groups/incomplete-group', incompleteGroup);
 
             // Should reject due to validation errors
-            await expect(firestoreReader.getGroup('incomplete-group')).rejects.toThrow();
+            await expect(firestoreReader.getGroup(toGroupId('incomplete-group'))).rejects.toThrow();
         });
 
         test('should reject documents with wrong data types', async () => {
@@ -126,14 +127,14 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
             db.seed('groups/malformed-group', malformedGroup);
 
             // Application should reject this via validation
-            await expect(firestoreReader.getGroup('malformed-group')).rejects.toThrow();
+            await expect(firestoreReader.getGroup(toGroupId('malformed-group'))).rejects.toThrow();
         });
 
         test('should handle completely empty or null documents', async () => {
             // Test edge cases with completely invalid data
             // Don't seed anything - document doesn't exist
 
-            const result = await firestoreReader.getGroup('null-group');
+            const result = await firestoreReader.getGroup(toGroupId('null-group'));
             expect(result).toBeNull();
         });
     });
@@ -160,7 +161,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
             db.seed('groups/bad-timestamps-group', groupWithBadTimestamps);
 
             // Should reject due to invalid timestamp
-            await expect(firestoreReader.getGroup('bad-timestamps-group')).rejects.toThrow();
+            await expect(firestoreReader.getGroup(toGroupId('bad-timestamps-group'))).rejects.toThrow();
         });
 
         test('should reject groups with unrecognized fields', async () => {
@@ -182,7 +183,7 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
             db.seed('groups/mixed-validity-group', groupWithExtraField);
 
             // Should reject due to unrecognized key
-            await expect(firestoreReader.getGroup('mixed-validity-group')).rejects.toThrow();
+            await expect(firestoreReader.getGroup(toGroupId('mixed-validity-group'))).rejects.toThrow();
         });
     });
 
@@ -203,15 +204,15 @@ describe('Data Validation and Sanitization - Unit Tests', () => {
                 .build();
 
             const groupData = [
-                { ...goodGroup1, id: 'good-group-1' },
+                { ...goodGroup1, id: toGroupId('good-group-1') },
                 {
                     ...goodGroup1,
-                    id: 'bad-group-1',
+                    id: toGroupId('bad-group-1'),
                     name: 'Bad Group 1',
                     description: 'Group with invalid permissions',
                     permissions: { ...goodGroup1.permissions, expenseEditing: 'invalid-permission' as any },
                 },
-                { ...goodGroup2, id: 'good-group-2' },
+                { ...goodGroup2, id: toGroupId('good-group-2') },
             ];
 
             // Set up all groups

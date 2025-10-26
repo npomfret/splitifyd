@@ -10,6 +10,7 @@ import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreReader } from '../../services/firestore';
+import {toGroupId} from "@splitifyd/shared";
 
 describe('FirestoreReader Pagination Performance', () => {
     let db: SplitifydFirestoreTestDatabase;
@@ -27,7 +28,7 @@ describe('FirestoreReader Pagination Performance', () => {
 
     describe('PaginatedResult Interface', () => {
         it('should return paginated result with all required fields', async () => {
-            const groupId = 'group-1';
+            const groupId = toGroupId('group-1');
 
             // Seed group
             db.seedGroup(groupId, {
@@ -61,7 +62,7 @@ describe('FirestoreReader Pagination Performance', () => {
         it('should indicate hasMore=true when there are additional pages', async () => {
             // Seed 3 groups but request limit of 2 to trigger pagination
             for (let i = 1; i <= 3; i++) {
-                const groupId = `group-${i}`;
+                const groupId = toGroupId(`group-${i}`);
                 db.seedGroup(groupId, { name: `Test Group ${i}` });
 
                 const memberData = new GroupMemberDocumentBuilder()
@@ -84,7 +85,7 @@ describe('FirestoreReader Pagination Performance', () => {
             // Seed 25 groups with memberships with incrementing timestamps
             const baseTime = Date.now();
             for (let i = 1; i <= 25; i++) {
-                const groupId = `group-${i}`;
+                const groupId = toGroupId(`group-${i}`);
                 db.seedGroup(groupId, {
                     name: `Test Group ${i}`,
                     createdBy: testUserId,
@@ -131,7 +132,7 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should handle invalid cursors gracefully', async () => {
-            const groupId = 'group-1';
+            const groupId = toGroupId('group-1');
             db.seedGroup(groupId, { name: 'Group 1' });
 
             const memberData = new GroupMemberDocumentBuilder()
@@ -164,7 +165,7 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should handle single result efficiently', async () => {
-            const groupId = 'only-group';
+            const groupId = toGroupId('only-group');
             db.seedGroup(groupId, { name: 'Only Group' });
 
             const memberData = new GroupMemberDocumentBuilder()
@@ -184,7 +185,7 @@ describe('FirestoreReader Pagination Performance', () => {
         it('should handle exact page size boundary', async () => {
             // Seed exactly 10 groups
             for (let i = 1; i <= 10; i++) {
-                const groupId = `group-${i}`;
+                const groupId = toGroupId(`group-${i}`);
                 db.seedGroup(groupId, { name: `Test Group ${i}` });
 
                 const memberData = new GroupMemberDocumentBuilder()
@@ -211,7 +212,7 @@ describe('FirestoreReader Pagination Performance', () => {
 
             // Seed 1000 groups
             for (let i = 1; i <= 1000; i++) {
-                const groupId = `group-${i}`;
+                const groupId = toGroupId(`group-${i}`);
                 db.seedGroup(groupId, {
                     name: `Test Group ${i}`,
                     createdBy: heavyUserId,
@@ -243,7 +244,7 @@ describe('FirestoreReader Pagination Performance', () => {
         it('should respect limit parameter', async () => {
             // Seed 20 groups
             for (let i = 1; i <= 20; i++) {
-                const groupId = `group-${i}`;
+                const groupId = toGroupId(`group-${i}`);
                 db.seedGroup(groupId, { name: `Test Group ${i}` });
 
                 const memberData = new GroupMemberDocumentBuilder()
@@ -262,7 +263,7 @@ describe('FirestoreReader Pagination Performance', () => {
         it('should work without explicit limit (default pagination)', async () => {
             // Seed 15 groups
             for (let i = 1; i <= 15; i++) {
-                const groupId = `group-${i}`;
+                const groupId = toGroupId(`group-${i}`);
                 db.seedGroup(groupId, { name: `Test Group ${i}` });
 
                 const memberData = new GroupMemberDocumentBuilder()

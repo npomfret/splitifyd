@@ -1,6 +1,7 @@
 import { ColorPattern, GroupMembershipDTO, MemberRoles, MemberStatuses, UserThemeColor } from '@splitifyd/shared';
 import { GroupId, UserId } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
+import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Builder for GroupMembershipDTO - the membership document DTO
@@ -42,8 +43,8 @@ export class GroupMemberDocumentBuilder {
         return this;
     }
 
-    withGroupId(groupId: GroupId): this {
-        this.memberDoc.groupId = groupId;
+    withGroupId(groupId: GroupId | string): this {
+        this.memberDoc.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
         return this;
     }
 

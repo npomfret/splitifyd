@@ -1,5 +1,5 @@
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
-import { CreateGroupRequest } from '@splitifyd/shared';
+import { CreateGroupRequest, toGroupId } from '@splitifyd/shared';
 import { CreateGroupRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
@@ -27,14 +27,14 @@ describe('GroupService - Unit Tests', () => {
     describe('getGroupFullDetails', () => {
         it('should throw NOT_FOUND when group does not exist', async () => {
             const userId = 'test-user-123';
-            const nonExistentGroupId = 'non-existent-group';
+            const nonExistentGroupId = toGroupId('non-existent-group');
 
             await expect(groupService.getGroupFullDetails(nonExistentGroupId, userId)).rejects.toThrow(ApiError);
         });
 
         it('should respect the includeDeletedExpenses flag when retrieving expenses', async () => {
             const userId = 'include-deleted-owner';
-            const groupId = 'include-deleted-group';
+            const groupId = toGroupId('include-deleted-group');
 
             db.seedGroup(groupId, {
                 name: 'Include Deleted Test Group',
@@ -98,7 +98,7 @@ describe('GroupService - Unit Tests', () => {
     describe('updateGroup', () => {
         it('should update group successfully when user is owner', async () => {
             const userId = 'test-user-123';
-            const groupId = 'test-group-456';
+            const groupId = toGroupId('test-group-456');
 
             // Set up existing group
             db.seedGroup(groupId, {
@@ -132,7 +132,7 @@ describe('GroupService - Unit Tests', () => {
     describe('deleteGroup', () => {
         it('should delete group successfully when user is owner', async () => {
             const userId = 'test-user-123';
-            const groupId = 'test-group-456';
+            const groupId = toGroupId('test-group-456');
 
             // Seed user in both Auth and Firestore (required for actor display name in activity feed)
             stubAuth.setUser(userId, {
@@ -173,7 +173,7 @@ describe('GroupService - Unit Tests', () => {
             const userId = 'test-user-123';
 
             // Set up test group
-            db.seedGroup('group-1', {
+            db.seedGroup(toGroupId('group-1'), {
                 name: 'Group 1',
                 createdBy: userId,
             });

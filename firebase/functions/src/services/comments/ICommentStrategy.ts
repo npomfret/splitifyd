@@ -1,3 +1,5 @@
+import type {CommentId, ExpenseId, GroupId, UserId } from '@splitifyd/shared';
+
 /**
  * Strategy interface for handling comment operations on different target types
  *
@@ -5,7 +7,9 @@
  * (groups, expenses, settlements, etc.) and eliminates the need for type-dispatching
  * conditionals in the CommentService.
  */
-export interface ICommentStrategy {
+export type T = GroupId | ExpenseId;
+
+export interface ICommentStrategy<T> {
     /**
      * Verify that a user has access to comment on the target entity
      *
@@ -13,6 +17,5 @@ export interface ICommentStrategy {
      * @param userId - ID of the user attempting to comment
      * @throws ApiError if access is denied or entity not found
      */
-    verifyAccess(targetId: string, userId: UserId): Promise<void>;
+    verifyAccess(targetId: T, userId: UserId): Promise<void>;
 }
-import type { UserId } from '@splitifyd/shared';

@@ -1,6 +1,7 @@
 import {
     CreateGroupRequest,
     CreateGroupRequestSchema,
+    GroupId,
     GroupPermissions,
     MemberRoles,
     PermissionLevels,
@@ -14,6 +15,7 @@ import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
 import { parseWithApiError } from '../utils/validation';
+import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Validate create group request
@@ -62,12 +64,12 @@ export const validateUpdateDisplayName = (body: unknown): UpdateDisplayNameReque
 /**
  * Validate group ID
  */
-export const validateGroupId = (id: unknown): string => {
+export const validateGroupId = (id: unknown): GroupId => {
     if (!id || typeof id !== 'string' || id.trim().length === 0) {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'group ID is required');
     }
 
-    return id.trim();
+    return toGroupId(id.trim());
 };
 
 /**

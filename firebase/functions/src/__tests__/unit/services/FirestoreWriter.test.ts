@@ -7,6 +7,7 @@ import { FirestoreReader } from '../../../services/firestore';
 import type { IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
+import {toGroupId} from "@splitifyd/shared";
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let db: SplitifydFirestoreTestDatabase;
@@ -28,7 +29,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     });
 
     describe('updateGroupMemberDisplayName', () => {
-        const groupId = 'test-group';
+        const groupId = toGroupId('test-group');
         const userId = 'test-user';
         const newDisplayName = 'Updated Display Name';
 
