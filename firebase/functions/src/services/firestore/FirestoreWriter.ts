@@ -12,7 +12,7 @@
 // Import types
 import type { CommentDTO, DisplayName, Email, ISOString, RegisteredUser, ShareLinkDTO, UserId } from '@splitifyd/shared';
 // Import schemas for validation
-import { type CommentTargetType, CommentTargetTypes, GroupId, PolicyId } from '@splitifyd/shared';
+import { ExpenseId, GroupId, PolicyId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../../constants';
 import { FieldValue, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
@@ -563,19 +563,24 @@ export class FirestoreWriter implements IFirestoreWriter {
         }
     }
 
-    /**
-     * Get the Firestore collection path for comments on a target entity
-     * This eliminates type-dispatching conditionals in comment methods
-     */
-    private getCommentCollectionPath(targetType: CommentTargetType, targetId: string): string {
-        switch (targetType) {
-            case CommentTargetTypes.GROUP:
-                return `${FirestoreCollections.GROUPS}/${targetId}/${FirestoreCollections.COMMENTS}`;
-            case CommentTargetTypes.EXPENSE:
-                return `${FirestoreCollections.EXPENSES}/${targetId}/${FirestoreCollections.COMMENTS}`;
-            default:
-                throw new Error(`Unsupported comment target type: ${targetType}`);
-        }
+    private getGroupCommentCollectionPath(groupId: GroupId): string {
+        return `${FirestoreCollections.GROUPS}/${groupId}/${FirestoreCollections.COMMENTS}`;
+    }
+
+    private getExpenseCommentCollectionPath(expenseId: ExpenseId): string {
+        return `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}`;
+    }
+
+    private buildCommentWriteData(commentData: Omit<CommentDTO, 'id'>) {
+        const cleanedData = this.removeUndefinedValues(commentData);
+        const convertedData = this.convertISOToTimestamps(cleanedData);
+        const validatedData = CommentDataSchema.parse(convertedData);
+
+        return {
+            ...validatedData,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+        };
     }
 
     // ========================================================================
@@ -791,64 +796,26 @@ export class FirestoreWriter implements IFirestoreWriter {
         logger.info('Group balance updated in transaction', { groupId, version: newBalance.version });
     }
 
-    createCommentInTransaction(transaction: ITransaction, targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDTO, 'id'>) {
-        const collectionPath = this.getCommentCollectionPath(targetType, targetId);
-        const commentRef = this.db.collection(collectionPath).doc();
-
-        const cleanedData = this.removeUndefinedValues(commentData);
-        const convertedData = this.convertISOToTimestamps(cleanedData);
-        const validatedData = CommentDataSchema.parse(convertedData);
-
-        const finalData = {
-            ...validatedData,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
-        };
-
-        transaction.set(commentRef, finalData);
-
-        return commentRef;
+    createGroupCommentInTransaction(transaction: ITransaction, groupId: GroupId, commentData: Omit<CommentDTO, 'id'>) {
+        return this.createCommentInTransactionInternal(transaction, this.getGroupCommentCollectionPath(groupId), commentData);
     }
 
-    async addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.addComment', async () => {
+    createExpenseCommentInTransaction(transaction: ITransaction, expenseId: ExpenseId, commentData: Omit<CommentDTO, 'id'>) {
+        return this.createCommentInTransactionInternal(transaction, this.getExpenseCommentCollectionPath(expenseId), commentData);
+    }
+
+    async addGroupComment(groupId: GroupId, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.addGroupComment', async () => {
             try {
-                // Get collection path using helper method to eliminate type-dispatching
-                const collectionPath = this.getCommentCollectionPath(targetType, targetId);
-
-                // Create comment reference
-                const commentRef = this.db.collection(collectionPath).doc();
-
-                // Remove undefined values (Firestore doesn't accept them)
-                const cleanedData = this.removeUndefinedValues(commentData);
-
-                // LENIENT: Convert ISO strings to Timestamps before validation
-                const convertedData = this.convertISOToTimestamps(cleanedData);
-
-                // Validate comment data (expects Timestamps after conversion)
-                const validatedData = CommentDataSchema.parse(convertedData);
-
-                // Use validated data directly
-                const dataToWrite = validatedData;
-
-                // Add timestamps
-                const finalData = {
-                    ...dataToWrite,
-                    createdAt: FieldValue.serverTimestamp(),
-                    updatedAt: FieldValue.serverTimestamp(),
-                };
-
-                await commentRef.set(finalData);
-
-                logger.info('Comment added', { targetType, targetId, commentId: commentRef.id });
-
+                const commentId = await this.addCommentInternal(this.getGroupCommentCollectionPath(groupId), commentData);
+                logger.info('Group comment added', { groupId, commentId });
                 return {
-                    id: commentRef.id,
+                    id: commentId,
                     success: true,
                     timestamp: new Date(),
                 };
             } catch (error) {
-                logger.error('Failed to add comment', error, { targetType, targetId });
+                logger.error('Failed to add group comment', error, { groupId });
                 return {
                     id: '',
                     success: false,
@@ -856,6 +823,41 @@ export class FirestoreWriter implements IFirestoreWriter {
                 };
             }
         });
+    }
+
+    async addExpenseComment(expenseId: ExpenseId, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.addExpenseComment', async () => {
+            try {
+                const commentId = await this.addCommentInternal(this.getExpenseCommentCollectionPath(expenseId), commentData);
+                logger.info('Expense comment added', { expenseId, commentId });
+                return {
+                    id: commentId,
+                    success: true,
+                    timestamp: new Date(),
+                };
+            } catch (error) {
+                logger.error('Failed to add expense comment', error, { expenseId });
+                return {
+                    id: '',
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                };
+            }
+        });
+    }
+
+    private createCommentInTransactionInternal(transaction: ITransaction, collectionPath: string, commentData: Omit<CommentDTO, 'id'>) {
+        const commentRef = this.db.collection(collectionPath).doc();
+        const finalData = this.buildCommentWriteData(commentData);
+        transaction.set(commentRef, finalData);
+        return commentRef;
+    }
+
+    private async addCommentInternal(collectionPath: string, commentData: Omit<CommentDTO, 'id'>): Promise<string> {
+        const commentRef = this.db.collection(collectionPath).doc();
+        const finalData = this.buildCommentWriteData(commentData);
+        await commentRef.set(finalData);
+        return commentRef.id;
     }
 
     // ========================================================================

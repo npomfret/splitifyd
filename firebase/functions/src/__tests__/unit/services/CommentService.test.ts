@@ -1,4 +1,4 @@
-import { CommentTargetTypes, toGroupId } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import type { CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { AuthUserRecordBuilder, ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
@@ -9,7 +9,7 @@ import { CommentService } from '../../../services/CommentService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
-import { toExpenseId, toCommentId } from "@splitifyd/shared";
+import { toExpenseId, toCommentId } from '@splitifyd/shared';
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;
@@ -34,69 +34,6 @@ describe('CommentService - Consolidated Tests', () => {
                 .withPhotoURL('https://example.com/photo.jpg')
                 .build(),
         );
-    });
-
-    describe('verifyCommentAccess for GROUP comments', () => {
-        it('should allow access when group exists and user is member', async () => {
-            const testGroup = new GroupDTOBuilder()
-                .withId('test-group')
-                .build();
-            db.seedGroup(testGroup.id, testGroup);
-
-            // Set up group membership
-            const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('user-id')
-                .withGroupId(testGroup.id)
-                .build();
-            db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
-
-            // Should not throw
-            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, testGroup.id, 'user-id')).resolves.not.toThrow();
-        });
-
-        it('should throw NOT_FOUND when group does not exist', async () => {
-            // No group data set up, so verification should fail
-            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, 'nonexistent-group', 'user-id')).rejects.toThrow();
-        });
-
-        it('should throw FORBIDDEN when user is not a group member', async () => {
-            const testGroup = new GroupDTOBuilder()
-                .withId('test-group')
-                .build();
-            db.seedGroup(testGroup.id, testGroup);
-            // Don't set up group membership - user will not be a member
-
-            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.GROUP, testGroup.id, 'unauthorized-user')).rejects.toThrow();
-        });
-    });
-
-    describe('verifyCommentAccess for EXPENSE comments', () => {
-        it('should allow access when expense exists and user is group member', async () => {
-            const testGroup = new GroupDTOBuilder()
-                .withId('test-group')
-                .build();
-            const testExpense = new ExpenseDTOBuilder()
-                .withExpenseId('test-expense')
-                .withGroupId(testGroup.id)
-                .build();
-
-            db.seedExpense('test-expense', testExpense);
-            db.seedGroup(testGroup.id, testGroup);
-
-            // Set up group membership
-            const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('user-id')
-                .withGroupId(testGroup.id)
-                .build();
-            db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
-
-            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'test-expense', 'user-id')).resolves.not.toThrow();
-        });
-
-        it('should throw NOT_FOUND when expense does not exist', async () => {
-            // No expense data set up, so verification should fail
-            await expect((commentService as any).verifyCommentAccess(CommentTargetTypes.EXPENSE, 'nonexistent-expense', 'user-id')).rejects.toThrow();
-        });
     });
 
     describe('listGroupComments', () => {
@@ -246,9 +183,8 @@ describe('CommentService - Consolidated Tests', () => {
                 .build();
             db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
 
-            await (commentService as any).verifyCommentAccess('group', testGroup.id, 'user-id');
-
-            // This test verifies the dependency injection is working since it doesn't throw
+            const result = await commentService.listGroupComments(testGroup.id, 'user-id');
+            expect(result.comments).toEqual([]);
         });
 
         it('should use injected FirestoreReader for expense reads', async () => {

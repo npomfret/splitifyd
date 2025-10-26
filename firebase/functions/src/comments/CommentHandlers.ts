@@ -1,4 +1,4 @@
-import { CommentDTO, CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
+import { CommentDTO } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
@@ -30,15 +30,15 @@ export class CommentHandlers {
             const userId = validateUserAuth(req);
 
             // Extract target type and ID from route parameters
-            const targetType: CommentTargetType = req.path.includes('/groups/') ? CommentTargetTypes.GROUP : CommentTargetTypes.EXPENSE;
-            const targetId = targetType === CommentTargetTypes.GROUP ? req.params.groupId : req.params.expenseId;
+            const routeTargetsGroup = req.path.includes('/groups/');
+            const targetId = routeTargetsGroup ? req.params.groupId : req.params.expenseId;
 
             if (!targetId) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_ID', 'Target ID is required');
             }
 
             let comment: CommentDTO;
-            if (targetType === CommentTargetTypes.GROUP) {
+            if (routeTargetsGroup) {
                 const validatedRequest = validateCreateGroupComment(targetId, req.body);
                 comment = await this.commentService.createGroupComment(validatedRequest.groupId, validatedRequest, userId);
             } else {

@@ -1,4 +1,4 @@
-import { CommentTargetType, CreateExpenseCommentRequest, CreateGroupCommentRequest, type CommentId, toCommentId } from '@splitifyd/shared';
+import { CreateExpenseCommentRequest, CreateGroupCommentRequest, type CommentId, toCommentId } from '@splitifyd/shared';
 import * as Joi from 'joi';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
@@ -27,8 +27,6 @@ const listCommentsQuerySchema = Joi.object({
 });
 
 const sanitizeCommentText = (text: string): string => sanitizeString(text);
-
-const sanitizeIdentifier = (value: string): string => sanitizeString(value);
 
 /**
  * Validates the request body for creating a group comment
@@ -98,16 +96,6 @@ export const validateListCommentsQuery = (query: any): { cursor?: string; limit:
     }
 
     return value;
-};
-
-/**
- * Validates that a target ID is a valid string
- */
-export const validateTargetId = (id: any, targetType: CommentTargetType): string => {
-    if (typeof id !== 'string' || !id.trim()) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_ID', `Invalid ${targetType} ID`);
-    }
-    return id.trim();
 };
 
 /**

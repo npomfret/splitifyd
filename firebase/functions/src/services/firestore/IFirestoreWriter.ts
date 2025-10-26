@@ -14,8 +14,8 @@
  * - Performance monitoring with sampling
  */
 
-import type { CommentDTO, CommentTargetType, ISOString, RegisteredUser, ShareLinkDTO, UserId } from '@splitifyd/shared';
-import { DisplayName, GroupId } from '@splitifyd/shared';
+import type { CommentDTO, ISOString, RegisteredUser, ShareLinkDTO, UserId } from '@splitifyd/shared';
+import { DisplayName, ExpenseId, GroupId } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, ITransaction, IWriteBatch } from '../../firestore-wrapper';
@@ -86,15 +86,30 @@ export interface IFirestoreWriter {
     // ========================================================================
 
     /**
-     * Add a comment to a group, expense or settlement
-     * @param targetType - 'group', 'expense' or 'settlement'
-     * @param targetId - The group, expense or settlement ID
+     * Add a comment to a group
+     * @param groupId - The group ID
      * @param commentData - The comment data (DTO with ISO strings)
      * @returns Write result with generated comment ID
      */
-    addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult>;
+    addGroupComment(groupId: GroupId, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult>;
 
-    createCommentInTransaction(transaction: ITransaction, targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDTO, 'id'>): IDocumentReference;
+    /**
+     * Add a comment to an expense
+     * @param expenseId - The expense ID
+     * @param commentData - The comment data (DTO with ISO strings)
+     * @returns Write result with generated comment ID
+     */
+    addExpenseComment(expenseId: ExpenseId, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult>;
+
+    /**
+     * Create a group comment inside an existing transaction
+     */
+    createGroupCommentInTransaction(transaction: ITransaction, groupId: GroupId, commentData: Omit<CommentDTO, 'id'>): IDocumentReference;
+
+    /**
+     * Create an expense comment inside an existing transaction
+     */
+    createExpenseCommentInTransaction(transaction: ITransaction, expenseId: ExpenseId, commentData: Omit<CommentDTO, 'id'>): IDocumentReference;
 
     // ========================================================================
     // Share Link Operations

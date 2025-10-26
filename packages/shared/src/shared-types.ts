@@ -965,13 +965,6 @@ export interface GroupBalances {
 // Comments types
 // ========================================================================
 
-export const CommentTargetTypes = {
-    GROUP: 'group',
-    EXPENSE: 'expense',
-} as const;
-
-export type CommentTargetType = (typeof CommentTargetTypes)[keyof typeof CommentTargetTypes];
-
 /**
  * Comment business fields (without metadata)
  */

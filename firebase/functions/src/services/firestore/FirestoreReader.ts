@@ -20,8 +20,6 @@ import {
     ActivityFeedEventTypes,
     type ActivityFeedItem,
     type CommentDTO,
-    type CommentTargetType,
-    CommentTargetTypes,
     type ExpenseDTO,
     ExpenseId,
     type GroupDTO,
@@ -1101,41 +1099,43 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getComment(targetType: CommentTargetType, targetId: string, commentId: CommentId): Promise<CommentDTO | null> {
+    async getGroupComment(groupId: GroupId, commentId: CommentId): Promise<CommentDTO | null> {
+        const collectionPath = this.getGroupCommentCollectionPath(groupId);
         try {
-            let collectionPath: string;
-            switch (targetType) {
-                case CommentTargetTypes.GROUP:
-                    collectionPath = this.getGroupCommentCollectionPath(targetId);
-                    break;
-                case CommentTargetTypes.EXPENSE:
-                    collectionPath = this.getExpenseCommentCollectionPath(targetId);
-                    break;
-                default:
-                    throw new Error(`Unsupported comment target type: ${targetType}`);
-            }
-            const commentsCollection = this.db.collection(collectionPath);
-
-            const doc = await commentsCollection.doc(commentId).get();
-
-            if (!doc.exists) {
-                return null;
-            }
-
-            const rawData = doc.data();
-            if (!rawData) {
-                return null;
-            }
-
-            const dataWithId = { ...rawData, id: doc.id };
-            const comment = CommentDocumentSchema.parse(dataWithId);
-            // Convert Timestamps to ISO strings for DTO
-            const convertedComment = this.convertTimestampsToISO(comment);
-            return convertedComment as unknown as CommentDTO;
+            return await this.getCommentByCollectionPath(collectionPath, commentId);
         } catch (error) {
-            logger.error('Failed to get comment', error);
+            logger.error('Failed to get group comment', error, { groupId, commentId });
             throw error;
         }
+    }
+
+    async getExpenseComment(expenseId: ExpenseId, commentId: CommentId): Promise<CommentDTO | null> {
+        const collectionPath = this.getExpenseCommentCollectionPath(expenseId);
+        try {
+            return await this.getCommentByCollectionPath(collectionPath, commentId);
+        } catch (error) {
+            logger.error('Failed to get expense comment', error, { expenseId, commentId });
+            throw error;
+        }
+    }
+
+    private async getCommentByCollectionPath(collectionPath: string, commentId: CommentId): Promise<CommentDTO | null> {
+        const commentsCollection = this.db.collection(collectionPath);
+        const doc = await commentsCollection.doc(commentId).get();
+
+        if (!doc.exists) {
+            return null;
+        }
+
+        const rawData = doc.data();
+        if (!rawData) {
+            return null;
+        }
+
+        const dataWithId = { ...rawData, id: doc.id };
+        const comment = CommentDocumentSchema.parse(dataWithId);
+        const convertedComment = this.convertTimestampsToISO(comment);
+        return convertedComment as unknown as CommentDTO;
     }
 
     // ========================================================================

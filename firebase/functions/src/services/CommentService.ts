@@ -2,8 +2,6 @@ import {
     ActivityFeedActions,
     ActivityFeedEventTypes,
     CommentDTO,
-    CommentTargetType,
-    CommentTargetTypes,
     CreateExpenseCommentRequest,
     CreateGroupCommentRequest,
     ListCommentsResponse,
@@ -42,22 +40,6 @@ export class CommentService {
         this.expenseCommentStrategy = new ExpenseCommentStrategy(firestoreReader, groupMemberService);
     }
 
-    /**
-     * Verify user has access to comment on the target entity
-     */
-    private async verifyCommentAccess(targetType: CommentTargetType, targetId: GroupId | ExpenseId, userId: UserId): Promise<void> {
-        switch (targetType) {
-            case CommentTargetTypes.GROUP:
-                await this.groupCommentStrategy.verifyAccess(targetId as GroupId, userId);
-                return;
-            case CommentTargetTypes.EXPENSE:
-                await this.expenseCommentStrategy.verifyAccess(targetId as ExpenseId, userId);
-                return;
-            default:
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'UNSUPPORTED_COMMENT_TARGET', `Unsupported comment target type: ${targetType}`);
-        }
-    }
-
     async listGroupComments(groupId: GroupId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
         return measure.measureDb('CommentService.listGroupComments', async () => this.listGroupCommentsInternal(groupId, userId, options));
     }
@@ -70,7 +52,7 @@ export class CommentService {
         const timer = new PerformanceTimer();
 
         const limit = Math.min(options.limit ?? 8, 100);
-        loggerContext.LoggerContext.update({ targetType: CommentTargetTypes.GROUP, groupId, userId, operation: 'list-comments', limit });
+        loggerContext.LoggerContext.update({ targetType: 'group', groupId, userId, operation: 'list-comments', limit });
 
         timer.startPhase('query');
         await this.groupCommentStrategy.verifyAccess(groupId, userId);
@@ -89,7 +71,7 @@ export class CommentService {
         }));
 
         logger.info('comments-listed', {
-            targetType: CommentTargetTypes.GROUP,
+            targetType: 'group',
             targetId: groupId,
             count: comments.length,
             timings: timer.getTimings(),
@@ -106,7 +88,7 @@ export class CommentService {
         const timer = new PerformanceTimer();
 
         const limit = Math.min(options.limit ?? 8, 100);
-        loggerContext.LoggerContext.update({ targetType: CommentTargetTypes.EXPENSE, targetId: expenseId, userId, operation: 'list-comments', limit });
+        loggerContext.LoggerContext.update({ targetType: 'expense', targetId: expenseId, userId, operation: 'list-comments', limit });
 
         timer.startPhase('query');
         await this.expenseCommentStrategy.verifyAccess(expenseId, userId);
@@ -125,7 +107,7 @@ export class CommentService {
         }));
 
         logger.info('comments-listed', {
-            targetType: CommentTargetTypes.EXPENSE,
+            targetType: 'expense',
             targetId: expenseId,
             count: comments.length,
             timings: timer.getTimings(),
@@ -155,10 +137,10 @@ export class CommentService {
     private async createGroupCommentInternal(groupId: GroupId, commentData: CreateGroupCommentRequest, userId: UserId): Promise<CommentDTO> {
         const timer = new PerformanceTimer();
 
-        loggerContext.LoggerContext.update({ targetType: CommentTargetTypes.GROUP, groupId, userId, operation: 'create-comment' });
+        loggerContext.LoggerContext.update({ targetType: 'group', groupId, userId, operation: 'create-comment' });
 
         timer.startPhase('query');
-        await this.verifyCommentAccess(CommentTargetTypes.GROUP, groupId, userId);
+        await this.groupCommentStrategy.verifyAccess(groupId, userId);
 
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
@@ -197,7 +179,7 @@ export class CommentService {
 
         timer.startPhase('write');
         const commentId = await this.firestoreWriter.runTransaction(async (transaction) => {
-            const commentRef = this.firestoreWriter.createCommentInTransaction(transaction, CommentTargetTypes.GROUP, groupId, commentCreateData);
+            const commentRef = this.firestoreWriter.createGroupCommentInTransaction(transaction, groupId, commentCreateData);
 
             const details: Record<string, any> = {
                 commentId: commentRef.id,
@@ -222,14 +204,14 @@ export class CommentService {
             return commentRef.id;
         });
 
-        const createdComment = await this.firestoreReader.getComment(CommentTargetTypes.GROUP, groupId, toCommentId(commentId));
+        const createdComment = await this.firestoreReader.getGroupComment(groupId, toCommentId(commentId));
         if (!createdComment) {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
         }
         timer.endPhase();
 
         logger.info('comment-created', {
-            targetType: CommentTargetTypes.GROUP,
+            targetType: 'group',
             groupId,
             commentId,
             timings: timer.getTimings(),
@@ -244,10 +226,10 @@ export class CommentService {
     private async createExpenseCommentInternal(expenseId: ExpenseId, commentData: CreateExpenseCommentRequest, userId: UserId): Promise<CommentDTO> {
         const timer = new PerformanceTimer();
 
-        loggerContext.LoggerContext.update({ targetType: CommentTargetTypes.EXPENSE, expenseId, userId, operation: 'create-comment' });
+        loggerContext.LoggerContext.update({ targetType: 'expense', expenseId, userId, operation: 'create-comment' });
 
         timer.startPhase('query');
-        await this.verifyCommentAccess(CommentTargetTypes.EXPENSE, expenseId, userId);
+        await this.expenseCommentStrategy.verifyAccess(expenseId, userId);
 
         const expense = await this.firestoreReader.getExpense(expenseId);
         if (!expense || expense.deletedAt) {
@@ -291,7 +273,7 @@ export class CommentService {
 
         timer.startPhase('write');
         const commentId = await this.firestoreWriter.runTransaction(async (transaction) => {
-            const commentRef = this.firestoreWriter.createCommentInTransaction(transaction, CommentTargetTypes.EXPENSE, expenseId, commentCreateData);
+            const commentRef = this.firestoreWriter.createExpenseCommentInTransaction(transaction, expenseId, commentCreateData);
 
             const details: Record<string, any> = {
                 commentId: commentRef.id,
@@ -321,14 +303,14 @@ export class CommentService {
             return commentRef.id;
         });
 
-        const createdComment = await this.firestoreReader.getComment(CommentTargetTypes.EXPENSE, expenseId, toCommentId(commentId));
+        const createdComment = await this.firestoreReader.getExpenseComment(expenseId, toCommentId(commentId));
         if (!createdComment) {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
         }
         timer.endPhase();
 
         logger.info('comment-created', {
-            targetType: CommentTargetTypes.EXPENSE,
+            targetType: 'expense',
             expenseId,
             commentId,
             timings: timer.getTimings(),

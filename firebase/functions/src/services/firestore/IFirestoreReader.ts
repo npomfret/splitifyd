@@ -72,7 +72,6 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 }
 
 // Import parsed types from schemas
-import { CommentTargetType } from '@splitifyd/shared';
 import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
@@ -297,13 +296,20 @@ export interface IFirestoreReader {
     ): Promise<{ comments: CommentDTO[]; hasMore: boolean; nextCursor?: string; }>;
 
     /**
-     * Get a specific comment by target and comment ID
-     * @param targetType - The target type (group or expense)
-     * @param targetId - The target ID
+     * Get a specific group comment by comment ID
+     * @param groupId - The group ID
      * @param commentId - The comment ID
      * @returns Comment document or null if not found
      */
-    getComment(targetType: CommentTargetType, targetId: string, commentId: CommentId): Promise<CommentDTO | null>;
+    getGroupComment(groupId: GroupId, commentId: CommentId): Promise<CommentDTO | null>;
+
+    /**
+     * Get a specific expense comment by comment ID
+     * @param expenseId - The expense ID
+     * @param commentId - The comment ID
+     * @returns Comment document or null if not found
+     */
+    getExpenseComment(expenseId: ExpenseId, commentId: CommentId): Promise<CommentDTO | null>;
 
     // ========================================================================
     // Group Related Collections Operations

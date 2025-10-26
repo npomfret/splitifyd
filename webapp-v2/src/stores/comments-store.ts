@@ -1,5 +1,5 @@
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { ActivityFeedItem, CommentDTO, CommentTargetType, ExpenseId, GroupId, ListCommentsResponse } from '@splitifyd/shared';
+import type { ActivityFeedItem, CommentDTO, ExpenseId, GroupId, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
@@ -9,6 +9,7 @@ import { logError, logInfo } from '../utils/browser-logger';
 type GroupTarget = { type: 'group'; groupId: GroupId; };
 type ExpenseTarget = { type: 'expense'; expenseId: ExpenseId; };
 export type CommentsStoreTarget = GroupTarget | ExpenseTarget;
+type CommentScope = CommentsStoreTarget['type'];
 
 const isGroupTarget = (target: CommentsStoreTarget): target is GroupTarget => target.type === 'group';
 
@@ -46,7 +47,7 @@ interface CommentsStore {
     readonly error: string | null;
     readonly hasMore: boolean;
     readonly target: CommentsStoreTarget | null;
-    readonly targetType: CommentTargetType | null;
+    readonly targetType: CommentScope | null;
     readonly groupId: GroupId | null;
     readonly expenseId: ExpenseId | null;
 
