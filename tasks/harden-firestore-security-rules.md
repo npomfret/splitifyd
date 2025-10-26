@@ -10,7 +10,7 @@ Owner: Platform Engineering
 | 1 | Registration abuse (edge-level control) | Delegated | Registration rate limiting must be enforced before traffic reaches Cloud Functions. No function-level throttling is planned; coordinate with the platform gateway team. |
 | 3 | Auth field duplication | Partially done | Email and photo URL are no longer written to Firestore, but `displayName` is still duplicated on create/update (firebase/functions/src/services/UserService2.ts:212,401). Schema still allows legacy email fields for backward compatibility (firebase/functions/src/schemas/user.ts:27). |
 | 4 | Health and diagnostics endpoints | Done | `/env` now requires system-level roles via `authenticateSystemUser` and returns merged diagnostics including former `/status` payloads (firebase/functions/src/index.ts:83-90, firebase/functions/src/endpoints/diagnostics.ts:80-129). |
-| 5 | Email enumeration hardening | Open | Registration still surfaces `auth/email-already-exists` via structured error responses (firebase/functions/src/services/UserService2.ts:443) and lacks constant-time failure paths. |
+| 5 | Email enumeration hardening | Done | Registration now enforces a minimum 600 ms response window with generic `REGISTRATION_FAILED` errors to avoid email enumeration leaks (firebase/functions/src/services/UserService2.ts:361-499, firebase/functions/src/utils/timing.ts:1-45). |
 | 6 | Log sanitization | Open | `ContextualLoggerImpl` forwards arbitrary payload keys without redaction (firebase/functions/src/utils/contextual-logger.ts:32-118). No redaction helper exists. |
 | 7 | Admin audit logging | Open | No audit logger, firestore collection, or rules for admin operations are present. |
 | 9 | Input sanitization audit | Needs review | Sanitizers exist for comments, groups, and expenses, but no recent audit confirms coverage for every write path. No automated test asserts sanitization is enforced. |
@@ -19,11 +19,10 @@ Legend: Done = implemented and verified, Partially done = partially mitigated, N
 
 ## Outstanding Work
 
-1. Ship a registration flow that avoids leaking whether an email exists (Issue 5). Standardise error messaging and insert a minimum response delay.
-2. Introduce log sanitisation (Issue 6). Add redaction for password, token, key, and bearer fields before forwarding payloads to Cloud Logging.
-3. Create an audit logging service for admin actions (Issue 7) and enforce read/write rules for the backing collection.
-4. Finish the input sanitisation audit (Issue 9). Document coverage, add regression tests, and close any gaps (group names, notification payloads, etc.).
-5. Consider removing the remaining `displayName` duplication from Firestore (Issue 3 follow-up) once frontend dependencies are reviewed.
+1. Introduce log sanitisation (Issue 6). Add redaction for password, token, key, and bearer fields before forwarding payloads to Cloud Logging.
+2. Create an audit logging service for admin actions (Issue 7) and enforce read/write rules for the backing collection.
+3. Finish the input sanitisation audit (Issue 9). Document coverage, add regression tests, and close any gaps (group names, notification payloads, etc.).
+4. Consider removing the remaining `displayName` duplication from Firestore (Issue 3 follow-up) once frontend dependencies are reviewed.
 
 ## Issue Details
 
@@ -47,9 +46,9 @@ Legend: Done = implemented and verified, Partially done = partially mitigated, N
 
 ### Issue 5 - Email enumeration hardening
 
-- **Status:** Open  
-- **Evidence:** The registration flow still emits conflict responses tied to `AuthErrors.EMAIL_EXISTS` (firebase/functions/src/services/UserService2.ts:441-444) and lacks any timing equalisation.  
-- **Next:** Return a single generic error for registration failures, add a minimum response duration, and fuzz tests to ensure differential timing stays within tolerance.
+- **Status:** Done  
+- **Evidence:** `UserService.registerUser` now wraps registration in `withMinimumDuration` to guarantee at least 600 ms per attempt and maps Firebase duplicate-email responses to a generic `REGISTRATION_FAILED` payload (firebase/functions/src/services/UserService2.ts:361-499, firebase/functions/src/utils/timing.ts:1-45). Playwright registration specs and unit tests assert the new message and timing behaviour.  
+- **Next:** Monitor telemetry for abnormal latency deviations; add timing fuzz tests if future regressions appear.
 
 ### Issue 6 - Log sanitisation
 

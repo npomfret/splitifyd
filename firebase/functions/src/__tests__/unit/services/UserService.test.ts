@@ -1,7 +1,7 @@
 import { DisplayName } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { PasswordChangeRequestBuilder, ThemeBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { UserService } from '../../../services/UserService2';
@@ -56,7 +56,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             expect(authUser!.displayName).toBe(registrationData.displayName);
         });
 
-        it('should reject registration with existing email', async () => {
+        it('should reject registration with existing email using generic response', async () => {
             const email = 'existing@example.com';
 
             // Set up existing user in Auth stub
@@ -74,10 +74,57 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             await expect(userService.registerUser(duplicateData)).rejects.toThrow(
                 expect.objectContaining({
-                    statusCode: HTTP_STATUS.CONFLICT,
-                    code: 'EMAIL_ALREADY_EXISTS',
+                    statusCode: HTTP_STATUS.BAD_REQUEST,
+                    code: 'REGISTRATION_FAILED',
+                    message: 'Unable to create account. If you already registered, try signing in.',
                 }),
             );
+        });
+
+        it('enforces minimum registration duration on failure', async () => {
+            vi.useFakeTimers();
+
+            try {
+                const email = 'slow-existing@example.com';
+
+                stubAuth.setUser('existing-user', {
+                    uid: 'existing-user',
+                    email,
+                    displayName: 'Existing User',
+                });
+
+                const duplicateData = new UserRegistrationBuilder()
+                    .withEmail(email)
+                    .withPassword('DifferentPass123!')
+                    .withDisplayName('Different Name')
+                    .build();
+
+                let settled = false;
+                const registrationPromise = userService.registerUser(duplicateData).finally(() => {
+                    settled = true;
+                });
+
+                const expectation = expect(registrationPromise).rejects.toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: 'REGISTRATION_FAILED',
+                    }),
+                );
+
+                // Allow any synchronous promise chains to execute
+                await vi.advanceTimersByTimeAsync(0);
+
+                await vi.advanceTimersByTimeAsync(599);
+                expect(settled).toBe(false);
+
+                await vi.runAllTimersAsync();
+
+                await expectation;
+
+                expect(settled).toBe(true);
+            } finally {
+                vi.useRealTimers();
+            }
         });
 
         it('should validate policy acceptance flags', async () => {

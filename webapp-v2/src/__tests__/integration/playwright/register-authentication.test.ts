@@ -34,15 +34,15 @@ test.describe('Registration Authentication Flow', () => {
 
         // 2. Configure mock Firebase for duplicate email error
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/email-already-in-use',
-            message: 'An account with this email already exists.',
+            code: 'REGISTRATION_FAILED',
+            message: 'Unable to create account. If you already registered, try signing in.',
         });
 
         // 3. Attempt registration expecting failure (fluent interface)
         await registerPage.registerExpectingFailure('John Smith', 'existing@example.com', 'Password1234');
 
         // 4. Verify error handling
-        await registerPage.verifyErrorMessage('An account with this email already exists.');
+        await registerPage.verifyErrorMessage('Unable to create account. If you already registered, try signing in.');
     });
 
     test('should handle network errors gracefully', async ({ pageWithLogging: page, mockFirebase }) => {

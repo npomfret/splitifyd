@@ -9,15 +9,15 @@ test.describe('Registration Form Reactivity and UI States', () => {
 
         // Configure mock Firebase for registration failure
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/email-already-in-use',
-            message: 'An account with this email already exists.',
+            code: 'REGISTRATION_FAILED',
+            message: 'Unable to create account. If you already registered, try signing in.',
         });
 
         // Attempt registration expecting failure (waits for error to appear)
         await registerPage.registerExpectingFailure('John Doe', 'existing@example.com', 'Password12344');
 
         // Verify error appears
-        await registerPage.verifyErrorMessage('An account with this email already exists.');
+        await registerPage.verifyErrorMessage('Unable to create account. If you already registered, try signing in.');
 
         // Navigate away and back to register
         await page.goto('/');
@@ -33,15 +33,15 @@ test.describe('Registration Form Reactivity and UI States', () => {
 
         // First registration attempt with error
         await mockFirebase.mockRegisterFailure({
-            code: 'auth/email-already-in-use',
-            message: 'An account with this email already exists.',
+            code: 'REGISTRATION_FAILED',
+            message: 'Unable to create account. If you already registered, try signing in.',
         });
 
         // Use fluent method that waits for error
         await registerPage.registerExpectingFailure('John Doe', 'john@example.com', 'Password12344');
 
         // Verify error appears
-        await registerPage.verifyErrorMessage('An account with this email already exists.');
+        await registerPage.verifyErrorMessage('Unable to create account. If you already registered, try signing in.');
 
         // Change mock to success for second attempt with different email
         const testUser = ClientUserBuilder

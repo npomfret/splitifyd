@@ -1,4 +1,4 @@
-import { AuthErrors, RegisteredUser, SystemUserRoles, UserProfileResponse, UserRegistration, UserThemeColor } from '@splitifyd/shared';
+import { RegisteredUser, SystemUserRoles, UserProfileResponse, UserRegistration, UserThemeColor } from '@splitifyd/shared';
 import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
@@ -12,8 +12,13 @@ import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateChangePassword, validateUpdateUserProfile } from '../user/validation';
 import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
+import { withMinimumDuration } from '../utils/timing';
 import type { IAuthService } from './auth';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+
+const MIN_REGISTRATION_DURATION_MS = 600;
+const REGISTRATION_FAILURE_ERROR_CODE = 'REGISTRATION_FAILED';
+const REGISTRATION_FAILURE_MESSAGE = 'Unable to create account. If you already registered, try signing in.';
 
 /**
  * Result of a successful user registration
@@ -354,7 +359,10 @@ export class UserService {
      * @throws ApiError if registration fails
      */
     async registerUser(requestBody: UserRegistration): Promise<RegisterUserResult> {
-        return measureDb('UserService2.registerUser', async () => this._registerUser(requestBody));
+        return withMinimumDuration(
+            MIN_REGISTRATION_DURATION_MS,
+            () => measureDb('UserService2.registerUser', async () => this._registerUser(requestBody)),
+        );
     }
 
     private async _registerUser(requestBody: UserRegistration): Promise<RegisterUserResult> {
@@ -438,13 +446,7 @@ export class UserService {
                 }
             }
 
-            // Handle specific auth errors
-            if (error && typeof error === 'object' && 'code' in error && error.code === AuthErrors.EMAIL_EXISTS) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, AuthErrors.EMAIL_EXISTS_CODE, 'An account with this email already exists');
-            }
-
-            // Re-throw the error for the handler to catch
-            throw error;
+            throw this.toGenericRegistrationError(error);
         }
     }
 
@@ -466,6 +468,35 @@ export class UserService {
             // Registration must fail if policies cannot be retrieved - compliance requirement
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_SERVICE_UNAVAILABLE', 'Registration temporarily unavailable - unable to retrieve policy versions');
         }
+    }
+
+    private toGenericRegistrationError(error: unknown): ApiError {
+        const code = this.extractErrorCode(error);
+
+        if (code && this.isSensitiveRegistrationErrorCode(code)) {
+            logger.warn('Registration failed due to sensitive auth error', { code });
+            return new ApiError(HTTP_STATUS.BAD_REQUEST, REGISTRATION_FAILURE_ERROR_CODE, REGISTRATION_FAILURE_MESSAGE);
+        }
+
+        if (error instanceof ApiError) {
+            return error;
+        }
+
+        logger.error('Unexpected error during user registration', error as Error);
+        return new ApiError(HTTP_STATUS.INTERNAL_ERROR, REGISTRATION_FAILURE_ERROR_CODE, REGISTRATION_FAILURE_MESSAGE);
+    }
+
+    private extractErrorCode(error: unknown): string | null {
+        if (!error || typeof error !== 'object') {
+            return null;
+        }
+
+        const maybeCode = (error as { code?: unknown; }).code;
+        return typeof maybeCode === 'string' ? maybeCode : null;
+    }
+
+    private isSensitiveRegistrationErrorCode(code: string): boolean {
+        return code === 'AUTH_EMAIL_ALREADY_EXISTS' || code === 'EMAIL_ALREADY_EXISTS' || code === 'auth/email-already-exists';
     }
 }
 

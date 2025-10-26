@@ -579,7 +579,7 @@ export class RegisterPage extends BasePage {
 
                 return response.status() >= 400;
             },
-            { timeout: TEST_TIMEOUTS.API_RESPONSE },
+            { timeout: 2000 /* long timeout as we added an intentional delay*/ },
         );
     }
 
