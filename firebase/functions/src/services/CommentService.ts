@@ -17,7 +17,8 @@ import { ApiError } from '../utils/errors';
 import * as loggerContext from '../utils/logger-context';
 import { ActivityFeedService } from './ActivityFeedService';
 import type { IAuthService } from './auth';
-import { CommentStrategyFactory } from './comments/CommentStrategyFactory';
+import { ExpenseCommentStrategy } from './comments/ExpenseCommentStrategy';
+import { GroupCommentStrategy } from './comments/GroupCommentStrategy';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
@@ -26,7 +27,8 @@ import { GroupMemberService } from './GroupMemberService';
  * Service for managing comment operations
  */
 export class CommentService {
-    private readonly strategyFactory: CommentStrategyFactory;
+    private readonly groupCommentStrategy: GroupCommentStrategy;
+    private readonly expenseCommentStrategy: ExpenseCommentStrategy;
 
     constructor(
         private readonly firestoreReader: IFirestoreReader,
@@ -35,15 +37,24 @@ export class CommentService {
         private readonly authService: IAuthService,
         private readonly activityFeedService: ActivityFeedService,
     ) {
-        this.strategyFactory = new CommentStrategyFactory(firestoreReader, groupMemberService);
+        this.groupCommentStrategy = new GroupCommentStrategy(firestoreReader, groupMemberService);
+        this.expenseCommentStrategy = new ExpenseCommentStrategy(firestoreReader, groupMemberService);
     }
 
     /**
      * Verify user has access to comment on the target entity
      */
     private async verifyCommentAccess(targetType: CommentTargetType, targetId: GroupId | ExpenseId, userId: UserId): Promise<void> {
-        const strategy = this.strategyFactory.getStrategy(targetType);
-        await strategy.verifyAccess(targetId, userId);
+        switch (targetType) {
+            case CommentTargetTypes.GROUP:
+                await this.groupCommentStrategy.verifyAccess(targetId as GroupId, userId);
+                return;
+            case CommentTargetTypes.EXPENSE:
+                await this.expenseCommentStrategy.verifyAccess(targetId as ExpenseId, userId);
+                return;
+            default:
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'UNSUPPORTED_COMMENT_TARGET', `Unsupported comment target type: ${targetType}`);
+        }
     }
 
     /**
