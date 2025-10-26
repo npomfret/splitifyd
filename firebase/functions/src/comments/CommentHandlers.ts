@@ -38,20 +38,10 @@ export class CommentHandlers {
             let comment: CommentDTO;
             if (targetType === CommentTargetTypes.GROUP) {
                 const validatedRequest = validateCreateGroupComment(targetId, req.body);
-                comment = await this.commentService.createComment(
-                    CommentTargetTypes.GROUP,
-                    validatedRequest.targetId,
-                    validatedRequest,
-                    userId,
-                );
+                comment = await this.commentService.createGroupComment(validatedRequest.groupId, validatedRequest, userId);
             } else {
                 const validatedRequest = validateCreateExpenseComment(targetId, req.body);
-                comment = await this.commentService.createComment(
-                    CommentTargetTypes.EXPENSE,
-                    validatedRequest.targetId,
-                    validatedRequest,
-                    userId,
-                );
+                comment = await this.commentService.createExpenseComment(validatedRequest.expenseId, validatedRequest, userId);
             }
             res.status(HTTP_STATUS.OK).json(comment);
         } catch (error) {

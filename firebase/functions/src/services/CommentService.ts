@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CommentTargetType, CommentTargetTypes, CreateCommentRequest, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CommentTargetType, CommentTargetTypes, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
 import type { ExpenseId, GroupId, GroupName, UserId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
@@ -105,65 +105,30 @@ export class CommentService {
     }
 
     /**
-     * Create a new comment
+     * Create a new comment on a group
      */
-    async createComment(
-        targetType: typeof CommentTargetTypes.GROUP,
-        targetId: GroupId,
-        commentData: CreateGroupCommentRequest,
-        userId: UserId,
-    ): Promise<CommentDTO>;
-    async createComment(
-        targetType: typeof CommentTargetTypes.EXPENSE,
-        targetId: ExpenseId,
-        commentData: CreateExpenseCommentRequest,
-        userId: UserId,
-    ): Promise<CommentDTO>;
-    async createComment(
-        targetType: CommentTargetType,
-        targetId: string,
-        commentData: CreateCommentRequest,
-        userId: UserId,
-    ): Promise<CommentDTO> {
-        return measure.measureDb('CommentService.createComment', async () => this._createComment(targetType, targetId, commentData, userId));
+    async createGroupComment(groupId: GroupId, commentData: CreateGroupCommentRequest, userId: UserId): Promise<CommentDTO> {
+        return measure.measureDb('CommentService.createGroupComment', async () => this.createGroupCommentInternal(groupId, commentData, userId));
     }
 
-    private async _createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: UserId): Promise<CommentDTO> {
+    /**
+     * Create a new comment on an expense
+     */
+    async createExpenseComment(expenseId: ExpenseId, commentData: CreateExpenseCommentRequest, userId: UserId): Promise<CommentDTO> {
+        return measure.measureDb('CommentService.createExpenseComment', async () => this.createExpenseCommentInternal(expenseId, commentData, userId));
+    }
+
+    private async createGroupCommentInternal(groupId: GroupId, commentData: CreateGroupCommentRequest, userId: UserId): Promise<CommentDTO> {
         const timer = new PerformanceTimer();
 
-        loggerContext.LoggerContext.update({ targetType, targetId, userId, operation: 'create-comment' });
+        loggerContext.LoggerContext.update({ targetType: CommentTargetTypes.GROUP, groupId, userId, operation: 'create-comment' });
 
-        // Verify user has access to comment on this target
         timer.startPhase('query');
-        await this.verifyCommentAccess(targetType, targetId, userId);
+        await this.verifyCommentAccess(CommentTargetTypes.GROUP, groupId, userId);
 
-        let groupId: GroupId;
-        let groupName: GroupName;
-        let expenseDescription: string | undefined;
-
-        if (targetType === CommentTargetTypes.GROUP) {
-            const group = await this.firestoreReader.getGroup(targetId);
-            if (!group) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-            }
-            groupId = group.id;
-            groupName = group.name;
-        } else if (targetType === CommentTargetTypes.EXPENSE) {
-            const expense = await this.firestoreReader.getExpense(targetId);
-            if (!expense || expense.deletedAt) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
-            }
-
-            const group = await this.firestoreReader.getGroup(expense.groupId);
-            if (!group) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-            }
-
-            groupId = expense.groupId;
-            groupName = group.name;
-            expenseDescription = expense.description;
-        } else {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'UNSUPPORTED_TARGET', 'Unsupported comment target type');
+        const group = await this.firestoreReader.getGroup(groupId);
+        if (!group) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
         const [memberIds, member] = await Promise.all([
@@ -177,7 +142,6 @@ export class CommentService {
 
         let actorDisplayName = member.groupDisplayName;
 
-        // Get user display name for the comment
         const userRecord = await this.authService.getUser(userId);
         if (!userRecord) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
@@ -185,7 +149,6 @@ export class CommentService {
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
         actorDisplayName = actorDisplayName || authorName || 'Unknown member';
 
-        // Prepare comment data as DTO (with ISO strings)
         const now = new Date().toISOString();
         const commentCreateData: Omit<CommentDTO, 'id'> = {
             authorId: userId,
@@ -198,33 +161,21 @@ export class CommentService {
         const commentPreview = commentData.text.trim().slice(0, 120);
         timer.endPhase();
 
-        // Create the comment document using FirestoreWriter
-        // Writer handles conversion to Firestore Timestamps and schema validation
         timer.startPhase('write');
         const commentId = await this.firestoreWriter.runTransaction(async (transaction) => {
-            // ===== WRITE PHASE =====
-
-            const commentRef = this.firestoreWriter.createCommentInTransaction(transaction, targetType, targetId, commentCreateData);
+            const commentRef = this.firestoreWriter.createCommentInTransaction(transaction, CommentTargetTypes.GROUP, groupId, commentCreateData);
 
             const details: Record<string, any> = {
                 commentId: commentRef.id,
                 commentPreview,
             };
 
-            if (targetType === CommentTargetTypes.EXPENSE) {
-                details.expenseId = targetId;
-                if (expenseDescription) {
-                    details.expenseDescription = expenseDescription;
-                }
-            }
-
-            // Record activity feed items
             this.activityFeedService.recordActivityForUsers(
                 transaction,
                 memberIds,
                 {
                     groupId,
-                    groupName,
+                    groupName: group.name,
                     eventType: ActivityFeedEventTypes.COMMENT_ADDED,
                     action: ActivityFeedActions.COMMENT,
                     actorId: userId,
@@ -237,22 +188,118 @@ export class CommentService {
             return commentRef.id;
         });
 
-        // Fetch the created comment to return it using FirestoreReader
-        // Reader already returns DTO with ISO strings
-        const createdComment = await this.firestoreReader.getComment(targetType, targetId, commentId);
+        const createdComment = await this.firestoreReader.getComment(CommentTargetTypes.GROUP, groupId, commentId);
         if (!createdComment) {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
         }
         timer.endPhase();
 
         logger.info('comment-created', {
-            targetType,
-            targetId,
+            targetType: CommentTargetTypes.GROUP,
+            groupId,
             commentId,
             timings: timer.getTimings(),
         });
 
-        // Normalize avatar field (null → undefined for DTO)
+        return {
+            ...createdComment,
+            authorAvatar: createdComment.authorAvatar || undefined,
+        };
+    }
+
+    private async createExpenseCommentInternal(expenseId: ExpenseId, commentData: CreateExpenseCommentRequest, userId: UserId): Promise<CommentDTO> {
+        const timer = new PerformanceTimer();
+
+        loggerContext.LoggerContext.update({ targetType: CommentTargetTypes.EXPENSE, expenseId, userId, operation: 'create-comment' });
+
+        timer.startPhase('query');
+        await this.verifyCommentAccess(CommentTargetTypes.EXPENSE, expenseId, userId);
+
+        const expense = await this.firestoreReader.getExpense(expenseId);
+        if (!expense || expense.deletedAt) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
+        }
+
+        const group = await this.firestoreReader.getGroup(expense.groupId);
+        if (!group) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+        }
+
+        const [memberIds, member] = await Promise.all([
+            this.firestoreReader.getAllGroupMemberIds(expense.groupId),
+            this.firestoreReader.getGroupMember(expense.groupId, userId),
+        ]);
+
+        if (!member) {
+            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
+        }
+
+        let actorDisplayName = member.groupDisplayName;
+
+        const userRecord = await this.authService.getUser(userId);
+        if (!userRecord) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
+        }
+        const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
+        actorDisplayName = actorDisplayName || authorName || 'Unknown member';
+
+        const now = new Date().toISOString();
+        const commentCreateData: Omit<CommentDTO, 'id'> = {
+            authorId: userId,
+            authorName,
+            authorAvatar: userRecord.photoURL,
+            text: commentData.text,
+            createdAt: now,
+            updatedAt: now,
+        };
+        const commentPreview = commentData.text.trim().slice(0, 120);
+        timer.endPhase();
+
+        timer.startPhase('write');
+        const commentId = await this.firestoreWriter.runTransaction(async (transaction) => {
+            const commentRef = this.firestoreWriter.createCommentInTransaction(transaction, CommentTargetTypes.EXPENSE, expenseId, commentCreateData);
+
+            const details: Record<string, any> = {
+                commentId: commentRef.id,
+                commentPreview,
+                expenseId,
+            };
+
+            if (expense.description) {
+                details.expenseDescription = expense.description;
+            }
+
+            this.activityFeedService.recordActivityForUsers(
+                transaction,
+                memberIds,
+                {
+                    groupId: expense.groupId,
+                    groupName: group.name,
+                    eventType: ActivityFeedEventTypes.COMMENT_ADDED,
+                    action: ActivityFeedActions.COMMENT,
+                    actorId: userId,
+                    actorName: actorDisplayName,
+                    timestamp: now,
+                    details,
+                },
+            );
+
+            return commentRef.id;
+        });
+
+        const createdComment = await this.firestoreReader.getComment(CommentTargetTypes.EXPENSE, expenseId, commentId);
+        if (!createdComment) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
+        }
+        timer.endPhase();
+
+        logger.info('comment-created', {
+            targetType: CommentTargetTypes.EXPENSE,
+            expenseId,
+            commentId,
+            timings: timer.getTimings(),
+        });
+
         return {
             ...createdComment,
             authorAvatar: createdComment.authorAvatar || undefined,

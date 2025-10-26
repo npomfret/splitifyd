@@ -1,9 +1,41 @@
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { ActivityFeedItem, CommentDTO, CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
+import type { ActivityFeedItem, CommentDTO, CommentTargetType, ExpenseId, GroupId, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
 import type { ActivityFeedStore } from '../app/stores/activity-feed-store';
 import { activityFeedStore } from '../app/stores/activity-feed-store';
 import { logError, logInfo } from '../utils/browser-logger';
+
+type GroupTarget = { type: 'group'; groupId: GroupId; };
+type ExpenseTarget = { type: 'expense'; expenseId: ExpenseId; };
+export type CommentsStoreTarget = GroupTarget | ExpenseTarget;
+
+const isGroupTarget = (target: CommentsStoreTarget): target is GroupTarget => target.type === 'group';
+
+const targetKey = (target: CommentsStoreTarget): string => {
+    if (isGroupTarget(target)) {
+        return `group:${target.groupId}`;
+    }
+
+    return `expense:${target.expenseId}`;
+};
+
+const targetsEqual = (a: CommentsStoreTarget, b: CommentsStoreTarget): boolean => {
+    if (a.type !== b.type) {
+        return false;
+    }
+
+    return isGroupTarget(a)
+        ? a.groupId === (b as GroupTarget).groupId
+        : a.expenseId === (b as ExpenseTarget).expenseId;
+};
+
+const targetDetails = (target: CommentsStoreTarget): Record<string, string> => {
+    if (isGroupTarget(target)) {
+        return { groupId: target.groupId };
+    }
+
+    return { expenseId: target.expenseId };
+};
 
 interface CommentsStore {
     // State getters - readonly values for external consumers
@@ -12,8 +44,10 @@ interface CommentsStore {
     readonly submitting: boolean;
     readonly error: string | null;
     readonly hasMore: boolean;
+    readonly target: CommentsStoreTarget | null;
     readonly targetType: CommentTargetType | null;
-    readonly targetId: string | null;
+    readonly groupId: GroupId | null;
+    readonly expenseId: ExpenseId | null;
 
     // Signal accessors for reactive components - return readonly signals
     readonly commentsSignal: ReadonlySignal<CommentDTO[]>;
@@ -23,8 +57,8 @@ interface CommentsStore {
     readonly hasMoreSignal: ReadonlySignal<boolean>;
 
     // Actions
-    registerComponent(targetType: CommentTargetType, targetId: string, initialData?: ListCommentsResponse | null): void;
-    deregisterComponent(targetId: string): void;
+    registerComponent(target: CommentsStoreTarget, initialData?: ListCommentsResponse | null): void;
+    deregisterComponent(target: CommentsStoreTarget): void;
     addComment(text: string): Promise<void>;
     loadMoreComments(): Promise<void>;
     reset(): void;
@@ -37,8 +71,7 @@ export class CommentsStoreImpl implements CommentsStore {
     readonly #submittingSignal = signal<boolean>(false);
     readonly #errorSignal = signal<string | null>(null);
     readonly #hasMoreSignal = signal<boolean>(false);
-    readonly #targetTypeSignal = signal<CommentTargetType | null>(null);
-    readonly #targetIdSignal = signal<string | null>(null);
+    readonly #targetSignal = signal<CommentsStoreTarget | null>(null);
 
     // Private subscription management
     #subscriberCounts = new Map<string, number>();
@@ -73,11 +106,19 @@ export class CommentsStoreImpl implements CommentsStore {
     get hasMore() {
         return this.#hasMoreSignal.value;
     }
-    get targetType() {
-        return this.#targetTypeSignal.value;
+    get target() {
+        return this.#targetSignal.value;
     }
-    get targetId() {
-        return this.#targetIdSignal.value;
+    get targetType() {
+        return this.#targetSignal.value?.type ?? null;
+    }
+    get groupId() {
+        const target = this.#targetSignal.value;
+        return target?.type === 'group' ? target.groupId : null;
+    }
+    get expenseId() {
+        const target = this.#targetSignal.value;
+        return target?.type === 'expense' ? target.expenseId : null;
     }
 
     // Signal accessors for reactive components - return readonly signals
@@ -97,43 +138,43 @@ export class CommentsStoreImpl implements CommentsStore {
         return this.#hasMoreSignal;
     }
 
-    registerComponent(targetType: CommentTargetType, targetId: string, initialData?: ListCommentsResponse | null): void {
-        const currentCount = this.#subscriberCounts.get(targetId) || 0;
-        this.#subscriberCounts.set(targetId, currentCount + 1);
+    registerComponent(target: CommentsStoreTarget, initialData?: ListCommentsResponse | null): void {
+        const key = targetKey(target);
+        const currentCount = this.#subscriberCounts.get(key) || 0;
+        this.#subscriberCounts.set(key, currentCount + 1);
 
-        const targetChanged = this.#targetIdSignal.value !== targetId || this.#targetTypeSignal.value !== targetType;
+        const currentTarget = this.#targetSignal.value;
+        const targetChanged = !currentTarget || !targetsEqual(currentTarget, target);
+
         if (currentCount === 0 || targetChanged) {
-            this.#activateTarget(targetType, targetId);
+            this.#activateTarget(target);
             this.#ensureActivityListener();
 
-            // Fetch initial data via API
             if (initialData) {
-                this.#applyInitialData(targetType, targetId, initialData);
+                this.#applyInitialData(target, initialData);
             } else {
-                void this.#fetchCommentsViaApi(targetType, targetId);
+                void this.#fetchCommentsViaApi(target);
             }
         }
     }
 
-    deregisterComponent(targetId: string): void {
-        // Deregistering component for comments target (routine)
-        const currentCount = this.#subscriberCounts.get(targetId) || 0;
+    deregisterComponent(target: CommentsStoreTarget): void {
+        const key = targetKey(target);
+        const currentCount = this.#subscriberCounts.get(key) || 0;
 
         if (currentCount <= 1) {
-            // Last component for target, disposing subscription
-            this.#subscriberCounts.delete(targetId);
+            this.#subscriberCounts.delete(key);
             this.#dispose();
         } else {
-            this.#subscriberCounts.set(targetId, currentCount - 1);
+            this.#subscriberCounts.set(key, currentCount - 1);
         }
     }
 
     /**
      * Apply initial comment data without an API call
      */
-    #applyInitialData(targetType: CommentTargetType, targetId: string, initialData: ListCommentsResponse) {
-        this.#targetTypeSignal.value = targetType;
-        this.#targetIdSignal.value = targetId;
+    #applyInitialData(target: CommentsStoreTarget, initialData: ListCommentsResponse) {
+        this.#targetSignal.value = target;
         this.#loadingSignal.value = false;
         this.#errorSignal.value = null;
 
@@ -143,8 +184,8 @@ export class CommentsStoreImpl implements CommentsStore {
         this.#hasMoreSignal.value = this.#apiHasMore;
 
         logInfo('Comments initialized from preloaded data', {
-            targetType,
-            targetId,
+            targetType: target.type,
+            ...targetDetails(target),
             count: initialData.comments.length,
             hasMore: initialData.hasMore,
         });
@@ -174,26 +215,21 @@ export class CommentsStoreImpl implements CommentsStore {
             return;
         }
 
-        const currentTargetType = this.#targetTypeSignal.value;
-        const currentTargetId = this.#targetIdSignal.value;
-
-        if (!currentTargetType || !currentTargetId) {
+        const currentTarget = this.#targetSignal.value;
+        if (!currentTarget) {
             return;
         }
 
-        if (currentTargetType === 'group') {
-            if (event.groupId !== currentTargetId) {
-                return;
-            }
-        } else if (currentTargetType === 'expense') {
-            if (event.details?.expenseId !== currentTargetId) {
-                return;
-            }
+        if (currentTarget.type === 'group' && event.groupId !== currentTarget.groupId) {
+            return;
+        }
+        if (currentTarget.type === 'expense' && event.details?.expenseId !== currentTarget.expenseId) {
+            return;
         }
 
         logInfo('Activity feed comment event matched current target, refreshing comments', {
-            targetType: currentTargetType,
-            targetId: currentTargetId,
+            targetType: currentTarget.type,
+            ...targetDetails(currentTarget),
             eventId: event.id,
         });
 
@@ -205,12 +241,12 @@ export class CommentsStoreImpl implements CommentsStore {
             this.#activityFeed.deregisterListener(this.#listenerId);
             this.#listenerRegistered = false;
         }
-
         this.#listenerRegistrationPromise = null;
     }
 
-    #activateTarget(targetType: CommentTargetType, targetId: string) {
-        const targetChanged = this.#targetTypeSignal.value !== targetType || this.#targetIdSignal.value !== targetId;
+    #activateTarget(target: CommentsStoreTarget) {
+        const currentTarget = this.#targetSignal.value;
+        const targetChanged = !currentTarget || !targetsEqual(currentTarget, target);
 
         if (targetChanged) {
             this.#commentsSignal.value = [];
@@ -219,8 +255,7 @@ export class CommentsStoreImpl implements CommentsStore {
             this.#apiHasMore = false;
         }
 
-        this.#targetTypeSignal.value = targetType;
-        this.#targetIdSignal.value = targetId;
+        this.#targetSignal.value = target;
         this.#errorSignal.value = null;
     }
 
@@ -228,19 +263,14 @@ export class CommentsStoreImpl implements CommentsStore {
      * Refresh comments when notified of changes
      */
     async #refreshComments() {
-        if (!this.#targetTypeSignal.value || !this.#targetIdSignal.value) {
+        const target = this.#targetSignal.value;
+        if (!target) {
             return;
         }
 
-        // Refresh using API to get latest comments
-        // This preserves pagination state by fetching from the beginning
         try {
-            const targetType = this.#targetTypeSignal.value;
-            const targetId = this.#targetIdSignal.value;
-
-            // Reset API pagination and fetch fresh data
             this.#apiCursor = null;
-            await this.#fetchCommentsViaApi(targetType, targetId, true);
+            await this.#fetchCommentsViaApi(target, true);
         } catch (error) {
             logError('Failed to refresh comments', error);
         }
@@ -249,7 +279,7 @@ export class CommentsStoreImpl implements CommentsStore {
     /**
      * Fetch comments via API
      */
-    async #fetchCommentsViaApi(targetType: CommentTargetType, targetId: string, isRefresh: boolean = false) {
+    async #fetchCommentsViaApi(target: CommentsStoreTarget, isRefresh: boolean = false) {
         if (!isRefresh) {
             this.#loadingSignal.value = true;
         }
@@ -258,31 +288,26 @@ export class CommentsStoreImpl implements CommentsStore {
         try {
             let response: ListCommentsResponse;
 
-            if (targetType === 'group') {
-                response = await apiClient.getGroupComments(targetId, this.#apiCursor || undefined);
+            if (target.type === 'group') {
+                response = await apiClient.getGroupComments(target.groupId, this.#apiCursor || undefined);
             } else {
-                response = await apiClient.getExpenseComments(targetId, this.#apiCursor || undefined);
+                response = await apiClient.getExpenseComments(target.expenseId, this.#apiCursor || undefined);
             }
 
-            // Update API pagination state
             this.#apiHasMore = response.hasMore;
             this.#apiCursor = response.nextCursor || null;
 
-            // Update comments (replace if initial/refresh, append if pagination)
             if (isRefresh || this.#commentsSignal.value.length === 0) {
-                // Replace existing comments
                 this.#commentsSignal.value = response.comments;
             } else {
-                // Append new comments for pagination
                 this.#commentsSignal.value = [...this.#commentsSignal.value, ...response.comments];
             }
 
-            // Update hasMore signal with API state
             this.#hasMoreSignal.value = this.#apiHasMore;
 
             logInfo('Comments fetched via API', {
-                targetType,
-                targetId,
+                targetType: target.type,
+                ...targetDetails(target),
                 count: response.comments.length,
                 hasMore: response.hasMore,
                 isRefresh,
@@ -301,7 +326,8 @@ export class CommentsStoreImpl implements CommentsStore {
      * Add a new comment
      */
     async addComment(text: string): Promise<void> {
-        if (!this.#targetTypeSignal.value || !this.#targetIdSignal.value) {
+        const target = this.#targetSignal.value;
+        if (!target) {
             this.#errorSignal.value = 'No target selected for comment';
             return;
         }
@@ -310,21 +336,18 @@ export class CommentsStoreImpl implements CommentsStore {
         this.#errorSignal.value = null;
 
         try {
-            if (this.#targetTypeSignal.value === 'group') {
-                await apiClient.createGroupComment(this.#targetIdSignal.value, text);
+            if (target.type === 'group') {
+                await apiClient.createGroupComment(target.groupId, text);
             } else {
-                await apiClient.createExpenseComment(this.#targetIdSignal.value, text);
+                await apiClient.createExpenseComment(target.expenseId, text);
             }
-
-            // The real-time notification system will trigger a refresh
-            // New comments will appear when the API is refreshed
 
             this.#submittingSignal.value = false;
         } catch (error) {
             logError('Failed to add comment', error);
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to add comment';
             this.#submittingSignal.value = false;
-            throw error; // Re-throw for component error handling
+            throw error;
         }
     }
 
@@ -343,35 +366,30 @@ export class CommentsStoreImpl implements CommentsStore {
             return;
         }
 
-        if (!this.#targetTypeSignal.value || !this.#targetIdSignal.value) {
+        const target = this.#targetSignal.value;
+        if (!target) {
             return;
         }
 
         this.#loadingSignal.value = true;
 
         try {
-            const targetType = this.#targetTypeSignal.value;
-            const targetId = this.#targetIdSignal.value;
-
             let response: ListCommentsResponse;
 
-            if (targetType === 'group') {
-                response = await apiClient.getGroupComments(targetId, this.#apiCursor);
+            if (target.type === 'group') {
+                response = await apiClient.getGroupComments(target.groupId, this.#apiCursor);
             } else {
-                response = await apiClient.getExpenseComments(targetId, this.#apiCursor);
+                response = await apiClient.getExpenseComments(target.expenseId, this.#apiCursor);
             }
 
-            // Update API pagination state
             this.#apiHasMore = response.hasMore;
             this.#apiCursor = response.nextCursor || null;
             this.#hasMoreSignal.value = this.#apiHasMore;
-
-            // Append new comments
             this.#commentsSignal.value = [...this.#commentsSignal.value, ...response.comments];
 
             logInfo('More comments loaded via API', {
-                targetType,
-                targetId,
+                targetType: target.type,
+                ...targetDetails(target),
                 count: response.comments.length,
                 hasMore: response.hasMore,
             });
@@ -392,8 +410,7 @@ export class CommentsStoreImpl implements CommentsStore {
         this.#submittingSignal.value = false;
         this.#errorSignal.value = null;
         this.#hasMoreSignal.value = false;
-        this.#targetTypeSignal.value = null;
-        this.#targetIdSignal.value = null;
+        this.#targetSignal.value = null;
         this.#apiCursor = null;
         this.#apiHasMore = false;
         this.#subscriberCounts.clear();

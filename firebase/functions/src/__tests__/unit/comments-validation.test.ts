@@ -9,15 +9,14 @@ describe('Comments Validation', () => {
             const result = validateCreateGroupComment('group123', { text: 'This is a test comment' });
 
             expect(result.text).toBe('This is a test comment');
-            expect(result.targetType).toBe(CommentTargetTypes.GROUP);
-            expect(result.targetId).toBe('group123');
+            expect(result.groupId).toBe('group123');
         });
 
         it('should trim and sanitize comment text and target id', () => {
             const result = validateCreateGroupComment('  group123  ', { text: '  <b>Comment</b>  ' });
 
             expect(result.text).toBe('Comment');
-            expect(result.targetId).toBe('group123');
+            expect(result.groupId).toBe('group123');
         });
 
         it('should throw error for empty comment text', () => {
@@ -46,15 +45,14 @@ describe('Comments Validation', () => {
             const result = validateCreateExpenseComment('expense123', { text: 'Expense comment' });
 
             expect(result.text).toBe('Expense comment');
-            expect(result.targetType).toBe(CommentTargetTypes.EXPENSE);
-            expect(result.targetId).toBe('expense123');
+            expect(result.expenseId).toBe('expense123');
         });
 
         it('should trim and sanitize comment text and target id', () => {
             const result = validateCreateExpenseComment('  expense123  ', { text: '  <script>alert(1)</script>hi  ' });
 
             expect(result.text).toBe('hi');
-            expect(result.targetId).toBe('expense123');
+            expect(result.expenseId).toBe('expense123');
         });
 
         it('should throw error for empty comment text', () => {
@@ -196,7 +194,7 @@ describe('Comments Validation', () => {
             // The exact sanitization depends on the sanitizeString implementation
             // but should remove script tags and harmful content
             expect(result.text).not.toContain('<script>');
-            expect(result.targetId).not.toContain('<script>');
+            expect(result.groupId).not.toContain('<script>');
         });
 
         it('should handle complex XSS attempts', () => {

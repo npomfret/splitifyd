@@ -293,7 +293,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         <Card>
                             <Stack spacing='md'>
                                 <h3 className='font-semibold text-gray-900 dark:text-white'>{t('pages.expenseDetailPage.discussion')}</h3>
-                                <CommentsSection targetType='expense' targetId={expenseId!} maxHeight='300px' />
+                                <CommentsSection target={{ type: 'expense', expenseId: expenseId! }} maxHeight='300px' />
                             </Stack>
                         </Card>
 

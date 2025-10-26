@@ -12,12 +12,20 @@ import { GroupId } from '@splitifyd/shared';
  */
 export class CommentRequestBuilder {
     private request: Partial<CreateCommentRequest> = {};
+    private targetKind: 'group' | 'expense' | null = null;
 
     /**
      * Copy data from an existing comment request object
      */
     from(data: CreateCommentRequest | Record<string, unknown>): this {
         this.request = { ...data };
+        if ('groupId' in this.request) {
+            this.targetKind = 'group';
+        } else if ('expenseId' in this.request) {
+            this.targetKind = 'expense';
+        } else {
+            this.targetKind = null;
+        }
         return this;
     }
 
@@ -28,23 +36,38 @@ export class CommentRequestBuilder {
 
     withTargetType(targetType: string | number | null | undefined): this {
         (this.request as any).targetType = targetType;
+        if (targetType === CommentTargetTypes.GROUP) {
+            this.targetKind = 'group';
+        } else if (targetType === CommentTargetTypes.EXPENSE) {
+            this.targetKind = 'expense';
+        } else {
+            this.targetKind = null;
+        }
         return this;
     }
 
-    withGroupTarget(targetId: string): this {
-        this.request.targetType = CommentTargetTypes.GROUP;
-        this.request.targetId = targetId;
+    withGroupTarget(groupId: GroupId): this {
+        this.targetKind = 'group';
+        (this.request as any).groupId = groupId;
+        delete (this.request as any).expenseId;
         return this;
     }
 
-    withExpenseTarget(targetId: ExpenseId): this {
-        this.request.targetType = CommentTargetTypes.EXPENSE;
-        this.request.targetId = targetId;
+    withExpenseTarget(expenseId: ExpenseId): this {
+        this.targetKind = 'expense';
+        (this.request as any).expenseId = expenseId;
+        delete (this.request as any).groupId;
         return this;
     }
 
     withTargetId(targetId: string | null | undefined): this {
-        (this.request as any).targetId = targetId;
+        if (this.targetKind === 'expense') {
+            (this.request as any).expenseId = targetId;
+        } else if (this.targetKind === 'group') {
+            (this.request as any).groupId = targetId;
+        } else {
+            (this.request as any).groupId = targetId;
+        }
         return this;
     }
 
@@ -64,7 +87,11 @@ export class CommentRequestBuilder {
     }
 
     withXSSTargetId(): this {
-        (this.request as any).targetId = '<script>group123</script>';
+        if (this.targetKind === 'expense') {
+            (this.request as any).expenseId = '<script>expense123</script>';
+        } else {
+            (this.request as any).groupId = '<script>group123</script>';
+        }
         return this;
     }
 

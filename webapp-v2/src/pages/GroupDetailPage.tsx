@@ -426,7 +426,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             collapseToggleTestId='toggle-comments-section'
                             collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('pages.groupDetailPage.comments') })}
                         >
-                            <CommentsSection targetType='group' targetId={groupId!} maxHeight='300px' initialData={commentsResponse.value} />
+                            <CommentsSection target={{ type: 'group', groupId: groupId! }} maxHeight='300px' initialData={commentsResponse.value} />
                         </SidebarCard>
                     </>
                 }

@@ -1,20 +1,20 @@
 import { commentsStore } from '@/stores/comments-store.ts';
+import type { CommentsStoreTarget } from '@/stores/comments-store.ts';
 import { useComputed } from '@preact/signals';
-import type { CommentTargetType, ListCommentsResponse } from '@splitifyd/shared';
+import type { ListCommentsResponse } from '@splitifyd/shared';
 import { useEffect, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { CommentInput } from './CommentInput';
 import { CommentsList } from './CommentsList';
 
 interface CommentsSectionProps {
-    targetType: CommentTargetType;
-    targetId: string;
+    target: CommentsStoreTarget;
     maxHeight?: string;
     className?: string;
     initialData?: ListCommentsResponse | null;
 }
 
-export function CommentsSection({ targetType, targetId, maxHeight = '400px', className = '', initialData }: CommentsSectionProps) {
+export function CommentsSection({ target, maxHeight = '400px', className = '', initialData }: CommentsSectionProps) {
     const { t } = useTranslation();
 
     // Use signals for reactive state
@@ -27,15 +27,19 @@ export function CommentsSection({ targetType, targetId, maxHeight = '400px', cla
     const initialDataRef = useRef<ListCommentsResponse | null | undefined>();
     initialDataRef.current = initialData;
 
+    const targetKey = target.type === 'group'
+        ? `group:${target.groupId}`
+        : `expense:${target.expenseId}`;
+
     // Subscribe to comments when component mounts or target changes
     useEffect(() => {
-        commentsStore.registerComponent(targetType, targetId, initialDataRef.current);
+        commentsStore.registerComponent(target, initialDataRef.current);
 
         // Cleanup on unmount
         return () => {
-            commentsStore.deregisterComponent(targetId);
+            commentsStore.deregisterComponent(target);
         };
-    }, [targetType, targetId]);
+    }, [targetKey]);
 
     const handleSubmit = async (text: string) => {
         await commentsStore.addComment(text);
@@ -64,7 +68,7 @@ export function CommentsSection({ targetType, targetId, maxHeight = '400px', cla
                 <CommentInput
                     onSubmit={handleSubmit}
                     disabled={submitting.value}
-                    placeholder={targetType === 'group' ? t('comments.commentsSection.placeholderGroup') : t('comments.commentsSection.placeholderExpense')}
+                    placeholder={target.type === 'group' ? t('comments.commentsSection.placeholderGroup') : t('comments.commentsSection.placeholderExpense')}
                 />
             </div>
         </div>

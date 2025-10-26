@@ -26,7 +26,7 @@ const listCommentsQuerySchema = Joi.object({
 
 const sanitizeCommentText = (text: string): string => sanitizeString(text);
 
-const sanitizeTargetId = (targetId: string): string => sanitizeString(targetId);
+const sanitizeIdentifier = (value: string): string => sanitizeString(value);
 
 /**
  * Validates the request body for creating a group comment
@@ -46,13 +46,12 @@ export const validateCreateGroupComment = (targetId: string, body: any): CreateG
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
     }
 
-    const validatedTargetId = sanitizeTargetId(validateTargetId(targetId, CommentTargetTypes.GROUP));
+    const validatedGroupId = sanitizeIdentifier(validateTargetId(targetId, CommentTargetTypes.GROUP));
 
     const { text } = value as { text: string };
 
     return {
-        targetType: CommentTargetTypes.GROUP,
-        targetId: validatedTargetId,
+        groupId: validatedGroupId,
         text: sanitizeCommentText(text),
     };
 };
@@ -75,13 +74,12 @@ export const validateCreateExpenseComment = (targetId: string, body: any): Creat
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
     }
 
-    const validatedTargetId = sanitizeTargetId(validateTargetId(targetId, CommentTargetTypes.EXPENSE));
+    const validatedExpenseId = sanitizeIdentifier(validateTargetId(targetId, CommentTargetTypes.EXPENSE));
 
     const { text } = value as { text: string };
 
     return {
-        targetType: CommentTargetTypes.EXPENSE,
-        targetId: validatedTargetId,
+        expenseId: validatedExpenseId,
         text: sanitizeCommentText(text),
     };
 };

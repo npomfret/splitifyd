@@ -180,12 +180,7 @@ describe('CommentService - Consolidated Tests', () => {
                     .build(),
             );
 
-            const result = await commentService.createComment(
-                CommentTargetTypes.GROUP,
-                'test-group',
-                { text: 'New test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group' },
-                'user-id',
-            );
+            const result = await commentService.createGroupComment('test-group', { text: 'New test comment', groupId: 'test-group' }, 'user-id');
 
             expect(result.id).toBeTruthy();
             expect(result.text).toBe('New test comment');
@@ -211,7 +206,7 @@ describe('CommentService - Consolidated Tests', () => {
             // Try to create comment with a user that doesn't exist in auth (not 'user-id' which is set up in beforeEach)
 
             await expect(
-                commentService.createComment(CommentTargetTypes.GROUP, 'test-group', { text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group' }, 'unknown-user'),
+                commentService.createGroupComment('test-group', { text: 'Test comment', groupId: 'test-group' }, 'unknown-user'),
             )
                 .rejects
                 .toThrow();
@@ -221,7 +216,7 @@ describe('CommentService - Consolidated Tests', () => {
             // Don't set up any group data
 
             await expect(
-                commentService.createComment(CommentTargetTypes.GROUP, 'nonexistent-group', { text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'nonexistent-group' }, 'user-id'),
+                commentService.createGroupComment('nonexistent-group', { text: 'Test comment', groupId: 'nonexistent-group' }, 'user-id'),
             )
                 .rejects
                 .toThrow(ApiError);
@@ -281,12 +276,10 @@ describe('CommentService - Consolidated Tests', () => {
         describe('createComment - Unit Scenarios', () => {
             it('should create a comment successfully with real implementation', async () => {
                 const userId = 'user-123';
-                const targetType: CommentTargetType = CommentTargetTypes.GROUP;
                 const targetId = 'group-456';
                 const commentData: CreateGroupCommentRequest = {
                     text: 'Test comment',
-                    targetType,
-                    targetId,
+                    groupId: targetId,
                 };
 
                 // Set up group and membership for real validation
@@ -311,7 +304,7 @@ describe('CommentService - Consolidated Tests', () => {
                         .build(),
                 );
 
-                const result = await commentService.createComment(targetType, targetId, commentData, userId);
+                const result = await commentService.createGroupComment(targetId, commentData, userId);
 
                 expect(result).toMatchObject({
                     id: expect.any(String),
@@ -325,12 +318,10 @@ describe('CommentService - Consolidated Tests', () => {
 
             it('should handle user with email fallback for display name', async () => {
                 const userId = 'user-456';
-                const targetType: CommentTargetType = CommentTargetTypes.GROUP;
                 const targetId = 'group-789';
                 const commentData: CreateGroupCommentRequest = {
                     text: 'Comment from user without display name',
-                    targetType,
-                    targetId,
+                    groupId: targetId,
                 };
 
                 // Set up group and membership for real validation
@@ -355,34 +346,30 @@ describe('CommentService - Consolidated Tests', () => {
                         .build(),
                 );
 
-                const result = await commentService.createComment(targetType, targetId, commentData, userId);
+                const result = await commentService.createGroupComment(targetId, commentData, userId);
 
                 expect(result.authorName).toBe('user456');
             });
 
             it('should throw error when user not found', async () => {
                 const userId = 'nonexistent-user';
-                const targetType: CommentTargetType = CommentTargetTypes.GROUP;
                 const targetId = 'group-123';
                 const commentData: CreateGroupCommentRequest = {
                     text: 'Test comment',
-                    targetType,
-                    targetId,
+                    groupId: targetId,
                 };
 
                 // User not set in stubAuth
 
-                await expect(commentService.createComment(targetType, targetId, commentData, userId)).rejects.toThrow(ApiError);
+                await expect(commentService.createGroupComment(targetId, commentData, userId)).rejects.toThrow(ApiError);
             });
 
             it('should throw error when access verification fails', async () => {
                 const userId = 'user-123';
-                const targetType: CommentTargetType = CommentTargetTypes.GROUP;
                 const targetId = 'group-456';
                 const commentData: CreateGroupCommentRequest = {
                     text: 'Test comment',
-                    targetType,
-                    targetId,
+                    groupId: targetId,
                 };
 
                 stubAuth.setUser(
@@ -395,17 +382,15 @@ describe('CommentService - Consolidated Tests', () => {
                 );
 
                 // Access should be denied since no proper setup
-                await expect(commentService.createComment(targetType, targetId, commentData, userId)).rejects.toThrow(ApiError);
+                await expect(commentService.createGroupComment(targetId, commentData, userId)).rejects.toThrow(ApiError);
             });
 
             it('should verify user exists in auth before creating comment', async () => {
                 const userId = 'user-123';
-                const targetType: CommentTargetType = CommentTargetTypes.GROUP;
                 const targetId = 'group-456';
                 const commentData: CreateGroupCommentRequest = {
                     text: 'Test comment',
-                    targetType,
-                    targetId,
+                    groupId: targetId,
                 };
 
                 // Set up group and membership for real validation
@@ -422,7 +407,7 @@ describe('CommentService - Consolidated Tests', () => {
 
                 // Don't set up user in stubAuth - this will trigger an error when trying to get user info
 
-                await expect(commentService.createComment(targetType, targetId, commentData, userId)).rejects.toThrow();
+                await expect(commentService.createGroupComment(targetId, commentData, userId)).rejects.toThrow();
             });
         });
 
@@ -488,12 +473,10 @@ describe('CommentService - Consolidated Tests', () => {
         describe('Target type support - Unit Scenarios', () => {
             it('should support group comments', async () => {
                 const userId = 'user-123';
-                const targetType: CommentTargetType = CommentTargetTypes.GROUP;
                 const targetId = 'group-456';
                 const commentData: CreateGroupCommentRequest = {
                     text: 'Group comment',
-                    targetType,
-                    targetId,
+                    groupId: targetId,
                 };
 
                 // Set up group and membership for real validation
@@ -517,20 +500,18 @@ describe('CommentService - Consolidated Tests', () => {
                         .build(),
                 );
 
-                const result = await commentService.createComment(targetType, targetId, commentData, userId);
+                const result = await commentService.createGroupComment(targetId, commentData, userId);
 
                 expect(result.text).toBe('Group comment');
             });
 
             it('should support expense comments', async () => {
                 const userId = 'user-123';
-                const targetType: CommentTargetType = CommentTargetTypes.EXPENSE;
                 const targetId = 'expense-456';
                 const groupId = 'group-789';
                 const commentData: CreateExpenseCommentRequest = {
                     text: 'Expense comment',
-                    targetType,
-                    targetId,
+                    expenseId: targetId,
                 };
 
                 // Set up expense, group and membership for real validation
@@ -560,7 +541,7 @@ describe('CommentService - Consolidated Tests', () => {
                         .build(),
                 );
 
-                const result = await commentService.createComment(targetType, targetId, commentData, userId);
+                const result = await commentService.createExpenseComment(targetId, commentData, userId);
 
                 expect(result.text).toBe('Expense comment');
             });
@@ -569,12 +550,10 @@ describe('CommentService - Consolidated Tests', () => {
         describe('Integration scenarios', () => {
             it('should maintain consistency between create and list operations', async () => {
                 const userId = 'user-123';
-                const targetType: CommentTargetType = CommentTargetTypes.GROUP;
                 const targetId = 'group-456';
                 const commentData: CreateGroupCommentRequest = {
                     text: 'Consistency test comment',
-                    targetType,
-                    targetId,
+                    groupId: targetId,
                 };
 
                 // Set up group and membership for real validation
@@ -599,10 +578,10 @@ describe('CommentService - Consolidated Tests', () => {
                 );
 
                 // Create the comment
-                const createdComment = await commentService.createComment(targetType, targetId, commentData, userId);
+                const createdComment = await commentService.createGroupComment(targetId, commentData, userId);
 
                 // List comments to verify consistency
-                const listedComments = await commentService.listComments(targetType, targetId, userId);
+                const listedComments = await commentService.listComments(CommentTargetTypes.GROUP, targetId, userId);
 
                 expect(listedComments.comments).toHaveLength(1);
                 expect(listedComments.comments[0]).toMatchObject({
@@ -655,7 +634,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should trim and sanitize inputs', () => {
                 const result = validateCreateGroupComment('  group-123  ', { text: '  <b>Valid</b>  ' });
 
-                expect(result.targetId).toBe('group-123');
+                expect(result.groupId).toBe('group-123');
                 expect(result.text).toBe('Valid');
             });
 
@@ -714,7 +693,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should sanitize comment text and target id', () => {
                 const result = validateCreateExpenseComment('  expense-456  ', { text: ' <script>alert(1)</script>ok ' });
 
-                expect(result.targetId).toBe('expense-456');
+                expect(result.expenseId).toBe('expense-456');
                 expect(result.text).toBe('ok');
             });
 

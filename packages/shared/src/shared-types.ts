@@ -1005,13 +1005,11 @@ interface BaseCreateCommentRequest {
 }
 
 export interface CreateGroupCommentRequest extends BaseCreateCommentRequest {
-    targetType: typeof CommentTargetTypes.GROUP;
-    targetId: GroupId;
+    groupId: GroupId;
 }
 
 export interface CreateExpenseCommentRequest extends BaseCreateCommentRequest {
-    targetType: typeof CommentTargetTypes.EXPENSE;
-    targetId: ExpenseId;
+    expenseId: ExpenseId;
 }
 
 export type CreateCommentRequest = CreateGroupCommentRequest | CreateExpenseCommentRequest;

@@ -36,6 +36,7 @@ if (typeof window !== 'undefined') {
 import { apiClient } from '@/app/apiClient';
 import type { ActivityFeedStore } from '@/app/stores/activity-feed-store';
 import { CommentsStoreImpl } from '@/stores/comments-store';
+import type { CommentsStoreTarget } from '@/stores/comments-store';
 import type { CommentDTO, ListCommentsResponse } from '@splitifyd/shared';
 
 const mockedApiClient = apiClient as unknown as {
@@ -62,6 +63,11 @@ function responseFor(comments: CommentDTO[]): ListCommentsResponse {
         nextCursor: undefined,
     };
 }
+
+const groupTarget = (groupId: string): CommentsStoreTarget => ({
+    type: 'group',
+    groupId,
+});
 
 describe('CommentsStoreImpl', () => {
     let registerListenerMock: Mock;
@@ -96,14 +102,14 @@ describe('CommentsStoreImpl', () => {
             .mockResolvedValueOnce(responseFor([first]))
             .mockResolvedValueOnce(responseFor([second]));
 
-        store.registerComponent('group', 'group-1');
+        store.registerComponent(groupTarget('group-1'));
 
         await mockedApiClient.getGroupComments.mock.results[0]!.value;
 
         expect(store.comments).toEqual([first]);
-        expect(store.targetId).toBe('group-1');
+        expect(store.groupId).toBe('group-1');
 
-        store.registerComponent('group', 'group-2');
+        store.registerComponent(groupTarget('group-2'));
 
         // Comments should be cleared immediately while new fetch is in-flight
         expect(store.comments).toEqual([]);
@@ -113,7 +119,7 @@ describe('CommentsStoreImpl', () => {
         await mockedApiClient.getGroupComments.mock.results[1]!.value;
 
         expect(store.comments).toEqual([second]);
-        expect(store.targetId).toBe('group-2');
+        expect(store.groupId).toBe('group-2');
         expect(store.hasMore).toBe(false);
         expect(mockedApiClient.getGroupComments).toHaveBeenNthCalledWith(1, 'group-1', undefined);
         expect(mockedApiClient.getGroupComments).toHaveBeenNthCalledWith(2, 'group-2', undefined);
@@ -123,10 +129,10 @@ describe('CommentsStoreImpl', () => {
         const first = createComment('1', 'Only comment');
         mockedApiClient.getGroupComments.mockResolvedValue(responseFor([first]));
 
-        store.registerComponent('group', 'group-1');
+        store.registerComponent(groupTarget('group-1'));
         await mockedApiClient.getGroupComments.mock.results[0]!.value;
 
-        store.registerComponent('group', 'group-1');
+        store.registerComponent(groupTarget('group-1'));
 
         expect(mockedApiClient.getGroupComments).toHaveBeenCalledTimes(1);
         expect(registerListenerMock).toHaveBeenCalledTimes(1);
