@@ -1,4 +1,4 @@
-import type {Email, VersionHash} from '@splitifyd/shared';
+import type { Email, VersionHash } from '@splitifyd/shared';
 import {
     ApiSerializer,
     AuthenticatedFirebaseUser,
@@ -37,9 +37,9 @@ import {
     UserRegistration,
     UserToken,
 } from '@splitifyd/shared';
-import {UserRegistrationBuilder} from './builders';
-import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
-import {Matcher, PollOptions, pollUntil} from './Polling';
+import { UserRegistrationBuilder } from './builders';
+import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
+import { Matcher, PollOptions, pollUntil } from './Polling';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;

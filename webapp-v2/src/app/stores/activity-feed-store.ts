@@ -2,9 +2,9 @@ import { logError, logWarning } from '@/utils/browser-logger.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
 import type { ActivityFeedItem, ActivityFeedResponse, UserId } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
-import { FirebaseActivityFeedGateway, type ActivityFeedGateway, type ActivityFeedRealtimeUpdate } from '../gateways/activity-feed-gateway';
-import { normalizeActivityFeedItem } from '../utils/activity-feed-utils';
 import { getFirebaseService } from '../firebase';
+import { type ActivityFeedGateway, type ActivityFeedRealtimeUpdate, FirebaseActivityFeedGateway } from '../gateways/activity-feed-gateway';
+import { normalizeActivityFeedItem } from '../utils/activity-feed-utils';
 
 const ACTIVITY_FEED_PAGE_SIZE = 10;
 

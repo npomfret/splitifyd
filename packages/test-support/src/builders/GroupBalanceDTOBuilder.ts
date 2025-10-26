@@ -3,8 +3,8 @@ import { Amount } from '@splitifyd/shared';
 import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
-import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Group balance DTO structure for testing
@@ -36,7 +36,7 @@ export class GroupBalanceDTOBuilder {
     }
 
     withGroupId(groupId: GroupId | string): this {
-        this.balance.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
+        this.balance.groupId = typeof groupId === 'string' ? toGroupId(groupId) : groupId;
         return this;
     }
 

@@ -1,6 +1,6 @@
 import { GroupId, ISOString } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
-import {toGroupId} from "@splitifyd/shared";
 
 interface TransactionChangeDocument {
     groupId: GroupId;
@@ -26,7 +26,7 @@ export class TransactionChangeDocumentBuilder {
     }
 
     withGroupId(groupId: GroupId | string): this {
-        this.document.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
+        this.document.groupId = typeof groupId === 'string' ? toGroupId(groupId) : groupId;
         return this;
     }
 

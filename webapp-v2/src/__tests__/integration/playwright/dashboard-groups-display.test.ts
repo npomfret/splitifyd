@@ -1,13 +1,4 @@
-import {
-    DashboardPage,
-    GroupDTOBuilder,
-    GroupFullDetailsBuilder,
-    GroupMemberBuilder,
-    HeaderPage,
-    ListGroupsResponseBuilder,
-    ThemeBuilder,
-    ActivityFeedItemBuilder,
-} from '@splitifyd/test-support';
+import { ActivityFeedItemBuilder, DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, HeaderPage, ListGroupsResponseBuilder, ThemeBuilder } from '@splitifyd/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
@@ -171,15 +162,17 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemBuilder.memberLeft(
-                    'activity-group-to-remove',
-                    user.uid,
-                    'group-to-remove',
-                    'Will Be Removed',
-                    'System',
-                    user.displayName ?? 'You',
-                    user.uid,
-                ).build(),
+                ActivityFeedItemBuilder
+                    .memberLeft(
+                        'activity-group-to-remove',
+                        user.uid,
+                        'group-to-remove',
+                        'Will Be Removed',
+                        'System',
+                        user.displayName ?? 'You',
+                        user.uid,
+                    )
+                    .build(),
             ],
         );
 
@@ -236,15 +229,17 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemBuilder.memberLeft(
-                    'activity-group-to-delete',
-                    user.uid,
-                    'group-to-delete',
-                    'Will Be Deleted',
-                    'System',
-                    user.displayName ?? 'You',
-                    user.uid,
-                ).build(),
+                ActivityFeedItemBuilder
+                    .memberLeft(
+                        'activity-group-to-delete',
+                        user.uid,
+                        'group-to-delete',
+                        'Will Be Deleted',
+                        'System',
+                        user.displayName ?? 'You',
+                        user.uid,
+                    )
+                    .build(),
             ],
         );
 
@@ -294,15 +289,17 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemBuilder.memberLeft(
-                    'activity-only-group',
-                    user.uid,
-                    'only-group',
-                    'Only Group',
-                    'System',
-                    user.displayName ?? 'You',
-                    user.uid,
-                ).build(),
+                ActivityFeedItemBuilder
+                    .memberLeft(
+                        'activity-only-group',
+                        user.uid,
+                        'only-group',
+                        'Only Group',
+                        'System',
+                        user.displayName ?? 'You',
+                        user.uid,
+                    )
+                    .build(),
             ],
         );
 
@@ -363,24 +360,28 @@ test.describe('Dashboard Group Removal and Deletion', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemBuilder.memberLeft(
-                    'activity-group-1-left',
-                    user.uid,
-                    'group-1',
-                    'Group One',
-                    'System',
-                    user.displayName ?? 'You',
-                    user.uid,
-                ).build(),
-                ActivityFeedItemBuilder.memberLeft(
-                    'activity-group-2-left',
-                    user.uid,
-                    'group-2',
-                    'Group Two',
-                    'System',
-                    user.displayName ?? 'You',
-                    user.uid,
-                ).build(),
+                ActivityFeedItemBuilder
+                    .memberLeft(
+                        'activity-group-1-left',
+                        user.uid,
+                        'group-1',
+                        'Group One',
+                        'System',
+                        user.displayName ?? 'You',
+                        user.uid,
+                    )
+                    .build(),
+                ActivityFeedItemBuilder
+                    .memberLeft(
+                        'activity-group-2-left',
+                        user.uid,
+                        'group-2',
+                        'Group Two',
+                        'System',
+                        user.displayName ?? 'You',
+                        user.uid,
+                    )
+                    .build(),
             ],
         );
 

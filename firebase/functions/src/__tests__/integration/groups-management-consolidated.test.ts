@@ -380,7 +380,6 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             // Verify second user also cannot access deleted group
             await expect(apiDriver.getGroupFullDetails(group.id, users[1].token)).rejects.toThrow(/404|not found/i);
         });
-
     });
 
     describe('Comprehensive Group Deletion Tests', () => {

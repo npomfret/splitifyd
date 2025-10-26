@@ -29,24 +29,25 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-const buildBaseGroup = (): GroupDTO => new GroupDTOBuilder()
-    .withId('group-1')
-    .withName('Housemates')
-    .withDescription('Monthly expenses')
-    .withCreatedBy('user-1')
-    .withCreatedAt('2024-01-01T00:00:00.000Z')
-    .withUpdatedAt('2024-01-01T00:00:00.000Z')
-    .withPermissions({
-        expenseEditing: 'anyone',
-        expenseDeletion: 'admin-only',
-        memberInvitation: 'anyone',
-        memberApproval: 'automatic',
-        settingsManagement: 'admin-only',
-    })
-    .withDeletedAt(null)
-    .withBalance({})
-    .withLastActivity('2 days ago')
-    .build();
+const buildBaseGroup = (): GroupDTO =>
+    new GroupDTOBuilder()
+        .withId('group-1')
+        .withName('Housemates')
+        .withDescription('Monthly expenses')
+        .withCreatedBy('user-1')
+        .withCreatedAt('2024-01-01T00:00:00.000Z')
+        .withUpdatedAt('2024-01-01T00:00:00.000Z')
+        .withPermissions({
+            expenseEditing: 'anyone',
+            expenseDeletion: 'admin-only',
+            memberInvitation: 'anyone',
+            memberApproval: 'automatic',
+            settingsManagement: 'admin-only',
+        })
+        .withDeletedAt(null)
+        .withBalance({})
+        .withLastActivity('2 days ago')
+        .build();
 
 const renderGroupCard = (groupOverrides: Partial<GroupDTO>, extraProps: Partial<Parameters<typeof GroupCard>[0]> = {}) => {
     const baseGroup = buildBaseGroup();

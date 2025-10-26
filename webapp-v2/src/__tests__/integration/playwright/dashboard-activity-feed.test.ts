@@ -2,8 +2,8 @@ import {
     ActivityFeedItemBuilder,
     CommentBuilder,
     DashboardPage,
-    ExpenseDTOBuilder,
     ExpenseDetailPage,
+    ExpenseDTOBuilder,
     ExpenseFullDetailsBuilder,
     GroupBalancesBuilder,
     GroupDetailPage,
@@ -16,14 +16,7 @@ import {
 } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
-import {
-    mockActivityFeedApi,
-    mockExpenseCommentsApi,
-    mockExpenseDetailApi,
-    mockGroupCommentsApi,
-    mockGroupDetailApi,
-    mockGroupsApi,
-} from '../../utils/mock-firebase-service';
+import { mockActivityFeedApi, mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 
 // ============================================================================
 // Dashboard Activity Feed Browser Unit Tests
@@ -356,7 +349,9 @@ test.describe('Activity Feed - Navigation', () => {
 
         await page.goto('/dashboard');
 
-        const expectedDescription = translationEn.activityFeed.events['expense-created']
+        const expectedDescription = translationEn
+            .activityFeed
+            .events['expense-created']
             .replace('{{actor}}', actorName)
             .replace('{{expense}}', `"${expenseDescription}"`)
             .replace('{{group}}', groupName);
@@ -429,7 +424,9 @@ test.describe('Activity Feed - Navigation', () => {
         await page.goto('/dashboard');
 
         const commentTarget = translationEn.activityFeed.labels.commentOnGroup;
-        const expectedDescription = translationEn.activityFeed.events['comment-added']
+        const expectedDescription = translationEn
+            .activityFeed
+            .events['comment-added']
             .replace('{{actor}}', actorName)
             .replace('{{target}}', commentTarget)
             .replace('{{group}}', groupName);
@@ -509,7 +506,9 @@ test.describe('Activity Feed - Navigation', () => {
 
         await page.goto('/dashboard');
 
-        const expectedDescription = translationEn.activityFeed.events['settlement-created']
+        const expectedDescription = translationEn
+            .activityFeed
+            .events['settlement-created']
             .replace('{{actor}}', actorName)
             .replace('{{settlement}}', `"${settlementDescription}"`)
             .replace('{{group}}', groupName);

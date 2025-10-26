@@ -1,11 +1,11 @@
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { calculateEqualSplits } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
 import { FirestoreWriter } from '../../../services/firestore';
-import {toGroupId} from "@splitifyd/shared";
 
 describe('IncrementalBalanceService - Unit Tests', () => {
     let service: IncrementalBalanceService;

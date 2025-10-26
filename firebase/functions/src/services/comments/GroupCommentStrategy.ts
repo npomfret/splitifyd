@@ -1,9 +1,9 @@
+import type { GroupId, UserId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
 import { ApiError } from '../../utils/errors';
 import type { IFirestoreReader } from '../firestore';
 import { GroupMemberService } from '../GroupMemberService';
 import { ICommentStrategy } from './ICommentStrategy';
-import type {GroupId, UserId } from '@splitifyd/shared';
 
 /**
  * Strategy for handling comments on group entities

@@ -1,5 +1,5 @@
-import { randomBytes } from 'crypto';
 import type { GroupId, UserId } from '@splitifyd/shared';
+import { randomBytes } from 'crypto';
 
 /**
  * Generates a secure share token suitable for URLs.

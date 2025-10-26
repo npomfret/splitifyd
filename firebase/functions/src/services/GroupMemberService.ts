@@ -1,13 +1,13 @@
-import {ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, GroupId, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse, UserId} from '@splitifyd/shared';
-import {FirestoreCollections} from '../constants';
-import {FieldValue} from '../firestore-wrapper';
-import {logger, LoggerContext} from '../logger';
+import { ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, GroupId, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse, UserId } from '@splitifyd/shared';
+import { FirestoreCollections } from '../constants';
+import { FieldValue } from '../firestore-wrapper';
+import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
-import {PerformanceTimer} from '../monitoring/PerformanceTimer';
-import {ApiError, Errors} from '../utils/errors';
-import {ActivityFeedService} from './ActivityFeedService';
-import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
+import { ApiError, Errors } from '../utils/errors';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
+import { ActivityFeedService } from './ActivityFeedService';
+import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 
 export class GroupMemberService {
     constructor(

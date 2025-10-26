@@ -93,9 +93,7 @@ export class ActivityFeedService {
 
         if (items.length > CLEANUP_KEEP_COUNT) {
             const itemsToDelete = items.slice(CLEANUP_KEEP_COUNT);
-            const deletePromises = itemsToDelete.map((item: { id: string; }) =>
-                this.firestoreWriter.deleteActivityFeedItem(userId, item.id),
-            );
+            const deletePromises = itemsToDelete.map((item: { id: string; }) => this.firestoreWriter.deleteActivityFeedItem(userId, item.id));
             await Promise.all(deletePromises);
         }
     }

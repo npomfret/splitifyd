@@ -2,8 +2,8 @@ import type { CreateSettlementRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { GroupId, UserId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import {toGroupId} from "@splitifyd/shared";
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;
@@ -22,7 +22,7 @@ export class CreateSettlementRequestBuilder {
     }
 
     withGroupId(groupId: GroupId | string): this {
-        this.settlement.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
+        this.settlement.groupId = typeof groupId === 'string' ? toGroupId(groupId) : groupId;
         return this;
     }
 

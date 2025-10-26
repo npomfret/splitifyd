@@ -42,7 +42,7 @@ vi.mock('@/utils/browser-logger', () => ({
 // Import the mocked store after mocking
 import { activityFeedStore as mockStore } from '@/app/stores/activity-feed-store';
 import { navigationService as mockNavigationService } from '@/services/navigation.service';
-import {toGroupId} from "@splitifyd/shared";
+import { toGroupId } from '@splitifyd/shared';
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({

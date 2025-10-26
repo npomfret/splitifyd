@@ -37,4 +37,4 @@ export class ExpenseCommentStrategy implements ICommentStrategy<ExpenseId> {
         }
     }
 }
-import type {ExpenseId, UserId} from '@splitifyd/shared';
+import type { ExpenseId, UserId } from '@splitifyd/shared';

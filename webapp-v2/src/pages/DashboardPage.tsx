@@ -1,6 +1,8 @@
 import { ShareGroupModal } from '@/components/group';
 import { navigationService } from '@/services/navigation.service';
 import { logWarning } from '@/utils/browser-logger.ts';
+import { GroupId } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -10,8 +12,6 @@ import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { DashboardGrid } from '../components/layout/DashboardGrid';
-import { GroupId } from "@splitifyd/shared";
-import {toGroupId} from "@splitifyd/shared";
 
 export function DashboardPage() {
     const { t } = useTranslation();

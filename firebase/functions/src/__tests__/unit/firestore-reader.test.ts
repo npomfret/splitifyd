@@ -4,6 +4,7 @@
  * Tests the basic functionality of the FirestoreReader service and MockFirestoreReader
  */
 
+import { toGroupId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
@@ -12,7 +13,6 @@ import { Timestamp } from '../../firestore-wrapper';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
-import {toGroupId} from "@splitifyd/shared";
 
 const identityToolkitConfig = {
     apiKey: 'test-api-key',

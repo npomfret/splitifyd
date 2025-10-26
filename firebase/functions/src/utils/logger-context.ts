@@ -1,5 +1,5 @@
-import { AsyncLocalStorage } from 'async_hooks';
 import type { UserId } from '@splitifyd/shared';
+import { AsyncLocalStorage } from 'async_hooks';
 
 /**
  * Context fields that can be stored in the logging context

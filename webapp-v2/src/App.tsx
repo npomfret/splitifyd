@@ -1,6 +1,6 @@
+import type { ComponentProps, ComponentType, FunctionalComponent, VNode } from 'preact';
 import Router, { Route } from 'preact-router';
 import { lazy, Suspense } from 'preact/compat';
-import type { ComponentProps, ComponentType, FunctionalComponent, VNode } from 'preact';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './app/hooks/useAuth';
@@ -94,16 +94,12 @@ function ProtectedRoute<T extends ComponentType<any>>({ component: Component, ..
 }
 
 function createLazyRoute<T extends ComponentType<any>>(Component: T): FunctionalComponent<ComponentOwnProps<T> & RouterInjectedProps> {
-    const WrappedComponent: FunctionalComponent<ComponentOwnProps<T> & RouterInjectedProps> = (routeProps) => (
-        <LazyRoute component={Component} {...routeProps} />
-    );
+    const WrappedComponent: FunctionalComponent<ComponentOwnProps<T> & RouterInjectedProps> = (routeProps) => <LazyRoute component={Component} {...routeProps} />;
     return WrappedComponent;
 }
 
 function createProtectedRoute<T extends ComponentType<any>>(Component: T): FunctionalComponent<ComponentOwnProps<T> & RouterInjectedProps> {
-    const WrappedComponent: FunctionalComponent<ComponentOwnProps<T> & RouterInjectedProps> = (routeProps) => (
-        <ProtectedRoute component={Component} {...routeProps} />
-    );
+    const WrappedComponent: FunctionalComponent<ComponentOwnProps<T> & RouterInjectedProps> = (routeProps) => <ProtectedRoute component={Component} {...routeProps} />;
     return WrappedComponent;
 }
 

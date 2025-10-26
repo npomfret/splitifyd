@@ -1,10 +1,10 @@
 import type { Page } from '@playwright/test';
 import type { ClientUser, GroupId } from '@splitifyd/shared';
 import type { GroupName } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { DisplayNameConflictModalPage, JoinGroupPage, JoinGroupResponseBuilder, PreviewGroupResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupPreviewApi, mockJoinGroupApi, mockUpdateGroupDisplayNameApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
-import {toGroupId} from "@splitifyd/shared";
 
 interface ConflictModalOptions {
     groupName?: string;
@@ -21,7 +21,7 @@ interface ConflictModalContext {
     page: Page;
 }
 
-async function openConflictModal(authenticatedPage: { page: Page; user: ClientUser; }, options: ConflictModalOptions = {},): Promise<ConflictModalContext> {
+async function openConflictModal(authenticatedPage: { page: Page; user: ClientUser; }, options: ConflictModalOptions = {}): Promise<ConflictModalContext> {
     const { page, user } = authenticatedPage;
     const groupName = options.groupName ?? 'Design Team';
     const groupId = options.groupId ?? 'group-conflict-123';

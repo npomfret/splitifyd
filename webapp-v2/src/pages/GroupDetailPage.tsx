@@ -1,15 +1,15 @@
-import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { CommentsSection } from '@/components/comments';
 import { BalanceSummary, ExpensesList, GroupActions, GroupHeader, GroupSettingsModal, LeaveGroupDialog, MembersListWithManagement, ShareGroupModal } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { Button, Card, LoadingSpinner } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { SidebarCard } from '@/components/ui/SidebarCard';
+import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { navigationService } from '@/services/navigation.service';
 import { permissionsStore } from '@/stores/permissions-store.ts';
 import { BanknotesIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
-import type {GroupId, SettlementWithMembers } from '@splitifyd/shared';
+import type { GroupId, SettlementWithMembers } from '@splitifyd/shared';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -135,13 +135,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
     const errorValue = error.value;
     const groupValue = group.value;
-    const shouldRedirectToDashboard =
-        errorValue === GROUP_DETAIL_ERROR_CODES.GROUP_DELETED || errorValue === GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
-    const shouldRedirectToNotFoundFromError =
-        typeof errorValue === 'string' && /not found/i.test(errorValue);
+    const shouldRedirectToDashboard = errorValue === GROUP_DETAIL_ERROR_CODES.GROUP_DELETED || errorValue === GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
+    const shouldRedirectToNotFoundFromError = typeof errorValue === 'string' && /not found/i.test(errorValue);
     const shouldRedirectToNotFoundFromMissingGroup = isInitialized.value && !groupValue && !errorValue;
-    const shouldShowInlineError =
-        Boolean(errorValue) && !shouldRedirectToDashboard && !shouldRedirectToNotFoundFromError;
+    const shouldShowInlineError = Boolean(errorValue) && !shouldRedirectToDashboard && !shouldRedirectToNotFoundFromError;
 
     useEffect(() => {
         if (!shouldRedirectToDashboard) {

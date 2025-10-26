@@ -10,7 +10,7 @@
  * for migration guidance.
  */
 
-import type {CommentId} from '@splitifyd/shared';
+import type { CommentId } from '@splitifyd/shared';
 // Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
 // FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
 import {
@@ -37,14 +37,15 @@ import {
     SettlementId,
     type UserId,
 } from '@splitifyd/shared';
-import {FirestoreCollections, HTTP_STATUS} from '../../constants';
-import {FieldPath, Filter, type IDocumentReference, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp} from '../../firestore-wrapper';
-import {logger} from '../../logger';
-import {measureDb} from '../../monitoring/measure';
-import {assertTimestamp, safeParseISOToTimestamp} from '../../utils/dateHelpers';
-import {ApiError} from '../../utils/errors';
+import { FirestoreCollections, HTTP_STATUS } from '../../constants';
+import { FieldPath, Filter, type IDocumentReference, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp } from '../../firestore-wrapper';
+import { logger } from '../../logger';
+import { measureDb } from '../../monitoring/measure';
+import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelpers';
+import { ApiError } from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
+import { toGroupId } from '@splitifyd/shared';
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,
@@ -60,10 +61,9 @@ import {
     TopLevelGroupMemberSchema,
     UserDocumentSchema,
 } from '../../schemas';
-import type {TopLevelGroupMemberDocument} from '../../types';
-import type {BatchGroupFetchOptions, FirestoreOrderField, GetGroupsForUserOptions, GroupsPaginationCursor, IFirestoreReader, PaginatedResult, QueryOptions} from './IFirestoreReader';
+import type { TopLevelGroupMemberDocument } from '../../types';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
-import {toGroupId} from "@splitifyd/shared";
+import type { BatchGroupFetchOptions, FirestoreOrderField, GetGroupsForUserOptions, GroupsPaginationCursor, IFirestoreReader, PaginatedResult, QueryOptions } from './IFirestoreReader';
 
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
@@ -940,7 +940,8 @@ export class FirestoreReader implements IFirestoreReader {
                 return null;
             }
 
-            const shareLinkRef = this.db
+            const shareLinkRef = this
+                .db
                 .collection(FirestoreCollections.GROUPS)
                 .doc(indexData.groupId)
                 .collection('shareLinks')

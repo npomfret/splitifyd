@@ -32,7 +32,7 @@ vi.mock('@/utils/dateUtils.ts', () => ({
 }));
 
 import { apiClient } from '@/app/apiClient';
-import {toGroupId} from "@splitifyd/shared";
+import { toGroupId } from '@splitifyd/shared';
 
 const mockedApiClient = apiClient as unknown as {
     generateShareLink: Mock;

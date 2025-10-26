@@ -1,6 +1,6 @@
 import type { ActivityFeedGateway, ActivityFeedRealtimeUpdate } from '@/app/gateways/activity-feed-gateway';
 import { ActivityFeedStoreImpl } from '@/app/stores/activity-feed-store';
-import {ActivityFeedActions, ActivityFeedEventTypes, type ActivityFeedItem, type ActivityFeedResponse, toGroupId} from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, type ActivityFeedItem, type ActivityFeedResponse, toGroupId } from '@splitifyd/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 

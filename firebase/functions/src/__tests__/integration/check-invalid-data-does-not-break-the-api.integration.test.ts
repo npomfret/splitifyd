@@ -12,16 +12,16 @@
  * Add new invalid data scenarios here as they're discovered in production.
  */
 
-import {ApiDriver, CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder} from '@splitifyd/test-support';
-import {Timestamp} from 'firebase-admin/firestore';
-import {afterEach, beforeAll, beforeEach, describe, expect, test} from 'vitest';
-import {FirestoreCollections} from '../../constants';
-import {getFirestore} from '../../firebase';
-import {createFirestoreDatabase} from '../../firestore-wrapper';
-import {FirestoreReader} from '../../services/firestore';
-import {createTopLevelMembershipDocument} from '../../utils/groupMembershipHelpers';
+import { toGroupId } from '@splitifyd/shared';
+import { ApiDriver, CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { Timestamp } from 'firebase-admin/firestore';
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { FirestoreCollections } from '../../constants';
+import { getFirestore } from '../../firebase';
+import { createFirestoreDatabase } from '../../firestore-wrapper';
+import { FirestoreReader } from '../../services/firestore';
+import { createTopLevelMembershipDocument } from '../../utils/groupMembershipHelpers';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
-import {toGroupId} from "@splitifyd/shared";
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {
     const firestore = getFirestore();

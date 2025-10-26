@@ -1,10 +1,10 @@
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { navigationService } from '@/services/navigation.service';
+import { GroupId } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 import { LoadingSpinner, Pagination } from '../ui';
 import { EmptyGroupsState } from './EmptyGroupsState';
 import { GroupCard } from './GroupCard';
-import { GroupId } from "@splitifyd/shared";
 
 interface GroupsListProps {
     onCreateGroup: () => void;

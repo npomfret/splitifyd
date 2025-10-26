@@ -1,4 +1,4 @@
-import {CommentTargetType, CommentTargetTypes, ExpenseId, GroupId} from '@splitifyd/shared';
+import { CommentTargetType, CommentTargetTypes, ExpenseId, GroupId } from '@splitifyd/shared';
 import type { IFirestoreReader } from '../firestore';
 import { GroupMemberService } from '../GroupMemberService';
 import { ExpenseCommentStrategy } from './ExpenseCommentStrategy';

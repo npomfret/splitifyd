@@ -1,4 +1,4 @@
-import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId } from '@splitifyd/test-support';
+import { ExpenseFormDataBuilder, generateShortId } from '@splitifyd/test-support';
 import { expect, simpleTest } from '../../fixtures';
 import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
 
@@ -105,7 +105,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         const bobDisplayName = await bobDashboardPage.header.getCurrentUserDisplayName();
 
         // Alice creates group with both members
-        const [aliceGroupDetailPage, bobGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup(bobDashboardPage,);
+        const [aliceGroupDetailPage, bobGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup(bobDashboardPage);
 
         const groupId = aliceGroupDetailPage.inferGroupId();
 
@@ -201,7 +201,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         const bobDisplayName = await bobDashboardPage.header.getCurrentUserDisplayName();
 
         // Bob creates group with both members
-        const [bobGroupDetailPage, aliceGroupDetailPage] = await bobDashboardPage.createMultiUserGroup(aliceDashboardPage,);
+        const [bobGroupDetailPage, aliceGroupDetailPage] = await bobDashboardPage.createMultiUserGroup(aliceDashboardPage);
 
         const groupId = bobGroupDetailPage.inferGroupId();
 

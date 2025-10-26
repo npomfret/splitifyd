@@ -7,7 +7,7 @@ import { logError } from '@/utils/browser-logger';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { ChevronDownIcon, UserMinusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
-import {GroupId, GroupMember } from '@splitifyd/shared';
+import { GroupId, GroupMember } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 

@@ -61,18 +61,24 @@ function setupRoutes(app: express.Application): void {
     };
 
     // Health check endpoint
-    app.get('/health', asyncHandler(async (req: express.Request, res: express.Response) => {
-        const checks = await runHealthChecks();
-        const payload = buildHealthPayload(checks);
-        const statusCode = resolveHealthStatusCode(checks);
-        res.status(statusCode).json(payload);
-    }));
+    app.get(
+        '/health',
+        asyncHandler(async (req: express.Request, res: express.Response) => {
+            const checks = await runHealthChecks();
+            const payload = buildHealthPayload(checks);
+            const statusCode = resolveHealthStatusCode(checks);
+            res.status(statusCode).json(payload);
+        }),
+    );
 
-    app.head('/health', asyncHandler(async (req: express.Request, res: express.Response) => {
-        const checks = await runHealthChecks();
-        const statusCode = resolveHealthStatusCode(checks);
-        res.status(statusCode).end();
-    }));
+    app.head(
+        '/health',
+        asyncHandler(async (req: express.Request, res: express.Response) => {
+            const checks = await runHealthChecks();
+            const statusCode = resolveHealthStatusCode(checks);
+            res.status(statusCode).end();
+        }),
+    );
 
     // Status endpoint
     app.get('/status', (req: express.Request, res: express.Response) => {

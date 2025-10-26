@@ -53,16 +53,18 @@ test.describe('Dashboard Real-time Notifications', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemBuilder.forEvent(
-                    'activity-group-test-update',
-                    user.uid,
-                    'group-test',
-                    'Updated Group',
-                    ActivityFeedEventTypes.GROUP_UPDATED,
-                    ActivityFeedActions.UPDATE,
-                    'System',
-                    {},
-                ).build(),
+                ActivityFeedItemBuilder
+                    .forEvent(
+                        'activity-group-test-update',
+                        user.uid,
+                        'group-test',
+                        'Updated Group',
+                        ActivityFeedEventTypes.GROUP_UPDATED,
+                        ActivityFeedActions.UPDATE,
+                        'System',
+                        {},
+                    )
+                    .build(),
             ],
         );
 
@@ -112,26 +114,30 @@ test.describe('Dashboard Real-time Notifications', () => {
             await mockFirebase.emitActivityFeedItems(
                 user.uid,
                 [
-                    ActivityFeedItemBuilder.forEvent(
-                        `activity-${i}-group-1`,
-                        user.uid,
-                        'group-1',
-                        'Group One',
-                        ActivityFeedEventTypes.GROUP_UPDATED,
-                        ActivityFeedActions.UPDATE,
-                        'System',
-                        {},
-                    ).build(),
-                    ActivityFeedItemBuilder.forEvent(
-                        `activity-${i}-group-2`,
-                        user.uid,
-                        'group-2',
-                        'Group Two',
-                        ActivityFeedEventTypes.GROUP_UPDATED,
-                        ActivityFeedActions.UPDATE,
-                        'System',
-                        {},
-                    ).build(),
+                    ActivityFeedItemBuilder
+                        .forEvent(
+                            `activity-${i}-group-1`,
+                            user.uid,
+                            'group-1',
+                            'Group One',
+                            ActivityFeedEventTypes.GROUP_UPDATED,
+                            ActivityFeedActions.UPDATE,
+                            'System',
+                            {},
+                        )
+                        .build(),
+                    ActivityFeedItemBuilder
+                        .forEvent(
+                            `activity-${i}-group-2`,
+                            user.uid,
+                            'group-2',
+                            'Group Two',
+                            ActivityFeedEventTypes.GROUP_UPDATED,
+                            ActivityFeedActions.UPDATE,
+                            'System',
+                            {},
+                        )
+                        .build(),
                 ],
             );
         }
@@ -164,16 +170,18 @@ test.describe('Dashboard Real-time Notifications', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemBuilder.forEvent(
-                    'activity-valid-baseline',
-                    user.uid,
-                    'valid-group',
-                    'Valid Group',
-                    ActivityFeedEventTypes.GROUP_UPDATED,
-                    ActivityFeedActions.UPDATE,
-                    'System',
-                    {},
-                ).build(),
+                ActivityFeedItemBuilder
+                    .forEvent(
+                        'activity-valid-baseline',
+                        user.uid,
+                        'valid-group',
+                        'Valid Group',
+                        ActivityFeedEventTypes.GROUP_UPDATED,
+                        ActivityFeedActions.UPDATE,
+                        'System',
+                        {},
+                    )
+                    .build(),
             ],
         );
 
@@ -193,16 +201,18 @@ test.describe('Dashboard Real-time Notifications', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemBuilder.forEvent(
-                    'activity-invalid-group',
-                    user.uid,
-                    'non-existent-id',
-                    'Ghost Group',
-                    ActivityFeedEventTypes.GROUP_UPDATED,
-                    ActivityFeedActions.UPDATE,
-                    'System',
-                    {},
-                ).build(),
+                ActivityFeedItemBuilder
+                    .forEvent(
+                        'activity-invalid-group',
+                        user.uid,
+                        'non-existent-id',
+                        'Ghost Group',
+                        ActivityFeedEventTypes.GROUP_UPDATED,
+                        ActivityFeedActions.UPDATE,
+                        'System',
+                        {},
+                    )
+                    .build(),
             ],
         );
 

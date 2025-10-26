@@ -1,3 +1,4 @@
+import { toGroupId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -7,7 +8,6 @@ import { GroupCommentStrategy } from '../../../../services/comments/GroupComment
 import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
-import {toGroupId} from "@splitifyd/shared";
 
 describe('GroupCommentStrategy', () => {
     let strategy: GroupCommentStrategy;

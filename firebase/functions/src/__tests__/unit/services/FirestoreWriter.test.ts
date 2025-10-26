@@ -1,3 +1,4 @@
+import { toGroupId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -7,7 +8,6 @@ import { FirestoreReader } from '../../../services/firestore';
 import type { IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {toGroupId} from "@splitifyd/shared";
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let db: SplitifydFirestoreTestDatabase;

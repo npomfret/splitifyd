@@ -2,8 +2,8 @@ import type { SettlementDTO } from '@splitifyd/shared';
 import { Amount, UserId } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
-import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating Settlement objects for tests
@@ -53,7 +53,7 @@ export class SettlementDTOBuilder {
 
     // CreateSettlementRequest builder methods
     withGroupId(groupId: GroupId | string): SettlementDTOBuilder {
-        this.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
+        this.groupId = typeof groupId === 'string' ? toGroupId(groupId) : groupId;
         return this;
     }
 

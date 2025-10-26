@@ -1,5 +1,14 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CommentTargetType, CommentTargetTypes, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
-import type {CommentId, ExpenseId, GroupId, GroupName, UserId } from '@splitifyd/shared';
+import {
+    ActivityFeedActions,
+    ActivityFeedEventTypes,
+    CommentDTO,
+    CommentTargetType,
+    CommentTargetTypes,
+    CreateExpenseCommentRequest,
+    CreateGroupCommentRequest,
+    ListCommentsResponse,
+} from '@splitifyd/shared';
+import type { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';

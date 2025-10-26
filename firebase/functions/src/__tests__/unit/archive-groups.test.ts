@@ -6,15 +6,15 @@
  * - GroupMemberService archive/unarchive methods
  */
 
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { MemberStatuses } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { ActivityFeedService } from '../../services/ActivityFeedService';
 import { FirestoreReader } from '../../services/firestore';
 import { FirestoreWriter } from '../../services/firestore';
 import { GroupMemberService } from '../../services/GroupMemberService';
-import {toGroupId} from "@splitifyd/shared";
 
 describe('Archive Groups - FirestoreReader Status Filtering', () => {
     let db: SplitifydFirestoreTestDatabase;

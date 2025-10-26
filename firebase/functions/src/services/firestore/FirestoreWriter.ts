@@ -10,17 +10,17 @@
  */
 
 // Import types
-import type {CommentDTO, DisplayName, Email, ISOString, RegisteredUser, ShareLinkDTO, UserId} from '@splitifyd/shared';
+import type { CommentDTO, DisplayName, Email, ISOString, RegisteredUser, ShareLinkDTO, UserId } from '@splitifyd/shared';
 // Import schemas for validation
-import {type CommentTargetType, CommentTargetTypes, GroupId, PolicyId} from '@splitifyd/shared';
-import {z} from 'zod';
-import {FirestoreCollections, HTTP_STATUS} from '../../constants';
-import {FieldValue, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp} from '../../firestore-wrapper';
-import {logger} from '../../logger';
-import {measureDb} from '../../monitoring/measure';
-import {ApiError} from '../../utils/errors';
+import { type CommentTargetType, CommentTargetTypes, GroupId, PolicyId } from '@splitifyd/shared';
+import { z } from 'zod';
+import { FirestoreCollections, HTTP_STATUS } from '../../constants';
+import { FieldValue, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
+import { logger } from '../../logger';
+import { measureDb } from '../../monitoring/measure';
+import { ApiError } from '../../utils/errors';
 
-import type {GroupBalanceDTO} from '../../schemas';
+import type { GroupBalanceDTO } from '../../schemas';
 import {
     ActivityFeedDocumentSchema,
     CommentDataSchema,
@@ -33,8 +33,8 @@ import {
     UserDocumentSchema,
     validateUpdate,
 } from '../../schemas';
-import type {BatchWriteResult, IFirestoreWriter, WriteResult} from './IFirestoreWriter';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
+import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -1014,7 +1014,8 @@ export class FirestoreWriter implements IFirestoreWriter {
 
         transaction.create(shareLinkRef, finalData);
 
-        const shareLinkIndexRef = this.db
+        const shareLinkIndexRef = this
+            .db
             .collection(FirestoreCollections.SHARE_LINK_TOKENS)
             .doc(finalData.token);
 
@@ -1043,7 +1044,8 @@ export class FirestoreWriter implements IFirestoreWriter {
         for (const doc of snapshot.docs) {
             const data = doc.data() as ShareLinkDTO;
             if (data?.token) {
-                const indexRef = this.db
+                const indexRef = this
+                    .db
                     .collection(FirestoreCollections.SHARE_LINK_TOKENS)
                     .doc(data.token);
                 transaction.delete(indexRef);

@@ -1,4 +1,3 @@
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import {
     AcceptMultiplePoliciesResponse,
     ActivityFeedEventType,
@@ -29,12 +28,13 @@ import {
     UpdateGroupRequest,
     UpdatePolicyResponse,
     UpdateSettlementRequest,
-    UserPolicyStatusResponse,
     UserId,
+    UserPolicyStatusResponse,
     VersionHash,
 } from '@splitifyd/shared';
 import { ExpenseId, SettlementId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@splitifyd/test-support';
 import { expect } from 'vitest';
 import { CommentHandlers } from '../../comments/CommentHandlers';

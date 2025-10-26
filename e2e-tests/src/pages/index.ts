@@ -3,5 +3,5 @@ export { CreateGroupModalPage } from '@splitifyd/test-support';
 export { LoginPage } from '@splitifyd/test-support';
 export { RegisterPage } from '@splitifyd/test-support';
 export { SettingsPage } from '@splitifyd/test-support';
-export { DashboardPage } from './dashboard.page';
 export { GroupDetailPage } from '@splitifyd/test-support';
+export { DashboardPage } from './dashboard.page';

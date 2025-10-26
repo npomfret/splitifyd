@@ -1,4 +1,5 @@
 import type { GenerateShareLinkRequest } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { getIdentityToolkitConfig } from '../client-config';
@@ -8,7 +9,6 @@ import { ComponentBuilder } from '../services/ComponentBuilder';
 import { GroupShareService } from '../services/GroupShareService';
 import { logger } from '../utils/contextual-logger';
 import { ApiError } from '../utils/errors';
-import {toGroupId} from "@splitifyd/shared";
 
 export class GroupShareHandlers {
     constructor(private readonly groupShareService: GroupShareService) {

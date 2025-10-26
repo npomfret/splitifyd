@@ -1,6 +1,6 @@
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ActivityFeedActions, ActivityFeedEventTypes, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toGroupId } from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreCollections, HTTP_STATUS } from '../../../constants';

@@ -1,5 +1,5 @@
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CommentTargetTypes } from '@splitifyd/shared';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ActivityFeedService } from '../../../../services/ActivityFeedService';
 import { CommentStrategyFactory } from '../../../../services/comments/CommentStrategyFactory';

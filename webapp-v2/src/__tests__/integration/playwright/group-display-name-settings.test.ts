@@ -1,10 +1,10 @@
 import type { Page } from '@playwright/test';
 import type { ClientUser, GroupId } from '@splitifyd/shared';
 import { MemberRoles } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
-import {toGroupId} from "@splitifyd/shared";
 
 interface GroupTestSetupOptions {
     groupId?: GroupId;

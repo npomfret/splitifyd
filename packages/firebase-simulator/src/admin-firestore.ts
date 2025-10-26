@@ -321,7 +321,6 @@ class FirestoreDatabaseWrapper implements IFirestoreDatabase {
     clear(): void {
         throw new Error('clear is only available on StubFirestoreDatabase');
     }
-
 }
 
 export function createFirestoreDatabase(firestore: FirebaseAdmin.Firestore): IFirestoreDatabase {

@@ -1,4 +1,4 @@
-import type {CommentId, ExpenseId, GroupId, UserId } from '@splitifyd/shared';
+import type { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
 
 /**
  * Strategy interface for handling comment operations on different target types

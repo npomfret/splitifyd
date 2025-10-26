@@ -42,7 +42,7 @@ export type Amount = string;
 export const ZERO: Amount = '0';
 
 // Utility to create branded primitive types for stronger nominal typing
-export type Brand<K, T> = K & { __brand: T };
+export type Brand<K, T> = K & { __brand: T; };
 
 export type GroupId = Brand<string, 'GroupId'>;
 export const toGroupId = (value: string): GroupId => value as GroupId;

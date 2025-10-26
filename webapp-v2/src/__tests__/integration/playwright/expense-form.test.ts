@@ -18,7 +18,7 @@ async function expectNoGlobalError(page: Page) {
 
 async function openExpenseFormForTest(
     authenticatedPage: { page: Page; user: { uid: string; displayName: DisplayName; }; },
-    groupId: GroupId |  string,
+    groupId: GroupId | string,
     additionalMembers: MemberSeed[] = [],
 ) {
     const { page, user: testUser } = authenticatedPage;

@@ -6,7 +6,7 @@ import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
-import type {GroupId, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
+import type { GroupId, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { ConfirmDialog, CurrencyAmount, LoadingSpinner, RelativeTime, Tooltip } from '../ui';

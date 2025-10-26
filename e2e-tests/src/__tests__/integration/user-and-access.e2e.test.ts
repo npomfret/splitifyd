@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { CreateGroupFormDataBuilder, DEFAULT_PASSWORD, generateTestEmail, generateTestGroupName, generateTestUserName, TestUserBuilder } from '@splitifyd/test-support';
+import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName, TestUserBuilder } from '@splitifyd/test-support';
 import { ApiDriver } from '@splitifyd/test-support';
 import { JoinGroupPage } from '@splitifyd/test-support';
 import { PolicyAcceptanceModalPage } from '@splitifyd/test-support';

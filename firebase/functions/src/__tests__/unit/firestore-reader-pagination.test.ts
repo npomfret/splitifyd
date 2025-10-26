@@ -6,11 +6,11 @@
  * firestore-read-encapsulation-report.md
  */
 
+import { toGroupId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreReader } from '../../services/firestore';
-import {toGroupId} from "@splitifyd/shared";
 
 describe('FirestoreReader Pagination Performance', () => {
     let db: SplitifydFirestoreTestDatabase;

@@ -1,4 +1,4 @@
-import { CreateGroupFormDataBuilder, ExpenseFormDataBuilder, generateShortId, GroupDetailPage, JoinGroupPage } from '@splitifyd/test-support';
+import { ExpenseFormDataBuilder, generateShortId, GroupDetailPage, JoinGroupPage } from '@splitifyd/test-support';
 import { expect, simpleTest } from '../../fixtures';
 import { DashboardPage as E2EDashboardPage } from '../../pages/dashboard.page';
 import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
@@ -245,7 +245,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
 
         const [groupDetailPage, member1GroupDetailPage, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(
             member1DashboardPage,
-            member2DashboardPage
+            member2DashboardPage,
         );
 
         // Owner removes Member1

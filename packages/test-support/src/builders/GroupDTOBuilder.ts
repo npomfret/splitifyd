@@ -1,6 +1,6 @@
 import type { CurrencyBalance, GroupDTO, GroupId, GroupPermissions, InviteLink, PermissionChangeLog, UserId } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomChoice, randomString, timestampToISOString } from '../test-helpers';
-import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating GroupDTO objects for tests.
@@ -35,7 +35,7 @@ export class GroupDTOBuilder {
     }
 
     withId(groupId: GroupId | string): this {
-        this.group.id = typeof groupId === "string" ? toGroupId(groupId) : groupId;
+        this.group.id = typeof groupId === 'string' ? toGroupId(groupId) : groupId;
         return this;
     }
 

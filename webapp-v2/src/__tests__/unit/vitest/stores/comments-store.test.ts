@@ -38,7 +38,7 @@ import type { ActivityFeedStore } from '@/app/stores/activity-feed-store';
 import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { CommentsStoreTarget } from '@/stores/comments-store';
 import type { CommentDTO, GroupId, ListCommentsResponse } from '@splitifyd/shared';
-import {toGroupId} from "@splitifyd/shared";
+import { toGroupId } from '@splitifyd/shared';
 
 const mockedApiClient = apiClient as unknown as {
     getGroupComments: Mock;
@@ -67,7 +67,7 @@ function responseFor(comments: CommentDTO[]): ListCommentsResponse {
 
 const groupTarget = (groupId: GroupId | string): CommentsStoreTarget => ({
     type: 'group',
-    groupId: typeof groupId === "string" ? toGroupId(groupId) : groupId,
+    groupId: typeof groupId === 'string' ? toGroupId(groupId) : groupId,
 });
 
 describe('CommentsStoreImpl', () => {

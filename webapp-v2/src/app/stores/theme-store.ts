@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals';
-import type {UserId, UserThemeColor } from '@splitifyd/shared';
+import type { UserId, UserThemeColor } from '@splitifyd/shared';
 import type { ClientUser } from '@splitifyd/shared';
 
 interface ThemeState {

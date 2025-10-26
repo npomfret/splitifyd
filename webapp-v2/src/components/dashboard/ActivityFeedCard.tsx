@@ -94,9 +94,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                                 const content = (
                                     <>
                                         <p className='text-sm text-gray-900'>{description}</p>
-                                        {item.details?.commentPreview ? (
-                                            <p className='text-sm text-gray-600 mt-1 italic truncate'>{item.details.commentPreview}</p>
-                                        ) : null}
+                                        {item.details?.commentPreview ? <p className='text-sm text-gray-600 mt-1 italic truncate'>{item.details.commentPreview}</p> : null}
                                         <div className='mt-2 flex items-center gap-2 text-xs text-gray-500'>
                                             <span className='font-medium text-gray-700'>{groupLabel}</span>
                                             <span aria-hidden='true'>•</span>
@@ -109,26 +107,26 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                                     <li key={item.id} className='flex items-start gap-3' data-testid='activity-feed-item' data-event-type={item.eventType}>
                                         <div className='h-2 w-2 rounded-full mt-2 bg-purple-500 flex-shrink-0' aria-hidden='true' />
                                         <div className='flex-1'>
-                                            {handleNavigate ? (
-                                                <button
-                                                    type='button'
-                                                    onClick={handleNavigate}
-                                                    className='group flex w-full items-start justify-between gap-3 rounded-md border border-transparent px-3 py-2 text-left transition-colors duration-150 hover:border-purple-200 hover:bg-purple-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2'
-                                                    aria-label={description}
-                                                >
-                                                    <div className='flex-1'>
-                                                        {content}
-                                                    </div>
-                                                    <span
-                                                        className='flex h-5 w-5 items-center justify-center flex-shrink-0 text-purple-500 font-medium opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100'
-                                                        aria-hidden='true'
+                                            {handleNavigate
+                                                ? (
+                                                    <button
+                                                        type='button'
+                                                        onClick={handleNavigate}
+                                                        className='group flex w-full items-start justify-between gap-3 rounded-md border border-transparent px-3 py-2 text-left transition-colors duration-150 hover:border-purple-200 hover:bg-purple-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2'
+                                                        aria-label={description}
                                                     >
-                                                        →
-                                                    </span>
-                                                </button>
-                                            ) : (
-                                                content
-                                            )}
+                                                        <div className='flex-1'>
+                                                            {content}
+                                                        </div>
+                                                        <span
+                                                            className='flex h-5 w-5 items-center justify-center flex-shrink-0 text-purple-500 font-medium opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100'
+                                                            aria-hidden='true'
+                                                        >
+                                                            →
+                                                        </span>
+                                                    </button>
+                                                )
+                                                : content}
                                         </div>
                                     </li>
                                 );

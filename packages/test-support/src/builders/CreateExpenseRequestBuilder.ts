@@ -2,8 +2,8 @@ import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, 
 import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import {toGroupId} from "@splitifyd/shared";
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;
@@ -40,7 +40,7 @@ export class CreateExpenseRequestBuilder {
     }
 
     withGroupId(groupId: GroupId | string): this {
-        this.expense.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
+        this.expense.groupId = typeof groupId === 'string' ? toGroupId(groupId) : groupId;
         return this;
     }
 

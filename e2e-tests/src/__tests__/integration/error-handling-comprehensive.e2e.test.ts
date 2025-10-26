@@ -1,4 +1,4 @@
-import { CreateGroupFormDataBuilder, generateTestGroupName } from '@splitifyd/test-support';
+import { generateTestGroupName } from '@splitifyd/test-support';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
 import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';

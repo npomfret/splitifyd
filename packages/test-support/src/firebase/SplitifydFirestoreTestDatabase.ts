@@ -1,5 +1,5 @@
-import { GroupId, PolicyId, UserId } from '@splitifyd/shared';
 import { StubFirestoreDatabase, Timestamp } from '@splitifyd/firebase-simulator';
+import { GroupId, PolicyId, UserId } from '@splitifyd/shared';
 
 type ExpenseId = string;
 type SettlementId = string;

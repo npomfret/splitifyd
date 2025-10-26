@@ -1,4 +1,4 @@
-import type {CurrencyISOCode, UserId} from '@splitifyd/shared';
+import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
 import {
     ActivityFeedActions,
     ActivityFeedEventTypes,
@@ -21,24 +21,24 @@ import {
     smallestUnitToAmountString,
     UpdateGroupRequest,
 } from '@splitifyd/shared';
-import {DOCUMENT_CONFIG, FirestoreCollections} from '../constants';
-import {logger, LoggerContext} from '../logger';
+import { toGroupId } from '@splitifyd/shared';
+import { DOCUMENT_CONFIG, FirestoreCollections } from '../constants';
+import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
-import {PerformanceTimer} from '../monitoring/PerformanceTimer';
-import {PermissionEngine} from '../permissions';
-import {GroupBalanceDTO} from '../schemas';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
+import { PermissionEngine } from '../permissions';
+import { GroupBalanceDTO } from '../schemas';
 import * as dateHelpers from '../utils/dateHelpers';
-import {Errors} from '../utils/errors';
-import {ActivityFeedService} from './ActivityFeedService';
-import {CommentService} from './CommentService';
-import {ExpenseService} from './ExpenseService';
-import type {GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter} from './firestore';
-import {GroupMemberService} from './GroupMemberService';
-import {GroupShareService} from './GroupShareService';
-import {SettlementService} from './SettlementService';
-import {UserService} from './UserService2';
+import { Errors } from '../utils/errors';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
-import {toGroupId} from "@splitifyd/shared";
+import { ActivityFeedService } from './ActivityFeedService';
+import { CommentService } from './CommentService';
+import { ExpenseService } from './ExpenseService';
+import type { GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
+import { GroupShareService } from './GroupShareService';
+import { SettlementService } from './SettlementService';
+import { UserService } from './UserService2';
 
 /**
  * Service for managing group operations
@@ -80,7 +80,7 @@ export class GroupService {
 
         if (groupBalance.balancesByCurrency) {
             for (const [currency, currencyBalances] of Object.entries(groupBalance.balancesByCurrency)) {
-        const currencyUserBalance = currencyBalances[userId];
+                const currencyUserBalance = currencyBalances[userId];
                 if (currencyUserBalance) {
                     const netBalanceUnits = amountToSmallestUnit(currencyUserBalance.netBalance, currency);
                     if (netBalanceUnits === 0) {

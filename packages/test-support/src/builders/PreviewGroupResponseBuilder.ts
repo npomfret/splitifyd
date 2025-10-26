@@ -1,7 +1,7 @@
 import type { GroupName, PreviewGroupResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
-import {toGroupId} from "@splitifyd/shared";
 
 /**
  * Builder for creating PreviewGroupResponse objects for tests
@@ -16,7 +16,7 @@ export class PreviewGroupResponseBuilder {
     };
 
     withGroupId(groupId: GroupId | string): this {
-        this.fields.groupId = typeof groupId === "string" ? toGroupId(groupId) : groupId;
+        this.fields.groupId = typeof groupId === 'string' ? toGroupId(groupId) : groupId;
         return this;
     }
 

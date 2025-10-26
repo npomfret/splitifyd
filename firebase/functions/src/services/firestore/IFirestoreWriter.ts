@@ -14,8 +14,8 @@
  * - Performance monitoring with sampling
  */
 
-import type {CommentDTO, CommentTargetType, ISOString, RegisteredUser, ShareLinkDTO, UserId} from '@splitifyd/shared';
-import { GroupId, DisplayName } from '@splitifyd/shared';
+import type { CommentDTO, CommentTargetType, ISOString, RegisteredUser, ShareLinkDTO, UserId } from '@splitifyd/shared';
+import { DisplayName, GroupId } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, ITransaction, IWriteBatch } from '../../firestore-wrapper';

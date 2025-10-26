@@ -65,7 +65,8 @@ export class ActivityFeedItemBuilder {
         actorName: string,
         details: ActivityFeedItem['details'] = {},
     ): ActivityFeedItemBuilder {
-        return ActivityFeedItemBuilder.create()
+        return ActivityFeedItemBuilder
+            .create()
             .withId(id)
             .withUserId(userId)
             .withGroupId(groupId)

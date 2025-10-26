@@ -1,9 +1,9 @@
 import { CommentTargetType, CommentTargetTypes, CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
 import * as Joi from 'joi';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
-import {toGroupId} from "@splitifyd/shared";
 
 const commentTextSchema = Joi.string().trim().min(1).max(500).required().messages({
     'string.empty': 'Comment text is required',
@@ -49,7 +49,7 @@ export const validateCreateGroupComment = (targetId: string, body: any): CreateG
 
     const validatedGroupId = toGroupId(sanitizeIdentifier(validateTargetId(targetId, CommentTargetTypes.GROUP)));
 
-    const { text } = value as { text: string };
+    const { text } = value as { text: string; };
 
     return {
         groupId: validatedGroupId,
@@ -77,7 +77,7 @@ export const validateCreateExpenseComment = (targetId: string, body: any): Creat
 
     const validatedExpenseId = sanitizeIdentifier(validateTargetId(targetId, CommentTargetTypes.EXPENSE));
 
-    const { text } = value as { text: string };
+    const { text } = value as { text: string; };
 
     return {
         expenseId: validatedExpenseId,

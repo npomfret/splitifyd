@@ -1,5 +1,5 @@
-import { logError } from '@/utils/browser-logger.ts';
 import { navigationService } from '@/services/navigation.service';
+import { logError } from '@/utils/browser-logger.ts';
 import { useComputed } from '@preact/signals';
 import { GroupId, UserId } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';

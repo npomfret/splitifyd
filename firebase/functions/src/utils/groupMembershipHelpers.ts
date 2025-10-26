@@ -1,7 +1,5 @@
-import type { GroupMembershipDTO, ISOString, UserId } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
+import type { GroupMembershipDTO, ISOString } from '@splitifyd/shared';
 import { TopLevelGroupMemberDocument } from '../types';
-import { newTopLevelMembershipDocId } from './idGenerator';
 
 /**
  * Creates a top-level membership document from a subcollection membership document

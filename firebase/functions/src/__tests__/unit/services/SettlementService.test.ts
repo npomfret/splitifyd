@@ -1,4 +1,5 @@
 import { Timestamp } from '@google-cloud/firestore';
+import { toGroupId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -6,7 +7,6 @@ import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { SettlementService } from '../../../services/SettlementService';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {toGroupId} from "@splitifyd/shared";
 
 describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;

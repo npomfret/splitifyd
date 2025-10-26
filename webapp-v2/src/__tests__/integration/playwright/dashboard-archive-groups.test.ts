@@ -92,16 +92,18 @@ test.describe('Dashboard group archiving', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemBuilder.forEvent(
-                    'activity-archive-demo-archived',
-                    user.uid,
-                    group.id,
-                    group.name,
-                    ActivityFeedEventTypes.GROUP_UPDATED,
-                    ActivityFeedActions.UPDATE,
-                    'System',
-                    {},
-                ).build(),
+                ActivityFeedItemBuilder
+                    .forEvent(
+                        'activity-archive-demo-archived',
+                        user.uid,
+                        group.id,
+                        group.name,
+                        ActivityFeedEventTypes.GROUP_UPDATED,
+                        ActivityFeedActions.UPDATE,
+                        'System',
+                        {},
+                    )
+                    .build(),
             ],
         );
 
@@ -147,16 +149,18 @@ test.describe('Dashboard group archiving', () => {
         await mockFirebase.emitActivityFeedItems(
             user.uid,
             [
-                ActivityFeedItemBuilder.forEvent(
-                    'activity-archive-demo-unarchived',
-                    user.uid,
-                    group.id,
-                    group.name,
-                    ActivityFeedEventTypes.GROUP_UPDATED,
-                    ActivityFeedActions.UPDATE,
-                    'System',
-                    {},
-                ).build(),
+                ActivityFeedItemBuilder
+                    .forEvent(
+                        'activity-archive-demo-unarchived',
+                        user.uid,
+                        group.id,
+                        group.name,
+                        ActivityFeedEventTypes.GROUP_UPDATED,
+                        ActivityFeedActions.UPDATE,
+                        'System',
+                        {},
+                    )
+                    .build(),
             ],
         );
 
