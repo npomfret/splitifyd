@@ -118,7 +118,8 @@ test.describe('Dashboard Groups Grid Layout and Interactions', () => {
 
         // Test click interaction and verify navigation using fluent method
         // The fluent method automatically verifies URL and page load
-        await dashboardPage.clickGroupCardAndNavigateToDetail('Interactive Group');
+        const groupDetailPage = await dashboardPage.clickGroupCardAndNavigateToDetail('Interactive Group');
+        await groupDetailPage.waitForPage(group.id, 1);
     });
 });
 

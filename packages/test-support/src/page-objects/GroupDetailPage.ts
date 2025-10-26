@@ -312,7 +312,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Group name heading - the main H1 at top of page
      */
-    getGroupName(): Locator {
+    protected getGroupName(): Locator {
         return this.page.getByRole('heading', { level: 1 });
     }
 

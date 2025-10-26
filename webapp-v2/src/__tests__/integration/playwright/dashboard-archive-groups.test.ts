@@ -76,11 +76,8 @@ test.describe('Dashboard group archiving', () => {
         await queueArchived(emptyResponse, { once: false });
 
         // Open group detail and archive via quick action
-        const groupDetailPage = await dashboardPage.clickGroupCardAndNavigateToDetail('Archive Demo Group', {
-            expectedGroupId: group.id,
-            expectedMemberCount: 1,
-            waitForReady: true,
-        });
+        const groupDetailPage = await dashboardPage.clickGroupCardAndNavigateToDetail('Archive Demo Group');
+        await groupDetailPage.waitForPage(group.id, 1);
         await expect(page).toHaveURL(/\/groups\/group-archive-demo$/);
 
         // Queue responses before triggering archive (store refreshes immediately)
@@ -134,11 +131,8 @@ test.describe('Dashboard group archiving', () => {
         await dashboardPage.waitForGroupsToLoad();
 
         // Unarchive from group detail and confirm archived list clears
-        const archivedDetailPage = await dashboardPage.clickGroupCardAndNavigateToDetail('Archive Demo Group', {
-            expectedGroupId: group.id,
-            expectedMemberCount: 1,
-            waitForReady: true,
-        });
+        const archivedDetailPage = await dashboardPage.clickGroupCardAndNavigateToDetail('Archive Demo Group');
+        await groupDetailPage.waitForPage(group.id, 1);
         await expect(page).toHaveURL(/\/groups\/group-archive-demo$/);
         await archivedDetailPage.ensureUnarchiveActionVisible({ expectedGroupId: group.id });
 

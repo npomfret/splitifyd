@@ -24,7 +24,6 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
 
         // Alice creates group with all 3 members
         const [aliceGroupDetailPage, bobGroupDetailPage, charlieGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup(
-            new CreateGroupFormDataBuilder(),
             bobDashboardPage,
             charlieDashboardPage,
         );
@@ -106,10 +105,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         const bobDisplayName = await bobDashboardPage.header.getCurrentUserDisplayName();
 
         // Alice creates group with both members
-        const [aliceGroupDetailPage, bobGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup(
-            new CreateGroupFormDataBuilder(),
-            bobDashboardPage,
-        );
+        const [aliceGroupDetailPage, bobGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup(bobDashboardPage,);
 
         const groupId = aliceGroupDetailPage.inferGroupId();
 
@@ -205,10 +201,7 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
         const bobDisplayName = await bobDashboardPage.header.getCurrentUserDisplayName();
 
         // Bob creates group with both members
-        const [bobGroupDetailPage, aliceGroupDetailPage] = await bobDashboardPage.createMultiUserGroup(
-            new CreateGroupFormDataBuilder(),
-            aliceDashboardPage,
-        );
+        const [bobGroupDetailPage, aliceGroupDetailPage] = await bobDashboardPage.createMultiUserGroup(aliceDashboardPage,);
 
         const groupId = bobGroupDetailPage.inferGroupId();
 
@@ -310,7 +303,6 @@ simpleTest.describe('Departed Member Transaction Locking', () => {
 
         // Alice creates group with all 3 members
         const [aliceGroupDetailPage, bobGroupDetailPage, charlieGroupDetailPage] = await aliceDashboardPage.createMultiUserGroup(
-            new CreateGroupFormDataBuilder(),
             bobDashboardPage,
             charlieDashboardPage,
         );
