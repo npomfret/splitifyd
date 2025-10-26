@@ -2,7 +2,9 @@
 
 import { getFunctionsPort, getProjectId, getRegion } from '@splitifyd/test-support';
 import { ChildProcess, spawn } from 'child_process';
+import * as fs from 'fs';
 import * as http from 'http';
+import * as path from 'path';
 import { logger } from './logger';
 
 interface EmulatorConfig {
@@ -25,9 +27,29 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
         },
     });
 
+    const logFilePath = path.join(process.cwd(), 'firebase-debug.log');
+    let logStream: fs.WriteStream | null = null;
+
+    try {
+        logStream = fs.createWriteStream(logFilePath, { flags: 'w' });
+        logger.info('📝 Capturing Firebase emulator logs', { logFilePath });
+    } catch (error) {
+        logger.warn('⚠️ Failed to open firebase-debug.log for writing', {
+            logFilePath,
+            error: error instanceof Error ? error.message : error,
+        });
+    }
+
     let emulatorsReady = false;
 
+    const writeToLog = (chunk: Buffer): void => {
+        if (logStream) {
+            logStream.write(chunk);
+        }
+    };
+
     emulatorProcess.stdout.on('data', (data: Buffer) => {
+        writeToLog(data);
         const output = data.toString();
 
         // Filter out noisy hosting logs for static assets and HTTP access logs.
@@ -49,8 +71,10 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
             return true;
         });
 
-        if (filteredLines.join('').trim().length > 0) {
-            process.stdout.write(filteredLines.join('\n'));
+        const filteredOutput = filteredLines.join('\n').trimEnd();
+
+        if (filteredOutput.length > 0) {
+            process.stdout.write(filteredOutput + '\n');
         }
 
         if (output.includes('All emulators ready!')) {
@@ -59,6 +83,7 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
     });
 
     emulatorProcess.stderr.on('data', (data: Buffer) => {
+        writeToLog(data);
         process.stderr.write(data);
     });
 
@@ -109,6 +134,13 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
     logger.info('📍 The Splitifyd emulators are now fully operational');
     logger.info('🌐 Firebase emulators are running and API functions are ready');
     logger.info('');
+
+    emulatorProcess.on('close', () => {
+        if (logStream) {
+            logStream.end();
+            logStream = null;
+        }
+    });
 
     return emulatorProcess;
 }

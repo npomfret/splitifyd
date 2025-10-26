@@ -192,7 +192,7 @@ simpleTest.describe('User Registration & Account Management', () => {
         await registerPage.checkCookieCheckbox();
 
         // Submit and verify error response
-        const responsePromise = registerPage.waitForRegistrationResponse(409);
+        const responsePromise = registerPage.waitForRegistrationResponse(400);
         await registerPage.submitForm();
         await responsePromise;
 
@@ -201,12 +201,13 @@ simpleTest.describe('User Registration & Account Management', () => {
 
         // Verify error message appears and form persistence
         await registerPage.verifyErrorContainerVisible();
-        await registerPage.verifyErrorMessageMatches(/email.*already.*exists|email.*in use|account.*exists|email.*registered/);
+        await registerPage.verifyErrorMessageMatches(/unable to create account. if you already registered, try signing in./);
 
-        // Verify 409 error in console
+        // Verify error in console (400 Bad Request, not 409 - this is intentional for email enumeration prevention)
         const errorInConsole = consoleMessages.some((msg) => {
             const lowerMsg = msg.toLowerCase();
-            return lowerMsg.includes('409') || (lowerMsg.includes('error') && lowerMsg.includes('conflict'));
+            // Look for 400 status code or REGISTRATION_FAILED error code
+            return lowerMsg.includes('400') || lowerMsg.includes('registration_failed') || lowerMsg.includes('registration attempt failed');
         });
         expect(errorInConsole).toBe(true);
 

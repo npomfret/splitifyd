@@ -645,16 +645,27 @@ export class DashboardPage extends BasePage {
             const shareLink = await shareModal.getShareLink();
             await shareModal.closeModal();
 
-            for (const dashboardPage of dashboardPages) {
+            for (let i = 0; i < dashboardPages.length; i++) {
+                const dashboardPage = dashboardPages[i];
                 const joinGroupPage = new JoinGroupPage(dashboardPage.page);
                 await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
                 // it should redirect to the browser the group detail page
                 await expect(dashboardPage.page).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId));
-                groupDetailPages.push(new GroupDetailPage(dashboardPage.page));
+                const newGroupDetailPage = new GroupDetailPage(dashboardPage.page);
+                groupDetailPages.push(newGroupDetailPage);
 
                 const displayName = await dashboardPage.header.getCurrentUserDisplayName();
                 console.log(`User "${displayName}" has joined group "${groupName}" (id: ${groupId})`);
+
+                // CRITICAL FIX: Wait for membership to be reflected in ALL browsers before next join
+                // This ensures Firestore has persisted the write and real-time updates have propagated
+                const currentMemberCount = groupDetailPages.length;
+                console.log(`Waiting for all ${currentMemberCount} browsers to show ${currentMemberCount} members...`);
+                for (const gdp of groupDetailPages) {
+                    await gdp.waitForMemberCount(currentMemberCount, 15000);
+                }
+                console.log(`All ${currentMemberCount} browsers now show ${currentMemberCount} members`);
             }
         }
 
