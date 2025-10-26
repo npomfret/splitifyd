@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CommentQueryBuilder } from '@splitifyd/test-support';
 import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../comments/validation';
 import { ApiError } from '../../utils/errors';
+import { toCommentId } from '@splitifyd/shared';
 
 describe('Comments Validation', () => {
     describe('validateCreateGroupComment', () => {
@@ -129,13 +130,13 @@ describe('Comments Validation', () => {
         it('should validate valid comment ID', () => {
             const result = validateCommentId('comment123');
 
-            expect(result).toBe('comment123');
+            expect(result).toBe(toCommentId('comment123'));
         });
 
         it('should trim comment ID', () => {
             const result = validateCommentId('  comment123  ');
 
-            expect(result).toBe('comment123');
+            expect(result).toBe(toCommentId('comment123'));
         });
 
         it('should throw error for null comment ID', () => {

@@ -53,12 +53,14 @@ export const toExpenseId = (value: string): ExpenseId => value as ExpenseId;
 export type SettlementId = Brand<string, 'SettlementId'>;
 export const toSettlementId = (value: string): SettlementId => value as SettlementId;
 
+export type CommentId = Brand<string, 'CommentId'>;
+export const toCommentId = (value: string): CommentId => value as CommentId;
+
 export type GroupName = string;
 export type UserId = string;
 export type DisplayName = string;
 export type Email = string;
 export type CurrencyISOCode = string;
-export type CommentId = string;
 export type PolicyId = string;
 export type ShareLinkToken = string;
 export type VersionHash = string;

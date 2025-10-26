@@ -2,7 +2,7 @@ import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, Group
 import { ActivityFeedActions, ActivityFeedEventTypes, toGroupId } from '@splitifyd/shared';
 import { generateShortId, randomString } from '../../test-helpers';
 import {toExpenseId} from "@splitifyd/shared";
-import {CommentId} from "@splitifyd/shared";
+import {CommentId, toCommentId} from "@splitifyd/shared";
 
 const DEFAULT_TIMESTAMP = () => new Date().toISOString();
 
@@ -206,7 +206,7 @@ export class ActivityFeedItemBuilder {
         actorName: string,
         commentPreview: string,
         expenseDescription?: string,
-        commentId: CommentId= `comment-${id}`,
+        commentId: CommentId = toCommentId(`comment-${id}`),
     ): ActivityFeedItemBuilder {
         const details: ActivityFeedItem['details'] = {
             commentId,

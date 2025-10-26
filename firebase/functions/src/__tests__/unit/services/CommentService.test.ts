@@ -9,7 +9,7 @@ import { CommentService } from '../../../services/CommentService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {toExpenseId} from "@splitifyd/shared";
+import { toExpenseId, toCommentId } from "@splitifyd/shared";
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;
@@ -822,7 +822,7 @@ describe('CommentService - Consolidated Tests', () => {
 
                 for (const id of validIds) {
                     expect(() => validateCommentId(id)).not.toThrow();
-                    expect(validateCommentId(id)).toBe(id);
+                    expect(validateCommentId(id)).toBe(toCommentId(id));
                 }
             });
 
@@ -851,7 +851,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should trim whitespace from comment IDs', () => {
                 const id = '  comment-123  ';
                 const result = validateCommentId(id);
-                expect(result).toBe('comment-123');
+                expect(result).toBe(toCommentId('comment-123'));
             });
         });
 

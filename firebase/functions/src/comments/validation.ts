@@ -1,4 +1,4 @@
-import { CommentTargetType, CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
+import { CommentTargetType, CreateExpenseCommentRequest, CreateGroupCommentRequest, type CommentId, toCommentId } from '@splitifyd/shared';
 import * as Joi from 'joi';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
@@ -113,9 +113,9 @@ export const validateTargetId = (id: any, targetType: CommentTargetType): string
 /**
  * Validates that a comment ID is valid
  */
-export const validateCommentId = (id: any): string => {
+export const validateCommentId = (id: any): CommentId => {
     if (typeof id !== 'string' || !id.trim()) {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_COMMENT_ID', 'Invalid comment ID');
     }
-    return id.trim();
+    return toCommentId(id.trim());
 };

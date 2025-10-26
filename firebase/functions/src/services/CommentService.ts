@@ -7,6 +7,7 @@ import {
     CreateExpenseCommentRequest,
     CreateGroupCommentRequest,
     ListCommentsResponse,
+    toCommentId,
 } from '@splitifyd/shared';
 import type { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
@@ -221,7 +222,7 @@ export class CommentService {
             return commentRef.id;
         });
 
-        const createdComment = await this.firestoreReader.getComment(CommentTargetTypes.GROUP, groupId, commentId);
+        const createdComment = await this.firestoreReader.getComment(CommentTargetTypes.GROUP, groupId, toCommentId(commentId));
         if (!createdComment) {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
         }
@@ -320,7 +321,7 @@ export class CommentService {
             return commentRef.id;
         });
 
-        const createdComment = await this.firestoreReader.getComment(CommentTargetTypes.EXPENSE, expenseId, commentId);
+        const createdComment = await this.firestoreReader.getComment(CommentTargetTypes.EXPENSE, expenseId, toCommentId(commentId));
         if (!createdComment) {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
         }

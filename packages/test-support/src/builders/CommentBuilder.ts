@@ -1,10 +1,11 @@
 import type { CommentDTO } from '@splitifyd/shared';
-import type { UserId } from '@splitifyd/shared';
+import type { UserId, CommentId } from '@splitifyd/shared';
+import { toCommentId } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomChoice, randomDate, randomString, timestampToISOString } from '../test-helpers';
 
 export class CommentBuilder {
     private comment: CommentDTO = {
-        id: `comment-${generateShortId()}`,
+        id: toCommentId(`comment-${generateShortId()}`),
         authorId: `user-${generateShortId()}`,
         authorName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`,
         text: `${randomChoice(['Great', 'Awesome', 'Thanks', 'Perfect', 'Nice', 'Cool'])} ${randomString(8)}!`,
@@ -12,8 +13,8 @@ export class CommentBuilder {
         updatedAt: randomDate(),
     };
 
-    withId(id: string): this {
-        this.comment.id = id;
+    withId(id: CommentId | string): this {
+        this.comment.id = typeof id === 'string' ? toCommentId(id) : id;
         return this;
     }
 
