@@ -1,6 +1,4 @@
-import { Input } from '@/components/ui';
-import { Button } from '@/components/ui';
-import { Alert } from '@/components/ui';
+import { Alert, Avatar, Button, Card, Form, Input } from '@/components/ui';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
@@ -26,9 +24,18 @@ export function SettingsPage() {
         confirmNewPassword: '',
     });
     const [successMessage, setSuccessMessage] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
+   const [errorMessage, setErrorMessage] = useState('');
 
     const user = authStore.user;
+    const resolvedDisplayName = user?.displayName?.trim() || user?.email?.split('@')[0] || '';
+    const profileInitials = resolvedDisplayName
+        ? resolvedDisplayName
+              .split(' ')
+              .map((part) => part.charAt(0))
+              .join('')
+              .slice(0, 2)
+              .toUpperCase()
+        : '';
 
     // Load user profile on component mount
     useEffect(() => {
@@ -140,116 +147,206 @@ export function SettingsPage() {
 
     return (
         <BaseLayout title={t('settingsPage.title')} description={t('settingsPage.description')} headerVariant='dashboard'>
-            <div class='max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-                <div class='bg-white rounded-lg shadow-sm border border-gray-200'>
-                    <div class='px-6 py-4 border-b border-gray-200'>
-                        <h1 class='text-xl font-semibold text-gray-900' data-testid='account-settings-header'>
-                            {t('settingsPage.accountSettingsHeader')}
-                        </h1>
-                        <p class='text-sm text-gray-600'>{t('settingsPage.accountSettingsSubheader')}</p>
+            <div class='mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8'>
+                <div class='space-y-8'>
+                    <div class='flex flex-col gap-2'>
+                        <span class='text-xs font-medium uppercase tracking-wide text-indigo-600'>
+                            {t('settingsPage.heroLabel')}
+                        </span>
+                        <div class='flex flex-col gap-2'>
+                            <h1 class='text-3xl font-semibold text-slate-900' data-testid='account-settings-header'>
+                                {t('settingsPage.accountSettingsHeader')}
+                            </h1>
+                            <p class='max-w-2xl text-sm text-slate-600 sm:text-base'>{t('settingsPage.accountSettingsSubheader')}</p>
+                        </div>
                     </div>
 
-                    <div class='p-6 space-y-6'>
-                        {/* Success/Error Messages */}
-                        {successMessage && <Alert type='success' message={successMessage} />}
-                        {errorMessage && <Alert type='error' message={errorMessage} />}
-
-                        {/* Profile Information Section */}
-                        <div class='space-y-4' data-testid='profile-information-section'>
-                            <h2 class='text-lg font-medium text-gray-900'>{t('settingsPage.profileInformationHeader')}</h2>
-
-                            {/* Display Name Display */}
-                            <div class='text-sm'>
-                                <span class='text-gray-600'>{t('settingsPage.currentDisplayName')}</span>
-                                <span data-testid='profile-display-name' class='font-medium text-gray-900'>
-                                    {user.displayName}
-                                </span>
-                            </div>
-
-                            {/* Email Display */}
-                            <div class='text-sm'>
-                                <span class='text-gray-600'>{t('settingsPage.email')}</span>
-                                <span data-testid='profile-email' class='font-medium text-gray-900'>
-                                    {user.email}
-                                </span>
-                            </div>
-
-                            {/* Display Name Input */}
-                            <Input
-                                label={t('settingsPage.displayNameLabel')}
-                                value={displayName}
-                                onChange={setDisplayName}
-                                placeholder={t('settingsPage.displayNamePlaceholder')}
-                                disabled={authStore.isUpdatingProfile}
-                                error={isDisplayNameEmpty ? t('settingsPage.errorMessages.displayNameEmpty') : isDisplayNameTooLong ? t('settingsPage.errorMessages.displayNameTooLong') : undefined}
-                                data-testid='display-name-input'
-                            />
-
-                            <Button
-                                onClick={handleDisplayNameUpdate}
-                                disabled={!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong}
-                                loading={authStore.isUpdatingProfile}
-                                data-testid='save-changes-button'
-                            >
-                                {t('settingsPage.saveChangesButton')}
-                            </Button>
+                    {(successMessage || errorMessage) && (
+                        <div class='space-y-3'>
+                            {successMessage && <Alert type='success' message={successMessage} />}
+                            {errorMessage && <Alert type='error' message={errorMessage} />}
                         </div>
+                    )}
 
-                        {/* Password Section */}
-                        <div class='border-t border-gray-200 pt-6 space-y-4' data-testid='password-section'>
-                            <h2 class='text-lg font-medium text-gray-900'>{t('settingsPage.passwordHeader')}</h2>
+                    <div class='grid gap-6 lg:grid-cols-[320px,1fr] lg:gap-8 xl:grid-cols-[360px,1fr]'>
+                        <Card padding='lg' className='shadow-md lg:sticky lg:top-24'>
+                            <div class='space-y-6'>
+                                <div class='flex items-start gap-4'>
+                                    {(user.themeColor || user.photoURL)
+                                        ? (
+                                            <Avatar
+                                                displayName={resolvedDisplayName}
+                                                userId={user.uid}
+                                                themeColor={user.themeColor}
+                                                photoURL={user.photoURL}
+                                                size='lg'
+                                            />
+                                        )
+                                        : (
+                                            <div class='flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 text-lg font-semibold uppercase text-white shadow-inner'>
+                                                {profileInitials}
+                                            </div>
+                                        )}
 
-                            {!showPasswordForm
-                                ? (
-                                    <Button variant='secondary' onClick={() => setShowPasswordForm(true)} data-testid='change-password-button'>
-                                        {t('settingsPage.changePasswordButton')}
-                                    </Button>
-                                )
-                                : (
-                                    <div class='space-y-4' data-testid='password-form'>
-                                        <Input
-                                            label={t('settingsPage.currentPasswordLabel')}
-                                            type='password'
-                                            name='currentPassword'
-                                            value={passwordData.currentPassword}
-                                            onChange={(value) => setPasswordData((prev) => ({ ...prev, currentPassword: value }))}
-                                            disabled={isLoading}
-                                            id='current-password-input'
-                                            data-testid='current-password-input'
-                                        />
+                                    <div class='space-y-1'>
+                                        <p class='text-sm font-semibold uppercase tracking-wide text-slate-500'>
+                                            {t('settingsPage.profileSummaryTitle')}
+                                        </p>
+                                        <div class='text-2xl font-semibold text-slate-900' data-testid='profile-display-name'>
+                                            {resolvedDisplayName}
+                                        </div>
+                                        <p class='text-sm text-slate-500'>{t('settingsPage.profileSummaryDescription')}</p>
+                                    </div>
+                                </div>
 
-                                        <Input
-                                            label={t('settingsPage.newPasswordLabel')}
-                                            type='password'
-                                            name='newPassword'
-                                            value={passwordData.newPassword}
-                                            onChange={(value) => setPasswordData((prev) => ({ ...prev, newPassword: value }))}
-                                            disabled={isLoading}
-                                            id='new-password-input'
-                                            data-testid='new-password-input'
-                                        />
-
-                                        <Input
-                                            label={t('settingsPage.confirmNewPasswordLabel')}
-                                            type='password'
-                                            name='confirmNewPassword'
-                                            value={passwordData.confirmNewPassword}
-                                            onChange={(value) => setPasswordData((prev) => ({ ...prev, confirmNewPassword: value }))}
-                                            disabled={isLoading}
-                                            id='confirm-password-input'
-                                            data-testid='confirm-password-input'
-                                        />
-
-                                        <div class='flex space-x-3'>
-                                            <Button onClick={handlePasswordChange} disabled={isLoading} loading={isLoading} data-testid='update-password-button'>
-                                                {t('settingsPage.updatePasswordButton')}
-                                            </Button>
-                                            <Button variant='secondary' onClick={handleCancelPasswordChange} disabled={isLoading} data-testid='cancel-password-button'>
-                                                {t('settingsPage.cancelButton')}
-                                            </Button>
+                                <div class='space-y-3 text-sm'>
+                                    <div class='rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-3'>
+                                        <span class='text-slate-500'>{t('settingsPage.currentDisplayName')}</span>
+                                        <div class='font-medium text-slate-900'>{resolvedDisplayName}</div>
+                                    </div>
+                                    <div class='rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-3'>
+                                        <span class='text-slate-500'>{t('settingsPage.email')}</span>
+                                        <div class='font-medium text-slate-900 break-words' data-testid='profile-email'>
+                                            {user.email}
                                         </div>
                                     </div>
-                                )}
+                                    <div class='rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-3'>
+                                        <span class='text-slate-500'>{t('settingsPage.profileSummaryRoleLabel')}</span>
+                                        <div class='font-medium text-slate-900'>
+                                            {user.role ? t(`settingsPage.profileSummaryRole.${user.role}`, { defaultValue: t('settingsPage.profileSummaryRoleFallback') }) : t('settingsPage.profileSummaryRoleFallback')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Card>
+
+                        <div class='space-y-6'>
+                            <Card padding='lg' data-testid='profile-information-section'>
+                                <div class='space-y-6'>
+                                    <div class='space-y-2'>
+                                        <h2 class='text-xl font-semibold text-slate-900'>{t('settingsPage.profileInformationHeader')}</h2>
+                                        <p class='text-sm text-slate-600'>{t('settingsPage.profileInformationSubheader')}</p>
+                                    </div>
+
+                                    <Form
+                                        onSubmit={() => {
+                                            if (!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong) {
+                                                return;
+                                            }
+                                            return handleDisplayNameUpdate();
+                                        }}
+                                        className='space-y-5'
+                                    >
+                                        <div class='space-y-2'>
+                                            <Input
+                                                label={t('settingsPage.displayNameLabel')}
+                                                value={displayName}
+                                                onChange={setDisplayName}
+                                                placeholder={t('settingsPage.displayNamePlaceholder')}
+                                                disabled={authStore.isUpdatingProfile}
+                                                error={isDisplayNameEmpty ? t('settingsPage.errorMessages.displayNameEmpty') : isDisplayNameTooLong ? t('settingsPage.errorMessages.displayNameTooLong') : undefined}
+                                                data-testid='display-name-input'
+                                            />
+                                            <p class='text-xs text-slate-500'>{t('settingsPage.displayNameHelper')}</p>
+                                        </div>
+
+                                        <Button
+                                            type='submit'
+                                            disabled={!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong}
+                                            loading={authStore.isUpdatingProfile}
+                                            data-testid='save-changes-button'
+                                        >
+                                            {t('settingsPage.saveChangesButton')}
+                                        </Button>
+                                    </Form>
+                                </div>
+                            </Card>
+
+                            <Card padding='lg' data-testid='password-section'>
+                                <div class='space-y-6'>
+                                    <div class='space-y-2'>
+                                        <h2 class='text-xl font-semibold text-slate-900'>{t('settingsPage.passwordHeader')}</h2>
+                                        <p class='text-sm text-slate-600'>{t('settingsPage.passwordIntro')}</p>
+                                    </div>
+
+                                    <div class='rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-4 text-sm text-indigo-800'>
+                                        <div class='font-semibold'>{t('settingsPage.passwordRequirementsHeading')}</div>
+                                        <ul class='mt-2 space-y-2'>
+                                            <li class='flex gap-2'>
+                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500' aria-hidden='true' />
+                                                <span>{t('settingsPage.passwordRequirements.length')}</span>
+                                            </li>
+                                            <li class='flex gap-2'>
+                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500' aria-hidden='true' />
+                                                <span>{t('settingsPage.passwordRequirements.mix')}</span>
+                                            </li>
+                                            <li class='flex gap-2'>
+                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500' aria-hidden='true' />
+                                                <span>{t('settingsPage.passwordRequirements.reuse')}</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    {!showPasswordForm ? (
+                                        <Button onClick={() => setShowPasswordForm(true)} data-testid='change-password-button'>
+                                            {t('settingsPage.changePasswordButton')}
+                                        </Button>
+                                    ) : (
+                                        <div data-testid='password-form'>
+                                            <Form
+                                                onSubmit={() => {
+                                                    if (!isLoading) {
+                                                        return handlePasswordChange();
+                                                    }
+                                                }}
+                                                className='space-y-5'
+                                            >
+                                                <Input
+                                                    label={t('settingsPage.currentPasswordLabel')}
+                                                    type='password'
+                                                    name='currentPassword'
+                                                    value={passwordData.currentPassword}
+                                                    onChange={(value) => setPasswordData((prev) => ({ ...prev, currentPassword: value }))}
+                                                    disabled={isLoading}
+                                                    id='current-password-input'
+                                                    data-testid='current-password-input'
+                                                />
+
+                                                <Input
+                                                    label={t('settingsPage.newPasswordLabel')}
+                                                    type='password'
+                                                    name='newPassword'
+                                                    value={passwordData.newPassword}
+                                                    onChange={(value) => setPasswordData((prev) => ({ ...prev, newPassword: value }))}
+                                                    disabled={isLoading}
+                                                    id='new-password-input'
+                                                    data-testid='new-password-input'
+                                                />
+
+                                                <Input
+                                                    label={t('settingsPage.confirmNewPasswordLabel')}
+                                                    type='password'
+                                                    name='confirmNewPassword'
+                                                    value={passwordData.confirmNewPassword}
+                                                    onChange={(value) => setPasswordData((prev) => ({ ...prev, confirmNewPassword: value }))}
+                                                    disabled={isLoading}
+                                                    id='confirm-password-input'
+                                                    data-testid='confirm-password-input'
+                                                />
+
+                                                <div class='flex flex-col gap-3 sm:flex-row'>
+                                                    <Button type='submit' disabled={isLoading} loading={isLoading} data-testid='update-password-button'>
+                                                        {t('settingsPage.updatePasswordButton')}
+                                                    </Button>
+                                                    <Button type='button' variant='secondary' onClick={handleCancelPasswordChange} disabled={isLoading} data-testid='cancel-password-button'>
+                                                        {t('settingsPage.cancelButton')}
+                                                    </Button>
+                                                </div>
+                                            </Form>
+                                        </div>
+                                    )}
+                                </div>
+                            </Card>
                         </div>
                     </div>
                 </div>

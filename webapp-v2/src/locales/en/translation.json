@@ -944,21 +944,39 @@
   "settingsPage": {
     "title": "Settings - Splitifyd",
     "description": "Manage your account settings",
+    "heroLabel": "Account",
     "accountSettingsHeader": "Account Settings",
     "accountSettingsSubheader": "Manage your profile information and password",
+    "profileSummaryTitle": "Profile overview",
+    "profileSummaryDescription": "This information helps other members recognize you.",
     "profileInformationHeader": "Profile Information",
+    "profileInformationSubheader": "Update the details other members see across Splitifyd.",
     "currentDisplayName": "Current display name:",
     "email": "Email:",
     "displayNameLabel": "Display Name",
     "displayNamePlaceholder": "Enter your display name",
+    "displayNameHelper": "Use your full name or a nickname that teammates will recognize.",
     "saveChangesButton": "Save Changes",
     "passwordHeader": "Password",
+    "passwordIntro": "Set a strong password to keep your Splitifyd account secure.",
     "changePasswordButton": "Change Password",
     "currentPasswordLabel": "Current Password",
     "newPasswordLabel": "New Password",
     "confirmNewPasswordLabel": "Confirm New Password",
     "updatePasswordButton": "Update Password",
     "cancelButton": "Cancel",
+    "passwordRequirementsHeading": "Strong password checklist",
+    "passwordRequirements": {
+      "length": "Use at least 12 characters.",
+      "mix": "Blend upper- and lowercase letters, numbers, and symbols.",
+      "reuse": "Avoid passwords you've used elsewhere."
+    },
+    "profileSummaryRoleLabel": "Account role",
+    "profileSummaryRoleFallback": "Member",
+    "profileSummaryRole": {
+      "system_admin": "Administrator",
+      "system_user": "Member"
+    },
     "successMessages": {
       "profileUpdated": "Profile updated successfully",
       "passwordChanged": "Password changed successfully"
