@@ -2,7 +2,7 @@ import { PolicyDTO, PolicyVersion, VersionHash } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
-import { HTTP_STATUS } from '../constants';
+import { ALLOWED_POLICY_IDS, HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
@@ -297,6 +297,15 @@ export class PolicyService {
 
             // Use custom ID if provided, otherwise generate ID from policy name (kebab-case)
             const id = customId || this.generatePolicyId(policyName);
+
+            // Validate that only standard policies can be created
+            if (!ALLOWED_POLICY_IDS.has(id)) {
+                throw new ApiError(
+                    HTTP_STATUS.BAD_REQUEST,
+                    'INVALID_POLICY_ID',
+                    `Only standard policies are allowed. Policy ID '${id}' is not permitted. Allowed policies: ${Array.from(ALLOWED_POLICY_IDS).join(', ')}`,
+                );
+            }
 
             // Check if policy already exists
             timer.startPhase('read');

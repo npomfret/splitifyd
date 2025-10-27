@@ -39,10 +39,26 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
         it('should handle real Firebase transactions and document consistency', async () => {
             // This test verifies that PolicyService works with real Firebase operations
             // including transactions, document writes, and consistency guarantees
-            const policyName = uniquePolicyName('Firebase Integration Test');
+            const policyName = 'Privacy Policy';
+            const policyId = 'privacy-policy'; // Standard policy ID
             const initialText = 'Firebase integration test content.';
 
-            const createResult = await policyService.createPolicy(policyName, initialText);
+            // Try to create the policy, or get it if it already exists
+            let createResult: { id: string; currentVersionHash: string };
+            try {
+                createResult = await policyService.createPolicy(policyName, initialText);
+            } catch (error: any) {
+                // If policy already exists from previous test run, get the existing one
+                if (error.code === 'POLICY_EXISTS') {
+                    const existingPolicy = await policyService.getPolicy(policyId);
+                    createResult = {
+                        id: existingPolicy.id,
+                        currentVersionHash: existingPolicy.currentVersionHash,
+                    };
+                } else {
+                    throw error;
+                }
+            }
 
             expect(createResult).toHaveProperty('id');
             expect(createResult).toHaveProperty('currentVersionHash');
@@ -59,7 +75,8 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
             );
 
             // Test that updates work with real Firestore transactions
-            const updatedText = 'Updated Firebase integration content.';
+            // Use timestamp to ensure unique content for each test run
+            const updatedText = `Updated Firebase integration content at ${Date.now()}.`;
             const updateResult = await policyService.updatePolicy(createResult.id, updatedText, true);
 
             expect(updateResult).toHaveProperty('versionHash');

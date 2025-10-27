@@ -2682,7 +2682,7 @@ describe('app tests', () => {
         describe('acceptMultiplePolicies - happy path', () => {
             it('should accept a single policy', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
@@ -2699,17 +2699,17 @@ describe('app tests', () => {
 
             it('should accept multiple policies at once', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
                 const policy2 = await appDriver.createPolicy(user1, {
-                    policyName: 'privacy',
+                    policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
                 });
 
                 const policy3 = await appDriver.createPolicy(user1, {
-                    policyName: 'cookies',
+                    policyName: 'Cookie Policy',
                     text: 'Cookie Policy v1',
                 });
 
@@ -2728,7 +2728,7 @@ describe('app tests', () => {
 
             it('should persist policy acceptance in user document', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
@@ -2783,7 +2783,7 @@ describe('app tests', () => {
 
             it('should reject when version hash is invalid for existing policy', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
@@ -2798,7 +2798,7 @@ describe('app tests', () => {
 
             it('should reject entire batch if any policy is invalid', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
@@ -2819,12 +2819,12 @@ describe('app tests', () => {
         describe('getUserPolicyStatus - happy path', () => {
             it('should show all policies as pending when user has not accepted any', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
                 const policy2 = await appDriver.createPolicy(user1, {
-                    policyName: 'privacy',
+                    policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
                 });
 
@@ -2847,12 +2847,12 @@ describe('app tests', () => {
 
             it('should show no pending policies when user has accepted current versions', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
                 const policy2 = await appDriver.createPolicy(user1, {
-                    policyName: 'privacy',
+                    policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
                 });
 
@@ -2875,7 +2875,7 @@ describe('app tests', () => {
 
             it('should show pending when user has accepted old versions', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
@@ -2906,17 +2906,17 @@ describe('app tests', () => {
 
             it('should show mixed acceptance state across multiple policies', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
                 const policy2 = await appDriver.createPolicy(user1, {
-                    policyName: 'privacy',
+                    policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
                 });
 
                 const policy3 = await appDriver.createPolicy(user1, {
-                    policyName: 'cookies',
+                    policyName: 'Cookie Policy',
                     text: 'Cookie Policy v1',
                 });
 
@@ -2949,7 +2949,7 @@ describe('app tests', () => {
         describe('getUserPolicyStatus - data integrity', () => {
             it('should return correct response structure', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
@@ -2966,7 +2966,7 @@ describe('app tests', () => {
 
             it('should include all required fields in each policy', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
@@ -2994,17 +2994,17 @@ describe('app tests', () => {
 
             it('should correctly count totalPending', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
-                    policyName: 'terms',
+                    policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
                 });
 
                 const policy2 = await appDriver.createPolicy(user1, {
-                    policyName: 'privacy',
+                    policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
                 });
 
                 const policy3 = await appDriver.createPolicy(user1, {
-                    policyName: 'cookies',
+                    policyName: 'Cookie Policy',
                     text: 'Cookie Policy v1',
                 });
 
@@ -3271,7 +3271,7 @@ describe('app tests', () => {
         const policyAdmin = user1;
 
         it('should allow admin to create, update, and publish policies', async () => {
-            const policyName = `Test Policy ${Date.now()}`;
+            const policyName = 'Privacy Policy';
 
             const created = await appDriver.createPolicy(policyAdmin, {
                 policyName,

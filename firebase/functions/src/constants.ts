@@ -36,6 +36,13 @@ export const HTTP_STATUS = {
     SERVICE_UNAVAILABLE: 503,
 } as const;
 
+// Policy Constants
+export const ALLOWED_POLICY_IDS = new Set<string>([
+    'terms-of-service',
+    'privacy-policy',
+    'cookie-policy',
+]);
+
 // Validation Limits
 export const VALIDATION_LIMITS = {
     MAX_PROPERTY_NAME_LENGTH: 200,

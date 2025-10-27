@@ -14,7 +14,7 @@ import type { CommentDTO, DisplayName, Email, ISOString, RegisteredUser, ShareLi
 // Import schemas for validation
 import { ExpenseId, GroupId, PolicyId } from '@splitifyd/shared';
 import { z } from 'zod';
-import { FirestoreCollections, HTTP_STATUS } from '../../constants';
+import { ALLOWED_POLICY_IDS, FirestoreCollections, HTTP_STATUS } from '../../constants';
 import { FieldValue, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
@@ -1104,6 +1104,15 @@ export class FirestoreWriter implements IFirestoreWriter {
                     createdAt: FieldValue.serverTimestamp(),
                     updatedAt: FieldValue.serverTimestamp(),
                 };
+
+                // Validate policy ID - only standard policies are allowed (database constraint)
+                if (!ALLOWED_POLICY_IDS.has(policyRef.id)) {
+                    throw new ApiError(
+                        HTTP_STATUS.BAD_REQUEST,
+                        'INVALID_POLICY_ID',
+                        `Database constraint: Only standard policies are allowed. Policy ID '${policyRef.id}' is not permitted.`,
+                    );
+                }
 
                 // Validate with temp timestamps for schema validation
                 const dataForValidation = {

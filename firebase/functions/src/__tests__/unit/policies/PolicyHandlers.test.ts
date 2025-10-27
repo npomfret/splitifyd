@@ -79,12 +79,12 @@ describe('PolicyHandlers - Unit Tests', () => {
             appDriver.seedUser(userId, {});
 
             const policy1 = await appDriver.createPolicy(userId, {
-                policyName: 'Policy One',
+                policyName: 'Terms Of Service', // Maps to 'terms-of-service'
                 text: 'First policy text',
             });
 
             const policy2 = await appDriver.createPolicy(userId, {
-                policyName: 'Policy Two',
+                policyName: 'Privacy Policy', // Maps to 'privacy-policy'
                 text: 'Second policy text',
             });
 
