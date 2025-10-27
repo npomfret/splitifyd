@@ -1,5 +1,5 @@
 import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, GroupId, GroupName, UserId } from '@splitifyd/shared';
-import { ActivityFeedActions, ActivityFeedEventTypes, toGroupId } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, toGroupId, toGroupName } from '@splitifyd/shared';
 import { generateShortId, randomString } from '../../test-helpers';
 import {toExpenseId} from "@splitifyd/shared";
 import {CommentId, toCommentId} from "@splitifyd/shared";
@@ -40,7 +40,7 @@ export class ActivityFeedItemBuilder {
             id,
             userId: `user-${generateShortId()}` as UserId,
             groupId: toGroupId(`group-${generateShortId()}`),
-            groupName: `Group ${randomString(5)}` as GroupName,
+            groupName: toGroupName(`Group ${randomString(5)}`),
             eventType: ActivityFeedEventTypes.EXPENSE_CREATED,
             action: ActivityFeedActions.CREATE,
             actorId: generateActorId(actorName, id),
@@ -53,15 +53,11 @@ export class ActivityFeedItemBuilder {
         return new ActivityFeedItemBuilder(base);
     }
 
-    static from(item: ActivityFeedItem): ActivityFeedItemBuilder {
-        return new ActivityFeedItemBuilder(cloneItem(item));
-    }
-
     static forEvent(
         id: string,
         userId: UserId,
         groupId: GroupId | string,
-        groupName: GroupName,
+        groupName: GroupName | string,
         eventType: ActivityFeedEventType,
         action: ActivityFeedAction,
         actorName: string,
@@ -85,7 +81,7 @@ export class ActivityFeedItemBuilder {
         id: string,
         userId: UserId,
         groupId: GroupId | string,
-        groupName: string,
+        groupName: GroupName | string,
         actorName: string,
         expenseDescription: string,
     ): ActivityFeedItemBuilder {
@@ -104,57 +100,11 @@ export class ActivityFeedItemBuilder {
         );
     }
 
-    static expenseUpdated(
-        id: string,
-        userId: UserId,
-        groupId: GroupId | string,
-        groupName: string,
-        actorName: string,
-        expenseDescription: string,
-    ): ActivityFeedItemBuilder {
-        return this.forEvent(
-            id,
-            userId,
-            groupId,
-            groupName,
-            ActivityFeedEventTypes.EXPENSE_UPDATED,
-            ActivityFeedActions.UPDATE,
-            actorName,
-            {
-                expenseId: toExpenseId(`${id}-expense`),
-                expenseDescription,
-            },
-        );
-    }
-
-    static expenseDeleted(
-        id: string,
-        userId: UserId,
-        groupId: GroupId | string,
-        groupName: string,
-        actorName: string,
-        expenseDescription: string,
-    ): ActivityFeedItemBuilder {
-        return this.forEvent(
-            id,
-            userId,
-            groupId,
-            groupName,
-            ActivityFeedEventTypes.EXPENSE_DELETED,
-            ActivityFeedActions.DELETE,
-            actorName,
-            {
-                expenseId: toExpenseId(`${id}-expense`),
-                expenseDescription,
-            },
-        );
-    }
-
     static memberJoined(
         id: string,
         userId: UserId,
         groupId: GroupId | string,
-        groupName: string,
+        groupName: GroupName | string,
         actorName: string,
         targetUserName: string,
         targetUserId: string = `member-${id}`,
@@ -178,7 +128,7 @@ export class ActivityFeedItemBuilder {
         id: string,
         userId: UserId,
         groupId: GroupId | string,
-        groupName: string,
+        groupName: GroupName | string,
         actorName: string,
         targetUserName: string,
         targetUserId: string = `member-${id}`,
@@ -202,7 +152,7 @@ export class ActivityFeedItemBuilder {
         id: string,
         userId: UserId,
         groupId: GroupId | string,
-        groupName: string,
+        groupName: GroupName | string,
         actorName: string,
         commentPreview: string,
         expenseDescription?: string,
@@ -234,7 +184,7 @@ export class ActivityFeedItemBuilder {
         id: string,
         userId: UserId,
         groupId: GroupId | string,
-        groupName: string,
+        groupName: GroupName | string,
         actorName: string,
         settlementDescription: string,
     ): ActivityFeedItemBuilder {
@@ -245,29 +195,6 @@ export class ActivityFeedItemBuilder {
             groupName,
             ActivityFeedEventTypes.SETTLEMENT_CREATED,
             ActivityFeedActions.CREATE,
-            actorName,
-            {
-                settlementId: `${id}-settlement`,
-                settlementDescription,
-            },
-        );
-    }
-
-    static settlementUpdated(
-        id: string,
-        userId: UserId,
-        groupId: GroupId | string,
-        groupName: string,
-        actorName: string,
-        settlementDescription: string,
-    ): ActivityFeedItemBuilder {
-        return this.forEvent(
-            id,
-            userId,
-            groupId,
-            groupName,
-            ActivityFeedEventTypes.SETTLEMENT_UPDATED,
-            ActivityFeedActions.UPDATE,
             actorName,
             {
                 settlementId: `${id}-settlement`,
@@ -292,8 +219,8 @@ export class ActivityFeedItemBuilder {
         return this;
     }
 
-    withGroupName(groupName: string): ActivityFeedItemBuilder {
-        this.item.groupName = groupName;
+    withGroupName(groupName: GroupName | string): ActivityFeedItemBuilder {
+        this.item.groupName = typeof groupName === 'string' ? toGroupName(groupName) : groupName;
         return this;
     }
 

@@ -10,7 +10,7 @@ import {
     UpdateGroupRequest,
     UpdateGroupRequestSchema,
 } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import { toGroupId, toGroupName } from '@splitifyd/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
@@ -79,7 +79,7 @@ export const sanitizeGroupData = <T extends CreateGroupRequest | UpdateGroupRequ
     const sanitized: any = {};
 
     if ('name' in data && data.name) {
-        sanitized.name = sanitizeString(data.name);
+        sanitized.name = toGroupName(sanitizeString(data.name as string));
     }
 
     if ('description' in data && data.description !== undefined) {

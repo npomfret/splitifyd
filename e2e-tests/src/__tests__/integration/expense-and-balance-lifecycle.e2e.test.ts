@@ -455,10 +455,10 @@ simpleTest.describe('Date and Time Selection', () => {
         await expenseFormPage.verifyDateInputMatchesPattern(/^\d{4}-\d{2}-\d{2}$/);
         const yesterdayInputValue = await expenseFormPage.getDateInputValue();
 
-        // Verify yesterday is one day before today
-        const todayParsed = new Date(todayInputValue + 'T00:00:00');
-        const yesterdayParsed = new Date(yesterdayInputValue + 'T00:00:00');
-        const dayDifference = (todayParsed.getTime() - yesterdayParsed.getTime()) / (1000 * 60 * 60 * 24);
+        // Verify yesterday is one day before today (DST-safe comparison)
+        const todayParsed = new Date(todayInputValue + 'T12:00:00'); // Use noon to avoid DST issues
+        const yesterdayParsed = new Date(yesterdayInputValue + 'T12:00:00');
+        const dayDifference = Math.round((todayParsed.getTime() - yesterdayParsed.getTime()) / (1000 * 60 * 60 * 24));
         expect(dayDifference).toBe(1);
 
         // Test Last Night button (sets evening time)

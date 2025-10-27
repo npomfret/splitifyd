@@ -1,4 +1,4 @@
-import type { UpdateGroupRequest } from '@splitifyd/shared';
+import {GroupName, toGroupName, UpdateGroupRequest} from '@splitifyd/shared';
 import { generateShortId, randomChoice, randomString } from '../test-helpers';
 
 export class GroupUpdateBuilder {
@@ -6,13 +6,13 @@ export class GroupUpdateBuilder {
 
     constructor() {
         this.update = {
-            name: `${randomChoice(['Updated', 'New', 'Modified', 'Changed'])} ${randomChoice(['Team', 'Group', 'Squad', 'Club'])} ${randomString(4)}`,
+            name: toGroupName(`${randomChoice(['Updated', 'New', 'Modified', 'Changed'])} ${randomChoice(['Team', 'Group', 'Squad', 'Club'])} ${randomString(4)}`),
             description: `${randomChoice(['Updated', 'Modified', 'New'])} description ${generateShortId()}`,
         };
     }
 
-    withName(name: string): this {
-        this.update.name = name;
+    withName(name: string | GroupName): this {
+        this.update.name = typeof name === 'string' ? toGroupName(name) : name;
         return this;
     }
 

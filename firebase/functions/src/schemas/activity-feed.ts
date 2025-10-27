@@ -1,6 +1,6 @@
 import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
 import { z } from 'zod';
-import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema, GroupIdSchema } from './common';
+import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema, GroupIdSchema, GroupNameSchema } from './common';
 
 const ActivityFeedDetailsSchema = z
     .object({
@@ -21,7 +21,7 @@ const ActivityFeedBaseSchema = z
     .object({
         userId: z.string().min(1),
         groupId: GroupIdSchema,
-        groupName: z.string().min(1),
+        groupName: GroupNameSchema,
         eventType: z.enum(Object.values(ActivityFeedEventTypes) as [string, ...string[]]),
         action: z.enum(Object.values(ActivityFeedActions) as [string, ...string[]]),
         actorId: z.string().min(1),

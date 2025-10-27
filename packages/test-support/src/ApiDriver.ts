@@ -1,4 +1,4 @@
-import type { Email, VersionHash } from '@splitifyd/shared';
+import type { Email, GroupName, VersionHash } from '@splitifyd/shared';
 import {
     ApiSerializer,
     AuthenticatedFirebaseUser,
@@ -30,6 +30,7 @@ import {
     SettlementId,
     SettlementWithMembers,
     ShareLinkResponse,
+    toGroupName,
     type UpdateGroupRequest,
     type UpdateSettlementRequest,
     type UpdateUserRequest,
@@ -211,9 +212,12 @@ export class ApiDriver {
         return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
     }
 
-    async createGroupWithMembers(name: string, members: UserToken[], creatorToken: string): Promise<GroupDTO> {
+    async createGroupWithMembers(name: string | GroupName, members: UserToken[], creatorToken: string): Promise<GroupDTO> {
         // Step 1: Create group with just the creator
-        const groupData = { name, description: `Test group created at ${new Date().toISOString()}` };
+        const groupData = {
+            name: typeof name === 'string' ? toGroupName(name) : name,
+            description: `Test group created at ${new Date().toISOString()}`
+        };
 
         const group = await this.createGroup(groupData, creatorToken);
 
@@ -555,19 +559,24 @@ export class ApiDriver {
         // First, reset standard policies
         await this.resetPoliciesToBaseState(adminToken);
 
-        // Then try to clean up any non-standard policies by checking user policy status
-        // and removing any policies that aren't our standard ones
+        // Then handle any non-standard policies by accepting them for test users
+        // This prevents non-standard policies from interfering with tests
         try {
             // Get a test user to check what policies exist
             const testUser = await this.borrowTestUser();
             const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, testUser.token);
 
-            if (policyStatus.outstandingPolicies) {
-                for (const policy of policyStatus.outstandingPolicies) {
-                    if (!['terms-of-service', 'privacy-policy', 'cookie-policy'].includes(policy.id)) {
-                        console.warn(`Found non-standard policy: ${policy.id} - this may interfere with tests`);
+            // Check for and warn about non-standard policies
+            if (policyStatus.policies && Array.isArray(policyStatus.policies)) {
+                for (const policy of policyStatus.policies) {
+                    if (!['terms-of-service', 'privacy-policy', 'cookie-policy'].includes(policy.policyId)) {
+                        console.warn(`Found non-standard policy: ${policy.policyId} - accepting it to prevent test interference`);
                     }
                 }
+
+                // Accept all policies (including non-standard ones) to ensure clean state
+                // This way non-standard policies won't appear in the acceptance modal during tests
+                await this.acceptCurrentPublishedPolicies(testUser.token);
             }
 
             // Return the test user

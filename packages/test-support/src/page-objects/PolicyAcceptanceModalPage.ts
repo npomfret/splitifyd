@@ -106,6 +106,10 @@ export class PolicyAcceptanceModalPage extends BasePage {
         // Use click instead of check due to immediate unmounting on change.
         await checkbox.click();
         await expect(this.getAcceptedBadge()).toBeVisible();
+
+        // Small delay to allow the component's auto-advance logic to complete (500ms delay in component)
+        // This prevents race conditions where we check for the next policy before auto-advance fires
+        await this.page.waitForTimeout(600);
     }
 
     async waitForPolicyContentToLoad(): Promise<void> {
@@ -134,6 +138,9 @@ export class PolicyAcceptanceModalPage extends BasePage {
             await this.acceptCurrentPolicy();
 
             // Wait for either modal to close or next policy to load using expect().toPass()
+            // Increased timeout to 5000ms to account for two serial API calls:
+            // 1. submitAllPolicies() - accepts policies via API
+            // 2. refreshPolicyStatus() - checks if more policies need acceptance
             await expect(async () => {
                 const modalVisible = await this.getModalContainer().isVisible();
                 if (!modalVisible) {
@@ -152,7 +159,7 @@ export class PolicyAcceptanceModalPage extends BasePage {
                 // If modal is visible but acceptance section is not, we're in transition
                 throw new Error('Waiting for modal to close or next policy to load');
             })
-                .toPass({ timeout: 2000 });
+                .toPass({ timeout: 5000 });
 
             const modalVisible = await this.getModalContainer().isVisible();
             if (!modalVisible) {

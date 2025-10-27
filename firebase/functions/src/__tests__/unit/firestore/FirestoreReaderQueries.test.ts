@@ -5,6 +5,7 @@
  * Tests query behavior, pagination, and ordering using SplitifydFirestoreTestDatabase.
  */
 
+import { toGroupName } from '@splitifyd/shared';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -28,7 +29,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         test('should return groups for user using top-level collection architecture', async () => {
             // Create a group
             const group = await appDriver.createGroup(userId, {
-                name: 'Test Group V2',
+                name: toGroupName('Test Group V2'),
                 description: 'Test group for query testing',
             });
 
@@ -56,7 +57,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
 
             for (const name of groupNames) {
                 await appDriver.createGroup(userId, {
-                    name,
+                    name: toGroupName(name),
                     description: `Test group ${name}`,
                 });
             }
@@ -81,7 +82,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             // Create 5 groups
             for (let i = 0; i < 5; i++) {
                 await appDriver.createGroup(userId, {
-                    name: `Group ${i}`,
+                    name: toGroupName(`Group ${i}`),
                     description: `Test group ${i}`,
                 });
             }
@@ -116,21 +117,21 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         test('should handle ordering by updated timestamp', async () => {
             // Create groups with slight delays
             const group1 = await appDriver.createGroup(userId, {
-                name: 'First Group',
+                name: toGroupName('First Group'),
                 description: 'Created first',
             });
 
             await new Promise((resolve) => setTimeout(resolve, 10));
 
             const group2 = await appDriver.createGroup(userId, {
-                name: 'Second Group',
+                name: toGroupName('Second Group'),
                 description: 'Created second',
             });
 
             await new Promise((resolve) => setTimeout(resolve, 10));
 
             const group3 = await appDriver.createGroup(userId, {
-                name: 'Third Group',
+                name: toGroupName('Third Group'),
                 description: 'Created third',
             });
 
@@ -149,7 +150,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
     describe('getGroup - Direct Retrieval', () => {
         test('should get group by id', async () => {
             const group = await appDriver.createGroup(userId, {
-                name: 'Group for getGroup test',
+                name: toGroupName('Group for getGroup test'),
                 description: 'Direct retrieval test',
             });
 
@@ -173,7 +174,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             });
 
             const group = await appDriver.createGroup(userId, {
-                name: 'Private Group',
+                name: toGroupName('Private Group'),
                 description: 'Only creator can access',
             });
 
@@ -192,7 +193,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         });
 
         test('should handle limit larger than total groups', async () => {
-            await appDriver.createGroup(userId, { name: 'Only Group' });
+            await appDriver.createGroup(userId, { name: toGroupName('Only Group') });
 
             const groups = await appDriver.listGroups(userId, { limit: 100 });
             expect(groups.groups).toHaveLength(1);
@@ -200,8 +201,8 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         });
 
         test('should handle limit of 1', async () => {
-            await appDriver.createGroup(userId, { name: 'Group 1' });
-            await appDriver.createGroup(userId, { name: 'Group 2' });
+            await appDriver.createGroup(userId, { name: toGroupName('Group 1') });
+            await appDriver.createGroup(userId, { name: toGroupName('Group 2') });
 
             const groups = await appDriver.listGroups(userId, { limit: 1 });
             expect(groups.groups).toHaveLength(1);
@@ -213,7 +214,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             const createdGroups = [];
             for (let i = 0; i < 10; i++) {
                 const group = await appDriver.createGroup(userId, {
-                    name: `Group ${String(i).padStart(2, '0')}`,
+                    name: toGroupName(`Group ${String(i).padStart(2, '0')}`),
                 });
                 createdGroups.push(group);
                 await new Promise((resolve) => setTimeout(resolve, 2));

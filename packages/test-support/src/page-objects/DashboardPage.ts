@@ -124,9 +124,9 @@ export class DashboardPage extends BasePage {
     /**
      * Get a specific group card by name
      */
-    getGroupCard(groupName: GroupName): Locator {
+    getGroupCard(groupName: GroupName | string): Locator {
         return this.getGroupCards().filter({
-            has: this.page.getByText(groupName, { exact: true }),
+            has: this.page.getByText(groupName as string, { exact: true }),
         });
     }
 
@@ -587,7 +587,7 @@ export class DashboardPage extends BasePage {
      * Fluent version - verifies navigation and returns GroupDetailPage
      * Use this when you expect navigation to succeed
      */
-    async clickGroupCardAndNavigateToDetail(groupName: GroupName): Promise<GroupDetailPage> {
+    async clickGroupCardAndNavigateToDetail(groupName: GroupName | string): Promise<GroupDetailPage> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await groupCard.click();
@@ -717,7 +717,7 @@ export class DashboardPage extends BasePage {
     /**
      * Wait for a specific group to appear (useful for real-time updates)
      */
-    async waitForGroupToAppear(groupName: GroupName, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+    async waitForGroupToAppear(groupName: GroupName | string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
         try {
             await expect(this.getGroupCard(groupName)).toBeVisible({ timeout });
         } catch (error) {
@@ -729,7 +729,7 @@ export class DashboardPage extends BasePage {
     /**
      * Wait for a specific group to disappear (useful for real-time updates)
      */
-    async waitForGroupToDisappear(groupName: GroupName, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
+    async waitForGroupToDisappear(groupName: GroupName | string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
         try {
             await expect(this.getGroupCard(groupName)).not.toBeVisible({ timeout });
         } catch (error) {

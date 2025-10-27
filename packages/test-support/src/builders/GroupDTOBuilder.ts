@@ -1,5 +1,5 @@
-import type { CurrencyBalance, GroupDTO, GroupId, GroupPermissions, InviteLink, PermissionChangeLog, UserId } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import type { CurrencyBalance, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, PermissionChangeLog, UserId } from '@splitifyd/shared';
+import { toGroupId, toGroupName } from '@splitifyd/shared';
 import { BuilderTimestamp, generateShortId, randomChoice, randomString, timestampToISOString } from '../test-helpers';
 
 /**
@@ -14,7 +14,7 @@ export class GroupDTOBuilder {
 
         this.group = {
             id: toGroupId(`group-${generateShortId()}`),
-            name: `${randomChoice(['Team', 'Group', 'Squad', 'Club', 'Circle'])} ${randomString(4)}`,
+            name: toGroupName(`${randomChoice(['Team', 'Group', 'Squad', 'Club', 'Circle'])} ${randomString(4)}`),
             description: `A test group for ${randomString(6)}`,
             createdBy: defaultOwner,
             permissions: {
@@ -39,8 +39,8 @@ export class GroupDTOBuilder {
         return this;
     }
 
-    withName(name: string): this {
-        this.group.name = name;
+    withName(name: GroupName | string): this {
+        this.group.name = typeof name === 'string' ? toGroupName(name) : name;
         return this;
     }
 

@@ -1,7 +1,7 @@
 import type { JoinGroupResponse, MemberStatus } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { GroupName } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import { toGroupId, toGroupName } from '@splitifyd/shared';
 import { generateShortId } from '../test-helpers';
 
 /**
@@ -10,7 +10,7 @@ import { generateShortId } from '../test-helpers';
 export class JoinGroupResponseBuilder {
     private fields: JoinGroupResponse = {
         groupId: toGroupId(`group-${generateShortId()}`),
-        groupName: 'Test Group',
+        groupName: toGroupName('Test Group'),
         success: true,
         displayNameConflict: false,
         memberStatus: 'active',
@@ -21,8 +21,8 @@ export class JoinGroupResponseBuilder {
         return this;
     }
 
-    withGroupName(groupName: GroupName): this {
-        this.fields.groupName = groupName;
+    withGroupName(groupName: GroupName | string): this {
+        this.fields.groupName = typeof groupName === 'string' ? toGroupName(groupName) : groupName;
         return this;
     }
 
@@ -48,19 +48,11 @@ export class JoinGroupResponseBuilder {
     /**
      * Creates a successful join response
      */
-    static success(groupName: GroupName = 'Test Group'): JoinGroupResponseBuilder {
+    static success(groupName: GroupName | string = toGroupName('Test Group')): JoinGroupResponseBuilder {
         return new JoinGroupResponseBuilder()
             .withGroupName(groupName)
             .withSuccess(true)
             .withMemberStatus('active');
     }
 
-    /**
-     * Creates a failed join response
-     */
-    static failure(): JoinGroupResponseBuilder {
-        return new JoinGroupResponseBuilder()
-            .withSuccess(false)
-            .withMemberStatus('pending');
-    }
 }

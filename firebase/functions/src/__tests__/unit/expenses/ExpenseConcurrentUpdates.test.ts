@@ -8,7 +8,7 @@
  * The integration test remains for testing actual Firebase optimistic locking behavior.
  */
 
-import { calculateEqualSplits } from '@splitifyd/shared';
+import {calculateEqualSplits, toGroupName} from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
@@ -32,7 +32,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
     test('should handle concurrent expense updates', async () => {
         // Create group
         const group = await appDriver.createGroup(userId, {
-            name: 'Concurrent Update Test Group',
+            name: toGroupName('Concurrent Update Test Group'),
             description: 'Testing expense concurrent updates',
         });
 
@@ -98,7 +98,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
     test('should demonstrate transaction conflict behavior with concurrent amount changes', async () => {
         // Create group
         const group = await appDriver.createGroup(userId, {
-            name: 'Transaction Conflict Test',
+            name: toGroupName('Transaction Conflict Test'),
         });
 
         // Create an expense
@@ -165,7 +165,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
 
         // Create group and expense
         const group = await appDriver.createGroup(userId, {
-            name: 'Access Control Test',
+            name: toGroupName('Access Control Test'),
         });
 
         const expense = await appDriver.createExpense(

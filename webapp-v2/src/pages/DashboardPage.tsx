@@ -1,8 +1,8 @@
 import { ShareGroupModal } from '@/components/group';
 import { navigationService } from '@/services/navigation.service';
 import { logWarning } from '@/utils/browser-logger.ts';
-import { GroupId } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import { GroupId, GroupName } from '@splitifyd/shared';
+import { toGroupId, toGroupName } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -17,10 +17,10 @@ export function DashboardPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [shareModalState, setShareModalState] = useState<{ isOpen: boolean; groupId: GroupId; groupName: string; }>({
+    const [shareModalState, setShareModalState] = useState<{ isOpen: boolean; groupId: GroupId; groupName: GroupName; }>({
         isOpen: false,
         groupId: toGroupId(''),
-        groupName: '',
+        groupName: toGroupName(''),
     });
     const showArchived = enhancedGroupsStore.showArchived;
     const filterLoading = enhancedGroupsStore.loading;
@@ -170,7 +170,11 @@ export function DashboardPage() {
             {/* Share/Invite Group Modal */}
             <ShareGroupModal
                 isOpen={shareModalState.isOpen}
-                onClose={() => setShareModalState({ isOpen: false, groupId: toGroupId(''), groupName: '' })}
+                onClose={() => setShareModalState({
+                    isOpen: false,
+                    groupId: toGroupId(''),
+                    groupName: toGroupName('')
+                })}
                 groupId={shareModalState.groupId}
                 groupName={shareModalState.groupName}
             />

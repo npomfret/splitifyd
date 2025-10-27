@@ -42,7 +42,7 @@ export type Amount = string;
 export const ZERO: Amount = '0';
 
 // Utility to create branded primitive types for stronger nominal typing
-export type Brand<K, T> = K & { __brand: T; };
+type Brand<K, T> = K & { __brand: T; };
 
 export type GroupId = Brand<string, 'GroupId'>;
 export const toGroupId = (value: string): GroupId => value as GroupId;
@@ -56,7 +56,9 @@ export const toSettlementId = (value: string): SettlementId => value as Settleme
 export type CommentId = Brand<string, 'CommentId'>;
 export const toCommentId = (value: string): CommentId => value as CommentId;
 
-export type GroupName = string;
+export type GroupName = Brand<string, 'GroupName'>;
+export const toGroupName = (value: string): GroupName => value as GroupName;
+
 export type UserId = string;
 export type DisplayName = string;
 export type Email = string;
@@ -609,7 +611,7 @@ export interface ShareLinkDTO extends ShareLink, BaseDTO<ShareLinkToken> {}
  */
 interface Group {
     // Core fields
-    name: string;
+    name: GroupName;
     description?: string;
 
     createdBy: UserId;
@@ -639,12 +641,12 @@ export interface GroupDTO extends Group, BaseDTO<GroupId> {
 
 // Request/Response types
 export interface CreateGroupRequest {
-    name: string;
+    name: GroupName;
     description?: string;
 }
 
 export interface UpdateGroupRequest {
-    name?: string;
+    name?: GroupName;
     description?: string;
 }
 
@@ -654,13 +656,13 @@ export interface UpdateDisplayNameRequest {
 
 // Validation schemas
 export const CreateGroupRequestSchema = z.object({
-    name: z.string().trim().min(1, 'Group name is required').max(100, 'Group name must be less than 100 characters'),
+    name: z.string().trim().min(1, 'Group name is required').max(100, 'Group name must be less than 100 characters').transform(toGroupName),
     description: z.string().trim().max(500).optional(),
 });
 
 export const UpdateGroupRequestSchema = z
     .object({
-        name: z.string().trim().min(1).max(100).optional(),
+        name: z.string().trim().min(1).max(100).transform(toGroupName).optional(),
         description: z.string().trim().max(500).optional(),
     })
     .refine((data) => data.name !== undefined || data.description !== undefined, {

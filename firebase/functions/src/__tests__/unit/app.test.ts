@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, UserBalance } from '@splitifyd/shared';
+import {ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, toGroupName, UserBalance} from '@splitifyd/shared';
 import type { UserId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
@@ -826,7 +826,7 @@ describe('app tests', () => {
             expect(previewAfterJoin.memberCount).toBe(2);
 
             await appDriver.updateGroup(user1, groupId, {
-                name: 'Adventure Squad+',
+                name: toGroupName('Adventure Squad+'),
                 description: 'Updated itinerary for the squad',
             });
             await appDriver.updateGroupMemberDisplayName(user1, groupId, 'Squad Leader');
@@ -3154,7 +3154,7 @@ describe('app tests', () => {
         it('should handle group updates', async () => {
             const group = await appDriver.createGroup(user1);
 
-            await appDriver.updateGroup(user1, group.id, { name: 'Updated Name' });
+            await appDriver.updateGroup(user1, group.id, { name: toGroupName('Updated Name') });
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
                 groupDetailsChangeCount: 2,

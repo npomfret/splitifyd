@@ -850,7 +850,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Verify group detail page loaded successfully
      */
-    async verifyGroupDetailPageLoaded(groupName: GroupName): Promise<void> {
+    async verifyGroupDetailPageLoaded(groupName: GroupName | string): Promise<void> {
         await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9\-_]+/);
         await expect(this.getGroupName()).toContainText(groupName);
     }

@@ -1,6 +1,7 @@
 import { ActivityFeedCard } from '@/components/dashboard/ActivityFeedCard.tsx';
 import { type ReadonlySignal, type Signal, signal } from '@preact/signals';
-import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem } from '@splitifyd/shared';
+import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem, toGroupName } from '@splitifyd/shared';
+import { ActivityFeedItemBuilder } from '@splitifyd/test-support';
 import { fireEvent, render, screen } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -107,18 +108,24 @@ const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
 };
 
 function buildItem(id: string, eventType: ActivityFeedEventType | string, overrides?: Partial<ActivityFeedItem>): ActivityFeedItem {
+    const action = EVENT_ACTION_MAP[eventType as ActivityFeedEventType] ?? ActivityFeedActions.UPDATE;
+    const timestamp = new Date('2024-01-01T12:00:00.000Z').toISOString();
+
+    const baseItem = ActivityFeedItemBuilder
+        .create()
+        .withId(id)
+        .withUserId('user-1')
+        .withGroupId(toGroupId('group-1'))
+        .withGroupName(toGroupName('Test Group'))
+        .withEventType(eventType as ActivityFeedEventType)
+        .withAction(action)
+        .withActorName('Alice')
+        .withTimestamp(timestamp)
+        .withCreatedAt(timestamp)
+        .build();
+
     return {
-        id,
-        userId: 'user-1',
-        groupId: toGroupId('group-1'),
-        groupName: 'Test Group',
-        eventType: eventType as any,
-        action: EVENT_ACTION_MAP[eventType as ActivityFeedEventType] ?? ActivityFeedActions.UPDATE,
-        actorId: 'actor-1',
-        actorName: 'Alice',
-        timestamp: new Date('2024-01-01T12:00:00.000Z').toISOString(),
-        details: {},
-        createdAt: new Date('2024-01-01T12:00:00.000Z').toISOString(),
+        ...baseItem,
         ...overrides,
     };
 }
@@ -614,7 +621,7 @@ describe('ActivityFeedCard', () => {
 
         it('displays group name for each item', () => {
             const item = buildItem('1', ActivityFeedEventTypes.EXPENSE_CREATED, {
-                groupName: 'Travel Group',
+                groupName: toGroupName('Travel Group'),
                 details: { expenseDescription: 'Hotel' },
             });
             setSignalValue(mockStore.initializedSignal, true);

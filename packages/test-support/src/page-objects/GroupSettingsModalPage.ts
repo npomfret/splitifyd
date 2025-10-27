@@ -618,7 +618,7 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     async handleDeleteConfirmDialog<T = DashboardPage>(
-        groupName: GroupName,
+        groupName: GroupName | string,
         createDashboardPage?: (page: Page) => T,
     ): Promise<T> {
         await this.waitForDomContentLoaded();

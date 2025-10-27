@@ -1,6 +1,7 @@
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { ActivityFeedStoreImpl } from '@/app/stores/activity-feed-store';
-import { ActivityFeedActions, ActivityFeedEventTypes, type ActivityFeedItem, type ActivityFeedResponse, toGroupId } from '@splitifyd/shared';
+import { type ActivityFeedItem, type ActivityFeedResponse, toGroupId, toGroupName } from '@splitifyd/shared';
+import { ActivityFeedItemBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
@@ -30,18 +31,19 @@ function minutesAgo(minutes: number): string {
 
 function buildItem(id: string, minutes: number, overrides?: Partial<ActivityFeedItem>): ActivityFeedItem {
     const timestamp = minutesAgo(minutes);
+    const baseItem = ActivityFeedItemBuilder
+        .create()
+        .withId(id)
+        .withUserId('user-1')
+        .withGroupId(toGroupId('group-1'))
+        .withGroupName(toGroupName('Brunch Buddies'))
+        .withActorName('Ada Lovelace')
+        .withTimestamp(timestamp)
+        .withCreatedAt(timestamp)
+        .build();
+
     return {
-        id,
-        userId: 'user-1',
-        groupId: toGroupId('group-1'),
-        groupName: 'Brunch Buddies',
-        eventType: ActivityFeedEventTypes.EXPENSE_CREATED,
-        action: ActivityFeedActions.CREATE,
-        actorId: 'actor-1',
-        actorName: 'Ada Lovelace',
-        timestamp,
-        details: {},
-        createdAt: timestamp,
+        ...baseItem,
         ...overrides,
     };
 }
