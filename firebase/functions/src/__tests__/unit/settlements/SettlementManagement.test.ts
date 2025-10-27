@@ -1,4 +1,4 @@
-import { CreateSettlementRequestBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -329,8 +329,7 @@ describe('Settlement Management - Unit Tests', () => {
     });
 
     describe('Settlement Access After Member Departure', () => {
-        // TODO: Fix this test - member leaving requires settling balances first
-        it.skip('should view settlements after a member leaves the group', async () => {
+        it('should view settlements after a member leaves the group', async () => {
             // Arrange: Create users and group
             const adminUserId = 'admin-user';
             const memberUserId = 'member-user';
@@ -345,16 +344,47 @@ describe('Settlement Management - Unit Tests', () => {
             await appDriver.joinGroupByLink(memberUserId, linkId);
             await appDriver.joinGroupByLink(leavingMemberUserId, linkId);
 
-            // Create settlement involving the leaving member
+            // Create an expense that leaves the departing member owing the admin
+            const expenseRequest = new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withPaidBy(adminUserId)
+                .withParticipants([adminUserId, leavingMemberUserId])
+                .withSplitType('equal')
+                .withAmount(60, 'USD')
+                .withDescription('Pre-departure expense')
+                .build();
+
+            await appDriver.createExpense(adminUserId, expenseRequest);
+
+            const balances = await appDriver.getGroupBalances(adminUserId, group.id);
+            const [currencyBalances] = Object.values(balances.balancesByCurrency);
+            expect(currencyBalances).toBeDefined();
+
+            const leavingMemberBalance = currencyBalances![leavingMemberUserId];
+            expect(leavingMemberBalance).toBeDefined();
+
+            const leavingNetBalance = Number(leavingMemberBalance.netBalance);
+            expect(leavingNetBalance).toBeLessThan(0);
+
+            const settlementAmount = Math.abs(leavingNetBalance);
+
+            // Create settlement to clear the balance before departure
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
-                .withPayerId(adminUserId)
-                .withPayeeId(leavingMemberUserId)
-                .withAmount(50.0, 'USD')
+                .withPayerId(leavingMemberUserId)
+                .withPayeeId(adminUserId)
+                .withAmount(settlementAmount, 'USD')
                 .withNote('Settlement before departure')
                 .build();
 
             const settlement = await appDriver.createSettlement(adminUserId, settlementData);
+
+            const postSettlementBalances = await appDriver.getGroupBalances(adminUserId, group.id);
+            const [postCurrencyBalances] = Object.values(postSettlementBalances.balancesByCurrency);
+            expect(postCurrencyBalances).toBeDefined();
+            const leavingBalanceAfterSettlement = postCurrencyBalances![leavingMemberUserId];
+            expect(leavingBalanceAfterSettlement).toBeDefined();
+            expect(Number(leavingBalanceAfterSettlement!.netBalance)).toBeCloseTo(0);
 
             // Act: Member leaves group
             await appDriver.leaveGroup(leavingMemberUserId, group.id);
@@ -372,7 +402,7 @@ describe('Settlement Management - Unit Tests', () => {
                 appDriver.getGroupFullDetails(leavingMemberUserId, group.id),
             )
                 .rejects
-                .toThrow(/status 404.*NOT_FOUND|status 403.*NOT_GROUP_MEMBER/);
+                .toThrow(/status 404.*NOT_FOUND|status 403.*NOT_GROUP_MEMBER|Group not found/);
         });
     });
 

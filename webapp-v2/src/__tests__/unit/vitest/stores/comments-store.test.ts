@@ -48,7 +48,7 @@ import type { ActivityFeedRealtimeService } from '@/app/services/activity-feed-r
 import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { CommentsStoreTarget } from '@/stores/comments-store';
 import type { CommentDTO, GroupId, ListCommentsResponse } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import { toCommentId, toGroupId } from '@splitifyd/shared';
 
 const mockedApiClient = apiClient as unknown as {
     getGroupComments: Mock;
@@ -58,7 +58,7 @@ const mockedApiClient = apiClient as unknown as {
 function createComment(id: string, message: string): CommentDTO {
     const now = new Date().toISOString();
     return {
-        id,
+        id: toCommentId(id),
         text: message,
         createdAt: now,
         updatedAt: now,

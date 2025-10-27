@@ -5,6 +5,7 @@ import { getAuth, getFirestore, isEmulator } from '../firebase';
 import { logger } from '../logger';
 import { ComponentBuilder } from '../services/ComponentBuilder';
 import { TestUserPoolService } from './TestUserPoolService';
+import { requireInstanceMode } from '../shared/instance-mode';
 
 // todo: use the singleton
 const firestore = getFirestore();
@@ -15,10 +16,19 @@ const authService = applicationBuilder.buildAuthService();
 
 const pool = TestUserPoolService.getInstance(firestoreWriter, userService, authService);
 
+const isTestEnvironment = (): boolean => {
+    try {
+        return requireInstanceMode() === 'test';
+    } catch {
+        return false;
+    }
+};
+
+const isPoolEnabled = (): boolean => isEmulator() || isTestEnvironment();
+
 export async function borrowTestUser(req: Request, res: Response): Promise<void> {
-    // Only allow in test environment
-    if (!isEmulator()) {
-        res.status(403).json({ error: 'Test pool only available in emulator' });
+    if (!isPoolEnabled()) {
+        res.status(403).json({ error: 'Test pool only available in emulator or test environments' });
         return;
     }
 
@@ -36,8 +46,8 @@ export async function borrowTestUser(req: Request, res: Response): Promise<void>
 }
 
 export async function returnTestUser(req: Request, res: Response): Promise<void> {
-    if (!isEmulator()) {
-        res.status(403).json({ error: 'Test pool only available in emulator' });
+    if (!isPoolEnabled()) {
+        res.status(403).json({ error: 'Test pool only available in emulator or test environments' });
         return;
     }
 

@@ -261,8 +261,7 @@ describe('Public Endpoints Tests', () => {
             expect(response.status).toBe(401);
         });
 
-        // Skip: test pool endpoint not available in this test setup (uses custom server, not emulator)
-        test.skip('should return diagnostics for system users', async () => {
+        test('should return diagnostics for system users', async () => {
             const pooledUser = await apiDriver.borrowTestUser();
 
             try {
@@ -297,18 +296,18 @@ describe('Public Endpoints Tests', () => {
                 expect(data.runtime).toHaveProperty('uptimeHuman');
 
                 expect(data.memory).toHaveProperty('rss');
-            expect(data.memory).toHaveProperty('heapTotal');
-            expect(data.memory).toHaveProperty('heapUsed');
-            expect(data.memory).toHaveProperty('external');
-            expect(data.memory).toHaveProperty('heapLimit');
-            expect(data.memory).toHaveProperty('peakMallocedMemory');
-            expect(Array.isArray(data.memory.heapSpaces)).toBe(true);
-            if (Array.isArray(data.memory.heapSpaces) && data.memory.heapSpaces.length > 0) {
-                const space = data.memory.heapSpaces[0];
-                expect(space).toHaveProperty('spaceName');
-                expect(space).toHaveProperty('spaceSize');
-                expect(space).toHaveProperty('spaceUsed');
-            }
+                expect(data.memory).toHaveProperty('heapTotal');
+                expect(data.memory).toHaveProperty('heapUsed');
+                expect(data.memory).toHaveProperty('external');
+                expect(data.memory).toHaveProperty('heapLimit');
+                expect(data.memory).toHaveProperty('peakMallocedMemory');
+                expect(Array.isArray(data.memory.heapSpaces)).toBe(true);
+                if (Array.isArray(data.memory.heapSpaces) && data.memory.heapSpaces.length > 0) {
+                    const space = data.memory.heapSpaces[0];
+                    expect(space).toHaveProperty('spaceName');
+                    expect(space).toHaveProperty('spaceSize');
+                    expect(space).toHaveProperty('spaceUsed');
+                }
 
                 expect(data.filesystem).toHaveProperty('currentDirectory');
                 expect(data.filesystem).toHaveProperty('files');
