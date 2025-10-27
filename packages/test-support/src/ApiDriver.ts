@@ -73,24 +73,32 @@ export class ApiDriver {
     async createUser(userRegistration: UserRegistration = new UserRegistrationBuilder()
         .build()): Promise<AuthenticatedFirebaseUser>
     {
+        let registrationError: unknown = null;
+
         try {
-            // Register user via API
             await this.apiRequest('/register', 'POST', userRegistration);
         } catch (error) {
-            // Ignore "already exists" errors
-            const isAlreadyExistsError = error instanceof Error && (error.message.includes('EMAIL_EXISTS') || error.message.includes('AUTH_EMAIL_ALREADY_EXISTS'));
-            if (!isAlreadyExistsError) {
+            registrationError = error;
+            if (!this.isRegistrationRecoverable(error)) {
                 throw error;
             }
         }
 
-        const { uid, token } = await this.firebaseSignIn(userRegistration);
+        try {
+            const { uid, token } = await this.firebaseSignIn(userRegistration);
 
-        return {
-            uid,
-            token,
-            displayName: userRegistration.displayName,
-        };
+            return {
+                uid,
+                token,
+                displayName: userRegistration.displayName,
+            };
+        } catch (signInError) {
+            if (registrationError) {
+                throw registrationError;
+            }
+
+            throw signInError;
+        }
     }
 
     async borrowTestUser(): Promise<PooledTestUser> {
@@ -641,5 +649,26 @@ export class ApiDriver {
                 throw createError;
             }
         }
+    }
+
+    private isRegistrationRecoverable(error: unknown): boolean {
+        if (!(error instanceof Error)) {
+            return false;
+        }
+
+        const message = error.message ?? '';
+        if (message.includes('EMAIL_EXISTS') || message.includes('AUTH_EMAIL_ALREADY_EXISTS')) {
+            return true;
+        }
+
+        const response = (error as { response?: unknown; }).response;
+        if (response && typeof response === 'object') {
+            const code = (response as { error?: { code?: string; }; }).error?.code;
+            if (code === 'REGISTRATION_FAILED') {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
