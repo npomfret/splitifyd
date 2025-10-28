@@ -6,7 +6,7 @@ import { ApiError } from './errors';
  * Error mapping interface for custom error codes and messages
  * Internal use only - used by parseWithApiError
  */
-interface ValidationErrorMapping {
+export interface ValidationErrorMapping {
     [path: string]: {
         code: string;
         message: string;

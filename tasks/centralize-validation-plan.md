@@ -16,31 +16,24 @@
 - No changes to Firestore document validation (already centralised under Zod).
 - No direct refactor of client-side code beyond updating imports once shared helpers move.
 
-## Approach
+## Approach & Progress
 1. **Decide Validation Direction**
-   - Choose between standardising on Joi (with shared primitives) or converging on Zod for request validation.
-   - Capture decision in `docs/guides/validation.md` (new) and log trade-offs (runtime cost, TypeScript support, i18n).
+   - ✅ Converge on Zod for request validation; rationale documented in `docs/guides/validation.md`.
 2. **Extract Shared Primitives**
-   - Create `firebase/functions/src/validation/common` with:
-     - `regex.ts` (email, password, phone).
-     - `schemas.ts` (displayName, amount, date, note, pagination) implemented once and exported for reuse.
-     - `errors.ts` housing reusable helpers to map Joi/Zod issues to `ApiError` codes/messages.
-     - `sanitizers.ts` consolidating string trimming/XSS handling.
+   - ✅ Created `firebase/functions/src/validation/common/` with base regex, schema builders, sanitiser re-export, and request validator helper.
+   - ☐ Extend shared schemas with amount/date/pagination and common error mappers.
 3. **Introduce Validation Factory**
-   - Build a helper (e.g., `createValidator({ schema, errorMap, sanitize })`) that wraps Joi validation, normalises output, strips unknown fields, applies sanitisation, and throws consistent `ApiError`.
-   - Update existing modules incrementally to use the factory instead of local `schema.validate` blocks.
+   - ✅ Implemented `createRequestValidator` to centralise parse/transform/error handling.
 4. **Domain-by-Domain Migration**
-   - Phase refactors to minimise risk:
-     1. Auth (`firebase/functions/src/auth/validation.ts`, `/services/auth/auth-validation.ts`).
-     2. Users, Policies, Comments.
-     3. Expenses & Settlements (more complex dependencies on amount/date helpers).
-   - After each phase, run targeted unit/integration tests plus linting.
+   - ✅ Auth (`firebase/functions/src/auth/validation.ts`, `firebase/functions/src/services/auth/auth-validation.ts`) now uses shared Zod helpers.
+   - ☐ User profile/change-password validators to migrate next.
+   - ☐ Policies & Comments to consume shared primitives.
+   - ☐ Expenses & Settlements to align with shared amount/date schemas.
 5. **Optional Zod Convergence**
-   - If the decision favours Zod, expose request schemas from `@splitifyd/shared`, wrap Joi schemas as temporary adapters, and progressively replace Joi consumers.
-   - Ensure `parseWithApiError` supports the new schemas and that `translateJoiError` is renamed/updated to handle the shared error shape.
+   - ☐ Evaluate moving remaining request schemas into `@splitifyd/shared` once migrations complete.
 6. **Documentation & Tooling**
-   - Update developer docs (Code Guidelines, Testing) with new validation workflow.
-   - Add lint rule or codemod guardrails to prevent ad-hoc `Joi.object` usage outside the shared module.
+   - ✅ Added first-pass validation strategy guide.
+   - ☐ Introduce lint/codemod guardrails against new Joi usage; update developer docs after next migrations.
 
 ## Deliverables
 - Shared validation utilities module under `firebase/functions/src/validation/`.

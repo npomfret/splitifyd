@@ -1,86 +1,103 @@
 import { UserRegistration } from '@splitifyd/shared';
-import * as Joi from 'joi';
+import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
-import { displayNameSchema } from '../validation/validationSchemas';
+import {
+    AcceptanceBooleanSchema,
+    createPasswordSchema,
+    createRequestValidator,
+    DisplayNameSchema,
+    EmailSchema,
+} from '../validation/common';
 
-const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-const PASSWORD_REGEX = /^.{12,}$/;
-
-const registerSchema = Joi.object({
-    email: Joi
-        .string()
-        .trim()
-        .min(1)
-        .pattern(EMAIL_REGEX)
-        .custom((value, helpers) => {
-            if (value.includes('..')) {
-                return helpers.error('string.invalidEmail');
-            }
-            return value;
-        })
-        .required()
-        .messages({
-            'string.pattern.base': 'Invalid email format',
-            'string.invalidEmail': 'Invalid email format',
-            'string.empty': 'Email is required',
-            'string.min': 'Email is required',
-            'any.required': 'Email is required',
-        }),
-    password: Joi.string().pattern(PASSWORD_REGEX).required().messages({
-        'string.pattern.base': 'Password must be at least 12 characters long',
-        'string.empty': 'Password is required',
-        'any.required': 'Password is required',
+const registerSchema = z.object({
+    email: EmailSchema,
+    password: createPasswordSchema(),
+    displayName: DisplayNameSchema,
+    termsAccepted: AcceptanceBooleanSchema({
+        required: 'Terms acceptance is required',
+        invalidType: 'Terms acceptance must be a boolean value',
+        notAccepted: 'You must accept the Terms of Service',
     }),
-    displayName: displayNameSchema,
-    termsAccepted: Joi.boolean().strict().valid(true).required().messages({
-        'any.only': 'You must accept the Terms of Service',
-        'any.required': 'Terms acceptance is required',
-        'boolean.base': 'Terms acceptance must be a boolean value',
-    }),
-    cookiePolicyAccepted: Joi.boolean().strict().valid(true).required().messages({
-        'any.only': 'You must accept the Cookie Policy',
-        'any.required': 'Cookie policy acceptance is required',
-        'boolean.base': 'Cookie policy acceptance must be a boolean value',
+    cookiePolicyAccepted: AcceptanceBooleanSchema({
+        required: 'Cookie policy acceptance is required',
+        invalidType: 'Cookie policy acceptance must be a boolean value',
+        notAccepted: 'You must accept the Cookie Policy',
     }),
 });
 
-export const validateRegisterRequest = (body: UserRegistration): UserRegistration => {
-    const { error, value } = registerSchema.validate(body, { abortEarly: false });
+const mapRegisterError = (error: z.ZodError): never => {
+    const firstError = error.issues[0];
+    const field = firstError.path[0];
+    let errorCode = 'INVALID_INPUT';
+    let errorMessage = firstError.message;
 
-    if (error) {
-        const firstError = error.details[0];
-        let errorCode = 'INVALID_INPUT';
-
-        if (firstError.path.includes('email')) {
-            errorCode = firstError.message.includes('format') ? 'INVALID_EMAIL_FORMAT' : 'MISSING_EMAIL';
-        } else if (firstError.path.includes('password')) {
-            errorCode = firstError.message.includes('12 characters') ? 'WEAK_PASSWORD' : 'MISSING_PASSWORD';
-        } else if (firstError.path.includes('displayName')) {
-            if (firstError.message.includes('2 characters')) {
+    switch (field) {
+        case 'email':
+            if (errorMessage.toLowerCase().includes('format')) {
+                errorCode = 'INVALID_EMAIL_FORMAT';
+            } else {
+                errorCode = 'MISSING_EMAIL';
+                errorMessage = 'Email is required';
+            }
+            break;
+        case 'password':
+            if (errorMessage.includes('12 characters')) {
+                errorCode = 'WEAK_PASSWORD';
+            } else {
+                errorCode = 'MISSING_PASSWORD';
+                errorMessage = 'Password is required';
+            }
+            break;
+        case 'displayName':
+            if (errorMessage.includes('2 characters')) {
                 errorCode = 'DISPLAY_NAME_TOO_SHORT';
-            } else if (firstError.message.includes('50 characters')) {
+            } else if (errorMessage.includes('50 characters')) {
                 errorCode = 'DISPLAY_NAME_TOO_LONG';
-            } else if (firstError.message.includes('only contain')) {
+            } else if (errorMessage.includes('only contain')) {
                 errorCode = 'INVALID_DISPLAY_NAME_CHARS';
             } else {
                 errorCode = 'MISSING_DISPLAY_NAME';
             }
-        } else if (firstError.path.includes('termsAccepted')) {
-            errorCode = firstError.message.includes('required') ? 'MISSING_TERMS_ACCEPTANCE' : 'TERMS_NOT_ACCEPTED';
-        } else if (firstError.path.includes('cookiePolicyAccepted')) {
-            errorCode = firstError.message.includes('required') ? 'MISSING_COOKIE_POLICY_ACCEPTANCE' : 'COOKIE_POLICY_NOT_ACCEPTED';
-        }
-
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, firstError.message);
+            break;
+        case 'termsAccepted':
+            if (errorMessage === 'Required') {
+                errorCode = 'MISSING_TERMS_ACCEPTANCE';
+                errorMessage = 'Terms acceptance is required';
+            } else if (errorMessage.includes('You must accept')) {
+                errorCode = 'TERMS_NOT_ACCEPTED';
+            } else {
+                errorCode = 'MISSING_TERMS_ACCEPTANCE';
+                errorMessage = 'Terms acceptance must be a boolean value';
+            }
+            break;
+        case 'cookiePolicyAccepted':
+            if (errorMessage === 'Required') {
+                errorCode = 'MISSING_COOKIE_POLICY_ACCEPTANCE';
+                errorMessage = 'Cookie policy acceptance is required';
+            } else if (errorMessage.includes('You must accept')) {
+                errorCode = 'COOKIE_POLICY_NOT_ACCEPTED';
+            } else {
+                errorCode = 'MISSING_COOKIE_POLICY_ACCEPTANCE';
+                errorMessage = 'Cookie policy acceptance must be a boolean value';
+            }
+            break;
+        default:
+            break;
     }
 
-    return {
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
+};
+
+export const validateRegisterRequest = createRequestValidator({
+    schema: registerSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
         email: value.email.trim().toLowerCase(),
         password: value.password,
         displayName: value.displayName.trim(),
         termsAccepted: value.termsAccepted,
         cookiePolicyAccepted: value.cookiePolicyAccepted,
-    };
-};
+    }),
+    mapError: mapRegisterError,
+}) as (body: UserRegistration) => UserRegistration;

@@ -1,229 +1,179 @@
 /**
  * Auth Service Validation Schemas
  *
- * Joi validation schemas for auth service operations.
- * Follows the same patterns as established validation in the codebase.
+ * Zod validation schemas for auth service operations.
+ * Mirrors the shared validation helpers used across the codebase.
  */
 
-import * as Joi from 'joi';
+import { z } from 'zod';
 import { HTTP_STATUS } from '../../constants';
 import { ApiError } from '../../utils/errors';
-import { displayNameSchema } from '../../validation/validationSchemas';
+import {
+    createPasswordSchema,
+    createRequestValidator,
+    DisplayNameSchema,
+    EmailSchema,
+    PhoneNumberSchema,
+} from '../../validation/common';
 import { AuthErrorCode } from './auth-types';
 
-/**
- * Email validation regex (same as used in auth/validation.ts)
- */
-const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const PhotoUrlSchema = z.string().url('Photo URL must be a valid URI');
 
-/**
- * Password validation regex (same as used in auth/validation.ts)
- * Allows any content as long as the length is at least 12 characters.
- */
-const PASSWORD_REGEX = /^.{12,}$/;
-
-/**
- * Create user request validation schema
- */
-const createUserSchema = Joi.object({
-    email: Joi.string().pattern(EMAIL_REGEX).required().messages({
-        'string.pattern.base': 'Invalid email format',
-        'string.empty': 'Email is required',
-        'any.required': 'Email is required',
-    }),
-    password: Joi.string().pattern(PASSWORD_REGEX).required().messages({
-        'string.pattern.base': 'Password must be at least 12 characters long',
-        'string.empty': 'Password is required',
-        'any.required': 'Password is required',
-    }),
-    displayName: displayNameSchema,
-    emailVerified: Joi.boolean().optional().default(false),
-    phoneNumber: Joi
-        .string()
-        .pattern(/^\+[1-9]\d{1,14}$/)
-        .optional()
-        .messages({
-            'string.pattern.base': 'Phone number must be in E.164 format (e.g., +1234567890)',
-        }),
-    photoURL: Joi.string().uri().optional().messages({
-        'string.uri': 'Photo URL must be a valid URI',
-    }),
-    disabled: Joi.boolean().optional().default(false),
+const createUserSchema = z.object({
+    email: EmailSchema,
+    password: createPasswordSchema(),
+    displayName: DisplayNameSchema,
+    emailVerified: z.boolean().optional().default(false),
+    phoneNumber: PhoneNumberSchema.optional(),
+    photoURL: PhotoUrlSchema.optional(),
+    disabled: z.boolean().optional().default(false),
 });
 
-/**
- * Update user request validation schema
- */
-const updateUserSchema = Joi.object({
-    displayName: displayNameSchema.optional(),
-    email: Joi.string().pattern(EMAIL_REGEX).optional().messages({
-        'string.pattern.base': 'Invalid email format',
-    }),
-    phoneNumber: Joi
-        .string()
-        .pattern(/^\+[1-9]\d{1,14}$/)
-        .allow(null)
-        .optional()
-        .messages({
-            'string.pattern.base': 'Phone number must be in E.164 format (e.g., +1234567890)',
-        }),
-    photoURL: Joi.string().uri().allow(null).optional().messages({
-        'string.uri': 'Photo URL must be a valid URI',
-    }),
-    password: Joi.string().pattern(PASSWORD_REGEX).optional().messages({
-        'string.pattern.base': 'Password must be at least 12 characters long',
-    }),
-    emailVerified: Joi.boolean().optional(),
-    disabled: Joi.boolean().optional(),
+const updateUserSchema = z.object({
+    displayName: DisplayNameSchema.optional(),
+    email: EmailSchema.optional(),
+    phoneNumber: PhoneNumberSchema.nullable().optional(),
+    photoURL: PhotoUrlSchema.nullable().optional(),
+    password: createPasswordSchema().optional(),
+    emailVerified: z.boolean().optional(),
+    disabled: z.boolean().optional(),
 });
 
-/**
- * User ID validation schema
- */
-const userIdSchema = Joi
+const userIdSchema = z
     .string()
-    .min(1)
-    .max(128)
-    .pattern(/^[a-zA-Z0-9_-]+$/)
-    .required()
-    .messages({
-        'string.min': 'User ID must not be empty',
-        'string.max': 'User ID must be no more than 128 characters',
-        'string.pattern.base': 'User ID must contain only alphanumeric characters, underscores, and hyphens',
-        'string.empty': 'User ID is required',
-        'any.required': 'User ID is required',
-    });
+    .min(1, 'User ID must not be empty')
+    .max(128, 'User ID must be no more than 128 characters')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'User ID must contain only alphanumeric characters, underscores, and hyphens');
 
-/**
- * ID token validation schema
- */
-const idTokenSchema = Joi.string().min(1).required().messages({
-    'string.min': 'ID token must not be empty',
-    'string.empty': 'ID token is required',
-    'any.required': 'ID token is required',
-});
+const idTokenSchema = z.string().min(1, 'ID token must not be empty');
 
-/**
- * Custom claims validation schema
- */
-const customClaimsSchema = Joi.object().pattern(Joi.string(), Joi.any()).optional().messages({
-    'object.base': 'Custom claims must be an object',
-});
+const customClaimsSchema = z.record(z.string(), z.any()).optional();
 
-/**
- * Batch user IDs validation schema
- */
-const batchUserIdsSchema = Joi.array().items(userIdSchema).min(1).max(1000).required().messages({
-    'array.base': 'User IDs must be an array',
-    'array.min': 'At least one user ID is required',
-    'array.max': 'At most 1000 user IDs are allowed',
-    'any.required': 'User IDs are required',
-});
+const batchUserIdsSchema = z
+    .array(userIdSchema)
+    .min(1, 'At least one user ID is required')
+    .max(1000, 'At most 1000 user IDs are allowed');
+
+const mapAuthValidationError = (error: z.ZodError, defaultCode: AuthErrorCode): never => {
+    const firstError = error.issues[0];
+    const field = firstError.path[0];
+    let errorCode = defaultCode;
+    let errorMessage = firstError.message;
+
+    if (typeof field === 'string') {
+        switch (field) {
+            case 'password':
+                errorCode = AuthErrorCode.WEAK_PASSWORD;
+                if (errorMessage === 'Required') {
+                    errorMessage = 'Password is required';
+                } else if (errorMessage.includes('Expected string')) {
+                    errorMessage = 'Password is required';
+                } else if (!errorMessage.includes('12 characters')) {
+                    errorMessage = 'Password must be at least 12 characters long';
+                }
+                break;
+            case 'displayName':
+                errorCode = AuthErrorCode.INVALID_DISPLAY_NAME;
+                if (errorMessage === 'Required') {
+                    errorMessage = 'Display name is required';
+                }
+                break;
+            case 'photoURL':
+                errorCode = AuthErrorCode.INVALID_PHOTO_URL;
+                if (errorMessage === 'Required') {
+                    errorMessage = 'Photo URL must be a valid URI';
+                }
+                break;
+            case 'phoneNumber':
+                errorCode = AuthErrorCode.INVALID_PHONE_NUMBER;
+                if (errorMessage === 'Required' || errorMessage.includes('Expected string')) {
+                    errorMessage = 'Phone number must be in E.164 format (e.g., +1234567890)';
+                }
+                break;
+            case 'email':
+                if (errorMessage === 'Required' || errorMessage.includes('Expected string')) {
+                    errorMessage = 'Email is required';
+                }
+                break;
+            default:
+                errorCode = defaultCode;
+        }
+    } else if (errorMessage === 'Required' && defaultCode === AuthErrorCode.INVALID_EMAIL) {
+        errorMessage = 'Email is required';
+    }
+
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
+};
+
+type CreateUserData = z.infer<typeof createUserSchema>;
+type UpdateUserData = z.infer<typeof updateUserSchema>;
 
 /**
  * Validate create user request
  */
-export function validateCreateUser(data: unknown): any {
-    const { error, value } = createUserSchema.validate(data, { abortEarly: false });
-
-    if (error) {
-        const firstError = error.details[0];
-        const errorMessage = firstError.message;
-
-        // Map specific validation errors to auth error codes
-        let errorCode = AuthErrorCode.INVALID_EMAIL;
-        if (firstError.path.includes('password')) {
-            errorCode = AuthErrorCode.WEAK_PASSWORD;
-        } else if (firstError.path.includes('displayName')) {
-            errorCode = AuthErrorCode.INVALID_DISPLAY_NAME;
-        } else if (firstError.path.includes('photoURL')) {
-            errorCode = AuthErrorCode.INVALID_PHOTO_URL;
-        } else if (firstError.path.includes('phoneNumber')) {
-            errorCode = AuthErrorCode.INVALID_PHONE_NUMBER;
-        }
-
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
-    }
-
-    return value;
-}
+export const validateCreateUser = createRequestValidator({
+    schema: createUserSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    mapError: (error) => mapAuthValidationError(error, AuthErrorCode.INVALID_EMAIL),
+}) as (data: unknown) => CreateUserData;
 
 /**
  * Validate update user request
  */
-export function validateUpdateUser(data: unknown): any {
-    const { error, value } = updateUserSchema.validate(data, { abortEarly: false });
-
-    if (error) {
-        const firstError = error.details[0];
-        const errorMessage = firstError.message;
-
-        // Map specific validation errors to auth error codes
-        let errorCode = AuthErrorCode.INVALID_EMAIL;
-        if (firstError.path.includes('password')) {
-            errorCode = AuthErrorCode.WEAK_PASSWORD;
-        } else if (firstError.path.includes('displayName')) {
-            errorCode = AuthErrorCode.INVALID_DISPLAY_NAME;
-        } else if (firstError.path.includes('photoURL')) {
-            errorCode = AuthErrorCode.INVALID_PHOTO_URL;
-        } else if (firstError.path.includes('phoneNumber')) {
-            errorCode = AuthErrorCode.INVALID_PHONE_NUMBER;
-        }
-
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
-    }
-
-    return value;
-}
+export const validateUpdateUser = createRequestValidator({
+    schema: updateUserSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    mapError: (error) => mapAuthValidationError(error, AuthErrorCode.INVALID_EMAIL),
+}) as (data: unknown) => UpdateUserData;
 
 /**
  * Validate user ID
  */
 export function validateUserId(uid: unknown): string {
-    const { error, value } = userIdSchema.validate(uid);
+    const result = userIdSchema.safeParse(uid);
 
-    if (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_UID, error.message);
+    if (!result.success) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_UID, result.error.issues[0].message);
     }
 
-    return value;
+    return result.data;
 }
 
 /**
  * Validate ID token
  */
 export function validateIdToken(token: unknown): string {
-    const { error, value } = idTokenSchema.validate(token);
+    const result = idTokenSchema.safeParse(token);
 
-    if (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_TOKEN, error.message);
+    if (!result.success) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_TOKEN, result.error.issues[0].message);
     }
 
-    return value;
+    return result.data;
 }
 
 /**
  * Validate custom claims
  */
-export function validateCustomClaims(claims: unknown): object {
-    const { error, value } = customClaimsSchema.validate(claims);
+export function validateCustomClaims(claims: unknown): Record<string, unknown> {
+    const result = customClaimsSchema.safeParse(claims);
 
-    if (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CUSTOM_CLAIMS', error.message);
+    if (!result.success) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CUSTOM_CLAIMS', result.error.issues[0].message);
     }
 
-    return value || {};
+    return result.data ?? {};
 }
 
 /**
  * Validate batch user IDs
  */
 export function validateBatchUserIds(uids: unknown): string[] {
-    const { error, value } = batchUserIdsSchema.validate(uids);
+    const result = batchUserIdsSchema.safeParse(uids);
 
-    if (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_UID, error.message);
+    if (!result.success) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_UID, result.error.issues[0].message);
     }
 
-    return value;
+    return result.data;
 }
