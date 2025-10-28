@@ -3,19 +3,6 @@ import { z } from 'zod';
 import { createDocumentSchemas, FirestoreTimestampSchema, OptionalAuditFieldsSchema } from './common';
 
 /**
- * Schema for UserThemeColor object (complex theme configuration)
- * Note: assignedAt is a Timestamp because this schema validates Firestore documents after ISO → Timestamp conversion
- */
-const UserThemeColorSchema = z.object({
-    light: z.string(),
-    dark: z.string(),
-    name: z.string(),
-    pattern: z.string(),
-    assignedAt: FirestoreTimestampSchema,
-    colorIndex: z.number(),
-});
-
-/**
  * Base User schema without document ID
  *
  * User documents can be created incrementally, so most fields are optional.
@@ -25,12 +12,6 @@ const UserThemeColorSchema = z.object({
 const BaseUserSchema = z
     .object({
         email: z.string().email().optional(), // Email might be in Auth only
-        themeColor: z
-            .union([
-                z.string(), // Legacy: simple string color
-                UserThemeColorSchema, // New: complex theme object
-            ])
-            .optional(),
         preferredLanguage: z.string().optional(),
         role: z.nativeEnum(SystemUserRoles).optional(),
         acceptedPolicies: z.record(z.string(), z.string()).optional(),
@@ -42,8 +23,10 @@ const BaseUserSchema = z
 
 /**
  * Create Document and Data schemas using common pattern
+ * Apply .strip() to handle legacy fields (like removed 'themeColor' and 'displayName') for backward compatibility
  */
-const { DocumentSchema: UserDocumentSchema } = createDocumentSchemas(BaseUserSchema);
+const { DocumentSchema } = createDocumentSchemas(BaseUserSchema);
+const UserDocumentSchema = DocumentSchema.strip();
 
 /**
  * Zod schema for User document validation

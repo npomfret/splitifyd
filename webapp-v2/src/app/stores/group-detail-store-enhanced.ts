@@ -6,6 +6,7 @@ import { ActivityFeedItem, ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMe
 import { apiClient } from '../apiClient';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../services/activity-feed-realtime-service';
+import { themeStore } from './theme-store';
 
 const GROUP_EXPENSE_PAGE_SIZE = 8;
 const GROUP_SETTLEMENT_PAGE_SIZE = 8;
@@ -203,6 +204,10 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 this.#loadingSettlementsSignal.value = false;
                 this.#loadingSignal.value = false;
             });
+
+            for (const member of fullDetails.members.members) {
+                themeStore.setUserTheme(member.uid, member.themeColor);
+            }
 
             this.expenseCursor = fullDetails.expenses.nextCursor ?? null;
             this.settlementCursor = fullDetails.settlements.nextCursor ?? null;

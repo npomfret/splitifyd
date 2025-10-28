@@ -27,7 +27,6 @@ test.describe('Settings Page - Profile Update Functionality', () => {
                         email: user.email,
                         emailVerified: user.emailVerified ?? true,
                         photoURL: user.photoURL,
-                        themeColor: user.themeColor,
                         role: user.role,
                     }),
                 });
@@ -205,7 +204,6 @@ test.describe('Settings Page - Password Change Functionality', () => {
                         email: user.email,
                         emailVerified: user.emailVerified ?? true,
                         photoURL: user.photoURL,
-                        themeColor: user.themeColor,
                         role: user.role,
                     }),
                 });
@@ -297,7 +295,6 @@ test.describe('Settings Page - UI Elements and Layout', () => {
                         email: user.email,
                         emailVerified: user.emailVerified ?? true,
                         photoURL: user.photoURL,
-                        themeColor: user.themeColor,
                         role: user.role,
                     }),
                 });
@@ -428,7 +425,6 @@ test.describe('Settings Page - Navigation', () => {
                         email: user.email,
                         emailVerified: user.emailVerified ?? true,
                         photoURL: user.photoURL,
-                        themeColor: user.themeColor,
                         role: user.role,
                     }),
                 });

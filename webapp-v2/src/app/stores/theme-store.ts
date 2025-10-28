@@ -81,11 +81,6 @@ class ThemeStoreImpl implements ThemeStore {
     getCurrentUserTheme(user: ClientUser | null): UserThemeColor | null {
         if (!user) return null;
 
-        // Check if theme is already in the user object
-        if (user.themeColor) {
-            return user.themeColor;
-        }
-
         // Check if theme is cached in the store
         return this.#userThemesSignal.value.get(user.uid) || null;
     }

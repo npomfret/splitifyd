@@ -433,7 +433,6 @@ export interface RegisteredUser extends FirebaseUser {
     acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash
 
     // User preferences
-    themeColor?: UserThemeColor; // Automatic theme color assignment
     preferredLanguage?: string; // User's preferred language code (e.g., 'en', 'es', 'fr')
 
     // Security tracking
@@ -478,7 +477,6 @@ export interface ClientUser {
     displayName: DisplayName;
     emailVerified: boolean;
     photoURL?: string | null;
-    themeColor?: UserThemeColor;
     preferredLanguage?: string;
     role?: SystemUserRole;
 }

@@ -14,7 +14,7 @@ const UserThemeColorSchema = z.object({
     name: z.string().min(1).max(50),
     pattern: z.enum(['solid', 'dots', 'stripes', 'diagonal']),
     assignedAt: z.string().datetime().transform(toISOString),
-    colorIndex: z.number().int().min(0),
+    colorIndex: z.number().int().min(-1), // -1 reserved for neutral phantom members
 });
 
 const FirebaseConfigSchema = z.object({

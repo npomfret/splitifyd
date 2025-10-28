@@ -21,15 +21,14 @@
 
 ## Work Streams
 1. **Backend refactor**
-   - Delete generation of `themeColor` from user registration and purge schema/types expectations (e.g., `firebase/functions/src/services/UserService2.ts`, `packages/shared/src/shared-types.ts`, `firebase/functions/src/schemas/user.ts`).
-   - Update services that read `user.themeColor` (ExpenseService, SettlementService, any others surfaced by `rg`) to rely solely on membership themes or the gray fallback.
-   - Rework `GroupShareService` (and any helper used on direct group creation) to randomly select a color/pattern combo and ensure per-group uniqueness with retries and safety guardrails.
+   - ✅ Removed theme generation during registration and scrubbed the user schema/type surface (`firebase/functions/src/services/UserService2.ts`, `packages/shared/src/shared-types.ts`, `firebase/functions/src/schemas/user.ts`, `packages/test-support/src/builders/RegisteredUserBuilder.ts`). Legacy helper deleted (`firebase/functions/src/user-management/assign-theme-color.ts`).
+   - ✅ Updated downstream services to consume membership themes exclusively and force neutral phantom styling (`firebase/functions/src/services/ExpenseService.ts`, `firebase/functions/src/services/SettlementService.ts`, `firebase/functions/src/utils/groupMembershipHelpers.ts`).
+   - ✅ Replaced deterministic indexing with a unique allocator that retries within the group and logs reuse when palette is exhausted; applied to joins and group creation (`firebase/functions/src/services/GroupShareService.ts`, `firebase/functions/src/services/GroupService.ts`). Added unit coverage (`firebase/functions/src/__tests__/unit/services/GroupShareService.test.ts`, `firebase/functions/src/__tests__/unit/utils/groupMembershipHelpers.test.ts`).
 2. **Frontend alignment**
-   - Audit webapp consumers that expect `user.themeColor` (settings page, avatar, stores) and shift them to membership-derived data or neutral defaults.
-   - Confirm API schemas in `@splitifyd/shared` stop exposing `themeColor` on `RegisteredUser` / `ClientUser`.
+   - ✅ Shifted settings avatar, theme store, and group detail store to rely on membership-derived themes (`webapp-v2/src/pages/SettingsPage.tsx`, `webapp-v2/src/app/stores/theme-store.ts`, `webapp-v2/src/app/stores/group-detail-store-enhanced.ts`). Updated Playwright mocks accordingly (`webapp-v2/src/__tests__/integration/playwright/settings-functionality.test.ts`).
+   - ✅ Confirmed shared API schemas stop exposing `themeColor` on user payloads while still validating membership themes and phantom sentinel index (`packages/shared/src/schemas/apiSchemas.ts`).
 3. **Data migration & cleanup**
-   - Plan how to backfill existing data: remove `themeColor` from user documents, ensure phantom data keeps rendering correctly, and decide whether historical avatars need adjustments.
-   - Provide guidance or scripts for clearing legacy fields (`firebase/scripts/validate-users.ts`, `firebase/scripts/list-users.ts`).
+   - ⚠️ Pending: define migration/backfill strategy to remove `themeColor` from existing user documents and optionally seed membership themes; scripts guidance not yet drafted.
 
 ## Acceptance Criteria
 - No API or client code references `user.themeColor`; membership themes drive UI coloring.
@@ -41,3 +40,6 @@
 - How should we behave when a group exhausts the available color/pattern combinations—fallback to reuse, expand the palette, or surface a warning?
 - Do we need to migrate legacy activity feed or cached client data that currently references `themeColor`?
 - Should we offer UI affordances for owners to re-roll a member’s theme if the random selection is undesirable?
+
+## Notes / Follow-ups
+- Test run: `npm run test` (timed out during firebase-simulator integration suite; unit suites ran until timeout). Re-run with higher timeout or targeted scopes recommended.

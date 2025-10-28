@@ -1,6 +1,6 @@
 import { DisplayName } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
-import { PasswordChangeRequestBuilder, ThemeBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
+import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -186,7 +186,6 @@ describe('UserService - Consolidated Unit Tests', () => {
             // Set up Firestore user document using seedUser
             db.seedUser(uid, {
                 displayName,
-                themeColor: new ThemeBuilder().build(),
                 preferredLanguage: 'en',
             });
 
@@ -196,15 +195,6 @@ describe('UserService - Consolidated Unit Tests', () => {
             expect(profile.displayName).toBe(displayName);
             expect(profile.emailVerified).toBe(true);
             expect(profile.photoURL).toBe('https://example.com/photo.jpg');
-            expect(profile.themeColor).toEqual(
-                expect.objectContaining({
-                    light: expect.any(String),
-                    dark: expect.any(String),
-                    name: expect.any(String),
-                    pattern: 'solid',
-                    colorIndex: 0,
-                }),
-            );
             expect(profile.preferredLanguage).toBe('en');
             expect(profile.createdAt).toBeDefined();
             expect(profile.updatedAt).toBeDefined();
@@ -248,7 +238,6 @@ describe('UserService - Consolidated Unit Tests', () => {
                 stubAuth.setUser(user.uid, user);
                 db.seedUser(user.uid, {
                     displayName: user.displayName,
-                    themeColor: new ThemeBuilder().build(),
                 });
             });
 
@@ -279,7 +268,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser('existing-user', {
                 displayName: 'Existing User',
-                themeColor: new ThemeBuilder().build(),
             });
 
             const profiles = await userService.getUsers(['existing-user', 'non-existent-user']);
@@ -305,7 +293,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser(uid, {
                 displayName: originalDisplayName,
-                themeColor: new ThemeBuilder().build(),
             });
 
             const updatedProfile = await userService.updateProfile(uid, {
@@ -332,7 +319,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser(uid, {
                 displayName: 'Test User',
-                themeColor: new ThemeBuilder().build(),
             });
 
             const updatedProfile = await userService.updateProfile(uid, {
@@ -355,7 +341,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser(uid, {
                 displayName: 'Test User',
-                themeColor: new ThemeBuilder().build(),
             });
 
             await userService.updateProfile(uid, {
@@ -405,7 +390,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser(uid, {
                 displayName: 'Test User',
-                themeColor: new ThemeBuilder().build(),
             });
 
             const result = await userService.changePassword(uid, {
@@ -450,7 +434,6 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             db.seedUser(uid, {
                 displayName,
-                themeColor: new ThemeBuilder().build(),
             });
 
             const profile = await userService.getUser(uid);

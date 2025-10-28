@@ -1,4 +1,4 @@
-import { RegisteredUser, SystemUserRoles, toISOString, UserProfileResponse, UserRegistration, UserThemeColor } from '@splitifyd/shared';
+import { RegisteredUser, SystemUserRoles, toISOString, UserProfileResponse, UserRegistration } from '@splitifyd/shared';
 import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
@@ -8,7 +8,6 @@ import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
-import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateChangeEmail, validateChangePassword, validateUpdateUserProfile } from '../user/validation';
 import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
@@ -66,7 +65,6 @@ export class UserService {
             termsAcceptedAt: firestoreData?.termsAcceptedAt,
             cookiePolicyAcceptedAt: firestoreData?.cookiePolicyAcceptedAt,
             acceptedPolicies: firestoreData?.acceptedPolicies,
-            themeColor: firestoreData?.themeColor,
             preferredLanguage: firestoreData?.preferredLanguage,
             createdAt: firestoreData?.createdAt,
             updatedAt: firestoreData?.updatedAt,
@@ -383,7 +381,7 @@ export class UserService {
             return {
                 uid: memberDoc.uid,
                 initials: this.getInitials(fallbackName),
-                themeColor: (typeof profile.themeColor === 'object' ? profile.themeColor : memberDoc.theme) as UserThemeColor,
+                themeColor: memberDoc.theme,
                 // Group membership metadata (required for permissions)
                 joinedAt: memberDoc.joinedAt, // Already ISO string from DTO
                 memberRole: memberDoc.memberRole,
@@ -456,9 +454,6 @@ export class UserService {
             // Get current policy versions for user acceptance
             const currentPolicyVersions = await this.getCurrentPolicyVersions();
 
-            // Assign theme color for new user
-            const themeColor = await assignThemeColor();
-
             // todo: acceptedPolicies should come from the ui
 
             // Create user document in Firestore (only fields that belong in the document)
@@ -470,10 +465,6 @@ export class UserService {
                 createdAt: now,
                 updatedAt: now,
                 acceptedPolicies: currentPolicyVersions, // Capture current policy versions
-                themeColor: {
-                    ...themeColor,
-                    assignedAt: now, // Ensure assignedAt is ISO string, not Timestamp
-                },
             };
 
             // Only set acceptance timestamps if the user actually accepted the terms

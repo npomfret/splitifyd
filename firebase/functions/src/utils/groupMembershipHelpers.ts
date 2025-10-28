@@ -1,4 +1,5 @@
-import type { GroupMember, GroupMembershipDTO, ISOString, toISOString, UserId, UserThemeColor } from '@splitifyd/shared';
+import { toISOString } from '@splitifyd/shared';
+import type { GroupMember, GroupMembershipDTO, ISOString, UserId, UserThemeColor } from '@splitifyd/shared';
 import { TopLevelGroupMemberDocument } from '../types';
 
 /**
@@ -23,25 +24,24 @@ export function createTopLevelMembershipDocument(memberDoc: GroupMembershipDTO |
  *
  * When a user leaves a group, their historical expenses and settlements still need
  * to be displayed. This function creates a GroupMember representation using their
- * real user profile data (displayName, themeColor) with sentinel values for
- * membership-specific fields that are no longer available.
+ * real user profile data (displayName) with sentinel values for membership-specific
+ * fields that are no longer available and applies a neutral visual theme.
  *
  * @param userId - The UID of the departed user
  * @param displayName - The user's display name from their profile
- * @param themeColor - Optional theme color from user profile (defaults to neutral gray)
  * @returns GroupMember object suitable for displaying in UI despite user departure
  *
  * Sentinel values used:
  * - memberRole: 'member' (last known role before departure)
  * - memberStatus: 'active' (can't use 'left' - not in MemberStatus enum)
  * - joinedAt: current timestamp (historical data unavailable)
+ * - themeColor: neutral gray palette applied for departed members
  * - invitedBy: undefined (historical data unavailable)
  * - groupDisplayName: derived from global displayName
  */
 export function createPhantomGroupMember(
     userId: UserId,
     displayName: string,
-    themeColor?: UserThemeColor,
 ): GroupMember {
     // Generate initials from display name
     const initials = displayName
@@ -51,23 +51,23 @@ export function createPhantomGroupMember(
         .toUpperCase()
         .slice(0, 2);
 
-    // Default neutral gray theme if no theme color provided
+    const now = toISOString(new Date().toISOString());
     const defaultTheme: UserThemeColor = {
         light: '#9CA3AF',
         dark: '#6B7280',
         name: 'Neutral Gray',
         pattern: 'solid',
-        assignedAt: new Date().toISOString() as ReturnType<typeof toISOString>,
+        assignedAt: now,
         colorIndex: -1,
     };
 
     return {
         uid: userId,
         initials,
-        themeColor: themeColor || defaultTheme,
+        themeColor: defaultTheme,
         memberRole: 'member', // Last known role before departure
         memberStatus: 'active', // Last known status (can't use 'left' - not in enum)
-        joinedAt: new Date().toISOString() as ReturnType<typeof toISOString>, // Historical data unavailable
+        joinedAt: now, // Historical data unavailable
         invitedBy: undefined,
         groupDisplayName: displayName, // Use global displayName for departed members
     };

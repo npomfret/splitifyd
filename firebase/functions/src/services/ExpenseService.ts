@@ -105,7 +105,7 @@ export class ExpenseService {
         const groupDisplayName = memberData?.groupDisplayName ?? displayName;
 
         if (!memberData) {
-            return createPhantomGroupMember(userId, groupDisplayName, userProfile.themeColor);
+            return createPhantomGroupMember(userId, groupDisplayName);
         }
 
         const initials = groupDisplayName

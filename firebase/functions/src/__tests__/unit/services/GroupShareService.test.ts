@@ -1,8 +1,8 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toGroupId } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, USER_COLORS, toGroupId, toISOString } from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FirestoreCollections, HTTP_STATUS } from '../../../constants';
 import { ActivityFeedService } from '../../../services/ActivityFeedService';
 import { FirestoreReader } from '../../../services/firestore';
@@ -55,6 +55,58 @@ describe('GroupShareService', () => {
 
         return user;
     };
+
+    describe('generateUniqueThemeColor', () => {
+        const groupId = toGroupId('theme-group');
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        it('returns a theme not present in existing combinations', () => {
+            const assignedAt = toISOString(new Date().toISOString());
+            const existingTheme = {
+                light: USER_COLORS[0].light,
+                dark: USER_COLORS[0].dark,
+                name: USER_COLORS[0].name,
+                pattern: COLOR_PATTERNS[0],
+                assignedAt,
+                colorIndex: 0,
+            };
+
+            vi.spyOn(Math, 'random').mockReturnValue(0);
+
+            const result = groupShareService.generateUniqueThemeColor(groupId, [existingTheme], assignedAt, 'joining-user');
+
+            expect(result.assignedAt).toBe(assignedAt);
+            const usedKey = `${existingTheme.colorIndex}:${existingTheme.pattern}`;
+            const resultKey = `${result.colorIndex}:${result.pattern}`;
+            expect(resultKey).not.toBe(usedKey);
+        });
+
+        it('reuses the palette gracefully when all combinations are exhausted', () => {
+            const assignedAt = toISOString(new Date().toISOString());
+            const allThemes = USER_COLORS.flatMap((color, colorIndex) =>
+                COLOR_PATTERNS.map(pattern => ({
+                    light: color.light,
+                    dark: color.dark,
+                    name: color.name,
+                    pattern,
+                    assignedAt,
+                    colorIndex,
+                })),
+            );
+
+            vi.spyOn(Math, 'random').mockReturnValue(0);
+
+            const result = groupShareService.generateUniqueThemeColor(groupId, allThemes, assignedAt, 'joining-user');
+
+            expect(result.assignedAt).toBe(assignedAt);
+            expect(result.colorIndex).toBeGreaterThanOrEqual(0);
+            expect(result.colorIndex).toBeLessThan(USER_COLORS.length);
+            expect(COLOR_PATTERNS.includes(result.pattern)).toBe(true);
+        });
+    });
 
     const seedGroupWithOwner = (groupId: GroupId, ownerId: string) => {
         const testGroup = new GroupDTOBuilder()

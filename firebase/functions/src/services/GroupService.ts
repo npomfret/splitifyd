@@ -333,7 +333,7 @@ export class GroupService {
         });
 
         // Pre-calculate member data outside transaction for speed (using ISO strings - DTOs)
-        const themeColor = this.groupShareService.getThemeColorForMember(0);
+        const themeColor = this.groupShareService.generateUniqueThemeColor(groupId, [], nowISO, userId);
         const memberDoc = {
             uid: userId,
             groupId: groupId,

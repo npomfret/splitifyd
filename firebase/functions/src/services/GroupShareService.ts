@@ -53,18 +53,76 @@ export class GroupShareService {
         return toISOString(new Date(nowMs + SHARE_LINK_DEFAULT_EXPIRATION_MS).toISOString());
     }
 
-    getThemeColorForMember(memberIndex: number): UserThemeColor {
-        const colorIndex = memberIndex % USER_COLORS.length;
-        const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
-        const color = USER_COLORS[colorIndex];
-        const pattern = COLOR_PATTERNS[patternIndex];
+    generateUniqueThemeColor(
+        groupId: GroupId,
+        existingThemes: Iterable<UserThemeColor | null | undefined>,
+        assignedAt: ISOString,
+        joiningUserId?: UserId,
+    ): UserThemeColor {
+        const usedKeys = new Set<string>();
+        for (const theme of existingThemes) {
+            const key = this.toThemeKey(theme);
+            if (key) {
+                usedKeys.add(key);
+            }
+        }
 
+        const availableCombinations: Array<{ colorIndex: number; pattern: (typeof COLOR_PATTERNS)[number]; }> = [];
+
+        for (let colorIndex = 0; colorIndex < USER_COLORS.length; colorIndex++) {
+            for (const pattern of COLOR_PATTERNS) {
+                const combinationKey = this.themeKeyFromIndexes(colorIndex, pattern);
+                if (!usedKeys.has(combinationKey)) {
+                    availableCombinations.push({ colorIndex, pattern });
+                }
+            }
+        }
+
+        if (availableCombinations.length > 0) {
+            const selection = availableCombinations[Math.floor(Math.random() * availableCombinations.length)];
+            return this.buildTheme(selection.colorIndex, selection.pattern, assignedAt);
+        }
+
+        logger.warn('Unique theme combinations exhausted for group; reusing existing combination', {
+            groupId,
+            joiningUserId,
+            usedCombinationCount: usedKeys.size,
+            totalCombinationCount: USER_COLORS.length * COLOR_PATTERNS.length,
+        });
+
+        const fallbackColorIndex = Math.floor(Math.random() * USER_COLORS.length);
+        const fallbackPattern = COLOR_PATTERNS[Math.floor(Math.random() * COLOR_PATTERNS.length)];
+        return this.buildTheme(fallbackColorIndex, fallbackPattern, assignedAt);
+    }
+
+    private toThemeKey(theme: UserThemeColor | null | undefined): string | null {
+        if (!theme) {
+            return null;
+        }
+
+        if (typeof theme.colorIndex === 'number' && theme.colorIndex >= 0) {
+            return this.themeKeyFromIndexes(theme.colorIndex, theme.pattern);
+        }
+
+        if (theme.light && theme.pattern) {
+            return `${theme.light}:${theme.pattern}`;
+        }
+
+        return null;
+    }
+
+    private themeKeyFromIndexes(colorIndex: number, pattern: (typeof COLOR_PATTERNS)[number]): string {
+        return `${colorIndex}:${pattern}`;
+    }
+
+    private buildTheme(colorIndex: number, pattern: (typeof COLOR_PATTERNS)[number], assignedAt: ISOString): UserThemeColor {
+        const color = USER_COLORS[colorIndex];
         return {
             light: color.light,
             dark: color.dark,
             name: color.name,
             pattern,
-            assignedAt: toISOString(new Date().toISOString()),
+            assignedAt,
             colorIndex,
         };
     }
@@ -330,8 +388,6 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_AT_CAPACITY', `Cannot add member. Group has reached maximum size of ${MAX_GROUP_MEMBERS} members`);
         }
 
-        const memberIndex = existingMembersIds.length;
-
         // Get user's display name to set as initial groupDisplayName
         const userProfile = await this.userService.getUser(userId).catch((error) => {
             if (error instanceof ApiError && error.code === 'NOT_FOUND') {
@@ -348,8 +404,12 @@ export class GroupShareService {
             (member) => member.groupDisplayName.toLowerCase() === userDisplayName.toLowerCase(),
         );
 
-        const themeColor = this.getThemeColorForMember(memberIndex);
-
+        const themeColor = this.generateUniqueThemeColor(
+            groupId,
+            existingMembers.map((member) => member.theme),
+            joinedAt,
+            userId,
+        );
         const memberDoc: GroupMembershipDTO = {
             uid: userId,
             groupId: groupId,

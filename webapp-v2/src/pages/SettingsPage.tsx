@@ -1,3 +1,4 @@
+import { themeStore } from '@/app/stores/theme-store.ts';
 import { Alert, Avatar, Button, Card, Form, Input } from '@/components/ui';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -42,6 +43,8 @@ export function SettingsPage() {
 
     const user = authStore.user;
     const resolvedDisplayName = user?.displayName?.trim() || user?.email?.split('@')[0] || '';
+    const membershipTheme = user ? themeStore.getThemeForUser(user.uid) : null;
+    const shouldShowAvatar = Boolean(user && (user.photoURL || membershipTheme));
     const profileInitials = resolvedDisplayName
         ? resolvedDisplayName
             .split(' ')
@@ -280,12 +283,12 @@ export function SettingsPage() {
                         <Card padding='lg' className='shadow-md lg:sticky lg:top-24'>
                             <div class='space-y-6'>
                                 <div class='flex items-start gap-4'>
-                                    {(user.themeColor || user.photoURL)
+                                    {user && shouldShowAvatar
                                         ? (
                                             <Avatar
                                                 displayName={resolvedDisplayName}
                                                 userId={user.uid}
-                                                themeColor={user.themeColor}
+                                                themeColor={membershipTheme || undefined}
                                                 photoURL={user.photoURL}
                                                 size='lg'
                                             />

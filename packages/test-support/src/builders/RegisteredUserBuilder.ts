@@ -1,5 +1,5 @@
-import type { RegisteredUser, UserThemeColor } from '@splitifyd/shared';
-import { convertToISOString, generateShortId, randomBoolean, randomChoice, randomString, randomUrl } from '../test-helpers';
+import type { RegisteredUser } from '@splitifyd/shared';
+import { generateShortId, randomBoolean, randomChoice, randomString, randomUrl } from '../test-helpers';
 
 /**
  * Builder for creating RegisteredUser objects for testing
@@ -16,14 +16,6 @@ export class RegisteredUserBuilder {
         email: `${randomString(6).toLowerCase()}@example.com`,
         photoURL: randomBoolean() ? randomUrl() : null,
         emailVerified: randomBoolean(),
-        themeColor: {
-            light: randomChoice(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']),
-            dark: randomChoice(['#1E3A8A', '#065F46', '#1F2937', '#7C2D12', '#831843', '#581C87']),
-            name: randomChoice(['Red', 'Teal', 'Blue', 'Green', 'Yellow', 'Purple']),
-            pattern: randomChoice(['solid', 'dots', 'stripes', 'diagonal']),
-            assignedAt: convertToISOString(new Date()),
-            colorIndex: Math.floor(Math.random() * 10),
-        },
         preferredLanguage: randomChoice(['en', 'es', 'fr', 'de', 'it', 'pt']),
     };
 
@@ -54,11 +46,6 @@ export class RegisteredUserBuilder {
 
     withEmailVerified(verified: boolean): RegisteredUserBuilder {
         this.user.emailVerified = verified;
-        return this;
-    }
-
-    withThemeColor(themeColor: UserThemeColor): RegisteredUserBuilder {
-        this.user.themeColor = themeColor;
         return this;
     }
 
