@@ -11,7 +11,6 @@ const stageFunctions = path.join(stageRoot, 'functions');
 const productionEnv = {
     ...process.env,
     BUILD_MODE: 'production',
-    FORCE_PROD_BUILD: 'true',
 };
 
 const workspacePackages = [
@@ -78,8 +77,6 @@ const directoriesToPrune = [
     'scripts',
     'src',
     'lib/__tests__',
-    'lib/test',
-    'lib/test-pool',
 ];
 
 function prune(targetPath) {
@@ -138,37 +135,6 @@ tarballs.forEach(({ filename, sourcePath }) => {
     fs.rmSync(sourcePath);
     console.log(`Cleaned up temporary tarball: ${filename}`);
 });
-
-// Install production dependencies in staged directory
-console.log('Installing production dependencies in staged functions...');
-execSync('npm install --omit=dev --package-lock=false', { cwd: stageFunctions, stdio: 'inherit' });
-prune(path.join(stageFunctions, 'package-lock.json'));
-
-// Sanity check: ensure production env mode is present
-const stagedEnvPath = path.join(stageFunctions, '.env');
-if (!fs.existsSync(stagedEnvPath)) {
-    const stagedProdTemplate = path.join(stageFunctions, '.env.instanceprod');
-    if (fs.existsSync(stagedProdTemplate)) {
-        fs.copyFileSync(stagedProdTemplate, stagedEnvPath);
-        console.log('📄 Copied .env.instanceprod to .env for staging');
-    }
-}
-
-if (!fs.existsSync(stagedEnvPath)) {
-    console.warn('⚠️  No .env found in staged functions directory. Prod deployments expect .env.instanceprod to be copied earlier.');
-} else {
-    const envContent = fs.readFileSync(stagedEnvPath, 'utf8');
-    if (!/^INSTANCE_MODE=prod$/m.test(envContent)) {
-        throw new Error('Staged .env does not contain INSTANCE_MODE=prod. Aborting deployment staging.');
-    }
-    console.log('✅ Verified staged .env contains INSTANCE_MODE=prod');
-
-    // Remove any environment instance templates to avoid leaking non-production configs
-    fs
-        .readdirSync(stageFunctions)
-        .filter((fileName) => fileName.startsWith('.env.instance'))
-        .forEach((fileName) => prune(path.join(stageFunctions, fileName)));
-}
 
 console.log(`\n✓ Deployment stage ready at ${stageFunctions}`);
 console.log('Firebase will deploy from this staged directory.');
