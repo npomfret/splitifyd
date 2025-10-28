@@ -367,37 +367,36 @@ export class UserService {
 
         const members: GroupMember[] = memberDocs.map((memberDoc: GroupMembershipDTO): GroupMember => {
             const profile = memberProfiles.get(memberDoc.uid);
+            const fallbackName = memberDoc.groupDisplayName || profile?.displayName || 'Unknown User';
 
             if (!profile) {
                 return {
                     uid: memberDoc.uid,
-                    initials: '?',
-                    displayName: 'Unknown User',
+                    initials: this.getInitials(fallbackName),
                     themeColor: memberDoc.theme,
                     // Group membership metadata
                     joinedAt: memberDoc.joinedAt, // Already ISO string from DTO
                     memberRole: memberDoc.memberRole,
                     invitedBy: memberDoc.invitedBy,
                     memberStatus: memberDoc.memberStatus,
-                    groupDisplayName: memberDoc.groupDisplayName,
+                    groupDisplayName: fallbackName,
                 };
             }
 
             return {
                 uid: memberDoc.uid,
-                initials: this.getInitials(profile.displayName),
-                displayName: profile.displayName,
+                initials: this.getInitials(fallbackName),
                 themeColor: (typeof profile.themeColor === 'object' ? profile.themeColor : memberDoc.theme) as UserThemeColor,
                 // Group membership metadata (required for permissions)
                 joinedAt: memberDoc.joinedAt, // Already ISO string from DTO
                 memberRole: memberDoc.memberRole,
                 invitedBy: memberDoc.invitedBy,
                 memberStatus: memberDoc.memberStatus,
-                groupDisplayName: memberDoc.groupDisplayName,
+                groupDisplayName: fallbackName,
             };
         });
 
-        members.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        members.sort((a, b) => a.groupDisplayName.localeCompare(b.groupDisplayName));
 
         return {
             members,

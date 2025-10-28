@@ -19,7 +19,6 @@ export class GroupMemberBuilder {
         this.member = {
             // User identification
             uid,
-            displayName,
             initials: this.generateInitials(displayName),
 
             // User display properties
@@ -41,7 +40,7 @@ export class GroupMemberBuilder {
     }
 
     withDisplayName(displayName: DisplayName): this {
-        this.member.displayName = displayName;
+        this.member.groupDisplayName = displayName;
         // Auto-update initials when display name changes
         this.member.initials = this.generateInitials(displayName);
         return this;

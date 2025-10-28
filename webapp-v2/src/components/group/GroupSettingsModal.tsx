@@ -232,7 +232,7 @@ export function GroupSettingsModal({
             return;
         }
 
-        const fallbackName = (member.groupDisplayName ?? '').trim() || member.displayName || currentUser.value?.displayName || '';
+        const fallbackName = member.groupDisplayName.trim() || currentUser.value?.displayName || '';
 
         setDisplayName(fallbackName);
         setInitialDisplayName(fallbackName);
@@ -826,7 +826,7 @@ export function GroupSettingsModal({
                         {members.map((member) => (
                             <div key={member.uid} className='flex items-center justify-between border border-gray-200 rounded-lg px-4 py-2'>
                                 <div>
-                                    <div className='font-medium text-gray-900 text-sm'>{member.groupDisplayName || member.displayName || member.uid}</div>
+                                    <div className='font-medium text-gray-900 text-sm'>{member.groupDisplayName || member.uid}</div>
                                     <div className='text-xs text-gray-500'>{t(`securitySettingsModal.memberRoles.${memberRoleDrafts[member.uid] ?? member.memberRole}`)}</div>
                                 </div>
                                 <select

@@ -36,7 +36,7 @@ export function createTopLevelMembershipDocument(memberDoc: GroupMembershipDTO |
  * - memberStatus: 'active' (can't use 'left' - not in MemberStatus enum)
  * - joinedAt: current timestamp (historical data unavailable)
  * - invitedBy: undefined (historical data unavailable)
- * - groupDisplayName: uses global displayName
+ * - groupDisplayName: derived from global displayName
  */
 export function createPhantomGroupMember(
     userId: UserId,
@@ -63,7 +63,6 @@ export function createPhantomGroupMember(
 
     return {
         uid: userId,
-        displayName,
         initials,
         themeColor: themeColor || defaultTheme,
         memberRole: 'member', // Last known role before departure

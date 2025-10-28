@@ -569,7 +569,6 @@ export type GroupMembershipDTO = GroupMembership;
 export interface GroupMember {
     // User identification
     uid: UserId;
-    displayName: DisplayName;
     initials: string;
 
     // User display properties

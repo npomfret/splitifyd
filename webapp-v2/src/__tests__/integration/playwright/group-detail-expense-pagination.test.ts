@@ -33,8 +33,8 @@ test.describe('Group Detail - Expense Pagination', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withNoDebts(
-                { uid: memberSelf.uid, displayName: memberSelf.displayName! },
-                { uid: memberTwo.uid, displayName: memberTwo.displayName! },
+                { uid: memberSelf.uid, displayName: memberSelf.groupDisplayName },
+                { uid: memberTwo.uid, displayName: memberTwo.groupDisplayName },
             )
             .build();
 
@@ -165,9 +165,9 @@ test.describe('Group Detail - Expense Pagination', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withNoDebts(
-                { uid: memberSelf.uid, displayName: memberSelf.displayName! },
-                { uid: memberTwo.uid, displayName: memberTwo.displayName! },
-                { uid: memberThree.uid, displayName: memberThree.displayName! },
+                { uid: memberSelf.uid, displayName: memberSelf.groupDisplayName },
+                { uid: memberTwo.uid, displayName: memberTwo.groupDisplayName },
+                { uid: memberThree.uid, displayName: memberThree.groupDisplayName },
             )
             .build();
 

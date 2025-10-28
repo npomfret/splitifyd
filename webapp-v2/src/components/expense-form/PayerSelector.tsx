@@ -5,8 +5,8 @@ import { Stack } from '../ui/Stack';
 
 interface Member {
     uid: string;
-    displayName: string;
     groupDisplayName: string;
+    displayName?: string | null;
 }
 
 interface PayerSelectorProps {

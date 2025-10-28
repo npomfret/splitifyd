@@ -164,7 +164,6 @@ const GroupBalancesSchema = z.object({
 const GroupMemberDTOSchema = z.object({
     // User identification
     uid: z.string().min(1),
-    displayName: z.string().min(1),
     initials: z.string().min(1),
 
     // User display properties
@@ -267,7 +266,6 @@ const SettlementSchema = z.object({
 // Does not require group membership metadata like joinedAt, memberRole, etc.
 const SettlementMemberSchema = z.object({
     uid: z.string().min(1),
-    displayName: z.string().min(1),
     initials: z.string().min(1),
     photoURL: z.string().url().nullable().optional(),
     themeColor: UserThemeColorSchema,

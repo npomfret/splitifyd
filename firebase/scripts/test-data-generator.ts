@@ -978,7 +978,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
                 if (balance) {
                     const symbol = currency === 'GBP' ? '£' : '€';
                     const netBalance = normalizeAmount(balance.netBalance ?? zero, currency);
-                    console.log(`    ${member.displayName}: ${symbol}${netBalance}`);
+                    console.log(`    ${member.groupDisplayName}: ${symbol}${netBalance}`);
                 }
             }
         }
@@ -1204,7 +1204,7 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
         await runQueued(() => driver.removeGroupMember(largeGroup.id, memberToRemove.uid, removerToken));
         currentMembers = currentMembers.filter((user) => user.uid !== memberToRemove.uid);
         groupMemberships.set(largeGroup.id, currentMembers);
-        console.log(`Removed ${memberToRemove.groupDisplayName || memberToRemove.displayName} from "Large Group"`);
+        console.log(`Removed ${memberToRemove.groupDisplayName || memberToRemove.uid} from "Large Group"`);
     } else {
         console.log('Skipped member removal action because no zero-balance member was eligible');
     }

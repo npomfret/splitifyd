@@ -211,7 +211,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             logInfo('GroupDetailStore.loadGroup.success', {
                 groupId,
                 memberCount: fullDetails.members.members.length,
-                memberNamesSample: fullDetails.members.members.slice(0, 5).map((member) => member.displayName),
+                memberNamesSample: fullDetails.members.members.slice(0, 5).map((member) => member.groupDisplayName),
                 expenseCount: fullDetails.expenses.expenses.length,
                 settlementCount: fullDetails.settlements.settlements.length,
                 simplifiedDebtCount: fullDetails.balances.simplifiedDebts?.length ?? 0,

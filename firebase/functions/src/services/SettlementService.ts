@@ -49,10 +49,11 @@ export class SettlementService {
         // Validate user data
         try {
             const validatedData = UserDataSchema.parse(userData);
+            const displayName = validatedData.displayName ?? 'Unknown User';
+            const groupDisplayName = memberData?.groupDisplayName ?? displayName;
 
-            // Generate initials from display name
-            const initials = validatedData
-                .displayName
+            // Generate initials from group display name
+            const initials = groupDisplayName
                 .split(' ')
                 .map((n) => n[0])
                 .join('')
@@ -62,20 +63,19 @@ export class SettlementService {
             // If memberData is null, the user has left the group
             // Show real user profile data; use sentinel values for missing membership fields
             if (!memberData) {
-                return createPhantomGroupMember(userId, validatedData.displayName, userData.themeColor);
+                return createPhantomGroupMember(userId, groupDisplayName, userData.themeColor);
             }
 
             // Normal path: member is still in the group
             return {
                 uid: userId,
-                displayName: validatedData.displayName,
                 initials,
                 themeColor: memberData.theme,
                 memberRole: memberData.memberRole,
                 memberStatus: memberData.memberStatus,
                 joinedAt: memberData.joinedAt, // Already ISO string from DTO
                 invitedBy: memberData.invitedBy,
-                groupDisplayName: memberData.groupDisplayName,
+                groupDisplayName,
             };
         } catch (error) {
             logger.error('User document validation failed', error, { userId });

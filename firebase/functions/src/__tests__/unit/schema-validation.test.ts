@@ -63,7 +63,6 @@ const buildMember = () => {
 
     return {
         uid: member.uid,
-        displayName: member.displayName,
         groupDisplayName: member.groupDisplayName,
         initials: member.initials,
         themeColor: member.themeColor,

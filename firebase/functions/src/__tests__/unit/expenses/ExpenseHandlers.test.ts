@@ -899,7 +899,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             // Verify departed member still has real user data
             if (departedMember) {
-                expect(departedMember.displayName).toBeDefined();
+                expect(departedMember.groupDisplayName).toBeDefined();
                 expect(departedMember.uid).toBe(user2);
                 expect(departedMember.memberStatus).toBe('active');
             }

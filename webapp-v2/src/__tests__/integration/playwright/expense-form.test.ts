@@ -34,13 +34,13 @@ async function openExpenseFormForTest(
             .withDisplayName(testUser.displayName)
             .withGroupDisplayName(testUser.displayName)
             .build(),
-        ...additionalMembers.map((member) =>
-            new GroupMemberBuilder()
+        ...additionalMembers.map((member) => {
+            const groupDisplayName = member.groupDisplayName ?? member.displayName;
+            return new GroupMemberBuilder()
                 .withUid(member.uid)
-                .withDisplayName(member.displayName)
-                .withGroupDisplayName(member.groupDisplayName ?? member.displayName)
-                .build()
-        ),
+                .withGroupDisplayName(groupDisplayName)
+                .build();
+        }),
     ];
 
     const fullDetails = new GroupFullDetailsBuilder().withGroup(group).withMembers(members).build();

@@ -34,32 +34,32 @@ test.describe('Group Detail - Comment Pagination', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withNoDebts(
-                { uid: memberSelf.uid, displayName: memberSelf.displayName! },
-                { uid: memberTwo.uid, displayName: memberTwo.displayName! },
+                { uid: memberSelf.uid, displayName: memberSelf.groupDisplayName },
+                { uid: memberTwo.uid, displayName: memberTwo.groupDisplayName },
             )
             .build();
 
         const commentPage1Welcome = new CommentBuilder()
             .withId('comment-p1-1')
-            .withAuthor(memberSelf.uid, memberSelf.displayName ?? 'Self Member')
+            .withAuthor(memberSelf.uid, memberSelf.groupDisplayName ?? 'Self Member')
             .withText('First page welcome comment')
             .build();
 
         const commentPage1Reminder = new CommentBuilder()
             .withId('comment-p1-2')
-            .withAuthor(memberTwo.uid, memberTwo.displayName ?? 'Member Two')
+            .withAuthor(memberTwo.uid, memberTwo.groupDisplayName ?? 'Member Two')
             .withText('First page reminder comment')
             .build();
 
         const commentPage2Update = new CommentBuilder()
             .withId('comment-p2-1')
-            .withAuthor(memberSelf.uid, memberSelf.displayName ?? 'Self Member')
+            .withAuthor(memberSelf.uid, memberSelf.groupDisplayName ?? 'Self Member')
             .withText('Second page update comment')
             .build();
 
         const commentPage2FollowUp = new CommentBuilder()
             .withId('comment-p2-2')
-            .withAuthor(memberTwo.uid, memberTwo.displayName ?? 'Member Two')
+            .withAuthor(memberTwo.uid, memberTwo.groupDisplayName ?? 'Member Two')
             .withText('Second page follow-up comment')
             .build();
 
@@ -156,20 +156,20 @@ test.describe('Group Detail - Comment Pagination Button', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withNoDebts(
-                { uid: memberSelf.uid, displayName: memberSelf.displayName! },
-                { uid: memberTwo.uid, displayName: memberTwo.displayName! },
+                { uid: memberSelf.uid, displayName: memberSelf.groupDisplayName },
+                { uid: memberTwo.uid, displayName: memberTwo.groupDisplayName },
             )
             .build();
 
         const commentPage1 = new CommentBuilder()
             .withId('comment-button-1')
-            .withAuthor(memberSelf.uid, memberSelf.displayName ?? 'Member One')
+            .withAuthor(memberSelf.uid, memberSelf.groupDisplayName ?? 'Member One')
             .withText('Initial button comment')
             .build();
 
         const commentPage2 = new CommentBuilder()
             .withId('comment-button-2')
-            .withAuthor(memberTwo.uid, memberTwo.displayName ?? 'Button Member Two')
+            .withAuthor(memberTwo.uid, memberTwo.groupDisplayName ?? 'Button Member Two')
             .withText('Next page button comment')
             .build();
 

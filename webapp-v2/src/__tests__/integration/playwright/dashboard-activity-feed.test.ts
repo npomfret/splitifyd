@@ -396,8 +396,8 @@ test.describe('Activity Feed - Navigation', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withNoDebts(
-                { uid: currentUserMember.uid, displayName: currentUserMember.displayName! },
-                { uid: actorMember.uid, displayName: actorMember.displayName! },
+                { uid: currentUserMember.uid, displayName: currentUserMember.groupDisplayName },
+                { uid: actorMember.uid, displayName: actorMember.groupDisplayName },
             )
             .build();
 
@@ -477,8 +477,8 @@ test.describe('Activity Feed - Navigation', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withNoDebts(
-                { uid: currentUserMember.uid, displayName: currentUserMember.displayName! },
-                { uid: actorMember.uid, displayName: actorMember.displayName! },
+                { uid: currentUserMember.uid, displayName: currentUserMember.groupDisplayName },
+                { uid: actorMember.uid, displayName: actorMember.groupDisplayName },
             )
             .build();
 

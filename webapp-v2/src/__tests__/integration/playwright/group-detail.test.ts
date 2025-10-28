@@ -409,12 +409,12 @@ test.describe('Group Detail - Sidebar Sections', () => {
 
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(memberSelf.uid, memberSelf.displayName ?? 'Member One', memberTwo.uid, memberTwo.displayName ?? 'Member Two', 42)
+            .withSimpleTwoPersonDebt(memberSelf.uid, memberSelf.groupDisplayName ?? 'Member One', memberTwo.uid, memberTwo.groupDisplayName ?? 'Member Two', 42)
             .build();
 
         const sidebarComment = new CommentBuilder()
             .withId('comment-sidebar')
-            .withAuthor(memberTwo.uid, memberTwo.displayName ?? 'Member Two')
+            .withAuthor(memberTwo.uid, memberTwo.groupDisplayName ?? 'Member Two')
             .withText('Sidebar comment content')
             .build();
 

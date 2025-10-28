@@ -381,7 +381,7 @@ describe('GroupHandlers - Unit Tests', () => {
             expect(result.group.id).toBe(group.id);
             expect(result.members.members[0]).toMatchObject({
                 uid: userId,
-                displayName: 'Owner User',
+                groupDisplayName: 'Owner User',
             });
             expect(result.expenses.expenses).toHaveLength(1);
             expect(result.expenses.expenses[0].amount).toBe('120.5');

@@ -48,8 +48,8 @@ test.describe('Group Detail - Include Deleted Controls', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withNoDebts(
-                { uid: memberSelf.uid, displayName: memberSelf.displayName! },
-                { uid: ownerMember.uid, displayName: ownerMember.displayName! },
+                { uid: memberSelf.uid, displayName: memberSelf.groupDisplayName },
+                { uid: ownerMember.uid, displayName: ownerMember.groupDisplayName },
             )
             .build();
 
@@ -142,8 +142,8 @@ test.describe('Group Detail - Include Deleted Controls', () => {
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
             .withNoDebts(
-                { uid: adminMember.uid, displayName: adminMember.displayName! },
-                { uid: regularMember.uid, displayName: regularMember.displayName! },
+                { uid: adminMember.uid, displayName: adminMember.groupDisplayName },
+                { uid: regularMember.uid, displayName: regularMember.groupDisplayName },
             )
             .build();
 

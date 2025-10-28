@@ -6,8 +6,8 @@ import { Avatar, CurrencyAmount } from '../ui';
 
 interface Member {
     uid: string;
-    displayName: string;
     groupDisplayName: string;
+    displayName?: string | null;
 }
 
 interface Split {
