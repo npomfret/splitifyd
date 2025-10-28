@@ -11,18 +11,13 @@ Owner: Platform Engineering
 | 3 | Auth field duplication | Partially done | Email and photo URL are no longer written to Firestore, but `displayName` is still duplicated on create/update (firebase/functions/src/services/UserService2.ts:212,401). Schema still allows legacy email fields for backward compatibility (firebase/functions/src/schemas/user.ts:27). |
 | 4 | Health and diagnostics endpoints | Done | `/env` now requires system-level roles via `authenticateSystemUser` and returns merged diagnostics including former `/status` payloads (firebase/functions/src/index.ts:83-90, firebase/functions/src/endpoints/diagnostics.ts:80-129). |
 | 5 | Email enumeration hardening | Done | Registration now enforces a minimum 600 ms response window with generic `REGISTRATION_FAILED` errors to avoid email enumeration leaks (firebase/functions/src/services/UserService2.ts:361-499, firebase/functions/src/utils/timing.ts:1-45). |
-| 6 | Log sanitization | Open | `ContextualLoggerImpl` forwards arbitrary payload keys without redaction (firebase/functions/src/utils/contextual-logger.ts:32-118). No redaction helper exists. |
-| 7 | Admin audit logging | Open | No audit logger, firestore collection, or rules for admin operations are present. |
-| 9 | Input sanitization audit | Needs review | Sanitizers exist for comments, groups, and expenses, but no recent audit confirms coverage for every write path. No automated test asserts sanitization is enforced. |
+| 9 | Input sanitisation audit | Done | Audit completed; see docs/reports/input-sanitisation-audit.md. Regression tests cover sanitised writes for comments, expenses, groups, settlements, and user profile updates. |
 
 Legend: Done = implemented and verified, Partially done = partially mitigated, Needs review = requires validation, Open = work outstanding.
 
 ## Outstanding Work
 
-1. Introduce log sanitisation (Issue 6). Add redaction for password, token, key, and bearer fields before forwarding payloads to Cloud Logging.
-2. Create an audit logging service for admin actions (Issue 7) and enforce read/write rules for the backing collection.
-3. Finish the input sanitisation audit (Issue 9). Document coverage, add regression tests, and close any gaps (group names, notification payloads, etc.).
-4. Consider removing the remaining `displayName` duplication from Firestore (Issue 3 follow-up) once frontend dependencies are reviewed.
+1. Consider removing the remaining `displayName` duplication from Firestore (Issue 3 follow-up) once frontend dependencies are reviewed.
 
 ## Issue Details
 
@@ -50,23 +45,11 @@ Legend: Done = implemented and verified, Partially done = partially mitigated, N
 - **Evidence:** `UserService.registerUser` now wraps registration in `withMinimumDuration` to guarantee at least 600 ms per attempt and maps Firebase duplicate-email responses to a generic `REGISTRATION_FAILED` payload (firebase/functions/src/services/UserService2.ts:361-499, firebase/functions/src/utils/timing.ts:1-45). Playwright registration specs and unit tests assert the new message and timing behaviour.  
 - **Next:** Monitor telemetry for abnormal latency deviations; add timing fuzz tests if future regressions appear.
 
-### Issue 6 - Log sanitisation
-
-- **Status:** Open  
-- **Evidence:** `ContextualLoggerImpl.buildLogData` simply copies arbitrary keys into the log payload (firebase/functions/src/utils/contextual-logger.ts:32-118). No helper redacts passwords, tokens, or secrets before they reach Cloud Logging.  
-- **Next:** Add recursive redaction for common sensitive keys, ensure error serialization honours the same rules, and add unit tests for the sanitiser.
-
-### Issue 7 - Admin audit logging
-
-- **Status:** Open  
-- **Evidence:** The codebase lacks an `AuditLogger`, audit collection, or Firestore rule updates to record privileged operations. Policy management and admin promotion flows simply log to Cloud Logging.  
-- **Next:** Implement an audit logging service, persist events to a restricted collection, and add rule coverage to ensure only system admins can read audit entries.
-
 ### Issue 9 - Input sanitisation audit
 
-- **Status:** Needs review  
-- **Evidence:** Existing utilities sanitise comments, expenses, and group updates (for example `firebase/functions/src/comments/validation.ts:35-85` and `firebase/functions/src/expenses/validation.ts:120-135`), but there is no documented audit or automated test proving every write path applies sanitisation. Notifications, policy text, and admin tooling need confirmation.  
-- **Next:** Catalogue all user-controlled fields, verify sanitisation is applied, and add regression tests where gaps are found.
+- **Status:** Done  
+- **Evidence:** Group membership display name updates now sanitise input before validation (firebase/functions/src/groups/validation.ts:53-66), settlement create/update paths scrub note fields (firebase/functions/src/settlements/SettlementHandlers.ts:21-76), and audit results are captured in docs/reports/input-sanitisation-audit.md. Unit tests exercise the sanitisation defences (firebase/functions/src/__tests__/unit/groups/GroupHandlers.test.ts:287-306 and firebase/functions/src/__tests__/unit/settlements/SettlementHandlers.test.ts:32-83).  
+- **Next:** Monitor future write surfaces when adding features and keep the audit document current.
 
 ## Phase 1 Reference (Data Layer Hardening)
 

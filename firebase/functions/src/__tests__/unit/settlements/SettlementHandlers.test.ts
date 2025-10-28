@@ -47,6 +47,33 @@ describe('SettlementHandlers - Unit Tests', () => {
             });
         });
 
+        it('sanitizes settlement notes before persisting', async () => {
+            const userId = 'test-user';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
+
+            appDriver.seedUser(userId, { displayName: 'Test User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+
+            const group = await appDriver.createGroup(userId);
+            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
+                .withAmount(75, 'USD')
+                .withNote('Paid<script>alert(1)</script>')
+                .build();
+
+            const result = await appDriver.createSettlement(userId, settlementRequest);
+
+            expect(result.note).toBe('Paid');
+        });
+
         it('should create a settlement without optional note', async () => {
             const userId = 'test-user';
             const payerId = 'payer-user';
@@ -432,6 +459,39 @@ describe('SettlementHandlers - Unit Tests', () => {
                 id: created.id,
                 note: 'Updated note',
             });
+        });
+
+        it('sanitizes settlement note updates before persisting', async () => {
+            const userId = 'test-user';
+            const payerId = 'payer-user';
+            const payeeId = 'payee-user';
+
+            appDriver.seedUser(userId, { displayName: 'Test User' });
+            appDriver.seedUser(payerId, { displayName: 'Payer' });
+            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+
+            const group = await appDriver.createGroup(userId);
+            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(payerId, linkId);
+            await appDriver.joinGroupByLink(payeeId, linkId);
+
+            const settlementRequest = new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
+                .withAmount(100, 'USD')
+                .withNote('Initial note')
+                .build();
+
+            const created = await appDriver.createSettlement(userId, settlementRequest);
+
+            const updateRequest = new SettlementUpdateBuilder()
+                .withNote('Updated<script>alert(1)</script>')
+                .build();
+
+            const result = await appDriver.updateSettlement(userId, created.id, updateRequest);
+
+            expect(result.note).toBe('Updated');
         });
 
         it('should reject update with invalid settlement ID', async () => {

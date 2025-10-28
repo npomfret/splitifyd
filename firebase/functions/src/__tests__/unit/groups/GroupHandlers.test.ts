@@ -309,6 +309,20 @@ describe('GroupHandlers - Unit Tests', () => {
             });
         });
 
+        it('sanitizes group display name updates before persisting', async () => {
+            const userId = 'test-user';
+            appDriver.seedUser(userId, { displayName: 'Original Name' });
+
+            const group = await appDriver.createGroup(userId);
+
+            await appDriver.updateGroupMemberDisplayName(userId, group.id, 'Captain<script>alert(1)</script>');
+
+            const groupDetails = await appDriver.getGroupFullDetails(userId, group.id);
+            const member = groupDetails.members.members.find((m) => m.uid === userId);
+
+            expect(member?.groupDisplayName).toBe('Captain');
+        });
+
         it('should reject update with empty display name', async () => {
             await expect(appDriver.updateGroupMemberDisplayName('test-user', 'test-group', '')).rejects.toThrow(
                 expect.objectContaining({

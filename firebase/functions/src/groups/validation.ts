@@ -53,12 +53,26 @@ export const validateUpdateGroup = (body: unknown): UpdateGroupRequest => {
  * Validate update display name request
  */
 export const validateUpdateDisplayName = (body: unknown): UpdateDisplayNameRequest => {
-    return parseWithApiError(UpdateDisplayNameRequestSchema, body, {
+    const maybeObject = typeof body === 'object' && body !== null ? body as Record<string, unknown> : undefined;
+    const preSanitizedBody = maybeObject
+        ? {
+            ...maybeObject,
+            displayName: typeof maybeObject.displayName === 'string'
+                ? sanitizeString(maybeObject.displayName).trim()
+                : maybeObject.displayName,
+        }
+        : body;
+
+    const parsed = parseWithApiError(UpdateDisplayNameRequestSchema, preSanitizedBody, {
         displayName: {
             code: 'INVALID_INPUT',
             message: '', // Use Zod's message
         },
     });
+
+    return {
+        displayName: sanitizeString(parsed.displayName).trim(),
+    };
 };
 
 /**
