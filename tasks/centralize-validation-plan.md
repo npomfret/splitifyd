@@ -21,16 +21,18 @@
    - ✅ Converge on Zod for request validation; rationale documented in `docs/guides/validation.md`.
 2. **Extract Shared Primitives**
    - ✅ Created `firebase/functions/src/validation/common/` with base regex, schema builders, sanitiser re-export, and request validator helper.
-   - ☐ Extend shared schemas with amount/date/pagination and common error mappers.
+   - ✅ Extend shared schemas with amount/date/pagination and common error mappers.
 3. **Introduce Validation Factory**
    - ✅ Implemented `createRequestValidator` to centralise parse/transform/error handling.
 4. **Domain-by-Domain Migration**
    - ✅ Auth (`firebase/functions/src/auth/validation.ts`, `firebase/functions/src/services/auth/auth-validation.ts`) now uses shared Zod helpers.
-   - ☐ User profile/change-password validators to migrate next.
-   - ☐ Policies & Comments to consume shared primitives.
+   - ✅ User profile/change-password validators migrated to shared Zod helpers.
+   - ✅ Policies & Comments now consume shared primitives and pagination helpers.
    - ☐ Expenses & Settlements to align with shared amount/date schemas.
 5. **Optional Zod Convergence**
    - ☐ Evaluate moving remaining request schemas into `@splitifyd/shared` once migrations complete.
+   - ✅ Audited webapp: no Joi usage; runtime Zod validation already centralised via `apiClient` + shared response schemas.
+   - ☐ Design shared request-schema surface (likely under `@splitifyd/shared/src/schemas/apiRequests.ts`) so both server and client can reference the same definitions once server migrations stabilise.
 6. **Documentation & Tooling**
    - ✅ Added first-pass validation strategy guide.
    - ☐ Introduce lint/codemod guardrails against new Joi usage; update developer docs after next migrations.

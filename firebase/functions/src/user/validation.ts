@@ -1,163 +1,225 @@
-import * as Joi from 'joi';
+import { z } from 'zod';
 import { Errors } from '../utils/errors';
-import { translateJoiError } from '../utils/i18n-validation';
-import { sanitizeString } from '../utils/security';
+import {
+    createDisplayNameSchema,
+    createPasswordSchema,
+    createRequestValidator,
+    createZodErrorMapper,
+    EmailSchema,
+    sanitizeInputString,
+} from '../validation/common';
 
-// Password requirements regex - allow any content with a minimum length of 12 characters
-const PASSWORD_REGEX = /^.{12,}$/;
-
-/**
- * Schema for update user profile request
- */
-const updateUserProfileSchema = Joi
-    .object({
-        displayName: Joi.string().trim().min(1).max(100).optional().messages({
-            'string.empty': 'Display name cannot be empty',
-            'string.max': 'Display name must be 100 characters or less',
-        }),
-        photoURL: Joi.string().uri().allow(null, '').optional().messages({
-            'string.uri': 'Invalid photo URL format',
-        }),
-        preferredLanguage: Joi
-            .string()
-            .trim()
-            .valid('en') // Add more languages as they become available
-            .optional()
-            .messages({
-                'any.only': 'Language must be one of: en',
-            }),
-    })
-    .min(1)
-    .messages({
-        'object.min': 'At least one field (displayName, photoURL, or preferredLanguage) must be provided',
-    });
-
-/**
- * Update user profile request interface
- */
 interface UpdateUserProfileRequest {
     displayName?: string;
     photoURL?: string | null;
     preferredLanguage?: string;
 }
 
-/**
- * Validate update user profile request
- */
-export const validateUpdateUserProfile = (body: unknown, language: string = 'en'): UpdateUserProfileRequest => {
-    const { error, value } = updateUserProfileSchema.validate(body, {
-        abortEarly: false,
-        stripUnknown: true,
+const updateUserProfileSchema = z
+    .object({
+        displayName: createDisplayNameSchema({
+            min: 1,
+            max: 100,
+            minMessage: 'Display name cannot be empty',
+            maxMessage: 'Display name must be 100 characters or less',
+            pattern: null,
+        }).optional(),
+        photoURL: z
+            .union([
+                z.string().url('Invalid photo URL format'),
+                z.literal(''),
+                z.null(),
+            ])
+            .optional(),
+        preferredLanguage: z
+            .string()
+            .trim()
+            .refine((value) => value === 'en', {
+                message: 'Language must be one of: en',
+            })
+            .optional(),
+    })
+    .superRefine((value, ctx) => {
+        if (
+            value.displayName === undefined &&
+            value.photoURL === undefined &&
+            value.preferredLanguage === undefined
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'At least one field (displayName, photoURL, or preferredLanguage) must be provided',
+            });
+        }
     });
 
-    if (error) {
-        const translatedMessage = translateJoiError(error, language);
-        throw Errors.INVALID_INPUT(translatedMessage);
-    }
+const mapUpdateProfileError = createZodErrorMapper(
+    {
+        displayName: {
+            code: 'INVALID_INPUT',
+            details: (issue) => {
+                if (issue.code === 'invalid_type') {
+                    return 'Display name cannot be empty';
+                }
+                return issue.message;
+            },
+        },
+        photoURL: {
+            code: 'INVALID_INPUT',
+            details: () => 'Invalid photo URL format',
+        },
+        preferredLanguage: {
+            code: 'INVALID_INPUT',
+            details: () => 'Language must be one of: en',
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: 'Invalid input data',
+        defaultDetails: (issue) => issue.message,
+    },
+);
 
-    const result: UpdateUserProfileRequest = {};
+const baseValidateUpdateUserProfile = createRequestValidator({
+    schema: updateUserProfileSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => {
+        const result: UpdateUserProfileRequest = {};
 
-    if (value.displayName !== undefined) {
-        result.displayName = sanitizeString(value.displayName);
-    }
+        if (value.displayName !== undefined) {
+            result.displayName = sanitizeInputString(value.displayName);
+        }
 
-    if (value.photoURL !== undefined) {
-        // Convert empty string to null for Firebase Auth
-        result.photoURL = value.photoURL === '' ? null : value.photoURL;
-    }
+        if (value.photoURL !== undefined) {
+            result.photoURL = value.photoURL === '' ? null : value.photoURL ?? null;
+        }
 
-    if (value.preferredLanguage !== undefined) {
-        result.preferredLanguage = value.preferredLanguage;
-    }
+        if (value.preferredLanguage !== undefined) {
+            result.preferredLanguage = value.preferredLanguage;
+        }
 
-    return result;
+        return result;
+    },
+    mapError: (error) => mapUpdateProfileError(error),
+}) as (body: unknown) => UpdateUserProfileRequest;
+
+export const validateUpdateUserProfile = (body: unknown, _language: string = 'en'): UpdateUserProfileRequest => {
+    return baseValidateUpdateUserProfile(body);
 };
 
-/**
- * Schema for change password request
- */
-const changePasswordSchema = Joi.object({
-    currentPassword: Joi.string().required().messages({
-        'any.required': 'Current password is required',
-        'string.empty': 'Current password cannot be empty',
-    }),
-    newPassword: Joi.string().pattern(PASSWORD_REGEX).required().messages({
-        'any.required': 'New password is required',
-        'string.empty': 'New password cannot be empty',
-        'string.pattern.base': 'Password must be at least 12 characters long',
-    }),
-});
-
-/**
- * Change password request interface
- */
 interface ChangePasswordRequest {
     currentPassword: string;
     newPassword: string;
 }
 
-/**
- * Validate change password request
- */
-export const validateChangePassword = (body: unknown): ChangePasswordRequest => {
-    const { error, value } = changePasswordSchema.validate(body, {
-        abortEarly: false,
-        stripUnknown: true,
-    });
-
-    if (error) {
-        const firstError = error.details[0];
-        throw Errors.INVALID_INPUT(firstError.message);
-    }
-
-    // Check that passwords are different
-    if (value.currentPassword === value.newPassword) {
-        throw Errors.INVALID_INPUT('New password must be different from current password');
-    }
-
-    return value as ChangePasswordRequest;
-};
-
-/**
- * Email validation regex (same as used in auth/validation.ts)
- */
-const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
-/**
- * Schema for change email request
- */
-const changeEmailSchema = Joi.object({
-    currentPassword: Joi.string().required().messages({
-        'any.required': 'Current password is required',
-        'string.empty': 'Current password cannot be empty',
-    }),
-    newEmail: Joi.string().pattern(EMAIL_REGEX).required().messages({
-        'any.required': 'New email is required',
-        'string.pattern.base': 'Please enter a valid email address',
-        'string.empty': 'New email cannot be empty',
+const changePasswordSchema = z.object({
+    currentPassword: z
+        .string()
+        .min(1, 'Current password cannot be empty'),
+    newPassword: createPasswordSchema({
+        required: 'New password cannot be empty',
+        weak: 'Password must be at least 12 characters long',
     }),
 });
+
+const mapChangePasswordError = createZodErrorMapper(
+    {
+        currentPassword: {
+            code: 'INVALID_INPUT',
+            details: (issue) => {
+                if (issue.code === 'invalid_type') {
+                    return 'Current password is required';
+                }
+                return issue.message;
+            },
+        },
+        newPassword: {
+            code: 'INVALID_INPUT',
+            details: (issue) => {
+                if (issue.code === 'invalid_type') {
+                    return 'New password is required';
+                }
+                if (issue.message === 'Required') {
+                    return 'New password is required';
+                }
+                return issue.message;
+            },
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: 'Invalid input data',
+        defaultDetails: (issue) => issue.message,
+    },
+);
+
+export const validateChangePassword = createRequestValidator({
+    schema: changePasswordSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => {
+        if (value.currentPassword === value.newPassword) {
+            throw Errors.INVALID_INPUT('New password must be different from current password');
+        }
+
+        return value as ChangePasswordRequest;
+    },
+    mapError: (error) => mapChangePasswordError(error),
+}) as (body: unknown) => ChangePasswordRequest;
 
 interface ChangeEmailRequest {
     currentPassword: string;
     newEmail: string;
 }
 
-export const validateChangeEmail = (body: unknown): ChangeEmailRequest => {
-    const { error, value } = changeEmailSchema.validate(body, {
-        abortEarly: false,
-        stripUnknown: true,
-    });
+const changeEmailSchema = z.object({
+    currentPassword: z
+        .string()
+        .min(1, 'Current password cannot be empty'),
+    newEmail: EmailSchema,
+});
 
-    if (error) {
-        const firstError = error.details[0];
-        throw Errors.INVALID_INPUT(firstError.message);
-    }
+const mapChangeEmailError = createZodErrorMapper(
+    {
+        currentPassword: {
+            code: 'INVALID_INPUT',
+            details: (issue) => {
+                if (issue.code === 'invalid_type') {
+                    return 'Current password is required';
+                }
+                return issue.message;
+            },
+        },
+        newEmail: {
+            code: 'INVALID_INPUT',
+            details: (issue) => {
+                if (issue.code === 'invalid_type') {
+                    return 'New email is required';
+                }
+                if (issue.message === 'Required') {
+                    return 'New email is required';
+                }
+                if (issue.message === 'Email is required') {
+                    return 'New email cannot be empty';
+                }
+                if (issue.message === 'Invalid email format') {
+                    return 'Please enter a valid email address';
+                }
+                return issue.message;
+            },
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: 'Invalid input data',
+        defaultDetails: (issue) => issue.message,
+    },
+);
 
-    const sanitizedEmail = sanitizeString(value.newEmail).toLowerCase();
-
-    return {
+export const validateChangeEmail = createRequestValidator({
+    schema: changeEmailSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
         currentPassword: value.currentPassword,
-        newEmail: sanitizedEmail,
-    };
-};
+        newEmail: sanitizeInputString(value.newEmail).toLowerCase(),
+    }),
+    mapError: (error) => mapChangeEmailError(error),
+}) as (body: unknown) => ChangeEmailRequest;

@@ -1,107 +1,111 @@
 import { CreateExpenseCommentRequest, CreateGroupCommentRequest, type CommentId, toCommentId } from '@splitifyd/shared';
-import * as Joi from 'joi';
+import { z } from 'zod';
+import {
+    createPaginationSchema,
+    createRequestValidator,
+    createZodErrorMapper,
+    sanitizeInputString,
+} from '../validation/common';
+import { validateExpenseId } from '../expenses/validation';
+import { validateGroupId } from '../groups/validation';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
-import { sanitizeString } from '../utils/security';
-import {validateExpenseId} from "../expenses/validation";
-import {validateGroupId} from "../groups/validation";
 
-const commentTextSchema = Joi.string().trim().min(1).max(500).required().messages({
-    'string.empty': 'Comment text is required',
-    'string.min': 'Comment cannot be empty',
-    'string.max': 'Comment cannot exceed 500 characters',
-});
+const commentTextSchema = z
+    .string()
+    .trim()
+    .min(1, 'Comment text is required')
+    .max(500, 'Comment cannot exceed 500 characters');
 
-const createGroupCommentSchema = Joi.object({
+const commentBodySchema = z.object({
     text: commentTextSchema,
 });
 
-const createExpenseCommentSchema = Joi.object({
-    text: commentTextSchema,
+const mapCommentError = createZodErrorMapper(
+    {
+        text: {
+            code: 'INVALID_COMMENT_TEXT',
+            message: (issue) => {
+                if (issue.code === 'invalid_type' || issue.message === 'Required') {
+                    return 'Comment text is required';
+                }
+                return issue.message;
+            },
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+const baseValidateComment = createRequestValidator({
+    schema: commentBodySchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
+        text: sanitizeInputString(value.text),
+    }),
+    mapError: (error) => mapCommentError(error),
+}) as (body: unknown) => { text: string; };
+
+const listCommentsQuerySchema = createPaginationSchema({
+    defaultLimit: 8,
+    minLimit: 1,
+    maxLimit: 100,
 });
 
-// Joi validation schema for listing comments query parameters
-const listCommentsQuerySchema = Joi.object({
-    cursor: Joi.string().optional(),
-    limit: Joi.number().integer().min(1).max(100).default(8).optional(),
-});
+const mapPaginationError = createZodErrorMapper(
+    {
+        limit: {
+            code: 'INVALID_QUERY_PARAMS',
+            message: (issue) => {
+                if (issue.code === 'invalid_type') {
+                    return 'Limit must be a number';
+                }
+                if (issue.message === 'Invalid input: expected number, received NaN') {
+                    return 'Limit must be a number';
+                }
+                return issue.message;
+            },
+        },
+    },
+    {
+        defaultCode: 'INVALID_QUERY_PARAMS',
+        defaultMessage: (issue) => issue.message,
+    },
+);
 
-const sanitizeCommentText = (text: string): string => sanitizeString(text);
+const baseValidateListCommentsQuery = createRequestValidator({
+    schema: listCommentsQuerySchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    mapError: (error) => mapPaginationError(error),
+}) as (query: unknown) => { cursor?: string; limit: number; };
 
-/**
- * Validates the request body for creating a group comment
- */
-export const validateCreateGroupComment = (targetId: string, body: any): CreateGroupCommentRequest => {
-    const { error, value } = createGroupCommentSchema.validate(body, { abortEarly: false });
-
-    if (error) {
-        const firstError = error.details[0];
-        let errorCode = 'INVALID_INPUT';
-        let errorMessage = firstError.message;
-
-        if (firstError.path.includes('text')) {
-            errorCode = 'INVALID_COMMENT_TEXT';
-        }
-
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
-    }
-
-    const validatedGroupId = validateGroupId(targetId)
-
-    const { text } = value as { text: string; };
+export const validateCreateGroupComment = (targetId: string, body: unknown): CreateGroupCommentRequest => {
+    const validatedGroupId = validateGroupId(targetId);
+    const { text } = baseValidateComment(body);
 
     return {
         groupId: validatedGroupId,
-        text: sanitizeCommentText(text),
+        text,
     };
 };
 
-/**
- * Validates the request body for creating an expense comment
- */
-export const validateCreateExpenseComment = (targetId: string, body: any): CreateExpenseCommentRequest => {
-    const { error, value } = createExpenseCommentSchema.validate(body, { abortEarly: false });
-
-    if (error) {
-        const firstError = error.details[0];
-        let errorCode = 'INVALID_INPUT';
-        let errorMessage = firstError.message;
-
-        if (firstError.path.includes('text')) {
-            errorCode = 'INVALID_COMMENT_TEXT';
-        }
-
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
-    }
-
+export const validateCreateExpenseComment = (targetId: string, body: unknown): CreateExpenseCommentRequest => {
     const validatedExpenseId = validateExpenseId(targetId);
-
-    const { text } = value as { text: string; };
+    const { text } = baseValidateComment(body);
 
     return {
         expenseId: validatedExpenseId,
-        text: sanitizeCommentText(text),
+        text,
     };
 };
 
-/**
- * Validates query parameters for listing comments
- */
-export const validateListCommentsQuery = (query: any): { cursor?: string; limit: number; } => {
-    const { error, value } = listCommentsQuerySchema.validate(query, { abortEarly: false, stripUnknown: true });
-
-    if (error) {
-        const firstError = error.details[0];
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_QUERY_PARAMS', firstError.message);
-    }
-
-    return value;
+export const validateListCommentsQuery = (query: unknown): { cursor?: string; limit: number; } => {
+    return baseValidateListCommentsQuery(query);
 };
 
-/**
- * Validates that a comment ID is valid
- */
-export const validateCommentId = (id: any): CommentId => {
+export const validateCommentId = (id: unknown): CommentId => {
     if (typeof id !== 'string' || !id.trim()) {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_COMMENT_ID', 'Invalid comment ID');
     }

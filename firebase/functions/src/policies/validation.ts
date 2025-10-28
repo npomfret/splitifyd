@@ -1,199 +1,196 @@
 import { PolicyId, VersionHash } from '@splitifyd/shared';
-import * as Joi from 'joi';
-import { HTTP_STATUS } from '../constants';
-import { ApiError } from '../utils/errors';
-import { sanitizeString } from '../utils/security';
+import { z } from 'zod';
+import {
+    createRequestValidator,
+    createZodErrorMapper,
+    sanitizeInputString,
+} from '../validation/common';
 
-/**
- * Schema for policy acceptance in batch
- */
-const policyAcceptanceItemSchema = Joi.object({
-    policyId: Joi.string().trim().min(1).required(),
-    versionHash: Joi.string().trim().min(1).required(),
-});
-
-/**
- * Schema for accept multiple policies request
- */
-const acceptMultiplePoliciesSchema = Joi
-    .object({
-        acceptances: Joi.array().items(policyAcceptanceItemSchema).min(1).required().messages({
-            'array.min': 'At least one policy acceptance is required',
-            'any.required': 'Acceptances array is required',
-        }),
-    })
-    .required();
-
-/**
- * Accept policy request interface
- */
 interface AcceptPolicyRequest {
     policyId: PolicyId;
     versionHash: VersionHash;
 }
 
-/**
- * Accept multiple policies request interface
- */
 interface AcceptMultiplePoliciesRequest {
     acceptances: AcceptPolicyRequest[];
 }
 
-/**
- * Validate accept multiple policies request
- */
-export const validateAcceptMultiplePolicies = (body: unknown): AcceptMultiplePoliciesRequest => {
-    const { error, value } = acceptMultiplePoliciesSchema.validate(body, {
-        abortEarly: false,
-        stripUnknown: true,
-    });
+const PolicyIdSchema = z
+    .string()
+    .trim()
+    .min(1, 'Policy ID is required');
 
-    if (error) {
-        const firstError = error.details[0];
-        let errorCode = 'INVALID_REQUEST';
-        let errorMessage = firstError.message;
+const VersionHashSchema = z
+    .string()
+    .trim()
+    .min(1, 'Version hash is required');
 
-        if (firstError.path.includes('acceptances')) {
-            errorCode = 'INVALID_ACCEPTANCES';
-            if (firstError.type === 'array.min') {
-                errorMessage = 'At least one policy acceptance is required';
-            }
-        }
+const policyAcceptanceItemSchema = z.object({
+    policyId: PolicyIdSchema,
+    versionHash: VersionHashSchema,
+});
 
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
-    }
+const acceptMultiplePoliciesSchema = z.object({
+    acceptances: z
+        .array(policyAcceptanceItemSchema)
+        .min(1, 'At least one policy acceptance is required'),
+});
 
-    return {
-        acceptances: value.acceptances.map((item: any) => ({
-            policyId: item.policyId.trim(),
-            versionHash: item.versionHash.trim(),
+const mapAcceptPoliciesError = createZodErrorMapper(
+    {
+        acceptances: {
+            code: 'INVALID_ACCEPTANCES',
+            message: (issue) => {
+                if (issue.code === 'invalid_type' && issue.path.length === 1) {
+                    return 'Acceptances must be an array';
+                }
+                const lastSegment = issue.path[issue.path.length - 1];
+                if (lastSegment === 'policyId' && issue.code === 'invalid_type') {
+                    return 'Policy ID must be a string';
+                }
+                if (lastSegment === 'versionHash' && issue.code === 'invalid_type') {
+                    return 'Version hash must be a string';
+                }
+                if (issue.message === 'Required') {
+                    return 'Acceptances array is required';
+                }
+                return issue.message;
+            },
+        },
+    },
+    {
+        defaultCode: 'INVALID_REQUEST',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+const baseValidateAcceptMultiplePolicies = createRequestValidator({
+    schema: acceptMultiplePoliciesSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
+        acceptances: value.acceptances.map((item) => ({
+            policyId: item.policyId as PolicyId,
+            versionHash: item.versionHash as VersionHash,
         })),
-    };
+    }),
+    mapError: (error) => mapAcceptPoliciesError(error),
+}) as (body: unknown) => AcceptMultiplePoliciesRequest;
+
+export const validateAcceptMultiplePolicies = (body: unknown): AcceptMultiplePoliciesRequest => {
+    return baseValidateAcceptMultiplePolicies(body);
 };
 
-/**
- * Schema for create policy request
- */
-const createPolicySchema = Joi
-    .object({
-        policyName: Joi.string().trim().min(1).max(100).required().messages({
-            'string.empty': 'Policy name is required',
-            'any.required': 'Policy name is required',
-            'string.max': 'Policy name must be 100 characters or less',
-        }),
-        text: Joi.string().min(1).required().messages({
-            'string.empty': 'Policy text is required',
-            'any.required': 'Policy text is required',
-        }),
-        publish: Joi.boolean().optional().default(false),
-    })
-    .required();
-
-/**
- * Schema for update policy request
- */
-const updatePolicySchema = Joi
-    .object({
-        text: Joi.string().min(1).required().messages({
-            'string.empty': 'Policy text is required',
-            'any.required': 'Policy text is required',
-        }),
-        publish: Joi.boolean().optional().default(false),
-    })
-    .required();
-
-/**
- * Schema for publish policy request
- */
-const publishPolicySchema = Joi
-    .object({
-        versionHash: Joi.string().trim().min(1).required().messages({
-            'string.empty': 'Version hash is required',
-            'any.required': 'Version hash is required',
-        }),
-    })
-    .required();
-
-/**
- * Create policy request interface
- */
 interface CreatePolicyRequest {
     policyName: string;
     text: string;
     publish?: boolean;
 }
 
-/**
- * Update policy request interface
- */
 interface UpdatePolicyRequest {
     text: string;
     publish?: boolean;
 }
 
-/**
- * Publish policy request interface
- */
 interface PublishPolicyRequest {
     versionHash: VersionHash;
 }
 
-/**
- * Validate create policy request
- */
-export const validateCreatePolicy = (body: unknown): CreatePolicyRequest => {
-    const { error, value } = createPolicySchema.validate(body, {
-        abortEarly: false,
-        stripUnknown: true,
-    });
+const policyNameSchema = z
+    .string()
+    .trim()
+    .min(1, 'Policy name is required')
+    .max(100, 'Policy name must be 100 characters or less');
 
-    if (error) {
-        const firstError = error.details[0];
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_REQUEST', firstError.message);
-    }
+const policyTextSchema = z
+    .string()
+    .min(1, 'Policy text is required');
 
-    return {
-        policyName: sanitizeString(value.policyName),
-        text: value.text, // Don't sanitize policy text as it may contain HTML/markdown
+const createPolicySchema = z.object({
+    policyName: policyNameSchema,
+    text: policyTextSchema,
+    publish: z.boolean().optional().default(false),
+});
+
+const updatePolicySchema = z.object({
+    text: policyTextSchema,
+    publish: z.boolean().optional().default(false),
+});
+
+const publishPolicySchema = z.object({
+    versionHash: VersionHashSchema,
+});
+
+const mapPolicyError = createZodErrorMapper(
+    {
+        policyName: {
+            code: 'INVALID_REQUEST',
+            message: (issue) => {
+                if (issue.message === 'Required') {
+                    return 'Policy name is required';
+                }
+                if (issue.code === 'invalid_type') {
+                    return 'Policy name must be a string';
+                }
+                return issue.message;
+            },
+        },
+        text: {
+            code: 'INVALID_REQUEST',
+            message: (issue) => {
+                if (issue.message === 'Required') {
+                    return 'Policy text is required';
+                }
+                if (issue.code === 'invalid_type') {
+                    return 'Policy text must be a string';
+                }
+                return issue.message;
+            },
+        },
+        versionHash: {
+            code: 'INVALID_REQUEST',
+            message: (issue) => {
+                if (issue.message === 'Required') {
+                    return 'Version hash is required';
+                }
+                if (issue.code === 'invalid_type') {
+                    return 'Version hash must be a string';
+                }
+                return issue.message;
+            },
+        },
+    },
+    {
+        defaultCode: 'INVALID_REQUEST',
+        defaultMessage: (issue) => issue.message,
+    },
+);
+
+export const validateCreatePolicy = createRequestValidator({
+    schema: createPolicySchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
+        policyName: sanitizeInputString(value.policyName),
+        text: value.text,
         publish: value.publish,
-    };
-};
+    }),
+    mapError: (error) => mapPolicyError(error),
+}) as (body: unknown) => CreatePolicyRequest;
 
-/**
- * Validate update policy request
- */
-export const validateUpdatePolicy = (body: unknown): UpdatePolicyRequest => {
-    const { error, value } = updatePolicySchema.validate(body, {
-        abortEarly: false,
-        stripUnknown: true,
-    });
-
-    if (error) {
-        const firstError = error.details[0];
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_REQUEST', firstError.message);
-    }
-
-    return {
-        text: value.text, // Don't sanitize policy text as it may contain HTML/markdown
+export const validateUpdatePolicy = createRequestValidator({
+    schema: updatePolicySchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
+        text: value.text,
         publish: value.publish,
-    };
-};
+    }),
+    mapError: (error) => mapPolicyError(error),
+}) as (body: unknown) => UpdatePolicyRequest;
 
-/**
- * Validate publish policy request
- */
-export const validatePublishPolicy = (body: unknown): PublishPolicyRequest => {
-    const { error, value } = publishPolicySchema.validate(body, {
-        abortEarly: false,
-        stripUnknown: true,
-    });
-
-    if (error) {
-        const firstError = error.details[0];
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_REQUEST', firstError.message);
-    }
-
-    return {
-        versionHash: value.versionHash.trim(),
-    };
-};
+export const validatePublishPolicy = createRequestValidator({
+    schema: publishPolicySchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
+        versionHash: value.versionHash as VersionHash,
+    }),
+    mapError: (error) => mapPolicyError(error),
+}) as (body: unknown) => PublishPolicyRequest;
