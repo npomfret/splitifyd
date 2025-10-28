@@ -78,6 +78,8 @@ const directoriesToPrune = [
     'scripts',
     'src',
     'lib/__tests__',
+    'lib/test',
+    'lib/test-pool',
 ];
 
 function prune(targetPath) {
