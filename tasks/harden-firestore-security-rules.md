@@ -8,7 +8,7 @@ Owner: Platform Engineering
 | Issue | Area | Status | Notes |
 | --- | --- | --- | --- |
 | 1 | Registration abuse (edge-level control) | Delegated | Registration rate limiting must be enforced before traffic reaches Cloud Functions. No function-level throttling is planned; coordinate with the platform gateway team. |
-| 3 | Auth field duplication | Partially done | Email and photo URL are no longer written to Firestore, but `displayName` is still duplicated on create/update (firebase/functions/src/services/UserService2.ts:212,401). Schema still allows legacy email fields for backward compatibility (firebase/functions/src/schemas/user.ts:27). |
+| 3 | Auth field duplication | Done | Email, photo URL, and display name now live solely in Firebase Auth. Firestore writes omit `displayName`, and the user document schema no longer permits it (firebase/functions/src/services/UserService2.ts:200-229,449-499; firebase/functions/src/schemas/user.ts:27-60). |
 | 4 | Health and diagnostics endpoints | Done | `/env` now requires system-level roles via `authenticateSystemUser` and returns merged diagnostics including former `/status` payloads (firebase/functions/src/index.ts:83-90, firebase/functions/src/endpoints/diagnostics.ts:80-129). |
 | 5 | Email enumeration hardening | Done | Registration now enforces a minimum 600 ms response window with generic `REGISTRATION_FAILED` errors to avoid email enumeration leaks (firebase/functions/src/services/UserService2.ts:361-499, firebase/functions/src/utils/timing.ts:1-45). |
 | 9 | Input sanitisation audit | Done | Audit completed; see docs/reports/input-sanitisation-audit.md. Regression tests cover sanitised writes for comments, expenses, groups, settlements, and user profile updates. |
@@ -17,7 +17,8 @@ Legend: Done = implemented and verified, Partially done = partially mitigated, N
 
 ## Outstanding Work
 
-1. Consider removing the remaining `displayName` duplication from Firestore (Issue 3 follow-up) once frontend dependencies are reviewed.
+None at this time.
+
 
 ## Issue Details
 
@@ -29,9 +30,9 @@ Legend: Done = implemented and verified, Partially done = partially mitigated, N
 
 ### Issue 3 - Auth field duplication
 
-- **Status:** Partially done  
-- **Evidence:** `createUserDirect` omits email and photo URL when seeding Firestore (firebase/functions/src/services/UserService2.ts:399-421), and profile updates no longer persist `photoURL`. However, Firestore still stores `displayName` on both create and update (firebase/functions/src/services/UserService2.ts:212,401), keeping two sources of truth. Schema (`firebase/functions/src/schemas/user.ts:27`) still marks `email` optional for legacy data.  
-- **Next:** Decide whether the app still needs `displayName` in Firestore. If not, remove writes, trim the schema, and backfill or ignore legacy values.
+- **Status:** Done  
+- **Evidence:** User profile writes now rely on Firebase Auth exclusively for display names. Firestore writer helpers refuse `displayName` fields, and the user document schema no longer accepts it (firebase/functions/src/services/UserService2.ts:200-229,449-499; firebase/functions/src/services/firestore/FirestoreWriter.ts:587-646; firebase/functions/src/schemas/user.ts:27-60).  
+- **Next:** None. Monitor for legacy documents if historical backfills are introduced.
 
 ### Issue 4 - Health and diagnostics endpoints
 

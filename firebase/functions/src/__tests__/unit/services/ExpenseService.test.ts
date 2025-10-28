@@ -13,7 +13,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
     beforeEach(() => {
         db = new SplitifydFirestoreTestDatabase();
-        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db);
+        const stubAuth = new StubAuthService();
+        const applicationBuilder = new ComponentBuilder(stubAuth, db);
         expenseService = applicationBuilder.buildExpenseService();
     });
 

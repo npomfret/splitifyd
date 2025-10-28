@@ -13,6 +13,7 @@ import { generateShareToken, newTopLevelMembershipDocId } from '../utils/idGener
 import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import type { GroupMemberService } from './GroupMemberService';
+import { UserService } from './UserService2';
 
 const SHARE_LINK_DEFAULT_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
 const SHARE_LINK_MAX_EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
@@ -24,6 +25,7 @@ export class GroupShareService {
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
         private readonly activityFeedService: ActivityFeedService,
+        private readonly userService: UserService,
     ) {}
 
     private resolveExpirationTimestamp(requestedExpiresAt?: string): ISOString {
@@ -331,18 +333,23 @@ export class GroupShareService {
         const memberIndex = existingMembersIds.length;
 
         // Get user's display name to set as initial groupDisplayName
-        const userData = await this.firestoreReader.getUser(userId);
-        if (!userData || !userData.displayName) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User profile not found');
-        }
+        const userProfile = await this.userService.getUser(userId).catch((error) => {
+            if (error instanceof ApiError && error.code === 'NOT_FOUND') {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User profile not found');
+            }
+            throw error;
+        });
+
+        const userDisplayName = userProfile.displayName;
 
         // Check for display name conflicts with existing members
         const existingMembers = await this.firestoreReader.getAllGroupMembers(groupId);
         const displayNameConflict = existingMembers.some(
-            (member) => member.groupDisplayName.toLowerCase() === userData.displayName.toLowerCase(),
+            (member) => member.groupDisplayName.toLowerCase() === userDisplayName.toLowerCase(),
         );
 
         const themeColor = this.getThemeColorForMember(memberIndex);
+
         const memberDoc: GroupMembershipDTO = {
             uid: userId,
             groupId: groupId,
@@ -351,7 +358,7 @@ export class GroupShareService {
             joinedAt: joinedAt,
             memberStatus: requiresApproval ? MemberStatuses.PENDING : MemberStatuses.ACTIVE,
             invitedBy: shareLink.createdBy,
-            groupDisplayName: userData.displayName, // Default to user's account display name
+            groupDisplayName: userDisplayName, // Default to user's account display name
         };
 
         const now = toISOString(new Date().toISOString());

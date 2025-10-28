@@ -25,7 +25,6 @@ const UserThemeColorSchema = z.object({
 const BaseUserSchema = z
     .object({
         email: z.string().email().optional(), // Email might be in Auth only
-        displayName: z.string().optional(), // Display name might be in Auth only
         themeColor: z
             .union([
                 z.string(), // Legacy: simple string color
@@ -54,4 +53,6 @@ const { DocumentSchema: UserDocumentSchema } = createDocumentSchemas(BaseUserSch
  * const userData = UserDocumentSchema.parse(doc.data());
  * ```
  */
+export type UserDocument = z.infer<typeof UserDocumentSchema>;
+
 export { UserDocumentSchema };

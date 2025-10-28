@@ -9,7 +9,9 @@ import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupShareService } from '../../../services/GroupShareService';
+import { UserService } from '../../../services/UserService2';
 import { ApiError } from '../../../utils/errors';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
@@ -17,6 +19,8 @@ describe('GroupShareService', () => {
     let firestoreReader: FirestoreReader;
     let groupMemberService: GroupMemberService;
     let activityFeedService: ActivityFeedService;
+    let userService: UserService;
+    let authService: StubAuthService;
 
     beforeEach(() => {
         // Create stub database
@@ -27,10 +31,30 @@ describe('GroupShareService', () => {
         const firestoreWriter = new FirestoreWriter(db);
         activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
         groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService);
+        authService = new StubAuthService();
+        userService = new UserService(firestoreReader, firestoreWriter, authService);
 
         // Create service with real services
-        groupShareService = new GroupShareService(firestoreReader, firestoreWriter, groupMemberService, activityFeedService);
+        groupShareService = new GroupShareService(
+            firestoreReader,
+            firestoreWriter,
+            groupMemberService,
+            activityFeedService,
+            userService,
+        );
     });
+
+    const seedUserProfile = (userId: string, overrides: Record<string, any> = {}) => {
+        const user = db.seedUser(userId, overrides);
+
+        authService.setUser(userId, {
+            uid: userId,
+            email: user.email,
+            displayName: overrides.displayName ?? user.displayName,
+        });
+
+        return user;
+    };
 
     const seedGroupWithOwner = (groupId: GroupId, ownerId: string) => {
         const testGroup = new GroupDTOBuilder()
@@ -40,6 +64,7 @@ describe('GroupShareService', () => {
             .withoutLastActivity()
             .build();
 
+        seedUserProfile(ownerId, { displayName: 'Owner User' });
         db.seedGroup(groupId, testGroup);
         db.initializeGroupBalance(groupId);
 
@@ -203,7 +228,7 @@ describe('GroupShareService', () => {
             };
             seedShareLink(groupId, expiredShareLink);
 
-            db.seedUser('joining-user', { displayName: 'Joining User' });
+            seedUserProfile('joining-user', { displayName: 'Joining User' });
 
             await expect(groupShareService.joinGroupByLink('joining-user', expiredToken)).rejects.toMatchObject({
                 code: 'LINK_EXPIRED',
@@ -277,7 +302,7 @@ describe('GroupShareService', () => {
             });
 
             // Set up the new user's profile so joinGroupByLink can read their displayName
-            db.seedUser(newUserId, {
+            seedUserProfile(newUserId, {
                 displayName: 'New User',
             });
 
@@ -381,7 +406,7 @@ describe('GroupShareService', () => {
             db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
             // Set up new user with unique display name
-            db.seedUser(newUserId, {
+            seedUserProfile(newUserId, {
                 displayName: 'New User',
             });
 
@@ -402,7 +427,7 @@ describe('GroupShareService', () => {
             db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
             // Set up new user with same display name
-            db.seedUser(newUserId, {
+            seedUserProfile(newUserId, {
                 displayName: 'Test User', // Same as existing member
             });
 
@@ -423,7 +448,7 @@ describe('GroupShareService', () => {
             db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
             // Set up new user with "Test User" (different case)
-            db.seedUser(newUserId, {
+            seedUserProfile(newUserId, {
                 displayName: 'Test User',
             });
 
@@ -477,7 +502,7 @@ describe('GroupShareService', () => {
                 .buildDocument();
             db.seedGroupMember(groupId, ownerId, ownerMember);
 
-            db.seedUser(pendingUserId, { displayName: 'Pending User' });
+            seedUserProfile(pendingUserId, { displayName: 'Pending User' });
         });
 
         it('should mark joins as pending when admin approval is required', async () => {
@@ -525,7 +550,7 @@ describe('GroupShareService', () => {
                 .buildDocument();
             db.seedGroupMember(groupId, ownerId, ownerMember);
 
-            db.seedUser(joiningUserId, { displayName: 'Joining User' });
+            seedUserProfile(joiningUserId, { displayName: 'Joining User' });
         });
 
         it('should activate members immediately when approval is automatic', async () => {
@@ -574,7 +599,7 @@ describe('GroupShareService', () => {
             };
             seedShareLink(groupId, shareLink);
 
-            db.seedUser(joiningUserId, { displayName: 'Joining User' });
+            seedUserProfile(joiningUserId, { displayName: 'Joining User' });
 
             await groupShareService.joinGroupByLink(joiningUserId, linkId);
 
@@ -647,7 +672,7 @@ describe('GroupShareService', () => {
             };
             seedShareLink(groupId, shareLink);
 
-            db.seedUser(joiningUserId, { displayName: 'New Joiner' });
+            seedUserProfile(joiningUserId, { displayName: 'New Joiner' });
 
             // Third user joins the group
             await groupShareService.joinGroupByLink(joiningUserId, linkId);
@@ -728,7 +753,7 @@ describe('GroupShareService', () => {
             };
             seedShareLink(groupId, shareLink);
 
-            db.seedUser(joiningUserId, { displayName: 'New Joiner' });
+            seedUserProfile(joiningUserId, { displayName: 'New Joiner' });
 
             // New user joins the group
             await groupShareService.joinGroupByLink(joiningUserId, linkId);

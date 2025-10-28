@@ -1,4 +1,4 @@
-import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
+import type {CurrencyISOCode, UserId} from '@splitifyd/shared';
 import {
     ActivityFeedActions,
     ActivityFeedEventTypes,
@@ -18,27 +18,27 @@ import {
     MessageResponse,
     SecurityPresets,
     smallestUnitToAmountString,
+    toGroupId,
+    toISOString,
     UpdateGroupRequest,
 } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
-import { toISOString } from '@splitifyd/shared';
-import { DOCUMENT_CONFIG, FirestoreCollections } from '../constants';
-import { logger, LoggerContext } from '../logger';
+import {DOCUMENT_CONFIG, FirestoreCollections} from '../constants';
+import {logger, LoggerContext} from '../logger';
 import * as measure from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { PermissionEngine } from '../permissions';
-import { GroupBalanceDTO } from '../schemas';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
+import {PermissionEngine} from '../permissions';
+import {GroupBalanceDTO} from '../schemas';
 import * as dateHelpers from '../utils/dateHelpers';
-import { Errors } from '../utils/errors';
-import { newTopLevelMembershipDocId } from '../utils/idGenerator';
-import { ActivityFeedService } from './ActivityFeedService';
-import { CommentService } from './CommentService';
-import { ExpenseService } from './ExpenseService';
-import type { GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter } from './firestore';
-import { GroupMemberService } from './GroupMemberService';
-import { GroupShareService } from './GroupShareService';
-import { SettlementService } from './SettlementService';
-import { UserService } from './UserService2';
+import {ApiError, Errors} from '../utils/errors';
+import {newTopLevelMembershipDocId} from '../utils/idGenerator';
+import {ActivityFeedService} from './ActivityFeedService';
+import {CommentService} from './CommentService';
+import {ExpenseService} from './ExpenseService';
+import type {GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter} from './firestore';
+import {GroupMemberService} from './GroupMemberService';
+import {GroupShareService} from './GroupShareService';
+import {SettlementService} from './SettlementService';
+import {UserService} from './UserService2';
 
 /**
  * Service for managing group operations
@@ -325,10 +325,12 @@ export class GroupService {
         // Note: Validation happens in FirestoreWriter after ISO → Timestamp conversion
 
         // Get user's display name to set as initial groupDisplayName
-        const userData = await this.firestoreReader.getUser(userId);
-        if (!userData || !userData.displayName) {
-            throw Errors.NOT_FOUND('User profile');
-        }
+        const userProfile = await this.userService.getUser(userId).catch((error) => {
+            if (error instanceof ApiError && error.code === 'NOT_FOUND') {
+                throw Errors.NOT_FOUND('User profile');
+            }
+            throw error;
+        });
 
         // Pre-calculate member data outside transaction for speed (using ISO strings - DTOs)
         const themeColor = this.groupShareService.getThemeColorForMember(0);
@@ -339,7 +341,7 @@ export class GroupService {
             theme: themeColor, // ISO string assignedAt
             joinedAt: nowISO,
             memberStatus: MemberStatuses.ACTIVE,
-            groupDisplayName: userData.displayName, // Default to user's account display name
+            groupDisplayName: userProfile.displayName, // Default to user's account display name
         };
 
         // Initialize empty group balance (no expenses/settlements yet)

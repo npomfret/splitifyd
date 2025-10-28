@@ -12,14 +12,25 @@ describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
     let db: SplitifydFirestoreTestDatabase;
     let stubAuth: StubAuthService;
-    let applicationBuilder: ComponentBuilder;
+
+    const seedUser = (userId: string, overrides: Record<string, any> = {}) => {
+        const user = db.seedUser(userId, overrides);
+
+        stubAuth.setUser(userId, {
+            uid: userId,
+            email: user.email,
+            displayName: overrides.displayName ?? user.displayName,
+        });
+
+        return user;
+    };
 
     beforeEach(() => {
         // Create stub database
         db = new SplitifydFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
-        applicationBuilder = new ComponentBuilder(stubAuth, db);
+        const applicationBuilder = new ComponentBuilder(stubAuth, db);
         settlementService = applicationBuilder.buildSettlementService();
     });
 
@@ -39,9 +50,9 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships for all users (creator, payer, payee)
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -91,9 +102,9 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -140,13 +151,13 @@ describe('SettlementService - Unit Tests', () => {
                 .build();
 
             // Seed valid user data
-            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            db.seedUser('valid-payer', {
+            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser('valid-payer', {
                 email: 'payer@example.com',
                 displayName: 'Valid Payer',
                 otherField: 'should be preserved',
             });
-            db.seedUser('valid-payee', {
+            seedUser('valid-payee', {
                 email: 'payee@example.com',
                 displayName: 'Valid Payee',
             });
@@ -195,9 +206,9 @@ describe('SettlementService - Unit Tests', () => {
             // Seed basic setup
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -241,9 +252,9 @@ describe('SettlementService - Unit Tests', () => {
             // Seed valid data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships for all users
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -390,9 +401,9 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -438,9 +449,9 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -483,9 +494,9 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -529,9 +540,9 @@ describe('SettlementService - Unit Tests', () => {
             // Seed required data
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser('creator-user', { email: 'creator@test.com', displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
 
             // Set up group memberships
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
@@ -591,9 +602,9 @@ describe('SettlementService - Unit Tests', () => {
             // Set up group and membership
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId(creatorId)
                 .withGroupId(groupId)
@@ -645,7 +656,7 @@ describe('SettlementService - Unit Tests', () => {
 
             // Set up group and membership
             db.seedGroup(groupId, { name: 'Test Group' });
-            db.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
+            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId(creatorId)
                 .withGroupId(groupId)
@@ -688,9 +699,9 @@ describe('SettlementService - Unit Tests', () => {
 
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
             const creatorMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId(creatorId)
                 .withGroupId(groupId)
@@ -742,10 +753,10 @@ describe('SettlementService - Unit Tests', () => {
 
             db.seedGroup(groupId, { name: 'Test Group' });
             db.initializeGroupBalance(groupId);
-            db.seedUser(adminId, { email: `${adminId}@test.com`, displayName: 'Admin User' });
-            db.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            db.seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            db.seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
+            seedUser(adminId, { email: `${adminId}@test.com`, displayName: 'Admin User' });
+            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
+            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
+            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
             const adminMembershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId(adminId)
                 .withGroupId(groupId)

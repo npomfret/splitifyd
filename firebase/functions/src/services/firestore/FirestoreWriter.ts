@@ -10,7 +10,7 @@
  */
 
 // Import types
-import type { CommentDTO, DisplayName, Email, ISOString, RegisteredUser, ShareLinkDTO, UserId } from '@splitifyd/shared';
+import type { CommentDTO, DisplayName, Email, ISOString, ShareLinkDTO, UserId } from '@splitifyd/shared';
 // Import schemas for validation
 import { ExpenseId, GroupId, PolicyId } from '@splitifyd/shared';
 import { z } from 'zod';
@@ -34,7 +34,13 @@ import {
     validateUpdate,
 } from '../../schemas';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
-import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
+import type {
+    BatchWriteResult,
+    FirestoreUserCreateData,
+    FirestoreUserUpdateData,
+    IFirestoreWriter,
+    WriteResult,
+} from './IFirestoreWriter';
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -587,7 +593,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // User Write Operations
     // ========================================================================
 
-    async createUser(userId: UserId, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'>): Promise<WriteResult> {
+    async createUser(userId: UserId, userData: FirestoreUserCreateData): Promise<WriteResult> {
         return measureDb('FirestoreWriter.createUser', async () => {
             try {
                 // Remove undefined values (Firestore doesn't accept them)
@@ -632,7 +638,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async updateUser(userId: UserId, updates: Partial<Omit<RegisteredUser, 'id' | 'photoURL'>>): Promise<WriteResult> {
+    async updateUser(userId: UserId, updates: FirestoreUserUpdateData): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateUser', async () => {
             try {
                 // LENIENT: Convert ISO strings to Timestamps in the updates

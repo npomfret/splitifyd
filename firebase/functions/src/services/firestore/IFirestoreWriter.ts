@@ -33,6 +33,10 @@ export interface BatchWriteResult {
     results: WriteResult[];
 }
 
+export type FirestoreUserCreateData = Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL' | 'displayName'>;
+
+export type FirestoreUserUpdateData = Partial<Omit<RegisteredUser, 'id' | 'photoURL' | 'displayName'>>;
+
 export interface IFirestoreWriter {
     // ========================================================================
     // User Write Operations
@@ -44,7 +48,7 @@ export interface IFirestoreWriter {
      * @param userData - The user data to write (DTO with ISO strings, excluding uid/emailVerified which are not stored in Firestore)
      * @returns Write result with document ID
      */
-    createUser(userId: UserId, userData: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'>): Promise<WriteResult>;
+    createUser(userId: UserId, userData: FirestoreUserCreateData): Promise<WriteResult>;
 
     /**
      * Update an existing user document
@@ -52,7 +56,7 @@ export interface IFirestoreWriter {
      * @param updates - Partial user data to update (DTO with ISO strings)
      * @returns Write result
      */
-    updateUser(userId: UserId, updates: Partial<Omit<RegisteredUser, 'id' | 'photoURL'>>): Promise<WriteResult>;
+    updateUser(userId: UserId, updates: FirestoreUserUpdateData): Promise<WriteResult>;
 
     // ========================================================================
     // Group Write Operations

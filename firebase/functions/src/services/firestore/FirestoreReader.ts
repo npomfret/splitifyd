@@ -31,7 +31,6 @@ import {
     MemberStatuses,
     type PolicyDTO,
     PolicyId,
-    type RegisteredUser,
     type SettlementDTO,
     SettlementId,
     type UserId,
@@ -54,6 +53,7 @@ import {
     type GroupBalanceDTO,
     GroupDocumentSchema,
     type ParsedShareLink,
+    type UserDocument,
     PolicyDocumentSchema,
     SettlementDocumentSchema,
     ShareLinkDocumentSchema,
@@ -173,7 +173,7 @@ export class FirestoreReader implements IFirestoreReader {
     // Document Read Operations
     // ========================================================================
 
-    async getUser(userId: UserId): Promise<RegisteredUser | null> {
+    async getUser(userId: UserId): Promise<UserDocument | null> {
         try {
             const userDoc = await this.db.collection(FirestoreCollections.USERS).doc(userId).get();
 
@@ -191,7 +191,7 @@ export class FirestoreReader implements IFirestoreReader {
             // Convert Timestamps to ISO strings for DTO
             const convertedData = this.convertTimestampsToISO(userData);
 
-            return convertedData as unknown as RegisteredUser;
+            return convertedData as unknown as UserDocument;
         } catch (error) {
             logger.error('Failed to get user', error);
             throw error;

@@ -14,7 +14,7 @@ import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { withMinimumDuration } from '../utils/timing';
 import type { IAuthService } from './auth';
-import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import type { FirestoreUserCreateData, IFirestoreReader, IFirestoreWriter } from './firestore';
 
 const MIN_REGISTRATION_DURATION_MS = 600;
 const REGISTRATION_FAILURE_ERROR_CODE = 'REGISTRATION_FAILED';
@@ -216,9 +216,6 @@ export class UserService {
             // Build update object for Firestore
             // Note: updatedAt is added automatically by FirestoreWriter
             const firestoreUpdate: any = {};
-            if (validatedData.displayName !== undefined) {
-                firestoreUpdate.displayName = validatedData.displayName;
-            }
             if (validatedData.preferredLanguage !== undefined) {
                 firestoreUpdate.preferredLanguage = validatedData.preferredLanguage;
             }
@@ -467,8 +464,7 @@ export class UserService {
             // Create user document in Firestore (only fields that belong in the document)
             // Note: uid is the document ID, not a field. emailVerified is managed by Firebase Auth.
             const now = toISOString(new Date().toISOString());
-            const userDoc: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'> = {
-                displayName: userRegistration.displayName,
+            const userDoc: FirestoreUserCreateData = {
                 email: userRegistration.email,
                 role: SystemUserRoles.SYSTEM_USER, // Default role for new users
                 createdAt: now,

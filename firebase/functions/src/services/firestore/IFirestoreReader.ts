@@ -72,11 +72,11 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 }
 
 // Import parsed types from schemas
-import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, RegisteredUser, SettlementDTO } from '@splitifyd/shared';
+import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, SettlementDTO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
-import type { GroupBalanceDTO, ParsedShareLink } from '../../schemas';
+import type { GroupBalanceDTO, ParsedShareLink, UserDocument } from '../../schemas';
 
 export interface IFirestoreReader {
     // ========================================================================
@@ -88,7 +88,7 @@ export interface IFirestoreReader {
      * @param userId - The user ID
      * @returns User document or null if not found
      */
-    getUser(userId: UserId): Promise<RegisteredUser | null>;
+    getUser(userId: UserId): Promise<UserDocument | null>;
 
     /**
      * Get a group document by ID

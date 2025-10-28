@@ -10,16 +10,19 @@ type SettlementId = string;
  */
 export class SplitifydFirestoreTestDatabase extends StubFirestoreDatabase {
     seedUser(userId: UserId, userData: Record<string, any> = {}) {
+        const displayName = userData.displayName!;
         const defaultUser = {
             id: userId,
             email: userData.email || `${userId}@test.com`,
-            displayName: userData.displayName || `User ${userId}`,
+            displayName,
             createdAt: Timestamp.now(),
             updatedAt: Timestamp.now(),
             ...this.convertDatesToTimestamps(userData),
         };
 
-        this.seed(`users/${userId}`, defaultUser);
+        const { displayName: _omittedDisplayName, ...firestoreUser } = defaultUser;
+
+        this.seed(`users/${userId}`, firestoreUser);
 
         return defaultUser;
     }

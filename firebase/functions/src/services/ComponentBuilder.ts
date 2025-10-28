@@ -88,6 +88,7 @@ export class ComponentBuilder {
                 this.buildFirestoreWriter(),
                 this.buildIncrementalBalanceService(),
                 this.buildActivityFeedService(),
+                this.buildUserService(),
             );
         }
         return this.expenseService;
@@ -100,6 +101,7 @@ export class ComponentBuilder {
                 this.buildFirestoreWriter(),
                 this.buildIncrementalBalanceService(),
                 this.buildActivityFeedService(),
+                this.buildUserService(),
             );
         }
         return this.settlementService;
@@ -157,6 +159,7 @@ export class ComponentBuilder {
                 this.buildFirestoreWriter(),
                 this.buildGroupMemberService(),
                 this.buildActivityFeedService(),
+                this.buildUserService(),
             );
         }
         return this.groupShareService;

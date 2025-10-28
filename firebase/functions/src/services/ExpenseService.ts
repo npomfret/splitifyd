@@ -25,16 +25,7 @@ import { createPhantomGroupMember } from '../utils/groupMembershipHelpers';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-
-/**
- * Zod schema for User document - ensures critical fields are present
- */
-const UserDataSchema = z
-    .object({
-        displayName: z.string().min(1),
-        // Other fields are optional for this basic validation
-    })
-    .passthrough(); // Allow additional fields to pass through
+import { UserService } from './UserService2';
 
 /**
  * Service for managing expenses
@@ -46,6 +37,7 @@ export class ExpenseService {
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly incrementalBalanceService: IncrementalBalanceService,
         private readonly activityFeedService: ActivityFeedService,
+        private readonly userService: UserService,
     ) {}
 
     /**
@@ -99,50 +91,40 @@ export class ExpenseService {
      * to allow viewing historical transaction data
      */
     private async fetchParticipantData(groupId: GroupId, userId: UserId): Promise<GroupMember> {
-        const [userData, memberData] = await Promise.all([
-            this.firestoreReader.getUser(userId),
-            this.firestoreReader.getGroupMember(groupId, userId),
-        ]);
+        const memberData = await this.firestoreReader.getGroupMember(groupId, userId);
 
-        if (!userData) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
-        }
-
-        // Validate user data
-        try {
-            const validatedData = UserDataSchema.parse(userData);
-            const displayName = validatedData.displayName ?? 'Unknown User';
-            const groupDisplayName = memberData?.groupDisplayName ?? displayName;
-
-            // Generate initials from group display name
-            const initials = groupDisplayName
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2);
-
-            // If memberData is null, the user has left the group
-            // Show real user profile data; use sentinel values for missing membership fields
-            if (!memberData) {
-                return createPhantomGroupMember(userId, groupDisplayName, userData.themeColor);
+        const userProfile = await this.userService.getUser(userId).catch((error) => {
+            if (error instanceof ApiError && error.code === 'NOT_FOUND') {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
             }
+            logger.error('Failed to resolve user profile during expense participant fetch', error as Error, { userId });
+            throw error;
+        });
 
-            // Normal path: member is still in the group
-            return {
-                uid: userId,
-                initials,
-                themeColor: memberData.theme,
-                memberRole: memberData.memberRole,
-                memberStatus: memberData.memberStatus,
-                joinedAt: memberData.joinedAt, // Already ISO string from DTO
-                invitedBy: memberData.invitedBy,
-                groupDisplayName,
-            };
-        } catch (error) {
-            logger.error('User document validation failed', error, { userId });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', `User ${userId} has invalid data structure`);
+        const displayName = userProfile.displayName!;
+        const groupDisplayName = memberData?.groupDisplayName ?? displayName;
+
+        if (!memberData) {
+            return createPhantomGroupMember(userId, groupDisplayName, userProfile.themeColor);
         }
+
+        const initials = groupDisplayName
+            .split(' ')
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+
+        return {
+            uid: userId,
+            initials,
+            themeColor: memberData.theme,
+            memberRole: memberData.memberRole,
+            memberStatus: memberData.memberStatus,
+            joinedAt: memberData.joinedAt, // Already ISO string from DTO
+            invitedBy: memberData.invitedBy,
+            groupDisplayName,
+        };
     }
 
     /**
