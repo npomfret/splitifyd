@@ -17,7 +17,7 @@
     "generate:test-data": "tsx scripts/generate-test-data.ts",
     "delete-firebase-data": "cd functions && node scripts/delete-firebase-data.js",
     "deploy": "echo 'Use deploy:prod for production deployment'",
-    "deploy:prod": "npx tsx scripts/deploy-from-fresh-checkout.ts all",
+    "deploy:all": "npx tsx scripts/deploy-from-fresh-checkout.ts all",
     "deploy:functions": "npx tsx scripts/deploy-from-fresh-checkout.ts functions",
     "deploy:hosting": "npx tsx scripts/deploy-from-fresh-checkout.ts hosting",
     "deploy:rules": "npx tsx scripts/deploy-from-fresh-checkout.ts rules",
