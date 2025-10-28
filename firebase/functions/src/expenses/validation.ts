@@ -1,348 +1,418 @@
-import * as Joi from 'joi';
+import { CreateExpenseRequest, ExpenseId, SplitTypes, UpdateExpenseRequest, toExpenseId, toGroupId, toISOString } from '@splitifyd/shared';
+import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
-
-import {CreateExpenseRequest, ExpenseId, parseMonetaryAmount, SplitTypes, UpdateExpenseRequest} from '@splitifyd/shared';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
-import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
-import { sanitizeString } from '../utils/security';
-import {toExpenseId} from "@splitifyd/shared";
+import {
+    createAmountSchema,
+    createRequestValidator,
+    createUtcDateSchema,
+    createZodErrorMapper,
+    CurrencyCodeSchema,
+    sanitizeInputString,
+} from '../validation/common';
 
-/**
- * Create a dual-format amount schema that accepts both numbers and strings.
- * This provides backward compatibility during the string migration.
- *
- * The schema:
- * - Accepts both number and string inputs
- * - Validates string format using regex
- * - Normalizes to number for internal processing
- * - Preserves validation error messages
- */
-const createAmountSchema = () =>
-    Joi
+const splitTypeValues = [SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE] as const;
+
+const expenseAmountSchema = createAmountSchema({
+    max: Number.POSITIVE_INFINITY,
+});
+
+const splitPercentageSchema = z
+    .number()
+    .min(0, 'Split percentage cannot be negative')
+    .max(100, 'Split percentage cannot exceed 100')
+    .optional();
+
+const expenseSplitSchema = z.object({
+    uid: z.string().trim().min(1, 'Split participant is required'),
+    amount: expenseAmountSchema,
+    percentage: splitPercentageSchema,
+});
+
+const createExpenseSchema = z.object({
+    groupId: z.string().trim().min(1, 'Group ID is required'),
+    paidBy: z.string().trim().min(1, 'Payer is required'),
+    amount: expenseAmountSchema,
+    currency: CurrencyCodeSchema,
+    description: z
         .string()
         .trim()
-        .pattern(/^\d+(\.\d+)?$/, 'decimal number')
-        .custom((value, helpers) => {
-            try {
-                const numValue = parseMonetaryAmount(value);
-                if (numValue <= 0) {
-                    return helpers.error('string.positive');
-                }
-                return value;
-            } catch (error) {
-                return helpers.error('string.invalid', { message: (error as Error).message });
-            }
-        })
-        .messages({
-            'string.pattern.name': 'Amount must be a positive decimal string',
-            'string.positive': 'Amount must be greater than zero',
-            'string.invalid': 'Invalid amount format',
-        });
-
-const expenseSplitSchema = Joi.object({
-    uid: Joi.string().required(),
-    amount: createAmountSchema().required(),
-    percentage: Joi.number().min(0).max(100).optional(),
+        .min(1, 'Description is required')
+        .max(200, 'Description cannot exceed 200 characters'),
+    category: z
+        .string()
+        .trim()
+        .min(1, 'Category is required')
+        .max(50, 'Category must be between 1 and 50 characters'),
+    date: createUtcDateSchema(),
+    splitType: z.enum(splitTypeValues),
+    participants: z
+        .array(z.string().trim().min(1, 'Participant ID is required'))
+        .min(1, 'At least one participant is required'),
+    splits: z
+        .array(expenseSplitSchema)
+        .min(1, 'Splits must be provided for all participants'),
+    receiptUrl: z
+        .union([
+            z.string().url('Receipt URL must be a valid URL'),
+            z.literal(''),
+        ])
+        .optional(),
 });
 
-// Date validation schema with proper constraints
-// Custom UTC-only date validation schema
-const utcDateValidationSchema = Joi
-    .string()
-    .custom((value, helpers) => {
-        // First check if it's a string
-        if (typeof value !== 'string') {
-            return helpers.error('date.format');
-        }
-
-        // Check if it's in UTC format
-        if (!isUTCFormat(value)) {
-            return helpers.error('date.utc');
-        }
-
-        // Validate the date range and format
-        const validation = validateUTCDate(value, 10);
-        if (!validation.valid) {
-            if (validation.error?.includes('future')) {
-                return helpers.error('date.max');
-            } else if (validation.error?.includes('past')) {
-                return helpers.error('date.min');
-            } else if (validation.error?.includes('Invalid')) {
-                return helpers.error('date.invalid');
-            } else {
-                return helpers.error('date.utc');
-            }
-        }
-
-        return value;
+const updateExpenseSchema = z
+    .object({
+        amount: expenseAmountSchema.optional(),
+        currency: CurrencyCodeSchema.optional(),
+        description: z
+            .string()
+            .trim()
+            .min(1, 'Description cannot be empty')
+            .max(200, 'Description cannot exceed 200 characters')
+            .optional(),
+        category: z
+            .string()
+            .trim()
+            .min(1, 'Category must be between 1 and 50 characters')
+            .max(50, 'Category must be between 1 and 50 characters')
+            .optional(),
+        date: createUtcDateSchema().optional(),
+        paidBy: z.string().trim().min(1, 'Payer is required').optional(),
+        splitType: z.enum(splitTypeValues).optional(),
+        participants: z
+            .array(z.string().trim().min(1, 'Participant ID is required'))
+            .min(1, 'At least one participant is required')
+            .optional(),
+        splits: z.array(expenseSplitSchema).optional(),
+        receiptUrl: z
+            .union([
+                z.string().url('Receipt URL must be a valid URL'),
+                z.literal(''),
+            ])
+            .optional(),
     })
-    .messages({
-        'date.format': 'Date must be a string in ISO 8601 format',
-        'date.utc': 'Date must be in UTC format (YYYY-MM-DDTHH:mm:ss.sssZ or YYYY-MM-DDTHH:mm:ssZ)',
-        'date.invalid': 'Invalid date format',
-        'date.max': 'Date cannot be in the future',
-        'date.min': 'Date cannot be more than 10 years in the past',
+    .superRefine((value, ctx) => {
+        if (
+            value.amount === undefined &&
+            value.currency === undefined &&
+            value.description === undefined &&
+            value.category === undefined &&
+            value.date === undefined &&
+            value.paidBy === undefined &&
+            value.splitType === undefined &&
+            value.participants === undefined &&
+            value.splits === undefined &&
+            value.receiptUrl === undefined
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'No valid fields to update',
+            });
+        }
     });
 
-// Keep the old schema name for backward compatibility but use UTC validation
-const dateValidationSchema = utcDateValidationSchema;
+const createExpenseErrorMapper = createZodErrorMapper(
+    {
+        groupId: {
+            code: 'MISSING_GROUP_ID',
+            message: () => 'Group ID is required',
+        },
+        paidBy: {
+            code: 'MISSING_PAYER',
+            message: () => 'Payer is required',
+        },
+        amount: {
+            code: 'INVALID_AMOUNT',
+            message: () => 'Amount must be a positive number',
+        },
+        description: {
+            code: 'INVALID_DESCRIPTION',
+            message: (issue) => {
+                if (issue.code === 'invalid_type' || issue.code === 'too_small' || issue.message === 'Required') {
+                    return 'Description is required';
+                }
+                return issue.message;
+            },
+        },
+        category: {
+            code: 'INVALID_CATEGORY',
+            message: () => 'Category must be between 1 and 50 characters',
+        },
+        date: {
+            code: 'INVALID_DATE',
+            message: (issue) => issue.message,
+        },
+        splitType: {
+            code: 'INVALID_SPLIT_TYPE',
+            message: () => 'Split type must be equal, exact, or percentage',
+        },
+        participants: {
+            code: 'INVALID_PARTICIPANTS',
+            message: (issue) => issue.message,
+        },
+        splits: {
+            code: 'INVALID_INPUT',
+            message: (issue) => issue.message,
+        },
+        receiptUrl: {
+            code: 'INVALID_INPUT',
+            message: (issue) => issue.message,
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: (issue) => issue.message,
+    },
+);
 
-const createExpenseSchema = Joi.object({
-    groupId: Joi.string().required(),
-    paidBy: Joi.string().required(),
-    amount: createAmountSchema().required(),
-    currency: Joi.string().length(3).uppercase().required(),
-    description: Joi.string().trim().min(1).max(200).required(),
-    category: Joi.string().trim().min(1).max(50).required(),
-    date: dateValidationSchema.required(),
-    splitType: Joi.string().valid(SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE).required(),
-    participants: Joi.array().items(Joi.string()).min(1).required(),
-    splits: Joi.array().items(expenseSplitSchema).required(),
-    receiptUrl: Joi.string().uri().optional().allow(''),
-});
+const baseCreateExpenseValidator = createRequestValidator({
+    schema: createExpenseSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => {
+        const receiptUrl =
+            value.receiptUrl !== undefined ? sanitizeInputString(value.receiptUrl) : undefined;
 
-const updateExpenseSchema = Joi
-    .object({
-        amount: createAmountSchema().optional(),
-        currency: Joi.string().length(3).uppercase().optional(),
-        description: Joi.string().trim().min(1).max(200).optional(),
-        category: Joi.string().trim().min(1).max(50).optional(),
-        date: dateValidationSchema.optional(),
-        paidBy: Joi.string().optional(),
-        splitType: Joi.string().valid(SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE).optional(),
-        participants: Joi.array().items(Joi.string()).min(1).optional(),
-        splits: Joi.array().items(expenseSplitSchema).optional(),
-        receiptUrl: Joi.string().uri().optional().allow(''),
-    })
-    .min(1);
+        return {
+            groupId: toGroupId(value.groupId.trim()),
+            paidBy: value.paidBy.trim(),
+            amount: value.amount,
+            currency: value.currency,
+            description: sanitizeInputString(value.description),
+            category: sanitizeInputString(value.category),
+            date: toISOString(value.date),
+            splitType: value.splitType,
+            participants: value.participants.map((participant) => participant.trim()),
+            splits: value.splits.map((split) => ({
+                uid: split.uid.trim(),
+                amount: split.amount,
+                percentage: split.percentage,
+            })),
+            receiptUrl,
+        } satisfies CreateExpenseRequest;
+    },
+    mapError: (error) => createExpenseErrorMapper(error),
+}) as (body: unknown) => CreateExpenseRequest;
 
-const sanitizeExpenseData = <T extends CreateExpenseRequest | UpdateExpenseRequest>(data: T): T => {
-    const sanitized = { ...data };
+const updateExpenseErrorMapperBase = createZodErrorMapper(
+    {
+        amount: {
+            code: 'INVALID_AMOUNT',
+            message: () => 'Amount must be a positive number',
+        },
+        description: {
+            code: 'INVALID_DESCRIPTION',
+            message: (issue) => {
+                if (issue.code === 'invalid_type' || issue.code === 'too_small' || issue.message === 'Required') {
+                    return 'Description cannot be empty';
+                }
+                return issue.message;
+            },
+        },
+        category: {
+            code: 'INVALID_CATEGORY',
+            message: () => 'Category must be between 1 and 50 characters',
+        },
+        date: {
+            code: 'INVALID_DATE',
+            message: (issue) => issue.message,
+        },
+        splitType: {
+            code: 'INVALID_SPLIT_TYPE',
+            message: () => 'Split type must be equal, exact, or percentage',
+        },
+        participants: {
+            code: 'INVALID_PARTICIPANTS',
+            message: (issue) => issue.message,
+        },
+        splits: {
+            code: 'INVALID_SPLITS',
+            message: (issue) => issue.message,
+        },
+        receiptUrl: {
+            code: 'INVALID_RECEIPT_URL',
+            message: (issue) => issue.message,
+        },
+    },
+    {
+        defaultCode: 'INVALID_INPUT',
+        defaultMessage: (issue) => issue.message,
+    },
+);
 
-    if ('description' in sanitized && typeof sanitized.description === 'string') {
-        sanitized.description = sanitizeString(sanitized.description);
+const mapUpdateExpenseError = (error: z.ZodError): never => {
+    if (error.issues.some((issue) => issue.message === 'No valid fields to update')) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'NO_UPDATE_FIELDS', 'No valid fields to update');
     }
 
-    if ('category' in sanitized && typeof sanitized.category === 'string') {
-        sanitized.category = sanitizeString(sanitized.category);
-    }
-
-    if ('receiptUrl' in sanitized && typeof sanitized.receiptUrl === 'string') {
-        sanitized.receiptUrl = sanitizeString(sanitized.receiptUrl);
-    }
-
-    return sanitized;
+    return updateExpenseErrorMapperBase(error);
 };
 
-export const validateExpenseId = (id: any): ExpenseId => {
+const baseUpdateExpenseValidator = createRequestValidator({
+    schema: updateExpenseSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => {
+        const update: UpdateExpenseRequest = {};
+
+        if (value.amount !== undefined) {
+            update.amount = value.amount;
+        }
+
+        if (value.currency !== undefined) {
+            update.currency = value.currency;
+        }
+
+        if (value.description !== undefined) {
+            update.description = sanitizeInputString(value.description);
+        }
+
+        if (value.category !== undefined) {
+            update.category = sanitizeInputString(value.category);
+        }
+
+        if (value.date !== undefined) {
+            update.date = toISOString(value.date);
+        }
+
+        if (value.paidBy !== undefined) {
+            update.paidBy = value.paidBy.trim();
+        }
+
+        if (value.splitType !== undefined) {
+            update.splitType = value.splitType;
+        }
+
+        if (value.participants !== undefined) {
+            update.participants = value.participants.map((participant) => participant.trim());
+        }
+
+        if (value.splits !== undefined) {
+            update.splits = value.splits.map((split) => ({
+                uid: split.uid.trim(),
+                amount: split.amount,
+                percentage: split.percentage,
+            }));
+        }
+
+        if (value.receiptUrl !== undefined) {
+            update.receiptUrl = sanitizeInputString(value.receiptUrl);
+        }
+
+        return update;
+    },
+    mapError: (error) => mapUpdateExpenseError(error),
+}) as (body: unknown) => UpdateExpenseRequest;
+
+export const validateExpenseId = (id: unknown): ExpenseId => {
     if (typeof id !== 'string' || !id.trim()) {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_ID', 'Invalid expense ID');
     }
+
     return toExpenseId(id.trim());
 };
 
-export const validateCreateExpense = (body: any): CreateExpenseRequest => {
-    const { error, value } = createExpenseSchema.validate(body, { abortEarly: false });
+export const validateCreateExpense = (body: unknown): CreateExpenseRequest => {
+    const value = baseCreateExpenseValidator(body);
 
-    if (error) {
-        const firstError = error.details[0];
-        let errorCode = 'INVALID_INPUT';
-        let errorMessage = firstError.message;
-
-        if (firstError.path.includes('groupId')) {
-            errorCode = 'MISSING_GROUP_ID';
-            errorMessage = 'Group ID is required';
-        } else if (firstError.path.includes('paidBy')) {
-            errorCode = 'MISSING_PAYER';
-            errorMessage = 'Payer is required';
-        } else if (firstError.path.includes('amount')) {
-            errorCode = 'INVALID_AMOUNT';
-            errorMessage = 'Amount must be a positive number';
-        } else if (firstError.path.includes('description')) {
-            errorCode = 'INVALID_DESCRIPTION';
-            errorMessage = 'Description is required';
-        } else if (firstError.path.includes('category')) {
-            errorCode = 'INVALID_CATEGORY';
-            errorMessage = 'Category must be between 1 and 50 characters';
-        } else if (firstError.path.includes('date')) {
-            errorCode = 'INVALID_DATE';
-            errorMessage = firstError.message || 'Invalid date format';
-        } else if (firstError.path.includes('splitType')) {
-            errorCode = 'INVALID_SPLIT_TYPE';
-            errorMessage = 'Split type must be equal, exact, or percentage';
-        } else if (firstError.path.includes('participants')) {
-            errorCode = 'INVALID_PARTICIPANTS';
-            errorMessage = 'At least one participant is required';
-        }
-
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
-    }
-
-    // Date validation is now handled by Joi schema
     if (!value.participants.includes(value.paidBy)) {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'PAYER_NOT_PARTICIPANT', 'Payer must be a participant');
     }
 
-    // Validate main expense amount precision for currency
     try {
         validateAmountPrecision(value.amount, value.currency);
     } catch (error) {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
     }
 
-    // Validate split amounts precision if splits are provided
-    if (value.splits && Array.isArray(value.splits)) {
-        for (const split of value.splits) {
-            if (split.amount !== undefined) {
-                try {
-                    validateAmountPrecision(split.amount, value.currency);
-                } catch (error) {
-                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_AMOUNT_PRECISION', (error as Error).message);
-                }
+    for (const split of value.splits) {
+        if (split.amount !== undefined) {
+            try {
+                validateAmountPrecision(split.amount, value.currency);
+            } catch (error) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_AMOUNT_PRECISION', (error as Error).message);
             }
         }
     }
 
-    // Use strategy pattern to validate splits based on split type
     const splitStrategyFactory = SplitStrategyFactory.getInstance();
     const splitStrategy = splitStrategyFactory.getStrategy(value.splitType);
     splitStrategy.validateSplits(value.amount, value.participants, value.splits, value.currency);
 
-    const expenseData = {
-        groupId: value.groupId.trim(),
-        paidBy: value.paidBy.trim(),
-        amount: value.amount,
-        currency: value.currency,
-        description: value.description.trim(),
-        category: value.category,
-        date: value.date,
-        splitType: value.splitType,
-        participants: value.participants.map((p: string) => p.trim()),
-        splits: value.splits,
-        receiptUrl: value.receiptUrl?.trim(),
-    };
-
-    return sanitizeExpenseData(expenseData);
+    return value;
 };
 
-export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
-    const { error, value } = updateExpenseSchema.validate(body, { abortEarly: false });
+export const validateUpdateExpense = (body: unknown): UpdateExpenseRequest => {
+    const update = baseUpdateExpenseValidator(body);
 
-    if (error) {
-        const firstError = error.details[0];
-        let errorCode = 'INVALID_INPUT';
-        let errorMessage = firstError.message;
-
-        if (firstError.path.includes('amount')) {
-            errorCode = 'INVALID_AMOUNT';
-            errorMessage = 'Amount must be a positive number';
-        } else if (firstError.path.includes('description')) {
-            errorCode = 'INVALID_DESCRIPTION';
-            errorMessage = 'Description cannot be empty';
-        } else if (firstError.path.includes('category')) {
-            errorCode = 'INVALID_CATEGORY';
-            errorMessage = 'Category must be between 1 and 50 characters';
-        } else if (firstError.path.includes('date')) {
-            errorCode = 'INVALID_DATE';
-            errorMessage = firstError.message || 'Invalid date format';
-        } else if (firstError.path.includes('splitType')) {
-            errorCode = 'INVALID_SPLIT_TYPE';
-            errorMessage = 'Split type must be equal, exact, or percentage';
-        } else if (firstError.path.includes('participants')) {
-            errorCode = 'INVALID_PARTICIPANTS';
-            errorMessage = 'At least one participant is required';
-        } else if (firstError.message.includes('at least 1 key')) {
-            errorCode = 'NO_UPDATE_FIELDS';
-            errorMessage = 'No valid fields to update';
-        }
-
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
-    }
-
-    const update: UpdateExpenseRequest = {};
-
-    if ('amount' in value) {
-        update.amount = value.amount;
-    }
-
-    if ('currency' in value) {
-        update.currency = value.currency;
-    }
-
-    // Validate amount precision if both amount and currency are provided
-    if ('amount' in update && 'currency' in update) {
+    if (update.amount !== undefined && update.currency !== undefined) {
         try {
-            validateAmountPrecision(update.amount!, update.currency!);
+            validateAmountPrecision(update.amount, update.currency);
         } catch (error) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
         }
     }
 
-    if ('description' in value) {
-        update.description = value.description.trim();
-    }
+    const requiresSplitValidation =
+        update.amount !== undefined ||
+        update.splitType !== undefined ||
+        update.participants !== undefined ||
+        update.splits !== undefined;
 
-    if ('category' in value) {
-        update.category = value.category;
-    }
-
-    if ('date' in value) {
-        // Date validation is now handled by Joi schema
-        update.date = value.date;
-    }
-
-    if ('paidBy' in value) {
-        update.paidBy = value.paidBy;
-    }
-
-    // If amount, splitType, participants, or splits are being updated, require complete split information
-    if ('amount' in value || 'splitType' in value || 'participants' in value || 'splits' in value) {
-        const splitType = value.splitType || SplitTypes.EQUAL;
-        if (!value.participants) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_PARTICIPANTS', 'Participants are required for split updates');
+    if (requiresSplitValidation) {
+        if (!update.participants) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'MISSING_PARTICIPANTS',
+                'Participants are required for split updates',
+            );
         }
 
-        // Validate split amounts precision if currency is available and splits are provided
-        if (value.currency && value.splits && Array.isArray(value.splits)) {
-            for (const split of value.splits) {
+        if (!update.splits || update.splits.length !== update.participants.length) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'INVALID_SPLITS',
+                'Splits must be provided for all participants',
+            );
+        }
+
+        if (update.currency && update.splits) {
+            for (const split of update.splits) {
                 if (split.amount !== undefined) {
                     try {
-                        validateAmountPrecision(split.amount, value.currency);
+                        validateAmountPrecision(split.amount, update.currency);
                     } catch (error) {
-                        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_AMOUNT_PRECISION', (error as Error).message);
+                        throw new ApiError(
+                            HTTP_STATUS.BAD_REQUEST,
+                            'INVALID_SPLIT_AMOUNT_PRECISION',
+                            (error as Error).message,
+                        );
                     }
                 }
             }
         }
 
-        // Splits are always required
-        if (!Array.isArray(value.splits) || value.splits.length !== value.participants.length) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
-        }
-
-        // Use strategy pattern to validate splits for updates
-        // Note: amount validation is not critical here - will be handled when expense is retrieved and updated
+        const splitType = update.splitType ?? SplitTypes.EQUAL;
         const splitStrategyFactory = SplitStrategyFactory.getInstance();
         const splitStrategy = splitStrategyFactory.getStrategy(splitType);
-        splitStrategy.validateSplits(value.amount, value.participants, value.splits, value.currency);
+
+        // amount and currency are required for split validation but may be undefined in updates
+        // If they're not provided in the update, they should be fetched from the existing expense
+        // For now, we'll pass undefined and let the split strategy handle it, or require both
+        if (update.amount !== undefined && update.currency !== undefined) {
+            splitStrategy.validateSplits(update.amount, update.participants, update.splits, update.currency);
+        }
 
         update.splitType = splitType;
-        update.participants = value.participants.map((p: string) => p.trim());
-        update.splits = value.splits;
     }
 
-    if ('receiptUrl' in value) {
-        update.receiptUrl = value.receiptUrl?.trim();
+    if (update.receiptUrl !== undefined && update.receiptUrl === '') {
+        update.receiptUrl = '';
     }
 
-    // If both paidBy and participants are being updated, ensure paidBy is in participants
-    if ('paidBy' in update && 'participants' in update) {
-        if (!update.participants!.includes(update.paidBy!)) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'PAYER_NOT_PARTICIPANT', 'Payer must be a participant');
-        }
+    if (update.participants && update.paidBy && !update.participants.includes(update.paidBy)) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'PAYER_NOT_PARTICIPANT', 'Payer must be a participant');
     }
 
-    return sanitizeExpenseData(update);
+    return update;
 };

@@ -22,7 +22,7 @@
   "engines": {
     "node": "22"
   },
-  "main": "lib/index.bundled.js",
+  "main": "lib/index.js",
   "dependencies": {
     "@splitifyd/firebase-simulator": "*",
     "@splitifyd/shared": "*",

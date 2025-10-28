@@ -1,7 +1,7 @@
 import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@splitifyd/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
-import { createSettlementSchema } from '../../../settlements/validation';
+import { validateCreateSettlement } from '../../../settlements/validation';
 import { ApiError } from '../../../utils/errors';
 
 describe('Currency-Aware Amount Validation', () => {
@@ -147,8 +147,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withAmount(99.99, 'USD')
                 .build();
 
-            const { error } = createSettlementSchema.validate(settlementData);
-            expect(error).toBeUndefined();
+            expect(() => validateCreateSettlement(settlementData)).not.toThrow();
         });
 
         it('should reject incorrect decimal precision for JPY settlement', () => {
@@ -156,9 +155,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withAmount(100.5, 'JPY')
                 .build();
 
-            const { error } = createSettlementSchema.validate(settlementData);
-            expect(error).toBeDefined();
-            expect(error?.message).toMatch(/whole number for JPY/);
+            expect(() => validateCreateSettlement(settlementData)).toThrow(/whole number for JPY/);
         });
 
         it('should accept 3 decimals for BHD settlement', () => {
@@ -166,8 +163,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withAmount(10.123, 'BHD')
                 .build();
 
-            const { error } = createSettlementSchema.validate(settlementData);
-            expect(error).toBeUndefined();
+            expect(() => validateCreateSettlement(settlementData)).not.toThrow();
         });
     });
 

@@ -1,119 +1,253 @@
-import { CreateSettlementRequest, UpdateSettlementRequest, toSettlementId, type SettlementId } from '@splitifyd/shared';
-import * as Joi from 'joi';
-import { createJoiAmountSchema } from '../utils/amount-validation';
-import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
+import { CreateSettlementRequest, UpdateSettlementRequest, toSettlementId, type SettlementId, toGroupId, toISOString } from '@splitifyd/shared';
+import { z } from 'zod';
+import { HTTP_STATUS } from '../constants';
+import { validateAmountPrecision } from '../utils/amount-validation';
+import { ApiError } from '../utils/errors';
+import {
+    createAmountSchema,
+    createRequestValidator,
+    createUtcDateSchema,
+    createZodErrorMapper,
+    CurrencyCodeSchema,
+    sanitizeInputString,
+} from '../validation/common';
 
-const amountSchema = createJoiAmountSchema('currency')
-    .required()
-    .messages({
-        'string.base': 'Amount must be provided as a string',
-        'amount.positive': 'Amount must be greater than 0',
-        'amount.max': 'Amount cannot exceed 999,999.99',
-        'amount.precision': '{#message}',
-        'amount.invalid': 'Invalid amount format',
-        'any.required': 'Amount is required',
-    });
+const noteSchema = z
+    .union([
+        z
+            .string()
+            .trim()
+            .max(500, 'Note cannot exceed 500 characters'),
+        z.literal(''),
+    ])
+    .optional();
 
-const noteSchema = Joi.string().max(500).optional().allow('').messages({
-    'string.max': 'Note cannot exceed 500 characters',
-});
+const settlementDateSchema = z
+    .union([
+        createUtcDateSchema(),
+        z.null(),
+    ])
+    .optional();
 
-// UTC-only date validation for settlements
-const dateSchema = Joi
-    .string()
-    .custom((value, helpers) => {
-        // Optional field - allow undefined
-        if (value === undefined || value === null) {
-            return value;
-        }
-
-        // Check if it's in UTC format
-        if (!isUTCFormat(value)) {
-            return helpers.error('date.utc');
-        }
-
-        // Validate the date range and format
-        const validation = validateUTCDate(value, 10);
-        if (!validation.valid) {
-            if (validation.error?.includes('future')) {
-                return helpers.error('date.max');
-            } else if (validation.error?.includes('past')) {
-                return helpers.error('date.min');
-            } else if (validation.error?.includes('Invalid')) {
-                return helpers.error('date.invalid');
-            }
-        }
-
-        return value;
-    })
-    .optional()
-    .messages({
-        'date.utc': 'Date must be in UTC format (YYYY-MM-DDTHH:mm:ss.sssZ)',
-        'date.invalid': 'Invalid date format',
-        'date.max': 'Date cannot be in the future',
-        'date.min': 'Date cannot be more than 10 years in the past',
-    });
-
-export const createSettlementSchema = Joi
-    .object<CreateSettlementRequest>({
-        groupId: Joi.string().required().messages({
-            'any.required': 'Group ID is required',
-        }),
-        payerId: Joi.string().required().messages({
-            'any.required': 'Payer ID is required',
-        }),
-        payeeId: Joi.string().required().messages({
-            'any.required': 'Payee ID is required',
-        }),
-        amount: amountSchema,
-        currency: Joi.string().length(3).uppercase().required(),
-        date: dateSchema,
+export const createSettlementSchema = z
+    .object({
+        groupId: z.string().trim().min(1, 'Group ID is required'),
+        payerId: z.string().trim().min(1, 'Payer ID is required'),
+        payeeId: z.string().trim().min(1, 'Payee ID is required'),
+        amount: createAmountSchema(),
+        currency: CurrencyCodeSchema,
+        date: settlementDateSchema,
         note: noteSchema,
     })
-    .custom((value, helpers) => {
-        if (value.payerId === value.payeeId) {
-            return helpers.error('any.invalid', {
+    .superRefine((value, ctx) => {
+        if (value.payerId && value.payeeId && value.payerId === value.payeeId) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['payeeId'],
                 message: 'Payer and payee cannot be the same person',
             });
         }
-        return value;
+
+        if (value.amount && value.currency) {
+            try {
+                validateAmountPrecision(value.amount, value.currency);
+            } catch (error) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ['amount'],
+                    message: (error as Error).message,
+                });
+            }
+        }
     });
 
-export const updateSettlementSchema = Joi
-    .object<UpdateSettlementRequest>({
-        amount: createJoiAmountSchema('currency')
-            .optional()
-            .messages({
-                'string.base': 'Amount must be provided as a string',
-                'amount.positive': 'Amount must be greater than 0',
-                'amount.max': 'Amount cannot exceed 999,999.99',
-                'amount.precision': '{#message}',
-                'amount.invalid': 'Invalid amount format',
-            }),
-        currency: Joi.string().length(3).uppercase().optional(),
-        date: dateSchema,
+export const updateSettlementSchema = z
+    .object({
+        amount: createAmountSchema().optional(),
+        currency: CurrencyCodeSchema.optional(),
+        date: settlementDateSchema,
         note: noteSchema,
     })
-    .min(1)
-    .messages({
-        'object.min': 'At least one field must be provided for update',
+    .superRefine((value, ctx) => {
+        if (
+            value.amount === undefined &&
+            value.currency === undefined &&
+            value.date === undefined &&
+            value.note === undefined
+        ) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'At least one field must be provided for update',
+            });
+        }
+
+        if (value.amount !== undefined && value.currency !== undefined) {
+            try {
+                validateAmountPrecision(value.amount, value.currency);
+            } catch (error) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    path: ['amount'],
+                    message: (error as Error).message,
+                });
+            }
+        }
     });
 
-const baseSettlementIdSchema = Joi
-    .string()
-    .required()
-    .custom((value: string) => toSettlementId(value))
-    .messages({
-        'any.required': 'Settlement ID is required',
-        'string.empty': 'Settlement ID cannot be empty',
-    });
+const createSettlementErrorMapper = createZodErrorMapper(
+    {
+        groupId: {
+            code: 'VALIDATION_ERROR',
+            message: () => 'Group ID is required',
+        },
+        payerId: {
+            code: 'VALIDATION_ERROR',
+            message: () => 'Payer ID is required',
+        },
+        payeeId: {
+            code: 'VALIDATION_ERROR',
+            message: (issue) => issue.message ?? 'Payee ID is required',
+        },
+        amount: {
+            code: 'VALIDATION_ERROR',
+            message: (issue) => issue.message,
+        },
+        currency: {
+            code: 'VALIDATION_ERROR',
+            message: (issue) => issue.message,
+        },
+        date: {
+            code: 'VALIDATION_ERROR',
+            message: (issue) => issue.message,
+        },
+        note: {
+            code: 'VALIDATION_ERROR',
+            message: (issue) => issue.message,
+        },
+    },
+    {
+        defaultCode: 'VALIDATION_ERROR',
+        defaultMessage: (issue) => issue.message,
+    },
+);
 
-export const settlementIdSchema = baseSettlementIdSchema as Joi.StringSchema;
+const updateSettlementErrorMapperBase = createZodErrorMapper(
+    {
+        amount: {
+            code: 'VALIDATION_ERROR',
+            message: (issue) => issue.message,
+        },
+        currency: {
+            code: 'VALIDATION_ERROR',
+            message: (issue) => issue.message,
+        },
+        date: {
+            code: 'VALIDATION_ERROR',
+            message: (issue) => issue.message,
+        },
+        note: {
+            code: 'VALIDATION_ERROR',
+            message: (issue) => issue.message,
+        },
+    },
+    {
+        defaultCode: 'VALIDATION_ERROR',
+        defaultMessage: (issue) => issue.message,
+    },
+);
 
-export const validateSettlementId = (value: string): SettlementId => {
-    const { error, value: parsed } = settlementIdSchema.validate(value);
-    if (error) {
-        throw error;
+const baseValidateCreateSettlement = createRequestValidator({
+    schema: createSettlementSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => {
+        const date =
+            value.date === null || value.date === undefined ? undefined : value.date;
+        const note =
+            value.note === undefined ? undefined : sanitizeInputString(value.note);
+
+        return {
+            groupId: toGroupId(value.groupId.trim()),
+            payerId: value.payerId.trim(),
+            payeeId: value.payeeId.trim(),
+            amount: value.amount,
+            currency: value.currency,
+            date: date !== undefined ? toISOString(date) : undefined,
+            note,
+        } satisfies CreateSettlementRequest;
+    },
+    mapError: (error) => createSettlementErrorMapper(error),
+}) as (body: unknown) => CreateSettlementRequest;
+
+const mapUpdateSettlementError = (error: z.ZodError): never => {
+    if (error.issues.some((issue) => issue.message === 'At least one field must be provided for update')) {
+        throw new ApiError(
+            HTTP_STATUS.BAD_REQUEST,
+            'VALIDATION_ERROR',
+            'At least one field must be provided for update',
+        );
     }
-    return parsed as SettlementId;
+
+    return updateSettlementErrorMapperBase(error);
+};
+
+const baseValidateUpdateSettlement = createRequestValidator({
+    schema: updateSettlementSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => {
+        const update: UpdateSettlementRequest = {};
+
+        if (value.amount !== undefined) {
+            update.amount = value.amount;
+        }
+
+        if (value.currency !== undefined) {
+            update.currency = value.currency;
+        }
+
+        if (value.date !== undefined) {
+            if (value.date !== null) {
+                update.date = toISOString(value.date);
+            }
+        }
+
+        if (value.note !== undefined) {
+            update.note = sanitizeInputString(value.note);
+        }
+
+        return update;
+    },
+    mapError: (error) => mapUpdateSettlementError(error),
+}) as (body: unknown) => UpdateSettlementRequest;
+
+export const settlementIdSchema = z
+    .string()
+    .trim()
+    .min(1, 'Settlement ID cannot be empty');
+
+export const validateCreateSettlement = (body: unknown): CreateSettlementRequest => {
+    return baseValidateCreateSettlement(body);
+};
+
+export const validateUpdateSettlement = (body: unknown): UpdateSettlementRequest => {
+    return baseValidateUpdateSettlement(body);
+};
+
+export const validateSettlementId = (value: unknown): SettlementId => {
+    const result = settlementIdSchema.safeParse(value);
+    if (!result.success) {
+        const [issue] = result.error.issues;
+        throw new ApiError(
+            HTTP_STATUS.BAD_REQUEST,
+            'INVALID_SETTLEMENT_ID',
+            issue.message,
+        );
+    }
+
+    return toSettlementId(result.data);
+};
+
+export const schemas = {
+    createSettlementSchema,
+    updateSettlementSchema,
+    settlementIdSchema,
 };

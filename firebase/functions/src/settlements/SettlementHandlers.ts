@@ -1,4 +1,3 @@
-import { CreateSettlementRequest, UpdateSettlementRequest } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
@@ -7,11 +6,9 @@ import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
 import { ComponentBuilder } from '../services/ComponentBuilder';
 import { SettlementService } from '../services/SettlementService';
-import { validateAmountPrecision } from '../utils/amount-validation';
 import { logger } from '../utils/contextual-logger';
-import { ApiError } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
-import { createSettlementSchema, settlementIdSchema, updateSettlementSchema, validateSettlementId } from './validation';
+import { validateCreateSettlement, validateSettlementId, validateUpdateSettlement } from './validation';
 
 export class SettlementHandlers {
     constructor(private readonly settlementService: SettlementService) {
@@ -25,21 +22,7 @@ export class SettlementHandlers {
     createSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = validateUserAuth(req);
 
-        const { error, value } = createSettlementSchema.validate(req.body);
-        if (error) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'VALIDATION_ERROR', error.details[0].message);
-        }
-
-        const settlementData: CreateSettlementRequest = value;
-
-        // Validate settlement amount precision for currency
-        // Note: Joi validation also validates precision, but we add explicit validation
-        // for consistency with expense validation and to handle edge cases
-        try {
-            validateAmountPrecision(settlementData.amount, settlementData.currency);
-        } catch (error) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
-        }
+        const settlementData = validateCreateSettlement(req.body);
 
         const settlement = await this.settlementService.createSettlement(settlementData, userId);
 
@@ -52,30 +35,9 @@ export class SettlementHandlers {
     updateSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = validateUserAuth(req);
 
-        const { error: idError } = settlementIdSchema.validate(req.params.settlementId);
-        if (idError) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SETTLEMENT_ID', idError.details[0].message);
-        }
-
         const settlementId = validateSettlementId(req.params.settlementId);
 
-        const { error, value } = updateSettlementSchema.validate(req.body);
-        if (error) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'VALIDATION_ERROR', error.details[0].message);
-        }
-
-        const updateData: UpdateSettlementRequest = value;
-
-        // Validate amount precision if both amount and currency are provided
-        // Note: If only amount is provided without currency, we cannot validate precision
-        // without fetching the existing settlement. This matches the expense update pattern.
-        if (updateData.amount !== undefined && updateData.currency !== undefined) {
-            try {
-                validateAmountPrecision(updateData.amount, updateData.currency);
-            } catch (error) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_AMOUNT_PRECISION', (error as Error).message);
-            }
-        }
+        const updateData = validateUpdateSettlement(req.body);
 
         const settlement = await this.settlementService.updateSettlement(settlementId, updateData, userId);
 
@@ -88,12 +50,6 @@ export class SettlementHandlers {
     deleteSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = validateUserAuth(req);
 
-        const { error } = settlementIdSchema.validate(req.params.settlementId);
-        if (error) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SETTLEMENT_ID', error.details[0].message);
-        }
-
-        // Use soft delete instead of hard delete
         const settlementId = validateSettlementId(req.params.settlementId);
         await this.settlementService.softDeleteSettlement(settlementId, userId);
 

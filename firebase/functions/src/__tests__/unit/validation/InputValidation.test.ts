@@ -1,7 +1,7 @@
 import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@splitifyd/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
-import { createSettlementSchema } from '../../../settlements/validation';
+import { validateCreateSettlement } from '../../../settlements/validation';
 import { ApiError } from '../../../utils/errors';
 
 describe('Input Validation Unit Tests', () => {
@@ -324,9 +324,7 @@ describe('Input Validation Unit Tests', () => {
                 .withAmount(-50, 'USD')
                 .build();
 
-            const { error } = createSettlementSchema.validate(settlementData);
-            expect(error).toBeDefined();
-            expect(error?.message).toContain('valid decimal number');
+            expect(() => validateCreateSettlement(settlementData)).toThrow(/valid decimal number/);
         });
 
         it('should reject zero settlement amounts', () => {
@@ -334,9 +332,7 @@ describe('Input Validation Unit Tests', () => {
                 .withAmount(0, 'USD')
                 .build();
 
-            const { error } = createSettlementSchema.validate(settlementData);
-            expect(error).toBeDefined();
-            expect(error?.message).toContain('greater than 0');
+            expect(() => validateCreateSettlement(settlementData)).toThrow(/greater than zero/);
         });
 
         it('should validate settlement amount does not exceed maximum', () => {
@@ -344,9 +340,7 @@ describe('Input Validation Unit Tests', () => {
                 .withAmount(1000000, 'USD')
                 .build();
 
-            const { error } = createSettlementSchema.validate(settlementData);
-            expect(error).toBeDefined();
-            expect(error?.message).toContain('999,999.99');
+            expect(() => validateCreateSettlement(settlementData)).toThrow(/999,999\.99/);
         });
 
         it('should accept valid settlement amounts', () => {
@@ -356,8 +350,7 @@ describe('Input Validation Unit Tests', () => {
                 .withPayeeId('user2')
                 .build();
 
-            const { error, value } = createSettlementSchema.validate(settlementData);
-            expect(error).toBeUndefined();
+            const value = validateCreateSettlement(settlementData);
             expect(value.amount).toBe('50');
             expect(value.payerId).toBe('user1');
             expect(value.payeeId).toBe('user2');

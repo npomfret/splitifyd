@@ -28,14 +28,16 @@
    - ✅ Auth (`firebase/functions/src/auth/validation.ts`, `firebase/functions/src/services/auth/auth-validation.ts`) now uses shared Zod helpers.
    - ✅ User profile/change-password validators migrated to shared Zod helpers.
    - ✅ Policies & Comments now consume shared primitives and pagination helpers.
-   - ☐ Expenses & Settlements to align with shared amount/date schemas.
+   - ✅ Expenses & Settlements refactored to shared Zod helpers (amount/date schemas, unified error mapping, sanitisation).
 5. **Optional Zod Convergence**
    - ☐ Evaluate moving remaining request schemas into `@splitifyd/shared` once migrations complete.
-   - ✅ Audited webapp: no Joi usage; runtime Zod validation already centralised via `apiClient` + shared response schemas.
-   - ☐ Design shared request-schema surface (likely under `@splitifyd/shared/src/schemas/apiRequests.ts`) so both server and client can reference the same definitions once server migrations stabilise.
+   - ✅ Re-ran webapp audit: no runtime Joi usage; Zod already centralised via `apiClient` + shared response schemas.
+   - ☐ Design shared request-schema surface (likely under `@splitifyd/shared/src/schemas/apiRequests.ts`) so both server and Firebase functions share DTO definitions post-migration.
 6. **Documentation & Tooling**
    - ✅ Added first-pass validation strategy guide.
    - ☐ Introduce lint/codemod guardrails against new Joi usage; update developer docs after next migrations.
+   - ☐ Update `docs/firebase-api-surface.md` and any remaining references that still describe Joi validators.
+   - ☐ Remove dead Joi helpers (e.g. `createJoiAmountSchema`) once downstream modules stop importing them.
 
 ## Deliverables
 - Shared validation utilities module under `firebase/functions/src/validation/`.
