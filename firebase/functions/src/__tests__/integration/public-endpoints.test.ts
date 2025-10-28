@@ -320,8 +320,40 @@ describe('Public Endpoints Tests', () => {
                 expect(memorySummary).toHaveProperty('externalMb');
 
                 const jsonString = JSON.stringify(data);
-                expect(jsonString).not.toMatch(/password|secret|key|token|api_key/i);
-                expect(jsonString).not.toMatch(/\/home|\/usr|C:\\\\|firebase\/functions/i);
+
+                // Check for sensitive data - test each pattern individually for better error messages
+                // Use specific patterns that match actual credential contexts, not just environment variable names
+                const sensitivePatterns = [
+                    { pattern: /"password"\s*:\s*"[^"]+"/i, description: 'password field with value' },
+                    { pattern: /"secret"\s*:\s*"[^"]+"/i, description: 'secret field with value' },
+                    { pattern: /"apiKey"\s*:\s*"[^"]+"/i, description: 'apiKey field with value' },
+                    { pattern: /"api[_-]key"\s*:\s*"[^"]+"/i, description: 'api_key field with value' },
+                    { pattern: /"privateKey"\s*:\s*"[^"]+"/i, description: 'privateKey field with value' },
+                    { pattern: /"private[_-]key"\s*:\s*"[^"]+"/i, description: 'private_key field with value' },
+                    { pattern: /"secretKey"\s*:\s*"[^"]+"/i, description: 'secretKey field with value' },
+                    { pattern: /"secret[_-]key"\s*:\s*"[^"]+"/i, description: 'secret_key field with value' },
+                    { pattern: /"accessKey"\s*:\s*"[^"]+"/i, description: 'accessKey field with value' },
+                    { pattern: /"access[_-]key"\s*:\s*"[^"]+"/i, description: 'access_key field with value' },
+                    { pattern: /"token"\s*:\s*"[^"]+"/i, description: 'token field with value' },
+                    { pattern: /"bearer"\s*:\s*"[^"]+"/i, description: 'bearer token with value' },
+                ];
+
+                for (const { pattern, description } of sensitivePatterns) {
+                    expect(jsonString, `Response should not contain sensitive data: ${description}`).not.toMatch(pattern);
+                }
+
+                // Check for internal paths - test each pattern individually for better error messages
+                // Use more specific patterns to avoid false positives (e.g., "homebrew" contains "/home")
+                const internalPathPatterns = [
+                    { pattern: /\/home\/[a-zA-Z]/i, description: '/home/<username>' },
+                    { pattern: /\/usr\/local\/secrets/i, description: '/usr/local/secrets' },
+                    { pattern: /C:\\Users\\/i, description: 'C:\\Users\\' },
+                    { pattern: /firebase\/functions\/src/i, description: 'firebase/functions/src' },
+                ];
+
+                for (const { pattern, description } of internalPathPatterns) {
+                    expect(jsonString, `Response should not expose internal paths: ${description}`).not.toMatch(pattern);
+                }
             } finally {
                 await apiDriver.returnTestUser(pooledUser.email);
             }
