@@ -6,8 +6,8 @@ import { getConfig } from '../client-config';
 import { HTTP_STATUS, SYSTEM } from '../constants';
 import { getAuth } from '../firebase';
 import { BUILD_INFO } from '../utils/build-info';
-import { timestampToISO } from '../utils/dateHelpers';
 import { APP_VERSION } from '../utils/version';
+import {toISOString} from "@splitifyd/shared";
 
 export type HealthCheckMap = Record<
     string,
@@ -98,7 +98,7 @@ export const buildEnvPayload = () => {
 
     return {
         status: {
-            timestamp: timestampToISO(new Date()),
+            timestamp: toISOString(new Date().toISOString()),
             environment: config.instanceMode,
             nodeVersion: process.version,
             uptimeSeconds,
@@ -191,7 +191,7 @@ export const calculateOverallHealth = (checks: HealthCheckMap): 'healthy' | 'unh
 
 export const buildHealthPayload = (checks: HealthCheckMap) => ({
     status: calculateOverallHealth(checks),
-    timestamp: timestampToISO(new Date()),
+    timestamp: toISOString(new Date().toISOString()),
     checks,
 });
 

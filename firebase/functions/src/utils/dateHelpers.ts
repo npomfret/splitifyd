@@ -1,4 +1,5 @@
 import { FieldValue, Timestamp } from '../firestore-wrapper';
+import {ISOString} from "@splitifyd/shared";
 
 /**
  * Date handling utilities for consistent timestamp management across the application.
@@ -53,21 +54,6 @@ export const parseISOToTimestamp = (isoString: string): Timestamp | null => {
 };
 
 /**
- * Converts Firestore Timestamp or Date to ISO string
- * @param value - Firestore Timestamp or Date
- * @returns ISO 8601 string
- */
-export const timestampToISO = (value: Timestamp | Date | string): string => {
-    if (value instanceof Timestamp) {
-        return value.toDate().toISOString();
-    } else if (typeof value === 'string') {
-        // hack
-        return value.toString();
-    }
-    return value.toISOString();
-};
-
-/**
  * Validates date is within acceptable range
  * @param date - Date to validate
  * @param maxYearsAgo - Maximum years in the past (default 10)
@@ -106,65 +92,13 @@ export const getRelativeTime = (timestamp: Timestamp): string => {
  * @param isoString - ISO date string
  * @returns Firestore Timestamp (current time if invalid)
  */
-export const safeParseISOToTimestamp = (isoString: string | undefined): Timestamp => {
+export const safeParseISOToTimestamp = (isoString: ISOString | undefined): Timestamp => {
     if (!isoString) {
         return createOptimisticTimestamp();
     }
 
     const parsed = parseISOToTimestamp(isoString);
     return parsed || createOptimisticTimestamp();
-};
-
-/**
- * Format a timestamp for display in logs
- * @param timestamp - Firestore Timestamp
- * @returns Formatted string for logging
- */
-export const formatForLog = (timestamp: Timestamp): string => {
-    return `${timestampToISO(timestamp)} (${getRelativeTime(timestamp)})`;
-};
-
-/**
- * Check if a timestamp is within a date range
- * @param timestamp - Timestamp to check
- * @param startDate - Start of range (optional)
- * @param endDate - End of range (optional)
- * @returns boolean
- */
-export const isInDateRange = (timestamp: Timestamp, startDate?: Date, endDate?: Date): boolean => {
-    const date = timestamp.toDate();
-
-    if (startDate && date < startDate) {
-        return false;
-    }
-
-    if (endDate && date > endDate) {
-        return false;
-    }
-
-    return true;
-};
-
-/**
- * Get the start of day timestamp
- * @param date - Date to get start of day for (optional, defaults to today)
- * @returns Firestore Timestamp at 00:00:00
- */
-export const getStartOfDay = (date?: Date): Timestamp => {
-    const d = date ? new Date(date) : new Date(); // Create a copy to avoid mutating original
-    d.setUTCHours(0, 0, 0, 0);
-    return Timestamp.fromDate(d);
-};
-
-/**
- * Get the end of day timestamp
- * @param date - Date to get end of day for (optional, defaults to today)
- * @returns Firestore Timestamp at 23:59:59.999
- */
-export const getEndOfDay = (date?: Date): Timestamp => {
-    const d = date ? new Date(date) : new Date(); // Create a copy to avoid mutating original
-    d.setUTCHours(23, 59, 59, 999);
-    return Timestamp.fromDate(d);
 };
 
 /**
@@ -175,21 +109,6 @@ export const getEndOfDay = (date?: Date): Timestamp => {
 export const isUTCFormat = (isoString: string): boolean => {
     // Check if string ends with 'Z' (Zulu time) or '+00:00'/'-00:00' (UTC offset)
     return /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]00:00)$/.test(isoString);
-};
-
-/**
- * Parses an ISO date string but ONLY if it's in UTC format
- * Throws an error if the date is not in UTC format
- * @param isoString - ISO 8601 date string in UTC format
- * @returns Firestore Timestamp or null if invalid date
- * @throws Error if not in UTC format
- */
-export const parseUTCOnly = (isoString: string): Timestamp | null => {
-    if (!isUTCFormat(isoString)) {
-        throw new Error(`Date must be in UTC format (ending with 'Z' or '+00:00'). Received: ${isoString}`);
-    }
-
-    return parseISOToTimestamp(isoString);
 };
 
 /**

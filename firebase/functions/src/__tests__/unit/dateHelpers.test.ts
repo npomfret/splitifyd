@@ -2,19 +2,14 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     createTrueServerTimestamp,
-    formatForLog,
-    getEndOfDay,
     getRelativeTime,
-    getStartOfDay,
     isDateInValidRange,
-    isInDateRange,
     isUTCFormat,
     parseISOToTimestamp,
-    parseUTCOnly,
     safeParseISOToTimestamp,
-    timestampToISO,
     validateUTCDate,
 } from '../../utils/dateHelpers';
+import {convertToISOString} from "@splitifyd/test-support";
 
 describe('dateHelpers', () => {
     beforeEach(() => {
@@ -60,23 +55,6 @@ describe('dateHelpers', () => {
             expect(parseISOToTimestamp('not-a-date')).toBeNull();
             expect(parseISOToTimestamp('2024-13-45')).toBeNull();
             expect(parseISOToTimestamp('')).toBeNull();
-        });
-    });
-
-    describe('timestampToISO', () => {
-        it('should convert Timestamp to ISO string', () => {
-            const date = new Date('2024-01-15T10:30:00.000Z');
-            const timestamp = Timestamp.fromDate(date);
-            const isoString = timestampToISO(timestamp);
-
-            expect(isoString).toBe('2024-01-15T10:30:00.000Z');
-        });
-
-        it('should convert Date to ISO string', () => {
-            const date = new Date('2024-01-15T10:30:00.123Z');
-            const isoString = timestampToISO(date);
-
-            expect(isoString).toBe('2024-01-15T10:30:00.123Z');
         });
     });
 
@@ -136,103 +114,20 @@ describe('dateHelpers', () => {
     describe('safeParseISOToTimestamp', () => {
         it('should parse valid ISO string', () => {
             const isoString = '2024-01-15T10:30:00.000Z';
-            const timestamp = safeParseISOToTimestamp(isoString);
+            const timestamp = safeParseISOToTimestamp(convertToISOString(isoString));
 
             expect(timestamp).toBeInstanceOf(Timestamp);
             expect(timestamp.toDate().toISOString()).toBe(isoString);
         });
 
         it('should return current timestamp for invalid string', () => {
-            const timestamp = safeParseISOToTimestamp('invalid');
+            const timestamp = safeParseISOToTimestamp(convertToISOString('invalid'));
             expect(timestamp).toBeInstanceOf(Timestamp);
         });
 
         it('should return current timestamp for undefined', () => {
             const timestamp = safeParseISOToTimestamp(undefined);
             expect(timestamp).toBeInstanceOf(Timestamp);
-        });
-    });
-
-    describe('formatForLog', () => {
-        it('should format timestamp for logging', () => {
-            // Use a timestamp from 2 minutes ago to ensure it shows "minutes ago"
-            const twoMinutesAgo = Timestamp.fromMillis(Date.now() - 120000); // 2 minutes ago
-            const formatted = formatForLog(twoMinutesAgo);
-
-            expect(formatted).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/); // ISO format
-            expect(formatted).toContain('minutes ago');
-        });
-    });
-
-    describe('isInDateRange', () => {
-        const baseDate = new Date('2024-01-15T10:30:00.000Z');
-        const timestamp = Timestamp.fromDate(baseDate);
-
-        it('should return true for timestamp within range', () => {
-            const startDate = new Date('2024-01-14T00:00:00.000Z');
-            const endDate = new Date('2024-01-16T00:00:00.000Z');
-
-            expect(isInDateRange(timestamp, startDate, endDate)).toBe(true);
-        });
-
-        it('should return false for timestamp before range', () => {
-            const startDate = new Date('2024-01-16T00:00:00.000Z');
-            const endDate = new Date('2024-01-17T00:00:00.000Z');
-
-            expect(isInDateRange(timestamp, startDate, endDate)).toBe(false);
-        });
-
-        it('should return false for timestamp after range', () => {
-            const startDate = new Date('2024-01-13T00:00:00.000Z');
-            const endDate = new Date('2024-01-14T00:00:00.000Z');
-
-            expect(isInDateRange(timestamp, startDate, endDate)).toBe(false);
-        });
-
-        it('should handle missing start date', () => {
-            const endDate = new Date('2024-01-16T00:00:00.000Z');
-            expect(isInDateRange(timestamp, undefined, endDate)).toBe(true);
-        });
-
-        it('should handle missing end date', () => {
-            const startDate = new Date('2024-01-14T00:00:00.000Z');
-            expect(isInDateRange(timestamp, startDate, undefined)).toBe(true);
-        });
-    });
-
-    describe('getStartOfDay', () => {
-        it('should return start of day for given date', () => {
-            const inputDate = new Date('2024-01-15T15:30:45.123Z');
-            const startOfDay = getStartOfDay(inputDate);
-
-            expect(startOfDay.toDate().toISOString()).toBe('2024-01-15T00:00:00.000Z');
-        });
-
-        it('should not mutate the original date', () => {
-            const originalDate = new Date('2024-01-15T15:30:45.123Z');
-            const originalISO = originalDate.toISOString();
-
-            getStartOfDay(originalDate);
-
-            expect(originalDate.toISOString()).toBe(originalISO);
-        });
-    });
-
-    describe('getEndOfDay', () => {
-        it('should return end of day for given date', () => {
-            const inputDate = new Date('2024-01-15T10:30:00.000Z');
-            const endOfDay = getEndOfDay(inputDate);
-
-            expect(endOfDay.toDate().toISOString()).toBe('2024-01-15T23:59:59.999Z');
-        });
-
-        it('should not mutate the original date', () => {
-            const originalDate = new Date('2024-01-15T10:30:00.000Z');
-            const originalISO = originalDate.toISOString();
-
-            getEndOfDay(originalDate);
-
-            expect(originalDate.toISOString()).toBe(originalISO);
         });
     });
 
@@ -251,20 +146,6 @@ describe('dateHelpers', () => {
             expect(isUTCFormat('2024-01-15T10:30:00.000+05:00')).toBe(false);
             expect(isUTCFormat('2024-01-15T10:30:00-03:00')).toBe(false);
             expect(isUTCFormat('2024-01-15T10:30:00')).toBe(false);
-        });
-    });
-
-    describe('parseUTCOnly', () => {
-        it('should parse valid UTC format', () => {
-            const isoString = '2024-01-15T10:30:00.000Z';
-            const timestamp = parseUTCOnly(isoString);
-
-            expect(timestamp).toBeInstanceOf(Timestamp);
-            expect(timestamp?.toDate().toISOString()).toBe(isoString);
-        });
-
-        it('should throw error for non-UTC format', () => {
-            expect(() => parseUTCOnly('2024-01-15T10:30:00+05:00')).toThrow('Date must be in UTC format');
         });
     });
 

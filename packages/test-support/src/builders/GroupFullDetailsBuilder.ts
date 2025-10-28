@@ -1,5 +1,6 @@
 import type { ExpenseDTO, GroupBalances, GroupDTO, GroupFullDetailsDTO, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
+import {convertToISOString} from "../test-helpers";
 
 /**
  * Builder for creating GroupFullDetails responses for testing
@@ -15,7 +16,7 @@ export class GroupFullDetailsBuilder {
             expenses: { expenses: [], hasMore: false },
             balances: {
                 groupId: toGroupId('default-group-id'),
-                lastUpdated: new Date().toISOString(),
+                lastUpdated: convertToISOString(new Date()),
                 userBalances: {},
                 simplifiedDebts: [],
                 balancesByCurrency: {},

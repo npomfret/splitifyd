@@ -1,4 +1,4 @@
-import { RegisteredUser, SystemUserRoles, UserProfileResponse, UserRegistration, UserThemeColor } from '@splitifyd/shared';
+import { RegisteredUser, SystemUserRoles, toISOString, UserProfileResponse, UserRegistration, UserThemeColor } from '@splitifyd/shared';
 import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
@@ -276,7 +276,7 @@ export class UserService {
 
             // Update Firestore to track password change
             await this.firestoreWriter.updateUser(userId, {
-                passwordChangedAt: new Date().toISOString(),
+                passwordChangedAt: toISOString(new Date().toISOString()),
             });
 
             logger.info('Password changed successfully');
@@ -404,7 +404,7 @@ export class UserService {
 
             // Create user document in Firestore (only fields that belong in the document)
             // Note: uid is the document ID, not a field. emailVerified is managed by Firebase Auth.
-            const now = new Date().toISOString();
+            const now = toISOString(new Date().toISOString());
             const userDoc: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'> = {
                 displayName: userRegistration.displayName,
                 role: SystemUserRoles.SYSTEM_USER, // Default role for new users

@@ -1,7 +1,8 @@
 import type { UpdateExpenseRequest, UserId } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
-import { randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {convertToISOString, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair} from '../test-helpers';
+import type {ISOString} from "@splitifyd/shared";
 
 export class ExpenseUpdateBuilder {
     private update: Partial<UpdateExpenseRequest>;
@@ -15,7 +16,7 @@ export class ExpenseUpdateBuilder {
                 amount,
                 currency,
                 category: randomCategory(),
-                date: randomDate(),
+                date: convertToISOString(randomDate()),
             };
         } else {
             this.update = {};
@@ -56,8 +57,8 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    withDate(date: string): this {
-        this.update.date = date;
+    withDate(timestamp: Date | string | ISOString): this {
+        this.update.date = convertToISOString(timestamp);
         return this;
     }
 

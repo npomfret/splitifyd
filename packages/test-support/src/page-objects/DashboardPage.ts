@@ -161,7 +161,7 @@ export class DashboardPage extends BasePage {
     /**
      * Hover a specific group card by name
      */
-    async hoverGroupCard(groupName: GroupName): Promise<void> {
+    async hoverGroupCard(groupName: GroupName | string): Promise<void> {
         const card = this.getGroupCard(groupName);
         await expect(card).toBeVisible();
         await card.hover();
@@ -179,12 +179,12 @@ export class DashboardPage extends BasePage {
         await this.waitForGroupsToLoad();
     }
 
-    async verifyGroupHasArchivedBadge(groupName: GroupName): Promise<void> {
+    async verifyGroupHasArchivedBadge(groupName: GroupName | string): Promise<void> {
         const badge = this.getGroupCard(groupName).getByTestId('archived-badge');
         await expect(badge).toBeVisible();
     }
 
-    async verifyGroupHasNoArchiveQuickActions(groupName: GroupName): Promise<void> {
+    async verifyGroupHasNoArchiveQuickActions(groupName: GroupName | string): Promise<void> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
@@ -364,7 +364,7 @@ export class DashboardPage extends BasePage {
     /**
      * Group Card - Invite button (hover action)
      */
-    getGroupCardInviteButton(groupName: GroupName): Locator {
+    getGroupCardInviteButton(groupName: GroupName | string): Locator {
         return this.getGroupCard(groupName).locator('button[title*="Invite"], button[aria-label*="Invite"]');
     }
 
@@ -575,7 +575,7 @@ export class DashboardPage extends BasePage {
      * Click on a specific group card to navigate to group details
      * Non-fluent version - does not verify navigation or return page object
      */
-    async clickGroupCard(groupName: GroupName): Promise<void> {
+    async clickGroupCard(groupName: GroupName | string): Promise<void> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible();
         await groupCard.click();
@@ -753,7 +753,7 @@ export class DashboardPage extends BasePage {
      * Click group card invite button to open share modal
      * Fluent version - opens modal, verifies it opened, returns ShareGroupModalPage
      */
-    async clickGroupCardInviteButton(groupName: GroupName): Promise<ShareGroupModalPage> {
+    async clickGroupCardInviteButton(groupName: GroupName | string): Promise<ShareGroupModalPage> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible();
 
@@ -773,7 +773,7 @@ export class DashboardPage extends BasePage {
      * Click group card invite button - basic modal open (no share link wait)
      * Use for error/loading state tests that don't expect successful share link generation
      */
-    async clickGroupCardInviteButtonNoWait(groupName: GroupName): Promise<ShareGroupModalPage> {
+    async clickGroupCardInviteButtonNoWait(groupName: GroupName | string): Promise<ShareGroupModalPage> {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible();
 
@@ -825,7 +825,7 @@ export class DashboardPage extends BasePage {
     /**
      * Verify specific group is displayed
      */
-    async verifyGroupDisplayed(groupName: GroupName): Promise<void> {
+    async verifyGroupDisplayed(groupName: GroupName | string): Promise<void> {
         await expect(this.getGroupCard(groupName)).toBeVisible();
     }
 

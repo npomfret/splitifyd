@@ -38,6 +38,7 @@ import { GroupMemberService } from './GroupMemberService';
 import { GroupShareService } from './GroupShareService';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
+import {toISOString} from "@splitifyd/shared";
 
 /**
  * Service for managing group operations
@@ -267,7 +268,7 @@ export class GroupService {
                         groupId: group.id,
                         balancesByCurrency: {},
                         simplifiedDebts: [],
-                        lastUpdatedAt: new Date().toISOString(),
+                        lastUpdatedAt: toISOString(new Date().toISOString()),
                         version: 0,
                     };
                     return this.enrichGroupWithBalance(group, emptyBalance, userId);
@@ -308,7 +309,7 @@ export class GroupService {
 
         // Initialize group structure with ISO strings (DTOs)
         const groupId = toGroupId(this.firestoreWriter.generateDocumentId(FirestoreCollections.GROUPS));
-        const nowISO = new Date().toISOString();
+        const nowISO = toISOString(new Date().toISOString());
 
         // Create the document to write (using ISO strings - FirestoreWriter converts to Timestamps)
         const documentToWrite = {

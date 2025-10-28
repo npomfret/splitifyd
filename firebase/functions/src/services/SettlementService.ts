@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, CreateSettlementRequest, GroupMember, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CreateSettlementRequest, GroupMember, ISOString, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
 import { GroupId, UserId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { z } from 'zod';
@@ -9,6 +9,7 @@ import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import * as dateHelpers from '../utils/dateHelpers';
 import { ApiError, Errors } from '../utils/errors';
+import { createPhantomGroupMember } from '../utils/groupMembershipHelpers';
 import { LoggerContext } from '../utils/logger-context';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
@@ -62,24 +63,7 @@ export class SettlementService {
             // If memberData is null, the user has left the group
             // Show real user profile data; use sentinel values for missing membership fields
             if (!memberData) {
-                return {
-                    uid: userId,
-                    displayName: validatedData.displayName,
-                    initials,
-                    themeColor: userData.themeColor || {
-                        light: '#9CA3AF',
-                        dark: '#6B7280',
-                        name: 'Neutral Gray',
-                        pattern: 'solid',
-                        assignedAt: new Date().toISOString(),
-                        colorIndex: -1,
-                    },
-                    memberRole: 'member', // Last known role before departure
-                    memberStatus: 'active', // Last known status (can't use 'left' - not in enum)
-                    joinedAt: '', // Historical data unavailable
-                    invitedBy: undefined,
-                    groupDisplayName: validatedData.displayName, // Use global displayName for departed members
-                };
+                return createPhantomGroupMember(userId, validatedData.displayName, userData.themeColor);
             }
 
             // Normal path: member is still in the group
@@ -120,8 +104,8 @@ export class SettlementService {
             limit?: number;
             cursor?: string;
             uid?: string;
-            startDate?: string;
-            endDate?: string;
+            startDate?: ISOString;
+            endDate?: ISOString;
             includeDeleted?: boolean;
         } = {},
     ): Promise<{
@@ -140,8 +124,8 @@ export class SettlementService {
             limit?: number;
             cursor?: string;
             uid?: string;
-            startDate?: string;
-            endDate?: string;
+            startDate?: ISOString;
+            endDate?: ISOString;
             includeDeleted?: boolean;
         } = {},
     ): Promise<{
@@ -305,9 +289,9 @@ export class SettlementService {
 
         return {
             ...settlement,
-            date: dateHelpers.timestampToISO(settlementDate),
-            createdAt: dateHelpers.timestampToISO(now),
-            updatedAt: dateHelpers.timestampToISO(now),
+            date: settlementDate,
+            createdAt: now,
+            updatedAt: now,
         };
     }
 
@@ -472,9 +456,9 @@ export class SettlementService {
             payee: payeeData,
             amount: updatedSettlement!.amount,
             currency: updatedSettlement!.currency,
-            date: dateHelpers.timestampToISO(updatedSettlement!.date),
+            date: updatedSettlement!.date,
             note: updatedSettlement!.note,
-            createdAt: dateHelpers.timestampToISO(updatedSettlement!.createdAt),
+            createdAt: updatedSettlement!.createdAt,
             deletedAt: updatedSettlement!.deletedAt,
             deletedBy: updatedSettlement!.deletedBy,
         };
@@ -593,8 +577,8 @@ export class SettlementService {
             limit?: number;
             cursor?: string;
             uid?: string;
-            startDate?: string;
-            endDate?: string;
+            startDate?: ISOString;
+            endDate?: ISOString;
             includeDeleted?: boolean;
         } = {},
     ): Promise<{
@@ -642,9 +626,9 @@ export class SettlementService {
                     payee: payeeData,
                     amount: settlement.amount,
                     currency: settlement.currency,
-                    date: dateHelpers.timestampToISO(settlement.date),
+                    date: settlement.date,
                     note: settlement.note,
-                    createdAt: dateHelpers.timestampToISO(settlement.createdAt),
+                    createdAt: settlement.createdAt,
                     deletedAt: settlement.deletedAt,
                     deletedBy: settlement.deletedBy,
                     isLocked,

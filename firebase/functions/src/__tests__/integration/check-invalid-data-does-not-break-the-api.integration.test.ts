@@ -13,7 +13,7 @@
  */
 
 import { toGroupId } from '@splitifyd/shared';
-import { ApiDriver, CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import {ApiDriver, convertToISOString, CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder} from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { FirestoreCollections } from '../../constants';
@@ -112,7 +112,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
                     .asActive()
                     .build();
 
-                const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
+                const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, convertToISOString(new Date()));
                 const topLevelDocId = newTopLevelMembershipDocId(testUser.uid, toGroupId(groupRef.id));
                 const topLevelRef = firestore.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId);
                 await topLevelRef.set(topLevelMemberDoc);

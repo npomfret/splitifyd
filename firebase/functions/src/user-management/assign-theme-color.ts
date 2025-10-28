@@ -1,4 +1,5 @@
 import { COLOR_PATTERNS, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import {convertToISOString} from "@splitifyd/test-support";
 
 export async function assignThemeColor(): Promise<UserThemeColor> {
     // Pick a random color
@@ -14,7 +15,7 @@ export async function assignThemeColor(): Promise<UserThemeColor> {
         dark: color.dark,
         name: color.name,
         pattern,
-        assignedAt: new Date().toISOString(),
+        assignedAt: convertToISOString(new Date()),
         colorIndex,
     };
 }

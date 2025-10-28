@@ -1,5 +1,5 @@
-import { PolicyDTO, VersionHash } from '@splitifyd/shared';
-import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
+import {ISOString, PolicyDTO, VersionHash } from '@splitifyd/shared';
+import {convertToISOString, generateShortId} from '../test-helpers';
 
 /**
  * Builder for creating PolicyDTO objects for tests
@@ -17,11 +17,11 @@ export class PolicyDocumentBuilder {
             versions: {
                 [versionHash]: {
                     text: 'Default policy content for testing...',
-                    createdAt: new Date().toISOString(),
+                    createdAt: convertToISOString(new Date()),
                 },
             },
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: convertToISOString(new Date()),
+            updatedAt: convertToISOString(new Date()),
         };
     }
 
@@ -40,19 +40,19 @@ export class PolicyDocumentBuilder {
         this.policy.versions = {
             [versionHash]: {
                 text,
-                createdAt: new Date().toISOString(),
+                createdAt: convertToISOString(new Date()),
             },
         };
         return this;
     }
 
-    withCreatedAt(timestamp: BuilderTimestamp): this {
-        this.policy.createdAt = timestampToISOString(timestamp);
+    withCreatedAt(timestamp: Date | string | ISOString): this {
+        this.policy.createdAt = convertToISOString(timestamp);
         return this;
     }
 
-    withUpdatedAt(timestamp: BuilderTimestamp): this {
-        this.policy.updatedAt = timestampToISOString(timestamp);
+    withUpdatedAt(timestamp: Date | string | ISOString): this {
+        this.policy.updatedAt = convertToISOString(timestamp);
         return this;
     }
 

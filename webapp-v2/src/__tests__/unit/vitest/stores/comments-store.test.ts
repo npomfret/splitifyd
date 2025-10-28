@@ -49,6 +49,7 @@ import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { CommentsStoreTarget } from '@/stores/comments-store';
 import type { CommentDTO, GroupId, ListCommentsResponse } from '@splitifyd/shared';
 import { toCommentId, toGroupId } from '@splitifyd/shared';
+import {toISOString} from "@splitifyd/shared";
 
 const mockedApiClient = apiClient as unknown as {
     getGroupComments: Mock;
@@ -56,7 +57,7 @@ const mockedApiClient = apiClient as unknown as {
 };
 
 function createComment(id: string, message: string): CommentDTO {
-    const now = new Date().toISOString();
+    const now = toISOString(new Date().toISOString());
     return {
         id: toCommentId(id),
         text: message,

@@ -1,3 +1,5 @@
+import {ISOString, toISOString } from "@splitifyd/shared";
+
 export const formatLocalDateTime = (utcString: string): string => {
     const date = new Date(utcString);
     return date.toLocaleString();
@@ -74,19 +76,19 @@ export const formatDateTimeInUserTimeZone = (date: Date): string => {
     }
 };
 
-export const getUTCMidnight = (localDateString: string): string => {
+export const getUTCMidnight = (localDateString: string): ISOString => {
     const [year, month, day] = localDateString.split('-').map(Number);
     const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-    return date.toISOString();
+    return toISOString(date.toISOString());
 };
 
-export const getUTCDateTime = (localDateString: string, timeString: string): string => {
+export const getUTCDateTime = (localDateString: string, timeString: string): ISOString => {
     const [year, month, day] = localDateString.split('-').map(Number);
     const [hours, minutes] = timeString.split(':').map(Number);
 
     const localDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
 
-    return localDate.toISOString();
+    return toISOString(localDate.toISOString());
 };
 
 const isNoonTime = (isoString: string): boolean => {

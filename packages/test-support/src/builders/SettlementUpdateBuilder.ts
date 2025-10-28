@@ -1,7 +1,8 @@
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
-import { generateShortId, randomDate, randomValidCurrencyAmountPair } from '../test-helpers';
+import {convertToISOString, generateShortId, randomDate, randomValidCurrencyAmountPair} from '../test-helpers';
+import type {ISOString} from "@splitifyd/shared";
 
 export class SettlementUpdateBuilder {
     private update: Partial<UpdateSettlementRequest>;
@@ -12,7 +13,7 @@ export class SettlementUpdateBuilder {
         this.update = {
             amount,
             currency,
-            date: randomDate(),
+            date: convertToISOString(randomDate()),
             note: `Updated settlement ${generateShortId()}`,
         };
     }
@@ -28,8 +29,8 @@ export class SettlementUpdateBuilder {
         return this;
     }
 
-    withDate(date: string): this {
-        this.update.date = date;
+    withDate(timestamp: Date | string | ISOString): this {
+        this.update.date = convertToISOString(timestamp);
         return this;
     }
 

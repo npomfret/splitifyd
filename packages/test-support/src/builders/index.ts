@@ -20,6 +20,7 @@ export { GroupDTOBuilder } from './GroupDTOBuilder';
 export { GroupFullDetailsBuilder } from './GroupFullDetailsBuilder';
 export { GroupMemberBuilder } from './GroupMemberBuilder';
 export { GroupMemberDocumentBuilder } from './GroupMemberDocumentBuilder';
+export { GroupMembershipDTOBuilder } from './GroupMembershipDTOBuilder';
 export { GroupUpdateBuilder } from './GroupUpdateBuilder';
 export { JoinGroupResponseBuilder } from './JoinGroupResponseBuilder';
 export { ListGroupsResponseBuilder } from './ListGroupsResponseBuilder';

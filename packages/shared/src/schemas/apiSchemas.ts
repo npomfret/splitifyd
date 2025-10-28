@@ -6,14 +6,14 @@
  */
 
 import { z } from 'zod';
-import { ActivityFeedActions, ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes, SystemUserRoles, toGroupId, UserId } from '../shared-types';
+import { ActivityFeedActions, ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes, SystemUserRoles, toGroupId, toGroupName, toISOString, UserId } from '../shared-types';
 
 const UserThemeColorSchema = z.object({
     light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
     dark: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
     name: z.string().min(1).max(50),
     pattern: z.enum(['solid', 'dots', 'stripes', 'diagonal']),
-    assignedAt: z.string().datetime(),
+    assignedAt: z.string().datetime().transform(toISOString),
     colorIndex: z.number().int().min(0),
 });
 
@@ -174,7 +174,7 @@ const GroupMemberDTOSchema = z.object({
     // Group membership metadata (required for permissions)
     memberRole: z.enum(['admin', 'member', 'viewer']),
     memberStatus: z.enum(['active', 'pending', 'archived']),
-    joinedAt: z.union([z.string().datetime(), z.literal('')]), // Allow empty string for departed members
+    joinedAt: z.union([z.string().datetime().transform(toISOString), z.literal('').transform(() => '' as any)]), // Allow empty string for departed members
     invitedBy: z.string().optional(),
 
     // Group-specific display name (required)
@@ -276,7 +276,7 @@ const SettlementMemberSchema = z.object({
     // Optional membership fields that may or may not be present
     memberRole: z.enum(['admin', 'member', 'viewer']).optional(),
     memberStatus: z.enum(['active', 'pending', 'archived']).optional(),
-    joinedAt: z.union([z.string().datetime(), z.literal('')]).optional(), // Allow empty string or datetime - may be empty for departed members
+    joinedAt: z.union([z.string().datetime().transform(toISOString), z.literal('').transform(() => '' as any)]).optional(), // Allow empty string or datetime - may be empty for departed members
     invitedBy: z.string().optional(),
 });
 
@@ -338,7 +338,7 @@ const CurrentPolicyResponseSchema = z.object({
     policyName: z.string().min(1),
     currentVersionHash: z.string().min(1),
     text: z.string().min(1),
-    createdAt: z.string().datetime(),
+    createdAt: z.string().datetime().transform(toISOString),
 });
 
 const PolicyAcceptanceStatusSchema = z.object({
@@ -362,7 +362,7 @@ const AcceptMultiplePoliciesResponseSchema = z.object({
         z.object({
             policyId: z.string().min(1),
             versionHash: z.string().min(1),
-            acceptedAt: z.string().datetime(),
+            acceptedAt: z.string().datetime().transform(toISOString),
         }),
     ),
 });
@@ -431,14 +431,14 @@ export const ActivityFeedItemSchema = z.object({
     id: z.string(),
     userId: z.string().transform((value) => value as UserId),
     groupId: z.string().transform((value) => toGroupId(value)),
-    groupName: z.string(),
+    groupName: z.string().transform(toGroupName),
     eventType: ActivityFeedEventTypeSchema,
     action: ActivityFeedActionSchema,
     actorId: z.string(),
     actorName: z.string(),
-    timestamp: z.string().datetime(),
+    timestamp: z.string().datetime().transform(toISOString),
     details: ActivityFeedItemDetailsSchema,
-    createdAt: z.string().datetime().optional(),
+    createdAt: z.string().datetime().transform(toISOString).optional(),
 });
 
 export const ActivityFeedResponseSchema = z.object({

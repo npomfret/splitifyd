@@ -9,6 +9,7 @@ import { GroupDTO, JoinGroupResponse, MemberStatus } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
+import {toISOString} from "@splitifyd/shared";
 
 class JoinGroupStore {
     // Private signals - encapsulated within the class
@@ -86,8 +87,8 @@ class JoinGroupStore {
                 name: preview.groupName,
                 description: preview.groupDescription,
                 createdBy: '', // Will be populated from server
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
+                createdAt: toISOString(new Date().toISOString()),
+                updatedAt: toISOString(new Date().toISOString()),
                 permissions: {
                     expenseEditing: 'anyone' as const,
                     expenseDeletion: 'anyone' as const,
@@ -153,8 +154,8 @@ class JoinGroupStore {
                     name: response.groupName,
                     description: '',
                     createdBy: '',
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
+                    createdAt: toISOString(new Date().toISOString()),
+                    updatedAt: toISOString(new Date().toISOString()),
                     permissions: {
                         expenseEditing: 'anyone',
                         expenseDeletion: 'anyone',

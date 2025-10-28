@@ -1,9 +1,9 @@
 import type { Page } from '@playwright/test';
-import type { ClientUser, GroupId, GroupMembershipDTO } from '@splitifyd/shared';
+import {ClientUser, GroupId, GroupMembershipDTO, toGroupId, toGroupName} from '@splitifyd/shared';
 import { MemberRoles, MemberStatuses, UserId } from '@splitifyd/shared';
 import type { GroupName } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
-import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
+import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, GroupMembershipDTOBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
 
@@ -21,27 +21,28 @@ interface ManagedGroupSetupResult {
 }
 
 function createPendingEntry(groupId: GroupId, displayName: DisplayName, invitedBy: UserId): PendingEntry {
-    const builder = new GroupMemberBuilder()
-        .withUid(`pending-${displayName.toLowerCase().replace(/\s+/g, '-')}`)
+    const uid = `pending-${displayName.toLowerCase().replace(/\s+/g, '-')}`;
+
+    const memberDetail = new GroupMemberBuilder()
+        .withUid(uid)
         .withDisplayName(displayName)
         .withGroupDisplayName(displayName)
         .asMember()
-        .asPending();
+        .asPending()
+        .build();
 
-    const memberDetail = builder.build();
-    const membership: GroupMembershipDTO = {
-        uid: memberDetail.uid,
-        groupId,
-        memberRole: memberDetail.memberRole ?? MemberRoles.MEMBER,
-        memberStatus: MemberStatuses.PENDING,
-        joinedAt: new Date().toISOString(),
-        invitedBy,
-        theme: memberDetail.themeColor,
-        groupDisplayName: memberDetail.groupDisplayName,
-    };
+    const membership = new GroupMembershipDTOBuilder()
+        .withUid(uid)
+        .withGroupId(groupId)
+        .withGroupDisplayName(displayName)
+        .withTheme(memberDetail.themeColor)
+        .withInvitedBy(invitedBy)
+        .asMember()
+        .asPending()
+        .build();
 
     return {
-        uid: memberDetail.uid,
+        uid,
         displayName,
         membership,
         memberDetail,
@@ -49,8 +50,8 @@ function createPendingEntry(groupId: GroupId, displayName: DisplayName, invitedB
 }
 
 async function setupManagedGroupRoutes(page: Page, user: ClientUser): Promise<ManagedGroupSetupResult> {
-    const groupId = (`group-security-${user.uid}`) as GroupId;
-    const groupName = 'Pending Approval Test Group';
+    const groupId = toGroupId(`group-security-${user.uid}`);
+    const groupName = toGroupName('Pending Approval Test Group');
 
     const group = new GroupDTOBuilder()
         .withId(groupId)

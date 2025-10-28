@@ -1,4 +1,6 @@
 import type { ColorPattern, UserThemeColor } from '@splitifyd/shared';
+import {convertToISOString} from "../test-helpers";
+import type {ISOString} from "@splitifyd/shared";
 
 /**
  * Builder for UserThemeColor objects used in test data
@@ -10,7 +12,7 @@ export class ThemeBuilder {
         dark: '#1E40AF',
         name: 'blue',
         pattern: 'solid',
-        assignedAt: new Date().toISOString(),
+        assignedAt: convertToISOString(new Date()),
         colorIndex: 0,
     };
 
@@ -51,8 +53,8 @@ export class ThemeBuilder {
     /**
      * Set the assignment timestamp
      */
-    withAssignedAt(assignedAt: string): this {
-        this.theme.assignedAt = assignedAt;
+    withAssignedAt(timestamp: Date | string | ISOString): this {
+        this.theme.assignedAt = convertToISOString(timestamp);
         return this;
     }
 

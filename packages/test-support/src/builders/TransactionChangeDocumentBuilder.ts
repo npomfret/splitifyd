@@ -1,6 +1,6 @@
 import { GroupId, ISOString } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
+import {convertToISOString, generateShortId} from '../test-helpers';
 
 interface TransactionChangeDocument {
     groupId: GroupId;
@@ -21,7 +21,7 @@ export class TransactionChangeDocumentBuilder {
             groupId: toGroupId(`group-${generateShortId()}`),
             type: 'expense',
             users: [],
-            createdAt: new Date().toISOString(),
+            createdAt: convertToISOString(new Date()),
         };
     }
 
@@ -40,8 +40,8 @@ export class TransactionChangeDocumentBuilder {
         return this;
     }
 
-    withCreatedAt(timestamp: BuilderTimestamp): this {
-        this.document.createdAt = timestampToISOString(timestamp);
+    withCreatedAt(timestamp: Date | string | ISOString): this {
+        this.document.createdAt = convertToISOString(timestamp);
         return this;
     }
 

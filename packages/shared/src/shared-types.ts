@@ -7,6 +7,9 @@ import type { ColorPattern } from './user-colors';
 // Type aliases for Firebase types (browser-safe)
 // ========================================================================
 
+// Utility to create branded primitive types for stronger nominal typing
+type Brand<K, T> = K & { __brand: T; };
+
 /**
  * Type alias for ISO 8601 datetime strings
  *
@@ -22,7 +25,9 @@ import type { ColorPattern } from './user-colors';
  * Note: This is a simple type alias, not a branded type, to avoid requiring
  * explicit casts throughout the codebase while still providing semantic meaning.
  */
-export type ISOString = string;
+export type ISOString = Brand<string, 'ISOString'>;
+export const toISOString= (value: string): ISOString => value as ISOString;
+
 
 /**
  * Type alias for monetary amounts
@@ -40,9 +45,6 @@ export type ISOString = string;
  */
 export type Amount = string;
 export const ZERO: Amount = '0';
-
-// Utility to create branded primitive types for stronger nominal typing
-type Brand<K, T> = K & { __brand: T; };
 
 export type GroupId = Brand<string, 'GroupId'>;
 export const toGroupId = (value: string): GroupId => value as GroupId;
@@ -66,6 +68,7 @@ export type CurrencyISOCode = string;
 export type PolicyId = string;
 export type ShareLinkToken = string;
 export type VersionHash = string;
+export type ActivityFeedItemId = string;
 
 /**
  * Zod schema for expense splits
@@ -139,7 +142,7 @@ export interface ActivityFeedItemDetails {
 }
 
 export interface ActivityFeedItem {
-    id: string;
+    id: ActivityFeedItemId;
     userId: UserId;
     groupId: GroupId;
     groupName: GroupName;
@@ -750,7 +753,7 @@ export interface CreateExpenseRequest {
     currency: CurrencyISOCode;
     paidBy: UserId;
     category: string;
-    date: string;
+    date: ISOString;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: UserId[];
     splits: ExpenseSplit[];

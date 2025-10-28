@@ -1,7 +1,7 @@
 // Import currency utilities from shared package
-import { getCurrencyDecimals, roundToCurrencyPrecision } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import type {CurrencyISOCode} from '@splitifyd/shared';
+import {Amount, getCurrencyDecimals, roundToCurrencyPrecision} from '@splitifyd/shared';
+import {ISOString, toISOString} from "@splitifyd/shared";
 
 /**
  * Generates a short, readable UUID for test data
@@ -123,26 +123,12 @@ export function randomCategory(): string {
     return randomChoice(['food', 'transport', 'entertainment', 'utilities', 'shopping', 'other']);
 }
 
-/**
- * Type for timestamp values in builders
- * Supports Date objects, ISO strings, and Firestore Timestamps
- */
-export type BuilderTimestamp = Date | string | { toDate(): Date; };
-
-/**
- * Converts various timestamp formats to ISO string
- * Handles Date objects, ISO strings, and Firestore Timestamps
- */
-export function timestampToISOString(timestamp: BuilderTimestamp | null): string {
-    if (!timestamp) {
-        return new Date().toISOString();
+export function convertToISOString(createdAt: ISOString | Date | string) {
+    if (typeof createdAt === 'string') {
+        return toISOString(createdAt);
+    } else if (createdAt instanceof Date) {
+        return toISOString(createdAt.toISOString())
+    } else {
+        return createdAt;
     }
-    if (typeof timestamp === 'string') {
-        return timestamp;
-    }
-    if (timestamp instanceof Date) {
-        return timestamp.toISOString();
-    }
-    // Firestore Timestamp
-    return timestamp.toDate().toISOString();
 }

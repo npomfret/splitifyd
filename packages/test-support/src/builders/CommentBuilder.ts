@@ -1,7 +1,7 @@
-import type { CommentDTO } from '@splitifyd/shared';
+import type { CommentDTO, ISOString } from '@splitifyd/shared';
 import type { UserId, CommentId } from '@splitifyd/shared';
 import { toCommentId } from '@splitifyd/shared';
-import { BuilderTimestamp, generateShortId, randomChoice, randomDate, randomString, timestampToISOString } from '../test-helpers';
+import {convertToISOString, generateShortId, randomChoice, randomDate, randomString} from '../test-helpers';
 
 export class CommentBuilder {
     private comment: CommentDTO = {
@@ -9,8 +9,8 @@ export class CommentBuilder {
         authorId: `user-${generateShortId()}`,
         authorName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`,
         text: `${randomChoice(['Great', 'Awesome', 'Thanks', 'Perfect', 'Nice', 'Cool'])} ${randomString(8)}!`,
-        createdAt: randomDate(),
-        updatedAt: randomDate(),
+        createdAt: convertToISOString(randomDate()),
+        updatedAt: convertToISOString(randomDate()),
     };
 
     withId(id: CommentId | string): this {
@@ -39,29 +39,29 @@ export class CommentBuilder {
         return this;
     }
 
-    withCreatedAtTimestamp(timestamp: BuilderTimestamp): this {
-        this.comment.createdAt = timestampToISOString(timestamp);
+    withCreatedAtTimestamp(timestamp: Date | string | ISOString): this {
+        this.comment.createdAt = convertToISOString(timestamp);
         return this;
     }
 
-    withUpdatedAtTimestamp(timestamp: BuilderTimestamp): this {
-        this.comment.updatedAt = timestampToISOString(timestamp);
+    withUpdatedAtTimestamp(timestamp: Date | string | ISOString): this {
+        this.comment.updatedAt = convertToISOString(timestamp);
         return this;
     }
 
-    withCreatedAt(date: Date): this {
-        this.comment.createdAt = date.toISOString();
-        this.comment.updatedAt = date.toISOString();
+    withCreatedAt(timestamp: Date | string | ISOString): this {
+        this.comment.createdAt = convertToISOString(timestamp);
+        this.comment.updatedAt = convertToISOString(timestamp);
         return this;
     }
 
-    withUpdatedAt(date: Date): this {
-        this.comment.updatedAt = date.toISOString();
+    withUpdatedAt(timestamp: Date | string | ISOString): this {
+        this.comment.updatedAt = convertToISOString(timestamp);
         return this;
     }
 
     withInvalidDate(): this {
-        this.comment.createdAt = 'invalid-date';
+        this.comment.createdAt = convertToISOString('invalid-date');
         return this;
     }
 

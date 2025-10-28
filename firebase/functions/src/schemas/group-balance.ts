@@ -1,4 +1,4 @@
-import { PositiveAmountStringSchema } from '@splitifyd/shared';
+import { PositiveAmountStringSchema, toISOString } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreTimestampSchema, UserIdSchema } from './common';
 
@@ -30,7 +30,7 @@ export const GroupBalanceDocumentSchema = GroupBalanceBaseSchema.extend({
 });
 
 const GroupBalanceDTOSchema = GroupBalanceBaseSchema.extend({
-    lastUpdatedAt: z.string().datetime(),
+    lastUpdatedAt: z.string().datetime().transform(toISOString),
 });
 
 export type GroupBalanceDTO = z.infer<typeof GroupBalanceDTOSchema>;

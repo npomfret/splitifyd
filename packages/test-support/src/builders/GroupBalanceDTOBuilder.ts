@@ -1,6 +1,6 @@
-import type { SimplifiedDebt, UserBalance, UserId } from '@splitifyd/shared';
+import type { ISOString, SimplifiedDebt, UserBalance, UserId } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
-import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
+import { negateNormalizedAmount, toISOString, ZERO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
@@ -8,13 +8,13 @@ import { generateShortId } from '../test-helpers';
 
 /**
  * Group balance DTO structure for testing
- * Matches the GroupBalanceDTO type from firebase/functions/src/schemas
+ * Matches the GroupBalanceDTO type from firebase/functions/src/schemas/group-balance.ts
  */
 interface GroupBalanceDTO {
     groupId: GroupId;
     balancesByCurrency: Record<string, Record<string, UserBalance>>;
     simplifiedDebts: SimplifiedDebt[];
-    lastUpdatedAt: string;
+    lastUpdatedAt: ISOString;
     version: number;
 }
 
@@ -30,7 +30,7 @@ export class GroupBalanceDTOBuilder {
             groupId: toGroupId(`group-${generateShortId()}`),
             balancesByCurrency: {},
             simplifiedDebts: [],
-            lastUpdatedAt: new Date().toISOString(),
+            lastUpdatedAt: toISOString(new Date().toISOString()),
             version: 0,
         };
     }
@@ -46,7 +46,7 @@ export class GroupBalanceDTOBuilder {
     }
 
     withLastUpdatedAt(timestamp: string | Date): this {
-        this.balance.lastUpdatedAt = typeof timestamp === 'string' ? timestamp : timestamp.toISOString();
+        this.balance.lastUpdatedAt = toISOString(typeof timestamp === 'string' ? timestamp : timestamp.toISOString());
         return this;
     }
 

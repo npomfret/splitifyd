@@ -2,7 +2,7 @@ import { logInfo, logWarning } from '@/utils/browser-logger.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
 import { batch, computed, ReadonlySignal, signal } from '@preact/signals';
 import { ActivityFeedItem, CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@splitifyd/shared';
-import type { GroupId, UserId } from '@splitifyd/shared';
+import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../services/activity-feed-realtime-service';
@@ -311,7 +311,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
         try {
             // Send update to server (only name and description are supported by API)
-            const updateData: { name?: string; description?: string; } = {};
+            const updateData: { name?: GroupName; description?: string; } = {};
             if (updates.name !== undefined) updateData.name = updates.name;
             if (updates.description !== undefined) updateData.description = updates.description;
 

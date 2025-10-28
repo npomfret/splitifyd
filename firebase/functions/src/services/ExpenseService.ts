@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, UpdateExpenseRequest } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember, toISOString, UpdateExpenseRequest } from '@splitifyd/shared';
 import { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
@@ -9,10 +9,12 @@ import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { ApiError, Errors } from '../utils/errors';
+import { createPhantomGroupMember } from '../utils/groupMembershipHelpers';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import {toExpenseId} from "@splitifyd/shared";
+import {convertToISOString} from "@splitifyd/test-support";
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -112,24 +114,7 @@ export class ExpenseService {
             // If memberData is null, the user has left the group
             // Show real user profile data; use sentinel values for missing membership fields
             if (!memberData) {
-                return {
-                    uid: userId,
-                    displayName,
-                    initials,
-                    themeColor: userData.themeColor || {
-                        light: '#9CA3AF',
-                        dark: '#6B7280',
-                        name: 'Neutral Gray',
-                        pattern: 'solid',
-                        assignedAt: new Date().toISOString(),
-                        colorIndex: -1,
-                    },
-                    memberRole: 'member', // Last known role before departure
-                    memberStatus: 'active', // Last known status (can't use 'left' - not in enum)
-                    joinedAt: '', // Historical data unavailable
-                    invitedBy: undefined,
-                    groupDisplayName: displayName, // Use global displayName for departed members
-                };
+                return createPhantomGroupMember(userId, displayName, userData.themeColor);
             }
 
             // Normal path: member is still in the group
@@ -240,7 +225,7 @@ export class ExpenseService {
         }
 
         // Create the expense document
-        const now = new Date().toISOString();
+        const now = toISOString(new Date().toISOString());
 
         // Use client-calculated splits (already validated)
         // Client sends splits calculated using currency-aware logic from @splitifyd/shared

@@ -9,6 +9,7 @@ import {
     PermissionLevels,
     PREDEFINED_EXPENSE_CATEGORIES,
     subtractAmounts,
+    toISOString,
     UserRegistration,
     zeroAmount,
 } from '@splitifyd/shared';
@@ -927,7 +928,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
                     amount: settlementAmount,
                     currency,
                     note: `Settling up ${currency} expenses`,
-                    date: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString(),
+                    date: toISOString(new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString()),
                 };
 
                 settlementPromises.push(
@@ -1080,7 +1081,7 @@ async function createManySettlementsForLargeGroup(groups: GroupWithInvite[], gro
             amount: amount,
             currency: currency,
             note: settlementNotes[Math.floor(Math.random() * settlementNotes.length)],
-            date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+            date: toISOString(new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()),
         };
 
         await runQueued(() => driver.createSettlement(settlementData, payer.token));
@@ -1136,7 +1137,7 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
         if (settlementCreator) {
             const settlementUpdate: UpdateSettlementRequest = {
                 note: 'Updated after review',
-                date: new Date().toISOString(),
+                date: toISOString(new Date().toISOString()),
             };
             await runQueued(() => driver.updateSettlement(settlementToUpdate.id, settlementUpdate, settlementCreator.token));
             console.log(`Updated settlement ${settlementToUpdate.id} in "Large Group"`);
@@ -1272,7 +1273,7 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], groupMemb
                         amount: paymentAmount,
                         currency: currency,
                         note: paymentNotes[Math.floor(Math.random() * paymentNotes.length)],
-                        date: new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toISOString(), // Random date within last 15 days
+                        date: toISOString(new Date(Date.now() - Math.random() * 15 * 24 * 60 * 60 * 1000).toISOString()), // Random date within last 15 days
                     };
 
                     await runQueued(() => driver.createSettlement(settlementData, payer.token));

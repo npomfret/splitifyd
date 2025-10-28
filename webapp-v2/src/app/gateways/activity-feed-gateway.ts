@@ -1,5 +1,5 @@
 import { logError } from '@/utils/browser-logger';
-import type { ActivityFeedItem, UserId } from '@splitifyd/shared';
+import {toISOString, type ActivityFeedItem, type ISOString, type UserId } from '@splitifyd/shared';
 import { documentId, Timestamp } from 'firebase/firestore';
 import type { FirebaseService } from '../firebase';
 import { getFirebaseService } from '../firebase';
@@ -106,13 +106,17 @@ export class FirebaseActivityFeedGateway implements ActivityFeedGateway {
         }
     }
 
-    private toISOString(value: unknown, field: string, optional: boolean = false): string | null {
+    /**
+     * @deprecated
+     * we ALWAYS know what the type is - this bulllshit is not needed
+     */
+    private toISOString(value: unknown, field: string, optional: boolean = false): ISOString | null {
         if (value instanceof Timestamp) {
-            return value.toDate().toISOString();
+            return toISOString(value.toDate().toISOString());
         }
 
         if (typeof value === 'string') {
-            return value;
+            return toISOString(value);
         }
 
         if (optional && (value === null || value === undefined)) {

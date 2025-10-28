@@ -21,6 +21,7 @@ import { GroupCommentStrategy } from './comments/GroupCommentStrategy';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
+import {convertToISOString} from "@splitifyd/test-support";
 
 /**
  * Service for managing comment operations
@@ -165,7 +166,7 @@ export class CommentService {
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
         actorDisplayName = actorDisplayName || authorName || 'Unknown member';
 
-        const now = new Date().toISOString();
+        const now = convertToISOString(new Date());
         const commentCreateData: Omit<CommentDTO, 'id'> = {
             authorId: userId,
             authorName,
@@ -259,7 +260,7 @@ export class CommentService {
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
         actorDisplayName = actorDisplayName || authorName || 'Unknown member';
 
-        const now = new Date().toISOString();
+        const now = convertToISOString(new Date());
         const commentCreateData: Omit<CommentDTO, 'id'> = {
             authorId: userId,
             authorName,

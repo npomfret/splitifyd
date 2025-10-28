@@ -3,7 +3,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import { useComputed } from '@preact/signals';
-import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset } from '@splitifyd/shared';
+import { GroupDTO, GroupMember, GroupMembershipDTO, GroupPermissions, MemberRole, PermissionLevels, SecurityPreset, toGroupName } from '@splitifyd/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, LoadingSpinner, Tooltip } from '../ui';
@@ -446,7 +446,7 @@ export function GroupSettingsModal({
         setValidationError(null);
 
         try {
-            const trimmedName = groupName.trim();
+            const trimmedName = toGroupName(groupName.trim());
             const trimmedDescription = groupDescription.trim();
 
             await apiClient.updateGroup(group.id, {

@@ -5,7 +5,7 @@
  * This ensures the server response matches our expected types
  */
 
-import { ApiSerializer } from '@splitifyd/shared';
+import {ApiSerializer, ISOString} from '@splitifyd/shared';
 import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -844,7 +844,7 @@ class ApiClient {
         });
     }
 
-    async generateShareLink(groupId: GroupId, expiresAt?: string): Promise<ShareLinkResponse> {
+    async generateShareLink(groupId: GroupId, expiresAt?: ISOString): Promise<ShareLinkResponse> {
         const body: GenerateShareLinkRequest = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;

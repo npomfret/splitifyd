@@ -1,8 +1,9 @@
 import type { GroupMember, MemberRole, MemberStatus, UserThemeColor } from '@splitifyd/shared';
 import { MemberRoles, MemberStatuses, UserId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
-import { generateShortId, randomChoice } from '../test-helpers';
+import {convertToISOString, generateShortId, randomChoice} from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
+import type {ISOString} from "@splitifyd/shared";
 
 /**
  * Builder for creating GroupMember objects for tests
@@ -28,7 +29,7 @@ export class GroupMemberBuilder {
             // Group membership metadata
             memberRole: MemberRoles.MEMBER,
             memberStatus: MemberStatuses.ACTIVE,
-            joinedAt: new Date().toISOString(),
+            joinedAt: convertToISOString(new Date()),
             groupDisplayName: displayName, // Defaults to user's display name (set on join)
         };
     }
@@ -81,8 +82,8 @@ export class GroupMemberBuilder {
             .withMemberStatus(status);
     }
 
-    withJoinedAt(joinedAt: string | Date): this {
-        this.member.joinedAt = typeof joinedAt === 'string' ? joinedAt : joinedAt.toISOString();
+    withJoinedAt(timestamp: Date | string | ISOString): this {
+        this.member.joinedAt = convertToISOString(timestamp)
         return this;
     }
 

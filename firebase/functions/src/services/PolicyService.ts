@@ -1,4 +1,4 @@
-import { PolicyDTO, PolicyVersion, VersionHash } from '@splitifyd/shared';
+import { PolicyDTO, PolicyVersion, toISOString, VersionHash } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
@@ -149,7 +149,7 @@ export class PolicyService {
             }
 
             const versionHash = this.calculatePolicyHash(text);
-            const now = new Date().toISOString();
+            const now = toISOString(new Date().toISOString());
 
             const newVersion: PolicyVersion = {
                 text,
@@ -319,7 +319,7 @@ export class PolicyService {
 
             const initialVersion: PolicyVersion = {
                 text,
-                createdAt: new Date().toISOString(), // DTO with ISO string
+                createdAt: toISOString(new Date().toISOString()), // DTO with ISO string
             };
 
             // Note: createdAt and updatedAt are added by FirestoreWriter.createPolicy()

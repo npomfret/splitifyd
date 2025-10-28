@@ -1,4 +1,4 @@
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import {convertToISOString, SplitifydFirestoreTestDatabase} from '@splitifyd/test-support';
 import { PolicyDocumentBuilder } from '@splitifyd/test-support';
 import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -251,7 +251,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Add an additional version to the policy
             existingPolicy.versions[versionHash] = {
                 text: 'Version content',
-                createdAt: new Date().toISOString(),
+                createdAt: convertToISOString(new Date()),
             };
 
             db.seedPolicy(policyId, existingPolicy);
@@ -396,7 +396,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Add specific version
             mockPolicy.versions[versionHash] = {
                 text: versionText,
-                createdAt: new Date().toISOString(),
+                createdAt: convertToISOString(new Date()),
             };
 
             db.seedPolicy(policyId, mockPolicy);
@@ -465,7 +465,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Add old version
             mockPolicy.versions[versionToDelete] = {
                 text: 'Old content',
-                createdAt: new Date().toISOString(),
+                createdAt: convertToISOString(new Date()),
             };
 
             db.seedPolicy(policyId, mockPolicy);
@@ -501,7 +501,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Add another version
             mockPolicy.versions['another-version'] = {
                 text: 'Another content',
-                createdAt: new Date().toISOString(),
+                createdAt: convertToISOString(new Date()),
             };
 
             db.seedPolicy(policyId, mockPolicy);
@@ -606,7 +606,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
             mockPolicy.versions[versionHash] = {
                 text: 'Test version content',
-                createdAt: new Date().toISOString(),
+                createdAt: convertToISOString(new Date()),
             };
 
             db.seedPolicy(policyId, mockPolicy);
@@ -661,7 +661,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
             mockPolicy.versions[newVersion] = {
                 text: 'New content',
-                createdAt: new Date().toISOString(),
+                createdAt: convertToISOString(new Date()),
             };
 
             db.seedPolicy(policyId, mockPolicy);
@@ -799,11 +799,11 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
             policy.versions[version2Hash] = {
                 text: version2Text,
-                createdAt: new Date().toISOString(),
+                createdAt: convertToISOString(new Date()),
             };
             policy.versions[version3Hash] = {
                 text: version3Text,
-                createdAt: new Date().toISOString(),
+                createdAt: convertToISOString(new Date()),
             };
 
             db.seedPolicy(policyId, policy);

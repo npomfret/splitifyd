@@ -1,4 +1,4 @@
-import type { GroupMembershipDTO, GroupName, JoinGroupResponse, UserId } from '@splitifyd/shared';
+import type {GroupMembershipDTO, GroupName, ISOString, JoinGroupResponse, UserId} from '@splitifyd/shared';
 import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, GroupId, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
@@ -12,6 +12,7 @@ import { generateShareToken, newTopLevelMembershipDocId } from '../utils/idGener
 import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import type { GroupMemberService } from './GroupMemberService';
+import {toISOString} from "@splitifyd/shared";
 
 const SHARE_LINK_DEFAULT_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
 const SHARE_LINK_MAX_EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
@@ -25,7 +26,7 @@ export class GroupShareService {
         private readonly activityFeedService: ActivityFeedService,
     ) {}
 
-    private resolveExpirationTimestamp(requestedExpiresAt?: string): string {
+    private resolveExpirationTimestamp(requestedExpiresAt?: string): ISOString {
         const nowMs = Date.now();
 
         if (requestedExpiresAt) {
@@ -44,10 +45,10 @@ export class GroupShareService {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPIRATION', 'Share link expiration exceeds the maximum allowed duration');
             }
 
-            return new Date(expiresAtMs).toISOString();
+            return toISOString(new Date(expiresAtMs).toISOString());
         }
 
-        return new Date(nowMs + SHARE_LINK_DEFAULT_EXPIRATION_MS).toISOString();
+        return toISOString(new Date(nowMs + SHARE_LINK_DEFAULT_EXPIRATION_MS).toISOString());
     }
 
     getThemeColorForMember(memberIndex: number): UserThemeColor {
@@ -61,7 +62,7 @@ export class GroupShareService {
             dark: color.dark,
             name: color.name,
             pattern,
-            assignedAt: new Date().toISOString(),
+            assignedAt: toISOString(new Date().toISOString()),
             colorIndex,
         };
     }
@@ -165,7 +166,7 @@ export class GroupShareService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
-            const now = new Date().toISOString();
+            const now = toISOString(new Date().toISOString());
 
             // Read 2: Find expired link document references (must happen before any writes)
             const expiredLinkRefs = await this.firestoreReader.getExpiredShareLinkRefsInTransaction(transaction, groupId, now);
@@ -312,7 +313,7 @@ export class GroupShareService {
         }
 
         // Pre-compute member data outside transaction for speed
-        const joinedAt = new Date().toISOString();
+        const joinedAt = toISOString(new Date().toISOString());
         const existingMembersIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
 
         logger.info('JOIN: Fetched existing members before transaction', {
@@ -353,7 +354,7 @@ export class GroupShareService {
             groupDisplayName: userData.displayName, // Default to user's account display name
         };
 
-        const now = new Date().toISOString();
+        const now = toISOString(new Date().toISOString());
         timer.endPhase();
 
         // Atomic transaction: check group exists and create member subcollection

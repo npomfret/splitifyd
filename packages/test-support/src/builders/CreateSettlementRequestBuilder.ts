@@ -3,7 +3,8 @@ import { Amount } from '@splitifyd/shared';
 import { GroupId, UserId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import {convertToISOString, generateShortId, randomDate, randomString, randomValidCurrencyAmountPair} from '../test-helpers';
+import type {ISOString} from "@splitifyd/shared";
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;
@@ -16,7 +17,7 @@ export class CreateSettlementRequestBuilder {
             payeeId: `user-${generateShortId()}`,
             amount,
             currency,
-            date: randomDate(),
+            date: convertToISOString(randomDate()),
             note: `Settlement ${randomString(6)}`,
         };
     }
@@ -42,8 +43,8 @@ export class CreateSettlementRequestBuilder {
         return this;
     }
 
-    withDate(date: string): this {
-        this.settlement.date = date;
+    withDate(timestamp: Date | string | ISOString): this {
+        this.settlement.date = convertToISOString(timestamp);
         return this;
     }
 

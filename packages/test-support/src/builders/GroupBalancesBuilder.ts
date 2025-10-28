@@ -1,10 +1,11 @@
-import type { GroupBalances, SimplifiedDebt, UserBalance } from '@splitifyd/shared';
+import type { GroupBalances, ISOString, SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
+import { convertToISOString } from "../test-helpers";
 
 /**
  * Extended UserBalance with optional displayName and balances fields
@@ -53,7 +54,7 @@ export class GroupBalancesBuilder {
     constructor() {
         this.balances = {
             groupId: toGroupId('default-group-id'),
-            lastUpdated: new Date().toISOString(),
+            lastUpdated: convertToISOString(new Date()),
             userBalances: {},
             simplifiedDebts: [],
             balancesByCurrency: {},
@@ -71,8 +72,8 @@ export class GroupBalancesBuilder {
     /**
      * Set the last updated timestamp
      */
-    withLastUpdated(timestamp: string | Date): this {
-        this.balances.lastUpdated = timestamp instanceof Date ? timestamp.toISOString() : timestamp;
+    withLastUpdated(timestamp: Date | string | ISOString): this {
+        this.balances.lastUpdated = convertToISOString(timestamp);
         return this;
     }
 

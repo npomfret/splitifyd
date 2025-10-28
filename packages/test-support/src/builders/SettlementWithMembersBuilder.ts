@@ -1,9 +1,9 @@
 import type { GroupMember, SettlementWithMembers, UserId } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
+import { Amount, toISOString } from '@splitifyd/shared';
 import { GroupId, ISOString } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
+import {convertToISOString, generateShortId, randomValidCurrencyAmountPair} from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
 import {SettlementId, toSettlementId} from "@splitifyd/shared";
 
@@ -37,8 +37,8 @@ export class SettlementWithMembersBuilder {
             payee,
             amount,
             currency,
-            date: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
+            date: convertToISOString(new Date()),
+            createdAt: convertToISOString(new Date()),
             deletedAt: null,
             deletedBy: null,
             isLocked: false, // Default to unlocked
@@ -93,7 +93,7 @@ export class SettlementWithMembersBuilder {
     }
 
     withDate(date: string | Date): this {
-        this.settlement.date = typeof date === 'string' ? date : date.toISOString();
+        this.settlement.date = convertToISOString(date);
         return this;
     }
 
@@ -102,8 +102,8 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withCreatedAt(createdAt: ISOString | Date): this {
-        this.settlement.createdAt = typeof createdAt === 'string' ? createdAt : createdAt.toISOString();
+    withCreatedAt(createdAt: ISOString | Date | string): this {
+        this.settlement.createdAt = convertToISOString(createdAt);
         return this;
     }
 

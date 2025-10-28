@@ -1,4 +1,4 @@
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import {convertToISOString, SplitifydFirestoreTestDatabase} from '@splitifyd/test-support';
 import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -23,7 +23,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             // Arrange
             const expenseId = toExpenseId('test-expense-id');
             const userId = 'test-user-id';
-            const now = FirestoreTimestamp.now();
+            const now = convertToISOString(new Date())
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -84,8 +84,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
                 .withParticipants([userId])
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, mockExpense);
@@ -108,8 +108,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
                 .withParticipants([participantId])
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, mockExpense);
@@ -129,8 +129,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
                 .withParticipants([participant1, participant2])
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, mockExpense);
@@ -154,9 +154,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const mockDeletedExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
                 .withParticipants([userId])
-                .withDeletedAt(FirestoreTimestamp.now())
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withDeletedAt(convertToISOString(new Date()))
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, mockDeletedExpense);
@@ -200,8 +200,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withAmount(100.33, 'USD')
                 .withParticipants([userId])
                 .withSplits([{ uid: userId, amount: '100.33' }])
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, mockExpense);
@@ -271,8 +271,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withExpenseId(expenseId)
                 .withCategory('Food & Dining')
                 .withParticipants([userId])
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, mockExpense);
@@ -294,8 +294,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withExpenseId(expenseId)
                 .withReceiptUrl(receiptUrl)
                 .withParticipants([userId])
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, mockExpense);
@@ -334,8 +334,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withExpenseId(expenseId)
                 .withDescription('Test expense')
                 .withParticipants([participantId])
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, expenseData);
@@ -358,8 +358,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseData = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
                 .withParticipants([participantId])
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, expenseData);
@@ -380,9 +380,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const deletedExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
                 .withParticipants([userId])
-                .withDeletedAt(FirestoreTimestamp.now())
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withDeletedAt(convertToISOString(new Date()))
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, deletedExpense);
@@ -397,7 +397,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             // Arrange
             const userId = 'test-user';
             const expenseId = toExpenseId('test-expense');
-            const now = FirestoreTimestamp.now();
+            const now = convertToISOString(new Date());
 
             const expenseData = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
@@ -451,8 +451,8 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const expenseData = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
                 .withParticipants([userId])
-                .withCreatedAt(FirestoreTimestamp.now())
-                .withUpdatedAt(FirestoreTimestamp.now())
+                .withCreatedAt(convertToISOString(new Date()))
+                .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             db.seedExpense(expenseId, expenseData);

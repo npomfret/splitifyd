@@ -1,6 +1,6 @@
-import type { CurrencyBalance, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, PermissionChangeLog, UserId } from '@splitifyd/shared';
+import type { CurrencyBalance, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, ISOString, PermissionChangeLog, UserId } from '@splitifyd/shared';
 import { toGroupId, toGroupName } from '@splitifyd/shared';
-import { BuilderTimestamp, generateShortId, randomChoice, randomString, timestampToISOString } from '../test-helpers';
+import {convertToISOString, generateShortId, randomChoice, randomString } from '../test-helpers';
 
 /**
  * Builder for creating GroupDTO objects for tests.
@@ -24,8 +24,8 @@ export class GroupDTOBuilder {
                 memberApproval: 'automatic',
                 settingsManagement: 'admin-only',
             },
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: convertToISOString(new Date()),
+            updatedAt: convertToISOString(new Date()),
             deletedAt: null,
             balance: {
                 balancesByCurrency: {},
@@ -80,18 +80,18 @@ export class GroupDTOBuilder {
         return this;
     }
 
-    withCreatedAt(timestamp: BuilderTimestamp): this {
-        this.group.createdAt = timestampToISOString(timestamp);
+    withCreatedAt(timestamp: Date | string | ISOString): this {
+        this.group.createdAt = convertToISOString(timestamp);
         return this;
     }
 
-    withUpdatedAt(timestamp: BuilderTimestamp): this {
-        this.group.updatedAt = timestampToISOString(timestamp);
+    withUpdatedAt(timestamp: Date | string | ISOString): this {
+        this.group.updatedAt = convertToISOString(timestamp);
         return this;
     }
 
-    withDeletedAt(timestamp: BuilderTimestamp | null): this {
-        this.group.deletedAt = timestamp ? timestampToISOString(timestamp) : null;
+    withDeletedAt(timestamp: Date | string | ISOString | null): this {
+        this.group.deletedAt = timestamp ? convertToISOString(timestamp) : null;
         return this;
     }
 

@@ -6,6 +6,7 @@ import { GroupId } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
+import {toISOString} from "@splitifyd/shared";
 
 interface ShareGroupModalProps {
     isOpen: boolean;
@@ -119,7 +120,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
         setShowToast(false);
 
         const { durationMs } = getExpirationOption(selectedExpirationId);
-        const requestedExpiresAt = new Date(Date.now() + durationMs).toISOString();
+        const requestedExpiresAt = toISOString(new Date(Date.now() + durationMs).toISOString());
         const errorMessage = t('shareGroupModal.errors.generateLinkFailed');
 
         (async () => {

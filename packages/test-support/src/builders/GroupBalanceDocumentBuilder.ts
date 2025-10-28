@@ -1,8 +1,8 @@
 import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
-import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
+import type { CurrencyISOCode, ISOString, UserId } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { BuilderTimestamp, generateShortId, timestampToISOString } from '../test-helpers';
+import {convertToISOString, generateShortId } from '../test-helpers';
 
 interface GroupBalanceDocument {
     groupId: GroupId;
@@ -44,8 +44,8 @@ export class GroupBalanceDocumentBuilder {
         return this;
     }
 
-    withLastUpdated(timestamp: BuilderTimestamp): this {
-        this.document.lastUpdated = timestampToISOString(timestamp);
+    withLastUpdated(timestamp: Date | string | ISOString): this {
+        this.document.lastUpdated = convertToISOString(timestamp);
         return this;
     }
 

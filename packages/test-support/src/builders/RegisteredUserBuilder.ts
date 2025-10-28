@@ -1,5 +1,5 @@
 import type { RegisteredUser, UserThemeColor } from '@splitifyd/shared';
-import { generateShortId, randomBoolean, randomChoice, randomString, randomUrl } from '../test-helpers';
+import {convertToISOString, generateShortId, randomBoolean, randomChoice, randomString, randomUrl} from '../test-helpers';
 
 /**
  * Builder for creating RegisteredUser objects for testing
@@ -20,7 +20,7 @@ export class RegisteredUserBuilder {
             dark: randomChoice(['#1E3A8A', '#065F46', '#1F2937', '#7C2D12', '#831843', '#581C87']),
             name: randomChoice(['Red', 'Teal', 'Blue', 'Green', 'Yellow', 'Purple']),
             pattern: randomChoice(['solid', 'dots', 'stripes', 'diagonal']),
-            assignedAt: new Date().toISOString(),
+            assignedAt: convertToISOString(new Date()),
             colorIndex: Math.floor(Math.random() * 10),
         },
         preferredLanguage: randomChoice(['en', 'es', 'fr', 'de', 'it', 'pt']),

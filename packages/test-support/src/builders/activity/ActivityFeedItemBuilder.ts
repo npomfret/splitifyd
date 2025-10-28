@@ -1,6 +1,6 @@
-import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, GroupId, GroupName, UserId } from '@splitifyd/shared';
+import type {ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, GroupId, GroupName, ISOString, UserId} from '@splitifyd/shared';
 import { ActivityFeedActions, ActivityFeedEventTypes, toGroupId, toGroupName } from '@splitifyd/shared';
-import { generateShortId, randomString } from '../../test-helpers';
+import {convertToISOString, generateShortId, randomString} from '../../test-helpers';
 import {toExpenseId} from "@splitifyd/shared";
 import {CommentId, toCommentId} from "@splitifyd/shared";
 
@@ -33,7 +33,7 @@ export class ActivityFeedItemBuilder {
 
     static create(): ActivityFeedItemBuilder {
         const id = `activity-${generateShortId()}`;
-        const timestamp = DEFAULT_TIMESTAMP();
+        const timestamp = convertToISOString(DEFAULT_TIMESTAMP());
         const actorName = 'Test User';
 
         const base: ActivityFeedItem = {
@@ -245,13 +245,13 @@ export class ActivityFeedItemBuilder {
         return this;
     }
 
-    withTimestamp(timestamp: string): ActivityFeedItemBuilder {
-        this.item.timestamp = timestamp;
+    withTimestamp(timestamp: string | Date | ISOString): ActivityFeedItemBuilder {
+        this.item.timestamp = convertToISOString(timestamp);
         return this;
     }
 
-    withCreatedAt(createdAt: string | undefined): ActivityFeedItemBuilder {
-        this.item.createdAt = createdAt;
+    withCreatedAt(createdAt: string | Date | ISOString): ActivityFeedItemBuilder {
+        this.item.createdAt = convertToISOString(createdAt);
         return this;
     }
 

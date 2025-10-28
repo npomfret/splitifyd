@@ -3,8 +3,9 @@ import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { BuilderTimestamp, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair, timestampToISOString } from '../test-helpers';
+import {convertToISOString, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair} from '../test-helpers';
 import {ExpenseId, toExpenseId} from "@splitifyd/shared";
+import type {ISOString} from "@splitifyd/shared";
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -20,8 +21,8 @@ export class ExpenseDTOBuilder {
         this.expense = {
             // Audit fields (BaseDTO)
             id: toExpenseId(`expense-${generateShortId()}`),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: convertToISOString(new Date()),
+            updatedAt: convertToISOString(new Date()),
 
             // Business fields
             groupId: toGroupId(`group-${generateShortId()}`),
@@ -33,7 +34,7 @@ export class ExpenseDTOBuilder {
             splitType: randomChoice(['equal', 'exact', 'percentage'] as const),
             participants: [userId],
             splits: [{ uid: userId, amount }],
-            date: randomDate(),
+            date: convertToISOString(randomDate()),
             category: randomCategory(),
             deletedAt: null,
             deletedBy: null,
@@ -47,18 +48,18 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withCreatedAt(timestamp: BuilderTimestamp): this {
-        this.expense.createdAt = timestampToISOString(timestamp);
+    withCreatedAt(timestamp: Date | string | ISOString): this {
+        this.expense.createdAt = convertToISOString(timestamp);
         return this;
     }
 
-    withUpdatedAt(timestamp: BuilderTimestamp): this {
-        this.expense.updatedAt = timestampToISOString(timestamp);
+    withUpdatedAt(timestamp: Date | string | ISOString): this {
+        this.expense.updatedAt = convertToISOString(timestamp);
         return this;
     }
 
-    withDeletedAt(timestamp: BuilderTimestamp | null): this {
-        this.expense.deletedAt = timestamp ? timestampToISOString(timestamp) : null;
+    withDeletedAt(timestamp: Date | string | ISOString | null): this {
+        this.expense.deletedAt = timestamp ? convertToISOString(timestamp) : null;
         return this;
     }
 
@@ -138,8 +139,8 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withDate(date: string | BuilderTimestamp): this {
-        this.expense.date = typeof date === 'string' ? date : timestampToISOString(date);
+    withDate(timestamp: Date | string | ISOString): this {
+        this.expense.date = convertToISOString(timestamp);
         return this;
     }
 
