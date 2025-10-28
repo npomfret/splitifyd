@@ -1,15 +1,15 @@
 # Centralize Validation Plan
 
 ## Context
-- Firebase Functions currently mix Joi request validators (auth, expenses, settlements, policies, comments, user) with Zod schemas (groups, shared DTOs, Firestore documents).
-- Common rules (email/password regex, amount/date validation, error-to-code mapping, sanitisation) are duplicated across modules, which drives drift and inconsistent API responses.
-- The webapp validates API responses through shared Zod schemas; aligning request validation with the same source of truth would reduce mismatches between client expectations and server enforcement.
+- Firebase Functions now standardise on Zod request validators across auth, expenses, settlements, policies, comments, and user flows after retiring the remaining Joi helpers.
+- Common rules (email/password regex, amount/date validation, error-to-code mapping, sanitisation) have been centralised under `firebase/functions/src/validation/common`.
+- The webapp already validates API responses through shared Zod schemas; the next step is to share request DTOs so both runtimes consume the same shapes.
 
 ## Goals
 - Provide a single source of truth for request validation rules and error mapping.
 - Remove duplicated regex/constants and bring consistent sanitisation and translation behaviour.
 - Make it easier to extend validation (new fields, locales) without touching multiple files.
-- Prepare the codebase for eventual Joi → Zod migration (if adopted) without breaking current behaviour.
+- Promote reusable request schemas so both server and client consume the same Zod definitions without duplicating effort.
 
 ## Non-Goals
 - No immediate behaviour changes to validation logic (messages, error codes) unless explicitly documented.
@@ -30,14 +30,14 @@
    - ✅ Policies & Comments now consume shared primitives and pagination helpers.
    - ✅ Expenses & Settlements refactored to shared Zod helpers (amount/date schemas, unified error mapping, sanitisation).
 5. **Optional Zod Convergence**
-   - ☐ Evaluate moving remaining request schemas into `@splitifyd/shared` once migrations complete.
-   - ✅ Re-ran webapp audit: no runtime Joi usage; Zod already centralised via `apiClient` + shared response schemas.
-   - ☐ Design shared request-schema surface (likely under `@splitifyd/shared/src/schemas/apiRequests.ts`) so both server and Firebase functions share DTO definitions post-migration.
+   - ✅ Evaluated lifting request schemas into `@splitifyd/shared`; concluded we should expose Zod builders that stay tree-shakeable and avoid Node-specific helpers for browser bundles.
+   - ✅ Re-ran webapp audit (`rg "Joi"`, `rg "zod"`): no runtime Joi usage; Zod already centralised via `apiClient` + shared response schemas.
+   - ☐ Draft the shared request-schema surface (`@splitifyd/shared/src/schemas/apiRequests.ts`) with clear layering between pure schema definitions and server-only transformers before moving consumers.
 6. **Documentation & Tooling**
    - ✅ Added first-pass validation strategy guide.
-   - ☐ Introduce lint/codemod guardrails against new Joi usage; update developer docs after next migrations.
-   - ☐ Update `docs/firebase-api-surface.md` and any remaining references that still describe Joi validators.
-   - ☐ Remove dead Joi helpers (e.g. `createJoiAmountSchema`) once downstream modules stop importing them.
+   - ✅ Updated `docs/firebase-api-surface.md` to reference the shared Zod validators instead of Joi.
+   - ✅ Removed dead Joi helpers (`validation/validationSchemas.ts`) and refactored `utils/amount-validation.ts` to be Joi-free.
+   - ✅ Removed Joi enforcement script after completing migration.
 
 ## Deliverables
 - Shared validation utilities module under `firebase/functions/src/validation/`.
@@ -47,10 +47,10 @@
 
 ## Risks & Mitigations
 - **Behaviour drift**: Ensure snapshot tests capture current error codes/messages before refactors; compare diff after each step.
-- **Mixed validator ecosystems**: Provide interop helpers (Joi ⇄ Zod) until all callers converge on the chosen library.
+- **Shared-schema bloat**: When promoting request schemas to `@splitifyd/shared`, guard against pulling server-only utilities into the webapp bundle (keep Zod definitions side-effect free).
 - **Timeline creep**: Allocate time-boxed spikes per domain to avoid indefinite migration; track progress in tasks board.
 
 ## Open Questions
-- Do we want DTO validation (shared package) to remain the canonical schema for both request/response?
-- Should i18n error translation move entirely to Zod utilities, or do we extend localisation support for Joi errors?
-- Are there external consumers (scripts, tests) relying on the current Joi-only exports that need backward compatibility adapters?
+- What layering should we use when exporting request schemas from `@splitifyd/shared` so that `createRequestValidator` (server-only) remains optional?
+- How should we evolve the localisation helpers (`translateJoiError`) now that Joi is gone—rename in place or consolidate under the shared validation module?
+- Do we need compatibility shims for any out-of-tree integrations that previously imported the Joi-specific helpers?

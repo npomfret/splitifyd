@@ -23,7 +23,7 @@ export class UserHandlers {
             throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'AUTH_REQUIRED', 'Authentication required');
         }
 
-        // Validate request body using Joi
+        // Validate request body using shared Zod schema
         const { acceptances } = validateAcceptMultiplePolicies(req.body);
 
         const result = await this.userPolicyService.acceptMultiplePolicies(userId, acceptances);

@@ -376,7 +376,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 cookiePolicyAccepted: false, // not accepted
             };
 
-            // Should only report the first error (email in this case due to Joi validation order)
+            // Should only report the first error (email in this case to match legacy Joi validation order)
             expect(() => validateRegisterRequest(data as any)).toThrow(
                 expect.objectContaining({
                     code: 'INVALID_EMAIL_FORMAT',

@@ -455,7 +455,7 @@ describe('GroupService - Unit Tests', () => {
                         unknownField: 'should be rejected',
                     };
 
-                    // Joi should strip unknown fields, but let's verify the result
+                    // Shared validator should strip unknown fields, but let's verify the result
                     const result = validateUpdateGroup(update);
                     expect(result).not.toHaveProperty('unknownField');
                     expect(result.name).toBe('Valid Name');

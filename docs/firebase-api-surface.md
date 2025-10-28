@@ -55,7 +55,7 @@ _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS f
 ## Expense Endpoints
 | Method | Path | Summary | Security | Request | Response |
 | --- | --- | --- | --- | --- | --- |
-| POST | `/expenses` | Create expense in a group. | `authenticate` | Body `CreateExpenseRequest` (Joi `validateCreateExpense`). | `201` JSON `ExpenseDTO`. |
+| POST | `/expenses` | Create expense in a group. | `authenticate` | Body `CreateExpenseRequest` (shared Zod `validateCreateExpense`). | `201` JSON `ExpenseDTO`. |
 | PUT | `/expenses` | Update existing expense. | `authenticate` | Query `id` (expenseId); body `UpdateExpenseRequest`. | `200` JSON updated `ExpenseDTO`. |
 | DELETE | `/expenses` | Delete expense (soft delete). | `authenticate` | Query `id` (expenseId). | `200` `{ message }`. |
 | GET | `/expenses/:id/full-details` | Consolidated expense details (expense + group context). | `authenticate` | Path `:id`; query for pagination handled in handler. | `200` JSON `ExpenseFullDetailsResponse`. |
@@ -63,7 +63,7 @@ _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS f
 ## Group & Membership Endpoints
 | Method | Path | Summary | Security | Request | Response |
 | --- | --- | --- | --- | --- | --- |
-| POST | `/groups` | Create group. | `authenticate` | Body `CreateGroupRequest` (Joi `validateCreateGroup`). | `201` `GroupDTO`. |
+| POST | `/groups` | Create group. | `authenticate` | Body `CreateGroupRequest` (shared Zod `validateCreateGroup`). | `201` `GroupDTO`. |
 | GET | `/groups` | List caller’s groups with pagination/filter. | `authenticate` | Query: `limit`, `cursor`, `order`, `statusFilter`. | `200` JSON `{ groups, paging }`. |
 | POST | `/groups/share` | Generate shareable join link. | `authenticate` | Body `GenerateShareLinkRequest` (`groupId`, optional `expiresAt`). | `200` `{ linkId, expiresAt, url }`. |
 | POST | `/groups/preview` | Preview group by invite link. | `authenticate` | Body `{ linkId }`. | `200` preview payload from `GroupShareService.previewGroupByLink`. |
@@ -85,7 +85,7 @@ _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS f
 ## Settlements
 | Method | Path | Summary | Security | Request | Response |
 | --- | --- | --- | --- | --- | --- |
-| POST | `/settlements` | Create settlement entry. | `authenticate` | Body `CreateSettlementRequest` (Joi `createSettlementSchema`). | `201` `SettlementDTO`. |
+| POST | `/settlements` | Create settlement entry. | `authenticate` | Body `CreateSettlementRequest` (shared Zod `createSettlementSchema`). | `201` `SettlementDTO`. |
 | PUT | `/settlements/:settlementId` | Update settlement. | `authenticate` | Path `:settlementId`; body `UpdateSettlementRequest`. | `200` updated `SettlementDTO`. |
 | DELETE | `/settlements/:settlementId` | Soft-delete settlement. | `authenticate` | Path `:settlementId`. | `200` `{ message }`. |
 
@@ -100,12 +100,12 @@ _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS f
 ## Admin Policy Management (Admin-only)
 | Method | Path | Summary | Security | Request | Response |
 | --- | --- | --- | --- | --- | --- |
-| POST | `/admin/policies` | Create new policy shell + first version. | `authenticateAdmin` | Body validated by `validateCreatePolicy` (`{ policyName, text }`). | `201` `CreatePolicyResponse`. |
+| POST | `/admin/policies` | Create new policy shell + first version. | `authenticateAdmin` | Body validated by shared Zod `validateCreatePolicy` (`{ policyName, text }`). | `201` `CreatePolicyResponse`. |
 | GET | `/admin/policies` | List policies and version metadata. | `authenticateAdmin` | None. | `200` policy list result (`PolicyListResponse`). |
 | GET | `/admin/policies/:id` | Fetch policy + version history. | `authenticateAdmin` | Path `:id`. | `200` JSON policy record. |
 | GET | `/admin/policies/:id/versions/:hash` | Fetch specific version content. | `authenticateAdmin` | Path params `id`, `hash`. | `200` `{ text, metadata }`. |
-| PUT | `/admin/policies/:id` | Save draft text; optional publish flag. | `authenticateAdmin` | Body validated by `validateUpdatePolicy` (`{ text, publish? }`). | `200` `UpdatePolicyResponse`. |
-| POST | `/admin/policies/:id/publish` | Publish a draft version. | `authenticateAdmin` | Body validated by `validatePublishPolicy` (`{ versionHash }`). | `200` `PublishPolicyResponse`. |
+| PUT | `/admin/policies/:id` | Save draft text; optional publish flag. | `authenticateAdmin` | Body validated by shared Zod `validateUpdatePolicy` (`{ text, publish? }`). | `200` `UpdatePolicyResponse`. |
+| POST | `/admin/policies/:id/publish` | Publish a draft version. | `authenticateAdmin` | Body validated by shared Zod `validatePublishPolicy` (`{ versionHash }`). | `200` `PublishPolicyResponse`. |
 | DELETE | `/admin/policies/:id/versions/:hash` | Delete archived version. | `authenticateAdmin` | Path params `id`, `hash`. | `200` `DeletePolicyVersionResponse`. |
 
 ## Comment on Standalone Diagnostics Functions

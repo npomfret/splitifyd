@@ -9,7 +9,7 @@
  * - Follows the same patterns as FirestoreReader/Writer
  * - Consistent error mapping from Firebase to application errors
  * - Comprehensive logging with context
- * - Input validation using Joi schemas
+ * - Input validation using shared Zod schemas
  * - Performance monitoring
  */
 

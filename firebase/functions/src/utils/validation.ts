@@ -32,7 +32,7 @@ export function parseWithApiError<T>(
         return schema.parse(data);
     } catch (error) {
         if (error instanceof z.ZodError) {
-            // Get the first error for consistent behavior with Joi
+            // Get the first error for consistency with the legacy Joi implementation
             const firstError = error.issues[0];
             const fieldPath = firstError.path.join('.');
 

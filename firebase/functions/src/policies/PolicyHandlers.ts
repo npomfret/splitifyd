@@ -111,7 +111,7 @@ export class PolicyHandlers {
     publishPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const { id } = req.params;
 
-        // Validate request body using Joi
+        // Validate request body using shared Zod schema
         const { versionHash } = validatePublishPolicy(req.body);
 
         try {
