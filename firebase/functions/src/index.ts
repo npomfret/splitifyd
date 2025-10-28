@@ -21,7 +21,6 @@ import { getCurrentPolicy } from './policies/public-handlers';
 import { acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
 import { logMetrics } from './scheduled/metrics-logger';
 import { createSettlement, deleteSettlement, updateSettlement } from './settlements/handlers';
-import { borrowTestUser, returnTestUser } from './test-pool/handlers';
 import { testClearPolicyAcceptances, testPromoteToAdmin } from './test/policy-handlers';
 import { changeEmail, changePassword, getUserProfile, updateUserProfile } from './user/handlers';
 import { getEnhancedConfigResponse } from './utils/config-response';
@@ -119,6 +118,8 @@ function setupRoutes(app: express.Application): void {
             res.status(404).json({ error: 'Not found' });
         });
     } else {
+        const { borrowTestUser, returnTestUser } = require('./test-pool/handlers') as typeof import('./test-pool/handlers');
+
         app.post('/test-pool/borrow', asyncHandler(borrowTestUser));
         app.post('/test-pool/return', asyncHandler(returnTestUser));
 
