@@ -33,8 +33,7 @@
       "splitInvalid": "Invalid expense split configuration."
     },
     "user": {
-      "displayNameTooLong": "Display name cannot exceed 100 characters.",
-      "themeColorInvalid": "Invalid theme color."
+      "displayNameTooLong": "Display name cannot exceed 100 characters."
     },
     "settlement": {
       "descriptionRequired": "Settlement description is required.",
