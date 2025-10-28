@@ -1,36 +1,17 @@
-import { PolicyId, VersionHash } from '@splitifyd/shared';
-import { z } from 'zod';
+import {
+    AcceptMultiplePoliciesRequestSchema,
+    AcceptPolicyRequest,
+    CreatePolicyRequestSchema,
+    PublishPolicyRequestSchema,
+    UpdatePolicyRequestSchema,
+    type PolicyId,
+    VersionHash,
+} from '@splitifyd/shared';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
-
-interface AcceptPolicyRequest {
-    policyId: PolicyId;
-    versionHash: VersionHash;
-}
 
 interface AcceptMultiplePoliciesRequest {
     acceptances: AcceptPolicyRequest[];
 }
-
-const PolicyIdSchema = z
-    .string()
-    .trim()
-    .min(1, 'Policy ID is required');
-
-const VersionHashSchema = z
-    .string()
-    .trim()
-    .min(1, 'Version hash is required');
-
-const policyAcceptanceItemSchema = z.object({
-    policyId: PolicyIdSchema,
-    versionHash: VersionHashSchema,
-});
-
-const acceptMultiplePoliciesSchema = z.object({
-    acceptances: z
-        .array(policyAcceptanceItemSchema)
-        .min(1, 'At least one policy acceptance is required'),
-});
 
 const mapAcceptPoliciesError = createZodErrorMapper(
     {
@@ -61,7 +42,7 @@ const mapAcceptPoliciesError = createZodErrorMapper(
 );
 
 const baseValidateAcceptMultiplePolicies = createRequestValidator({
-    schema: acceptMultiplePoliciesSchema,
+    schema: AcceptMultiplePoliciesRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => ({
         acceptances: value.acceptances.map((item) => ({
@@ -90,31 +71,6 @@ interface UpdatePolicyRequest {
 interface PublishPolicyRequest {
     versionHash: VersionHash;
 }
-
-const policyNameSchema = z
-    .string()
-    .trim()
-    .min(1, 'Policy name is required')
-    .max(100, 'Policy name must be 100 characters or less');
-
-const policyTextSchema = z
-    .string()
-    .min(1, 'Policy text is required');
-
-const createPolicySchema = z.object({
-    policyName: policyNameSchema,
-    text: policyTextSchema,
-    publish: z.boolean().optional().default(false),
-});
-
-const updatePolicySchema = z.object({
-    text: policyTextSchema,
-    publish: z.boolean().optional().default(false),
-});
-
-const publishPolicySchema = z.object({
-    versionHash: VersionHashSchema,
-});
 
 const mapPolicyError = createZodErrorMapper(
     {
@@ -162,7 +118,7 @@ const mapPolicyError = createZodErrorMapper(
 );
 
 export const validateCreatePolicy = createRequestValidator({
-    schema: createPolicySchema,
+    schema: CreatePolicyRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => ({
         policyName: sanitizeInputString(value.policyName),
@@ -173,7 +129,7 @@ export const validateCreatePolicy = createRequestValidator({
 }) as (body: unknown) => CreatePolicyRequest;
 
 export const validateUpdatePolicy = createRequestValidator({
-    schema: updatePolicySchema,
+    schema: UpdatePolicyRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => ({
         text: value.text,
@@ -183,7 +139,7 @@ export const validateUpdatePolicy = createRequestValidator({
 }) as (body: unknown) => UpdatePolicyRequest;
 
 export const validatePublishPolicy = createRequestValidator({
-    schema: publishPolicySchema,
+    schema: PublishPolicyRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => ({
         versionHash: value.versionHash as VersionHash,

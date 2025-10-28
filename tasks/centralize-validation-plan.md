@@ -32,7 +32,8 @@
 5. **Optional Zod Convergence**
    - ✅ Evaluated lifting request schemas into `@splitifyd/shared`; concluded we should expose Zod builders that stay tree-shakeable and avoid Node-specific helpers for browser bundles.
    - ✅ Re-ran webapp audit (`rg "Joi"`, `rg "zod"`): no runtime Joi usage; Zod already centralised via `apiClient` + shared response schemas.
-   - ☐ Draft the shared request-schema surface (`@splitifyd/shared/src/schemas/apiRequests.ts`) with clear layering between pure schema definitions and server-only transformers before moving consumers.
+   - ✅ Draft the shared request-schema surface (`@splitifyd/shared/src/schemas/apiRequests.ts`) with clear layering between pure schema definitions and server-only transformers before moving consumers.
+   - ✅ Firebase request validators now import the shared schemas, eliminating duplicate definitions in auth, expenses, settlements, comments, policies, and user flows.
 6. **Documentation & Tooling**
    - ✅ Added first-pass validation strategy guide.
    - ✅ Updated `docs/firebase-api-surface.md` to reference the shared Zod validators instead of Joi.
@@ -51,6 +52,7 @@
 - **Timeline creep**: Allocate time-boxed spikes per domain to avoid indefinite migration; track progress in tasks board.
 
 ## Open Questions
-- What layering should we use when exporting request schemas from `@splitifyd/shared` so that `createRequestValidator` (server-only) remains optional?
+- ✅ What layering should we use when exporting request schemas from `@splitifyd/shared` so that `createRequestValidator` (server-only) remains optional?  
+  Resolved by exporting pure schema builders from the shared package while keeping `createRequestValidator` in Firebase-only utilities.
 - How should we evolve the localisation helpers (`translateJoiError`) now that Joi is gone—rename in place or consolidate under the shared validation module?
 - Do we need compatibility shims for any out-of-tree integrations that previously imported the Joi-specific helpers?

@@ -197,7 +197,9 @@ export class FirebaseAuthService implements IAuthService {
         const context = this.createContext('createUser');
 
         // Validate input if enabled
-        const validatedData: ValidatedCreateUserRequest = this.enableValidation ? validateCreateUser(userData) : (userData as ValidatedCreateUserRequest);
+        const validatedData: ValidatedCreateUserRequest = this.enableValidation
+            ? (validateCreateUser(userData) as ValidatedCreateUserRequest)
+            : (userData as ValidatedCreateUserRequest);
 
         LoggerContext.update({
             operation: 'createUser',

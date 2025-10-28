@@ -1,20 +1,16 @@
-import { type CommentId, CreateExpenseCommentRequest, CreateGroupCommentRequest, toCommentId } from '@splitifyd/shared';
-import { z } from 'zod';
+import {
+    CommentBodySchema,
+    ListCommentsQuerySchema,
+    type CommentId,
+    CreateExpenseCommentRequest,
+    CreateGroupCommentRequest,
+    toCommentId,
+} from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { validateExpenseId } from '../expenses/validation';
 import { validateGroupId } from '../groups/validation';
 import { ApiError } from '../utils/errors';
-import { createPaginationSchema, createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
-
-const commentTextSchema = z
-    .string()
-    .trim()
-    .min(1, 'Comment text is required')
-    .max(500, 'Comment cannot exceed 500 characters');
-
-const commentBodySchema = z.object({
-    text: commentTextSchema,
-});
+import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
 
 const mapCommentError = createZodErrorMapper(
     {
@@ -35,19 +31,13 @@ const mapCommentError = createZodErrorMapper(
 );
 
 const baseValidateComment = createRequestValidator({
-    schema: commentBodySchema,
+    schema: CommentBodySchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => ({
         text: sanitizeInputString(value.text),
     }),
     mapError: (error) => mapCommentError(error),
 }) as (body: unknown) => { text: string; };
-
-const listCommentsQuerySchema = createPaginationSchema({
-    defaultLimit: 8,
-    minLimit: 1,
-    maxLimit: 100,
-});
 
 const mapPaginationError = createZodErrorMapper(
     {
@@ -71,7 +61,7 @@ const mapPaginationError = createZodErrorMapper(
 );
 
 const baseValidateListCommentsQuery = createRequestValidator({
-    schema: listCommentsQuerySchema,
+    schema: ListCommentsQuerySchema,
     preValidate: (payload: unknown) => payload ?? {},
     mapError: (error) => mapPaginationError(error),
 }) as (query: unknown) => { cursor?: string; limit: number; };

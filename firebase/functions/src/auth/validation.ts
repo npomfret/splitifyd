@@ -1,24 +1,8 @@
-import { UserRegistration } from '@splitifyd/shared';
+import { RegisterRequestSchema, UserRegistration } from '@splitifyd/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
-import { AcceptanceBooleanSchema, createPasswordSchema, createRequestValidator, DisplayNameSchema, EmailSchema } from '../validation/common';
-
-const registerSchema = z.object({
-    email: EmailSchema,
-    password: createPasswordSchema(),
-    displayName: DisplayNameSchema,
-    termsAccepted: AcceptanceBooleanSchema({
-        required: 'Terms acceptance is required',
-        invalidType: 'Terms acceptance must be a boolean value',
-        notAccepted: 'You must accept the Terms of Service',
-    }),
-    cookiePolicyAccepted: AcceptanceBooleanSchema({
-        required: 'Cookie policy acceptance is required',
-        invalidType: 'Cookie policy acceptance must be a boolean value',
-        notAccepted: 'You must accept the Cookie Policy',
-    }),
-});
+import { createRequestValidator } from '../validation/common';
 
 const mapRegisterError = (error: z.ZodError): never => {
     const firstError = error.issues[0];
@@ -84,7 +68,7 @@ const mapRegisterError = (error: z.ZodError): never => {
 };
 
 export const validateRegisterRequest = createRequestValidator({
-    schema: registerSchema,
+    schema: RegisterRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => ({
         email: value.email.trim().toLowerCase(),

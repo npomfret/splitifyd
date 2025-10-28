@@ -1,50 +1,12 @@
-import { z } from 'zod';
+import { ChangeEmailRequestSchema, ChangePasswordRequestSchema, UpdateUserProfileRequestSchema } from '@splitifyd/shared';
 import { Errors } from '../utils/errors';
-import { createDisplayNameSchema, createPasswordSchema, createRequestValidator, createZodErrorMapper, EmailSchema, sanitizeInputString } from '../validation/common';
+import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
 
 interface UpdateUserProfileRequest {
     displayName?: string;
     photoURL?: string | null;
     preferredLanguage?: string;
 }
-
-const updateUserProfileSchema = z
-    .object({
-        displayName: createDisplayNameSchema({
-            min: 1,
-            max: 100,
-            minMessage: 'Display name cannot be empty',
-            maxMessage: 'Display name must be 100 characters or less',
-            pattern: null,
-        })
-            .optional(),
-        photoURL: z
-            .union([
-                z.string().url('Invalid photo URL format'),
-                z.literal(''),
-                z.null(),
-            ])
-            .optional(),
-        preferredLanguage: z
-            .string()
-            .trim()
-            .refine((value) => value === 'en', {
-                message: 'Language must be one of: en',
-            })
-            .optional(),
-    })
-    .superRefine((value, ctx) => {
-        if (
-            value.displayName === undefined
-            && value.photoURL === undefined
-            && value.preferredLanguage === undefined
-        ) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'At least one field (displayName, photoURL, or preferredLanguage) must be provided',
-            });
-        }
-    });
 
 const mapUpdateProfileError = createZodErrorMapper(
     {
@@ -74,7 +36,7 @@ const mapUpdateProfileError = createZodErrorMapper(
 );
 
 const baseValidateUpdateUserProfile = createRequestValidator({
-    schema: updateUserProfileSchema,
+    schema: UpdateUserProfileRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => {
         const result: UpdateUserProfileRequest = {};
@@ -104,16 +66,6 @@ interface ChangePasswordRequest {
     currentPassword: string;
     newPassword: string;
 }
-
-const changePasswordSchema = z.object({
-    currentPassword: z
-        .string()
-        .min(1, 'Current password cannot be empty'),
-    newPassword: createPasswordSchema({
-        required: 'New password cannot be empty',
-        weak: 'Password must be at least 12 characters long',
-    }),
-});
 
 const mapChangePasswordError = createZodErrorMapper(
     {
@@ -147,7 +99,7 @@ const mapChangePasswordError = createZodErrorMapper(
 );
 
 export const validateChangePassword = createRequestValidator({
-    schema: changePasswordSchema,
+    schema: ChangePasswordRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => {
         if (value.currentPassword === value.newPassword) {
@@ -163,13 +115,6 @@ interface ChangeEmailRequest {
     currentPassword: string;
     newEmail: string;
 }
-
-const changeEmailSchema = z.object({
-    currentPassword: z
-        .string()
-        .min(1, 'Current password cannot be empty'),
-    newEmail: EmailSchema,
-});
 
 const mapChangeEmailError = createZodErrorMapper(
     {
@@ -209,7 +154,7 @@ const mapChangeEmailError = createZodErrorMapper(
 );
 
 export const validateChangeEmail = createRequestValidator({
-    schema: changeEmailSchema,
+    schema: ChangeEmailRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => ({
         currentPassword: value.currentPassword,

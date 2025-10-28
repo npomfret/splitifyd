@@ -2,3 +2,4 @@
 // Downstream packages (webapp-v2, firebase/functions) should import API validation schemas from here.
 
 export * from './apiSchemas';
+export * from './apiRequests';

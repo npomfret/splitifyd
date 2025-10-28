@@ -1,91 +1,17 @@
-import { CreateSettlementRequest, type SettlementId, toGroupId, toISOString, toSettlementId, UpdateSettlementRequest } from '@splitifyd/shared';
+import {
+    CreateSettlementRequest,
+    CreateSettlementRequestSchema,
+    type SettlementId,
+    toGroupId,
+    toISOString,
+    toSettlementId,
+    UpdateSettlementRequest,
+    UpdateSettlementRequestSchema,
+} from '@splitifyd/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
-import { validateAmountPrecision } from '../utils/amount-validation';
 import { ApiError } from '../utils/errors';
-import { createAmountSchema, createRequestValidator, createUtcDateSchema, createZodErrorMapper, CurrencyCodeSchema, sanitizeInputString } from '../validation/common';
-
-const noteSchema = z
-    .union([
-        z
-            .string()
-            .trim()
-            .max(500, 'Note cannot exceed 500 characters'),
-        z.literal(''),
-    ])
-    .optional();
-
-const settlementDateSchema = z
-    .union([
-        createUtcDateSchema(),
-        z.null(),
-    ])
-    .optional();
-
-export const createSettlementSchema = z
-    .object({
-        groupId: z.string().trim().min(1, 'Group ID is required'),
-        payerId: z.string().trim().min(1, 'Payer ID is required'),
-        payeeId: z.string().trim().min(1, 'Payee ID is required'),
-        amount: createAmountSchema(),
-        currency: CurrencyCodeSchema,
-        date: settlementDateSchema,
-        note: noteSchema,
-    })
-    .superRefine((value, ctx) => {
-        if (value.payerId && value.payeeId && value.payerId === value.payeeId) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ['payeeId'],
-                message: 'Payer and payee cannot be the same person',
-            });
-        }
-
-        if (value.amount && value.currency) {
-            try {
-                validateAmountPrecision(value.amount, value.currency);
-            } catch (error) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: ['amount'],
-                    message: (error as Error).message,
-                });
-            }
-        }
-    });
-
-export const updateSettlementSchema = z
-    .object({
-        amount: createAmountSchema().optional(),
-        currency: CurrencyCodeSchema.optional(),
-        date: settlementDateSchema,
-        note: noteSchema,
-    })
-    .superRefine((value, ctx) => {
-        if (
-            value.amount === undefined
-            && value.currency === undefined
-            && value.date === undefined
-            && value.note === undefined
-        ) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'At least one field must be provided for update',
-            });
-        }
-
-        if (value.amount !== undefined && value.currency !== undefined) {
-            try {
-                validateAmountPrecision(value.amount, value.currency);
-            } catch (error) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: ['amount'],
-                    message: (error as Error).message,
-                });
-            }
-        }
-    });
+import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
 
 const createSettlementErrorMapper = createZodErrorMapper(
     {
@@ -150,7 +76,7 @@ const updateSettlementErrorMapperBase = createZodErrorMapper(
 );
 
 const baseValidateCreateSettlement = createRequestValidator({
-    schema: createSettlementSchema,
+    schema: CreateSettlementRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => {
         const date = value.date === null || value.date === undefined ? undefined : value.date;
@@ -182,7 +108,7 @@ const mapUpdateSettlementError = (error: z.ZodError): never => {
 };
 
 const baseValidateUpdateSettlement = createRequestValidator({
-    schema: updateSettlementSchema,
+    schema: UpdateSettlementRequestSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => {
         const update: UpdateSettlementRequest = {};
@@ -238,7 +164,7 @@ export const validateSettlementId = (value: unknown): SettlementId => {
 };
 
 export const schemas = {
-    createSettlementSchema,
-    updateSettlementSchema,
+    createSettlementSchema: CreateSettlementRequestSchema,
+    updateSettlementSchema: UpdateSettlementRequestSchema,
     settlementIdSchema,
 };
