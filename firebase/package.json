@@ -26,8 +26,8 @@
     "seed-policies:prod": "tsx scripts/switch-instance.ts prod && tsx scripts/seed-policies.ts production && rm functions/.env",
     "fix-users": "tsx scripts/fix-broken-users.ts emulator",
     "fix-users:prod": "tsx scripts/switch-instance.ts prod && tsx scripts/fix-broken-users.ts production && rm functions/.env",
-    "paginate-users": "tsx scripts/paginate-users.ts emulator",
-    "paginate-users:prod": "tsx scripts/switch-instance.ts prod && tsx scripts/paginate-users.ts production && rm functions/.env",
+    "paginate-users": "tsx scripts/list-users.ts emulator",
+    "paginate-users:prod": "tsx scripts/switch-instance.ts prod && tsx scripts/list-users.ts production && rm functions/.env",
     "logs": "firebase functions:log",
     "manage-functions": "tsx scripts/manage-deployed-functions.ts",
     "analyze-performance": "npx tsx scripts/analyze-function-performance.ts"
