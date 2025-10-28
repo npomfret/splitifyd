@@ -1,6 +1,6 @@
 import type { ColorPattern, UserThemeColor } from '@splitifyd/shared';
-import {convertToISOString} from "../test-helpers";
-import type {ISOString} from "@splitifyd/shared";
+import type { ISOString } from '@splitifyd/shared';
+import { convertToISOString } from '../test-helpers';
 
 /**
  * Builder for UserThemeColor objects used in test data

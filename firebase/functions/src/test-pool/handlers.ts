@@ -4,8 +4,8 @@ import { getIdentityToolkitConfig } from '../client-config';
 import { getAuth, getFirestore, isEmulator } from '../firebase';
 import { logger } from '../logger';
 import { ComponentBuilder } from '../services/ComponentBuilder';
-import { TestUserPoolService } from './TestUserPoolService';
 import { requireInstanceMode } from '../shared/instance-mode';
+import { TestUserPoolService } from './TestUserPoolService';
 
 // todo: use the singleton
 const firestore = getFirestore();

@@ -1,8 +1,8 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { Tooltip } from '@/components/ui/Tooltip.tsx';
 import { navigationService } from '@/services/navigation.service';
-import { type SystemUserRole, SystemUserRoles } from '@splitifyd/shared';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
+import { type SystemUserRole, SystemUserRoles } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
@@ -101,7 +101,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 <script>
                     (function() {
                         try {
-                            window.history.replaceState(null, '', '${displayPath.replace(/'/g, "\\'")}');
+                            window.history.replaceState(null, '', '${displayPath.replace(/'/g, '\\\'')}');
                         } catch (error) {
                             console.warn('Unable to update diagnostics URL', error);
                         }

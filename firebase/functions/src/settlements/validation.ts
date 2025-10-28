@@ -1,16 +1,9 @@
-import { CreateSettlementRequest, UpdateSettlementRequest, toSettlementId, type SettlementId, toGroupId, toISOString } from '@splitifyd/shared';
+import { CreateSettlementRequest, type SettlementId, toGroupId, toISOString, toSettlementId, UpdateSettlementRequest } from '@splitifyd/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { validateAmountPrecision } from '../utils/amount-validation';
 import { ApiError } from '../utils/errors';
-import {
-    createAmountSchema,
-    createRequestValidator,
-    createUtcDateSchema,
-    createZodErrorMapper,
-    CurrencyCodeSchema,
-    sanitizeInputString,
-} from '../validation/common';
+import { createAmountSchema, createRequestValidator, createUtcDateSchema, createZodErrorMapper, CurrencyCodeSchema, sanitizeInputString } from '../validation/common';
 
 const noteSchema = z
     .union([
@@ -70,10 +63,10 @@ export const updateSettlementSchema = z
     })
     .superRefine((value, ctx) => {
         if (
-            value.amount === undefined &&
-            value.currency === undefined &&
-            value.date === undefined &&
-            value.note === undefined
+            value.amount === undefined
+            && value.currency === undefined
+            && value.date === undefined
+            && value.note === undefined
         ) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -160,10 +153,8 @@ const baseValidateCreateSettlement = createRequestValidator({
     schema: createSettlementSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => {
-        const date =
-            value.date === null || value.date === undefined ? undefined : value.date;
-        const note =
-            value.note === undefined ? undefined : sanitizeInputString(value.note);
+        const date = value.date === null || value.date === undefined ? undefined : value.date;
+        const note = value.note === undefined ? undefined : sanitizeInputString(value.note);
 
         return {
             groupId: toGroupId(value.groupId.trim()),

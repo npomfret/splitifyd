@@ -1,4 +1,5 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, GroupId, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse, UserId } from '@splitifyd/shared';
+import { toISOString } from '@splitifyd/shared';
 import { FirestoreCollections } from '../constants';
 import { FieldValue } from '../firestore-wrapper';
 import { logger, LoggerContext } from '../logger';
@@ -8,7 +9,6 @@ import { ApiError, Errors } from '../utils/errors';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
 import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-import {toISOString} from "@splitifyd/shared";
 
 export class GroupMemberService {
     constructor(

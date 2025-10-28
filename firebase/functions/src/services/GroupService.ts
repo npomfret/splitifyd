@@ -21,6 +21,7 @@ import {
     UpdateGroupRequest,
 } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
+import { toISOString } from '@splitifyd/shared';
 import { DOCUMENT_CONFIG, FirestoreCollections } from '../constants';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -38,7 +39,6 @@ import { GroupMemberService } from './GroupMemberService';
 import { GroupShareService } from './GroupShareService';
 import { SettlementService } from './SettlementService';
 import { UserService } from './UserService2';
-import {toISOString} from "@splitifyd/shared";
 
 /**
  * Service for managing group operations

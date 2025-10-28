@@ -1,6 +1,6 @@
 import type { CurrencyBalance, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, ISOString, PermissionChangeLog, UserId } from '@splitifyd/shared';
 import { toGroupId, toGroupName } from '@splitifyd/shared';
-import {convertToISOString, generateShortId, randomChoice, randomString } from '../test-helpers';
+import { convertToISOString, generateShortId, randomChoice, randomString } from '../test-helpers';
 
 /**
  * Builder for creating GroupDTO objects for tests.

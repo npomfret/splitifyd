@@ -44,11 +44,11 @@ export function SettingsPage() {
     const resolvedDisplayName = user?.displayName?.trim() || user?.email?.split('@')[0] || '';
     const profileInitials = resolvedDisplayName
         ? resolvedDisplayName
-              .split(' ')
-              .map((part) => part.charAt(0))
-              .join('')
-              .slice(0, 2)
-              .toUpperCase()
+            .split(' ')
+            .map((part) => part.charAt(0))
+            .join('')
+            .slice(0, 2)
+            .toUpperCase()
         : '';
 
     // Load user profile on component mount
@@ -321,7 +321,9 @@ export function SettingsPage() {
                                     <div class='rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-3'>
                                         <span class='text-slate-500'>{t('settingsPage.profileSummaryRoleLabel')}</span>
                                         <div class='font-medium text-slate-900'>
-                                            {user.role ? t(`settingsPage.profileSummaryRole.${user.role}`, { defaultValue: t('settingsPage.profileSummaryRoleFallback') }) : t('settingsPage.profileSummaryRoleFallback')}
+                                            {user.role
+                                                ? t(`settingsPage.profileSummaryRole.${user.role}`, { defaultValue: t('settingsPage.profileSummaryRoleFallback') })
+                                                : t('settingsPage.profileSummaryRoleFallback')}
                                         </div>
                                     </div>
                                 </div>
@@ -352,7 +354,11 @@ export function SettingsPage() {
                                                 onChange={setDisplayName}
                                                 placeholder={t('settingsPage.displayNamePlaceholder')}
                                                 disabled={authStore.isUpdatingProfile}
-                                                error={isDisplayNameEmpty ? t('settingsPage.errorMessages.displayNameEmpty') : isDisplayNameTooLong ? t('settingsPage.errorMessages.displayNameTooLong') : undefined}
+                                                error={isDisplayNameEmpty
+                                                    ? t('settingsPage.errorMessages.displayNameEmpty')
+                                                    : isDisplayNameTooLong
+                                                    ? t('settingsPage.errorMessages.displayNameTooLong')
+                                                    : undefined}
                                                 data-testid='display-name-input'
                                             />
                                             <p class='text-xs text-slate-500'>{t('settingsPage.displayNameHelper')}</p>
@@ -377,76 +383,76 @@ export function SettingsPage() {
                                         <p class='text-sm text-slate-600'>{t('settingsPage.emailSectionDescription')}</p>
                                     </div>
 
-                                    {!showEmailForm ? (
-                                        <div class='flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
-                                            <div>
-                                                <p class='text-xs font-semibold uppercase text-slate-500'>
-                                                    {t('settingsPage.currentEmailLabel')}
-                                                </p>
-                                                <p class='font-medium text-slate-900 break-words'>{originalEmail}</p>
+                                    {!showEmailForm
+                                        ? (
+                                            <div class='flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
+                                                <div>
+                                                    <p class='text-xs font-semibold uppercase text-slate-500'>
+                                                        {t('settingsPage.currentEmailLabel')}
+                                                    </p>
+                                                    <p class='font-medium text-slate-900 break-words'>{originalEmail}</p>
+                                                </div>
+                                                <Button variant='secondary' onClick={handleStartEmailChange} data-testid='change-email-button'>
+                                                    {t('settingsPage.changeEmailButton')}
+                                                </Button>
                                             </div>
-                                            <Button variant='secondary' onClick={handleStartEmailChange} data-testid='change-email-button'>
-                                                {t('settingsPage.changeEmailButton')}
-                                            </Button>
-                                        </div>
-                                    ) : (
-                                        <Form
-                                            onSubmit={() => {
-                                                if (!isEmailLoading) {
-                                                    return handleEmailChange();
-                                                }
-                                            }}
-                                            className='space-y-5'
-                                            data-testid='email-form'
-                                        >
-                                            <Input
-                                                label={t('settingsPage.newEmailLabel')}
-                                                type='email'
-                                                value={emailData.newEmail}
-                                                onChange={(value) => setEmailData((prev) => ({ ...prev, newEmail: value }))}
-                                                placeholder={t('settingsPage.newEmailPlaceholder')}
-                                                disabled={isEmailLoading}
-                                                error={shouldShowEmailFormatError ? t('settingsPage.errorMessages.emailInvalid') : undefined}
-                                                id='new-email-input'
-                                                data-testid='new-email-input'
-                                            />
-
-                                            <Input
-                                                label={t('settingsPage.emailPasswordLabel')}
-                                                type='password'
-                                                value={emailData.currentPassword}
-                                                onChange={(value) => setEmailData((prev) => ({ ...prev, currentPassword: value }))}
-                                                disabled={isEmailLoading}
-                                                id='email-password-input'
-                                                data-testid='email-password-input'
-                                            />
-
-                                            <div class='flex flex-col gap-3 sm:flex-row'>
-                                                <Button
-                                                    type='submit'
-                                                    disabled={
-                                                        isEmailLoading ||
-                                                        !hasEmailChanged ||
-                                                        shouldShowEmailFormatError ||
-                                                        emailData.currentPassword.trim().length === 0
+                                        )
+                                        : (
+                                            <Form
+                                                onSubmit={() => {
+                                                    if (!isEmailLoading) {
+                                                        return handleEmailChange();
                                                     }
-                                                    loading={isEmailLoading}
-                                                    data-testid='update-email-button'
-                                                >
-                                                    {t('settingsPage.updateEmailButton')}
-                                                </Button>
-                                                <Button
-                                                    type='button'
-                                                    variant='secondary'
-                                                    onClick={handleCancelEmailChange}
+                                                }}
+                                                className='space-y-5'
+                                                data-testid='email-form'
+                                            >
+                                                <Input
+                                                    label={t('settingsPage.newEmailLabel')}
+                                                    type='email'
+                                                    value={emailData.newEmail}
+                                                    onChange={(value) => setEmailData((prev) => ({ ...prev, newEmail: value }))}
+                                                    placeholder={t('settingsPage.newEmailPlaceholder')}
                                                     disabled={isEmailLoading}
-                                                    data-testid='cancel-email-button'
-                                                >
-                                                    {t('settingsPage.cancelButton')}
-                                                </Button>
-                                            </div>
-                                        </Form>
-                                    )}
+                                                    error={shouldShowEmailFormatError ? t('settingsPage.errorMessages.emailInvalid') : undefined}
+                                                    id='new-email-input'
+                                                    data-testid='new-email-input'
+                                                />
+
+                                                <Input
+                                                    label={t('settingsPage.emailPasswordLabel')}
+                                                    type='password'
+                                                    value={emailData.currentPassword}
+                                                    onChange={(value) => setEmailData((prev) => ({ ...prev, currentPassword: value }))}
+                                                    disabled={isEmailLoading}
+                                                    id='email-password-input'
+                                                    data-testid='email-password-input'
+                                                />
+
+                                                <div class='flex flex-col gap-3 sm:flex-row'>
+                                                    <Button
+                                                        type='submit'
+                                                        disabled={isEmailLoading
+                                                            || !hasEmailChanged
+                                                            || shouldShowEmailFormatError
+                                                            || emailData.currentPassword.trim().length === 0}
+                                                        loading={isEmailLoading}
+                                                        data-testid='update-email-button'
+                                                    >
+                                                        {t('settingsPage.updateEmailButton')}
+                                                    </Button>
+                                                    <Button
+                                                        type='button'
+                                                        variant='secondary'
+                                                        onClick={handleCancelEmailChange}
+                                                        disabled={isEmailLoading}
+                                                        data-testid='cancel-email-button'
+                                                    >
+                                                        {t('settingsPage.cancelButton')}
+                                                    </Button>
+                                                </div>
+                                            </Form>
+                                        )}
                                 </div>
                             </Card>
 
@@ -475,64 +481,66 @@ export function SettingsPage() {
                                         </ul>
                                     </div>
 
-                                    {!showPasswordForm ? (
-                                        <Button onClick={() => setShowPasswordForm(true)} data-testid='change-password-button'>
-                                            {t('settingsPage.changePasswordButton')}
-                                        </Button>
-                                    ) : (
-                                        <div data-testid='password-form'>
-                                            <Form
-                                                onSubmit={() => {
-                                                    if (!isLoading) {
-                                                        return handlePasswordChange();
-                                                    }
-                                                }}
-                                                className='space-y-5'
-                                            >
-                                                <Input
-                                                    label={t('settingsPage.currentPasswordLabel')}
-                                                    type='password'
-                                                    name='currentPassword'
-                                                    value={passwordData.currentPassword}
-                                                    onChange={(value) => setPasswordData((prev) => ({ ...prev, currentPassword: value }))}
-                                                    disabled={isLoading}
-                                                    id='current-password-input'
-                                                    data-testid='current-password-input'
-                                                />
+                                    {!showPasswordForm
+                                        ? (
+                                            <Button onClick={() => setShowPasswordForm(true)} data-testid='change-password-button'>
+                                                {t('settingsPage.changePasswordButton')}
+                                            </Button>
+                                        )
+                                        : (
+                                            <div data-testid='password-form'>
+                                                <Form
+                                                    onSubmit={() => {
+                                                        if (!isLoading) {
+                                                            return handlePasswordChange();
+                                                        }
+                                                    }}
+                                                    className='space-y-5'
+                                                >
+                                                    <Input
+                                                        label={t('settingsPage.currentPasswordLabel')}
+                                                        type='password'
+                                                        name='currentPassword'
+                                                        value={passwordData.currentPassword}
+                                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, currentPassword: value }))}
+                                                        disabled={isLoading}
+                                                        id='current-password-input'
+                                                        data-testid='current-password-input'
+                                                    />
 
-                                                <Input
-                                                    label={t('settingsPage.newPasswordLabel')}
-                                                    type='password'
-                                                    name='newPassword'
-                                                    value={passwordData.newPassword}
-                                                    onChange={(value) => setPasswordData((prev) => ({ ...prev, newPassword: value }))}
-                                                    disabled={isLoading}
-                                                    id='new-password-input'
-                                                    data-testid='new-password-input'
-                                                />
+                                                    <Input
+                                                        label={t('settingsPage.newPasswordLabel')}
+                                                        type='password'
+                                                        name='newPassword'
+                                                        value={passwordData.newPassword}
+                                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, newPassword: value }))}
+                                                        disabled={isLoading}
+                                                        id='new-password-input'
+                                                        data-testid='new-password-input'
+                                                    />
 
-                                                <Input
-                                                    label={t('settingsPage.confirmNewPasswordLabel')}
-                                                    type='password'
-                                                    name='confirmNewPassword'
-                                                    value={passwordData.confirmNewPassword}
-                                                    onChange={(value) => setPasswordData((prev) => ({ ...prev, confirmNewPassword: value }))}
-                                                    disabled={isLoading}
-                                                    id='confirm-password-input'
-                                                    data-testid='confirm-password-input'
-                                                />
+                                                    <Input
+                                                        label={t('settingsPage.confirmNewPasswordLabel')}
+                                                        type='password'
+                                                        name='confirmNewPassword'
+                                                        value={passwordData.confirmNewPassword}
+                                                        onChange={(value) => setPasswordData((prev) => ({ ...prev, confirmNewPassword: value }))}
+                                                        disabled={isLoading}
+                                                        id='confirm-password-input'
+                                                        data-testid='confirm-password-input'
+                                                    />
 
-                                                <div class='flex flex-col gap-3 sm:flex-row'>
-                                                    <Button type='submit' disabled={isLoading} loading={isLoading} data-testid='update-password-button'>
-                                                        {t('settingsPage.updatePasswordButton')}
-                                                    </Button>
-                                                    <Button type='button' variant='secondary' onClick={handleCancelPasswordChange} disabled={isLoading} data-testid='cancel-password-button'>
-                                                        {t('settingsPage.cancelButton')}
-                                                    </Button>
-                                                </div>
-                                            </Form>
-                                        </div>
-                                    )}
+                                                    <div class='flex flex-col gap-3 sm:flex-row'>
+                                                        <Button type='submit' disabled={isLoading} loading={isLoading} data-testid='update-password-button'>
+                                                            {t('settingsPage.updatePasswordButton')}
+                                                        </Button>
+                                                        <Button type='button' variant='secondary' onClick={handleCancelPasswordChange} disabled={isLoading} data-testid='cancel-password-button'>
+                                                            {t('settingsPage.cancelButton')}
+                                                        </Button>
+                                                    </div>
+                                                </Form>
+                                            </div>
+                                        )}
                                 </div>
                             </Card>
                         </div>

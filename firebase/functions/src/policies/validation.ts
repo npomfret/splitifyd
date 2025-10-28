@@ -1,10 +1,6 @@
 import { PolicyId, VersionHash } from '@splitifyd/shared';
 import { z } from 'zod';
-import {
-    createRequestValidator,
-    createZodErrorMapper,
-    sanitizeInputString,
-} from '../validation/common';
+import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
 
 interface AcceptPolicyRequest {
     policyId: PolicyId;

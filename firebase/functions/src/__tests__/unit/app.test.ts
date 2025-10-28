@@ -1,11 +1,22 @@
-import {ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses, amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, toGroupName, UserBalance} from '@splitifyd/shared';
+import {
+    ActivityFeedActions,
+    ActivityFeedEventTypes,
+    amountToSmallestUnit,
+    calculateEqualSplits,
+    calculatePercentageSplits,
+    MemberRoles,
+    MemberStatuses,
+    smallestUnitToAmountString,
+    toGroupName,
+    UserBalance,
+} from '@splitifyd/shared';
 import type { UserId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
+import { toExpenseId } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { FirestoreCollections } from '../../constants';
 import { AppDriver } from './AppDriver';
-import {toExpenseId} from "@splitifyd/shared";
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
@@ -3394,14 +3405,18 @@ describe('app tests', () => {
             it('should reject empty display name', async () => {
                 await expect(
                     appDriver.updateUserProfile(user1, { displayName: '' }),
-                ).rejects.toThrow();
+                )
+                    .rejects
+                    .toThrow();
             });
 
             it('should reject display name that is too long', async () => {
                 const tooLongName = 'a'.repeat(256);
                 await expect(
                     appDriver.updateUserProfile(user1, { displayName: tooLongName }),
-                ).rejects.toThrow();
+                )
+                    .rejects
+                    .toThrow();
             });
         });
 
@@ -3424,7 +3439,9 @@ describe('app tests', () => {
                         currentPassword: 'WrongPassword123!',
                         newPassword: VALID_NEW_PASSWORD,
                     }),
-                ).rejects.toThrow(/password is incorrect/i);
+                )
+                    .rejects
+                    .toThrow(/password is incorrect/i);
             });
 
             it('should reject when new password is same as current', async () => {
@@ -3433,7 +3450,9 @@ describe('app tests', () => {
                         currentPassword: VALID_CURRENT_PASSWORD,
                         newPassword: VALID_CURRENT_PASSWORD,
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
 
             it('should reject when new password is too short', async () => {
@@ -3442,7 +3461,9 @@ describe('app tests', () => {
                         currentPassword: VALID_CURRENT_PASSWORD,
                         newPassword: 'Short1!',
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
 
             it('should reject when currentPassword field is missing', async () => {
@@ -3450,7 +3471,9 @@ describe('app tests', () => {
                     appDriver.changePassword(user1, {
                         newPassword: VALID_NEW_PASSWORD,
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
 
             it('should reject when newPassword field is missing', async () => {
@@ -3458,7 +3481,9 @@ describe('app tests', () => {
                     appDriver.changePassword(user1, {
                         currentPassword: VALID_CURRENT_PASSWORD,
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
 
             it('should reject when currentPassword is empty string', async () => {
@@ -3467,7 +3492,9 @@ describe('app tests', () => {
                         currentPassword: '',
                         newPassword: VALID_NEW_PASSWORD,
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
 
             it('should reject when newPassword is empty string', async () => {
@@ -3476,7 +3503,9 @@ describe('app tests', () => {
                         currentPassword: VALID_CURRENT_PASSWORD,
                         newPassword: '',
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
         });
 
@@ -3500,7 +3529,9 @@ describe('app tests', () => {
                         currentPassword: 'WrongPassword123!',
                         newEmail: NEW_EMAIL,
                     }),
-                ).rejects.toThrow(/password is incorrect/i);
+                )
+                    .rejects
+                    .toThrow(/password is incorrect/i);
             });
 
             it('should reject when new email is same as current email', async () => {
@@ -3511,7 +3542,9 @@ describe('app tests', () => {
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: currentProfile.email!,
                     }),
-                ).rejects.toThrow(/must be different/i);
+                )
+                    .rejects
+                    .toThrow(/must be different/i);
             });
 
             it('should reject when new email has invalid format', async () => {
@@ -3520,7 +3553,9 @@ describe('app tests', () => {
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: 'not-an-email',
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
 
             it('should reject when currentPassword field is missing', async () => {
@@ -3528,7 +3563,9 @@ describe('app tests', () => {
                     appDriver.changeEmail(user1, {
                         newEmail: NEW_EMAIL,
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
 
             it('should reject when newEmail field is missing', async () => {
@@ -3536,7 +3573,9 @@ describe('app tests', () => {
                     appDriver.changeEmail(user1, {
                         currentPassword: CURRENT_PASSWORD,
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
 
             it('should reject when currentPassword is empty string', async () => {
@@ -3545,7 +3584,9 @@ describe('app tests', () => {
                         currentPassword: '',
                         newEmail: NEW_EMAIL,
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
 
             it('should reject when newEmail is empty string', async () => {
@@ -3554,7 +3595,9 @@ describe('app tests', () => {
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: '',
                     }),
-                ).rejects.toThrow(/invalid input/i);
+                )
+                    .rejects
+                    .toThrow(/invalid input/i);
             });
 
             it('should lowercase email address', async () => {
@@ -3574,7 +3617,9 @@ describe('app tests', () => {
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: otherUserEmail,
                     }),
-                ).rejects.toThrow(/already exists/i);
+                )
+                    .rejects
+                    .toThrow(/already exists/i);
             });
         });
     });

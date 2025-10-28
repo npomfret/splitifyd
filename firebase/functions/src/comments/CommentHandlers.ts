@@ -1,5 +1,6 @@
 import { CommentDTO } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
+import { toExpenseId } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
@@ -11,7 +12,6 @@ import { CommentService } from '../services/CommentService';
 import { ComponentBuilder } from '../services/ComponentBuilder';
 import { ApiError } from '../utils/errors';
 import { validateCreateExpenseComment, validateCreateGroupComment } from './validation';
-import {toExpenseId} from "@splitifyd/shared";
 
 export class CommentHandlers {
     constructor(private readonly commentService: CommentService) {

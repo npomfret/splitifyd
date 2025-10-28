@@ -33,8 +33,8 @@ import {
     UpdateSettlementRequest,
     UserId,
     UserPolicyStatusResponse,
-    UserRegistration,
     UserProfileResponse,
+    UserRegistration,
     VersionHash,
 } from '@splitifyd/shared';
 import { ExpenseId, SettlementId } from '@splitifyd/shared';
@@ -47,8 +47,8 @@ import { CommentHandlers } from '../../comments/CommentHandlers';
 import { ExpenseHandlers } from '../../expenses/ExpenseHandlers';
 import { GroupHandlers } from '../../groups/GroupHandlers';
 import { GroupMemberHandlers } from '../../groups/GroupMemberHandlers';
-import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
 import { GroupSecurityHandlers } from '../../groups/GroupSecurityHandlers';
+import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
 import { PolicyHandlers } from '../../policies/PolicyHandlers';
 import { getCurrentPolicy } from '../../policies/public-handlers';
 import { UserHandlers as PolicyUserHandlers } from '../../policies/UserHandlers';

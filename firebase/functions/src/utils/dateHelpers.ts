@@ -1,5 +1,5 @@
+import { ISOString } from '@splitifyd/shared';
 import { FieldValue, Timestamp } from '../firestore-wrapper';
-import {ISOString} from "@splitifyd/shared";
 
 /**
  * Date handling utilities for consistent timestamp management across the application.

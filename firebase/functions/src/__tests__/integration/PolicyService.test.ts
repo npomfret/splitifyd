@@ -44,7 +44,7 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
             const initialText = 'Firebase integration test content.';
 
             // Try to create the policy, or get it if it already exists
-            let createResult: { id: string; currentVersionHash: string };
+            let createResult: { id: string; currentVersionHash: string; };
             try {
                 createResult = await policyService.createPolicy(policyName, initialText);
             } catch (error: any) {

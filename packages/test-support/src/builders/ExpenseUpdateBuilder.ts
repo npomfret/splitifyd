@@ -1,8 +1,8 @@
 import type { UpdateExpenseRequest, UserId } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
-import {convertToISOString, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair} from '../test-helpers';
-import type {ISOString} from "@splitifyd/shared";
+import type { ISOString } from '@splitifyd/shared';
+import { convertToISOString, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class ExpenseUpdateBuilder {
     private update: Partial<UpdateExpenseRequest>;

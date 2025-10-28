@@ -24,8 +24,8 @@ import {
     ExpenseId,
     type GroupDTO,
     GroupId,
-    GroupName,
     type GroupMembershipDTO,
+    GroupName,
     MAX_GROUP_MEMBERS,
     type MemberStatus,
     MemberStatuses,
@@ -44,7 +44,7 @@ import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelper
 import { ApiError } from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
-import { toExpenseId, toGroupId, toCommentId, toSettlementId, toGroupName } from '@splitifyd/shared';
+import { toCommentId, toExpenseId, toGroupId, toGroupName, toSettlementId } from '@splitifyd/shared';
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,

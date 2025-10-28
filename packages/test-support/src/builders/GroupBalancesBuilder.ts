@@ -5,7 +5,7 @@ import { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { convertToISOString } from "../test-helpers";
+import { convertToISOString } from '../test-helpers';
 
 /**
  * Extended UserBalance with optional displayName and balances fields

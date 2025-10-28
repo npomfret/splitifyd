@@ -1,10 +1,6 @@
 import { logError, logWarning } from '@/utils/browser-logger.ts';
 import type { ActivityFeedItem, UserId } from '@splitifyd/shared';
-import {
-    type ActivityFeedGateway,
-    type ActivityFeedRealtimeUpdate,
-    getDefaultActivityFeedGateway,
-} from '../gateways/activity-feed-gateway';
+import { type ActivityFeedGateway, type ActivityFeedRealtimeUpdate, getDefaultActivityFeedGateway } from '../gateways/activity-feed-gateway';
 
 export interface ActivityFeedRealtimePayload {
     items: ActivityFeedItem[];

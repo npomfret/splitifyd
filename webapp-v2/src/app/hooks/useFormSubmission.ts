@@ -2,9 +2,9 @@ import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger.ts';
 import { useComputed } from '@preact/signals';
 import { GroupId, UserId } from '@splitifyd/shared';
+import { ExpenseId } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { expenseFormStore } from '../stores/expense-form-store';
-import {ExpenseId} from "@splitifyd/shared";
 
 interface UseFormSubmissionOptions {
     groupId: GroupId;

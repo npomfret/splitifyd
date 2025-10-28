@@ -1,17 +1,10 @@
-import { CreateExpenseRequest, ExpenseId, SplitTypes, UpdateExpenseRequest, toExpenseId, toGroupId, toISOString } from '@splitifyd/shared';
+import { CreateExpenseRequest, ExpenseId, SplitTypes, toExpenseId, toGroupId, toISOString, UpdateExpenseRequest } from '@splitifyd/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
-import { ApiError } from '../utils/errors';
 import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 import { validateAmountPrecision } from '../utils/amount-validation';
-import {
-    createAmountSchema,
-    createRequestValidator,
-    createUtcDateSchema,
-    createZodErrorMapper,
-    CurrencyCodeSchema,
-    sanitizeInputString,
-} from '../validation/common';
+import { ApiError } from '../utils/errors';
+import { createAmountSchema, createRequestValidator, createUtcDateSchema, createZodErrorMapper, CurrencyCodeSchema, sanitizeInputString } from '../validation/common';
 
 const splitTypeValues = [SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE] as const;
 
@@ -95,16 +88,16 @@ const updateExpenseSchema = z
     })
     .superRefine((value, ctx) => {
         if (
-            value.amount === undefined &&
-            value.currency === undefined &&
-            value.description === undefined &&
-            value.category === undefined &&
-            value.date === undefined &&
-            value.paidBy === undefined &&
-            value.splitType === undefined &&
-            value.participants === undefined &&
-            value.splits === undefined &&
-            value.receiptUrl === undefined
+            value.amount === undefined
+            && value.currency === undefined
+            && value.description === undefined
+            && value.category === undefined
+            && value.date === undefined
+            && value.paidBy === undefined
+            && value.splitType === undefined
+            && value.participants === undefined
+            && value.splits === undefined
+            && value.receiptUrl === undefined
         ) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -171,8 +164,7 @@ const baseCreateExpenseValidator = createRequestValidator({
     schema: createExpenseSchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => {
-        const receiptUrl =
-            value.receiptUrl !== undefined ? sanitizeInputString(value.receiptUrl) : undefined;
+        const receiptUrl = value.receiptUrl !== undefined ? sanitizeInputString(value.receiptUrl) : undefined;
 
         return {
             groupId: toGroupId(value.groupId.trim()),
@@ -353,11 +345,10 @@ export const validateUpdateExpense = (body: unknown): UpdateExpenseRequest => {
         }
     }
 
-    const requiresSplitValidation =
-        update.amount !== undefined ||
-        update.splitType !== undefined ||
-        update.participants !== undefined ||
-        update.splits !== undefined;
+    const requiresSplitValidation = update.amount !== undefined
+        || update.splitType !== undefined
+        || update.participants !== undefined
+        || update.splits !== undefined;
 
     if (requiresSplitValidation) {
         if (!update.participants) {

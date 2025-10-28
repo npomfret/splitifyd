@@ -1,8 +1,8 @@
-import {ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, GroupId, GroupName, ISOString, toSettlementId, UserId} from '@splitifyd/shared';
+import { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, GroupId, GroupName, ISOString, toSettlementId, UserId } from '@splitifyd/shared';
 import { ActivityFeedActions, ActivityFeedEventTypes, toGroupId, toGroupName } from '@splitifyd/shared';
-import {convertToISOString, generateShortId, randomString} from '../../test-helpers';
-import {toExpenseId} from "@splitifyd/shared";
-import {CommentId, toCommentId} from "@splitifyd/shared";
+import { toExpenseId } from '@splitifyd/shared';
+import { CommentId, toCommentId } from '@splitifyd/shared';
+import { convertToISOString, generateShortId, randomString } from '../../test-helpers';
 
 const DEFAULT_TIMESTAMP = () => new Date().toISOString();
 

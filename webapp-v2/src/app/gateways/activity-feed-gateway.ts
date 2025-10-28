@@ -1,5 +1,5 @@
 import { logError } from '@/utils/browser-logger';
-import {toISOString, type ActivityFeedItem, type ISOString, type UserId } from '@splitifyd/shared';
+import { type ActivityFeedItem, type ISOString, toISOString, type UserId } from '@splitifyd/shared';
 import { documentId, Timestamp } from 'firebase/firestore';
 import type { FirebaseService } from '../firebase';
 import { getFirebaseService } from '../firebase';

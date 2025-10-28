@@ -224,7 +224,7 @@ export class ApiDriver {
         // Step 1: Create group with just the creator
         const groupData = {
             name: typeof name === 'string' ? toGroupName(name) : name,
-            description: `Test group created at ${new Date().toISOString()}`
+            description: `Test group created at ${new Date().toISOString()}`,
         };
 
         const group = await this.createGroup(groupData, creatorToken);

@@ -1,6 +1,6 @@
 import { GroupId, ISOString } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import {convertToISOString, generateShortId} from '../test-helpers';
+import { convertToISOString, generateShortId } from '../test-helpers';
 
 interface TransactionChangeDocument {
     groupId: GroupId;

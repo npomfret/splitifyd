@@ -278,7 +278,6 @@ test.describe('Settings Page - Password Change Functionality', () => {
         // 7. Verify change password button is visible again
         await settingsPage.verifyChangePasswordButtonVisible();
     });
-
 });
 
 test.describe('Settings Page - UI Elements and Layout', () => {

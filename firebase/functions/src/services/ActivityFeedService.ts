@@ -1,4 +1,4 @@
-import type {ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedItemDetails, ISOString} from '@splitifyd/shared';
+import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedItemDetails, ISOString } from '@splitifyd/shared';
 import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
 import type { ITransaction } from '../firestore-wrapper';
 import { logger } from '../logger';

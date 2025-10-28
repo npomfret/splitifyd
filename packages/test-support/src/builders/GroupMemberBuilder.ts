@@ -1,9 +1,9 @@
 import type { GroupMember, MemberRole, MemberStatus, UserThemeColor } from '@splitifyd/shared';
 import { MemberRoles, MemberStatuses, UserId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
-import {convertToISOString, generateShortId, randomChoice} from '../test-helpers';
+import type { ISOString } from '@splitifyd/shared';
+import { convertToISOString, generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
-import type {ISOString} from "@splitifyd/shared";
 
 /**
  * Builder for creating GroupMember objects for tests
@@ -82,7 +82,7 @@ export class GroupMemberBuilder {
     }
 
     withJoinedAt(timestamp: Date | string | ISOString): this {
-        this.member.joinedAt = convertToISOString(timestamp)
+        this.member.joinedAt = convertToISOString(timestamp);
         return this;
     }
 

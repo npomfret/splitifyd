@@ -1,15 +1,7 @@
+import { convertToISOString } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-    createTrueServerTimestamp,
-    getRelativeTime,
-    isDateInValidRange,
-    isUTCFormat,
-    parseISOToTimestamp,
-    safeParseISOToTimestamp,
-    validateUTCDate,
-} from '../../utils/dateHelpers';
-import {convertToISOString} from "@splitifyd/test-support";
+import { createTrueServerTimestamp, getRelativeTime, isDateInValidRange, isUTCFormat, parseISOToTimestamp, safeParseISOToTimestamp, validateUTCDate } from '../../utils/dateHelpers';
 
 describe('dateHelpers', () => {
     beforeEach(() => {

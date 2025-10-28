@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import {ClientUser, GroupId, GroupMembershipDTO, toGroupId, toGroupName} from '@splitifyd/shared';
+import { ClientUser, GroupId, GroupMembershipDTO, toGroupId, toGroupName } from '@splitifyd/shared';
 import { MemberStatuses, UserId } from '@splitifyd/shared';
 import type { GroupName } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';

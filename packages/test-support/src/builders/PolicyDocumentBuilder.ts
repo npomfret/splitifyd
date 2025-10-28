@@ -1,5 +1,5 @@
-import {ISOString, PolicyDTO, VersionHash } from '@splitifyd/shared';
-import {convertToISOString, generateShortId} from '../test-helpers';
+import { ISOString, PolicyDTO, VersionHash } from '@splitifyd/shared';
+import { convertToISOString, generateShortId } from '../test-helpers';
 
 /**
  * Builder for creating PolicyDTO objects for tests

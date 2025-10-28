@@ -3,9 +3,9 @@ import { Amount } from '@splitifyd/shared';
 import { GroupId, ISOString } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import {convertToISOString, generateShortId, randomValidCurrencyAmountPair} from '../test-helpers';
+import { SettlementId, toSettlementId } from '@splitifyd/shared';
+import { convertToISOString, generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
-import {SettlementId, toSettlementId} from "@splitifyd/shared";
 
 /**
  * Builder for creating SettlementWithMembers objects for tests
@@ -46,7 +46,7 @@ export class SettlementWithMembersBuilder {
     }
 
     withId(id: string | SettlementId): this {
-        this.settlement.id = typeof id === "string" ? toSettlementId(id) : id;
+        this.settlement.id = typeof id === 'string' ? toSettlementId(id) : id;
         return this;
     }
 

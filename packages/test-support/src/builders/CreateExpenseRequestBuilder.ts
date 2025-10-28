@@ -3,8 +3,8 @@ import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import {convertToISOString, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair} from '../test-helpers';
-import type {ISOString} from "@splitifyd/shared";
+import type { ISOString } from '@splitifyd/shared';
+import { convertToISOString, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;

@@ -1,5 +1,6 @@
 import { toGroupId } from '@splitifyd/shared';
 import type { CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
+import { toCommentId, toExpenseId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { AuthUserRecordBuilder, ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -9,7 +10,6 @@ import { CommentService } from '../../../services/CommentService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
-import { toExpenseId, toCommentId } from '@splitifyd/shared';
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;

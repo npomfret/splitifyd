@@ -1,8 +1,8 @@
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
-import {convertToISOString, generateShortId, randomDate, randomValidCurrencyAmountPair} from '../test-helpers';
-import type {ISOString} from "@splitifyd/shared";
+import type { ISOString } from '@splitifyd/shared';
+import { convertToISOString, generateShortId, randomDate, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class SettlementUpdateBuilder {
     private update: Partial<UpdateSettlementRequest>;

@@ -5,7 +5,7 @@
  * This ensures the server response matches our expected types
  */
 
-import {ApiSerializer, ISOString} from '@splitifyd/shared';
+import { ApiSerializer, ISOString } from '@splitifyd/shared';
 import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,

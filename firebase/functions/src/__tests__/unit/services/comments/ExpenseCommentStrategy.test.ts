@@ -1,4 +1,5 @@
 import { toGroupId } from '@splitifyd/shared';
+import { toExpenseId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -10,7 +11,6 @@ import { FirestoreReader } from '../../../../services/firestore';
 import { FirestoreWriter } from '../../../../services/firestore';
 import { GroupMemberService } from '../../../../services/GroupMemberService';
 import { ApiError } from '../../../../utils/errors';
-import {toExpenseId} from "@splitifyd/shared";
 
 describe('ExpenseCommentStrategy', () => {
     let strategy: ExpenseCommentStrategy;

@@ -1,6 +1,6 @@
 import type { ExpenseDTO, GroupBalances, GroupDTO, GroupFullDetailsDTO, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import {convertToISOString} from "../test-helpers";
+import { convertToISOString } from '../test-helpers';
 
 /**
  * Builder for creating GroupFullDetails responses for testing

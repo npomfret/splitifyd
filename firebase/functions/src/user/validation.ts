@@ -1,13 +1,6 @@
 import { z } from 'zod';
 import { Errors } from '../utils/errors';
-import {
-    createDisplayNameSchema,
-    createPasswordSchema,
-    createRequestValidator,
-    createZodErrorMapper,
-    EmailSchema,
-    sanitizeInputString,
-} from '../validation/common';
+import { createDisplayNameSchema, createPasswordSchema, createRequestValidator, createZodErrorMapper, EmailSchema, sanitizeInputString } from '../validation/common';
 
 interface UpdateUserProfileRequest {
     displayName?: string;
@@ -23,7 +16,8 @@ const updateUserProfileSchema = z
             minMessage: 'Display name cannot be empty',
             maxMessage: 'Display name must be 100 characters or less',
             pattern: null,
-        }).optional(),
+        })
+            .optional(),
         photoURL: z
             .union([
                 z.string().url('Invalid photo URL format'),
@@ -41,9 +35,9 @@ const updateUserProfileSchema = z
     })
     .superRefine((value, ctx) => {
         if (
-            value.displayName === undefined &&
-            value.photoURL === undefined &&
-            value.preferredLanguage === undefined
+            value.displayName === undefined
+            && value.photoURL === undefined
+            && value.preferredLanguage === undefined
         ) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,

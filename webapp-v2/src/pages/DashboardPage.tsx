@@ -170,11 +170,12 @@ export function DashboardPage() {
             {/* Share/Invite Group Modal */}
             <ShareGroupModal
                 isOpen={shareModalState.isOpen}
-                onClose={() => setShareModalState({
-                    isOpen: false,
-                    groupId: toGroupId(''),
-                    groupName: toGroupName('')
-                })}
+                onClose={() =>
+                    setShareModalState({
+                        isOpen: false,
+                        groupId: toGroupId(''),
+                        groupName: toGroupName(''),
+                    })}
                 groupId={shareModalState.groupId}
                 groupName={shareModalState.groupName}
             />

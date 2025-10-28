@@ -2,13 +2,7 @@ import { UserRegistration } from '@splitifyd/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
-import {
-    AcceptanceBooleanSchema,
-    createPasswordSchema,
-    createRequestValidator,
-    DisplayNameSchema,
-    EmailSchema,
-} from '../validation/common';
+import { AcceptanceBooleanSchema, createPasswordSchema, createRequestValidator, DisplayNameSchema, EmailSchema } from '../validation/common';
 
 const registerSchema = z.object({
     email: EmailSchema,

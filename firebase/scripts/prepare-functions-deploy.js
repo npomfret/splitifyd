@@ -161,7 +161,8 @@ if (!fs.existsSync(stagedEnvPath)) {
     console.log('✅ Verified staged .env contains INSTANCE_MODE=prod');
 
     // Remove any environment instance templates to avoid leaking non-production configs
-    fs.readdirSync(stageFunctions)
+    fs
+        .readdirSync(stageFunctions)
         .filter((fileName) => fileName.startsWith('.env.instance'))
         .forEach((fileName) => prune(path.join(stageFunctions, fileName)));
 }

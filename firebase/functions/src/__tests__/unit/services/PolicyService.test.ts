@@ -1,4 +1,4 @@
-import {convertToISOString, SplitifydFirestoreTestDatabase} from '@splitifyd/test-support';
+import { convertToISOString, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { PolicyDocumentBuilder } from '@splitifyd/test-support';
 import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';

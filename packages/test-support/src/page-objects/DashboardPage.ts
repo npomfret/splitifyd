@@ -1,14 +1,14 @@
-import {expect, Locator, Page} from '@playwright/test';
-import type {GroupName} from '@splitifyd/shared';
-import {TEST_ROUTES, TEST_TIMEOUTS} from '../test-constants';
-import {generateShortId, randomString} from '../test-helpers';
-import {translationEn} from '../translations/translation-en';
-import {BasePage} from './BasePage';
-import {CreateGroupModalPage} from './CreateGroupModalPage';
-import {GroupDetailPage} from './GroupDetailPage';
-import {HeaderPage} from './HeaderPage';
-import {JoinGroupPage} from './JoinGroupPage';
-import {ShareGroupModalPage} from './ShareGroupModalPage';
+import { expect, Locator, Page } from '@playwright/test';
+import type { GroupName } from '@splitifyd/shared';
+import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
+import { generateShortId, randomString } from '../test-helpers';
+import { translationEn } from '../translations/translation-en';
+import { BasePage } from './BasePage';
+import { CreateGroupModalPage } from './CreateGroupModalPage';
+import { GroupDetailPage } from './GroupDetailPage';
+import { HeaderPage } from './HeaderPage';
+import { JoinGroupPage } from './JoinGroupPage';
+import { ShareGroupModalPage } from './ShareGroupModalPage';
 
 const translation = translationEn;
 let multiUserGroupCounter = 0;

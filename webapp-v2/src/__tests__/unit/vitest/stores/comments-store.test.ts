@@ -49,7 +49,7 @@ import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { CommentsStoreTarget } from '@/stores/comments-store';
 import type { CommentDTO, GroupId, ListCommentsResponse } from '@splitifyd/shared';
 import { toCommentId, toGroupId } from '@splitifyd/shared';
-import {toISOString} from "@splitifyd/shared";
+import { toISOString } from '@splitifyd/shared';
 
 const mockedApiClient = apiClient as unknown as {
     getGroupComments: Mock;

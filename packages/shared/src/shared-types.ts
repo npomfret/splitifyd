@@ -26,7 +26,7 @@ type Brand<K, T> = K & { __brand: T; };
  * explicit casts throughout the codebase while still providing semantic meaning.
  */
 export type ISOString = Brand<string, 'ISOString'>;
-export const toISOString= (value: string): ISOString => value as ISOString;
+export const toISOString = (value: string): ISOString => value as ISOString;
 export const isoStringNow = (): ISOString => new Date().toISOString() as ISOString;
 
 /**

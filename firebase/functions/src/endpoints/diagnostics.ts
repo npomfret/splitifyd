@@ -1,3 +1,4 @@
+import { toISOString } from '@splitifyd/shared';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as v8 from 'v8';
@@ -7,7 +8,6 @@ import { HTTP_STATUS, SYSTEM } from '../constants';
 import { getAuth } from '../firebase';
 import { BUILD_INFO } from '../utils/build-info';
 import { APP_VERSION } from '../utils/version';
-import {toISOString} from "@splitifyd/shared";
 
 export type HealthCheckMap = Record<
     string,

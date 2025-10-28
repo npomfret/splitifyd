@@ -1,4 +1,4 @@
-import { parseMonetaryAmount, type Amount } from '@splitifyd/shared';
+import { type Amount, parseMonetaryAmount } from '@splitifyd/shared';
 import { z } from 'zod';
 import { VALIDATION_LIMITS } from '../../constants';
 import { validateAmountPrecision } from '../../utils/amount-validation';
@@ -116,10 +116,12 @@ export const createAmountSchema = (options?: AmountSchemaOptions) => {
             if (numericAmount > maxAmount) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message: `Amount cannot exceed ${maxAmount.toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                    })}`,
+                    message: `Amount cannot exceed ${
+                        maxAmount.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        })
+                    }`,
                 });
             }
         });
@@ -215,18 +217,24 @@ export const createPaginationSchema = (options?: PaginationSchemaOptions) => {
     const defaultLimit = options?.defaultLimit ?? 8;
 
     const limitSchema = z
-        .preprocess(paginationLimitPreprocessor, z
-            .number()
-            .int('Limit must be an integer')
-            .min(minLimit, `Limit must be at least ${minLimit}`)
-            .max(maxLimit, `Limit cannot exceed ${maxLimit}`))
+        .preprocess(
+            paginationLimitPreprocessor,
+            z
+                .number()
+                .int('Limit must be an integer')
+                .min(minLimit, `Limit must be at least ${minLimit}`)
+                .max(maxLimit, `Limit cannot exceed ${maxLimit}`),
+        )
         .optional()
         .default(defaultLimit);
 
     const cursorSchema = z
-        .preprocess((value) => (typeof value === 'string' ? value.trim() : value), z
-            .string()
-            .min(1, 'Cursor cannot be empty'))
+        .preprocess(
+            (value) => (typeof value === 'string' ? value.trim() : value),
+            z
+                .string()
+                .min(1, 'Cursor cannot be empty'),
+        )
         .optional();
 
     return z

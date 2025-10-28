@@ -63,7 +63,9 @@ describe('User Profile Update - Unit Tests', () => {
                     currentPassword: 'WrongPassword123!',
                     newEmail: `another-${Date.now()}@test.local`,
                 }),
-            ).rejects.toThrow(/password/i);
+            )
+                .rejects
+                .toThrow(/password/i);
         });
 
         test('rejects unchanged email', async () => {
@@ -72,7 +74,9 @@ describe('User Profile Update - Unit Tests', () => {
                     currentPassword: 'ValidPass123!',
                     newEmail: 'user@test.local',
                 }),
-            ).rejects.toThrow(/different/i);
+            )
+                .rejects
+                .toThrow(/different/i);
         });
 
         test('rejects duplicate email', async () => {
@@ -84,7 +88,9 @@ describe('User Profile Update - Unit Tests', () => {
                     currentPassword: 'ValidPass123!',
                     newEmail: takenEmail,
                 }),
-            ).rejects.toThrow(/already exists/i);
+            )
+                .rejects
+                .toThrow(/already exists/i);
         });
     });
 });

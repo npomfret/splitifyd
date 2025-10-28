@@ -1,6 +1,6 @@
 import { ActivityFeedCard } from '@/components/dashboard/ActivityFeedCard.tsx';
 import { type ReadonlySignal, type Signal, signal } from '@preact/signals';
-import {type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem, toCommentId, toGroupName, toSettlementId} from '@splitifyd/shared';
+import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem, toCommentId, toGroupName, toSettlementId } from '@splitifyd/shared';
 import { ActivityFeedItemBuilder } from '@splitifyd/test-support';
 import { fireEvent, render, screen } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -42,7 +42,7 @@ vi.mock('@/utils/browser-logger', () => ({
 import { activityFeedStore as mockStore } from '@/app/stores/activity-feed-store';
 import { navigationService as mockNavigationService } from '@/services/navigation.service';
 import { toGroupId } from '@splitifyd/shared';
-import {toExpenseId} from "@splitifyd/shared";
+import { toExpenseId } from '@splitifyd/shared';
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({

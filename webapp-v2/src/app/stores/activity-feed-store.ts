@@ -2,12 +2,7 @@ import { logError, logWarning } from '@/utils/browser-logger.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
 import type { ActivityFeedItem, ActivityFeedResponse, UserId } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
-import {
-    activityFeedRealtimeService,
-    ACTIVITY_FEED_PAGE_SIZE,
-    type ActivityFeedRealtimePayload,
-    ActivityFeedRealtimeService,
-} from '../services/activity-feed-realtime-service';
+import { ACTIVITY_FEED_PAGE_SIZE, type ActivityFeedRealtimePayload, ActivityFeedRealtimeService, activityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 import { normalizeActivityFeedItem } from '../utils/activity-feed-utils';
 
 export interface ActivityFeedStore {

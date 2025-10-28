@@ -3,8 +3,8 @@ import { Amount } from '@splitifyd/shared';
 import { GroupId, UserId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import {convertToISOString, generateShortId, randomDate, randomString, randomValidCurrencyAmountPair} from '../test-helpers';
-import type {ISOString} from "@splitifyd/shared";
+import type { ISOString } from '@splitifyd/shared';
+import { convertToISOString, generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class CreateSettlementRequestBuilder {
     private settlement: CreateSettlementRequest;

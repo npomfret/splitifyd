@@ -1,4 +1,3 @@
-import { mapFirebaseUser } from './utils/mapFirebaseUser.ts';
 import { ClientUser } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { FirebaseApp, initializeApp } from 'firebase/app';
@@ -29,6 +28,7 @@ import {
     QueryConstraint,
 } from 'firebase/firestore';
 import { firebaseConfigManager } from './firebase-config';
+import { mapFirebaseUser } from './utils/mapFirebaseUser.ts';
 
 declare global {
     interface Window {

@@ -50,9 +50,8 @@ export const createZodErrorMapper = (
         const mapping = pickMapping(issue, mappings);
 
         const code = mapping?.code ?? options.defaultCode;
-        const message =
-            resolveMessage(mapping?.message ?? options.defaultMessage, issue) ??
-            issue.message;
+        const message = resolveMessage(mapping?.message ?? options.defaultMessage, issue)
+            ?? issue.message;
         const details = resolveMessage(mapping?.details ?? options.defaultDetails, issue);
 
         throw new ApiError(

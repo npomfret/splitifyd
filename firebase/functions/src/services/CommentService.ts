@@ -1,13 +1,6 @@
-import {
-    ActivityFeedActions,
-    ActivityFeedEventTypes,
-    CommentDTO,
-    CreateExpenseCommentRequest,
-    CreateGroupCommentRequest,
-    ListCommentsResponse,
-    toCommentId,
-} from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toCommentId } from '@splitifyd/shared';
 import type { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
+import { convertToISOString } from '@splitifyd/test-support';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -21,7 +14,6 @@ import { GroupCommentStrategy } from './comments/GroupCommentStrategy';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
-import {convertToISOString} from "@splitifyd/test-support";
 
 /**
  * Service for managing comment operations
@@ -41,15 +33,15 @@ export class CommentService {
         this.expenseCommentStrategy = new ExpenseCommentStrategy(firestoreReader, groupMemberService);
     }
 
-    async listGroupComments(groupId: GroupId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
+    async listGroupComments(groupId: GroupId, userId: UserId, options: { limit?: number; cursor?: string; } = {}): Promise<ListCommentsResponse> {
         return measure.measureDb('CommentService.listGroupComments', async () => this.listGroupCommentsInternal(groupId, userId, options));
     }
 
-    async listExpenseComments(expenseId: ExpenseId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId, userId: UserId, options: { limit?: number; cursor?: string; } = {}): Promise<ListCommentsResponse> {
         return measure.measureDb('CommentService.listExpenseComments', async () => this.listExpenseCommentsInternal(expenseId, userId, options));
     }
 
-    private async listGroupCommentsInternal(groupId: GroupId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
+    private async listGroupCommentsInternal(groupId: GroupId, userId: UserId, options: { limit?: number; cursor?: string; } = {}): Promise<ListCommentsResponse> {
         const timer = new PerformanceTimer();
 
         const limit = Math.min(options.limit ?? 8, 100);
@@ -85,7 +77,7 @@ export class CommentService {
         };
     }
 
-    private async listExpenseCommentsInternal(expenseId: ExpenseId, userId: UserId, options: { limit?: number; cursor?: string; } = {},): Promise<ListCommentsResponse> {
+    private async listExpenseCommentsInternal(expenseId: ExpenseId, userId: UserId, options: { limit?: number; cursor?: string; } = {}): Promise<ListCommentsResponse> {
         const timer = new PerformanceTimer();
 
         const limit = Math.min(options.limit ?? 8, 100);

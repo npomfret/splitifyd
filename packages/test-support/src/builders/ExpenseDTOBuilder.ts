@@ -3,9 +3,9 @@ import { Amount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import {convertToISOString, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair} from '../test-helpers';
-import {ExpenseId, toExpenseId} from "@splitifyd/shared";
-import type {ISOString} from "@splitifyd/shared";
+import { ExpenseId, toExpenseId } from '@splitifyd/shared';
+import type { ISOString } from '@splitifyd/shared';
+import { convertToISOString, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 /**
  * Builder for creating ExpenseDTO objects for tests

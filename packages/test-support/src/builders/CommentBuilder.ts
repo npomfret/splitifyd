@@ -1,7 +1,7 @@
 import type { CommentDTO, ISOString } from '@splitifyd/shared';
-import type { UserId, CommentId } from '@splitifyd/shared';
+import type { CommentId, UserId } from '@splitifyd/shared';
 import { toCommentId } from '@splitifyd/shared';
-import {convertToISOString, generateShortId, randomChoice, randomDate, randomString} from '../test-helpers';
+import { convertToISOString, generateShortId, randomChoice, randomDate, randomString } from '../test-helpers';
 
 export class CommentBuilder {
     private comment: CommentDTO = {

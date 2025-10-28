@@ -139,8 +139,8 @@ function toIsoString(value: unknown, field: string, docId: string): string | und
         return value.toDate().toISOString();
     }
 
-    if (typeof value === 'object' && 'toDate' in value && typeof (value as { toDate?: () => Date }).toDate === 'function') {
-        const date = (value as { toDate: () => Date }).toDate();
+    if (typeof value === 'object' && 'toDate' in value && typeof (value as { toDate?: () => Date; }).toDate === 'function') {
+        const date = (value as { toDate: () => Date; }).toDate();
         return date.toISOString();
     }
 
@@ -164,12 +164,11 @@ function normalizeFirestoreObject(value: unknown, docId: string, fieldPath: stri
     return Object.fromEntries(
         Object.entries(record).map(([key, entryValue]) => {
             const nextPath = fieldPath ? `${fieldPath}.${key}` : key;
-            const normalized =
-                entryValue instanceof admin.firestore.Timestamp
-                    ? entryValue.toDate().toISOString()
-                    : normalizeFirestoreObject(entryValue, docId, nextPath);
+            const normalized = entryValue instanceof admin.firestore.Timestamp
+                ? entryValue.toDate().toISOString()
+                : normalizeFirestoreObject(entryValue, docId, nextPath);
             return [key, normalized];
-        })
+        }),
     );
 }
 
@@ -235,7 +234,7 @@ interface UserTableRow {
     acceptedPoliciesFs: string;
 }
 
-const USER_TABLE_COLUMNS: Array<{ key: keyof UserTableRow; header: string }> = [
+const USER_TABLE_COLUMNS: Array<{ key: keyof UserTableRow; header: string; }> = [
     { key: 'emailFb', header: 'email (FB)' },
     { key: 'displayNameFb', header: 'displayName (FB)' },
     { key: 'disabledFb', header: 'disabled (FB)' },
@@ -268,9 +267,7 @@ function renderTable(rows: UserTableRow[]): string {
 
     const headerRow = USER_TABLE_COLUMNS.map((column, index) => padCell(column.header, columnWidths[index])).join('  ');
     const separatorRow = columnWidths.map((width) => '-'.repeat(width)).join('  ');
-    const valueRows = rows.map((row) =>
-        USER_TABLE_COLUMNS.map((column, index) => padCell(row[column.key] ?? '', columnWidths[index])).join('  ')
-    );
+    const valueRows = rows.map((row) => USER_TABLE_COLUMNS.map((column, index) => padCell(row[column.key] ?? '', columnWidths[index])).join('  '));
 
     return [headerRow, separatorRow, ...valueRows].join('\n');
 }
@@ -310,19 +307,17 @@ interface UserRowAnalysis {
 function buildUserRow(uid: string, authSummary: AuthUserSummary, firestoreSummary: FirestoreUserSummary): UserRowAnalysis {
     const authEmail = authSummary.email ?? '';
     const firestoreEmail = firestoreSummary.email ?? '';
-    const emailMismatch =
-        authSummary.exists &&
-        Boolean(authEmail) &&
-        Boolean(firestoreEmail) &&
-        authEmail.trim().toLowerCase() !== firestoreEmail.trim().toLowerCase();
+    const emailMismatch = authSummary.exists
+        && Boolean(authEmail)
+        && Boolean(firestoreEmail)
+        && authEmail.trim().toLowerCase() !== firestoreEmail.trim().toLowerCase();
 
     const authName = authSummary.displayName ?? '';
     const firestoreName = firestoreSummary.displayName ?? '';
-    const displayNameMismatch =
-        authSummary.exists &&
-        Boolean(authName) &&
-        Boolean(firestoreName) &&
-        authName.trim() !== firestoreName.trim();
+    const displayNameMismatch = authSummary.exists
+        && Boolean(authName)
+        && Boolean(firestoreName)
+        && authName.trim() !== firestoreName.trim();
 
     const mismatchMarker = (flag: boolean) => (flag ? ' *' : '');
 

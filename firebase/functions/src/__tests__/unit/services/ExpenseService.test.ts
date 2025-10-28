@@ -1,11 +1,11 @@
-import {convertToISOString, SplitifydFirestoreTestDatabase} from '@splitifyd/test-support';
+import { toExpenseId } from '@splitifyd/shared';
+import { convertToISOString, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {toExpenseId} from "@splitifyd/shared";
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
@@ -22,7 +22,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             // Arrange
             const expenseId = toExpenseId('test-expense-id');
             const userId = 'test-user-id';
-            const now = convertToISOString(new Date())
+            const now = convertToISOString(new Date());
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)

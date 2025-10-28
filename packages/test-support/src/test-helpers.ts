@@ -1,7 +1,7 @@
 // Import currency utilities from shared package
-import type {CurrencyISOCode} from '@splitifyd/shared';
-import {Amount, getCurrencyDecimals, roundToCurrencyPrecision} from '@splitifyd/shared';
-import {ISOString, toISOString} from "@splitifyd/shared";
+import type { CurrencyISOCode } from '@splitifyd/shared';
+import { Amount, getCurrencyDecimals, roundToCurrencyPrecision } from '@splitifyd/shared';
+import { ISOString, toISOString } from '@splitifyd/shared';
 
 /**
  * Generates a short, readable UUID for test data
@@ -127,7 +127,7 @@ export function convertToISOString(createdAt: ISOString | Date | string) {
     if (typeof createdAt === 'string') {
         return toISOString(createdAt);
     } else if (createdAt instanceof Date) {
-        return toISOString(createdAt.toISOString())
+        return toISOString(createdAt.toISOString());
     } else {
         return createdAt;
     }

@@ -1,4 +1,4 @@
-import {ISOString, toISOString } from "@splitifyd/shared";
+import { ISOString, toISOString } from '@splitifyd/shared';
 
 export const formatLocalDateTime = (utcString: string): string => {
     const date = new Date(utcString);

@@ -6,7 +6,7 @@ import type { ClientUser, Email, UserId } from '@splitifyd/shared';
 import { AuthErrors } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
-import { getDefaultAuthGateway, type AuthGateway } from '../gateways/auth-gateway';
+import { type AuthGateway, getDefaultAuthGateway } from '../gateways/auth-gateway';
 import { CurrencyService } from '../services/currencyService';
 import { expenseFormStore } from './expense-form-store';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
