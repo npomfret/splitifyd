@@ -1,14 +1,14 @@
-import { expect, Locator, Page } from '@playwright/test';
-import type { GroupName } from '@splitifyd/shared';
-import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
-import { generateShortId, randomString } from '../test-helpers';
-import { translationEn } from '../translations/translation-en';
-import { BasePage } from './BasePage';
-import { CreateGroupModalPage } from './CreateGroupModalPage';
-import { GroupDetailPage } from './GroupDetailPage';
-import { HeaderPage } from './HeaderPage';
-import { JoinGroupPage } from './JoinGroupPage';
-import { ShareGroupModalPage } from './ShareGroupModalPage';
+import {expect, Locator, Page} from '@playwright/test';
+import type {GroupName} from '@splitifyd/shared';
+import {TEST_ROUTES, TEST_TIMEOUTS} from '../test-constants';
+import {generateShortId, randomString} from '../test-helpers';
+import {translationEn} from '../translations/translation-en';
+import {BasePage} from './BasePage';
+import {CreateGroupModalPage} from './CreateGroupModalPage';
+import {GroupDetailPage} from './GroupDetailPage';
+import {HeaderPage} from './HeaderPage';
+import {JoinGroupPage} from './JoinGroupPage';
+import {ShareGroupModalPage} from './ShareGroupModalPage';
 
 const translation = translationEn;
 let multiUserGroupCounter = 0;
@@ -366,20 +366,6 @@ export class DashboardPage extends BasePage {
      */
     getGroupCardInviteButton(groupName: GroupName | string): Locator {
         return this.getGroupCard(groupName).locator('button[title*="Invite"], button[aria-label*="Invite"]');
-    }
-
-    /**
-     * Group Card - Add expense button (hover action)
-     */
-    getGroupCardAddExpenseButton(groupName: GroupName): Locator {
-        return this.getGroupCard(groupName).locator('button[title*="expense"], button[aria-label*="expense"]');
-    }
-
-    /**
-     * Group Card - Balance display badge
-     */
-    getGroupCardBalance(groupName: GroupName): Locator {
-        return this.getGroupCard(groupName).locator('[data-financial-amount="balance"]');
     }
 
     // ============================================================================
@@ -789,23 +775,6 @@ export class DashboardPage extends BasePage {
         return modalPage;
     }
 
-    /**
-     * Click group card add expense button to navigate to expense form
-     * Non-fluent version - clicks without verification
-     * TODO: Add fluent version that returns ExpenseFormPage when it exists
-     */
-    async clickGroupCardAddExpenseButton(groupName: GroupName): Promise<void> {
-        const groupCard = this.getGroupCard(groupName);
-        await expect(groupCard).toBeVisible();
-
-        // Hover to reveal action buttons
-        await groupCard.hover();
-
-        const addExpenseButton = this.getGroupCardAddExpenseButton(groupName);
-        await expect(addExpenseButton).toBeVisible();
-        await this.clickButton(addExpenseButton, { buttonName: `Add expense to ${groupName}` });
-    }
-
     // ============================================================================
     // VERIFICATION METHODS FOR SPECIFIC STATES
     // ============================================================================
@@ -867,26 +836,6 @@ export class DashboardPage extends BasePage {
         if (expectedCount !== undefined) {
             await expect(this.getGroupCards()).toHaveCount(expectedCount);
         }
-    }
-
-    /**
-     * Verify group card action buttons appear on hover
-     */
-    async verifyGroupCardActionsVisible(groupName: GroupName): Promise<void> {
-        const groupCard = this.getGroupCard(groupName);
-        await groupCard.hover();
-
-        await expect(this.getGroupCardInviteButton(groupName)).toBeVisible();
-        await expect(this.getGroupCardAddExpenseButton(groupName)).toBeVisible();
-    }
-
-    /**
-     * Verify group card balance display
-     */
-    async verifyGroupCardBalance(groupName: GroupName, expectedText: string): Promise<void> {
-        const balanceBadge = this.getGroupCardBalance(groupName);
-        await expect(balanceBadge).toBeVisible();
-        await expect(balanceBadge).toContainText(expectedText);
     }
 
     // ============================================================================
