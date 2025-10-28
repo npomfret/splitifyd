@@ -1,6 +1,5 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toCommentId } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toCommentId, toISOString } from '@splitifyd/shared';
 import type { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
-import { convertToISOString } from '@splitifyd/test-support';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -158,7 +157,7 @@ export class CommentService {
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
         actorDisplayName = actorDisplayName || authorName || 'Unknown member';
 
-        const now = convertToISOString(new Date());
+        const now = toISOString(new Date().toISOString());
         const commentCreateData: Omit<CommentDTO, 'id'> = {
             authorId: userId,
             authorName,
@@ -252,7 +251,7 @@ export class CommentService {
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
         actorDisplayName = actorDisplayName || authorName || 'Unknown member';
 
-        const now = convertToISOString(new Date());
+        const now = toISOString(new Date().toISOString());
         const commentCreateData: Omit<CommentDTO, 'id'> = {
             authorId: userId,
             authorName,
