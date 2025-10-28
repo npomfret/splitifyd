@@ -2,6 +2,7 @@ import {
     AcceptMultiplePoliciesResponse,
     ActivityFeedEventType,
     ActivityFeedEventTypes,
+    ActivityFeedItem,
     CommentDTO,
     CreateExpenseRequest,
     CreatePolicyResponse,
@@ -13,9 +14,12 @@ import {
     GroupDTO,
     GroupFullDetailsDTO,
     GroupId,
+    GroupMembershipDTO,
+    GroupPermissions,
     JoinGroupResponse,
     ListCommentsResponse,
     ListGroupsResponse,
+    MemberRole,
     MemberStatus,
     MessageResponse,
     PolicyId,
@@ -29,19 +33,22 @@ import {
     UpdateSettlementRequest,
     UserId,
     UserPolicyStatusResponse,
-    VersionHash,
+    UserRegistration,
     UserProfileResponse,
+    VersionHash,
 } from '@splitifyd/shared';
 import { ExpenseId, SettlementId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@splitifyd/test-support';
 import { expect } from 'vitest';
+import { ActivityFeedHandlers } from '../../activity/ActivityHandlers';
 import { CommentHandlers } from '../../comments/CommentHandlers';
 import { ExpenseHandlers } from '../../expenses/ExpenseHandlers';
 import { GroupHandlers } from '../../groups/GroupHandlers';
 import { GroupMemberHandlers } from '../../groups/GroupMemberHandlers';
 import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
+import { GroupSecurityHandlers } from '../../groups/GroupSecurityHandlers';
 import { PolicyHandlers } from '../../policies/PolicyHandlers';
 import { getCurrentPolicy } from '../../policies/public-handlers';
 import { UserHandlers as PolicyUserHandlers } from '../../policies/UserHandlers';
@@ -76,6 +83,11 @@ export class AppDriver {
     private userHandlers = new UserHandlers(this.applicationBuilder.buildUserService());
     private policyHandlers = new PolicyHandlers(this.applicationBuilder.buildPolicyService());
     private policyUserHandlers = new PolicyUserHandlers(this.applicationBuilder.buildUserPolicyService());
+    private activityFeedHandlers = new ActivityFeedHandlers(this.applicationBuilder.buildActivityFeedService());
+    private groupSecurityHandlers = new GroupSecurityHandlers(
+        this.applicationBuilder.buildGroupService(),
+        this.applicationBuilder.buildGroupMemberService(),
+    );
 
     seedUser(userId: UserId, userData: Record<string, any> = {}) {
         const user = this.db.seedUser(userId, userData);
@@ -299,6 +311,51 @@ export class AppDriver {
         return (res as any).getJson() as MessageResponse;
     }
 
+    async updateGroupPermissions(userId: UserId, groupId: GroupId | string, updates: Partial<GroupPermissions>): Promise<MessageResponse> {
+        const req = createStubRequest(userId, updates, { id: groupId });
+        const res = createStubResponse();
+
+        await this.groupSecurityHandlers.updateGroupPermissions(req, res);
+
+        return (res as any).getJson() as MessageResponse;
+    }
+
+    async getPendingMembers(userId: UserId, groupId: GroupId | string): Promise<{ members: GroupMembershipDTO[]; }> {
+        const req = createStubRequest(userId, {}, { id: groupId });
+        const res = createStubResponse();
+
+        await this.groupSecurityHandlers.getPendingMembers(req, res);
+
+        return (res as any).getJson() as { members: GroupMembershipDTO[]; };
+    }
+
+    async updateMemberRole(userId: UserId, groupId: GroupId | string, memberId: UserId, role: MemberRole): Promise<MessageResponse> {
+        const req = createStubRequest(userId, { role }, { id: groupId, memberId });
+        const res = createStubResponse();
+
+        await this.groupSecurityHandlers.updateMemberRole(req, res);
+
+        return (res as any).getJson() as MessageResponse;
+    }
+
+    async approveMember(userId: UserId, groupId: GroupId | string, memberId: UserId): Promise<MessageResponse> {
+        const req = createStubRequest(userId, {}, { id: groupId, memberId });
+        const res = createStubResponse();
+
+        await this.groupSecurityHandlers.approveMember(req, res);
+
+        return (res as any).getJson() as MessageResponse;
+    }
+
+    async rejectMember(userId: UserId, groupId: GroupId | string, memberId: UserId): Promise<MessageResponse> {
+        const req = createStubRequest(userId, {}, { id: groupId, memberId });
+        const res = createStubResponse();
+
+        await this.groupSecurityHandlers.rejectMember(req, res);
+
+        return (res as any).getJson() as MessageResponse;
+    }
+
     async createExpense(userId1: UserId, expenseRequest: CreateExpenseRequest): Promise<ExpenseDTO> {
         const req = createStubRequest(userId1, expenseRequest);
         const res = createStubResponse();
@@ -469,6 +526,15 @@ export class AppDriver {
         return (res as any).getJson() as ListCommentsResponse;
     }
 
+    async getUserProfile(userId: UserId): Promise<UserProfileResponse> {
+        const req = createStubRequest(userId, {});
+        const res = createStubResponse();
+
+        await this.userHandlers.getUserProfile(req, res);
+
+        return (res as any).getJson() as UserProfileResponse;
+    }
+
     async updateUserProfile(userId: UserId, updateRequest: any): Promise<UserProfileResponse> {
         const req = createStubRequest(userId, updateRequest);
         const res = createStubResponse();
@@ -494,6 +560,10 @@ export class AppDriver {
         await this.userHandlers.changeEmail(req, res);
 
         return (res as any).getJson() as UserProfileResponse;
+    }
+
+    async registerUser(registration: UserRegistration): Promise<{ success: boolean; message: string; user: { uid: string; displayName: DisplayName | undefined; }; }> {
+        return this.applicationBuilder.buildUserService().registerUser(registration);
     }
 
     async createPolicy(userId: UserId, policyData: { policyName: string; text: string; }): Promise<CreatePolicyResponse> {
@@ -584,6 +654,28 @@ export class AppDriver {
         await getCurrentPolicy(req, res);
 
         return (res as any).getJson() as CurrentPolicyResponse;
+    }
+
+    async getActivityFeed(
+        userId: UserId,
+        options: { limit?: number; cursor?: string; } = {},
+    ): Promise<{ items: ActivityFeedItem[]; hasMore: boolean; nextCursor?: string; }> {
+        const req = createStubRequest(userId, {});
+        const query: Record<string, string> = {};
+
+        if (options.limit !== undefined) {
+            query.limit = String(options.limit);
+        }
+        if (options.cursor !== undefined) {
+            query.cursor = options.cursor;
+        }
+
+        req.query = query;
+        const res = createStubResponse();
+
+        await this.activityFeedHandlers.getActivityFeed(req, res);
+
+        return (res as any).getJson() as { items: ActivityFeedItem[]; hasMore: boolean; nextCursor?: string; };
     }
 
     async getActivityFeedItems(userId: UserId) {

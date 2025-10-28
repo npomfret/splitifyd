@@ -1,4 +1,4 @@
-import {ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, toGroupName, UserBalance} from '@splitifyd/shared';
+import {ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses, amountToSmallestUnit, calculateEqualSplits, calculatePercentageSplits, smallestUnitToAmountString, toGroupName, UserBalance} from '@splitifyd/shared';
 import type { UserId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
@@ -38,10 +38,10 @@ describe('app tests', () => {
     beforeEach(() => {
         appDriver = new AppDriver();
 
-        appDriver.seedUser(user1, { displayName: 'User one' });
-        appDriver.seedUser(user2, { displayName: 'User two' });
-        appDriver.seedUser(user3, { displayName: 'User three' });
-        appDriver.seedUser(user4, { displayName: 'User four' });
+        appDriver.seedUser(user1, { displayName: 'User one', email: 'user1@example.com' });
+        appDriver.seedUser(user2, { displayName: 'User two', email: 'user2@example.com' });
+        appDriver.seedUser(user3, { displayName: 'User three', email: 'user3@example.com' });
+        appDriver.seedUser(user4, { displayName: 'User four', email: 'user4@example.com' });
     });
 
     afterEach(() => {
@@ -3264,6 +3264,318 @@ describe('app tests', () => {
             // Verify cleanup keeps items reasonable (under 20 in this test)
             expect(feedAfterCleanup1.length).toBeLessThanOrEqual(20);
             expect(feedAfterCleanup2.length).toBeLessThanOrEqual(20);
+        });
+    });
+
+    describe('activity feed endpoint', () => {
+        it('should fetch activity feed items via the HTTP handler', async () => {
+            const group = await appDriver.createGroup(user1);
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, linkId);
+
+            const participants = [user1, user2];
+
+            await appDriver.createExpense(
+                user1,
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(42.5, 'USD')
+                    .withPaidBy(user1)
+                    .withDescription('Activity Feed Expense')
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(42.5, 'USD', participants))
+                    .build(),
+            );
+
+            await appDriver.createGroupComment(user1, group.id, 'Activity feed comment');
+
+            const fullFeed = await appDriver.getActivityFeed(user1);
+            expect(fullFeed.items.length).toBeGreaterThanOrEqual(2);
+
+            const limitedFeed = await appDriver.getActivityFeed(user1, { limit: 1 });
+            expect(limitedFeed.items).toHaveLength(1);
+            expect(limitedFeed.hasMore).toBe(fullFeed.items.length > 1);
+
+            const eventTypes = fullFeed.items.map((item) => item.eventType);
+
+            expect(eventTypes).toContain(ActivityFeedEventTypes.EXPENSE_CREATED);
+            expect(eventTypes).toContain(ActivityFeedEventTypes.COMMENT_ADDED);
+        });
+    });
+
+    describe('group security endpoints', () => {
+        it('should manage permissions and pending members through security handlers', async () => {
+            const group = await appDriver.createGroup(user1);
+
+            const permissionsUpdate = await appDriver.updateGroupPermissions(user1, group.id, {
+                memberApproval: 'admin-required',
+            });
+
+            expect(permissionsUpdate.message).toBe('Permissions updated successfully');
+
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, linkId);
+            await appDriver.joinGroupByLink(user3, linkId);
+
+            const pendingMembers = await appDriver.getPendingMembers(user1, group.id);
+            const pendingIds = pendingMembers.members.map((member) => member.uid);
+
+            expect(pendingIds.sort()).toEqual([user2, user3].sort());
+            expect(pendingMembers.members.every((member) => member.memberStatus === MemberStatuses.PENDING)).toBe(true);
+
+            await appDriver.approveMember(user1, group.id, user2);
+            await appDriver.updateMemberRole(user1, group.id, user2, MemberRoles.ADMIN);
+
+            const rejection = await appDriver.rejectMember(user1, group.id, user3);
+            expect(rejection.message).toBe('Member rejected successfully');
+
+            const groupDetails = await appDriver.getGroupFullDetails(user1, group.id);
+            const approvedMember = groupDetails.members.members.find((member) => member.uid === user2);
+            const rejectedMember = groupDetails.members.members.find((member) => member.uid === user3);
+
+            expect(approvedMember?.memberStatus).toBe(MemberStatuses.ACTIVE);
+            expect(approvedMember?.memberRole).toBe(MemberRoles.ADMIN);
+            expect(rejectedMember).toBeUndefined();
+
+            const pendingAfterActions = await appDriver.getPendingMembers(user1, group.id);
+            expect(pendingAfterActions.members).toHaveLength(0);
+        });
+    });
+
+    describe('user account endpoints', () => {
+        it('should return the current user profile via the handler', async () => {
+            const profile = await appDriver.getUserProfile(user1);
+
+            expect(profile.displayName).toBe('User one');
+            expect(profile.emailVerified).toBe(false);
+        });
+
+        it('should register a new user through the registration workflow', async () => {
+            const registrationResult = await appDriver.registerUser({
+                displayName: 'Registered User',
+                email: 'registered@example.com',
+                password: 'ValidPass123!',
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+            });
+
+            expect(registrationResult.success).toBe(true);
+            expect(registrationResult.user.displayName).toBe('Registered User');
+
+            const newUserId = registrationResult.user.uid;
+            const profile = await appDriver.getUserProfile(newUserId);
+
+            expect(profile.displayName).toBe('Registered User');
+            expect(profile.email).toBe('registered@example.com');
+        });
+
+        describe('updateUserProfile', () => {
+            it('should update display name successfully', async () => {
+                const updatedProfile = await appDriver.updateUserProfile(user1, {
+                    displayName: 'Updated Name',
+                });
+
+                expect(updatedProfile.displayName).toBe('Updated Name');
+
+                const profile = await appDriver.getUserProfile(user1);
+                expect(profile.displayName).toBe('Updated Name');
+            });
+
+            it('should sanitize display name input', async () => {
+                const updatedProfile = await appDriver.updateUserProfile(user1, {
+                    displayName: '<script>alert("xss")</script>Clean Name',
+                });
+
+                expect(updatedProfile.displayName).not.toContain('<script>');
+                expect(updatedProfile.displayName).toContain('Clean Name');
+            });
+
+            it('should reject empty display name', async () => {
+                await expect(
+                    appDriver.updateUserProfile(user1, { displayName: '' }),
+                ).rejects.toThrow();
+            });
+
+            it('should reject display name that is too long', async () => {
+                const tooLongName = 'a'.repeat(256);
+                await expect(
+                    appDriver.updateUserProfile(user1, { displayName: tooLongName }),
+                ).rejects.toThrow();
+            });
+        });
+
+        describe('changePassword', () => {
+            const VALID_CURRENT_PASSWORD = 'ValidPass123!';
+            const VALID_NEW_PASSWORD = 'NewSecurePass123!';
+
+            it('should successfully change password with valid credentials', async () => {
+                const result = await appDriver.changePassword(user1, {
+                    currentPassword: VALID_CURRENT_PASSWORD,
+                    newPassword: VALID_NEW_PASSWORD,
+                });
+
+                expect(result.message).toBe('Password changed successfully');
+            });
+
+            it('should reject when current password is incorrect', async () => {
+                await expect(
+                    appDriver.changePassword(user1, {
+                        currentPassword: 'WrongPassword123!',
+                        newPassword: VALID_NEW_PASSWORD,
+                    }),
+                ).rejects.toThrow(/password is incorrect/i);
+            });
+
+            it('should reject when new password is same as current', async () => {
+                await expect(
+                    appDriver.changePassword(user1, {
+                        currentPassword: VALID_CURRENT_PASSWORD,
+                        newPassword: VALID_CURRENT_PASSWORD,
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+
+            it('should reject when new password is too short', async () => {
+                await expect(
+                    appDriver.changePassword(user1, {
+                        currentPassword: VALID_CURRENT_PASSWORD,
+                        newPassword: 'Short1!',
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+
+            it('should reject when currentPassword field is missing', async () => {
+                await expect(
+                    appDriver.changePassword(user1, {
+                        newPassword: VALID_NEW_PASSWORD,
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+
+            it('should reject when newPassword field is missing', async () => {
+                await expect(
+                    appDriver.changePassword(user1, {
+                        currentPassword: VALID_CURRENT_PASSWORD,
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+
+            it('should reject when currentPassword is empty string', async () => {
+                await expect(
+                    appDriver.changePassword(user1, {
+                        currentPassword: '',
+                        newPassword: VALID_NEW_PASSWORD,
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+
+            it('should reject when newPassword is empty string', async () => {
+                await expect(
+                    appDriver.changePassword(user1, {
+                        currentPassword: VALID_CURRENT_PASSWORD,
+                        newPassword: '',
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+        });
+
+        describe('changeEmail', () => {
+            const CURRENT_PASSWORD = 'ValidPass123!';
+            const NEW_EMAIL = 'newemail@example.com';
+
+            it('should successfully change email with valid credentials', async () => {
+                const profile = await appDriver.changeEmail(user1, {
+                    currentPassword: CURRENT_PASSWORD,
+                    newEmail: NEW_EMAIL,
+                });
+
+                expect(profile.email).toBe(NEW_EMAIL);
+                expect(profile.emailVerified).toBe(false);
+            });
+
+            it('should reject when current password is incorrect', async () => {
+                await expect(
+                    appDriver.changeEmail(user1, {
+                        currentPassword: 'WrongPassword123!',
+                        newEmail: NEW_EMAIL,
+                    }),
+                ).rejects.toThrow(/password is incorrect/i);
+            });
+
+            it('should reject when new email is same as current email', async () => {
+                const currentProfile = await appDriver.getUserProfile(user1);
+
+                await expect(
+                    appDriver.changeEmail(user1, {
+                        currentPassword: CURRENT_PASSWORD,
+                        newEmail: currentProfile.email!,
+                    }),
+                ).rejects.toThrow(/must be different/i);
+            });
+
+            it('should reject when new email has invalid format', async () => {
+                await expect(
+                    appDriver.changeEmail(user1, {
+                        currentPassword: CURRENT_PASSWORD,
+                        newEmail: 'not-an-email',
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+
+            it('should reject when currentPassword field is missing', async () => {
+                await expect(
+                    appDriver.changeEmail(user1, {
+                        newEmail: NEW_EMAIL,
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+
+            it('should reject when newEmail field is missing', async () => {
+                await expect(
+                    appDriver.changeEmail(user1, {
+                        currentPassword: CURRENT_PASSWORD,
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+
+            it('should reject when currentPassword is empty string', async () => {
+                await expect(
+                    appDriver.changeEmail(user1, {
+                        currentPassword: '',
+                        newEmail: NEW_EMAIL,
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+
+            it('should reject when newEmail is empty string', async () => {
+                await expect(
+                    appDriver.changeEmail(user1, {
+                        currentPassword: CURRENT_PASSWORD,
+                        newEmail: '',
+                    }),
+                ).rejects.toThrow(/invalid input/i);
+            });
+
+            it('should lowercase email address', async () => {
+                const profile = await appDriver.changeEmail(user1, {
+                    currentPassword: CURRENT_PASSWORD,
+                    newEmail: 'NewEmail@EXAMPLE.COM',
+                });
+
+                expect(profile.email).toBe('newemail@example.com');
+            });
+
+            it('should reject when email is already in use by another account', async () => {
+                const otherUserEmail = 'user2@example.com';
+
+                await expect(
+                    appDriver.changeEmail(user1, {
+                        currentPassword: CURRENT_PASSWORD,
+                        newEmail: otherUserEmail,
+                    }),
+                ).rejects.toThrow(/already exists/i);
+            });
         });
     });
 
