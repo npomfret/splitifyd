@@ -21,7 +21,6 @@ import {
     PolicyId,
     PreviewGroupResponse,
     PublishPolicyResponse,
-    RegisteredUser,
     SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
@@ -31,6 +30,7 @@ import {
     UserId,
     UserPolicyStatusResponse,
     VersionHash,
+    UserProfileResponse,
 } from '@splitifyd/shared';
 import { ExpenseId, SettlementId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
@@ -469,13 +469,13 @@ export class AppDriver {
         return (res as any).getJson() as ListCommentsResponse;
     }
 
-    async updateUserProfile(userId: UserId, updateRequest: any): Promise<RegisteredUser> {
+    async updateUserProfile(userId: UserId, updateRequest: any): Promise<UserProfileResponse> {
         const req = createStubRequest(userId, updateRequest);
         const res = createStubResponse();
 
         await this.userHandlers.updateUserProfile(req, res);
 
-        return (res as any).getJson() as RegisteredUser;
+        return (res as any).getJson() as UserProfileResponse;
     }
 
     async changePassword(userId: UserId, passwordRequest: any): Promise<MessageResponse> {
@@ -485,6 +485,15 @@ export class AppDriver {
         await this.userHandlers.changePassword(req, res);
 
         return (res as any).getJson() as MessageResponse;
+    }
+
+    async changeEmail(userId: UserId, changeEmailRequest: any): Promise<UserProfileResponse> {
+        const req = createStubRequest(userId, changeEmailRequest);
+        const res = createStubResponse();
+
+        await this.userHandlers.changeEmail(req, res);
+
+        return (res as any).getJson() as UserProfileResponse;
     }
 
     async createPolicy(userId: UserId, policyData: { policyName: string; text: string; }): Promise<CreatePolicyResponse> {

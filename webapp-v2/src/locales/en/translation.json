@@ -951,8 +951,11 @@
     "profileSummaryDescription": "This information helps other members recognize you.",
     "profileInformationHeader": "Profile Information",
     "profileInformationSubheader": "Update the details other members see across Splitifyd.",
+    "emailSectionTitle": "Email address",
+    "emailSectionDescription": "Update the email you use to sign in and receive notifications.",
     "currentDisplayName": "Current display name:",
     "email": "Email:",
+    "currentEmailLabel": "Current email",
     "displayNameLabel": "Display Name",
     "displayNamePlaceholder": "Enter your display name",
     "displayNameHelper": "Use your full name or a nickname that teammates will recognize.",
@@ -960,6 +963,11 @@
     "passwordHeader": "Password",
     "passwordIntro": "Set a strong password to keep your Splitifyd account secure.",
     "changePasswordButton": "Change Password",
+    "changeEmailButton": "Change Email",
+    "newEmailLabel": "New Email",
+    "newEmailPlaceholder": "Enter your new email address",
+    "emailPasswordLabel": "Confirm with Password",
+    "updateEmailButton": "Update Email",
     "currentPasswordLabel": "Current Password",
     "newPasswordLabel": "New Password",
     "confirmNewPasswordLabel": "Confirm New Password",
@@ -979,7 +987,8 @@
     },
     "successMessages": {
       "profileUpdated": "Profile updated successfully",
-      "passwordChanged": "Password changed successfully"
+      "passwordChanged": "Password changed successfully",
+      "emailChanged": "Email updated successfully. Please verify the new address."
     },
     "errorMessages": {
       "profileUpdateFailed": "Failed to update profile. Please try again.",
@@ -990,7 +999,13 @@
       "currentPasswordIncorrect": "Current password is incorrect",
       "passwordChangeFailed": "Failed to change password. Please try again.",
       "displayNameEmpty": "Display name cannot be empty",
-      "displayNameTooLong": "Display name must be 100 characters or less"
+      "displayNameTooLong": "Display name must be 100 characters or less",
+      "emailRequired": "New email is required",
+      "emailInvalid": "Enter a valid email address",
+      "emailSameAsCurrent": "New email must be different from current email",
+      "emailPasswordRequired": "Enter your current password to confirm this change",
+      "emailInUse": "That email is already linked to another Splitifyd account",
+      "emailChangeFailed": "Failed to change email. Please try again."
     }
   },
   "editGroupModal": {

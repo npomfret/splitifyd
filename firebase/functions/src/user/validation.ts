@@ -117,3 +117,47 @@ export const validateChangePassword = (body: unknown): ChangePasswordRequest => 
 
     return value as ChangePasswordRequest;
 };
+
+/**
+ * Email validation regex (same as used in auth/validation.ts)
+ */
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+/**
+ * Schema for change email request
+ */
+const changeEmailSchema = Joi.object({
+    currentPassword: Joi.string().required().messages({
+        'any.required': 'Current password is required',
+        'string.empty': 'Current password cannot be empty',
+    }),
+    newEmail: Joi.string().pattern(EMAIL_REGEX).required().messages({
+        'any.required': 'New email is required',
+        'string.pattern.base': 'Please enter a valid email address',
+        'string.empty': 'New email cannot be empty',
+    }),
+});
+
+interface ChangeEmailRequest {
+    currentPassword: string;
+    newEmail: string;
+}
+
+export const validateChangeEmail = (body: unknown): ChangeEmailRequest => {
+    const { error, value } = changeEmailSchema.validate(body, {
+        abortEarly: false,
+        stripUnknown: true,
+    });
+
+    if (error) {
+        const firstError = error.details[0];
+        throw Errors.INVALID_INPUT(firstError.message);
+    }
+
+    const sanitizedEmail = sanitizeString(value.newEmail).toLowerCase();
+
+    return {
+        currentPassword: value.currentPassword,
+        newEmail: sanitizedEmail,
+    };
+};

@@ -29,6 +29,7 @@ interface AuthActions {
     logout: () => Promise<void>;
     resetPassword: (email: Email) => Promise<void>;
     updateUserProfile: (updates: { displayName?: string; }) => Promise<void>;
+    changeEmail: (payload: { currentPassword: string; newEmail: string; }) => Promise<void>;
     clearError: () => void;
     refreshAuthToken: () => Promise<string>;
 }
@@ -341,10 +342,38 @@ class AuthStoreImpl implements AuthStore {
                     ...this.#userSignal.value,
                     displayName: updatedUser.displayName,
                     role: updatedUser.role,
+                    email: updatedUser.email,
+                    emailVerified: updatedUser.emailVerified,
                 };
             }
 
             // Also update the Firebase Auth user object to keep it in sync
+            void this.gateway.performUserRefresh();
+        } catch (error: any) {
+            this.#errorSignal.value = this.getAuthErrorMessage(error);
+            throw error;
+        } finally {
+            this.#isUpdatingProfileSignal.value = false;
+        }
+    }
+
+    async changeEmail(payload: { currentPassword: string; newEmail: string; }): Promise<void> {
+        this.#errorSignal.value = null;
+        this.#isUpdatingProfileSignal.value = true;
+
+        try {
+            const updatedProfile = await apiClient.changeEmail(payload);
+
+            if (this.#userSignal.value) {
+                this.#userSignal.value = {
+                    ...this.#userSignal.value,
+                    email: updatedProfile.email,
+                    emailVerified: updatedProfile.emailVerified,
+                    displayName: updatedProfile.displayName,
+                    role: updatedProfile.role,
+                };
+            }
+
             void this.gateway.performUserRefresh();
         } catch (error: any) {
             this.#errorSignal.value = this.getAuthErrorMessage(error);

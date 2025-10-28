@@ -56,4 +56,18 @@ export class UserHandlers {
         const result = await this.userService.changePassword(userId, req.body);
         res.status(HTTP_STATUS.OK).json(result);
     };
+
+    /**
+     * Change user email
+     * Requires current password verification
+     */
+    changeEmail = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+        const userId = req.user?.uid;
+        if (!userId) {
+            throw Errors.UNAUTHORIZED();
+        }
+
+        const profile = await this.userService.changeEmail(userId, req.body);
+        res.status(HTTP_STATUS.OK).json(profile);
+    };
 }

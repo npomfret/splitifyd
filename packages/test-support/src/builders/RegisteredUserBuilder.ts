@@ -13,6 +13,7 @@ export class RegisteredUserBuilder {
     private user: RegisteredUser = {
         uid: `user-${generateShortId()}`,
         displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`,
+        email: `${randomString(6).toLowerCase()}@example.com`,
         photoURL: randomBoolean() ? randomUrl() : null,
         emailVerified: randomBoolean(),
         themeColor: {
@@ -33,6 +34,11 @@ export class RegisteredUserBuilder {
 
     withDisplayName(name: string): RegisteredUserBuilder {
         this.user.displayName = name;
+        return this;
+    }
+
+    withEmail(email: string): RegisteredUserBuilder {
+        this.user.email = email;
         return this;
     }
 

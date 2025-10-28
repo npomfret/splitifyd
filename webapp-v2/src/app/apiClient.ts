@@ -991,6 +991,14 @@ class ApiClient {
         });
     }
 
+    async changeEmail(data: { currentPassword: string; newEmail: string; }): Promise<UserProfileResponse> {
+        return this.request({
+            endpoint: '/user/change-email',
+            method: 'POST',
+            body: data,
+        });
+    }
+
     // Comment methods
     async createGroupComment(groupId: GroupId, text: string): Promise<CommentDTO> {
         return this.request<CommentDTO>({

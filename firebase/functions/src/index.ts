@@ -23,7 +23,7 @@ import { logMetrics } from './scheduled/metrics-logger';
 import { createSettlement, deleteSettlement, updateSettlement } from './settlements/handlers';
 import { borrowTestUser, returnTestUser } from './test-pool/handlers';
 import { testClearPolicyAcceptances, testPromoteToAdmin } from './test/policy-handlers';
-import { changePassword, getUserProfile, updateUserProfile } from './user/handlers';
+import { changeEmail, changePassword, getUserProfile, updateUserProfile } from './user/handlers';
 import { getEnhancedConfigResponse } from './utils/config-response';
 import { ApiError } from './utils/errors';
 import { applyStandardMiddleware } from './utils/middleware';
@@ -132,6 +132,7 @@ function setupRoutes(app: express.Application): void {
     app.get('/user/profile', authenticate, asyncHandler(getUserProfile));
     app.put('/user/profile', authenticate, asyncHandler(updateUserProfile));
     app.post('/user/change-password', authenticate, asyncHandler(changePassword));
+    app.post('/user/change-email', authenticate, asyncHandler(changeEmail));
 
     app.post('/register', asyncHandler(register));
 

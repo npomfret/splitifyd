@@ -25,6 +25,7 @@ test.describe('Settings Page - Profile Update Functionality', () => {
                     body: JSON.stringify({
                         displayName: user.displayName,
                         email: user.email,
+                        emailVerified: user.emailVerified ?? true,
                         photoURL: user.photoURL,
                         themeColor: user.themeColor,
                         role: user.role,
@@ -62,6 +63,7 @@ test.describe('Settings Page - Profile Update Functionality', () => {
                     body: JSON.stringify({
                         displayName: newDisplayName,
                         email: user.email,
+                        emailVerified: user.emailVerified ?? true,
                         role: user.role || 'system_user',
                     }),
                 });
@@ -201,6 +203,7 @@ test.describe('Settings Page - Password Change Functionality', () => {
                     body: JSON.stringify({
                         displayName: user.displayName,
                         email: user.email,
+                        emailVerified: user.emailVerified ?? true,
                         photoURL: user.photoURL,
                         themeColor: user.themeColor,
                         role: user.role,
@@ -293,6 +296,7 @@ test.describe('Settings Page - UI Elements and Layout', () => {
                     body: JSON.stringify({
                         displayName: user.displayName,
                         email: user.email,
+                        emailVerified: user.emailVerified ?? true,
                         photoURL: user.photoURL,
                         themeColor: user.themeColor,
                         role: user.role,
@@ -423,6 +427,7 @@ test.describe('Settings Page - Navigation', () => {
                     body: JSON.stringify({
                         displayName: user.displayName,
                         email: user.email,
+                        emailVerified: user.emailVerified ?? true,
                         photoURL: user.photoURL,
                         themeColor: user.themeColor,
                         role: user.role,

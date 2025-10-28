@@ -9,7 +9,7 @@ import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import { assignThemeColor } from '../user-management/assign-theme-color';
-import { validateChangePassword, validateUpdateUserProfile } from '../user/validation';
+import { validateChangeEmail, validateChangePassword, validateUpdateUserProfile } from '../user/validation';
 import { ApiError, Errors } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { withMinimumDuration } from '../utils/timing';
@@ -59,6 +59,7 @@ export class UserService {
         return {
             uid: userRecord.uid,
             displayName: userRecord.displayName,
+            email: userRecord.email,
             photoURL: userRecord.photoURL || null,
             emailVerified: userRecord.emailVerified,
             role: firestoreData?.role,
@@ -188,6 +189,8 @@ export class UserService {
         return {
             displayName: registeredUser.displayName,
             role: registeredUser.role ?? SystemUserRoles.SYSTEM_USER,
+            email: registeredUser.email,
+            emailVerified: registeredUser.emailVerified,
         };
     }
 
@@ -293,6 +296,66 @@ export class UserService {
 
             logger.error('Failed to change password', error as unknown as Error);
             throw error;
+        }
+    }
+
+    /**
+     * Change a user's email address
+     * @param userId - Firebase UID of the user
+     * @param requestBody - Raw request payload containing current password and new email
+     * @returns Updated user profile
+     */
+    async changeEmail(userId: UserId, requestBody: unknown): Promise<UserProfileResponse> {
+        LoggerContext.update({ userId, operation: 'change-email' });
+
+        const validatedData = validateChangeEmail(requestBody);
+
+        try {
+            const userRecord = await this.authService.getUser(userId);
+            if (!userRecord || !userRecord.email) {
+                throw Errors.NOT_FOUND('User not found');
+            }
+
+            if (userRecord.email.toLowerCase() === validatedData.newEmail.toLowerCase()) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'EMAIL_UNCHANGED', 'New email must be different from current email');
+            }
+
+            const isCurrentPasswordValid = await this.authService.verifyPassword(userRecord.email, validatedData.currentPassword);
+            if (!isCurrentPasswordValid) {
+                throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'INVALID_PASSWORD', 'Current password is incorrect');
+            }
+
+            await this.authService.updateUser(userId, {
+                email: validatedData.newEmail,
+                emailVerified: false,
+            });
+
+            await this.firestoreWriter.updateUser(userId, {
+                email: validatedData.newEmail,
+            });
+
+            logger.info('Email changed successfully');
+
+            return this._getProfile(userId);
+        } catch (error: unknown) {
+            if (error instanceof ApiError) {
+                throw error;
+            }
+
+            const firebaseCode = this.extractErrorCode(error);
+            if (firebaseCode && this.isSensitiveRegistrationErrorCode(firebaseCode)) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'An account with this email already exists');
+            }
+
+            if (error && typeof error === 'object' && 'code' in error && (error as { code?: string; }).code === 'auth/user-not-found') {
+                const err = error instanceof Error ? error : new Error(String(error));
+                logger.error('User not found in Firebase Auth during email change', err);
+                throw Errors.NOT_FOUND('User not found');
+            }
+
+            const err = error instanceof Error ? error : new Error(String(error));
+            logger.error('Failed to change user email', err);
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'EMAIL_CHANGE_FAILED', 'Failed to change email');
         }
     }
 
@@ -407,6 +470,7 @@ export class UserService {
             const now = toISOString(new Date().toISOString());
             const userDoc: Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL'> = {
                 displayName: userRegistration.displayName,
+                email: userRegistration.email,
                 role: SystemUserRoles.SYSTEM_USER, // Default role for new users
                 createdAt: now,
                 updatedAt: now,
@@ -432,7 +496,10 @@ export class UserService {
 
             return {
                 uid: userRecord.uid,
-                displayName: userRecord.displayName,
+                displayName: userRecord.displayName ?? userRegistration.displayName,
+                email: (userRecord.email ?? userRegistration.email) as Email,
+                emailVerified: userRecord.emailVerified ?? false,
+                photoURL: userRecord.photoURL ?? null,
             } as RegisteredUser;
         } catch (error: unknown) {
             // If user was created but firestore failed, clean up the orphaned auth record

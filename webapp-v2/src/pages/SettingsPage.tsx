@@ -11,6 +11,13 @@ interface PasswordChangeData {
     confirmNewPassword: string;
 }
 
+interface EmailChangeData {
+    newEmail: string;
+    currentPassword: string;
+}
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function SettingsPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
@@ -24,7 +31,14 @@ export function SettingsPage() {
         confirmNewPassword: '',
     });
     const [successMessage, setSuccessMessage] = useState('');
-   const [errorMessage, setErrorMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const [originalEmail, setOriginalEmail] = useState('');
+    const [showEmailForm, setShowEmailForm] = useState(false);
+    const [emailData, setEmailData] = useState<EmailChangeData>({
+        newEmail: '',
+        currentPassword: '',
+    });
+    const [isEmailLoading, setIsEmailLoading] = useState(false);
 
     const user = authStore.user;
     const resolvedDisplayName = user?.displayName?.trim() || user?.email?.split('@')[0] || '';
@@ -42,6 +56,12 @@ export function SettingsPage() {
         if (user) {
             setDisplayName(user.displayName || '');
             setOriginalDisplayName(user.displayName || '');
+            const userEmail = user.email || '';
+            setOriginalEmail(userEmail);
+            setEmailData({
+                newEmail: userEmail,
+                currentPassword: '',
+            });
         }
     }, [user]);
 
@@ -127,6 +147,91 @@ export function SettingsPage() {
         }
     };
 
+    const handleStartEmailChange = () => {
+        if (!user) return;
+
+        setErrorMessage('');
+        setSuccessMessage('');
+        setEmailData({
+            newEmail: user.email || '',
+            currentPassword: '',
+        });
+        setShowEmailForm(true);
+    };
+
+    const handleEmailChange = async () => {
+        if (!user || isEmailLoading) return;
+
+        const trimmedEmail = emailData.newEmail.trim().toLowerCase();
+        const currentEmail = (originalEmail || '').toLowerCase();
+
+        if (!trimmedEmail) {
+            setErrorMessage(t('settingsPage.errorMessages.emailRequired'));
+            return;
+        }
+
+        if (!EMAIL_REGEX.test(trimmedEmail)) {
+            setErrorMessage(t('settingsPage.errorMessages.emailInvalid'));
+            return;
+        }
+
+        if (trimmedEmail === currentEmail) {
+            setErrorMessage(t('settingsPage.errorMessages.emailSameAsCurrent'));
+            return;
+        }
+
+        if (!emailData.currentPassword.trim()) {
+            setErrorMessage(t('settingsPage.errorMessages.emailPasswordRequired'));
+            return;
+        }
+
+        setIsEmailLoading(true);
+        setErrorMessage('');
+        setSuccessMessage('');
+
+        try {
+            await authStore.changeEmail({
+                currentPassword: emailData.currentPassword,
+                newEmail: trimmedEmail,
+            });
+
+            const updatedEmail = authStore.user?.email ?? trimmedEmail;
+            setOriginalEmail(updatedEmail);
+            setSuccessMessage(t('settingsPage.successMessages.emailChanged'));
+            setShowEmailForm(false);
+            setEmailData({
+                newEmail: updatedEmail,
+                currentPassword: '',
+            });
+        } catch (error: any) {
+            const message = typeof error?.message === 'string' ? error.message : '';
+            if (message.includes('Current password is incorrect')) {
+                setErrorMessage(t('settingsPage.errorMessages.currentPasswordIncorrect'));
+            } else if (message.toLowerCase().includes('already exists')) {
+                setErrorMessage(t('settingsPage.errorMessages.emailInUse'));
+            } else if (message.toLowerCase().includes('valid email')) {
+                setErrorMessage(t('settingsPage.errorMessages.emailInvalid'));
+            } else if (message.toLowerCase().includes('different from current email')) {
+                setErrorMessage(t('settingsPage.errorMessages.emailSameAsCurrent'));
+            } else {
+                setErrorMessage(t('settingsPage.errorMessages.emailChangeFailed'));
+            }
+            console.error('Email change error:', error);
+        } finally {
+            setIsEmailLoading(false);
+        }
+    };
+
+    const handleCancelEmailChange = () => {
+        setShowEmailForm(false);
+        setEmailData({
+            newEmail: user?.email || '',
+            currentPassword: '',
+        });
+        setIsEmailLoading(false);
+        setErrorMessage('');
+    };
+
     const handleCancelPasswordChange = () => {
         setShowPasswordForm(false);
         setPasswordData({
@@ -144,6 +249,9 @@ export function SettingsPage() {
     const hasDisplayNameChanged = displayName.trim() !== originalDisplayName;
     const isDisplayNameEmpty = displayName.trim().length === 0;
     const isDisplayNameTooLong = displayName.trim().length > 100;
+    const trimmedNewEmail = emailData.newEmail.trim().toLowerCase();
+    const hasEmailChanged = trimmedNewEmail !== (originalEmail || '').toLowerCase();
+    const shouldShowEmailFormatError = emailData.newEmail.length > 0 && !EMAIL_REGEX.test(trimmedNewEmail);
 
     return (
         <BaseLayout title={t('settingsPage.title')} description={t('settingsPage.description')} headerVariant='dashboard'>
@@ -259,6 +367,86 @@ export function SettingsPage() {
                                             {t('settingsPage.saveChangesButton')}
                                         </Button>
                                     </Form>
+                                </div>
+                            </Card>
+
+                            <Card padding='lg' data-testid='email-section'>
+                                <div class='space-y-6'>
+                                    <div class='space-y-2'>
+                                        <h2 class='text-xl font-semibold text-slate-900'>{t('settingsPage.emailSectionTitle')}</h2>
+                                        <p class='text-sm text-slate-600'>{t('settingsPage.emailSectionDescription')}</p>
+                                    </div>
+
+                                    {!showEmailForm ? (
+                                        <div class='flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
+                                            <div>
+                                                <p class='text-xs font-semibold uppercase text-slate-500'>
+                                                    {t('settingsPage.currentEmailLabel')}
+                                                </p>
+                                                <p class='font-medium text-slate-900 break-words'>{originalEmail}</p>
+                                            </div>
+                                            <Button variant='secondary' onClick={handleStartEmailChange} data-testid='change-email-button'>
+                                                {t('settingsPage.changeEmailButton')}
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <Form
+                                            onSubmit={() => {
+                                                if (!isEmailLoading) {
+                                                    return handleEmailChange();
+                                                }
+                                            }}
+                                            className='space-y-5'
+                                            data-testid='email-form'
+                                        >
+                                            <Input
+                                                label={t('settingsPage.newEmailLabel')}
+                                                type='email'
+                                                value={emailData.newEmail}
+                                                onChange={(value) => setEmailData((prev) => ({ ...prev, newEmail: value }))}
+                                                placeholder={t('settingsPage.newEmailPlaceholder')}
+                                                disabled={isEmailLoading}
+                                                error={shouldShowEmailFormatError ? t('settingsPage.errorMessages.emailInvalid') : undefined}
+                                                id='new-email-input'
+                                                data-testid='new-email-input'
+                                            />
+
+                                            <Input
+                                                label={t('settingsPage.emailPasswordLabel')}
+                                                type='password'
+                                                value={emailData.currentPassword}
+                                                onChange={(value) => setEmailData((prev) => ({ ...prev, currentPassword: value }))}
+                                                disabled={isEmailLoading}
+                                                id='email-password-input'
+                                                data-testid='email-password-input'
+                                            />
+
+                                            <div class='flex flex-col gap-3 sm:flex-row'>
+                                                <Button
+                                                    type='submit'
+                                                    disabled={
+                                                        isEmailLoading ||
+                                                        !hasEmailChanged ||
+                                                        shouldShowEmailFormatError ||
+                                                        emailData.currentPassword.trim().length === 0
+                                                    }
+                                                    loading={isEmailLoading}
+                                                    data-testid='update-email-button'
+                                                >
+                                                    {t('settingsPage.updateEmailButton')}
+                                                </Button>
+                                                <Button
+                                                    type='button'
+                                                    variant='secondary'
+                                                    onClick={handleCancelEmailChange}
+                                                    disabled={isEmailLoading}
+                                                    data-testid='cancel-email-button'
+                                                >
+                                                    {t('settingsPage.cancelButton')}
+                                                </Button>
+                                            </div>
+                                        </Form>
+                                    )}
                                 </div>
                             </Card>
 

@@ -330,6 +330,8 @@ const ListCommentsApiResponseSchema = ListCommentsResponseSchema;
 const UserProfileResponseSchema = z.object({
     displayName: z.string(),
     role: z.nativeEnum(SystemUserRoles),
+    email: z.string().email(),
+    emailVerified: z.boolean(),
 });
 
 // Policy schemas
@@ -480,6 +482,7 @@ export const responseSchemas = {
     // User profile endpoints
     'GET /user/profile': UserProfileResponseSchema,
     'PUT /user/profile': UserProfileResponseSchema,
+    'POST /user/change-email': UserProfileResponseSchema,
     'POST /user/change-password': MessageResponseSchema,
     'POST /user/reset-password': MessageResponseSchema,
     // Group member endpoints

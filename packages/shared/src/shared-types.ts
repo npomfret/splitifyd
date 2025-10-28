@@ -419,6 +419,7 @@ export interface AuthenticatedFirebaseUser extends FirebaseUser, UserToken {}
  * Note: The canonical storage type is UserDocument in firebase/functions/src/schemas/user.ts
  */
 export interface RegisteredUser extends FirebaseUser {
+    email: Email;
     // Firebase Auth fields
     photoURL?: string | null; // Profile photo URL from Firebase Auth
     emailVerified: boolean; // Email verification status
@@ -910,6 +911,8 @@ export interface CurrentPolicyResponse {
 export interface UserProfileResponse {
     displayName: DisplayName;
     role: SystemUserRole;
+    email: Email;
+    emailVerified: boolean;
 }
 
 export interface AcceptMultiplePoliciesResponse {

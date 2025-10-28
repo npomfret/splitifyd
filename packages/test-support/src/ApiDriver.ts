@@ -389,6 +389,10 @@ export class ApiDriver {
         return await this.apiRequest('/user/profile', 'PUT', profileData, token);
     }
 
+    async changeEmail(token: string, currentPassword: string, newEmail: string): Promise<UserProfileResponse> {
+        return await this.apiRequest('/user/change-email', 'POST', { currentPassword, newEmail }, token);
+    }
+
     async createComment(id: string, type: 'group' | 'expense', text: string, token: string): Promise<CommentDTO> {
         if (type === 'group') {
             return this.createGroupComment(id, text, token);
