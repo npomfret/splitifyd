@@ -1,7 +1,15 @@
 #!/usr/bin/env npx tsx
 import * as admin from 'firebase-admin';
 import type { UserRecord } from 'firebase-admin/auth';
-import { DocumentSnapshot, FieldPath, Firestore } from 'firebase-admin/firestore';
+import {
+    DocumentData,
+    DocumentSnapshot,
+    FieldPath,
+    Firestore,
+    Query,
+    QueryDocumentSnapshot,
+    QuerySnapshot,
+} from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../functions/src/constants';
 import { initializeFirebase, parseEnvironment } from './firebase-init';
 
@@ -186,7 +194,7 @@ interface FirestoreUserSummary {
     passwordChangedAt?: string;
 }
 
-function summarizeFirestoreUser(doc: DocumentSnapshot): FirestoreUserSummary {
+function summarizeFirestoreUser(doc: DocumentSnapshot<DocumentData>): FirestoreUserSummary {
     const data = doc.data() ?? {};
     const summary: FirestoreUserSummary = {};
 
@@ -379,11 +387,11 @@ async function listUsers(): Promise<void> {
         const pagesToShow = Math.min(maxPages, totalPages);
         console.log(`Will display up to ${pagesToShow} pages\n`);
 
-        const baseQuery = firestoreDb.collection(FirestoreCollections.USERS).orderBy(FieldPath.documentId());
+const baseQuery: Query<DocumentData> = firestoreDb.collection(FirestoreCollections.USERS).orderBy(FieldPath.documentId());
 
         let pageNumber = 1;
         let pagesDisplayed = 0;
-        let lastDoc: DocumentSnapshot | null = null;
+        let lastDoc: QueryDocumentSnapshot<DocumentData> | null = null;
         let usersShown = 0;
         let missingAuthCount = 0;
         let emailMismatchCount = 0;
@@ -397,17 +405,18 @@ async function listUsers(): Promise<void> {
             console.log('─'.repeat(80));
 
             // Apply pagination cursor if we have one
-            const query = lastDoc ? baseQuery.startAfter(lastDoc).limit(pageSize) : baseQuery.limit(pageSize);
-            const snapshot = await query.get();
+            const query: Query<DocumentData> = lastDoc ? baseQuery.startAfter(lastDoc).limit(pageSize) : baseQuery.limit(pageSize);
+            const snapshot: QuerySnapshot<DocumentData> = await query.get();
 
             if (snapshot.empty) {
                 console.log('📭 No more users found');
                 break;
             }
 
-            const docs = snapshot.docs;
-            const authSummaries = await fetchAuthSummaries(docs.map((doc) => doc.id));
-            const analyses = docs.map((doc) => {
+            const docs: QueryDocumentSnapshot<DocumentData>[] = snapshot.docs;
+            const docIds = docs.map((doc) => doc.id);
+            const authSummaries = await fetchAuthSummaries(docIds);
+            const analyses: UserRowAnalysis[] = docs.map((doc) => {
                 const firestoreSummary = summarizeFirestoreUser(doc);
                 const authSummary = authSummaries.get(doc.id) ?? createEmptyAuthSummary();
                 return buildUserRow(doc.id, authSummary, firestoreSummary);

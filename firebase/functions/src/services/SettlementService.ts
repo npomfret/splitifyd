@@ -19,7 +19,6 @@ import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ApiError, Errors } from '../utils/errors';
-import { createPhantomGroupMember } from '../utils/groupMembershipHelpers';
 import { LoggerContext } from '../utils/logger-context';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
@@ -46,40 +45,9 @@ export class SettlementService {
      * to allow viewing historical transaction data
      */
     private async fetchGroupMemberData(groupId: GroupId, userId: UserId): Promise<GroupMember> {
-        const memberData = await this.firestoreReader.getGroupMember(groupId, userId);
-
-        const userProfile = await this.userService.getUser(userId).catch((error) => {
-            if (error instanceof ApiError && error.code === 'NOT_FOUND') {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
-            }
-            logger.error('Failed to resolve user profile during settlement member fetch', error as Error, { userId });
-            throw error;
+        return this.userService.resolveGroupMemberProfile(groupId, userId, {
+            failureContext: 'settlement member fetch',
         });
-
-        const displayName = userProfile.displayName!;
-        const groupDisplayName = memberData?.groupDisplayName ?? displayName;
-
-        if (!memberData) {
-            return createPhantomGroupMember(userId, groupDisplayName);
-        }
-
-        const initials = groupDisplayName
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
-
-        return {
-            uid: userId,
-            initials,
-            themeColor: memberData.theme,
-            memberRole: memberData.memberRole,
-            memberStatus: memberData.memberStatus,
-            joinedAt: memberData.joinedAt, // Already ISO string from DTO
-            invitedBy: memberData.invitedBy,
-            groupDisplayName,
-        };
     }
 
     /**

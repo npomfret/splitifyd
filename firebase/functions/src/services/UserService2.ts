@@ -14,6 +14,7 @@ import { LoggerContext } from '../utils/logger-context';
 import { withMinimumDuration } from '../utils/timing';
 import type { IAuthService } from './auth';
 import type { FirestoreUserCreateData, IFirestoreReader, IFirestoreWriter } from './firestore';
+import { createPhantomGroupMember } from '../utils/groupMembershipHelpers';
 
 const MIN_REGISTRATION_DURATION_MS = 600;
 const REGISTRATION_FAILURE_ERROR_CODE = 'REGISTRATION_FAILED';
@@ -164,6 +165,55 @@ export class UserService {
 
         // Handle not found users - log warning but don't throw error
         // Let calling code handle missing users gracefully
+    }
+
+    async resolveGroupMemberProfile(
+        groupId: GroupId,
+        userId: UserId,
+        options: { failureContext?: string } = {},
+    ): Promise<GroupMember> {
+        const failureContext = options.failureContext ?? 'group member resolution';
+
+        const memberData = await this.firestoreReader.getGroupMember(groupId, userId);
+
+        const userProfile = await this.getUser(userId).catch((error) => {
+            if (error instanceof ApiError && error.code === 'NOT_FOUND') {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
+            }
+
+            logger.error(`Failed to resolve user profile during ${failureContext}`, error as Error, {
+                userId,
+                groupId,
+            });
+            throw error;
+        });
+
+        // displayName is guaranteed to exist because getUser() validates it
+        const displayName = userProfile.displayName;
+        const groupDisplayName = memberData?.groupDisplayName ?? displayName;
+
+        if (!memberData) {
+            return createPhantomGroupMember(userId, groupDisplayName);
+        }
+
+        const initials = groupDisplayName
+            .split(' ')
+            .filter(Boolean)
+            .map((n) => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+
+        return {
+            uid: userId,
+            initials,
+            themeColor: memberData.theme,
+            memberRole: memberData.memberRole,
+            memberStatus: memberData.memberStatus,
+            joinedAt: memberData.joinedAt,
+            invitedBy: memberData.invitedBy,
+            groupDisplayName,
+        };
     }
 
     /**

@@ -978,7 +978,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
                 if (balance) {
                     const symbol = currency === 'GBP' ? '£' : '€';
                     const netBalance = normalizeAmount(balance.netBalance ?? zero, currency);
-                    console.log(`    ${member.groupDisplayName}: ${symbol}${netBalance}`);
+                    console.log(`    ${member.displayName}: ${symbol}${netBalance}`);
                 }
             }
         }
