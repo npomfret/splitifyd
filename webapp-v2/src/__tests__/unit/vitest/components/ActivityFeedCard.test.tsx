@@ -1,6 +1,6 @@
 import { ActivityFeedCard } from '@/components/dashboard/ActivityFeedCard.tsx';
 import { type ReadonlySignal, type Signal, signal } from '@preact/signals';
-import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem, toGroupName } from '@splitifyd/shared';
+import {type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem, toCommentId, toGroupName, toSettlementId} from '@splitifyd/shared';
 import { ActivityFeedItemBuilder } from '@splitifyd/test-support';
 import { fireEvent, render, screen } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -293,7 +293,7 @@ describe('ActivityFeedCard', () => {
 
         it('navigates to the settlements section for settlement events', () => {
             const item = buildItem('1', ActivityFeedEventTypes.SETTLEMENT_CREATED, {
-                details: { settlementId: 'settlement-1', settlementDescription: 'Dinner payback' },
+                details: { settlementId: toSettlementId('settlement-1'), settlementDescription: 'Dinner payback' },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
@@ -308,7 +308,7 @@ describe('ActivityFeedCard', () => {
 
         it('navigates to the comments section when a comment targets the group', () => {
             const item = buildItem('1', ActivityFeedEventTypes.COMMENT_ADDED, {
-                details: { commentId: 'comment-1' },
+                details: { commentId: toCommentId('comment-1') },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);
@@ -452,7 +452,7 @@ describe('ActivityFeedCard', () => {
 
         it('renders group-updated event with name change', () => {
             const item = buildItem('1', ActivityFeedEventTypes.GROUP_UPDATED, {
-                details: { previousGroupName: 'Old Group Name' },
+                details: { previousGroupName: toGroupName('Old Group Name') },
             });
             setSignalValue(mockStore.initializedSignal, true);
             setSignalValue(mockStore.itemsSignal, [item]);

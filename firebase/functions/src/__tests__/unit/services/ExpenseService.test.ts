@@ -2,7 +2,6 @@ import {convertToISOString, SplitifydFirestoreTestDatabase} from '@splitifyd/tes
 import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { Timestamp as FirestoreTimestamp } from '../../../firestore-wrapper';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { StubAuthService } from '../mocks/StubAuthService';

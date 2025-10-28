@@ -24,6 +24,7 @@ import {
     ExpenseId,
     type GroupDTO,
     GroupId,
+    GroupName,
     type GroupMembershipDTO,
     MAX_GROUP_MEMBERS,
     type MemberStatus,
@@ -43,7 +44,7 @@ import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelper
 import { ApiError } from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
-import { toExpenseId, toGroupId } from '@splitifyd/shared';
+import { toExpenseId, toGroupId, toCommentId, toSettlementId, toGroupName } from '@splitifyd/shared';
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,
@@ -726,9 +727,17 @@ export class FirestoreReader implements IFirestoreReader {
 
                     // Convert details to use branded types
                     const rawDetails = converted.details ?? {};
-                    const details: typeof rawDetails & { expenseId?: ExpenseId; } = {
+                    const details: typeof rawDetails & {
+                        expenseId?: ExpenseId;
+                        commentId?: CommentId;
+                        settlementId?: SettlementId;
+                        previousGroupName?: GroupName;
+                    } = {
                         ...rawDetails,
                         ...(rawDetails.expenseId && { expenseId: toExpenseId(rawDetails.expenseId) }),
+                        ...(rawDetails.commentId && { commentId: toCommentId(rawDetails.commentId) }),
+                        ...(rawDetails.settlementId && { settlementId: toSettlementId(rawDetails.settlementId) }),
+                        ...(rawDetails.previousGroupName && { previousGroupName: toGroupName(rawDetails.previousGroupName) }),
                     } as any;
 
                     const item: ActivityFeedItem = {

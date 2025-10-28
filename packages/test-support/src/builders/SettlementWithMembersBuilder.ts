@@ -1,5 +1,5 @@
 import type { GroupMember, SettlementWithMembers, UserId } from '@splitifyd/shared';
-import { Amount, toISOString } from '@splitifyd/shared';
+import { Amount } from '@splitifyd/shared';
 import { GroupId, ISOString } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';

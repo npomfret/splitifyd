@@ -8,6 +8,7 @@ import { ApiError, Errors } from '../utils/errors';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
 import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import {toISOString} from "@splitifyd/shared";
 
 export class GroupMemberService {
     constructor(
@@ -117,7 +118,7 @@ export class GroupMemberService {
             }
 
             const actorDisplayName = targetMembership.groupDisplayName || 'Unknown member';
-            const now = new Date().toISOString();
+            const now = toISOString(new Date().toISOString());
 
             await this.firestoreWriter.runTransaction(async (transaction) => {
                 const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
@@ -337,7 +338,7 @@ export class GroupMemberService {
             actorDisplayName = actorMembership?.groupDisplayName || 'Unknown member';
         }
 
-        const now = new Date().toISOString();
+        const now = toISOString(new Date().toISOString());
 
         // Atomically update group, delete membership, clean up notifications, and emit activity
         timer.startPhase('transaction');

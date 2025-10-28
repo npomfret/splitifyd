@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, CreateSettlementRequest, GroupMember, ISOString, SettlementDTO, SettlementWithMembers, UpdateSettlementRequest } from '@splitifyd/shared';
+import {ActivityFeedActions, ActivityFeedEventTypes, CreateSettlementRequest, GroupMember, ISOString, SettlementDTO, SettlementWithMembers, toISOString, toSettlementId, UpdateSettlementRequest} from '@splitifyd/shared';
 import { GroupId, UserId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { z } from 'zod';
@@ -7,7 +7,6 @@ import { FieldValue } from '../firestore-wrapper';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import * as dateHelpers from '../utils/dateHelpers';
 import { ApiError, Errors } from '../utils/errors';
 import { createPhantomGroupMember } from '../utils/groupMembershipHelpers';
 import { LoggerContext } from '../utils/logger-context';
@@ -196,7 +195,7 @@ export class SettlementService {
             }
         }
 
-        const now = new Date().toISOString();
+        const now = toISOString(new Date().toISOString());
         const settlementDate = settlementData.date || now;
 
         const settlementDataToCreate: any = {
@@ -220,7 +219,7 @@ export class SettlementService {
         }
 
         // Generate settlement ID before transaction
-        const settlementId = this.firestoreWriter.generateDocumentId(FirestoreCollections.SETTLEMENTS);
+        const settlementId = toSettlementId(this.firestoreWriter.generateDocumentId(FirestoreCollections.SETTLEMENTS));
 
         // Get members for balance update
         timer.endPhase();
@@ -395,7 +394,7 @@ export class SettlementService {
 
             // ===== WRITE PHASE: All writes happen after reads =====
 
-            const updateTimestamp = new Date().toISOString();
+            const updateTimestamp = toISOString(new Date().toISOString());
             const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
             this.firestoreWriter.updateInTransaction(transaction, documentPath, {
                 ...updates,

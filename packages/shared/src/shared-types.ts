@@ -27,7 +27,7 @@ type Brand<K, T> = K & { __brand: T; };
  */
 export type ISOString = Brand<string, 'ISOString'>;
 export const toISOString= (value: string): ISOString => value as ISOString;
-
+export const isoStringNow = (): ISOString => new Date().toISOString() as ISOString;
 
 /**
  * Type alias for monetary amounts
@@ -132,13 +132,13 @@ export type ActivityFeedAction = (typeof ActivityFeedActions)[keyof typeof Activ
 export interface ActivityFeedItemDetails {
     expenseId?: ExpenseId;
     expenseDescription?: string;
-    commentId?: string;
+    commentId?: CommentId;
     commentPreview?: string;
-    settlementId?: string;
+    settlementId?: SettlementId;
     settlementDescription?: string;
     targetUserId?: UserId;
     targetUserName?: string;
-    previousGroupName?: string;
+    previousGroupName?: GroupName;
 }
 
 export interface ActivityFeedItem {

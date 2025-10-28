@@ -14,7 +14,7 @@ import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import {toExpenseId} from "@splitifyd/shared";
-import {convertToISOString} from "@splitifyd/test-support";
+import {isoStringNow} from "@splitifyd/shared/";
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -644,7 +644,7 @@ export class ExpenseService {
                 // ===== WRITE PHASE: All writes happen after reads =====
 
                 // Soft delete the expense
-                const now = new Date().toISOString();
+                const now = toISOString(new Date().toISOString());
                 this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, {
                     [DELETED_AT_FIELD]: now, // ISO string, FirestoreWriter converts to Timestamp
                     deletedBy: userId,

@@ -1,4 +1,4 @@
-import type {ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, GroupId, GroupName, ISOString, UserId} from '@splitifyd/shared';
+import {ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, GroupId, GroupName, ISOString, toSettlementId, UserId} from '@splitifyd/shared';
 import { ActivityFeedActions, ActivityFeedEventTypes, toGroupId, toGroupName } from '@splitifyd/shared';
 import {convertToISOString, generateShortId, randomString} from '../../test-helpers';
 import {toExpenseId} from "@splitifyd/shared";
@@ -197,7 +197,7 @@ export class ActivityFeedItemBuilder {
             ActivityFeedActions.CREATE,
             actorName,
             {
-                settlementId: `${id}-settlement`,
+                settlementId: toSettlementId(`${id}-settlement`),
                 settlementDescription,
             },
         );

@@ -437,7 +437,7 @@ export class GroupService {
             }
 
             // Create updated data with current timestamp for optimistic response
-            const now = new Date().toISOString();
+            const now = toISOString(new Date().toISOString());
             const updatedData = {
                 ...group,
                 ...updates,
@@ -573,7 +573,7 @@ export class GroupService {
             operation: 'SOFT_DELETE',
         });
 
-        const now = new Date().toISOString();
+        const now = toISOString(new Date().toISOString());
         let performedDeletion = false;
 
         // Fetch existing activity items for all members (MUST be before transaction writes)
