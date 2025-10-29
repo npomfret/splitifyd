@@ -8,13 +8,15 @@
 
 ## Questions
 - Where should tenant brand data live (Firebase Remote Config, Firestore document, build-time env, etc.) and who owns updates?
-- Are there constraints on acceptable colour palettes (contrast requirements, light/dark variants) that we must validate before applying runtime themes?
-- Should each tenant expose a marketing landing page, or do some embed the app within an existing site and only need the authenticated views?
+- Are there constraints on acceptable colour palettes (contrast requirements, light/dark variants) that we must validate before applying runtime themes? *(Answered: no enforced guardrails for MVP; tenants supply palettes as-is.)*
 
 ## Decisions
 - Legal documents remain Splitifyd-owned and global; white-label tenants accept the shared policies without customization.
 - All white-label tenants share a single Firebase project and Functions instance.
 - Tenant identification will resolve from the request host via a cached domain→tenant registry, with guarded `DEFAULT_TENANT_ID` and non-production `x-tenant-id` overrides for localhost/testing.
+- White-label partners host their own marketing, landing, and pricing experiences; Splitifyd controls the application from login onward, with a demo tenant reusing the existing public pages.
+- Initial rollout ships without automated accessibility guardrails on tenant-provided colour palettes; compliance remains a manual review responsibility.
+- Tenant branding metadata persists in Firestore (one document per tenant) with asset uploads stored in Cloud Storage; edits flow through a simple management UI.
 
 ## Agent's Ideas (Based on App Analysis)
 
@@ -33,11 +35,11 @@
 ## Agent's Questions (Based on App Analysis)
 
 1.  **Tenant Identification:** How will the application identify the current tenant? (e.g., subdomain, custom domain, query parameter, user's organization ID after login). This is the most crucial decision for the architecture. *(Answered: resolve via request host mapped through the tenant registry, with localhost/test overrides guarded.)*
-2.  **Configuration Storage:** What is the preferred approach for storing tenant-specific branding and configuration? (Firestore document per tenant, Firebase Remote Config, or a combination?)
+2.  **Configuration Storage:** What is the preferred approach for storing tenant-specific branding and configuration? (Firestore document per tenant, Firebase Remote Config, or a combination?) *(Answered: brand metadata lives in Firestore with asset references in Cloud Storage, managed through a lightweight UI.)*
 3.  **Deployment Strategy:** Will each white-label instance be a separate Firebase project, or will multiple tenants share a single Firebase project? This impacts how tenant data and configurations are isolated and managed. *(Answered: all tenants live in the same Firebase project/Functions instance.)*
-4.  **Admin Interface for Tenants:** Will there be an admin interface for white-label partners to manage their branding and configurations, or will this be a manual process (e.g., updating Firestore documents directly)?
-5.  **Color Palette Constraints:** Are there any specific constraints on acceptable color palettes (e.g., contrast requirements, light/dark variants) that we must validate before applying runtime themes?
-6.  **Marketing Landing Pages:** Should each tenant expose a marketing landing page, or do some embed the app within an existing site and only need the authenticated views?
+4.  **Admin Interface for Tenants:** Will there be an admin interface for white-label partners to manage their branding and configurations, or will this be a manual process (e.g., updating Firestore documents directly)? *(Answered: build a basic management UI that writes to Firestore/Cloud Storage; scope can remain internal for MVP.)*
+5.  **Color Palette Constraints:** Are there any specific constraints on acceptable color palettes (e.g., contrast requirements, light/dark variants) that we must validate before applying runtime themes? *(Answered: none for MVP; accessibility reviews remain manual.)*
+6.  **Marketing Landing Pages:** Should each tenant expose a marketing landing page, or do some embed the app within an existing site and only need the authenticated views? *(Answered: partners own landing/pricing surfaces; we manage the app from login onward and keep a demo tenant on the existing marketing pages.)*
 
 ---
 
