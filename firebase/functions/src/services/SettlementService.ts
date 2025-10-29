@@ -221,10 +221,12 @@ export class SettlementService {
                 actorId: userId,
                 actorName: actorDisplayName,
                 timestamp: now,
-                details: {
-                    settlementId,
-                    settlementDescription: settlementData.note,
-                },
+                details: this.activityFeedService.buildDetails({
+                    settlement: {
+                        id: settlementId,
+                        description: settlementData.note,
+                    },
+                }),
             });
             timer.endPhase();
 
@@ -386,10 +388,12 @@ export class SettlementService {
                 actorId: userId,
                 actorName: actorDisplayName,
                 timestamp: updateTimestamp,
-                details: {
-                    settlementId,
-                    settlementDescription: updatedNote,
-                },
+                details: this.activityFeedService.buildDetails({
+                    settlement: {
+                        id: settlementId,
+                        description: updatedNote,
+                    },
+                }),
             });
 
             this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);

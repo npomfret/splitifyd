@@ -1,4 +1,16 @@
-import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedItemDetails, ISOString } from '@splitifyd/shared';
+import {
+    toGroupName,
+} from '@splitifyd/shared';
+import type {
+    ActivityFeedAction,
+    ActivityFeedEventType,
+    ActivityFeedItem,
+    ActivityFeedItemDetails,
+    CommentId,
+    ExpenseId,
+    ISOString,
+    SettlementId,
+} from '@splitifyd/shared';
 import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
 import type { ITransaction } from '../firestore-wrapper';
 import { logger } from '../logger';
@@ -17,6 +29,26 @@ interface CreateActivityItemInput {
     details?: ActivityFeedItemDetails;
 }
 
+type ActivityFeedDetailsInput = {
+    expense?: {
+        id: ExpenseId;
+        description?: string | null | undefined;
+    };
+    settlement?: {
+        id: SettlementId;
+        description?: string | null | undefined;
+    };
+    comment?: {
+        id: CommentId;
+        preview?: string | null | undefined;
+    };
+    targetUser?: {
+        id: UserId;
+        name?: string | null | undefined;
+    };
+    previousGroupName?: GroupName | string | null | undefined;
+};
+
 const MAX_ITEMS_PER_USER = 10;
 const CLEANUP_KEEP_COUNT = 20; // Keep last 20 items, cleanup happens async during reads
 
@@ -25,6 +57,52 @@ export class ActivityFeedService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
     ) {}
+
+    buildDetails(input: ActivityFeedDetailsInput): ActivityFeedItemDetails {
+        const details: ActivityFeedItemDetails = {};
+
+        if (input.expense) {
+            details.expenseId = input.expense.id;
+            const expenseDescription = input.expense.description?.trim();
+            if (expenseDescription) {
+                details.expenseDescription = expenseDescription;
+            }
+        }
+
+        if (input.settlement) {
+            details.settlementId = input.settlement.id;
+            const settlementDescription = input.settlement.description?.trim();
+            if (settlementDescription) {
+                details.settlementDescription = settlementDescription;
+            }
+        }
+
+        if (input.comment) {
+            details.commentId = input.comment.id;
+            const commentPreview = input.comment.preview?.trim();
+            if (commentPreview) {
+                details.commentPreview = commentPreview;
+            }
+        }
+
+        if (input.targetUser) {
+            details.targetUserId = input.targetUser.id;
+            const targetUserName = input.targetUser.name?.trim();
+            if (targetUserName) {
+                details.targetUserName = targetUserName;
+            }
+        }
+
+        const previousGroupNameInput = input.previousGroupName;
+        if (previousGroupNameInput) {
+            const trimmed = previousGroupNameInput.toString().trim();
+            if (trimmed) {
+                details.previousGroupName = toGroupName(trimmed);
+            }
+        }
+
+        return details;
+    }
 
     buildGroupActivityItem(input: {
         groupId: GroupId;

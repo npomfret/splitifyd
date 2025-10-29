@@ -489,10 +489,12 @@ export class GroupShareService {
                         actorId: userId,
                         actorName: memberDoc.groupDisplayName,
                         timestamp: now,
-                        details: {
-                            targetUserId: userId,
-                            targetUserName: memberDoc.groupDisplayName,
-                        },
+                        details: this.activityFeedService.buildDetails({
+                            targetUser: {
+                                id: userId,
+                                name: memberDoc.groupDisplayName,
+                            },
+                        }),
                     });
                     timer.endPhase();
 

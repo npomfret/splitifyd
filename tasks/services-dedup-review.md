@@ -12,7 +12,7 @@ Expense/settlement/comment/group services still carry a lot of repeated access-c
 - **Group membership pre-flight** – ✅ Consolidated into `GroupMemberService.getGroupAccessContext()` (now used by Expense/Settlement/Comment/GroupShare services). Only non-member flows (e.g. join-by-link) continue to run bespoke logic by design.
 - **Transaction scaffolding** – ✅ Expense, settlement, group, group-member, and share flows now route through `GroupTransactionManager` for consistent group re-fetching, balance preloading, and `touchGroup` semantics. Remaining opportunities lie in smaller strategy classes that still touch transactions directly.
 - **Lock/department checks** – ✅ `GroupLockEvaluator` now centralises membership-derived lock checks for expenses and settlements, keeping the logic in sync.
-- **Activity feed payloads** – ✅ `ActivityFeedService.buildGroupActivityItem` now centralises payload construction. Remaining opportunities include richer helpers for standard detail blocks if we keep adding event types.
+- **Activity feed payloads** – ✅ `ActivityFeedService.buildGroupActivityItem` and the new `buildDetails` helper standardise payload metadata and detail blocks.
 - **Soft-delete patterns** – Expense and settlement deletions mirror each other: optimistic-lock fetch, balance rollback, `touchGroup`, set `deletedAt`, log (`ExpenseService.ts:578-646`, `SettlementService.ts:498-533`). Shared soft-delete primitives would simplify future changes.
 - **Timestamp generation** – Multiple services produce ISO strings by hand (e.g. `ExpenseService.ts:188`, `SettlementService.ts:165`, `GroupService.ts:311`, `PolicyService.ts:146`). A date helper would ensure consistent formatting/timezone handling.
 - **ComponentBuilder factories** – Every `buildXService` repeats the lazy-init pattern in `ComponentBuilder.ts:60-153`. A generic memoized factory would remove noise.
@@ -21,8 +21,7 @@ Expense/settlement/comment/group services still carry a lot of repeated access-c
 
 ## Next Steps
 
-1. Introduce an activity feed payload builder with standard metadata.
-2. Replace ad-hoc date generation with a common utility.
-3. Refactor `ComponentBuilder` creation pattern via a small memoisation helper.
+1. Replace ad-hoc date generation with a common utility.
+2. Refactor `ComponentBuilder` creation pattern via a small memoisation helper.
 
 Document owners: Platform Engineering.

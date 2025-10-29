@@ -474,7 +474,9 @@ export class GroupService {
             });
 
             if (memberIds.length > 0) {
-                const details = updatedData.name !== group.name ? { previousGroupName: group.name } : {};
+                const detailPayload = updatedData.name !== group.name
+                    ? this.activityFeedService.buildDetails({ previousGroupName: group.name })
+                    : undefined;
 
                 const activityItem = this.activityFeedService.buildGroupActivityItem({
                     groupId,
@@ -484,7 +486,7 @@ export class GroupService {
                     actorId: userId,
                     actorName: actorDisplayName,
                     timestamp: now,
-                    details,
+                    details: detailPayload,
                 });
 
                 this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
@@ -643,10 +645,12 @@ export class GroupService {
                     actorId: userId,
                     actorName: actorDisplayName,
                     timestamp: now,
-                    details: {
-                        targetUserId: memberId,
-                        targetUserName,
-                    },
+                    details: this.activityFeedService.buildDetails({
+                        targetUser: {
+                            id: memberId,
+                            name: targetUserName,
+                        },
+                    }),
                 });
 
                 this.activityFeedService.recordActivityForUsers(transaction, [memberId], activityItem);

@@ -158,11 +158,7 @@ export class CommentService {
         timer.startPhase('write');
         const commentId = await this.firestoreWriter.runTransaction(async (transaction) => {
             const commentRef = this.firestoreWriter.createGroupCommentInTransaction(transaction, groupId, commentCreateData);
-
-            const details: Record<string, any> = {
-                commentId: commentRef.id,
-                commentPreview,
-            };
+            const activityCommentId = toCommentId(commentRef.id);
 
             const activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId,
@@ -172,7 +168,12 @@ export class CommentService {
                 actorId: userId,
                 actorName: activityActorDisplayName,
                 timestamp: now,
-                details,
+                details: this.activityFeedService.buildDetails({
+                    comment: {
+                        id: activityCommentId,
+                        preview: commentPreview,
+                    },
+                }),
             });
 
             this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
@@ -238,16 +239,7 @@ export class CommentService {
         timer.startPhase('write');
         const commentId = await this.firestoreWriter.runTransaction(async (transaction) => {
             const commentRef = this.firestoreWriter.createExpenseCommentInTransaction(transaction, expenseId, commentCreateData);
-
-            const details: Record<string, any> = {
-                commentId: commentRef.id,
-                commentPreview,
-                expenseId,
-            };
-
-            if (expense.description) {
-                details.expenseDescription = expense.description;
-            }
+            const activityCommentId = toCommentId(commentRef.id);
 
             const activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId: expense.groupId,
@@ -257,7 +249,16 @@ export class CommentService {
                 actorId: userId,
                 actorName: activityActorDisplayName,
                 timestamp: now,
-                details,
+                details: this.activityFeedService.buildDetails({
+                    comment: {
+                        id: activityCommentId,
+                        preview: commentPreview,
+                    },
+                    expense: {
+                        id: expenseId,
+                        description: expense.description,
+                    },
+                }),
             });
 
             this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);

@@ -245,10 +245,12 @@ export class ExpenseService {
                 actorId: userId,
                 actorName: actorDisplayName,
                 timestamp: now,
-                details: {
-                    expenseId,
-                    expenseDescription: expense.description,
-                },
+                details: this.activityFeedService.buildDetails({
+                    expense: {
+                        id: expenseId,
+                        description: expense.description,
+                    },
+                }),
             });
             timer.endPhase();
 
@@ -408,10 +410,12 @@ export class ExpenseService {
                 actorId: userId,
                 actorName: actorDisplayName,
                 timestamp: updates.updatedAt,
-                details: {
-                    expenseId,
-                    expenseDescription: newExpense.description,
-                },
+                details: this.activityFeedService.buildDetails({
+                    expense: {
+                        id: expenseId,
+                        description: newExpense.description,
+                    },
+                }),
             });
 
             this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
@@ -595,10 +599,12 @@ export class ExpenseService {
                     actorId: userId,
                     actorName: actorDisplayName,
                     timestamp: now,
-                    details: {
-                        expenseId,
-                        expenseDescription: expense.description,
-                    },
+                    details: this.activityFeedService.buildDetails({
+                        expense: {
+                            id: expenseId,
+                            description: expense.description,
+                        },
+                    }),
                 });
 
                 this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);

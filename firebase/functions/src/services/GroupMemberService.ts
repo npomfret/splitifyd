@@ -264,10 +264,12 @@ export class GroupMemberService {
                         actorId: targetUserId,
                         actorName: actorDisplayName,
                         timestamp: now,
-                        details: {
-                            targetUserId,
-                            targetUserName: actorDisplayName,
-                        },
+                        details: this.activityFeedService.buildDetails({
+                            targetUser: {
+                                id: targetUserId,
+                                name: actorDisplayName,
+                            },
+                        }),
                     });
 
                     this.activityFeedService.recordActivityForUsers(transaction, recipientIds, activityItem);
@@ -478,10 +480,12 @@ export class GroupMemberService {
                     actorId,
                     actorName: actorDisplayName,
                     timestamp: now,
-                    details: {
-                        targetUserId,
-                        targetUserName: targetDisplayName,
-                    },
+                    details: this.activityFeedService.buildDetails({
+                        targetUser: {
+                            id: targetUserId,
+                            name: targetDisplayName,
+                        },
+                    }),
                 });
 
                 this.activityFeedService.recordActivityForUsers(transaction, activityRecipients, activityItem);
