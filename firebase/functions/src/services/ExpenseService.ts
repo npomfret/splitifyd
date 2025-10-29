@@ -24,6 +24,7 @@ import { ApiError, Errors } from '../utils/errors';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
 import { UserService } from './UserService2';
 
 /**
@@ -37,6 +38,7 @@ export class ExpenseService {
         private readonly incrementalBalanceService: IncrementalBalanceService,
         private readonly activityFeedService: ActivityFeedService,
         private readonly userService: UserService,
+        private readonly groupMemberService: GroupMemberService,
     ) {}
 
     /**
@@ -146,25 +148,16 @@ export class ExpenseService {
 
         // Parallelize all pre-transaction reads for maximum performance
         timer.startPhase('query');
-        const [groupData, memberIds, member] = await Promise.all([
-            this.firestoreReader.getGroup(validatedExpenseData.groupId),
-            this.firestoreReader.getAllGroupMemberIds(validatedExpenseData.groupId),
-            this.firestoreReader.getGroupMember(validatedExpenseData.groupId, userId),
-        ]);
+        const {
+            group,
+            memberIds,
+            actorMember,
+            actorDisplayName,
+        } = await this.groupMemberService.getGroupAccessContext(validatedExpenseData.groupId, userId);
         timer.endPhase();
 
-        if (!groupData) {
-            throw Errors.NOT_FOUND('Group');
-        }
-
-        if (!member || !memberIds.includes(userId)) {
-            throw Errors.FORBIDDEN();
-        }
-
-        const actorDisplayName = member.groupDisplayName || 'Unknown member';
-
         // Check if user can create expenses in this group
-        const canCreateExpense = PermissionEngineAsync.checkPermission(member!, groupData, userId, 'expenseEditing');
+        const canCreateExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseEditing');
         if (!canCreateExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
         }
@@ -312,26 +305,18 @@ export class ExpenseService {
         }
 
         // Get group data and verify permissions
-        const [groupData, memberIds, member] = await Promise.all([
-            this.firestoreReader.getGroup(expense.groupId),
-            this.firestoreReader.getAllGroupMemberIds(expense.groupId),
-            this.firestoreReader.getGroupMember(expense.groupId, userId),
-        ]);
+        const {
+            group,
+            memberIds,
+            actorMember,
+            actorDisplayName,
+        } = await this.groupMemberService.getGroupAccessContext(expense.groupId, userId);
         timer.endPhase();
-
-        if (!groupData) {
-            throw Errors.NOT_FOUND('Group');
-        }
-        if (!member) {
-            throw Errors.FORBIDDEN();
-        }
-
-        const actorDisplayName = member.groupDisplayName || 'Unknown member';
 
         // Group is already a GroupDTO from FirestoreReader
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
-        const canEditExpense = PermissionEngineAsync.checkPermission(member!, groupData, userId, 'expenseEditing', { expense: expense });
+        const canEditExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseEditing', { expense: expense });
         if (!canEditExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense');
         }
@@ -426,7 +411,7 @@ export class ExpenseService {
                 memberIds,
                 {
                     groupId: expense.groupId,
-                    groupName: groupData.name,
+                    groupName: group.name,
                     eventType: ActivityFeedEventTypes.EXPENSE_UPDATED,
                     action: ActivityFeedActions.UPDATE,
                     actorId: userId,
@@ -554,26 +539,18 @@ export class ExpenseService {
         const expense = await this.fetchExpense(expenseId);
 
         // Get group data and verify permissions
-        const [groupData, memberIds, member] = await Promise.all([
-            this.firestoreReader.getGroup(expense.groupId),
-            this.firestoreReader.getAllGroupMemberIds(expense.groupId),
-            this.firestoreReader.getGroupMember(expense.groupId, userId),
-        ]);
+        const {
+            group,
+            memberIds,
+            actorMember,
+            actorDisplayName,
+        } = await this.groupMemberService.getGroupAccessContext(expense.groupId, userId);
         timer.endPhase();
 
-        if (!groupData) {
-            throw Errors.NOT_FOUND('Group');
-        }
-        if (!member) {
-            throw Errors.FORBIDDEN();
-        }
-
-        const canDeleteExpense = PermissionEngineAsync.checkPermission(member!, groupData, userId, 'expenseDeletion', { expense: expense });
+        const canDeleteExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseDeletion', { expense: expense });
         if (!canDeleteExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
         }
-
-        const actorDisplayName = member.groupDisplayName || 'Unknown member';
 
         try {
             // Use transaction to soft delete expense atomically and update balance

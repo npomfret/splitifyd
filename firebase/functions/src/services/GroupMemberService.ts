@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, amountToSmallestUnit, GroupId, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse, UserId } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, GroupDTO, amountToSmallestUnit, GroupId, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse, UserId } from '@splitifyd/shared';
 import { toISOString } from '@splitifyd/shared';
 import { FirestoreCollections } from '../constants';
 import { FieldValue } from '../firestore-wrapper';
@@ -16,6 +16,41 @@ export class GroupMemberService {
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly activityFeedService: ActivityFeedService,
     ) {}
+
+    async getGroupAccessContext(
+        groupId: GroupId,
+        userId: UserId,
+        options: {
+            notFoundErrorFactory?: () => Error;
+            forbiddenErrorFactory?: () => Error;
+        } = {},
+    ): Promise<{
+        group: GroupDTO;
+        memberIds: UserId[];
+        actorMember: GroupMembershipDTO;
+        actorDisplayName: string;
+    }> {
+        const [group, memberIds, actorMember] = await Promise.all([
+            this.firestoreReader.getGroup(groupId),
+            this.firestoreReader.getAllGroupMemberIds(groupId),
+            this.firestoreReader.getGroupMember(groupId, userId),
+        ]);
+
+        if (!group) {
+            throw options.notFoundErrorFactory?.() ?? Errors.NOT_FOUND('Group');
+        }
+
+        if (!actorMember || !memberIds.includes(userId)) {
+            throw options.forbiddenErrorFactory?.() ?? Errors.FORBIDDEN();
+        }
+
+        return {
+            group,
+            memberIds,
+            actorMember,
+            actorDisplayName: actorMember.groupDisplayName || 'Unknown member',
+        };
+    }
 
     async leaveGroup(userId: UserId, groupId: GroupId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));

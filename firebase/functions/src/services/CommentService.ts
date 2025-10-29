@@ -134,28 +134,22 @@ export class CommentService {
         timer.startPhase('query');
         await this.groupCommentStrategy.verifyAccess(groupId, userId);
 
-        const group = await this.firestoreReader.getGroup(groupId);
-        if (!group) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-        }
-
-        const [memberIds, member] = await Promise.all([
-            this.firestoreReader.getAllGroupMemberIds(groupId),
-            this.firestoreReader.getGroupMember(groupId, userId),
-        ]);
-
-        if (!member) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
-        }
-
-        let actorDisplayName = member.groupDisplayName;
+        const {
+            group,
+            memberIds,
+            actorMember,
+            actorDisplayName: defaultDisplayName,
+        } = await this.groupMemberService.getGroupAccessContext(groupId, userId, {
+            notFoundErrorFactory: () => new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'),
+            forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group'),
+        });
 
         const userRecord = await this.authService.getUser(userId);
         if (!userRecord) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
         }
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
-        actorDisplayName = actorDisplayName || authorName || 'Unknown member';
+        const actorDisplayName = actorMember.groupDisplayName || authorName || defaultDisplayName;
 
         const now = toISOString(new Date().toISOString());
         const commentCreateData: Omit<CommentDTO, 'id'> = {
@@ -228,28 +222,22 @@ export class CommentService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
         }
 
-        const group = await this.firestoreReader.getGroup(expense.groupId);
-        if (!group) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-        }
-
-        const [memberIds, member] = await Promise.all([
-            this.firestoreReader.getAllGroupMemberIds(expense.groupId),
-            this.firestoreReader.getGroupMember(expense.groupId, userId),
-        ]);
-
-        if (!member) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
-        }
-
-        let actorDisplayName = member.groupDisplayName;
+        const {
+            group,
+            memberIds,
+            actorMember,
+            actorDisplayName: defaultDisplayName,
+        } = await this.groupMemberService.getGroupAccessContext(expense.groupId, userId, {
+            notFoundErrorFactory: () => new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'),
+            forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group'),
+        });
 
         const userRecord = await this.authService.getUser(userId);
         if (!userRecord) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
         }
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
-        actorDisplayName = actorDisplayName || authorName || 'Unknown member';
+        const actorDisplayName = actorMember.groupDisplayName || authorName || defaultDisplayName;
 
         const now = toISOString(new Date().toISOString());
         const commentCreateData: Omit<CommentDTO, 'id'> = {

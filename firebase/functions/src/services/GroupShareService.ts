@@ -204,14 +204,12 @@ export class GroupShareService {
         }
 
         timer.startPhase('query');
-        const group = await this.firestoreReader.getGroup(groupId);
-        if (!group) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-        }
-
-        if (!(await this.groupMemberService.isGroupOwnerAsync(group.id, userId)) && !(await this.groupMemberService.isGroupMemberAsync(group.id, userId))) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
-        }
+        const {
+            group,
+        } = await this.groupMemberService.getGroupAccessContext(groupId, userId, {
+            notFoundErrorFactory: () => new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'),
+            forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links'),
+        });
 
         const shareToken = generateShareToken();
         timer.endPhase();
@@ -374,35 +372,24 @@ export class GroupShareService {
 
         // Pre-compute member data outside transaction for speed
         const joinedAt = toISOString(new Date().toISOString());
-        const existingMembersIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
+        const {
+            displayName: userDisplayName,
+            existingMembers,
+            displayNameConflict,
+        } = await this.userService.resolveJoinContext(groupId, userId);
+        const existingMemberIds = existingMembers.map((member) => member.uid);
 
         logger.info('JOIN: Fetched existing members before transaction', {
             groupId,
             joiningUserId: userId,
-            existingMembersIds,
-            existingMembersCount: existingMembersIds.length,
+            existingMembersIds: existingMemberIds,
+            existingMembersCount: existingMemberIds.length,
         });
 
         // Enforce hard cap on group size
-        if (existingMembersIds.length >= MAX_GROUP_MEMBERS) {
+        if (existingMemberIds.length >= MAX_GROUP_MEMBERS) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_AT_CAPACITY', `Cannot add member. Group has reached maximum size of ${MAX_GROUP_MEMBERS} members`);
         }
-
-        // Get user's display name to set as initial groupDisplayName
-        const userProfile = await this.userService.getUser(userId).catch((error) => {
-            if (error instanceof ApiError && error.code === 'NOT_FOUND') {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User profile not found');
-            }
-            throw error;
-        });
-
-        const userDisplayName = userProfile.displayName;
-
-        // Check for display name conflicts with existing members
-        const existingMembers = await this.firestoreReader.getAllGroupMembers(groupId);
-        const displayNameConflict = existingMembers.some(
-            (member) => member.groupDisplayName.toLowerCase() === userDisplayName.toLowerCase(),
-        );
 
         const themeColor = this.generateUniqueThemeColor(
             groupId,

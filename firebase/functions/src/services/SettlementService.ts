@@ -23,6 +23,7 @@ import { LoggerContext } from '../utils/logger-context';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
 import { UserService } from './UserService2';
 
 /**
@@ -38,6 +39,7 @@ export class SettlementService {
         private readonly incrementalBalanceService: IncrementalBalanceService,
         private readonly activityFeedService: ActivityFeedService,
         private readonly userService: UserService,
+        private readonly groupMemberService: GroupMemberService,
     ) {}
     /**
      * Fetch group member data for settlements
@@ -135,21 +137,12 @@ export class SettlementService {
         timer.startPhase('query');
 
         // Verify group exists first (like ExpenseService)
-        const [groupData, memberIds, member] = await Promise.all([
-            this.firestoreReader.getGroup(settlementData.groupId),
-            this.firestoreReader.getAllGroupMemberIds(settlementData.groupId),
-            this.firestoreReader.getGroupMember(settlementData.groupId, userId),
-        ]);
-
-        if (!groupData) {
-            throw Errors.NOT_FOUND('Group');
-        }
-
-        if (!member || !memberIds.includes(userId)) {
-            throw Errors.FORBIDDEN();
-        }
-
-        const actorDisplayName = member.groupDisplayName || 'Unknown member';
+        const {
+            group,
+            memberIds,
+            actorMember,
+            actorDisplayName,
+        } = await this.groupMemberService.getGroupAccessContext(settlementData.groupId, userId);
 
         // Verify payer and payee are still in the group (race condition protection)
         for (const uid of [settlementData.payerId, settlementData.payeeId]) {

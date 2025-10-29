@@ -377,6 +377,11 @@ describe('GroupShareService', () => {
                 db.seedGroupMember(groupId, member.uid, member);
             });
 
+            // Set up the new user's profile so joinGroupByLink can read their displayName
+            seedUserProfile(newUserId, {
+                displayName: 'New User',
+            });
+
             // Should fail with GROUP_AT_CAPACITY
             let caughtError: ApiError | undefined;
             try {

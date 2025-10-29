@@ -216,6 +216,38 @@ export class UserService {
         };
     }
 
+    async resolveJoinContext(
+        groupId: GroupId,
+        userId: UserId,
+    ): Promise<{
+        displayName: DisplayName;
+        existingMembers: GroupMembershipDTO[];
+        displayNameConflict: boolean;
+    }> {
+        const userProfile = await this.getUser(userId).catch((error) => {
+            if (error instanceof ApiError && error.code === 'NOT_FOUND') {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User profile not found');
+            }
+
+            logger.error('Failed to resolve user profile during join workflow', error as Error, {
+                userId,
+                groupId,
+            });
+            throw error;
+        });
+
+        const existingMembers = await this.firestoreReader.getAllGroupMembers(groupId);
+        const normalizedDisplayName = userProfile.displayName.trim().toLowerCase();
+
+        const displayNameConflict = existingMembers.some((member) => member.groupDisplayName.trim().toLowerCase() === normalizedDisplayName);
+
+        return {
+            displayName: userProfile.displayName,
+            existingMembers,
+            displayNameConflict,
+        };
+    }
+
     /**
      * Update a user's profile
      * @param userId - The Firebase UID of the user

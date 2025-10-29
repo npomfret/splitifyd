@@ -89,6 +89,7 @@ export class ComponentBuilder {
                 this.buildIncrementalBalanceService(),
                 this.buildActivityFeedService(),
                 this.buildUserService(),
+                this.buildGroupMemberService(),
             );
         }
         return this.expenseService;
@@ -102,6 +103,7 @@ export class ComponentBuilder {
                 this.buildIncrementalBalanceService(),
                 this.buildActivityFeedService(),
                 this.buildUserService(),
+                this.buildGroupMemberService(),
             );
         }
         return this.settlementService;

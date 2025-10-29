@@ -9,7 +9,7 @@ Expense/settlement/comment/group services still carry a lot of repeated access-c
 ## Hotspots
 
 - **measureDb boilerplate** – Almost every public method wraps a private implementation with `measureDb`. Examples: `ExpenseService.ts:106`, `SettlementService.ts:115`, `CommentService.ts:27`, `GroupMemberService.ts:15`, `GroupShareService.ts:293`, `PolicyService.ts:86`, `UserPolicyService.ts:46`. Consider a decorator/helper to collapse the wrapper pattern.
-- **Group membership pre-flight** – Repeated `Promise.all([getGroup, getAllGroupMemberIds, getGroupMember])` + identical null/permission checks in `ExpenseService.ts:148/318/556`, `SettlementService.ts:134/324/493`, `CommentService.ts:145/188`, `GroupShareService.ts:296`. A shared guard (maybe on `GroupMemberService`) would reduce copy/paste.
+- **Group membership pre-flight** – ✅ Consolidated into `GroupMemberService.getGroupAccessContext()` (now used by Expense/Settlement/Comment/GroupShare services). Only non-member flows (e.g. join-by-link) continue to run bespoke logic by design.
 - **Transaction scaffolding** – Large blocks in expense/settlement create/update/delete start timers, fetch the same Firestore docs, call `touchGroup`, adjust balances, and emit activity feed entries (`ExpenseService.ts:190-444`, `ExpenseService.ts:578-638`, `SettlementService.ts:194-399`, `SettlementService.ts:498-525`). Extract common helpers/strategies for these flows.
 - **Lock/department checks** – `isExpenseLocked` and `isSettlementLocked` share the same logic (fetch member IDs, ensure participants still exist) (`ExpenseService.ts:123`, `SettlementService.ts:70`). A shared utility would keep this consistent.
 - **Activity feed payloads** – Payloads passed to `recordActivityForUsers` are structurally identical across create/update/delete and membership flows (`ExpenseService.ts:246/423/621`, `SettlementService.ts:212/381`, `GroupMemberService.ts:136`, `GroupShareService.ts:357`). A builder/helper could standardise this.
@@ -27,4 +27,3 @@ Expense/settlement/comment/group services still carry a lot of repeated access-c
 4. Refactor `ComponentBuilder` creation pattern via a small memoisation helper.
 
 Document owners: Platform Engineering.
-
