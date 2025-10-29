@@ -211,23 +211,21 @@ export class SettlementService {
             this.incrementalBalanceService.applySettlementCreated(transaction, settlementData.groupId, currentBalance, settlementToApply, memberIds);
 
             // Record activity feed items
-            this.activityFeedService.recordActivityForUsers(
-                transaction,
-                memberIds,
-                {
-                    groupId: settlementData.groupId,
-                    groupName: groupInTx.name,
-                    eventType: ActivityFeedEventTypes.SETTLEMENT_CREATED,
-                    action: ActivityFeedActions.CREATE,
-                    actorId: userId,
-                    actorName: actorDisplayName,
-                    timestamp: now,
-                    details: {
-                        settlementId,
-                        settlementDescription: settlementData.note,
-                    },
+            const activityItem = this.activityFeedService.buildGroupActivityItem({
+                groupId: settlementData.groupId,
+                groupName: groupInTx.name,
+                eventType: ActivityFeedEventTypes.SETTLEMENT_CREATED,
+                action: ActivityFeedActions.CREATE,
+                actorId: userId,
+                actorName: actorDisplayName,
+                timestamp: now,
+                details: {
+                    settlementId,
+                    settlementDescription: settlementData.note,
                 },
-            );
+            });
+
+            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
         });
         timer.endPhase();
 
@@ -372,23 +370,21 @@ export class SettlementService {
             this.incrementalBalanceService.applySettlementUpdated(transaction, settlement.groupId, currentBalance, settlement, newSettlement, memberIds);
 
             // Record activity feed items
-            this.activityFeedService.recordActivityForUsers(
-                transaction,
-                memberIds,
-                {
-                    groupId: settlement.groupId,
-                    groupName: groupInTx.name,
-                    eventType: ActivityFeedEventTypes.SETTLEMENT_UPDATED,
-                    action: ActivityFeedActions.UPDATE,
-                    actorId: userId,
-                    actorName: actorDisplayName,
-                    timestamp: updateTimestamp,
-                    details: {
-                        settlementId,
-                        settlementDescription: updatedNote,
-                    },
+            const activityItem = this.activityFeedService.buildGroupActivityItem({
+                groupId: settlement.groupId,
+                groupName: groupInTx.name,
+                eventType: ActivityFeedEventTypes.SETTLEMENT_UPDATED,
+                action: ActivityFeedActions.UPDATE,
+                actorId: userId,
+                actorName: actorDisplayName,
+                timestamp: updateTimestamp,
+                details: {
+                    settlementId,
+                    settlementDescription: updatedNote,
                 },
-            );
+            });
+
+            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
         });
         timer.endPhase();
 

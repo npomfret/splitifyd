@@ -244,23 +244,21 @@ export class ExpenseService {
             this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expense, memberIds);
 
             // Record activity feed items
-            this.activityFeedService.recordActivityForUsers(
-                transaction,
-                memberIds,
-                {
-                    groupId: expenseData.groupId,
-                    groupName: groupInTx.name,
-                    eventType: ActivityFeedEventTypes.EXPENSE_CREATED,
-                    action: ActivityFeedActions.CREATE,
-                    actorId: userId,
-                    actorName: actorDisplayName,
-                    timestamp: now,
-                    details: {
-                        expenseId,
-                        expenseDescription: expense.description,
-                    },
+            const activityItem = this.activityFeedService.buildGroupActivityItem({
+                groupId: expenseData.groupId,
+                groupName: groupInTx.name,
+                eventType: ActivityFeedEventTypes.EXPENSE_CREATED,
+                action: ActivityFeedActions.CREATE,
+                actorId: userId,
+                actorName: actorDisplayName,
+                timestamp: now,
+                details: {
+                    expenseId,
+                    expenseDescription: expense.description,
                 },
-            );
+            });
+
+            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
         });
         timer.endPhase();
 
@@ -406,23 +404,21 @@ export class ExpenseService {
             this.incrementalBalanceService.applyExpenseUpdated(transaction, expense.groupId, currentBalance, expense, newExpense, memberIds);
 
             // Record activity feed items
-            this.activityFeedService.recordActivityForUsers(
-                transaction,
-                memberIds,
-                {
-                    groupId: expense.groupId,
-                    groupName: group.name,
-                    eventType: ActivityFeedEventTypes.EXPENSE_UPDATED,
-                    action: ActivityFeedActions.UPDATE,
-                    actorId: userId,
-                    actorName: actorDisplayName,
-                    timestamp: updates.updatedAt,
-                    details: {
-                        expenseId,
-                        expenseDescription: newExpense.description,
-                    },
+            const activityItem = this.activityFeedService.buildGroupActivityItem({
+                groupId: expense.groupId,
+                groupName: group.name,
+                eventType: ActivityFeedEventTypes.EXPENSE_UPDATED,
+                action: ActivityFeedActions.UPDATE,
+                actorId: userId,
+                actorName: actorDisplayName,
+                timestamp: updates.updatedAt,
+                details: {
+                    expenseId,
+                    expenseDescription: newExpense.description,
                 },
-            );
+            });
+
+            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
         });
 
         timer.endPhase();
@@ -595,23 +591,21 @@ export class ExpenseService {
                 this.incrementalBalanceService.applyExpenseDeleted(transaction, expense.groupId, currentBalance, expense, memberIds);
 
                 // Record activity feed items
-                this.activityFeedService.recordActivityForUsers(
-                    transaction,
-                    memberIds,
-                    {
-                        groupId: expense.groupId,
-                        groupName: groupInTx.name,
-                        eventType: ActivityFeedEventTypes.EXPENSE_DELETED,
-                        action: ActivityFeedActions.DELETE,
-                        actorId: userId,
-                        actorName: actorDisplayName,
-                        timestamp: now,
-                        details: {
-                            expenseId,
-                            expenseDescription: expense.description,
-                        },
+                const activityItem = this.activityFeedService.buildGroupActivityItem({
+                    groupId: expense.groupId,
+                    groupName: groupInTx.name,
+                    eventType: ActivityFeedEventTypes.EXPENSE_DELETED,
+                    action: ActivityFeedActions.DELETE,
+                    actorId: userId,
+                    actorName: actorDisplayName,
+                    timestamp: now,
+                    details: {
+                        expenseId,
+                        expenseDescription: expense.description,
                     },
-                );
+                });
+
+                this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
             });
             timer.endPhase();
 

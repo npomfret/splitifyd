@@ -464,23 +464,21 @@ export class GroupShareService {
                         recipientCount: activityRecipients.size,
                     });
 
-                    this.activityFeedService.recordActivityForUsers(
-                        transaction,
-                        Array.from(activityRecipients),
-                        {
-                            groupId,
-                            groupName,
-                            eventType: ActivityFeedEventTypes.MEMBER_JOINED,
-                            action: ActivityFeedActions.JOIN,
-                            actorId: userId,
-                            actorName: memberDoc.groupDisplayName,
-                            timestamp: now,
-                            details: {
-                                targetUserId: userId,
-                                targetUserName: memberDoc.groupDisplayName,
-                            },
+                    const activityItem = this.activityFeedService.buildGroupActivityItem({
+                        groupId,
+                        groupName,
+                        eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                        action: ActivityFeedActions.JOIN,
+                        actorId: userId,
+                        actorName: memberDoc.groupDisplayName,
+                        timestamp: now,
+                        details: {
+                            targetUserId: userId,
+                            targetUserName: memberDoc.groupDisplayName,
                         },
-                    );
+                    });
+
+                    this.activityFeedService.recordActivityForUsers(transaction, Array.from(activityRecipients), activityItem);
                 }
             }
 

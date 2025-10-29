@@ -183,23 +183,21 @@ export class GroupMemberService {
                 await this.firestoreWriter.touchGroup(groupId, transaction);
 
                 if (recipientIds.length > 0) {
-                    this.activityFeedService.recordActivityForUsers(
-                        transaction,
-                        recipientIds,
-                        {
-                            groupId,
-                            groupName: group.name,
-                            eventType: ActivityFeedEventTypes.MEMBER_JOINED,
-                            action: ActivityFeedActions.JOIN,
-                            actorId: targetUserId,
-                            actorName: actorDisplayName,
-                            timestamp: now,
-                            details: {
-                                targetUserId,
-                                targetUserName: actorDisplayName,
-                            },
+                    const activityItem = this.activityFeedService.buildGroupActivityItem({
+                        groupId,
+                        groupName: group.name,
+                        eventType: ActivityFeedEventTypes.MEMBER_JOINED,
+                        action: ActivityFeedActions.JOIN,
+                        actorId: targetUserId,
+                        actorName: actorDisplayName,
+                        timestamp: now,
+                        details: {
+                            targetUserId,
+                            targetUserName: actorDisplayName,
                         },
-                    );
+                    });
+
+                    this.activityFeedService.recordActivityForUsers(transaction, recipientIds, activityItem);
                 }
             });
 
@@ -391,23 +389,21 @@ export class GroupMemberService {
             await this.firestoreWriter.touchGroup(groupId, transaction);
 
             if (activityRecipients.length > 0) {
-                this.activityFeedService.recordActivityForUsers(
-                    transaction,
-                    activityRecipients,
-                    {
-                        groupId,
-                        groupName: group.name,
-                        eventType: ActivityFeedEventTypes.MEMBER_LEFT,
-                        action: ActivityFeedActions.LEAVE,
-                        actorId,
-                        actorName: actorDisplayName,
-                        timestamp: now,
-                        details: {
-                            targetUserId,
-                            targetUserName: targetDisplayName,
-                        },
+                const activityItem = this.activityFeedService.buildGroupActivityItem({
+                    groupId,
+                    groupName: group.name,
+                    eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                    action: ActivityFeedActions.LEAVE,
+                    actorId,
+                    actorName: actorDisplayName,
+                    timestamp: now,
+                    details: {
+                        targetUserId,
+                        targetUserName: targetDisplayName,
                     },
-                );
+                });
+
+                this.activityFeedService.recordActivityForUsers(transaction, activityRecipients, activityItem);
             }
         });
         timer.endPhase();

@@ -467,20 +467,18 @@ export class GroupService {
             if (memberIds.length > 0) {
                 const details = updatedData.name !== group.name ? { previousGroupName: group.name } : {};
 
-                this.activityFeedService.recordActivityForUsers(
-                    transaction,
-                    memberIds,
-                    {
-                        groupId,
-                        groupName: updatedData.name,
-                        eventType: ActivityFeedEventTypes.GROUP_UPDATED,
-                        action: ActivityFeedActions.UPDATE,
-                        actorId: userId,
-                        actorName: actorDisplayName,
-                        timestamp: now,
-                        details,
-                    },
-                );
+                const activityItem = this.activityFeedService.buildGroupActivityItem({
+                    groupId,
+                    groupName: updatedData.name,
+                    eventType: ActivityFeedEventTypes.GROUP_UPDATED,
+                    action: ActivityFeedActions.UPDATE,
+                    actorId: userId,
+                    actorName: actorDisplayName,
+                    timestamp: now,
+                    details,
+                });
+
+                this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
             }
         });
         timer.endPhase();
@@ -617,23 +615,21 @@ export class GroupService {
             for (const memberId of memberIdsInTransaction) {
                 const memberDoc = membershipSnapshot.docs.find((doc) => (doc.data() as { uid?: string; }).uid === memberId);
                 const targetUserName = (memberDoc?.data() as { groupDisplayName?: string; })?.groupDisplayName ?? 'Unknown member';
-                this.activityFeedService.recordActivityForUsers(
-                    transaction,
-                    [memberId],
-                    {
-                        groupId,
-                        groupName: group.name,
-                        eventType: ActivityFeedEventTypes.MEMBER_LEFT,
-                        action: ActivityFeedActions.LEAVE,
-                        actorId: userId,
-                        actorName: actorDisplayName,
-                        timestamp: now,
-                        details: {
-                            targetUserId: memberId,
-                            targetUserName,
-                        },
+                const activityItem = this.activityFeedService.buildGroupActivityItem({
+                    groupId,
+                    groupName: group.name,
+                    eventType: ActivityFeedEventTypes.MEMBER_LEFT,
+                    action: ActivityFeedActions.LEAVE,
+                    actorId: userId,
+                    actorName: actorDisplayName,
+                    timestamp: now,
+                    details: {
+                        targetUserId: memberId,
+                        targetUserName,
                     },
-                );
+                });
+
+                this.activityFeedService.recordActivityForUsers(transaction, [memberId], activityItem);
             }
 
             performedDeletion = true;

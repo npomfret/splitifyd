@@ -172,20 +172,18 @@ export class CommentService {
                 commentPreview,
             };
 
-            this.activityFeedService.recordActivityForUsers(
-                transaction,
-                memberIds,
-                {
-                    groupId,
-                    groupName: group.name,
-                    eventType: ActivityFeedEventTypes.COMMENT_ADDED,
-                    action: ActivityFeedActions.COMMENT,
-                    actorId: userId,
-                    actorName: actorDisplayName,
-                    timestamp: now,
-                    details,
-                },
-            );
+            const activityItem = this.activityFeedService.buildGroupActivityItem({
+                groupId,
+                groupName: group.name,
+                eventType: ActivityFeedEventTypes.COMMENT_ADDED,
+                action: ActivityFeedActions.COMMENT,
+                actorId: userId,
+                actorName: actorDisplayName,
+                timestamp: now,
+                details,
+            });
+
+            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
 
             return commentRef.id;
         });
@@ -265,20 +263,18 @@ export class CommentService {
                 details.expenseDescription = expense.description;
             }
 
-            this.activityFeedService.recordActivityForUsers(
-                transaction,
-                memberIds,
-                {
-                    groupId: expense.groupId,
-                    groupName: group.name,
-                    eventType: ActivityFeedEventTypes.COMMENT_ADDED,
-                    action: ActivityFeedActions.COMMENT,
-                    actorId: userId,
-                    actorName: actorDisplayName,
-                    timestamp: now,
-                    details,
-                },
-            );
+            const activityItem = this.activityFeedService.buildGroupActivityItem({
+                groupId: expense.groupId,
+                groupName: group.name,
+                eventType: ActivityFeedEventTypes.COMMENT_ADDED,
+                action: ActivityFeedActions.COMMENT,
+                actorId: userId,
+                actorName: actorDisplayName,
+                timestamp: now,
+                details,
+            });
+
+            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
 
             return commentRef.id;
         });

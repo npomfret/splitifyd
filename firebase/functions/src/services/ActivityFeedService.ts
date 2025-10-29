@@ -26,6 +26,28 @@ export class ActivityFeedService {
         private readonly firestoreWriter: IFirestoreWriter,
     ) {}
 
+    buildGroupActivityItem(input: {
+        groupId: GroupId;
+        groupName: GroupName;
+        eventType: ActivityFeedEventType;
+        action: ActivityFeedAction;
+        actorId: UserId;
+        actorName: string;
+        timestamp: ISOString;
+        details?: ActivityFeedItemDetails;
+    }): CreateActivityItemInput {
+        return {
+            groupId: input.groupId,
+            groupName: input.groupName,
+            eventType: input.eventType,
+            action: input.action,
+            actorId: input.actorId,
+            actorName: input.actorName,
+            timestamp: input.timestamp,
+            details: input.details,
+        };
+    }
+
     /**
      * Record activity for users in a transaction (simplified - no pruning in transaction)
      * Pruning happens asynchronously during reads to avoid transaction overhead
