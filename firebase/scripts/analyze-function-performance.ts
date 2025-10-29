@@ -2,6 +2,8 @@
 
 import * as fs from 'fs';
 import * as readline from 'readline';
+import * as os from 'os';
+import * as path from 'path';
 
 interface FunctionExecution {
     functionName: string;
@@ -661,6 +663,49 @@ class FunctionPerformanceAnalyzer {
         console.log('');
     }
 
+    printSummary(stats: Map<string, FunctionStats>, timingStats: Map<string, PhaseTimingStats>): void {
+        console.log('\n' + '📊'.repeat(50));
+        console.log('PERFORMANCE ANALYSIS SUMMARY'.padStart(75));
+        console.log('📊'.repeat(50) + '\n');
+
+        // Top 5 slowest operations
+        const sortedTimingStats = Array.from(timingStats.values()).sort((a, b) => {
+            const aTotal = a.phases.totalMs?.avg || 0;
+            const bTotal = b.phases.totalMs?.avg || 0;
+            return bTotal - aTotal;
+        });
+
+        console.log('⏱️  TOP 5 SLOWEST OPERATIONS:\n');
+        sortedTimingStats.slice(0, 5).forEach((stat, idx) => {
+            const totalMs = stat.phases.totalMs;
+            const operationLabel = stat.operation ? `${stat.message} (${stat.operation})` : stat.message;
+
+            let totalAvg = totalMs?.avg;
+            if (!totalMs && Object.keys(stat.phases).length > 0) {
+                totalAvg = Object.values(stat.phases).reduce((sum, phase) => sum + phase.avg, 0);
+            }
+
+            console.log(`${idx + 1}. ${operationLabel}`);
+            console.log(`   Avg: ${totalAvg?.toFixed(1) || 'N/A'}ms | P95: ${totalMs?.p95 || 'N/A'}ms | Samples: ${stat.count}`);
+        });
+
+        // Slow requests summary
+        if (this.slowRequests.length > 0) {
+            console.log('\n🐢 SLOW REQUESTS (>1 second):\n');
+            const sortedSlowRequests = [...this.slowRequests].sort((a, b) => b.duration - a.duration);
+            sortedSlowRequests.slice(0, 5).forEach((req, idx) => {
+                console.log(`${idx + 1}. ${req.method} ${req.path} → ${req.duration}ms`);
+            });
+            if (this.slowRequests.length > 5) {
+                console.log(`   ... and ${this.slowRequests.length - 5} more`);
+            }
+        }
+
+        console.log('\n' + '📊'.repeat(50));
+        console.log('For detailed analysis, see the HTML report'.padStart(75));
+        console.log('📊'.repeat(50) + '\n');
+    }
+
     printReport(stats: Map<string, FunctionStats>, timingStats: Map<string, PhaseTimingStats>): void {
         console.log('\n' + '🚀'.repeat(50));
         console.log('🎯 FIREBASE FUNCTIONS PERFORMANCE DASHBOARD 🎯'.padStart(75));
@@ -944,6 +989,34 @@ class FunctionPerformanceAnalyzer {
         console.log('🔍'.repeat(50));
     }
 
+    printExampleCommand(logFilePath: string): void {
+        // Find the slowest request
+        if (this.slowRequests.length === 0) {
+            return;
+        }
+
+        const sortedSlowRequests = [...this.slowRequests].sort((a, b) => b.duration - a.duration);
+        const slowestRequest = sortedSlowRequests[0];
+
+        if (!slowestRequest.correlationId) {
+            return;
+        }
+
+        console.log('\n' + '💡'.repeat(50));
+        console.log('EXAMPLE: Analyze the slowest request in detail:'.padStart(75));
+        console.log('💡'.repeat(50));
+        console.log('');
+        console.log(`The slowest request took ${slowestRequest.duration}ms:`);
+        console.log(`  ${slowestRequest.method} ${slowestRequest.path}`);
+        console.log(`  Correlation ID: ${slowestRequest.correlationId}`);
+        console.log('');
+        console.log('To see all timing data for this request, run:');
+        console.log('');
+        console.log(`  ./scripts/analyze-function-performance.ts ${logFilePath} --filter "${slowestRequest.correlationId}"`);
+        console.log('');
+        console.log('💡'.repeat(50) + '\n');
+    }
+
     exportToCSV(stats: Map<string, FunctionStats>, outputPath: string): void {
         const rows = ['Function,Executions,Avg Duration (ms),Median (ms),Min (ms),Max (ms),Std Dev (ms),CV (%),Outliers,Trend,Trend %'];
 
@@ -993,6 +1066,369 @@ class FunctionPerformanceAnalyzer {
         fs.writeFileSync(outputPath, JSON.stringify(data, null, 2));
         console.log(`📁 JSON report exported to: ${outputPath}`);
     }
+
+    generateHTMLReport(
+        stats: Map<string, FunctionStats>,
+        timingStats: Map<string, PhaseTimingStats>,
+        outputPath: string,
+    ): void {
+        const html = this.buildHTMLReport(stats, timingStats);
+        fs.writeFileSync(outputPath, html);
+        const absolutePath = path.resolve(outputPath);
+        console.log(`\n📊 HTML report generated: file://${absolutePath}`);
+    }
+
+    private buildHTMLReport(
+        stats: Map<string, FunctionStats>,
+        timingStats: Map<string, PhaseTimingStats>,
+    ): string {
+        const timestamp = new Date().toISOString();
+        const totalExecutions = Array.from(stats.values()).reduce((sum, s) => sum + s.totalExecutions, 0);
+        const degradingFunctions = Array.from(stats.values()).filter((s) => s.trend === 'increasing').length;
+
+        const sortedTimingStats = Array.from(timingStats.values()).sort((a, b) => {
+            const aTotal = a.phases.totalMs?.avg || 0;
+            const bTotal = b.phases.totalMs?.avg || 0;
+            return bTotal - aTotal;
+        });
+
+        const sortedSlowRequests = [...this.slowRequests].sort((a, b) => b.duration - a.duration);
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Functions Performance Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        header .subtitle { opacity: 0.9; font-size: 1.1em; }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid #667eea;
+        }
+        .card h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+        .metric {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        .metric-label {
+            font-size: 0.9em;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        thead {
+            background: #667eea;
+            color: white;
+        }
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover { background: #5568d3; }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tr:hover { background: #f7fafc; }
+        .phase-breakdown {
+            font-size: 0.85em;
+            color: #718096;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .phase-breakdown li {
+            padding: 2px 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .badge-danger { background: #fed7d7; color: #c53030; }
+        .badge-warning { background: #feebc8; color: #c05621; }
+        .badge-success { background: #c6f6d5; color: #2f855a; }
+        .section-title {
+            font-size: 1.8em;
+            margin: 40px 0 20px 0;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 30px;
+            background: #667eea;
+            border-radius: 2px;
+        }
+        .timestamp {
+            text-align: center;
+            color: #718096;
+            margin-top: 40px;
+            padding: 20px;
+        }
+        .alert {
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .alert-title {
+            font-weight: 600;
+            color: #c53030;
+            margin-bottom: 5px;
+        }
+        .table-description {
+            background: #edf2f7;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        .table-description strong {
+            color: #2d3748;
+        }
+        .table-description .intro {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+        .table-description ul {
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+        }
+        .table-description li {
+            padding: 3px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Firebase Functions Performance Dashboard</h1>
+            <div class="subtitle">Comprehensive analysis of function execution times, phase timings, and slow requests</div>
+        </header>
+
+        <div class="summary-grid">
+            <div class="card">
+                <div class="metric-label">Total Function Executions</div>
+                <div class="metric">${totalExecutions.toLocaleString()}</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Unique Functions Tracked</div>
+                <div class="metric">${stats.size}</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Phase Timing Operations</div>
+                <div class="metric">${this.phaseTimings.length.toLocaleString()}</div>
+            </div>
+            <div class="card">
+                <div class="metric-label">Slow Requests (>1s)</div>
+                <div class="metric">${this.slowRequests.length}</div>
+            </div>
+        </div>
+
+        ${degradingFunctions > 0 ? `
+        <div class="alert">
+            <div class="alert-title">⚠️ Performance Alerts</div>
+            <div>${degradingFunctions} function(s) showing performance degradation over time</div>
+        </div>
+        ` : ''}
+
+        <h2 class="section-title">⏱️ Operation Phase Timings</h2>
+        <div class="table-description">
+            <div class="intro">Understanding the metrics:</div>
+            <ul>
+                <li><strong>Count</strong> = number of samples recorded for this operation</li>
+                <li><strong>Avg Total</strong> = average total duration across all phases</li>
+                <li><strong>P95</strong> = 95th percentile (5% of requests take longer than this)</li>
+                <li><strong>P99</strong> = 99th percentile (1% of requests take longer than this)</li>
+                <li><strong>Phase Breakdown</strong> = shows how time is distributed across operation phases (e.g., query vs transaction time)</li>
+                <li>Click any column header to sort</li>
+            </ul>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0, this)">Operation</th>
+                    <th onclick="sortTable(1, this)" style="text-align: right">Count</th>
+                    <th onclick="sortTable(2, this)" style="text-align: right">Avg Total (ms)</th>
+                    <th onclick="sortTable(3, this)" style="text-align: right">P95 (ms)</th>
+                    <th onclick="sortTable(4, this)" style="text-align: right">P99 (ms)</th>
+                    <th>Phase Breakdown</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${sortedTimingStats.slice(0, 20).map((stat) => {
+            const totalMs = stat.phases.totalMs;
+            const operationLabel = stat.operation ? `${stat.message} (${stat.operation})` : stat.message;
+            const phases = Object.keys(stat.phases).filter((p) => p !== 'totalMs').sort();
+
+            // Calculate total from sum of phases if totalMs doesn't exist
+            let totalAvg = totalMs?.avg;
+            let totalP95 = totalMs?.p95;
+            let totalP99 = totalMs?.p99;
+
+            if (!totalMs && phases.length > 0) {
+                totalAvg = phases.reduce((sum, phaseName) => sum + stat.phases[phaseName].avg, 0);
+                totalP95 = phases.reduce((sum, phaseName) => sum + stat.phases[phaseName].p95, 0);
+                totalP99 = phases.reduce((sum, phaseName) => sum + stat.phases[phaseName].p99, 0);
+            }
+
+            const phaseBreakdown = phases.map((phaseName) => {
+                const phase = stat.phases[phaseName];
+                const percentage = totalAvg ? ((phase.avg / totalAvg) * 100).toFixed(0) : '?';
+                return `<li>${phaseName}: <strong>${phase.avg.toFixed(1)}ms</strong> (${percentage}%)</li>`;
+            }).join('');
+
+            return `
+                    <tr>
+                        <td><strong>${operationLabel}</strong></td>
+                        <td style="text-align: right">${stat.count.toLocaleString()}</td>
+                        <td style="text-align: right">${totalAvg !== undefined ? totalAvg.toFixed(1) : 'N/A'}</td>
+                        <td style="text-align: right">${totalP95 !== undefined ? totalP95.toFixed(0) : 'N/A'}</td>
+                        <td style="text-align: right">${totalP99 !== undefined ? totalP99.toFixed(0) : 'N/A'}</td>
+                        <td><ul class="phase-breakdown">${phaseBreakdown || '<li>N/A</li>'}</ul></td>
+                    </tr>`;
+        }).join('')}
+            </tbody>
+        </table>
+
+        ${this.slowRequests.length > 0 ? `
+        <h2 class="section-title">🐢 Slow API Requests (>1 second)</h2>
+        <div class="table-description">
+            <div class="intro">These requests took longer than 1 second to complete:</div>
+            <ul>
+                <li>Use the <strong>Correlation ID</strong> to trace the request through logs and identify bottlenecks</li>
+                <li>The <strong>Status</strong> code is color-coded: green (2xx), yellow (4xx), red (5xx)</li>
+            </ul>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0, this)">Method</th>
+                    <th onclick="sortTable(1, this)">Path</th>
+                    <th onclick="sortTable(2, this)" style="text-align: right">Duration (ms)</th>
+                    <th onclick="sortTable(3, this)" style="text-align: center">Status</th>
+                    <th onclick="sortTable(4, this)">Timestamp</th>
+                    <th>Correlation ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${sortedSlowRequests.slice(0, 50).map((req) => {
+            const timestamp = req.timestamp.toISOString().split('T')[1].substring(0, 12);
+            const statusBadge = req.statusCode >= 500 ? 'badge-danger' : req.statusCode >= 400 ? 'badge-warning' : 'badge-success';
+
+            return `
+                    <tr>
+                        <td><strong>${req.method}</strong></td>
+                        <td><code style="font-size: 0.9em;">${req.path}</code></td>
+                        <td style="text-align: right"><strong>${req.duration.toLocaleString()}</strong></td>
+                        <td style="text-align: center"><span class="badge ${statusBadge}">${req.statusCode}</span></td>
+                        <td>${timestamp}</td>
+                        <td><code style="font-size: 0.85em;">${req.correlationId || 'N/A'}</code></td>
+                    </tr>`;
+        }).join('')}
+            </tbody>
+        </table>
+        ` : ''}
+
+        <div class="timestamp">
+            Report generated: ${timestamp}
+        </div>
+    </div>
+
+    <script>
+        function sortTable(columnIndex, headerElement) {
+            const table = headerElement.closest('table');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            // Determine sort direction
+            const isAscending = headerElement.classList.contains('sort-asc');
+
+            // Clear all sort indicators
+            table.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            // Set new sort indicator
+            headerElement.classList.add(isAscending ? 'sort-desc' : 'sort-asc');
+
+            rows.sort((a, b) => {
+                const aValue = a.cells[columnIndex].textContent.trim();
+                const bValue = b.cells[columnIndex].textContent.trim();
+
+                // Try to parse as number
+                const aNum = parseFloat(aValue.replace(/,/g, ''));
+                const bNum = parseFloat(bValue.replace(/,/g, ''));
+
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return isAscending ? aNum - bNum : bNum - aNum;
+                }
+
+                // String comparison
+                return isAscending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+</body>
+</html>`;
+    }
 }
 
 // Main execution
@@ -1022,11 +1458,44 @@ async function main() {
     const stats = analyzer.analyzePerformance();
     const timingStats = analyzer.analyzePhaseTimings();
 
+    // Check output modes
+    const htmlOnlyMode = args.includes('--html-only');
+    const fullConsoleMode = args.includes('--full-console');
+
     if (filterText) {
-        analyzer.printFilteredReport(filterText);
+        // Filtered reports always show full console output
+        if (!htmlOnlyMode) {
+            analyzer.printFilteredReport(filterText);
+        }
     } else {
-        analyzer.printReport(stats, timingStats);
+        // Regular reports: show summary by default, full only if requested
+        if (htmlOnlyMode) {
+            // Skip all console output
+        } else if (fullConsoleMode) {
+            // Show full detailed console report
+            analyzer.printReport(stats, timingStats);
+        } else {
+            // Show simplified summary
+            analyzer.printSummary(stats, timingStats);
+        }
     }
+
+    // Generate HTML report (store in system tmp folder)
+    const htmlIndex = args.indexOf('--html');
+    let htmlPath: string;
+
+    if (htmlIndex !== -1 && args[htmlIndex + 1] && !args[htmlIndex + 1].startsWith('--')) {
+        // User specified a custom path
+        htmlPath = args[htmlIndex + 1];
+    } else {
+        // Default: use system tmp folder with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const filename = `firebase-performance-${timestamp}.html`;
+        htmlPath = path.join(os.tmpdir(), filename);
+    }
+
+    // Always generate HTML report
+    analyzer.generateHTMLReport(stats, timingStats, htmlPath);
 
     // Handle optional CSV export (look through all args, not just after logFilePath)
     const csvIndex = args.indexOf('--csv');
@@ -1039,6 +1508,9 @@ async function main() {
     if (jsonIndex !== -1 && args[jsonIndex + 1]) {
         analyzer.exportToJSON(stats, args[jsonIndex + 1]);
     }
+
+    // Print example command for analyzing slowest request
+    analyzer.printExampleCommand(logFilePath);
 }
 
 main().catch(console.error);
