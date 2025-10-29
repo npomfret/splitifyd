@@ -569,10 +569,6 @@ export class GroupService {
         const memberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
         const requestContext = { groupId, memberCount: memberIds.length, members: memberIds };
 
-        // Get actor info for activity feed
-        const actor = await this.userService.getUser(userId);
-        const actorDisplayName = actor.displayName;// todo: this should be the "groupDisplayName" for this user...
-
         logger.info('Initiating group soft delete', {
             ...requestContext,
             operation: 'SOFT_DELETE',
@@ -604,6 +600,10 @@ export class GroupService {
                 .docs
                 .map((doc) => (doc.data().uid as string | null | undefined) ?? null)
                 .filter((id): id is string => Boolean(id));
+
+            // Get actor's group display name from membership
+            const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);
+            const actorDisplayName = actorMembershipDoc?.data().groupDisplayName ?? 'Unknown member';
 
             this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, {
                 deletedAt: now,

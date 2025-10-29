@@ -384,6 +384,7 @@ export class UserService {
 
     async getGroupMembersResponseFromSubcollection(groupId: GroupId): Promise<GroupMembersResponse> {
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
+
         const members: GroupMember[] = memberDocs.map((memberDoc: GroupMembershipDTO): GroupMember => {
             return {
                 uid: memberDoc.uid,
