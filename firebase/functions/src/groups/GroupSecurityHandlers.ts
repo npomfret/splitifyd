@@ -1,12 +1,13 @@
+import type { GroupId, UserId } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
+import { validateUserAuth } from '../auth/utils';
 import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import { getAuth, getFirestore } from '../firebase';
 import { ComponentBuilder } from '../services/ComponentBuilder';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { GroupService } from '../services/GroupService';
-import { Errors } from '../utils/errors';
 import { validateGroupId, validateMemberId, validateUpdateGroupPermissionsRequest, validateUpdateMemberRoleRequest } from './validation';
 
 export class GroupSecurityHandlers {
@@ -15,6 +16,13 @@ export class GroupSecurityHandlers {
         private readonly groupMemberService: GroupMemberService,
     ) {}
 
+    private async validateAdminRequest(req: AuthenticatedRequest): Promise<{ userId: UserId; groupId: GroupId; }> {
+        const userId = validateUserAuth(req);
+        const groupId = validateGroupId(req.params.id);
+        await this.groupMemberService.ensureActiveGroupAdmin(groupId, userId);
+        return { userId, groupId };
+    }
+
     static createGroupSecurityHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
         const groupService = applicationBuilder.buildGroupService();
         const groupMemberService = applicationBuilder.buildGroupMemberService();
@@ -22,12 +30,7 @@ export class GroupSecurityHandlers {
     }
 
     updateGroupPermissions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const userId = req.user?.uid;
-        if (!userId) {
-            throw Errors.UNAUTHORIZED();
-        }
-
-        const groupId = validateGroupId(req.params.id);
+        const { userId, groupId } = await this.validateAdminRequest(req);
         const updates = validateUpdateGroupPermissionsRequest(req.body);
 
         const result = await this.groupService.updateGroupPermissions(groupId, userId, updates);
@@ -35,12 +38,7 @@ export class GroupSecurityHandlers {
     };
 
     updateMemberRole = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const userId = req.user?.uid;
-        if (!userId) {
-            throw Errors.UNAUTHORIZED();
-        }
-
-        const groupId = validateGroupId(req.params.id);
+        const { userId, groupId } = await this.validateAdminRequest(req);
         const memberId = validateMemberId(req.params.memberId);
         const { role } = validateUpdateMemberRoleRequest(req.body);
 
@@ -49,12 +47,7 @@ export class GroupSecurityHandlers {
     };
 
     approveMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const userId = req.user?.uid;
-        if (!userId) {
-            throw Errors.UNAUTHORIZED();
-        }
-
-        const groupId = validateGroupId(req.params.id);
+        const { userId, groupId } = await this.validateAdminRequest(req);
         const memberId = validateMemberId(req.params.memberId);
 
         const result = await this.groupMemberService.approveMember(userId, groupId, memberId);
@@ -62,12 +55,7 @@ export class GroupSecurityHandlers {
     };
 
     rejectMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const userId = req.user?.uid;
-        if (!userId) {
-            throw Errors.UNAUTHORIZED();
-        }
-
-        const groupId = validateGroupId(req.params.id);
+        const { userId, groupId } = await this.validateAdminRequest(req);
         const memberId = validateMemberId(req.params.memberId);
 
         const result = await this.groupMemberService.rejectMember(userId, groupId, memberId);
@@ -75,12 +63,7 @@ export class GroupSecurityHandlers {
     };
 
     getPendingMembers = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const userId = req.user?.uid;
-        if (!userId) {
-            throw Errors.UNAUTHORIZED();
-        }
-
-        const groupId = validateGroupId(req.params.id);
+        const { userId, groupId } = await this.validateAdminRequest(req);
         const pendingMembers = await this.groupMemberService.getPendingMembers(userId, groupId);
 
         res.status(HTTP_STATUS.OK).json({

@@ -480,10 +480,11 @@ export class SettlementService {
         }
 
         const isCreator = settlement.createdBy === userId;
-        const isAdmin = memberData.memberRole === 'admin';
 
-        if (!isCreator && !isAdmin) {
-            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS', 'Only the creator or group admin can delete this settlement');
+        if (!isCreator) {
+            await this.groupMemberService.ensureActiveGroupAdmin(settlement.groupId, userId, {
+                forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'INSUFFICIENT_PERMISSIONS', 'Only the creator or group admin can delete this settlement'),
+            });
         }
 
         // Get members for balance update

@@ -9,7 +9,17 @@ import { ApiError, Errors } from '../utils/errors';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
 import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-import { GroupTransactionManager } from './transactions/GroupTransactionManager';
+import { GroupTransactionContext, GroupTransactionManager, GroupTransactionOptions } from './transactions/GroupTransactionManager';
+
+type AccessContextOptions = {
+    notFoundErrorFactory?: () => Error;
+    forbiddenErrorFactory?: () => Error;
+};
+
+type AdminGuardOptions = {
+    unauthorizedErrorFactory?: () => Error;
+    forbiddenErrorFactory?: () => Error;
+};
 
 export class GroupMemberService {
     private readonly groupTransactionManager: GroupTransactionManager;
@@ -23,13 +33,64 @@ export class GroupMemberService {
         this.groupTransactionManager = groupTransactionManager ?? new GroupTransactionManager(this.firestoreReader, this.firestoreWriter);
     }
 
+    async ensureActiveGroupAdmin(
+        groupId: GroupId,
+        userId: UserId | null | undefined,
+        options: AdminGuardOptions = {},
+    ): Promise<GroupMembershipDTO> {
+        if (!userId) {
+            throw options.unauthorizedErrorFactory?.() ?? Errors.UNAUTHORIZED();
+        }
+
+        const membership = await this.firestoreReader.getGroupMember(groupId, userId);
+
+        if (!membership || membership.memberRole !== MemberRoles.ADMIN || membership.memberStatus !== MemberStatuses.ACTIVE) {
+            throw options.forbiddenErrorFactory?.() ?? Errors.FORBIDDEN();
+        }
+
+        return membership;
+    }
+
+    async getGroupAdminContext(
+        groupId: GroupId,
+        userId: UserId,
+        options: AccessContextOptions = {},
+    ): Promise<{
+        group: GroupDTO;
+        memberIds: UserId[];
+        actorMember: GroupMembershipDTO;
+    }> {
+        const context = await this.getGroupAccessContext(groupId, userId, options);
+
+        if (context.actorMember.memberRole !== MemberRoles.ADMIN || context.actorMember.memberStatus !== MemberStatuses.ACTIVE) {
+            throw options.forbiddenErrorFactory?.() ?? Errors.FORBIDDEN();
+        }
+
+        return {
+            group: context.group,
+            memberIds: context.memberIds,
+            actorMember: context.actorMember,
+        };
+    }
+
+    private async runMembershipTransaction<T>(
+        groupId: GroupId,
+        executor: (context: GroupTransactionContext) => Promise<T>,
+        options: GroupTransactionOptions = {},
+    ): Promise<T> {
+        const mergedOptions: GroupTransactionOptions = {
+            preloadBalance: false,
+            requireGroup: false,
+            ...options,
+        };
+
+        return this.groupTransactionManager.run(groupId, mergedOptions, executor);
+    }
+
     async getGroupAccessContext(
         groupId: GroupId,
         userId: UserId,
-        options: {
-            notFoundErrorFactory?: () => Error;
-            forbiddenErrorFactory?: () => Error;
-        } = {},
+        options: AccessContextOptions = {},
     ): Promise<{
         group: GroupDTO;
         memberIds: UserId[];
@@ -77,22 +138,16 @@ export class GroupMemberService {
 
     async updateMemberRole(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId, newRole: MemberRole): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.updateMemberRole', async () => {
-            if (!requestingUserId) {
-                throw Errors.UNAUTHORIZED();
-            }
             if (!targetUserId) {
                 throw Errors.MISSING_FIELD('memberId');
             }
 
-            const [requesterMembership, targetMembership, allMembers] = await Promise.all([
-                this.firestoreReader.getGroupMember(groupId, requestingUserId),
+            await this.ensureActiveGroupAdmin(groupId, requestingUserId);
+
+            const [targetMembership, allMembers] = await Promise.all([
                 this.firestoreReader.getGroupMember(groupId, targetUserId),
                 this.firestoreReader.getAllGroupMembers(groupId),
             ]);
-
-            if (!requesterMembership || requesterMembership.memberRole !== MemberRoles.ADMIN || requesterMembership.memberStatus !== MemberStatuses.ACTIVE) {
-                throw Errors.FORBIDDEN();
-            }
 
             if (!targetMembership) {
                 throw Errors.NOT_FOUND('Group member');
@@ -109,7 +164,7 @@ export class GroupMemberService {
                 }
             }
 
-            await this.groupTransactionManager.run(groupId, { preloadBalance: false, requireGroup: false }, async (context) => {
+            await this.runMembershipTransaction(groupId, async (context) => {
                 const transaction = context.transaction;
                 const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
@@ -139,21 +194,16 @@ export class GroupMemberService {
 
     async approveMember(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.approveMember', async () => {
-            if (!requestingUserId) {
-                throw Errors.UNAUTHORIZED();
-            }
             if (!targetUserId) {
                 throw Errors.MISSING_FIELD('memberId');
             }
 
-            const [requesterMembership, targetMembership] = await Promise.all([
-                this.firestoreReader.getGroupMember(groupId, requestingUserId),
-                this.firestoreReader.getGroupMember(groupId, targetUserId),
-            ]);
+            await this.ensureActiveGroupAdmin(groupId, requestingUserId);
 
-            if (!requesterMembership || requesterMembership.memberRole !== MemberRoles.ADMIN || requesterMembership.memberStatus !== MemberStatuses.ACTIVE) {
-                throw Errors.FORBIDDEN();
-            }
+            const [targetMembership, group] = await Promise.all([
+                this.firestoreReader.getGroupMember(groupId, targetUserId),
+                this.firestoreReader.getGroup(groupId),
+            ]);
 
             if (!targetMembership) {
                 throw Errors.NOT_FOUND('Group member');
@@ -163,7 +213,6 @@ export class GroupMemberService {
                 return { message: 'Member is already active' };
             }
 
-            const group = await this.firestoreReader.getGroup(groupId);
             if (!group) {
                 throw Errors.NOT_FOUND('Group');
             }
@@ -178,7 +227,7 @@ export class GroupMemberService {
             }
             const now = toISOString(new Date().toISOString());
 
-            await this.groupTransactionManager.run(groupId, { preloadBalance: false, requireGroup: false }, async (context) => {
+            await this.runMembershipTransaction(groupId, async (context) => {
                 const transaction = context.transaction;
                 const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
@@ -237,24 +286,18 @@ export class GroupMemberService {
 
     async rejectMember(requestingUserId: UserId, groupId: GroupId, targetUserId: UserId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.rejectMember', async () => {
-            if (!requestingUserId) {
-                throw Errors.UNAUTHORIZED();
-            }
             if (!targetUserId) {
                 throw Errors.MISSING_FIELD('memberId');
             }
 
-            const requesterMembership = await this.firestoreReader.getGroupMember(groupId, requestingUserId);
-            if (!requesterMembership || requesterMembership.memberRole !== MemberRoles.ADMIN || requesterMembership.memberStatus !== MemberStatuses.ACTIVE) {
-                throw Errors.FORBIDDEN();
-            }
+            await this.ensureActiveGroupAdmin(groupId, requestingUserId);
 
             const targetMembership = await this.firestoreReader.getGroupMember(groupId, targetUserId);
             if (!targetMembership) {
                 throw Errors.NOT_FOUND('Group member');
             }
 
-            await this.groupTransactionManager.run(groupId, { preloadBalance: false, requireGroup: false }, async (context) => {
+            await this.runMembershipTransaction(groupId, async (context) => {
                 const transaction = context.transaction;
                 const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
@@ -279,10 +322,7 @@ export class GroupMemberService {
 
     async getPendingMembers(requestingUserId: UserId, groupId: GroupId): Promise<GroupMembershipDTO[]> {
         return measure.measureDb('GroupMemberService.getPendingMembers', async () => {
-            const requesterMembership = await this.firestoreReader.getGroupMember(groupId, requestingUserId);
-            if (!requesterMembership || requesterMembership.memberRole !== MemberRoles.ADMIN || requesterMembership.memberStatus !== MemberStatuses.ACTIVE) {
-                throw Errors.FORBIDDEN();
-            }
+            await this.ensureActiveGroupAdmin(groupId, requestingUserId);
 
             const members = await this.firestoreReader.getAllGroupMembers(groupId);
             return members.filter((member) => member.memberStatus === MemberStatuses.PENDING);
@@ -415,7 +455,7 @@ export class GroupMemberService {
 
         // Atomically update group, delete membership, clean up notifications, and emit activity
         timer.startPhase('transaction');
-        await this.groupTransactionManager.run(groupId, { preloadBalance: false, requireGroup: false }, async (context) => {
+        await this.runMembershipTransaction(groupId, async (context) => {
             const transaction = context.transaction;
             const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
             const memberIdsInTransaction = membershipsSnapshot.docs.map((doc) => (doc.data() as { uid: UserId; }).uid);
@@ -469,7 +509,7 @@ export class GroupMemberService {
 
     async isGroupOwnerAsync(groupId: GroupId, userId: UserId): Promise<boolean> {
         const member = await this.firestoreReader.getGroupMember(groupId, userId);
-        return member?.memberRole === MemberRoles.ADMIN || false;
+        return Boolean(member && member.memberRole === MemberRoles.ADMIN && member.memberStatus === MemberStatuses.ACTIVE);
     }
 
     /**

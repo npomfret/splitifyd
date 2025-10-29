@@ -133,14 +133,11 @@ export class GroupService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const isOwner = await this.groupMemberService.isGroupOwnerAsync(group.id, userId);
-        if (requireWriteAccess && !isOwner) {
-            throw Errors.FORBIDDEN();
-        }
-
-        if (!isOwner) {
-            const isMember = await this.groupMemberService.isGroupMemberAsync(group.id, userId);
-            if (!isMember) {
+        if (requireWriteAccess) {
+            await this.groupMemberService.ensureActiveGroupAdmin(group.id, userId);
+        } else {
+            const membership = await this.firestoreReader.getGroupMember(group.id, userId);
+            if (!membership) {
                 throw Errors.NOT_FOUND('Group');
             }
         }
@@ -512,17 +509,12 @@ export class GroupService {
             throw Errors.INVALID_INPUT({ message: 'No permissions provided for update' });
         }
 
-        const [member, group] = await Promise.all([
-            this.firestoreReader.getGroupMember(groupId, userId),
-            this.firestoreReader.getGroup(groupId),
-        ]);
+        const groupPromise = this.firestoreReader.getGroup(groupId);
+        await this.groupMemberService.ensureActiveGroupAdmin(groupId, userId);
+        const group = await groupPromise;
 
         if (!group) {
             throw Errors.NOT_FOUND('Group');
-        }
-
-        if (!member || member.memberStatus !== MemberStatuses.ACTIVE || member.memberRole !== MemberRoles.ADMIN) {
-            throw Errors.FORBIDDEN();
         }
 
         const mergedPermissions: GroupPermissions = {
