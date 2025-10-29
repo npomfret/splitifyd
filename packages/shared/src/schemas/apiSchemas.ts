@@ -6,7 +6,34 @@
  */
 
 import { z } from 'zod';
-import { ActivityFeedActions, ActivityFeedEventTypes, PositiveAmountStringSchema, SplitTypes, SystemUserRoles, toGroupId, toGroupName, toISOString, UserId } from '../shared-types';
+import {
+    ActivityFeedActions,
+    ActivityFeedEventTypes,
+    PositiveAmountStringSchema,
+    SplitTypes,
+    SystemUserRoles,
+    toGroupId,
+    toGroupName,
+    toISOString,
+    toTenantId,
+    toTenantAppName,
+    toTenantLogoUrl,
+    toTenantFaviconUrl,
+    toTenantPrimaryColor,
+    toTenantSecondaryColor,
+    toTenantAccentColor,
+    toTenantThemePaletteName,
+    toTenantCustomCss,
+    toShowLandingPageFlag,
+    toShowPricingPageFlag,
+    toShowBlogPageFlag,
+    toFeatureToggleAdvancedReporting,
+    toFeatureToggleMultiCurrency,
+    toFeatureToggleCustomFields,
+    toTenantMaxGroupsPerUser,
+    toTenantMaxUsersPerGroup,
+    UserId,
+} from '../shared-types';
 
 const UserThemeColorSchema = z.object({
     light: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
@@ -37,10 +64,45 @@ const FormDefaultsSchema = z.object({
     password: z.string().optional(),
 });
 
+const BrandingMarketingFlagsSchema = z.object({
+    showLandingPage: z.boolean().transform(toShowLandingPageFlag).optional(),
+    showPricingPage: z.boolean().transform(toShowPricingPageFlag).optional(),
+    showBlogPage: z.boolean().transform(toShowBlogPageFlag).optional(),
+});
+
+const BrandingConfigSchema = z.object({
+    appName: z.string().min(1).transform(toTenantAppName),
+    logoUrl: z.string().min(1).transform(toTenantLogoUrl),
+    faviconUrl: z.string().min(1).transform(toTenantFaviconUrl),
+    primaryColor: z.string().min(1).transform(toTenantPrimaryColor),
+    secondaryColor: z.string().min(1).transform(toTenantSecondaryColor),
+    accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),
+    themePalette: z.string().min(1).transform(toTenantThemePaletteName).optional(),
+    customCSS: z.string().transform(toTenantCustomCss).optional(),
+    marketingFlags: BrandingMarketingFlagsSchema.optional(),
+});
+
+const FeatureConfigSchema = z.object({
+    enableAdvancedReporting: z.boolean().transform(toFeatureToggleAdvancedReporting),
+    enableMultiCurrency: z.boolean().transform(toFeatureToggleMultiCurrency),
+    enableCustomFields: z.boolean().transform(toFeatureToggleCustomFields),
+    maxGroupsPerUser: z.number().int().min(0).transform(toTenantMaxGroupsPerUser),
+    maxUsersPerGroup: z.number().int().min(0).transform(toTenantMaxUsersPerGroup),
+});
+
+const TenantConfigSchema = z.object({
+    tenantId: z.string().min(1).transform(toTenantId),
+    branding: BrandingConfigSchema,
+    features: FeatureConfigSchema,
+    createdAt: z.string().datetime().transform(toISOString),
+    updatedAt: z.string().datetime().transform(toISOString),
+});
+
 const AppConfigurationSchema = z.object({
     firebase: FirebaseConfigSchema,
     environment: EnvironmentConfigSchema,
     formDefaults: FormDefaultsSchema,
+    tenant: TenantConfigSchema.optional(),
     firebaseAuthUrl: z.string().optional(),
     firebaseFirestoreUrl: z.string().optional(),
 });

@@ -5,6 +5,7 @@
 - Gate marketing routes/components behind descriptor toggles and default `ROUTES.HOME` to login or dashboard when the landing page is disabled.
 - Feed brand palettes into `themeStore` and `USER_COLORS` so avatars, buttons, and decorative accents stay on-theme without duplicating colour logic.
 - Keep legal copy centralized; tenants adopt Splitifyd policies so no per-tenant overrides are required.
+- Introduce branded primitive types for all tenant configuration fields to ensure strong typing across the stack.
 
 ## Questions
 - Where should tenant brand data live (Firebase Remote Config, Firestore document, build-time env, etc.) and who owns updates?
@@ -17,6 +18,7 @@
 - White-label partners host their own marketing, landing, and pricing experiences; Splitifyd controls the application from login onward, with a demo tenant reusing the existing public pages.
 - Initial rollout ships without automated accessibility guardrails on tenant-provided colour palettes; compliance remains a manual review responsibility.
 - Tenant branding metadata persists in Firestore (one document per tenant) with asset uploads stored in Cloud Storage; edits flow through a simple management UI.
+- Provide a guarded default tenant configuration (mirroring the demo/showroom branding) for development and unrecognized hosts, while unknown production domains fail closed.
 
 ## Agent's Ideas (Based on App Analysis)
 
