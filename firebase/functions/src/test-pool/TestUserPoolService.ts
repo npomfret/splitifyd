@@ -118,6 +118,7 @@ export class TestUserPoolService {
             displayName: `pool user ${id}`,
             termsAccepted: true,
             cookiePolicyAccepted: true,
+            privacyPolicyAccepted: true,
         });
 
         const token = await this.authService.createCustomToken(user.uid);

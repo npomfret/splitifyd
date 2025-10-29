@@ -12,6 +12,7 @@ export class UserRegistrationBuilder {
             ...baseUser,
             termsAccepted: true,
             cookiePolicyAccepted: true,
+            privacyPolicyAccepted: true,
         };
     }
 
@@ -42,6 +43,11 @@ export class UserRegistrationBuilder {
 
     withCookiePolicyAccepted(accepted: boolean): this {
         this.userRegistration.cookiePolicyAccepted = accepted;
+        return this;
+    }
+
+    withPrivacyPolicyAccepted(accepted: boolean): this {
+        this.userRegistration.privacyPolicyAccepted = accepted;
         return this;
     }
 

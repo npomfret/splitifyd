@@ -22,6 +22,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         .withDisplayName('Test User')
         .withTermsAccepted(true)
         .withCookiePolicyAccepted(true)
+        .withPrivacyPolicyAccepted(true)
         .build();
 
     describe('Email Validation', () => {
@@ -35,6 +36,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     .withDisplayName(validRegistrationData.displayName)
                     .withTermsAccepted(validRegistrationData.termsAccepted)
                     .withCookiePolicyAccepted(validRegistrationData.cookiePolicyAccepted)
+                    .withPrivacyPolicyAccepted(validRegistrationData.privacyPolicyAccepted)
                     .build();
                 expect(() => validateRegisterRequest(data)).not.toThrow();
             }
@@ -50,6 +52,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     .withDisplayName(validRegistrationData.displayName)
                     .withTermsAccepted(validRegistrationData.termsAccepted)
                     .withCookiePolicyAccepted(validRegistrationData.cookiePolicyAccepted)
+                    .withPrivacyPolicyAccepted(validRegistrationData.privacyPolicyAccepted)
                     .build();
                 expect(() => validateRegisterRequest(data)).toThrow(
                     expect.objectContaining({
@@ -243,11 +246,12 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
     describe('Required Fields Validation', () => {
         it('should require all mandatory fields', () => {
             const incompleteData = [
-                { password: 'passwordpass', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true }, // missing email
-                { email: 'test@example.com', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true }, // missing password
-                { email: 'test@example.com', password: 'passwordpass', termsAccepted: true, cookiePolicyAccepted: true }, // missing displayName
-                { email: 'test@example.com', password: 'passwordpass', displayName: 'Test User', cookiePolicyAccepted: true }, // missing termsAccepted
-                { email: 'test@example.com', password: 'passwordpass', displayName: 'Test User', termsAccepted: true }, // missing cookiePolicyAccepted
+                { password: 'passwordpass', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true }, // missing email
+                { email: 'test@example.com', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true }, // missing password
+                { email: 'test@example.com', password: 'passwordpass', termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true }, // missing displayName
+                { email: 'test@example.com', password: 'passwordpass', displayName: 'Test User', cookiePolicyAccepted: true, privacyPolicyAccepted: true }, // missing termsAccepted
+                { email: 'test@example.com', password: 'passwordpass', displayName: 'Test User', termsAccepted: true, privacyPolicyAccepted: true }, // missing cookiePolicyAccepted
+                { email: 'test@example.com', password: 'passwordpass', displayName: 'Test User', termsAccepted: true, cookiePolicyAccepted: true }, // missing privacyPolicyAccepted
                 {}, // missing all
             ];
 
@@ -256,7 +260,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     expect.objectContaining({
                         statusCode: HTTP_STATUS.BAD_REQUEST,
                         code: expect.stringMatching(
-                            /MISSING_EMAIL|MISSING_PASSWORD|MISSING_DISPLAY_NAME|TERMS_NOT_ACCEPTED|COOKIE_POLICY_NOT_ACCEPTED|MISSING_TERMS_ACCEPTANCE|MISSING_COOKIE_POLICY_ACCEPTANCE/,
+                            /MISSING_EMAIL|MISSING_PASSWORD|MISSING_DISPLAY_NAME|TERMS_NOT_ACCEPTED|COOKIE_POLICY_NOT_ACCEPTED|PRIVACY_POLICY_NOT_ACCEPTED|MISSING_TERMS_ACCEPTANCE|MISSING_COOKIE_POLICY_ACCEPTANCE|MISSING_PRIVACY_POLICY_ACCEPTANCE/,
                         ),
                     }),
                 );
@@ -313,6 +317,30 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
             }
         });
 
+        it('should require privacy policy acceptance to be exactly true', () => {
+            const invalidPrivacyValues = [
+                false,
+                null,
+                undefined,
+                'true',
+                1,
+                0,
+            ];
+
+            for (const privacyPolicyAccepted of invalidPrivacyValues) {
+                const data = new UserRegistrationBuilder()
+                    .from(validRegistrationData)
+                    .withPrivacyPolicyAccepted(privacyPolicyAccepted as any)
+                    .build();
+                expect(() => validateRegisterRequest(data as any)).toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: expect.stringMatching(/PRIVACY_POLICY_NOT_ACCEPTED|MISSING_PRIVACY_POLICY_ACCEPTANCE/),
+                    }),
+                );
+            }
+        });
+
         it('should provide specific error messages for policy acceptance', () => {
             // Terms not accepted
             expect(() =>
@@ -336,6 +364,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     new UserRegistrationBuilder()
                         .from(validRegistrationData)
                         .withCookiePolicyAccepted(false)
+                        .withPrivacyPolicyAccepted(true)
                         .build(),
                 )
             )
@@ -343,6 +372,22 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                     expect.objectContaining({
                         code: 'COOKIE_POLICY_NOT_ACCEPTED',
                         message: 'You must accept the Cookie Policy',
+                    }),
+                );
+
+            // Privacy policy not accepted
+            expect(() =>
+                validateRegisterRequest(
+                    new UserRegistrationBuilder()
+                        .from(validRegistrationData)
+                        .withPrivacyPolicyAccepted(false)
+                        .build(),
+                )
+            )
+                .toThrow(
+                    expect.objectContaining({
+                        code: 'PRIVACY_POLICY_NOT_ACCEPTED',
+                        message: 'You must accept the Privacy Policy',
                     }),
                 );
         });
@@ -374,6 +419,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 displayName: '', // empty
                 termsAccepted: false, // not accepted
                 cookiePolicyAccepted: false, // not accepted
+                privacyPolicyAccepted: false, // not accepted
             };
 
             // Should only report the first error (email in this case to match legacy validation order)
@@ -393,6 +439,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 displayName: '  Test User  ',
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
             };
 
             const result = validateRegisterRequest(inputData);
@@ -403,6 +450,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 displayName: 'Test User', // trimmed
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
             });
         });
 

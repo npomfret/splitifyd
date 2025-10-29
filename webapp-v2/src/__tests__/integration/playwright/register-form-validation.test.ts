@@ -101,13 +101,14 @@ test.describe('Registration Form Validation', () => {
         await registerPage.fillEmail('test@example.com');
         await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('Password12344');
-        await registerPage.toggleCookiesCheckbox(); // Only check cookies
+        await registerPage.toggleCookiesCheckbox(); // Check cookies
+        await registerPage.togglePrivacyCheckbox(); // Check privacy
 
         // Submit should be disabled
         await registerPage.verifySubmitButtonDisabled();
 
         // Verify terms checkbox is not checked
-        await registerPage.verifyCheckboxStates(false, true);
+        await registerPage.verifyCheckboxStates(false, true, true);
     });
 
     test('should require Cookie Policy checkbox to be checked', async ({ pageWithLogging: page }) => {
@@ -120,15 +121,35 @@ test.describe('Registration Form Validation', () => {
         await registerPage.fillPassword('Password12344');
         await registerPage.fillConfirmPassword('Password12344');
         await registerPage.toggleTermsCheckbox(); // Only check terms
+        await registerPage.togglePrivacyCheckbox(); // Check privacy
 
         // Submit should be disabled
         await registerPage.verifySubmitButtonDisabled();
 
         // Verify cookies checkbox is not checked
-        await registerPage.verifyCheckboxStates(true, false);
+        await registerPage.verifyCheckboxStates(true, false, true);
     });
 
-    test('should require both policy checkboxes to be checked', async ({ pageWithLogging: page }) => {
+    test('should require Privacy Policy checkbox to be checked', async ({ pageWithLogging: page }) => {
+        const registerPage = new RegisterPage(page);
+        await registerPage.navigate();
+
+        // Fill all fields but don't check Privacy Policy checkbox
+        await registerPage.fillName('John Doe');
+        await registerPage.fillEmail('test@example.com');
+        await registerPage.fillPassword('Password12344');
+        await registerPage.fillConfirmPassword('Password12344');
+        await registerPage.toggleTermsCheckbox();
+        await registerPage.toggleCookiesCheckbox();
+
+        // Submit should be disabled
+        await registerPage.verifySubmitButtonDisabled();
+
+        // Verify privacy checkbox is not checked
+        await registerPage.verifyCheckboxStates(true, true, false);
+    });
+
+    test('should require all policy checkboxes to be checked', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
@@ -141,8 +162,8 @@ test.describe('Registration Form Validation', () => {
         // Submit should be disabled
         await registerPage.verifySubmitButtonDisabled();
 
-        // Verify both checkboxes are not checked
-        await registerPage.verifyCheckboxStates(false, false);
+        // Verify all checkboxes are not checked
+        await registerPage.verifyCheckboxStates(false, false, false);
     });
 
     test('should accept valid minimum length password (12 characters)', async ({ pageWithLogging: page }) => {
@@ -187,8 +208,12 @@ test.describe('Registration Form Validation', () => {
         await registerPage.toggleTermsCheckbox();
         await registerPage.verifySubmitButtonDisabled();
 
-        // Check cookies - should now be enabled
+        // Check cookies - should still be disabled until privacy accepted
         await registerPage.toggleCookiesCheckbox();
+        await registerPage.verifySubmitButtonDisabled();
+
+        // Check privacy - should now be enabled
+        await registerPage.togglePrivacyCheckbox();
         await registerPage.verifySubmitButtonEnabled();
     });
 
@@ -239,6 +264,14 @@ test.describe('Registration Form Validation', () => {
 
         // Uncheck cookies - should disable submit
         await registerPage.toggleCookiesCheckbox();
+        await registerPage.verifySubmitButtonDisabled();
+
+        // Check cookies again - should enable submit
+        await registerPage.toggleCookiesCheckbox();
+        await registerPage.verifySubmitButtonEnabled();
+
+        // Uncheck privacy - should disable submit
+        await registerPage.togglePrivacyCheckbox();
         await registerPage.verifySubmitButtonDisabled();
     });
 
@@ -302,24 +335,26 @@ test.describe('Registration Form Field Interactions', () => {
         await registerPage.navigate();
 
         // Initially unchecked
-        await registerPage.verifyCheckboxStates(false, false);
+        await registerPage.verifyCheckboxStates(false, false, false);
 
-        // Check both
+        // Check all
         await registerPage.toggleTermsCheckbox();
         await registerPage.toggleCookiesCheckbox();
-        await registerPage.verifyCheckboxStates(true, true);
+        await registerPage.togglePrivacyCheckbox();
+        await registerPage.verifyCheckboxStates(true, true, true);
 
         // Uncheck terms
         await registerPage.toggleTermsCheckbox();
-        await registerPage.verifyCheckboxStates(false, true);
+        await registerPage.verifyCheckboxStates(false, true, true);
 
         // Check terms again
         await registerPage.toggleTermsCheckbox();
-        await registerPage.verifyCheckboxStates(true, true);
+        await registerPage.verifyCheckboxStates(true, true, true);
 
-        // Uncheck both
+        // Uncheck all
         await registerPage.toggleTermsCheckbox();
         await registerPage.toggleCookiesCheckbox();
-        await registerPage.verifyCheckboxStates(false, false);
+        await registerPage.togglePrivacyCheckbox();
+        await registerPage.verifyCheckboxStates(false, false, false);
     });
 });

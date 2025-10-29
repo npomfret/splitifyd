@@ -394,6 +394,7 @@ export interface UserRegistration extends BaseUser {
     password: string;
     termsAccepted: boolean;
     cookiePolicyAccepted: boolean;
+    privacyPolicyAccepted: boolean;
 }
 
 export interface FirebaseUser extends BaseUser {
@@ -430,6 +431,7 @@ export interface RegisteredUser extends FirebaseUser {
     // Policy acceptance tracking
     termsAcceptedAt?: ISOString;
     cookiePolicyAcceptedAt?: ISOString;
+    privacyPolicyAcceptedAt?: ISOString;
     acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash
 
     // User preferences

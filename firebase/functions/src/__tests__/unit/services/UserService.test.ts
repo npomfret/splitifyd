@@ -133,6 +133,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName('Test User')
                 .withTermsAccepted(false)
                 .withCookiePolicyAccepted(true)
+                .withPrivacyPolicyAccepted(true)
                 .build();
 
             await expect(userService.registerUser(userData)).rejects.toThrow('You must accept the Terms of Service');
@@ -143,9 +144,21 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName('Test User')
                 .withTermsAccepted(true)
                 .withCookiePolicyAccepted(false)
+                .withPrivacyPolicyAccepted(true)
                 .build();
 
             await expect(userService.registerUser(userData2)).rejects.toThrow('You must accept the Cookie Policy');
+
+            // Test privacy policy validation
+            const userData3 = new UserRegistrationBuilder()
+                .withPassword('passwordpass')
+                .withDisplayName('Test User')
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(true)
+                .withPrivacyPolicyAccepted(false)
+                .build();
+
+            await expect(userService.registerUser(userData3)).rejects.toThrow('You must accept the Privacy Policy');
         });
 
         it('should assign theme color and role during registration', async () => {
@@ -571,6 +584,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     displayName: 'Test User',
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
+                    privacyPolicyAccepted: true,
                 };
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(ApiError);
@@ -583,6 +597,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     displayName: 'Test User',
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
+                    privacyPolicyAccepted: true,
                 };
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(ApiError);
@@ -595,6 +610,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     displayName: 'Test User',
                     termsAccepted: false,
                     cookiePolicyAccepted: true,
+                    privacyPolicyAccepted: true,
                 };
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(/Terms of Service/);
@@ -607,9 +623,23 @@ describe('UserService - Consolidated Unit Tests', () => {
                     displayName: 'Test User',
                     termsAccepted: true,
                     cookiePolicyAccepted: false,
+                    privacyPolicyAccepted: true,
                 };
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(/Cookie Policy/);
+            });
+
+            it('should require privacy policy acceptance', async () => {
+                const registrationData = {
+                    email: 'newuser@example.com',
+                    password: 'ValidPassword1234!',
+                    displayName: 'Test User',
+                    termsAccepted: true,
+                    cookiePolicyAccepted: true,
+                    privacyPolicyAccepted: false,
+                };
+
+                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(/Privacy Policy/);
             });
 
             it('should validate displayName during registration', async () => {
@@ -619,6 +649,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     displayName: '', // Empty display name
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
+                    privacyPolicyAccepted: true,
                 };
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(ApiError);

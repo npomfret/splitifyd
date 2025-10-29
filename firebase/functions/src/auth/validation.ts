@@ -60,6 +60,17 @@ const mapRegisterError = (error: z.ZodError): never => {
                 errorMessage = 'Cookie policy acceptance must be a boolean value';
             }
             break;
+        case 'privacyPolicyAccepted':
+            if (errorMessage === 'Required') {
+                errorCode = 'MISSING_PRIVACY_POLICY_ACCEPTANCE';
+                errorMessage = 'Privacy policy acceptance is required';
+            } else if (errorMessage.includes('You must accept')) {
+                errorCode = 'PRIVACY_POLICY_NOT_ACCEPTED';
+            } else {
+                errorCode = 'MISSING_PRIVACY_POLICY_ACCEPTANCE';
+                errorMessage = 'Privacy policy acceptance must be a boolean value';
+            }
+            break;
         default:
             break;
     }
@@ -76,6 +87,7 @@ export const validateRegisterRequest = createRequestValidator({
         displayName: value.displayName.trim(),
         termsAccepted: value.termsAccepted,
         cookiePolicyAccepted: value.cookiePolicyAccepted,
+        privacyPolicyAccepted: value.privacyPolicyAccepted,
     }),
     mapError: mapRegisterError,
 }) as (body: UserRegistration) => UserRegistration;

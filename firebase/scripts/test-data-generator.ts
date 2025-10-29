@@ -111,6 +111,7 @@ const BILL_SPLITTER_REGISTRATION: UserRegistration = {
     displayName: 'Bill Splitter',
     termsAccepted: true,
     cookiePolicyAccepted: true,
+    privacyPolicyAccepted: true,
 };
 
 // Simple expense template for test data generation
@@ -216,6 +217,7 @@ const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration
             ...testUsers[i],
             termsAccepted: true,
             cookiePolicyAccepted: true,
+            privacyPolicyAccepted: true,
             password: 'passwordpass',
         });
     }
@@ -656,6 +658,7 @@ async function configureLargeGroupAdvancedScenarios(
                 displayName: 'Managed Viewer',
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
             },
         },
         {
@@ -666,6 +669,7 @@ async function configureLargeGroupAdvancedScenarios(
                 displayName: 'Rejected Applicant',
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
             },
         },
         {
@@ -676,6 +680,7 @@ async function configureLargeGroupAdvancedScenarios(
                 displayName: 'Pending Applicant',
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
             },
         },
     ];

@@ -10,6 +10,7 @@ export class RegisterRequestBuilder {
         displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(6)}`,
         termsAccepted: randomBoolean(),
         cookiePolicyAccepted: randomBoolean(),
+        privacyPolicyAccepted: randomBoolean(),
     };
 
     withEmail(email: Email): this {
@@ -49,6 +50,16 @@ export class RegisterRequestBuilder {
 
     withoutCookiePolicyAccepted(): this {
         delete (this.request as any).cookiePolicyAccepted;
+        return this;
+    }
+
+    withPrivacyPolicyAccepted(accepted: boolean): this {
+        this.request.privacyPolicyAccepted = accepted;
+        return this;
+    }
+
+    withoutPrivacyPolicyAccepted(): this {
+        delete (this.request as any).privacyPolicyAccepted;
         return this;
     }
 

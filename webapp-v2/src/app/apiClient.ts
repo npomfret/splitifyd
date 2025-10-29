@@ -941,11 +941,11 @@ class ApiClient {
         });
     }
 
-    async register(email: Email, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean): Promise<RegisterResponse> {
+    async register(email: Email, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean, privacyPolicyAccepted: boolean): Promise<RegisterResponse> {
         return this.request({
             endpoint: '/register',
             method: 'POST',
-            body: { email, password, displayName, termsAccepted, cookiePolicyAccepted },
+            body: { email, password, displayName, termsAccepted, cookiePolicyAccepted, privacyPolicyAccepted },
         });
     }
 

@@ -11,6 +11,7 @@ describe('Auth Validation', () => {
                 .withDisplayName('  Test User  ')
                 .withTermsAccepted(true)
                 .withCookiePolicyAccepted(true)
+                .withPrivacyPolicyAccepted(true)
                 .build();
 
             const result = validateRegisterRequest(request);
@@ -19,6 +20,7 @@ describe('Auth Validation', () => {
             expect(result.displayName).toBe('Test User');
             expect(result.termsAccepted).toBe(true);
             expect(result.cookiePolicyAccepted).toBe(true);
+            expect(result.privacyPolicyAccepted).toBe(true);
         });
 
         it('should enforce password requirements', () => {
@@ -37,6 +39,7 @@ describe('Auth Validation', () => {
                         .withDisplayName('A')
                         .withTermsAccepted(true)
                         .withCookiePolicyAccepted(true)
+                        .withPrivacyPolicyAccepted(true)
                         .build(),
                 )
             )
@@ -49,6 +52,7 @@ describe('Auth Validation', () => {
                         .withDisplayName('A'.repeat(51))
                         .withTermsAccepted(true)
                         .withCookiePolicyAccepted(true)
+                        .withPrivacyPolicyAccepted(true)
                         .build(),
                 )
             )
@@ -61,6 +65,7 @@ describe('Auth Validation', () => {
                         .withDisplayName('Test<script>')
                         .withTermsAccepted(true)
                         .withCookiePolicyAccepted(true)
+                        .withPrivacyPolicyAccepted(true)
                         .build(),
                 )
             )
@@ -72,17 +77,19 @@ describe('Auth Validation', () => {
                     .withDisplayName('John Doe-Smith_123.Jr')
                     .withTermsAccepted(true)
                     .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
                     .build(),
             );
             expect(result.displayName).toBe('John Doe-Smith_123.Jr');
         });
 
-        it('should require terms and cookie policy acceptance', () => {
+        it('should require all policy acceptances', () => {
             expect(() =>
                 validateRegisterRequest(
                     new RegisterRequestBuilder()
                         .withTermsAccepted(false)
                         .withCookiePolicyAccepted(true)
+                        .withPrivacyPolicyAccepted(true)
                         .build(),
                 )
             )
@@ -93,6 +100,18 @@ describe('Auth Validation', () => {
                     new RegisterRequestBuilder()
                         .withTermsAccepted(true)
                         .withCookiePolicyAccepted(false)
+                        .withPrivacyPolicyAccepted(true)
+                        .build(),
+                )
+            )
+                .toThrow(ApiError);
+
+            expect(() =>
+                validateRegisterRequest(
+                    new RegisterRequestBuilder()
+                        .withTermsAccepted(true)
+                        .withCookiePolicyAccepted(true)
+                        .withPrivacyPolicyAccepted(false)
                         .build(),
                 )
             )

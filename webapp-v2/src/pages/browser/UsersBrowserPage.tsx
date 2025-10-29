@@ -21,7 +21,7 @@ const OPTIONAL_AUTH_FIELDS = ['metadata', 'customClaims', 'providerData', 'phone
 const ALLOWED_AUTH_FIELDS = new Set<string>([...REQUIRED_AUTH_FIELDS, ...OPTIONAL_AUTH_FIELDS]);
 
 const REQUIRED_FIRESTORE_FIELDS = ['createdAt', 'updatedAt'] as const;
-const OPTIONAL_FIRESTORE_FIELDS = ['role', 'preferredLanguage', 'acceptedPolicies', 'termsAcceptedAt', 'cookiePolicyAcceptedAt', 'passwordChangedAt'] as const;
+const OPTIONAL_FIRESTORE_FIELDS = ['role', 'preferredLanguage', 'acceptedPolicies', 'termsAcceptedAt', 'cookiePolicyAcceptedAt', 'privacyPolicyAcceptedAt', 'passwordChangedAt'] as const;
 const ALLOWED_FIRESTORE_FIELDS = new Set<string>(['id', ...REQUIRED_FIRESTORE_FIELDS, ...OPTIONAL_FIRESTORE_FIELDS]);
 
 function analyzeAuthUserSchema(user: Record<string, unknown>): SchemaAnalysis {

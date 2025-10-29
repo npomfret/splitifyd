@@ -3369,6 +3369,7 @@ describe('app tests', () => {
                 password: 'ValidPass123!',
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
             });
 
             expect(registrationResult.success).toBe(true);
@@ -3379,6 +3380,19 @@ describe('app tests', () => {
 
             expect(profile.displayName).toBe('Registered User');
             expect(profile.email).toBe('registered@example.com');
+        });
+
+        it('should reject registration when privacy policy is not accepted', async () => {
+            await expect(
+                appDriver.registerUser({
+                    displayName: 'Privacy Reject',
+                    email: 'privacy.reject@example.com',
+                    password: 'ValidPass123!',
+                    termsAccepted: true,
+                    cookiePolicyAccepted: true,
+                    privacyPolicyAccepted: false,
+                }),
+            ).rejects.toThrow(/Privacy Policy/);
         });
 
         describe('updateUserProfile', () => {

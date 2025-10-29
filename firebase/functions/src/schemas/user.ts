@@ -17,6 +17,7 @@ const BaseUserSchema = z
         acceptedPolicies: z.record(z.string(), z.string()).optional(),
         termsAcceptedAt: FirestoreTimestampSchema.optional(),
         cookiePolicyAcceptedAt: FirestoreTimestampSchema.optional(),
+        privacyPolicyAcceptedAt: FirestoreTimestampSchema.optional(),
         passwordChangedAt: FirestoreTimestampSchema.optional(),
     })
     .merge(OptionalAuditFieldsSchema);

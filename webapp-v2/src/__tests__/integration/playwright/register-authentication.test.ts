@@ -217,8 +217,12 @@ test.describe('Registration Form - Loading and Disabled States', () => {
         await registerPage.toggleTermsCheckbox();
         await registerPage.verifySubmitButtonDisabled();
 
-        // Accept both policies - should now be enabled
+        // Accept second policy checkbox - should still be disabled
         await registerPage.toggleCookiesCheckbox();
+        await registerPage.verifySubmitButtonDisabled();
+
+        // Accept all three policies - should now be enabled
+        await registerPage.togglePrivacyCheckbox();
         await registerPage.verifySubmitButtonEnabled();
     });
 

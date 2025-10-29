@@ -407,6 +407,9 @@ describe('Public Endpoints Tests', () => {
         test('should reject registration with invalid email format', async () => {
             const invalidData = new RegisterRequestBuilder()
                 .withEmail('invalid-email-format')
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(true)
+                .withPrivacyPolicyAccepted(true)
                 .build();
 
             const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
@@ -423,6 +426,9 @@ describe('Public Endpoints Tests', () => {
         test('should reject registration with weak password', async () => {
             const invalidData = new RegisterRequestBuilder()
                 .withPassword('123') // Too weak
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(true)
+                .withPrivacyPolicyAccepted(true)
                 .build();
 
             const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {

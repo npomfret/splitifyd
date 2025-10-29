@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
     REGISTER_CONFIRM_PASSWORD: 'register-form-confirmPassword',
     REGISTER_AGREE_TERMS: 'register-form-agreeToTerms',
     REGISTER_AGREE_COOKIES: 'register-form-agreeToCookies',
+    REGISTER_AGREE_PRIVACY: 'register-form-agreeToPrivacy',
 } as const;
 
 // Authentication constants

@@ -25,7 +25,7 @@ interface AuthState {
 
 interface AuthActions {
     login: (email: Email, password: string, rememberMe?: boolean) => Promise<void>;
-    register: (email: Email, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean) => Promise<void>;
+    register: (email: Email, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean, privacyPolicyAccepted: boolean) => Promise<void>;
     logout: () => Promise<void>;
     resetPassword: (email: Email) => Promise<void>;
     updateUserProfile: (updates: { displayName?: string; }) => Promise<void>;
@@ -257,13 +257,13 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    async register(email: Email, password: string, displayName: DisplayName, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true): Promise<void> {
+    async register(email: Email, password: string, displayName: DisplayName, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true, privacyPolicyAccepted: boolean = true): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
 
         try {
             // Use server-side registration which creates both Firebase Auth user and Firestore document
-            const registrationResult = await apiClient.register(email, password, displayName, termsAccepted, cookiePolicyAccepted);
+            const registrationResult = await apiClient.register(email, password, displayName, termsAccepted, cookiePolicyAccepted, privacyPolicyAccepted);
 
             if (!registrationResult?.success) {
                 const message = registrationResult?.message ?? 'Registration failed. Please try again.';

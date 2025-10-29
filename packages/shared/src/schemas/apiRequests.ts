@@ -320,6 +320,11 @@ export const RegisterRequestSchema = z.object({
         invalidType: 'Cookie policy acceptance must be a boolean value',
         notAccepted: 'You must accept the Cookie Policy',
     }),
+    privacyPolicyAccepted: AcceptanceBooleanSchema({
+        required: 'Privacy policy acceptance is required',
+        invalidType: 'Privacy policy acceptance must be a boolean value',
+        notAccepted: 'You must accept the Privacy Policy',
+    }),
 });
 
 // ---------------------------------------------------------------------------

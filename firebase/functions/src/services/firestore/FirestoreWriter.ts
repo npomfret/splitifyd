@@ -211,6 +211,7 @@ export class FirestoreWriter implements IFirestoreWriter {
             'assignedAt', // For theme.assignedAt
             'termsAcceptedAt',
             'cookiePolicyAcceptedAt',
+            'privacyPolicyAcceptedAt',
             'passwordChangedAt', // User policy/auth timestamps
         ]);
 

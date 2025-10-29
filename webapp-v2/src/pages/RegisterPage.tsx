@@ -46,6 +46,13 @@ export function RegisterPage() {
             return false;
         }
     });
+    const [agreeToPrivacy, setAgreeToPrivacy] = useState(() => {
+        try {
+            return sessionStorage.getItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY) === 'true';
+        } catch {
+            return false;
+        }
+    });
     const [localError, setLocalError] = useState<string | null>(null);
 
     // Clear any previous errors when component mounts and remove legacy password cache entries
@@ -99,6 +106,9 @@ export function RegisterPage() {
         if (!agreeToCookies) {
             return t('registerPage.validation.cookiesRequired');
         }
+        if (!agreeToPrivacy) {
+            return t('registerPage.validation.privacyRequired');
+        }
         return null;
     };
 
@@ -115,13 +125,14 @@ export function RegisterPage() {
         setLocalError(null);
 
         try {
-            await authStore.register(email.trim(), password, name.trim(), agreeToTerms, agreeToCookies);
+            await authStore.register(email.trim(), password, name.trim(), agreeToTerms, agreeToCookies, agreeToPrivacy);
             // Clear form data from sessionStorage on successful registration
             try {
                 sessionStorage.removeItem(STORAGE_KEYS.REGISTER_NAME);
                 sessionStorage.removeItem(STORAGE_KEYS.REGISTER_EMAIL);
                 sessionStorage.removeItem(STORAGE_KEYS.REGISTER_AGREE_TERMS);
                 sessionStorage.removeItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES);
+                sessionStorage.removeItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY);
             } catch {
                 // Ignore cleanup errors
             }
@@ -131,7 +142,7 @@ export function RegisterPage() {
         }
     };
 
-    const isFormValid = name.trim() && email.trim() && password && confirmPassword && agreeToTerms && agreeToCookies;
+    const isFormValid = name.trim() && email.trim() && password && confirmPassword && agreeToTerms && agreeToCookies && agreeToPrivacy;
     const isSubmitting = authStore.loading;
     const displayError = authStore.error || localError;
 
@@ -258,6 +269,33 @@ export function RegisterPage() {
                             {t('registerPage.acceptTerms')}{' '}
                             <a href='/cookies' target='_blank' class='text-blue-600 hover:text-blue-500 transition-colors'>
                                 {t('registerPage.cookiePolicy')}
+                            </a>
+                        </span>
+                    </label>
+
+                    <label class='flex items-start'>
+                        <input
+                            type='checkbox'
+                            data-testid='privacy-checkbox'
+                            checked={agreeToPrivacy}
+                            onChange={(e) => {
+                                const checked = (e.target as HTMLInputElement).checked;
+                                setAgreeToPrivacy(checked);
+                                try {
+                                    sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY, checked.toString());
+                                } catch {
+                                    // Ignore sessionStorage errors
+                                }
+                            }}
+                            class='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 flex-shrink-0'
+                            disabled={isSubmitting}
+                            required
+                            autoComplete='off'
+                        />
+                        <span class='ml-2 block text-sm text-gray-700'>
+                            {t('registerPage.acceptTerms')}{' '}
+                            <a href='/privacy-policy' target='_blank' class='text-blue-600 hover:text-blue-500 transition-colors'>
+                                {t('registerPage.privacyPolicy')}
                             </a>
                         </span>
                     </label>

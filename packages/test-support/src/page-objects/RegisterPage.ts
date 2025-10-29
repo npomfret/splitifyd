@@ -95,6 +95,13 @@ export class RegisterPage extends BasePage {
         return this.getRegisterFormContainer().getByTestId('cookies-checkbox');
     }
 
+    /**
+     * Privacy Policy checkbox within the register form
+     */
+    getPrivacyCheckbox(): Locator {
+        return this.getRegisterFormContainer().getByTestId('privacy-checkbox');
+    }
+
     // ============================================================================
     // BUTTON SELECTORS - Scoped to register form container
     // ============================================================================
@@ -125,6 +132,13 @@ export class RegisterPage extends BasePage {
      */
     getCookiePolicyLink(): Locator {
         return this.getRegisterFormContainer().getByRole('link', { name: translation.registerPage.cookiePolicy });
+    }
+
+    /**
+     * Privacy Policy link
+     */
+    getPrivacyPolicyLink(): Locator {
+        return this.getRegisterFormContainer().getByRole('link', { name: translation.registerPage.privacyPolicy });
     }
 
     // ============================================================================
@@ -255,11 +269,37 @@ export class RegisterPage extends BasePage {
     }
 
     /**
+     * Toggle the Privacy Policy checkbox
+     */
+    async togglePrivacyCheckbox(): Promise<void> {
+        await this.getPrivacyCheckbox().click();
+    }
+
+    /**
+     * Check the Privacy Policy checkbox (ensure it's checked)
+     */
+    async checkPrivacyCheckbox(): Promise<void> {
+        const checkbox = this.getPrivacyCheckbox();
+        await expect(checkbox).toBeVisible();
+        await checkbox.check();
+    }
+
+    /**
+     * Uncheck the Privacy Policy checkbox (ensure it's unchecked)
+     */
+    async uncheckPrivacyCheckbox(): Promise<void> {
+        const checkbox = this.getPrivacyCheckbox();
+        await expect(checkbox).toBeVisible();
+        await checkbox.uncheck();
+    }
+
+    /**
      * Accept both policy checkboxes
      */
     async acceptAllPolicies(): Promise<void> {
         await this.checkTermsCheckbox();
         await this.checkCookieCheckbox();
+        await this.checkPrivacyCheckbox();
     }
 
     /**
@@ -275,6 +315,14 @@ export class RegisterPage extends BasePage {
      */
     async clickCookiePolicyLink(): Promise<void> {
         const link = this.getCookiePolicyLink();
+        await link.click();
+    }
+
+    /**
+     * Click the Privacy Policy link
+     */
+    async clickPrivacyPolicyLink(): Promise<void> {
+        const link = this.getPrivacyPolicyLink();
         await link.click();
     }
 
@@ -391,6 +439,7 @@ export class RegisterPage extends BasePage {
         await expect(this.getConfirmPasswordInput()).toBeEnabled();
         await expect(this.getTermsCheckbox()).toBeEnabled();
         await expect(this.getCookiesCheckbox()).toBeEnabled();
+        await expect(this.getPrivacyCheckbox()).toBeEnabled();
     }
 
     /**
@@ -403,6 +452,7 @@ export class RegisterPage extends BasePage {
         await expect(this.getConfirmPasswordInput()).toBeDisabled();
         await expect(this.getTermsCheckbox()).toBeDisabled();
         await expect(this.getCookiesCheckbox()).toBeDisabled();
+        await expect(this.getPrivacyCheckbox()).toBeDisabled();
         await expect(this.getSubmitButton()).toBeDisabled();
     }
 
@@ -443,7 +493,7 @@ export class RegisterPage extends BasePage {
     /**
      * Verify that checkboxes are in the expected state
      */
-    async verifyCheckboxStates(termsChecked: boolean, cookiesChecked: boolean): Promise<void> {
+    async verifyCheckboxStates(termsChecked: boolean, cookiesChecked: boolean, privacyChecked: boolean): Promise<void> {
         if (termsChecked) {
             await expect(this.getTermsCheckbox()).toBeChecked();
         } else {
@@ -455,6 +505,12 @@ export class RegisterPage extends BasePage {
         } else {
             await expect(this.getCookiesCheckbox()).not.toBeChecked();
         }
+
+        if (privacyChecked) {
+            await expect(this.getPrivacyCheckbox()).toBeChecked();
+        } else {
+            await expect(this.getPrivacyCheckbox()).not.toBeChecked();
+        }
     }
 
     /**
@@ -465,7 +521,7 @@ export class RegisterPage extends BasePage {
         await expect(this.getEmailInput()).toHaveValue('');
         await expect(this.getPasswordInput()).toHaveValue('');
         await expect(this.getConfirmPasswordInput()).toHaveValue('');
-        await this.verifyCheckboxStates(false, false);
+        await this.verifyCheckboxStates(false, false, false);
     }
 
     /**
@@ -487,6 +543,10 @@ export class RegisterPage extends BasePage {
         await expect(this.getCookiesCheckbox()).toBeVisible();
     }
 
+    async verifyPrivacyCheckboxVisible(): Promise<void> {
+        await expect(this.getPrivacyCheckbox()).toBeVisible();
+    }
+
     /**
      * Verify policy links are visible
      */
@@ -498,6 +558,10 @@ export class RegisterPage extends BasePage {
         await expect(this.getCookiePolicyLink()).toBeVisible();
     }
 
+    async verifyPrivacyPolicyLinkVisible(): Promise<void> {
+        await expect(this.getPrivacyPolicyLink()).toBeVisible();
+    }
+
     async verifyTermsLinkAttributes(expectedHref: string, expectedTarget: string = '_blank'): Promise<void> {
         const link = this.getTermsLink();
         await expect(link).toHaveAttribute('href', expectedHref);
@@ -506,6 +570,12 @@ export class RegisterPage extends BasePage {
 
     async verifyCookiePolicyLinkAttributes(expectedHref: string, expectedTarget: string = '_blank'): Promise<void> {
         const link = this.getCookiePolicyLink();
+        await expect(link).toHaveAttribute('href', expectedHref);
+        await expect(link).toHaveAttribute('target', expectedTarget);
+    }
+
+    async verifyPrivacyPolicyLinkAttributes(expectedHref: string, expectedTarget: string = '_blank'): Promise<void> {
+        const link = this.getPrivacyPolicyLink();
         await expect(link).toHaveAttribute('href', expectedHref);
         await expect(link).toHaveAttribute('target', expectedTarget);
     }

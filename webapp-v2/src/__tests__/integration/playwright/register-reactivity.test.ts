@@ -86,6 +86,9 @@ test.describe('Registration Form Reactivity and UI States', () => {
 
         // After all fields filled and policies accepted, should be enabled
         await registerPage.toggleCookiesCheckbox();
+        await registerPage.verifySubmitButtonDisabled();
+
+        await registerPage.togglePrivacyCheckbox();
         await registerPage.verifySubmitButtonEnabled();
 
         // Clear one field - should become disabled again
@@ -113,7 +116,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.verifyEmailInputValue('jane@example.com');
         await registerPage.verifyPasswordInputValue('SecurePassword12344');
         await registerPage.verifyConfirmPasswordInputValue('SecurePassword12344');
-        await registerPage.verifyCheckboxStates(true, true);
+        await registerPage.verifyCheckboxStates(true, true, true);
         await registerPage.verifySubmitButtonState(true);
 
         // State should persist - verify again to ensure no unexpected changes
@@ -162,19 +165,26 @@ test.describe('Registration Form Reactivity and UI States', () => {
         // Rapidly toggle checkboxes multiple times
         await registerPage.toggleTermsCheckbox();
         await registerPage.toggleCookiesCheckbox();
-        await registerPage.verifyCheckboxStates(true, true);
+        await registerPage.togglePrivacyCheckbox();
+        await registerPage.verifyCheckboxStates(true, true, true);
 
         await registerPage.toggleTermsCheckbox();
-        await registerPage.verifyCheckboxStates(false, true);
+        await registerPage.verifyCheckboxStates(false, true, true);
 
         await registerPage.toggleTermsCheckbox();
-        await registerPage.verifyCheckboxStates(true, true);
+        await registerPage.verifyCheckboxStates(true, true, true);
 
         await registerPage.toggleCookiesCheckbox();
-        await registerPage.verifyCheckboxStates(true, false);
+        await registerPage.verifyCheckboxStates(true, false, true);
 
         await registerPage.toggleCookiesCheckbox();
-        await registerPage.verifyCheckboxStates(true, true);
+        await registerPage.verifyCheckboxStates(true, true, true);
+
+        await registerPage.togglePrivacyCheckbox();
+        await registerPage.verifyCheckboxStates(true, true, false);
+
+        await registerPage.togglePrivacyCheckbox();
+        await registerPage.verifyCheckboxStates(true, true, true);
 
         // Final state should be both checked and button enabled
         await registerPage.verifySubmitButtonState(true);

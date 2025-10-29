@@ -190,6 +190,7 @@ simpleTest.describe('User Registration & Account Management', () => {
         await registerPage.fillConfirmPassword(password);
         await registerPage.checkTermsCheckbox();
         await registerPage.checkCookieCheckbox();
+        await registerPage.checkPrivacyCheckbox();
 
         // Submit and verify error response
         const responsePromise = registerPage.waitForRegistrationResponse(400);
@@ -273,7 +274,7 @@ simpleTest.describe('Policy Acceptance', () => {
     });
 
     simpleTest.describe('Registration Policy Acceptance', () => {
-        simpleTest('should require both policy checkboxes for registration', async ({ newEmptyBrowser }) => {
+        simpleTest('should require all policy checkboxes for registration', async ({ newEmptyBrowser }) => {
             const { page } = await newEmptyBrowser();
             const registerPage = new RegisterPage(page);
             await registerPage.navigate();
@@ -281,8 +282,10 @@ simpleTest.describe('Policy Acceptance', () => {
             // Verify both checkboxes and links are present
             await registerPage.verifyTermsCheckboxVisible();
             await registerPage.verifyCookiesCheckboxVisible();
+            await registerPage.verifyPrivacyCheckboxVisible();
             await registerPage.verifyTermsLinkVisible();
             await registerPage.verifyCookiePolicyLinkVisible();
+            await registerPage.verifyPrivacyPolicyLinkVisible();
 
             // Fill form completely
             await registerPage.fillName('Test User');
@@ -302,7 +305,19 @@ simpleTest.describe('Policy Acceptance', () => {
             await registerPage.checkCookieCheckbox();
             await registerPage.verifySubmitButtonDisabled();
 
-            // Submit should be enabled with both checked
+            // Submit should be disabled with only privacy policy checked
+            await registerPage.uncheckCookieCheckbox();
+            await registerPage.checkPrivacyCheckbox();
+            await registerPage.verifySubmitButtonDisabled();
+
+            // Submit should remain disabled with any two policies checked
+            await registerPage.checkTermsCheckbox();
+            await registerPage.verifySubmitButtonDisabled();
+            await registerPage.uncheckTermsCheckbox();
+            await registerPage.checkCookieCheckbox();
+            await registerPage.verifySubmitButtonDisabled();
+
+            // Submit should be enabled only when all policies are accepted
             await registerPage.checkTermsCheckbox();
             await registerPage.verifySubmitButtonEnabled();
         });

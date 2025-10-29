@@ -162,6 +162,7 @@
         "acceptTerms": "I accept the",
         "termsOfService": "Terms of Service",
         "cookiePolicy": "Cookie Policy",
+        "privacyPolicy": "Privacy Policy",
         "submitButton": "Create Account",
         "hasAccount": "Already have an account?",
         "signIn": "Sign in",
@@ -173,7 +174,8 @@
             "passwordTooShort": "Password must be at least 12 characters",
             "passwordsNoMatch": "Passwords do not match",
             "termsRequired": "You must accept the Terms of Service",
-            "cookiesRequired": "You must accept the Cookie Policy"
+            "cookiesRequired": "You must accept the Cookie Policy",
+            "privacyRequired": "You must accept the Privacy Policy"
         }
     },
     "auth": {

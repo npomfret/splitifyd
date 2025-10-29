@@ -504,6 +504,9 @@ export class UserService {
             if (userRegistration.cookiePolicyAccepted) {
                 userDoc.cookiePolicyAcceptedAt = now;
             }
+            if (userRegistration.privacyPolicyAccepted) {
+                userDoc.privacyPolicyAcceptedAt = now;
+            }
 
             // FirestoreWriter handles validation and conversion to Firestore format
             await this.firestoreWriter.createUser(userRecord.uid, userDoc);
