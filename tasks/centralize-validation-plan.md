@@ -52,7 +52,8 @@
 - **Timeline creep**: Allocate time-boxed spikes per domain to avoid indefinite migration; track progress in tasks board.
 
 ## Open Questions
-- ✅ What layering should we use when exporting request schemas from `@splitifyd/shared` so that `createRequestValidator` (server-only) remains optional?  
+- ✅ What layering should we use when exporting request schemas from `@splitifyd/shared` so that `createRequestValidator` (server-only) remains optional?
   Resolved by exporting pure schema builders from the shared package while keeping `createRequestValidator` in Firebase-only utilities.
 - ✅ Renamed localisation helper to `translateValidationError` while keeping the translation logic in the validation utilities.
-- Do we need compatibility shims for any out-of-tree integrations that previously imported the Joi-specific helpers?
+- ✅ Do we need compatibility shims for any out-of-tree integrations that previously imported the Joi-specific helpers?
+  No external projects depend on this codebase, so no compatibility shims are required.
