@@ -4,7 +4,7 @@
 import { GroupDTO, PooledTestUser, UserToken } from '@splitifyd/shared';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
-import { beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 describe('Security and Permissions - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
@@ -105,11 +105,11 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(apiDriver.deleteGroup(testGroup.id, users[1].token)).rejects.toThrow(/403|forbidden|unauthorized|access.*denied/i);
         });
 
-        test('should allow expense access for any authenticated user', async () => {
-            // Create expense excluding user 2
+        test('should restrict expense access to group members only', async () => {
+            // Create expense with user 0 and user 1
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
-                .withDescription('Private Expense')
+                .withDescription('Group Expense')
                 .withAmount(100, 'USD')
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
@@ -118,13 +118,13 @@ describe('Security and Permissions - Consolidated Tests', () => {
 
             const expense = await apiDriver.createExpense(expenseData, users[0].token);
 
-            // Group member but not expense participant should still be able to view
-            const byGroupMember = await apiDriver.getExpense(expense.id, users[2].token);
-            expect(byGroupMember.id).toBe(expense.id);
+            // Group members (expense participants) can view
+            const byParticipant = await apiDriver.getExpense(expense.id, users[0].token);
+            expect(byParticipant.id).toBe(expense.id);
 
-            // Non-group member should also be able to view
-            const byNonMember = await apiDriver.getExpense(expense.id, users[3].token);
-            expect(byNonMember.id).toBe(expense.id);
+            // Non-group members should NOT be able to view (security)
+            await expect(apiDriver.getExpense(expense.id, users[2].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied/i);
+            await expect(apiDriver.getExpense(expense.id, users[3].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied/i);
         });
     });
 

@@ -1,5 +1,5 @@
-import { DisplayName } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { DisplayName, toGroupId } from '@splitifyd/shared';
+import { GroupMemberDocumentBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -905,6 +905,111 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .not
                     .toThrow();
             });
+        });
+    });
+
+    describe('resolveGroupMemberProfiles', () => {
+        it('should resolve multiple group member profiles efficiently', async () => {
+            const groupId = toGroupId('test-group');
+            const user1 = 'user-1';
+            const user2 = 'user-2';
+            const user3 = 'user-3';
+
+            db.seedGroupMember(groupId, user1, new GroupMemberDocumentBuilder()
+                .withUserId(user1 as any)
+                .withGroupId(groupId)
+                .withGroupDisplayName('Member One')
+                .buildDocument());
+            db.seedGroupMember(groupId, user2, new GroupMemberDocumentBuilder()
+                .withUserId(user2 as any)
+                .withGroupId(groupId)
+                .withGroupDisplayName('Member Two')
+                .buildDocument());
+            db.seedGroupMember(groupId, user3, new GroupMemberDocumentBuilder()
+                .withUserId(user3 as any)
+                .withGroupId(groupId)
+                .withGroupDisplayName('Member Three')
+                .buildDocument());
+
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any, user2 as any, user3 as any]);
+
+            expect(profiles).toHaveLength(3);
+            expect(profiles[0].uid).toBe(user1);
+            expect(profiles[0].groupDisplayName).toBe('Member One');
+            expect(profiles[0].initials).toBe('MO');
+            expect(profiles[1].groupDisplayName).toBe('Member Two');
+            expect(profiles[2].groupDisplayName).toBe('Member Three');
+        });
+
+        it('should handle phantom members when user has left the group', async () => {
+            const groupId = toGroupId('test-group');
+            const user1 = 'user-1';
+            const user2 = 'departed-user';
+
+            db.seedGroupMember(groupId, user1, new GroupMemberDocumentBuilder()
+                .withUserId(user1 as any)
+                .withGroupId(groupId)
+                .withGroupDisplayName('Active Member')
+                .buildDocument());
+
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any, user2 as any]);
+
+            expect(profiles).toHaveLength(2);
+            expect(profiles[0].groupDisplayName).toBe('Active Member');
+            expect(profiles[1].groupDisplayName).toBe(user2); // Phantom uses UID
+        });
+
+        it('should handle empty user list', async () => {
+            const groupId = toGroupId('test-group');
+
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, []);
+
+            expect(profiles).toEqual([]);
+        });
+
+        it('should compute correct initials for single-word names', async () => {
+            const groupId = toGroupId('test-group');
+            const user1 = 'user-1';
+
+            db.seedGroupMember(groupId, user1, new GroupMemberDocumentBuilder()
+                .withUserId(user1 as any)
+                .withGroupId(groupId)
+                .withGroupDisplayName('Alice')
+                .buildDocument());
+
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any]);
+
+            expect(profiles[0].initials).toBe('A');
+        });
+
+        it('should compute correct initials for multi-word names', async () => {
+            const groupId = toGroupId('test-group');
+            const user1 = 'user-1';
+
+            db.seedGroupMember(groupId, user1, new GroupMemberDocumentBuilder()
+                .withUserId(user1 as any)
+                .withGroupId(groupId)
+                .withGroupDisplayName('John Smith')
+                .buildDocument());
+
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any]);
+
+            expect(profiles[0].initials).toBe('JS');
+        });
+
+        it('should limit initials to 2 characters max', async () => {
+            const groupId = toGroupId('test-group');
+            const user1 = 'user-1';
+
+            db.seedGroupMember(groupId, user1, new GroupMemberDocumentBuilder()
+                .withUserId(user1 as any)
+                .withGroupId(groupId)
+                .withGroupDisplayName('First Middle Last')
+                .buildDocument());
+
+            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any]);
+
+            expect(profiles[0].initials).toBe('FM');
         });
     });
 });

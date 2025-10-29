@@ -146,6 +146,14 @@ export interface IFirestoreReader {
     getGroupMember(groupId: GroupId, userId: UserId): Promise<GroupMembershipDTO | null>;
 
     /**
+     * Batch fetch multiple group members efficiently
+     * @param groupId - The group ID
+     * @param userIds - Array of user IDs to fetch
+     * @returns Map of userId to GroupMembershipDTO (excludes members not found)
+     */
+    getGroupMembers(groupId: GroupId, userIds: UserId[]): Promise<Map<UserId, GroupMembershipDTO>>;
+
+    /**
      * Get all members for a group (simplified method)
      * @param groupId - The group ID
      * @returns Array of group membership DTOs

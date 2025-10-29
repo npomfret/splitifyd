@@ -119,36 +119,59 @@ export class UserService {
         }
     }
 
-    async resolveGroupMemberProfile(
-        groupId: GroupId,
-        userId: UserId,
-        options: { failureContext?: string } = {},
-    ): Promise<GroupMember> {
-        const failureContext = options.failureContext ?? 'group member resolution';
-
-        const memberData = await this.firestoreReader.getGroupMember(groupId, userId);
-
-        const userProfile = await this.getUser(userId).catch((error) => {// todo: remove this
-            if (error instanceof ApiError && error.code === 'NOT_FOUND') {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
-            }
-
-            logger.error(`Failed to resolve user profile during ${failureContext}`, error as Error, {
-                userId,
-                groupId,
-            });
-            throw error;
-        });
-
-        // displayName is guaranteed to exist because getUser() validates it
-        const displayName = userProfile.displayName;
-        const groupDisplayName = memberData?.groupDisplayName ?? displayName;
-
-        if (!memberData) {
-            return createPhantomGroupMember(userId, groupDisplayName);
+    /**
+     * Efficiently resolve multiple group member profiles in a single batch operation
+     * @param groupId The group ID
+     * @param userIds Array of user IDs to resolve
+     * @returns Array of GroupMember profiles (in same order as userIds)
+     */
+    async resolveGroupMemberProfiles(groupId: GroupId, userIds: UserId[]): Promise<GroupMember[]> {
+        if (userIds.length === 0) {
+            return [];
         }
 
-        const initials = groupDisplayName
+        // Batch fetch all members in a single database call
+        const memberDataMap = await this.firestoreReader.getGroupMembers(groupId, userIds);
+
+        // Map userIds to profiles, maintaining order and handling missing members
+        return userIds.map((userId) => {
+            const memberData = memberDataMap.get(userId);
+
+            // If member not found (e.g., user left the group), create phantom member
+            if (!memberData) {
+                return createPhantomGroupMember(userId, userId.toString());
+            }
+
+            // Extract initials from display name
+            const initials = memberData.groupDisplayName
+                .split(' ')
+                .filter(Boolean)
+                .map((n: string) => n[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2);
+
+            return {
+                uid: userId,
+                initials,
+                themeColor: memberData.theme,
+                memberRole: memberData.memberRole,
+                memberStatus: memberData.memberStatus,
+                joinedAt: memberData.joinedAt,
+                invitedBy: memberData.invitedBy,
+                groupDisplayName: memberData.groupDisplayName,
+            };
+        });
+    }
+
+    async resolveGroupMemberProfile(groupId: GroupId, userId: UserId): Promise<GroupMember> {
+        const memberData = await this.firestoreReader.getGroupMember(groupId, userId);
+
+        if (!memberData) {// when does this happen? maybe when a user has left the group
+            return createPhantomGroupMember(userId, userId.toString());
+        }
+
+        const initials = memberData!.groupDisplayName
             .split(' ')
             .filter(Boolean)
             .map((n) => n[0])
@@ -164,7 +187,7 @@ export class UserService {
             memberStatus: memberData.memberStatus,
             joinedAt: memberData.joinedAt,
             invitedBy: memberData.invitedBy,
-            groupDisplayName,
+            groupDisplayName: memberData!.groupDisplayName,
         };
     }
 

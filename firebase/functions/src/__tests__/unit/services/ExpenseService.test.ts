@@ -1,6 +1,6 @@
-import { toExpenseId } from '@splitifyd/shared';
+import { toExpenseId, toGroupId } from '@splitifyd/shared';
 import { convertToISOString, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
-import { CreateExpenseRequestBuilder, ExpenseDTOBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -17,6 +17,19 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         const applicationBuilder = new ComponentBuilder(stubAuth, db);
         expenseService = applicationBuilder.buildExpenseService();
     });
+
+    // Helper to seed group membership with minimal data
+    const seedMembership = (groupId: string, userId: string) => {
+        db.seedGroupMember(
+            toGroupId(groupId),
+            userId,
+            new GroupMemberDocumentBuilder()
+                .withUserId(userId as any)
+                .withGroupId(toGroupId(groupId))
+                .withGroupDisplayName(`User ${userId}`)
+                .buildDocument(),
+        );
+    };
 
     describe('Data Transformation and Validation', () => {
         it('should transform expense document to response format correctly', async () => {
@@ -43,6 +56,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
                 .build();
+
+            // Seed group and membership for access control
+            db.seedGroup(toGroupId('test-group-id'), { id: 'test-group-id', name: 'Test Group' });
+            seedMembership('test-group-id', userId);
 
             // Seed the expense with Timestamp objects
             db.seedExpense(expenseId, mockExpense);
@@ -88,6 +105,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
+            // Seed group and membership for access control
+            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            seedMembership(mockExpense.groupId, userId);
+
             db.seedExpense(expenseId, mockExpense);
 
             // Act
@@ -112,6 +133,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
+            // Seed group and membership for access control (non-participant is still a group member)
+            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            seedMembership(mockExpense.groupId, nonParticipantId);
+            seedMembership(mockExpense.groupId, participantId);
+
             db.seedExpense(expenseId, mockExpense);
 
             // Act & Assert
@@ -132,6 +158,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withCreatedAt(convertToISOString(new Date()))
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
+
+            // Seed group and membership for access control
+            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            seedMembership(mockExpense.groupId, participant1);
+            seedMembership(mockExpense.groupId, participant2);
 
             db.seedExpense(expenseId, mockExpense);
 
@@ -204,6 +235,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
+            // Seed group and membership for access control
+            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            seedMembership(mockExpense.groupId, userId);
+
             db.seedExpense(expenseId, mockExpense);
 
             // Act
@@ -275,6 +310,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
+            // Seed group and membership for access control
+            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            seedMembership(mockExpense.groupId, userId);
+
             db.seedExpense(expenseId, mockExpense);
 
             // Act
@@ -297,6 +336,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withCreatedAt(convertToISOString(new Date()))
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
+
+            // Seed group and membership for access control
+            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            seedMembership(mockExpense.groupId, userId);
 
             db.seedExpense(expenseId, mockExpense);
 
@@ -338,6 +381,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
+            // Seed group and membership for access control
+            db.seedGroup(expenseData.groupId, { id: expenseData.groupId, name: 'Test Group' });
+            seedMembership(expenseData.groupId, participantId);
+
             db.seedExpense(expenseId, expenseData);
 
             // Act
@@ -361,6 +408,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withCreatedAt(convertToISOString(new Date()))
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
+
+            // Seed group and membership for access control (outsider is still a group member)
+            db.seedGroup(expenseData.groupId, { id: expenseData.groupId, name: 'Test Group' });
+            seedMembership(expenseData.groupId, outsiderId);
+            seedMembership(expenseData.groupId, participantId);
 
             db.seedExpense(expenseId, expenseData);
 
@@ -415,6 +467,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(now)
                 .build();
 
+            // Seed group and membership for access control
+            db.seedGroup(toGroupId('test-group'), { id: 'test-group', name: 'Test Group' });
+            seedMembership('test-group', userId);
+
             db.seedExpense(expenseId, expenseData);
 
             // Act
@@ -454,6 +510,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withCreatedAt(convertToISOString(new Date()))
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
+
+            // Seed group and membership for access control
+            db.seedGroup(expenseData.groupId, { id: expenseData.groupId, name: 'Test Group' });
+            seedMembership(expenseData.groupId, userId);
 
             db.seedExpense(expenseId, expenseData);
 

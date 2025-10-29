@@ -830,6 +830,10 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(user1);
 
+            // Add user2 to the group (non-participant in expense, but still a group member)
+            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, linkId);
+
             const expense = await appDriver.createExpense(
                 user1,
                 new CreateExpenseRequestBuilder()

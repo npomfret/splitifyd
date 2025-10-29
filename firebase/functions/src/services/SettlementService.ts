@@ -2,31 +2,29 @@ import {
     ActivityFeedActions,
     ActivityFeedEventTypes,
     CreateSettlementRequest,
+    GroupId,
     GroupMember,
     ISOString,
     SettlementDTO,
+    SettlementId,
     SettlementWithMembers,
     toISOString,
     toSettlementId,
     UpdateSettlementRequest,
+    UserId,
 } from '@splitifyd/shared';
-import { GroupId, UserId } from '@splitifyd/shared';
-import { SettlementId } from '@splitifyd/shared';
-import { z } from 'zod';
-import { FirestoreCollections, HTTP_STATUS } from '../constants';
-import { FieldValue } from '../firestore-wrapper';
-import { logger } from '../logger';
+import {FirestoreCollections, HTTP_STATUS} from '../constants';
+import {FieldValue} from '../firestore-wrapper';
+import {logger} from '../logger';
 import * as measure from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { ApiError, Errors } from '../utils/errors';
-import { LoggerContext } from '../utils/logger-context';
-import { ActivityFeedService } from './ActivityFeedService';
-import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
-import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-import { GroupLockEvaluator } from './locks/GroupLockEvaluator';
-import { GroupMemberService } from './GroupMemberService';
-import { GroupTransactionManager } from './transactions/GroupTransactionManager';
-import { UserService } from './UserService2';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
+import {ApiError, Errors} from '../utils/errors';
+import {LoggerContext} from '../utils/logger-context';
+import {ActivityFeedService} from './ActivityFeedService';
+import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import {GroupMemberService} from './GroupMemberService';
+import {UserService} from './UserService2';
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -42,18 +40,17 @@ export class SettlementService {
         private readonly activityFeedService: ActivityFeedService,
         private readonly userService: UserService,
         private readonly groupMemberService: GroupMemberService,
-        private readonly groupTransactionManager: GroupTransactionManager,
-        private readonly groupLockEvaluator: GroupLockEvaluator,
-    ) {}
+    ) {
+    }
+
     /**
-     * Fetch group member data for settlements
-     * Handles both current members and departed members (who have left the group)
-     * to allow viewing historical transaction data
+     * Check if settlement is locked due to departed members
+     * A settlement is locked if payer or payee is no longer in the group
      */
-    private async fetchGroupMemberData(groupId: GroupId, userId: UserId): Promise<GroupMember> {
-        return this.userService.resolveGroupMemberProfile(groupId, userId, {
-            failureContext: 'settlement member fetch',
-        });
+    private async isSettlementLocked(settlement: SettlementDTO, groupId: GroupId): Promise<boolean> {
+        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
+        return !currentMemberIds.includes(settlement.payerId)
+            || !currentMemberIds.includes(settlement.payeeId);
     }
 
     /**
@@ -180,15 +177,17 @@ export class SettlementService {
 
         // Create settlement and update group balance atomically
         timer.startPhase('transaction');
-        await this.groupTransactionManager.run(settlementData.groupId, { preloadBalance: true }, async (context) => {
-            const transaction = context.transaction;
+        await this.firestoreWriter.runTransaction(async (transaction) => {
             // ===== READ PHASE: All reads must happen before any writes =====
 
             // Verify group still exists
-            const groupInTx = context.group;
+            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, settlementData.groupId);
+            if (!groupInTx) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
-            const currentBalance = await context.getCurrentBalance();
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlementData.groupId);
 
             // ===== WRITE PHASE: All writes happen after reads =====
 
@@ -196,7 +195,7 @@ export class SettlementService {
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.SETTLEMENTS, settlementId, settlementDataToCreate);
 
             // Update group timestamp to track activity
-            await context.touchGroup();
+            await this.firestoreWriter.touchGroup(settlementData.groupId, transaction);
 
             // Apply incremental balance update
             const settlementToApply: SettlementDTO = { id: settlementId, ...settlementDataToCreate };
@@ -268,7 +267,7 @@ export class SettlementService {
         const settlement = settlementData;
 
         // Check if settlement is locked (payer or payee has left)
-        const isLocked = await this.groupLockEvaluator.isSettlementLocked(settlement);
+        const isLocked = await this.isSettlementLocked(settlement, settlement.groupId);
         if (isLocked) {
             throw new ApiError(
                 HTTP_STATUS.BAD_REQUEST,
@@ -321,8 +320,7 @@ export class SettlementService {
 
         // Update with optimistic locking and balance update
         timer.startPhase('transaction');
-        await this.groupTransactionManager.run(settlement.groupId, { preloadBalance: true }, async (context) => {
-            const transaction = context.transaction;
+        await this.firestoreWriter.runTransaction(async (transaction) => {
             // ===== READ PHASE: All reads must happen before any writes =====
 
             const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
@@ -335,10 +333,13 @@ export class SettlementService {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
             }
 
-            const groupInTx = context.group;
+            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, settlement.groupId);
+            if (!groupInTx) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+            }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
-            const currentBalance = await context.getCurrentBalance();
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
 
             // ===== WRITE PHASE: All writes happen after reads =====
 
@@ -350,7 +351,7 @@ export class SettlementService {
             });
 
             // Update group timestamp to track activity
-            await context.touchGroup();
+            await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
 
             // Apply incremental balance update with old and new settlement
             const newSettlement: SettlementDTO = { ...settlement, ...updates, updatedAt: updateTimestamp } as SettlementDTO;
@@ -383,8 +384,8 @@ export class SettlementService {
 
         // Fetch group member data for payer and payee to return complete response
         const [payerData, payeeData] = await Promise.all([
-            this.fetchGroupMemberData(updatedSettlement!.groupId, updatedSettlement!.payerId),
-            this.fetchGroupMemberData(updatedSettlement!.groupId, updatedSettlement!.payeeId),
+            this.userService.resolveGroupMemberProfile(updatedSettlement!.groupId, updatedSettlement!.payerId),
+            this.userService.resolveGroupMemberProfile(updatedSettlement!.groupId, updatedSettlement!.payeeId),
         ]);
         timer.endPhase();
 
@@ -474,8 +475,7 @@ export class SettlementService {
 
         // Soft delete with optimistic locking and balance update
         timer.startPhase('transaction');
-        await this.groupTransactionManager.run(settlement.groupId, { preloadBalance: true }, async (context) => {
-            const transaction = context.transaction;
+        await this.firestoreWriter.runTransaction(async (transaction) => {
             const currentSettlement = await this.firestoreReader.getSettlementInTransaction(transaction, settlementId);
             if (!currentSettlement) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
@@ -487,7 +487,7 @@ export class SettlementService {
             }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
-            const currentBalance = await context.getCurrentBalance();
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlement.groupId);
 
             const now = new Date().toISOString();
             const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
@@ -499,7 +499,7 @@ export class SettlementService {
             });
 
             // Update group timestamp to track activity
-            await context.touchGroup();
+            await this.firestoreWriter.touchGroup(settlement.groupId, transaction);
 
             // Apply incremental balance update to remove this settlement's contribution
             this.incrementalBalanceService.applySettlementDeleted(transaction, settlement.groupId, currentBalance, settlement, memberIds);
@@ -557,8 +557,8 @@ export class SettlementService {
         const settlements: SettlementWithMembers[] = await Promise.all(
             result.settlements.map(async (settlement) => {
                 const [payerData, payeeData] = await Promise.all([
-                    this.fetchGroupMemberData(groupId, settlement.payerId),
-                    this.fetchGroupMemberData(groupId, settlement.payeeId),
+                    this.userService.resolveGroupMemberProfile(groupId, settlement.payerId),
+                    this.userService.resolveGroupMemberProfile(groupId, settlement.payeeId),
                 ]);
 
                 // Compute lock status

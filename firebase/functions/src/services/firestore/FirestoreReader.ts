@@ -607,6 +607,46 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
+    /**
+     * Batch fetch multiple group members efficiently
+     * Returns a Map for O(1) lookups by userId
+     * @param groupId The group ID
+     * @param userIds Array of user IDs to fetch
+     * @returns Map of userId to GroupMembershipDTO (excludes members not found)
+     */
+    async getGroupMembers(groupId: GroupId, userIds: UserId[]): Promise<Map<UserId, GroupMembershipDTO>> {
+        return measureDb('GET_MEMBERS_BATCH', async () => {
+            if (userIds.length === 0) {
+                return new Map();
+            }
+
+            // Fetch all members in parallel (more efficient than sequential)
+            const memberPromises = userIds.map((userId) => this.getGroupMember(groupId, userId));
+            const members = await Promise.all(memberPromises);
+
+            // Build result map, filtering out null values (members not found)
+            const result = new Map<UserId, GroupMembershipDTO>();
+
+            for (let i = 0; i < members.length; i++) {
+                const member = members[i];
+                const userId = userIds[i];
+
+                if (member) {
+                    result.set(userId, member);
+                }
+            }
+
+            logger.info('Batch fetched group members', {
+                groupId,
+                requested: userIds.length,
+                found: result.size,
+                missing: userIds.length - result.size,
+            });
+
+            return result;
+        });
+    }
+
     async getAllGroupMemberIds(groupId: GroupId): Promise<UserId[]> {
         return measureDb('GET_MEMBER_IDS', async () => {
             // Optimized: Only fetch uid field from Firestore

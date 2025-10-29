@@ -1,32 +1,18 @@
-import {
-    ActivityFeedActions,
-    ActivityFeedEventTypes,
-    CreateExpenseRequest,
-    DELETED_AT_FIELD,
-    ExpenseDTO,
-    ExpenseFullDetailsDTO,
-    GroupDTO,
-    GroupMember,
-    toISOString,
-    UpdateExpenseRequest,
-} from '@splitifyd/shared';
-import { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
-import { toExpenseId } from '@splitifyd/shared';
-import { z } from 'zod';
-import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import {ActivityFeedActions, ActivityFeedEventTypes, CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, ExpenseId, GroupDTO, GroupId, toExpenseId, toISOString, UpdateExpenseRequest, UserId,} from '@splitifyd/shared';
+import {z} from 'zod';
+import {FirestoreCollections, HTTP_STATUS} from '../constants';
 import * as expenseValidation from '../expenses/validation';
-import { logger, LoggerContext } from '../logger';
+import type {IDocumentReference} from '../firestore-wrapper';
+import {logger, LoggerContext} from '../logger';
 import * as measure from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { PermissionEngineAsync } from '../permissions/permission-engine-async';
-import { ApiError, Errors } from '../utils/errors';
-import { ActivityFeedService } from './ActivityFeedService';
-import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
-import type { IFirestoreReader, IFirestoreWriter } from './firestore';
-import { GroupLockEvaluator } from './locks/GroupLockEvaluator';
-import { GroupMemberService } from './GroupMemberService';
-import { GroupTransactionManager } from './transactions/GroupTransactionManager';
-import { UserService } from './UserService2';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
+import {PermissionEngineAsync} from '../permissions/permission-engine-async';
+import {ApiError, Errors} from '../utils/errors';
+import {ActivityFeedService} from './ActivityFeedService';
+import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import {GroupMemberService} from './GroupMemberService';
+import {UserService} from './UserService2';
 
 /**
  * Service for managing expenses
@@ -40,8 +26,6 @@ export class ExpenseService {
         private readonly activityFeedService: ActivityFeedService,
         private readonly userService: UserService,
         private readonly groupMemberService: GroupMemberService,
-        private readonly groupTransactionManager: GroupTransactionManager,
-        private readonly groupLockEvaluator: GroupLockEvaluator,
     ) {}
 
     /**
@@ -90,14 +74,12 @@ export class ExpenseService {
     }
 
     /**
-     * Fetch participant data for expenses
-     * Handles both current members and departed members (who have left the group)
-     * to allow viewing historical transaction data
+     * Check if expense is locked due to departed members
+     * An expense is locked if any participant is no longer in the group
      */
-    private async fetchParticipantData(groupId: GroupId, userId: UserId): Promise<GroupMember> {
-        return this.userService.resolveGroupMemberProfile(groupId, userId, {
-            failureContext: 'expense participant fetch',
-        });
+    private async isExpenseLocked(expense: ExpenseDTO): Promise<boolean> {
+        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(expense.groupId);
+        return expense.participants.some(uid => !currentMemberIds.includes(uid));
     }
 
     /**
@@ -107,14 +89,20 @@ export class ExpenseService {
         return measure.measureDb('ExpenseService.getExpense', async () => this._getExpense(expenseId, userId));
     }
 
-    private async _getExpense(expenseId: ExpenseId, _userId: UserId): Promise<ExpenseDTO> {
+    private async _getExpense(expenseId: ExpenseId, userId: UserId): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         timer.startPhase('query');
         const expense = await this.fetchExpense(expenseId);
+
+        // Verify user is a member of the group that owns this expense
+        const isMember = await this.firestoreReader.verifyGroupMembership(expense.groupId, userId);
+        if (!isMember) {
+            throw Errors.NOT_FOUND('Expense');
+        }
         timer.endPhase();
 
-        const isLocked = await this.groupLockEvaluator.isExpenseLocked(expense);
+        const isLocked = await this.isExpenseLocked(expense);
 
         logger.info('expense-retrieved', {
             id: expenseId,
@@ -206,23 +194,38 @@ export class ExpenseService {
         }
 
         // Use transaction to create expense atomically and update balance
+        let createdExpenseRef: IDocumentReference | undefined;
         timer.startPhase('transaction');
-        const createdExpenseRef = await this.groupTransactionManager.run(expenseData.groupId, { preloadBalance: true }, async (context) => {
-            const transaction = context.transaction;
-            const groupInTx = context.group;
-            const currentBalance = await context.getCurrentBalance();
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            // ===== READ PHASE: All reads must happen before any writes =====
 
-            const expenseRef = this.firestoreWriter.createInTransaction(
+            // Re-verify group exists within transaction - using DTO method
+            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expenseData.groupId);
+
+            if (!groupInTx) {
+                throw Errors.NOT_FOUND('Group');
+            }
+
+            // Read current balance BEFORE any writes (Firestore transaction rule)
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expenseData.groupId);
+
+            // ===== WRITE PHASE: All writes happen after reads =====
+
+            // Create the expense with the pre-generated ID
+            createdExpenseRef = this.firestoreWriter.createInTransaction(
                 transaction,
                 FirestoreCollections.EXPENSES,
-                expenseId,
+                expenseId, // Use the specific ID we generated
                 expense,
             );
 
-            await context.touchGroup();
+            // Update group timestamp to track activity
+            await this.firestoreWriter.touchGroup(expenseData.groupId, transaction);
 
+            // Apply incremental balance update
             this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expense, memberIds);
 
+            // Record activity feed items
             const activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId: expenseData.groupId,
                 groupName: groupInTx.name,
@@ -238,10 +241,13 @@ export class ExpenseService {
             });
 
             this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
-
-            return expenseRef;
         });
         timer.endPhase();
+
+        // Ensure the expense was created successfully
+        if (!createdExpenseRef) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'EXPENSE_CREATION_FAILED', 'Failed to create expense');
+        }
 
         // Set business context for logging
         LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: createdExpenseRef.id });
@@ -269,7 +275,7 @@ export class ExpenseService {
         const expense = await this.fetchExpense(expenseId);
 
         // Check if expense is locked (any participant has left)
-        const isLocked = await this.groupLockEvaluator.isExpenseLocked(expense);
+        const isLocked = await this.isExpenseLocked(expense);
         if (isLocked) {
             throw new ApiError(
                 HTTP_STATUS.BAD_REQUEST,
@@ -342,8 +348,7 @@ export class ExpenseService {
 
         // Use transaction to update expense atomically with optimistic locking and balance update
         timer.startPhase('transaction');
-        await this.groupTransactionManager.run(expense.groupId, { preloadBalance: true }, async (context) => {
-            const transaction = context.transaction;
+        await this.firestoreWriter.runTransaction(async (transaction) => {
             // ===== READ PHASE: All reads must happen before any writes =====
 
             // Re-fetch expense within transaction to check for concurrent updates
@@ -361,18 +366,20 @@ export class ExpenseService {
             }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
-            const currentBalance = await context.getCurrentBalance();
+            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
 
             // ===== WRITE PHASE: All writes happen after reads =====
 
             // Create history entry with ISO timestamp
             // Filter out undefined values for Firestore compatibility
+            const cleanExpenseData = Object.fromEntries(Object.entries(expense).filter(([, value]) => value !== undefined));
+
             // Save history and update expense
             // FirestoreWriter will convert ISO strings to Timestamps
             this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, updates);
 
             // Update group timestamp to track activity
-            await context.touchGroup();
+            await this.firestoreWriter.touchGroup(expense.groupId, transaction);
 
             // Apply incremental balance update with old and new expense
             const newExpense: ExpenseDTO = { ...expense, ...updates };
@@ -526,8 +533,7 @@ export class ExpenseService {
         try {
             // Use transaction to soft delete expense atomically and update balance
             timer.startPhase('transaction');
-            await this.groupTransactionManager.run(expense.groupId, { preloadBalance: true }, async (context) => {
-                const transaction = context.transaction;
+            await this.firestoreWriter.runTransaction(async (transaction) => {
                 // ===== READ PHASE: All reads must happen before any writes =====
 
                 // Do ALL reads first - using DTO methods
@@ -536,10 +542,14 @@ export class ExpenseService {
                     throw Errors.NOT_FOUND('Expense');
                 }
 
-                const groupInTx = context.group;
+                // Get group doc to ensure it exists (though we already checked above)
+                const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expense.groupId);
+                if (!groupInTx) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
+                }
 
                 // Read current balance BEFORE any writes (Firestore transaction rule)
-                const currentBalance = await context.getCurrentBalance();
+                const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
 
                 // Check for concurrent updates (compare ISO strings)
                 if (expense.updatedAt !== currentExpense.updatedAt) {
@@ -557,7 +567,7 @@ export class ExpenseService {
                 });
 
                 // Update group timestamp to track activity
-                await context.touchGroup();
+                await this.firestoreWriter.touchGroup(expense.groupId, transaction);
 
                 // Apply incremental balance update to remove this expense's contribution
                 this.incrementalBalanceService.applyExpenseDeleted(transaction, expense.groupId, currentBalance, expense, memberIds);
@@ -599,7 +609,7 @@ export class ExpenseService {
      * Get consolidated expense details (expense + group + members)
      * Eliminates race conditions by providing all needed data in one request
      */
-    async getExpenseFullDetails(expenseId: ExpenseId, _userId: UserId): Promise<ExpenseFullDetailsDTO> {
+    async getExpenseFullDetails(expenseId: ExpenseId, userId: UserId): Promise<ExpenseFullDetailsDTO> {
         const timer = new PerformanceTimer();
 
         // Fetch the expense
@@ -607,13 +617,20 @@ export class ExpenseService {
         const expense = await this.fetchExpense(expenseId);
 
         // Get group document for permission check and data
-        const groupData = await this.firestoreReader.getGroup(expense.groupId);
+        const groupId = expense.groupId;
+        const groupData = await this.firestoreReader.getGroup(groupId);
         if (!groupData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
         if (!groupData?.name) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Invalid group data');
+        }
+
+        // Verify user is a member of the group that owns this expense
+        const isMember = await this.firestoreReader.verifyGroupMembership(groupId, userId);
+        if (!isMember) {
+            throw Errors.NOT_FOUND('Expense');
         }
 
         // Transform group data using same pattern as groups handler (without deprecated members field)
@@ -631,17 +648,16 @@ export class ExpenseService {
         };
 
         // Fetch participant data by UID (works for current AND departed members)
-        const participantData = await Promise.all(
-            expense.participants.map((uid) => this.fetchParticipantData(expense.groupId, uid)),
-        );
+        const userIds = expense.participants;
+        const participantData = await this.userService.resolveGroupMemberProfiles(groupId, userIds);
 
-        const isLocked = await this.groupLockEvaluator.isExpenseLocked(expense);
+        const isLocked = await this.isExpenseLocked(expense);
         timer.endPhase();
 
         // Format expense response
         logger.info('expense-full-details-retrieved', {
             expenseId,
-            groupId: expense.groupId,
+            groupId: groupId,
             timings: timer.getTimings(),
         });
 
@@ -654,6 +670,7 @@ export class ExpenseService {
             members: { members: participantData }, // Wrap in object to match ExpenseFullDetailsDTO.members structure
         };
     }
+
 }
 
 // ServiceRegistry handles service instantiation
