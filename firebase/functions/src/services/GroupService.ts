@@ -38,6 +38,7 @@ import type {GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter} from '
 import {GroupMemberService} from './GroupMemberService';
 import {GroupShareService} from './GroupShareService';
 import {SettlementService} from './SettlementService';
+import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import {UserService} from './UserService2';
 
 /**
@@ -54,6 +55,7 @@ export class GroupService {
         private readonly groupShareService: GroupShareService,
         private readonly commentService: CommentService,
         private readonly activityFeedService: ActivityFeedService,
+        private readonly groupTransactionManager: GroupTransactionManager,
     ) {}
 
     /**
@@ -355,7 +357,8 @@ export class GroupService {
 
         // Atomic transaction: create group, member, and balance documents
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(async (transaction) => {
+        await this.groupTransactionManager.run(groupId, { preloadBalance: false, requireGroup: false }, async (context) => {
+            const transaction = context.transaction;
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUPS, groupId, documentToWrite);
 
             // Write to top-level collection for improved querying
@@ -414,11 +417,12 @@ export class GroupService {
 
         // Update with optimistic locking and transaction retry logic
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(async (transaction) => {
+        await this.groupTransactionManager.run(groupId, { preloadBalance: false }, async (context) => {
+            const transaction = context.transaction;
             // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
             // PHASE 1: ALL READS FIRST
-            const currentGroup = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
+            const currentGroup = context.group;
             if (!currentGroup) {
                 logger.info('Group not found during soft delete transaction; assuming already deleted', { groupId });
                 return;
@@ -519,7 +523,8 @@ export class GroupService {
         };
         const now = new Date().toISOString();
 
-        await this.firestoreWriter.runTransaction(async (transaction) => {
+        await this.groupTransactionManager.run(groupId, { preloadBalance: false }, async (context) => {
+            const transaction = context.transaction;
             const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
             if (!groupInTx) {
                 throw Errors.NOT_FOUND('Group');
@@ -577,8 +582,9 @@ export class GroupService {
         let performedDeletion = false;
 
         // Fetch existing activity items for all members (MUST be before transaction writes)
-        await this.firestoreWriter.runTransaction(async (transaction) => {
-            const currentGroup = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
+        await this.groupTransactionManager.run(groupId, { preloadBalance: false }, async (context) => {
+            const transaction = context.transaction;
+            const currentGroup = context.group;
             if (!currentGroup) {
                 throw Errors.NOT_FOUND('Group');
             }

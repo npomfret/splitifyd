@@ -9,13 +9,19 @@ import { ApiError, Errors } from '../utils/errors';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
 import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 
 export class GroupMemberService {
+    private readonly groupTransactionManager: GroupTransactionManager;
+
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly activityFeedService: ActivityFeedService,
-    ) {}
+        groupTransactionManager?: GroupTransactionManager,
+    ) {
+        this.groupTransactionManager = groupTransactionManager ?? new GroupTransactionManager(this.firestoreReader, this.firestoreWriter);
+    }
 
     async getGroupAccessContext(
         groupId: GroupId,
@@ -94,7 +100,8 @@ export class GroupMemberService {
                 }
             }
 
-            await this.firestoreWriter.runTransaction(async (transaction) => {
+            await this.groupTransactionManager.run(groupId, { preloadBalance: false, requireGroup: false }, async (context) => {
+                const transaction = context.transaction;
                 const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
                 const membershipSnap = await transaction.get(membershipRef);
@@ -107,7 +114,7 @@ export class GroupMemberService {
                     groupUpdatedAt: FieldValue.serverTimestamp(),
                 });
 
-                await this.firestoreWriter.touchGroup(groupId, transaction);
+                await context.touchGroup();
             });
 
             LoggerContext.setBusinessContext({ groupId });
@@ -155,7 +162,8 @@ export class GroupMemberService {
             const actorDisplayName = targetMembership.groupDisplayName || 'Unknown member';
             const now = toISOString(new Date().toISOString());
 
-            await this.firestoreWriter.runTransaction(async (transaction) => {
+            await this.groupTransactionManager.run(groupId, { preloadBalance: false, requireGroup: false }, async (context) => {
+                const transaction = context.transaction;
                 const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
                 const membershipSnap = await transaction.get(membershipRef);
@@ -180,7 +188,7 @@ export class GroupMemberService {
                     groupUpdatedAt: FieldValue.serverTimestamp(),
                 });
 
-                await this.firestoreWriter.touchGroup(groupId, transaction);
+                await context.touchGroup();
 
                 if (recipientIds.length > 0) {
                     const activityItem = this.activityFeedService.buildGroupActivityItem({
@@ -230,7 +238,8 @@ export class GroupMemberService {
                 throw Errors.NOT_FOUND('Group member');
             }
 
-            await this.firestoreWriter.runTransaction(async (transaction) => {
+            await this.groupTransactionManager.run(groupId, { preloadBalance: false, requireGroup: false }, async (context) => {
+                const transaction = context.transaction;
                 const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
                 const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
                 const membershipSnap = await transaction.get(membershipRef);
@@ -239,7 +248,7 @@ export class GroupMemberService {
                 }
 
                 transaction.delete(membershipRef);
-                await this.firestoreWriter.touchGroup(groupId, transaction);
+                await context.touchGroup();
             });
 
             LoggerContext.setBusinessContext({ groupId });
@@ -375,7 +384,8 @@ export class GroupMemberService {
 
         // Atomically update group, delete membership, clean up notifications, and emit activity
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(async (transaction) => {
+        await this.groupTransactionManager.run(groupId, { preloadBalance: false, requireGroup: false }, async (context) => {
+            const transaction = context.transaction;
             const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
             const memberIdsInTransaction = membershipsSnapshot.docs.map((doc) => (doc.data() as { uid: UserId; }).uid);
             const remainingMemberIds = memberIdsInTransaction.filter((uid) => uid !== targetUserId);
@@ -386,7 +396,7 @@ export class GroupMemberService {
             const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
             transaction.delete(membershipRef);
 
-            await this.firestoreWriter.touchGroup(groupId, transaction);
+            await context.touchGroup();
 
             if (activityRecipients.length > 0) {
                 const activityItem = this.activityFeedService.buildGroupActivityItem({

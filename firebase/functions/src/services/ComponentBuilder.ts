@@ -16,6 +16,7 @@ import { PolicyService } from './PolicyService';
 import { SettlementService } from './SettlementService';
 import { UserPolicyService } from './UserPolicyService';
 import { UserService } from './UserService2';
+import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 
 export class ComponentBuilder {
     // Base infrastructure - created once
@@ -29,6 +30,7 @@ export class ComponentBuilder {
     private userPolicyService?: UserPolicyService;
     private groupMemberService?: GroupMemberService;
     private groupShareService?: GroupShareService;
+    private groupTransactionManager?: GroupTransactionManager;
     private incrementalBalanceService?: IncrementalBalanceService;
     private activityFeedService?: ActivityFeedService;
     private firestoreReader: IFirestoreReader;
@@ -76,6 +78,7 @@ export class ComponentBuilder {
                 this.buildGroupShareService(),
                 this.buildCommentService(),
                 this.buildActivityFeedService(),
+                this.buildGroupTransactionManager(),
             );
         }
         return this.groupService;
@@ -90,6 +93,7 @@ export class ComponentBuilder {
                 this.buildActivityFeedService(),
                 this.buildUserService(),
                 this.buildGroupMemberService(),
+                this.buildGroupTransactionManager(),
             );
         }
         return this.expenseService;
@@ -104,6 +108,7 @@ export class ComponentBuilder {
                 this.buildActivityFeedService(),
                 this.buildUserService(),
                 this.buildGroupMemberService(),
+                this.buildGroupTransactionManager(),
             );
         }
         return this.settlementService;
@@ -147,6 +152,13 @@ export class ComponentBuilder {
         return this.groupMemberService;
     }
 
+    buildGroupTransactionManager(): GroupTransactionManager {
+        if (!this.groupTransactionManager) {
+            this.groupTransactionManager = new GroupTransactionManager(this.buildFirestoreReader(), this.buildFirestoreWriter());
+        }
+        return this.groupTransactionManager;
+    }
+
     buildIncrementalBalanceService(): IncrementalBalanceService {
         if (!this.incrementalBalanceService) {
             this.incrementalBalanceService = new IncrementalBalanceService(this.buildFirestoreWriter());
@@ -162,6 +174,7 @@ export class ComponentBuilder {
                 this.buildGroupMemberService(),
                 this.buildActivityFeedService(),
                 this.buildUserService(),
+                this.buildGroupTransactionManager(),
             );
         }
         return this.groupShareService;

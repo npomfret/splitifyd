@@ -13,6 +13,7 @@ import { generateShareToken, newTopLevelMembershipDocId } from '../utils/idGener
 import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import type { GroupMemberService } from './GroupMemberService';
+import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import { UserService } from './UserService2';
 
 const SHARE_LINK_DEFAULT_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 1 day
@@ -20,13 +21,18 @@ const SHARE_LINK_MAX_EXPIRATION_MS = 5 * 24 * 60 * 60 * 1000; // 5 days
 const SHARE_LINK_EXPIRATION_DRIFT_MS = 5 * 60 * 1000; // Allow slight client/server drift (5 minutes)
 
 export class GroupShareService {
+    private readonly groupTransactionManager: GroupTransactionManager;
+
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
         private readonly activityFeedService: ActivityFeedService,
         private readonly userService: UserService,
-    ) {}
+        groupTransactionManager?: GroupTransactionManager,
+    ) {
+        this.groupTransactionManager = groupTransactionManager ?? new GroupTransactionManager(this.firestoreReader, this.firestoreWriter);
+    }
 
     private resolveExpirationTimestamp(requestedExpiresAt?: string): ISOString {
         const nowMs = Date.now();
@@ -215,7 +221,8 @@ export class GroupShareService {
         timer.endPhase();
 
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(async (transaction) => {
+        await this.groupTransactionManager.run(groupId, { preloadBalance: false }, async (context) => {
+            const transaction = context.transaction;
             // CRITICAL: All reads must happen before all writes in Firestore transactions
 
             // Read 1: Check group exists
@@ -413,8 +420,9 @@ export class GroupShareService {
 
         // Atomic transaction: check group exists and create member subcollection
         timer.startPhase('transaction');
-        const result = await this.firestoreWriter.runTransaction(async (transaction) => {
-            const groupInTransaction = await this.firestoreReader.getGroupInTransaction(transaction, groupId);
+        const result = await this.groupTransactionManager.run(groupId, { preloadBalance: false }, async (context) => {
+            const transaction = context.transaction;
+            const groupInTransaction = context.group;
             if (!groupInTransaction) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
@@ -422,7 +430,7 @@ export class GroupShareService {
             const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
 
             // Update group timestamp to reflect membership change
-            await this.firestoreWriter.touchGroup(groupId, transaction);
+            await context.touchGroup();
 
             // Write to top-level collection for improved querying (using ISO strings - DTOs)
             const topLevelMemberDoc = {

@@ -15,7 +15,6 @@ import { toExpenseId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import * as expenseValidation from '../expenses/validation';
-import type { IDocumentReference } from '../firestore-wrapper';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
@@ -25,6 +24,7 @@ import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
+import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import { UserService } from './UserService2';
 
 /**
@@ -39,6 +39,7 @@ export class ExpenseService {
         private readonly activityFeedService: ActivityFeedService,
         private readonly userService: UserService,
         private readonly groupMemberService: GroupMemberService,
+        private readonly groupTransactionManager: GroupTransactionManager,
     ) {}
 
     /**
@@ -212,38 +213,23 @@ export class ExpenseService {
         }
 
         // Use transaction to create expense atomically and update balance
-        let createdExpenseRef: IDocumentReference | undefined;
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(async (transaction) => {
-            // ===== READ PHASE: All reads must happen before any writes =====
+        const createdExpenseRef = await this.groupTransactionManager.run(expenseData.groupId, { preloadBalance: true }, async (context) => {
+            const transaction = context.transaction;
+            const groupInTx = context.group;
+            const currentBalance = await context.getCurrentBalance();
 
-            // Re-verify group exists within transaction - using DTO method
-            const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expenseData.groupId);
-
-            if (!groupInTx) {
-                throw Errors.NOT_FOUND('Group');
-            }
-
-            // Read current balance BEFORE any writes (Firestore transaction rule)
-            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expenseData.groupId);
-
-            // ===== WRITE PHASE: All writes happen after reads =====
-
-            // Create the expense with the pre-generated ID
-            createdExpenseRef = this.firestoreWriter.createInTransaction(
+            const expenseRef = this.firestoreWriter.createInTransaction(
                 transaction,
                 FirestoreCollections.EXPENSES,
-                expenseId, // Use the specific ID we generated
+                expenseId,
                 expense,
             );
 
-            // Update group timestamp to track activity
-            await this.firestoreWriter.touchGroup(expenseData.groupId, transaction);
+            await context.touchGroup();
 
-            // Apply incremental balance update
             this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expense, memberIds);
 
-            // Record activity feed items
             const activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId: expenseData.groupId,
                 groupName: groupInTx.name,
@@ -259,13 +245,10 @@ export class ExpenseService {
             });
 
             this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+
+            return expenseRef;
         });
         timer.endPhase();
-
-        // Ensure the expense was created successfully
-        if (!createdExpenseRef) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'EXPENSE_CREATION_FAILED', 'Failed to create expense');
-        }
 
         // Set business context for logging
         LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: createdExpenseRef.id });
@@ -366,7 +349,8 @@ export class ExpenseService {
 
         // Use transaction to update expense atomically with optimistic locking and balance update
         timer.startPhase('transaction');
-        await this.firestoreWriter.runTransaction(async (transaction) => {
+        await this.groupTransactionManager.run(expense.groupId, { preloadBalance: true }, async (context) => {
+            const transaction = context.transaction;
             // ===== READ PHASE: All reads must happen before any writes =====
 
             // Re-fetch expense within transaction to check for concurrent updates
@@ -384,20 +368,18 @@ export class ExpenseService {
             }
 
             // Read current balance BEFORE any writes (Firestore transaction rule)
-            const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
+            const currentBalance = await context.getCurrentBalance();
 
             // ===== WRITE PHASE: All writes happen after reads =====
 
             // Create history entry with ISO timestamp
             // Filter out undefined values for Firestore compatibility
-            const cleanExpenseData = Object.fromEntries(Object.entries(expense).filter(([, value]) => value !== undefined));
-
             // Save history and update expense
             // FirestoreWriter will convert ISO strings to Timestamps
             this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}`, updates);
 
             // Update group timestamp to track activity
-            await this.firestoreWriter.touchGroup(expense.groupId, transaction);
+            await context.touchGroup();
 
             // Apply incremental balance update with old and new expense
             const newExpense: ExpenseDTO = { ...expense, ...updates };
@@ -551,7 +533,8 @@ export class ExpenseService {
         try {
             // Use transaction to soft delete expense atomically and update balance
             timer.startPhase('transaction');
-            await this.firestoreWriter.runTransaction(async (transaction) => {
+            await this.groupTransactionManager.run(expense.groupId, { preloadBalance: true }, async (context) => {
+                const transaction = context.transaction;
                 // ===== READ PHASE: All reads must happen before any writes =====
 
                 // Do ALL reads first - using DTO methods
@@ -560,14 +543,10 @@ export class ExpenseService {
                     throw Errors.NOT_FOUND('Expense');
                 }
 
-                // Get group doc to ensure it exists (though we already checked above)
-                const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expense.groupId);
-                if (!groupInTx) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
-                }
+                const groupInTx = context.group;
 
                 // Read current balance BEFORE any writes (Firestore transaction rule)
-                const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expense.groupId);
+                const currentBalance = await context.getCurrentBalance();
 
                 // Check for concurrent updates (compare ISO strings)
                 if (expense.updatedAt !== currentExpense.updatedAt) {
@@ -585,7 +564,7 @@ export class ExpenseService {
                 });
 
                 // Update group timestamp to track activity
-                await this.firestoreWriter.touchGroup(expense.groupId, transaction);
+                await context.touchGroup();
 
                 // Apply incremental balance update to remove this expense's contribution
                 this.incrementalBalanceService.applyExpenseDeleted(transaction, expense.groupId, currentBalance, expense, memberIds);
