@@ -22,13 +22,15 @@
 
 ## Commands
 
+Avoid runnning entier suites, they are often very slow.  Focus on running specific test cases.
+
 ```bash
 # Root (all workspaces)
 npm run test              # All tests
 npm run test:unit         # Unit tests only
-npm run test:integration  # Integration tests (needs emulator running)
+npm run test:integration  # Integration tests
 
-# Single test file
+# Single unit test:
 npx vitest run src/__tests__/unit/your-test.test.ts
 
 # Webapp-v2 Playwright tests (MUST use wrapper script)
@@ -38,12 +40,9 @@ cd webapp-v2
 ./run-test.sh login --headed           # Debug with visible browser
 ./run-test.sh login --repeat 10        # Flakiness detection
 
-# E2E tests
+# E2E tests (edit the run-until-fail.sh file to specify a test file and test case)
 cd e2e-tests
 ./run-until-fail.sh                    # Debug flaky tests
-npm run test:e2e:normal-flow          # Happy path
-npm run test:e2e:error-testing        # Error handling
-npm run test:e2e:edge-cases           # Edge cases
 ```
 
 ## Build System: No-Compile Development
