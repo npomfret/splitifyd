@@ -14,7 +14,7 @@
  */
 
 import type { Auth } from 'firebase-admin/auth';
-import type { CreateRequest, DecodedIdToken, GetUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, GetUsersResult, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 import { IAuthService } from './IAuthService';
 
@@ -62,7 +62,7 @@ import { measureDb } from '../../monitoring/measure';
 import { ApiError, Errors } from '../../utils/errors';
 import { LoggerContext } from '../../utils/logger-context';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
-import { validateBatchUserIds, validateCreateUser, validateCustomClaims, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
+import { validateBatchUserIds, validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateListUsersOptions, validateUpdateUser, validateUserId } from './auth-validation';
 
 export interface IdentityToolkitConfig {
     apiKey: string;
@@ -88,7 +88,7 @@ export class FirebaseAuthService implements IAuthService {
     constructor(
         private readonly auth: Auth,
         identityToolkit: IdentityToolkitConfig,
-        private readonly enableValidation: boolean = true,
+        private readonly enableValidation: boolean = true,// todo: wtf is this?
         private readonly enableMetrics: boolean = true,
     ) {
         this.identityToolkitConfig = {
@@ -259,6 +259,32 @@ export class FirebaseAuthService implements IAuthService {
         );
     }
 
+    async getUserByEmail(email: string): Promise<UserRecord | null> {
+        const context = this.createContext('getUserByEmail');
+
+        const validatedEmail = this.enableValidation ? validateEmailAddress(email) : email;
+
+        LoggerContext.update({
+            operation: 'getUserByEmail',
+            email: validatedEmail,
+        });
+
+        return this.executeWithMetrics(
+            'FirebaseAuthService.getUserByEmail',
+            async () => {
+                try {
+                    return await this.auth.getUserByEmail(validatedEmail);
+                } catch (error: any) {
+                    if (error.code === 'auth/user-not-found') {
+                        return null;
+                    }
+                    throw error;
+                }
+            },
+            context,
+        );
+    }
+
     async getUsers(uids: { uid: string; }[]): Promise<GetUsersResult> {
         const context = this.createContext('getUsers');
 
@@ -277,6 +303,28 @@ export class FirebaseAuthService implements IAuthService {
                 const result = await this.auth.getUsers(uids);
 
                 return result;
+            },
+            context,
+        );
+    }
+
+    async listUsers(options: { limit?: number; pageToken?: string; } = {}): Promise<ListUsersResult> {
+        const context = this.createContext('listUsers');
+
+        const validatedOptions = this.enableValidation ? validateListUsersOptions(options) : options;
+        const limit = validatedOptions.limit ?? 50;
+        const pageToken = validatedOptions.pageToken;
+
+        LoggerContext.update({
+            operation: 'listUsers',
+            limit,
+            pageToken,
+        });
+
+        return this.executeWithMetrics(
+            'FirebaseAuthService.listUsers',
+            async () => {
+                return this.auth.listUsers(limit, pageToken);
             },
             context,
         );

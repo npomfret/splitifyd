@@ -48,6 +48,13 @@ const batchUserIdsSchema = z
     .min(1, 'At least one user ID is required')
     .max(1000, 'At most 1000 user IDs are allowed');
 
+const listUsersOptionsSchema = z
+    .object({
+        limit: z.number().int('Limit must be an integer').min(1, 'Limit must be at least 1').max(1000, 'Limit must be at most 1000').optional(),
+        pageToken: z.string().min(1, 'Page token must not be empty').optional(),
+    })
+    .partial();
+
 const mapAuthValidationError = (error: z.ZodError, defaultCode: AuthErrorCode): never => {
     const firstError = error.issues[0];
     const field = firstError.path[0];
@@ -157,6 +164,26 @@ export function validateCustomClaims(claims: unknown): Record<string, unknown> {
     }
 
     return result.data ?? {};
+}
+
+export function validateEmailAddress(email: unknown): string {
+    const result = EmailSchema.safeParse(email);
+
+    if (!result.success) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_EMAIL, result.error.issues[0].message);
+    }
+
+    return result.data;
+}
+
+export function validateListUsersOptions(options: unknown): { limit?: number; pageToken?: string } {
+    const result = listUsersOptionsSchema.safeParse(options ?? {});
+
+    if (!result.success) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_ARGUMENT, result.error.issues[0].message);
+    }
+
+    return result.data;
 }
 
 /**

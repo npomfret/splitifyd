@@ -359,10 +359,6 @@ export class UserService {
                 emailVerified: false,
             });
 
-            await this.firestoreWriter.updateUser(userId, {
-                email: validatedData.newEmail,
-            });
-
             logger.info('Email changed successfully');
 
             return this._getProfile(userId);
@@ -473,7 +469,6 @@ export class UserService {
             // Note: uid is the document ID, not a field. emailVerified is managed by Firebase Auth.
             const now = toISOString(new Date().toISOString());
             const userDoc: FirestoreUserCreateData = {
-                email: userRegistration.email,
                 role: SystemUserRoles.SYSTEM_USER, // Default role for new users
                 createdAt: now,
                 updatedAt: now,

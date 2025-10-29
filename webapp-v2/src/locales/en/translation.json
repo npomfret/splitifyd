@@ -1,1541 +1,1572 @@
 {
-  "pagination": {
-    "previous": "Previous",
-    "next": "Next",
-    "page": "Page"
-  },
-  "common": {
-    "loading": "Loading...",
-    "cancel": "Cancel",
-    "save": "Save",
-    "delete": "Delete",
-    "edit": "Edit",
-    "close": "Close",
-    "confirm": "Confirm",
-    "back": "Back",
-    "next": "Next",
-    "previous": "Previous",
-    "submit": "Submit",
-    "search": "Search",
-    "select": "Select",
-    "selectAll": "Select all",
-    "none": "None",
-    "all": "All",
-    "yes": "Yes",
-    "no": "No",
-    "ok": "OK",
-    "error": "Error",
-    "success": "Success",
-    "warning": "Warning",
-    "info": "Info",
-    "unknown": "Unknown",
-    "unknownUser": "Unknown User",
-    "includeDeleted": "Include deleted",
-    "you": "You",
-    "youSuffix": " (You)",
-    "required": "*",
-    "optional": "(optional)",
-    "or": "or",
-    "and": "and",
-    "copy": "Copy",
-    "share": "Share",
-    "dismiss": "Dismiss",
-    "dismissAlert": "Dismiss alert",
-    "justNow": "just now",
-    "active": "Active",
-    "inactive": "Inactive",
-    "total": "Total",
-    "member": "Member",
-    "members": "Members",
-    "user": "User",
-    "group": "Group",
-    "groups": "Groups",
-    "recent": "Recent",
-    "settings": "Settings",
-    "understood": "Understood",
-    "titleSuffix": " - Splitifyd",
-    "placeholder": {
-      "amount": "0.00",
-      "search": "Search...",
-      "searchCurrencies": "Search currencies...",
-      "selectCurrency": "Select currency...",
-      "selectPerson": "Select person"
-    }
-  },
-
-  "landing": {
-    "hero": {
-      "title": "Effortless Bill Splitting, Simplified & Smart.",
-      "subtitle": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.",
-      "highlight": "It's 100% free, with no ads and no limits.",
-      "focusMessage": "Focus on what matters, not on the math.",
-      "appScreenshotAlt": "Splitifyd App Screenshot"
-    },
-    "features": {
-      "sectionTitle": "Everything You Need, Nothing You Don't",
-      "smartGroupManagement": {
-        "title": "Smart Group Management",
-        "description": "Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page."
-      },
-      "flexibleSplitting": {
-        "title": "Flexible Splitting",
-        "description": "Split bills equally, by exact amounts, or by percentages. We handle all the complex math, so you don't have to."
-      },
-      "debtSimplification": {
-        "title": "Debt Simplification",
-        "description": "Our algorithm minimizes transactions, showing you the simplest way to settle up, saving everyone time and hassle."
-      },
-      "freeToUse": {
-        "title": "100% Free to Use",
-        "description": "Our service is and always will be free. No hidden fees or premium tiers—just a powerful, accessible tool for everyone."
-      },
-      "unlimitedUse": {
-        "title": "Unlimited Use",
-        "description": "Create as many groups, add as many friends, and track as many expenses as you need. No restrictions, no limits."
-      },
-      "noAds": {
-        "title": "Zero Ads, Ever",
-        "description": "Enjoy a clean, focused experience. We will never sell your data or clutter your screen with ads. Your privacy is our priority."
-      }
-    },
-    "cta": {
-      "title": "Ready to Simplify Your Shared Expenses?",
-      "subtitle": "Join thousands who are already making group payments stress-free and transparent. Get started today!",
-      "signUpButton": "Sign Up for Free"
-    },
-    "disclaimer": "This is a tool for tracking expenses, not for making payments. To save and manage your expenses, you'll need a free account. We will never ask for sensitive financial details.",
-    "globe": {
-      "loadError": "Unable to load 3D globe"
-    }
-  },
-
-  "app": {
-    "loading": "Loading...",
-    "loadingPage": "Loading page...",
-    "loadingExpenseForm": "Loading expense form...",
-    "checkingAuth": "Checking authentication..."
-  },
-
-  "main": {
-    "unknownButton": "Unknown Button",
-    "unknownLink": "Unknown Link",
-    "unknownElement": "Unknown Element",
-    "linkClick": "Link clicked: ",
-    "elementClick": "Element clicked: "
-  },
-
-  "createGroupModal": {
-    "title": "Create a new group",
-    "groupNameLabel": "Group Name",
-    "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
-    "groupNameHelpText": "Choose a name that describes what you'll be splitting expenses for.",
-    "groupDescriptionLabel": "Description (optional)",
-    "groupDescriptionPlaceholder": "Add any details about this group...",
-    "groupDescriptionHelpText": "Optional description to help members understand the group's purpose.",
-    "closeButtonAriaLabel": "Close modal",
-    "cancelButton": "Cancel",
-    "submitButton": "Create Group",
-    "validation": {
-      "nameRequired": "Group name is required.",
-      "nameTooShort": "Group name must be at least 2 characters long.",
-      "nameTooLong": "Group name must be less than 50 characters."
-    }
-  },
-  "loginPage": {
-    "title": "Sign In",
-    "description": "Sign in to your Splitifyd account to manage your shared expenses",
-    "rememberMe": "Remember me",
-    "forgotPassword": "Forgot your password?",
-    "submitButton": "Sign In",
-    "noAccount": "Don't have an account?",
-    "signUp": "Sign up",
-    "validation": {
-      "emailRequired": "Email is required",
-      "passwordRequired": "Password is required"
-    }
-  },
-  "registerPage": {
-    "title": "Create Account",
-    "description": "Create your Splitifyd account to start managing shared expenses",
-    "fullNameLabel": "Full Name",
-    "fullNamePlaceholder": "Enter your full name",
-    "passwordLabel": "Password",
-    "passwordPlaceholder": "Create a strong password",
-    "confirmPasswordLabel": "Confirm Password",
-    "confirmPasswordPlaceholder": "Confirm your password",
-    "acceptTerms": "I accept the",
-    "termsOfService": "Terms of Service",
-    "cookiePolicy": "Cookie Policy",
-    "submitButton": "Create Account",
-    "hasAccount": "Already have an account?",
-    "signIn": "Sign in",
-    "requiredIndicator": "*",
-    "validation": {
-      "nameRequired": "Name is required",
-      "emailRequired": "Email is required",
-      "passwordRequired": "Password is required",
-      "passwordTooShort": "Password must be at least 12 characters",
-      "passwordsNoMatch": "Passwords do not match",
-      "termsRequired": "You must accept the Terms of Service",
-      "cookiesRequired": "You must accept the Cookie Policy"
-    }
-  },
-
-  "auth": {
-    "refreshingSession": "Refreshing your session...",
-    "emailInput": {
-      "label": "Email",
-      "placeholder": "Enter your email",
-      "requiredIndicator": "*",
-      "validation": {
-        "required": "Email is required",
-        "invalid": "Please enter a valid email address"
-      }
-    },
-    "passwordInput": {
-      "label": "Password",
-      "placeholder": "Enter your password",
-      "requiredIndicator": "*",
-      "showPassword": "Show password",
-      "hidePassword": "Hide password",
-      "strength": "Password strength",
-      "strengthWeak": "Weak",
-      "strengthMedium": "Medium",
-      "strengthStrong": "Strong",
-      "validation": {
-        "required": "Password is required",
-        "tooShort": "Password must be at least 12 characters"
-      }
-    },
-    "defaultLoginButton": "Continue with Email"
-  },
-
-  "dashboard": {
-    "title": "Dashboard - Splitifyd",
-    "description": "Manage your groups and expenses with Splitifyd",
-    "welcomeMessage": "Welcome to Splitifyd, {{name}}!",
-    "welcomeDescription": "Get started by creating your first group to track and split expenses with friends.",
-    "yourGroups": "Your Groups",
-    "createGroup": "Create Group",
-    "groupsFilter": {
-      "label": "Filter groups",
-      "active": "Active",
-      "archived": "Archived"
-    },
-    "groupCard": {
-      "settledUp": "All settled up!",
-      "youOwe": "You owe {{amount}}",
-      "youAreOwed": "You're owed {{amount}}",
-      "addExpenseTooltip": "Add expense to {{groupName}}",
-      "inviteTooltip": "Invite members to {{groupName}}",
-      "noRecentActivity": "No recent activity",
-      "archivedBadge": "Archived"
-    },
-    "emptyState": {
-      "title": "No groups yet",
-      "subtitle": "Create your first group to start tracking shared expenses",
-      "createButton": "Create Group"
-    },
-    "stats": {
-      "totalGroups": "Total Groups",
-      "totalExpenses": "Total Expenses",
-      "totalBalance": "Total Balance"
-    },
-    "quickActions": {
-      "title": "Quick Actions",
-      "createGroup": "Create Group",
-      "addExpense": "Add Expense"
-    }
-  },
-
-  "activityFeed": {
-    "title": "Recent Activity",
-    "loading": "Loading...",
-    "emptyState": {
-      "title": "No activity yet",
-      "description": "Activity from your groups will appear here as it happens."
-    },
-    "error": {
-      "loadFailed": "We could not load your recent activity right now. Please try again."
-    },
-    "actions": {
-      "retry": "Retry",
-      "loadMore": "Load more",
-      "loadingMore": "Loading..."
-    },
-    "labels": {
-      "actorYou": "You",
-      "unknownUser": "Someone",
-      "unknownGroup": "a group",
-      "unknownExpense": "an expense",
-      "unknownSettlement": "a settlement",
-      "commentOnGroup": "the group discussion",
-      "commentOnExpense": "the expense \"{{description}}\""
-    },
-    "events": {
-      "expense-created": "{{actor}} added {{expense}} in {{group}}",
-      "expense-updated": "{{actor}} updated {{expense}} in {{group}}",
-      "expense-deleted": "{{actor}} deleted {{expense}} from {{group}}",
-      "member-joined": "{{actor}} added {{target}} to {{group}}",
-      "member-joined-self": "{{actor}} joined {{group}}",
-      "member-left": "{{actor}} removed {{target}} from {{group}}",
-      "member-left-self": "{{actor}} left {{group}}",
-      "comment-added": "{{actor}} commented on {{target}} in {{group}}",
-      "settlement-created": "{{actor}} recorded {{settlement}} in {{group}}",
-      "settlement-updated": "{{actor}} updated {{settlement}} in {{group}}",
-      "group-updated": "{{actor}} updated the group {{group}}",
-      "group-updated-from": "{{actor}} renamed {{previous}} to {{group}}",
-      "generic": "{{actor}} made changes in {{group}}"
-    }
-  },
-
-  "group": {
-    "header": {
-      "members": "{{count}} member",
-      "members_plural": "{{count}} members",
-      "expenses": "{{count}} expense",
-      "expenses_plural": "{{count}} expenses"
-    },
-    "actions": {
-      "addExpense": "Add Expense",
-      "viewExpenses": "View Expenses",
-      "settleUp": "Settle Up",
-      "shareGroup": "Share Group",
-      "editGroup": "Edit Group",
-      "leaveGroup": "Leave Group"
-    },
-    "share": {
-      "title": "Share Group",
-      "subtitle": "Invite others to join this group",
-      "copyLink": "Copy Link",
-      "linkCopied": "Link copied to clipboard!"
-    },
-    "edit": {
-      "title": "Edit Group",
-      "warningIcon": "⚠️"
-    },
-    "leave": {
-      "title": "Leave Group",
-      "message": "Are you sure you want to leave this group?",
-      "confirmButton": "Leave Group",
-      "cancelButton": "Cancel"
-    },
-    "members": {
-      "title": "Members",
-      "addMember": "Add Member",
-      "removeMember": "Remove Member",
-      "unknownUser": "Unknown User",
-      "user": "User"
-    },
-    "expenses": {
-      "title": "Expenses",
-      "noExpenses": "No expenses yet",
-      "addFirstExpense": "Add your first expense",
-      "unknown": "Unknown"
-    },
-    "balance": {
-      "title": "Balance Summary",
-      "settledUp": "All settled up!",
-      "unknown": "Unknown"
-    }
-  },
-
-  "expense": {
-    "form": {
-      "header": {
-        "add": "Add Expense",
-        "edit": "Edit Expense"
-      },
-      "description": "Description",
-      "amount": "Amount*",
-      "whoPaid": "Who paid?",
-      "whoPaidRequired": "*",
-      "splitBetween": "Split between",
-      "splitType": {
-        "label": "How to split",
-        "equal": "Equal",
-        "exactAmounts": "Exact amounts",
-        "percentage": "Percentage"
-      },
-      "splitInstructions": {
-        "exactAmounts": "Enter exact amounts for each person:",
-        "percentage": "Enter percentage for each person:",
-        "equal": "Each person pays:"
-      },
-      "selectAll": "Select all",
-      "saveExpense": "Save Expense",
-      "updateExpense": "Update Expense",
-      "cancel": "Cancel",
-      "percentageSymbol": "%",
-      "total": "Total:",
-      "unknown": "Unknown"
-    },
-    "actions": {
-      "edit": "Edit",
-      "copy": "Copy",
-      "copyExpense": "Copy expense",
-      "share": "Share",
-      "delete": "Delete",
-      "deleteError": "Failed to delete expense"
-    },
-    "splits": {
-      "splitEqually": "Split Equally",
-      "exactAmounts": "Exact Amounts",
-      "byPercentage": "By Percentage",
-      "customSplit": "Custom Split",
-      "splitBetween": "Split between {{count}} {{people}}",
-      "person": "person",
-      "people": "people",
-      "unknown": "Unknown",
-      "paid": "Paid",
-      "owes": "Owes {{payer}}",
-      "totalPercentage": "Total: {{percentage}}%"
-    }
-  },
-
-  "settlement": {
-    "form": {
-      "title": "Record Payment",
-      "updateTitle": "Update Payment",
-      "closeModal": "Close modal",
-      "whoPaidLabel": "Who paid?",
-      "whoReceivedLabel": "Who received the payment?",
-      "amountLabel": "Amount",
-      "dateLabel": "Date",
-      "noteLabel": "Note (optional)",
-      "selectPersonPlaceholder": "Select person",
-      "amountPlaceholder": "0.00",
-      "notePlaceholder": "e.g., Venmo, cash, bank transfer",
-      "youSuffix": " (You)",
-      "cancelButton": "Cancel",
-      "updatingButton": "Updating...",
-      "recordingButton": "Recording...",
-      "summary": "{{payer}} paid {{payee}} {{amount}}",
-      "validation": {
-        "selectPayer": "Please select who paid",
-        "selectPayee": "Please select who received the payment",
-        "samePersonError": "Payer and recipient cannot be the same person",
-        "validAmountRequired": "Please enter a valid amount greater than 0",
-        "amountTooLarge": "Amount cannot exceed 999,999.99",
-        "validCurrencyRequired": "Please select a valid currency",
-        "dateRequired": "Please select a date",
-        "dateInFuture": "Date cannot be in the future",
-        "recordPaymentFailed": "Failed to record payment"
-      },
-      "unknownUser": "Unknown User"
-    },
-    "history": {
-      "title": "Settlement History",
-      "noSettlements": "No settlements yet"
-    }
-  },
-
-  "comments": {
-    "section": {
-      "title": "Comments",
-      "noComments": "No comments yet"
-    },
-    "input": {
-      "placeholder": "Add a comment...",
-      "ariaLabel": "Comment text",
-      "sendButton": "Send",
-      "sendAriaLabel": "Send comment"
-    },
-    "item": {
-      "justNow": "just now",
-      "deleteButton": "Delete comment"
-    },
-    "list": {
-      "loading": "Loading comments...",
-      "error": "Failed to load comments"
-    },
-    "commentInput": {
-      "placeholder": "Add a comment...",
-      "tooLong": "Comment is too long",
-      "addFailed": "Failed to add comment",
-      "helpText": "Press Enter to send, Shift+Enter for new line"
-    },
-    "commentItem": {
-      "recently": "recently"
-    },
-    "commentsList": {
-      "loading": "Loading comments...",
-      "empty": "No comments yet",
-      "emptySubtext": "Be the first to comment!",
-      "loadingMore": "Loading...",
-      "loadMore": "Load more comments"
-    },
-    "commentsSection": {
-      "placeholderGroup": "Add a comment to this group...",
-      "placeholderExpense": "Add a comment to this expense..."
-    }
-  },
-
-  "joinGroup": {
-    "page": {
-      "title": "Join Group",
-      "loading": "Loading..."
-    },
-    "preview": {
-      "invited": "You've been invited to join this group",
-      "member": "Member",
-      "members": "Members",
-      "active": "Active",
-      "group": "Group",
-      "groupSize": "Group Size"
-    },
-    "button": {
-      "join": "Join Group",
-      "joining": "Joining..."
-    }
-  },
-
-  "ui": {
-    "alert": {
-      "dismiss": "Dismiss alert"
-    },
-    "confirmDialog": {
-      "confirm": "Confirm",
-      "cancel": "Cancel"
-    },
-    "currencySelector": {
-      "label": "Currency",
-      "placeholder": "Select currency...",
-      "required": "*",
-      "searchPlaceholder": "Search currencies...",
-      "noResults": "No currencies found",
-      "recent": "Recent",
-      "common": "Common",
-      "allCurrencies": "All Currencies"
-    },
-    "currencyAmountInput": {
-      "unknown": "?",
-      "searchCurrencies": "Search currencies"
-    },
-    "input": {
-      "required": "*"
-    },
-    "timeInput": {
-      "label": "Time",
-      "placeholder": "Select time"
-    },
-    "categorySuggestionInput": {
-      "placeholder": "Category (optional)"
-    },
-    "button": {
-      "default": "Button"
-    },
-    "loadingSpinner": {
-      "loading": "Loading..."
-    },
-    "loadingState": {
-      "loading": "Loading...",
-      "pleaseWait": "Please wait..."
-    },
-    "errorState": {
-      "error": "An error occurred",
-      "tryAgain": "Try again",
-      "goBack": "Go back"
-    },
-    "avatar": {
-      "userAvatar": "User avatar"
-    },
-    "warningBanner": {
-      "warning": "Warning"
-    },
-    "userIndicator": {
-      "online": "Online",
-      "offline": "Offline"
-    }
-  },
-
-  "navigation": {
-    "header": {
-      "fallback": "...",
-      "dashboard": "Dashboard",
-      "groups": "Groups",
-      "settings": "Settings"
-    },
-    "footer": {
-      "copyright": "© {{year}} Splitifyd. All rights reserved.",
-      "privacy": "Privacy Policy",
-      "terms": "Terms of Service",
-      "cookies": "Cookie Policy"
-    },
-    "userMenu": {
-      "profile": "Profile",
-      "settings": "Settings",
-      "logout": "Logout",
-      "help": "Help"
-    }
-  },
-
-  "settings": {
-    "title": "Settings",
-    "description": "Manage your account settings",
-    "accountSettingsHeader": "Account Settings",
-    "accountSettingsSubheader": "Update your profile information and preferences",
-    "successMessages": {
-      "profileUpdated": "Profile updated successfully",
-      "passwordChanged": "Password changed successfully"
-    },
-    "errorMessages": {
-      "profileUpdateFailed": "Failed to update profile",
-      "passwordAndNewRequired": "Current password and new password are required",
-      "passwordTooShort": "Password must be at least 12 characters",
-      "passwordsNoMatch": "Passwords do not match",
-      "passwordSameAsCurrent": "New password must be different from current password",
-      "currentPasswordIncorrect": "Current password is incorrect",
-      "passwordChangeFailed": "Failed to change password"
-    }
-  },
-
-  "policy": {
-    "acceptance": {
-      "title": "Accept Updated Policies",
-      "subtitle": "Policy {{current}} of {{total}}: {{name}}",
-      "progress": "Progress",
-      "progressText": "{{accepted}} of {{total}} accepted",
-      "accepted": "✓ Accepted",
-      "loading": "Loading policy content...",
-      "required": "Policy Acceptance Required",
-      "instruction": "Please read the policy above and click \"Accept\" to continue using Splitify.",
-      "checkbox": "I have read and accept this {{policy}}",
-      "previousButton": "Previous",
-      "nextButton": "Next",
-      "acceptingButton": "Accepting...",
-      "acceptAllButton": "Accept All & Continue",
-      "loadError": "Failed to load policy content: {{error}}",
-      "acceptError": "Failed to accept policies: {{error}}"
-    }
-  },
-
-  "pricing": {
-    "title": "Pricing (It's Free, Seriously)",
-    "description": "Simple, transparent pricing for Splitifyd. Split bills with friends for free.",
-    "subtitle": "Choose Your Adventure",
-    "plans": {
-      "starter": {
-        "title": "The \"Just Getting Started\" Plan",
-        "features": ["Unlimited expense tracking", "Unlimited groups", "Unlimited friends (if you have that many)", "Basic debt simplification", "Access to our highly sarcastic FAQ section"],
-        "button": "Sign Up (It's Still Free)"
-      },
-      "pro": {
-        "title": "The \"I'm Basically a Pro\" Plan",
-        "badge": "MOST POPULAR",
-        "features": [
-          "Everything in \"Just Getting Started\"",
-          "Advanced debt simplification (it's the same, but sounds cooler)",
-          "Priority access to our \"we'll get to it when we get to it\" support",
-          "The warm fuzzy feeling of not paying for anything",
-          "Bragging rights to your friends about your free app"
-        ],
-        "button": "Join Now (Seriously, No Catch)"
-      },
-      "philanthropist": {
-        "title": "The \"I'm a Philanthropist\" Plan",
-        "features": [
-          "Everything in \"I'm Basically a Pro\"",
-          "The ability to tell people you're on the \"Philanthropist\" plan",
-          "A deep sense of satisfaction from using a free app",
-          "We'll send you good vibes (results may vary)",
-          "Your name will be whispered in the halls of free software fame"
-        ],
-        "button": "Get Started (It's a Gift!)"
-      }
-    },
-    "disclaimer": "Disclaimer: All plans are, and always will be, absolutely free. We just like making fancy tables. No hidden fees, no premium features, no secret handshake required. Just pure, unadulterated free expense splitting. You're welcome."
-  },
-
-  "errors": {
-    "generic": "An error occurred",
-    "network": "Network error occurred",
-    "invalidLink": "Invalid Link",
-    "notFound": {
-      "page": "Page not found",
-      "group": "Group not found",
-      "expense": "Expense not found"
-    },
-    "loading": {
-      "cookiePolicy": "Error loading cookie policy",
-      "privacyPolicy": "Error loading privacy policy",
-      "terms": "Error loading terms"
-    },
-    "validation": {
-      "displayNameEmpty": "Display name cannot be empty",
-      "displayNameTooLong": "Display name must be 100 characters or less",
-      "passwordTooShort": "New password must be at least 12 characters long",
-      "passwordsNoMatch": "Passwords do not match",
-      "passwordSameAsCurrent": "New password must be different from current password",
-      "passwordAndNewRequired": "Current password and new password are required"
-    }
-  },
-
-  "seo": {
-    "cookiePolicy": {
-      "title": "Cookie Policy",
-      "description": "Cookie Policy for Splitifyd - Learn about how we use cookies and similar technologies."
-    },
-    "privacyPolicy": {
-      "title": "Privacy Policy",
-      "description": "Privacy Policy for Splitifyd - Learn about how we collect, use, and protect your information."
-    },
-    "termsOfService": {
-      "title": "Terms of Service",
-      "description": "Terms of Service for Splitifyd - Read about our policies and user agreements."
-    },
-    "lastUpdated": "Last updated: "
-  },
-
-  "expenseForm": {
-    "description": "Description",
-    "amount": "Amount*",
-    "whoPaid": "Who paid?",
-    "splitBetween": "Split between",
-    "exactAmounts": "Exact amounts",
-    "percentage": "Percentage",
-    "equal": "Equal",
-    "exactAmountsInstruction": "Enter exact amounts for each person:",
-    "percentageInstruction": "Enter percentage for each person:",
-    "selectAll": "Select all",
-    "saveExpense": "Save Expense",
-    "updateExpense": "Update Expense",
-    "cancel": "Cancel",
-    "errors": {
-      "expenseLocked": "This expense cannot be edited because one or more participants have left the group."
-    }
-  },
-  "settlementForm": {
-    "updatePayment": "Update Payment",
-    "recordPayment": "Record Payment",
-    "updateSettlement": "Update Settlement",
-    "recordSettlement": "Record Settlement",
-    "closeModal": "Close modal",
-    "whoPaidLabel": "Who paid?",
-    "whoReceivedPaymentLabel": "Who received the payment?",
-    "amountLabel": "Amount",
-    "dateLabel": "Date",
-    "noteLabel": "Note (optional)",
-    "selectPersonPlaceholder": "Select person",
-    "amountPlaceholder": "0.00",
-    "notePlaceholder": "e.g., Venmo, cash, bank transfer",
-    "youSuffix": " (You)",
-    "cancelButton": "Cancel",
-    "updatingButton": "Updating...",
-    "recordingButton": "Recording...",
-    "paymentSummary": "{{payer}} paid {{payee}} {{amount}}",
-    "validation": {
-      "selectPayer": "Please select who paid",
-      "selectPayee": "Please select who received the payment",
-      "samePersonError": "Payer and recipient cannot be the same person",
-      "validAmountRequired": "Please enter a valid amount greater than 0",
-      "amountTooLarge": "Amount cannot exceed 999,999.99",
-      "validCurrencyRequired": "Please select a valid currency",
-      "dateRequired": "Please select a date",
-      "dateInFuture": "Date cannot be in the future",
-      "recordPaymentFailed": "Failed to record payment"
-    },
-    "errors": {
-      "settlementLocked": "This settlement cannot be edited because a participant has left the group."
-    },
-    "warnings": {
-      "noDebt": "{{payer}} does not owe {{payee}} any money in {{currency}}. This settlement will create a debt in the opposite direction.",
-      "overpayment": "{{payer}} only owes {{payee}} {{debt}}, but you're settling {{amount}}. This will create a debt in the opposite direction.",
-      "underpayment": "You're recording {{amount}}, but {{payer}} will still owe {{payee}} {{remaining}} afterward. We'll keep the remaining balance updated."
-    }
-  },
-  "settlementHistory": {
-    "noPaymentsYet": "No payments recorded yet",
-    "today": "Today",
-    "yesterday": "Yesterday",
-    "editPaymentTooltip": "Edit payment",
-    "cannotEditTooltip": "Cannot edit - member has left the group",
-    "deletePaymentTooltip": "Delete payment",
-    "loadMore": "Load more",
-    "loadMorePayments": "Load More",
-    "deletePaymentTitle": "Delete Payment",
-    "deletePaymentMessage": "Are you sure you want to delete this payment of {{amount}} from {{payer}} to {{payee}}? This action cannot be undone.",
-    "deleteButton": "Delete",
-    "cancelButton": "Cancel",
-    "showAll": "Show all",
-    "noPaymentsForYou": "No payments involving you yet",
-    "deletedBy": "Deleted by"
-  },
-  "balanceSummary": {
-    "title": "Balances",
-    "loadingBalances": "Loading balances...",
-    "allSettledUp": "All settled up!",
-    "debtArrow": " → ",
-    "showOnlyMyBalances": "Show only my balances",
-    "showAll": "Show all",
-    "settleUp": "Settle",
-    "settleUpButton": "Record settlement for this debt"
-  },
-  "emptyGroupsState": {
-    "title": "No groups yet",
-    "description": "Create your first group to start splitting expenses with friends, family, or roommates.",
-    "createFirstGroup": "Create Your First Group",
-    "gettingStartedTitle": "Getting started with Splitifyd:",
-    "step1Title": "1. Create a group",
-    "step1Description": "Add friends, roommates, or travel companions",
-    "step2Title": "2. Add expenses",
-    "step2Description": "Track who paid and how to split costs",
-    "step3Title": "3. Settle up",
-    "step3Description": "See who owes what and settle balances"
-  },
-  "groupCard": {
-    "settledUp": "Settled up",
-    "youreOwed": "You're owed {{amount}}",
-    "youOwe": "You owe {{amount}}",
-    "addExpenseTooltip": "Add expense to {{groupName}}",
-    "inviteTooltip": "Invite to {{groupName}}",
-    "member": "member",
-    "members": "members",
-    "noRecentActivity": "No recent activity"
-  },
-  "quickActions": {
-    "title": "Quick Actions",
-    "createNewGroup": "Create New Group",
-    "viewAllExpenses": "View All Expenses"
-  },
-  "expenseFormHeader": {
-    "addExpense": "Add Expense",
-    "editExpense": "Edit Expense",
-    "copyExpense": "Copy Expense",
-    "cancel": "Cancel"
-  },
-  "expenseBasicFields": {
-    "title": "Expense Details",
-    "descriptionLabel": "Description",
-    "descriptionPlaceholder": "What was this expense for?",
-    "amountLabel": "Amount",
-    "categoryLabel": "Category",
-    "categoryPlaceholder": "Enter or select a category...",
-    "dateLabel": "Date",
-    "timeLabel": "Time",
-    "recentAmounts": "Recent amounts:",
-    "today": "Today",
-    "yesterday": "Yesterday",
-    "thisMorning": "This Morning",
-    "lastNight": "Last Night",
-    "addSpecificTime": "Add specific time"
-  },
-  "expensesList": {
-    "title": "Expenses",
-    "noExpensesYet": "No expenses yet. Add one to get started!",
-    "loadMore": "Load More"
-  },
-  "expenseItem": {
-    "paidBy": "Paid by",
-    "deleted": "Deleted",
-    "deletedBy": "Deleted by",
-    "copyExpense": "Copy expense"
-  },
-  "header": {
-    "logoAlt": "Splitifyd",
-    "login": "Login",
-    "signUp": "Sign Up"
-  },
-  "userMenu": {
-    "dashboard": "Dashboard",
-    "settings": "Settings",
-    "signOut": "Sign out",
-    "signingOut": "Signing out...",
-    "systemUserBadge": "System User",
-    "systemUserTooltip": "This account is used for automated or system-driven operations.",
-    "environmentLink": "env",
-    "diagnosticsLoading": "Loading diagnostics...",
-    "diagnosticsError": "Unable to load diagnostics:"
-  },
-  "footer": {
-    "companyName": "Splitifyd",
-    "companyDescription": "Split bills easily with friends and family.",
-    "productSection": "Product",
-    "pricing": "Pricing",
-    "legalSection": "Legal",
-    "termsOfService": "Terms of Service",
-    "privacyPolicy": "Privacy Policy",
-    "cookiePolicy": "Cookie Policy",
-    "copyright": "© 2025 Pomo Corp ltd. All rights reserved."
-  },
-  "groupHeader": {
-    "membersCount": "{{count}} members",
-    "membersCount_one": "{{count}} member",
-    "membersCount_other": "{{count}} members",
-    "recent": "Recent",
-    "expenses": "expenses",
-    "createdPrefix": "Created",
-    "groupSettingsAriaLabel": "Group settings",
-    "groupSecurityAriaLabel": "Security and permissions"
-  },
-  "securitySettingsModal": {
-    "title": "Security & Permissions",
-    "description": "Configure presets, manage permissions, and control member access for this group.",
-    "unsavedChanges": "You have unsaved changes. Review everything, then press Save to apply them.",
-    "presets": {
-      "activeBadge": "Active",
-      "open": {
-        "label": "Preset: Open collaboration",
-        "description": "Everyone can invite members and manage expenses without restrictions."
-      },
-      "managed": {
-        "label": "Preset: Managed group",
-        "description": "Admins approve invites and control who can edit or delete expenses."
-      }
-    },
-    "custom": {
-      "heading": "Custom permissions",
-      "unsaved": "Custom permissions changed.",
-      "saveHelper": "Changes are queued until you press Save."
-    },
-    "success": {
-      "updated": "Security settings updated.",
-      "presetApplied": "Applied the {{preset}} preset."
-    },
-    "permissions": {
-      "expenseEditing": {
-        "label": "Who can edit expenses",
-        "description": "Choose who can update any expense in the group."
-      },
-      "expenseDeletion": {
-        "label": "Who can delete expenses",
-        "description": "Restrict the ability to remove expenses."
-      },
-      "memberInvitation": {
-        "label": "Who can invite members",
-        "description": "Determine who can generate invite links."
-      },
-      "memberApproval": {
-        "label": "New member approval",
-        "description": "Require an admin review before someone joins via an invite."
-      },
-      "settingsManagement": {
-        "label": "Who can change settings",
-        "description": "Control access to administrative settings."
-      },
-      "options": {
-        "anyone": "Any member",
-        "owner-and-admin": "Creators & admins",
-        "admin-only": "Admins only",
-        "automatic": "Automatic",
-        "admin-required": "Admin approval required"
-      }
-    },
-    "memberRoles": {
-      "heading": "Member roles",
-      "admin": "Admin",
-      "member": "Member",
-      "viewer": "Viewer"
-    },
-    "pendingMembers": {
-      "heading": "Pending members",
-      "requested": "Awaiting approval",
-      "empty": "No pending requests right now.",
-      "approve": "Approve",
-      "reject": "Reject"
-    },
-    "errors": {
-      "loadPending": "Unable to load pending members. Please try again.",
-      "updatePermissions": "We couldn't update the security settings. Please try again.",
-      "updateRole": "Updating the member's role failed.",
-      "pendingAction": "We couldn't process that request. Please try again."
-    }
-  },
-  "settingsPage": {
-    "title": "Settings - Splitifyd",
-    "description": "Manage your account settings",
-    "heroLabel": "Account",
-    "accountSettingsHeader": "Account Settings",
-    "accountSettingsSubheader": "Manage your profile information and password",
-    "profileSummaryTitle": "Profile overview",
-    "profileSummaryDescription": "This information helps other members recognize you.",
-    "profileInformationHeader": "Profile Information",
-    "profileInformationSubheader": "Update the details other members see across Splitifyd.",
-    "emailSectionTitle": "Email address",
-    "emailSectionDescription": "Update the email you use to sign in and receive notifications.",
-    "currentDisplayName": "Current display name:",
-    "email": "Email:",
-    "currentEmailLabel": "Current email",
-    "displayNameLabel": "Display Name",
-    "displayNamePlaceholder": "Enter your display name",
-    "displayNameHelper": "Use your full name or a nickname that teammates will recognize.",
-    "saveChangesButton": "Save Changes",
-    "passwordHeader": "Password",
-    "passwordIntro": "Set a strong password to keep your Splitifyd account secure.",
-    "changePasswordButton": "Change Password",
-    "changeEmailButton": "Change Email",
-    "newEmailLabel": "New Email",
-    "newEmailPlaceholder": "Enter your new email address",
-    "emailPasswordLabel": "Confirm with Password",
-    "updateEmailButton": "Update Email",
-    "currentPasswordLabel": "Current Password",
-    "newPasswordLabel": "New Password",
-    "confirmNewPasswordLabel": "Confirm New Password",
-    "updatePasswordButton": "Update Password",
-    "cancelButton": "Cancel",
-    "passwordRequirementsHeading": "Strong password checklist",
-    "passwordRequirements": {
-      "length": "Use at least 12 characters.",
-      "mix": "Blend upper- and lowercase letters, numbers, and symbols.",
-      "reuse": "Avoid passwords you've used elsewhere."
-    },
-    "profileSummaryRoleLabel": "Account role",
-    "profileSummaryRoleFallback": "Member",
-    "profileSummaryRole": {
-      "system_admin": "Administrator",
-      "system_user": "Member"
-    },
-    "successMessages": {
-      "profileUpdated": "Profile updated successfully",
-      "passwordChanged": "Password changed successfully",
-      "emailChanged": "Email updated successfully. Please verify the new address."
-    },
-    "errorMessages": {
-      "profileUpdateFailed": "Failed to update profile. Please try again.",
-      "passwordAndNewRequired": "Current password and new password are required",
-      "passwordTooShort": "New password must be at least 12 characters long",
-      "passwordsNoMatch": "Passwords do not match",
-      "passwordSameAsCurrent": "New password must be different from current password",
-      "currentPasswordIncorrect": "Current password is incorrect",
-      "passwordChangeFailed": "Failed to change password. Please try again.",
-      "displayNameEmpty": "Display name cannot be empty",
-      "displayNameTooLong": "Display name must be 100 characters or less",
-      "emailRequired": "New email is required",
-      "emailInvalid": "Enter a valid email address",
-      "emailSameAsCurrent": "New email must be different from current email",
-      "emailPasswordRequired": "Enter your current password to confirm this change",
-      "emailInUse": "That email is already linked to another Splitifyd account",
-      "emailChangeFailed": "Failed to change email. Please try again."
-    }
-  },
-  "editGroupModal": {
-    "title": "Edit Group",
-    "groupNameLabel": "Group Name",
-    "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
-    "descriptionLabel": "Description (optional)",
-    "descriptionPlaceholder": "Add any details about this group...",
-    "cancelButton": "Cancel",
-    "saveChangesButton": "Save Changes",
-    "deleteGroupButton": "Delete Group",
-    "validation": {
-      "nameRequired": "Group name is required.",
-      "nameTooShort": "Group name must be at least 2 characters long.",
-      "nameTooLong": "Group name must be less than 50 characters.",
-      "updateFailed": "Failed to update group"
-    },
-    "success": {
-      "updated": "Group details updated."
-    },
-    "deleteConfirmDialog": {
-      "title": "Permanently Delete Group",
-      "warningTitle": "⚠️ Permanent Deletion Warning",
-      "warningMessage": "This will permanently delete the group and ALL associated data:",
-      "warningList": {
-        "expenses": "All expenses and their comments",
-        "settlements": "All settlements and payment history",
-        "members": "All group members and permissions",
-        "history": "All change history and activity"
-      },
-      "cannotUndo": "This action cannot be undone.",
-      "typeToConfirm": "To confirm, type the group name \"{{groupName}}\" below:",
-      "deletingMessage": "Deleting group and all associated data...",
-      "deletingText": "Deleting...",
-      "confirmText": "Delete Group Permanently",
-      "cancelText": "Cancel",
-      "deleteFailed": "Failed to delete group"
-    }
-  },
-  "groupActions": {
-    "title": "Group Actions",
-    "addExpense": "Add Expense",
-    "settleUp": "Settle Up",
-    "inviteOthers": "Invite Others",
-    "settings": "Settings",
-    "leaveGroup": "Leave Group",
-    "archive": "Archive Group",
-    "unarchive": "Unarchive Group"
-  },
-  "groupSettingsModal": {
-    "title": "Group Settings",
-    "tabs": {
-      "identity": "Display name",
-      "general": "General",
-      "security": "Security & Permissions"
-    }
-  },
-  "groupDisplayNameSettings": {
-    "title": "Group display name",
-    "description": "Choose how other members see you in this group.",
-    "inputLabel": "Display name in this group",
-    "inputPlaceholder": "Enter a unique display name",
-    "save": "Save display name",
-    "saving": "Saving...",
-    "success": "Group display name updated.",
-    "errors": {
-      "required": "Enter a display name.",
-      "tooLong": "Display name must be 50 characters or fewer.",
-      "notChanged": "Enter a different display name before saving.",
-      "taken": "That name is already in use in this group.",
-      "unknown": "Failed to update display name. Try again."
-    }
-  },
-  "membersList": {
-    "title": "Members",
-    "admin": "Admin",
-    "member": "Member",
-    "viewer": "Viewer",
-    "thisMember": "This member",
-    "leaveGroup": "Leave Group",
-    "inviteOthers": "Invite Others",
-    "inviteOthersAriaLabel": "Invite Others",
-    "leaveGroupAriaLabel": "Leave Group",
-    "removeMemberAriaLabel": "Remove member",
-    "leaveGroupDialog": {
-      "title": "Leave Group?",
-      "messageWithBalance": "You have an outstanding balance in this group. Please settle up before leaving.",
-      "messageConfirm": "Are you sure you want to leave this group? You'll need an invitation to rejoin.",
-      "confirmText": "Leave Group",
-      "cancelText": "Cancel"
-    },
-    "removeMemberDialog": {
-      "title": "Remove Member?",
-      "messageWithBalance": "{{name}} has an outstanding balance in this group. Please settle up before removing.",
-      "messageConfirm": "Are you sure you want to remove {{name}} from the group?",
-      "confirmText": "Remove",
-      "cancelText": "Cancel"
-    }
-  },
-  "shareGroupModal": {
-    "title": "Invite Others",
-    "description": "Share this link with anyone you want to join this group.",
-    "closeButtonAriaLabel": "Close modal",
-    "copyLinkTitle": "Copy link",
-    "copyLinkAriaLabel": "Copy group invite link",
-    "qrCodeDescription": "Or scan this code",
-    "expirationLabel": "Invitation link expires in…",
-    "expirationOptions": {
-      "15m": "15 minutes",
-      "1h": "1 hour",
-      "1d": "1 day",
-      "5d": "5 days"
-    },
-    "expiresAt": "Expires at {{date}}",
-    "generateNew": "Generate New",
-    "linkCopied": "Link copied to clipboard",
-    "errors": {
-      "generateLinkFailed": "Failed to generate share link. Please try again."
-    }
-  },
-  "errorState": {
-    "defaultTitle": "Something went wrong",
-    "unexpectedError": "An unexpected error occurred",
-    "tryAgainButton": "Try Again"
-  },
-  "errorBoundary": {
-    "title": "Something went wrong",
-    "unexpectedError": "An unexpected error occurred"
-  },
-  "notFoundPage": {
-    "title": "404",
-    "pageNotFound": "Page not found",
-    "pageNotFoundDescription": "The page you're looking for doesn't exist.",
-    "groupNotFound": "Group not found or you don't have access",
-    "groupNotFoundDescription": "The group you're looking for doesn't exist or you need to be invited to access it.",
-    "goToDashboard": "Go to Dashboard",
-    "goHome": "Go Home"
-  },
-  "loadingState": {
-    "defaultMessage": "Loading..."
-  },
-  "joinGroupPage": {
-    "title": "Join Group",
-    "loadingGroup": "Loading group information...",
-    "alreadyMember": "You're already a member of this group",
-    "alreadyMemberDescription": "You can go directly to the group to view expenses and balances.",
-    "joinGroup": "Join Group",
-    "goToGroup": "Go to Group",
-    "joining": "Joining...",
-    "cancel": "Cancel",
-    "welcome": "Welcome to {{groupName}}!",
-    "joinSuccess": "You've successfully joined the group. Redirecting to group page...",
-    "joinedTitle": "Joined {{groupName}} - Splitifyd",
-    "backToDashboard": "Back to Dashboard",
-    "pendingApprovalTitle": "Awaiting approval",
-    "pendingApprovalMessage": "Your request to join {{groupName}} has been sent to the group admins.",
-    "pendingApprovalHelp": "We'll notify you once you're approved. You can head back to your dashboard for now.",
-    "errors": {
-      "invalidLink": "This invitation link is invalid or has expired",
-      "groupNotFound": "This group no longer exists",
-      "alreadyMember": "You are already a member of this group",
-      "joinFailed": "Failed to join group",
-      "loadFailed": "Failed to load group information"
-    },
-    "displayNameConflict": {
-      "title": "Choose a display name for {{groupName}}",
-      "description": "Your name \"{{currentName}}\" is already in use in this group. Pick a unique name so everyone knows who's who.",
-      "currentNameLabel": "Current name",
-      "inputLabel": "New group display name",
-      "inputPlaceholder": "Enter a unique display name",
-      "submit": "Save name & join",
-      "saving": "Saving...",
-      "cancel": "Cancel",
-      "errors": {
-        "required": "Enter a display name.",
-        "tooLong": "Display name must be 50 characters or fewer.",
-        "sameAsCurrent": "Choose a different name than your current one."
-      }
-    }
-  },
-  "dashboardComponents": {
-    "groupsList": {
-      "loading": "Loading your groups...",
-      "loadFailed": "Failed to load groups",
-      "tryAgain": "Try Again",
-      "creating": "Creating group...",
-      "noArchivedTitle": "No archived groups",
-      "noArchivedDescription": "Groups you archive will appear here. Archive a group from the Active tab to hide it from your dashboard."
-    }
-  },
-  "expenseComponents": {
-    "expenseFormActions": {
-      "cancel": "Cancel",
-      "updating": "Updating...",
-      "saving": "Saving...",
-      "update": "Update Expense",
-      "save": "Save Expense"
-    },
-    "participantSelector": {
-      "label": "Split between",
-      "requiredIndicator": "*",
-      "selectAll": "Select all",
-      "selectNone": "Select none",
-      "payerSuffix": "(Payer)"
-    },
-    "payerSelector": {
-      "label": "Who paid?",
-      "requiredIndicator": "*"
-    },
-    "splitAmountInputs": {
-      "exactAmountsInstruction": "Enter exact amounts for each person:",
-      "unknown": "Unknown",
-      "dollarSign": "$",
-      "total": "Total:",
-      "percentageInstruction": "Enter percentage for each person:",
-      "percentSign": "%",
-      "equalInstruction": "Each person pays:"
-    },
-    "splitTypeSelector": {
-      "label": "How to split",
-      "equal": "Equal",
-      "exactAmounts": "Exact amounts",
-      "percentage": "Percentage"
-    },
-    "expenseActions": {
-      "edit": "Edit",
-      "copyExpense": "Copy expense",
-      "copy": "Copy",
-      "share": "Share",
-      "delete": "Delete",
-      "deleteTitle": "Delete Expense",
-      "deleteConfirm": "Are you sure you want to delete \"{{expenseName}}\"? This action cannot be undone and will affect group balances.",
-      "deleteButton": "Delete",
-      "cancel": "Cancel",
-      "deleteFailed": "Failed to delete expense",
-      "cannotEditTooltip": "Cannot edit - participant has left the group"
-    },
-    "splitBreakdown": {
-      "splitBetween": "Split between ",
-      "person": " person",
-      "people": " people",
-      "splitEqually": "Split Equally",
-      "exactAmounts": "Exact Amounts",
-      "byPercentage": "By Percentage",
-      "customSplit": "Custom Split",
-      "unknown": "Unknown",
-      "paid": "Paid",
-      "owes": "Owes ",
-      "total": "Total: "
-    }
-  },
-  "groupComponents": {
-    "editGroupModal": {
-      "warningIcon": "⚠️"
-    },
-    "groupHeader": {
-      "ago": "ago"
-    },
-    "membersListWithManagement": {
-      "user": "User"
-    },
-    "shareGroupModal": {
-      "close": "Close",
-      "checkmark": "✓",
-      "ellipsis": "..."
-    }
-  },
-  "joinGroupComponents": {
-    "groupPreview": {
-      "member": "Member",
-      "members": "Members",
-      "active": "Active",
-      "group": "Group",
-      "invitationMessage": "You've been invited to join this group"
-    },
-    "joinButton": {
-      "joining": "Joining...",
-      "joinGroup": "Join Group"
-    },
-    "membersPreview": {
-      "groupSize": "Group Size",
-      "member": "member",
-      "members": "members"
-    }
-  },
-  "landingComponents": {
-    "ctaSection": {
-      "title": "Ready to Simplify Your Shared Expenses?",
-      "subtitle": "Join thousands who are already making group payments stress-free and transparent. Get started today!",
-      "signUpButton": "Sign Up for Free"
-    },
-    "featuresGrid": {
-      "smartGroupManagement": "Smart Group Management",
-      "smartGroupDescription": "Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page.",
-      "flexibleSplitting": "Flexible Splitting",
-      "flexibleSplittingDescription": "Split bills equally, by exact amounts, or by percentages. We handle all the complex math, so you don't have to.",
-      "debtSimplification": "Debt Simplification",
-      "debtSimplificationDescription": "Our algorithm minimizes transactions, showing you the simplest way to settle up, saving everyone time and hassle.",
-      "freeToUse": "100% Free to Use",
-      "freeToUseDescription": "Our service is and always will be free. No hidden fees or premium tiers—just a powerful, accessible tool for everyone.",
-      "unlimitedUse": "Unlimited Use",
-      "unlimitedUseDescription": "Create as many groups, add as many friends, and track as many expenses as you need. No restrictions, no limits.",
-      "zeroAds": "Zero Ads, Ever",
-      "zeroAdsDescription": "Enjoy a clean, focused experience. We will never sell your data or clutter your screen with ads. Your privacy is our priority.",
-      "subtitle": "Everything You Need, Nothing You Don't"
-    },
-    "globe": {
-      "loadError": "Unable to load 3D globe"
-    },
-    "heroSection": {
-      "title": "Effortless Bill Splitting,",
-      "subtitle": "Simplified & Smart.",
-      "description": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.",
-      "subDescription": "It's 100% free, with no ads and no limits.",
-      "focus": "Focus on what matters, not on the math."
-    }
-  },
-  "policyComponents": {
-    "policyAcceptanceModal": {
-      "title": "Accept Updated Policies",
-      "policyLabel": "Policy ",
-      "of": " of ",
-      "colon": ": ",
-      "close": "Close",
-      "progress": "Progress",
-      "accepted": " accepted",
-      "acceptedIcon": "✓ Accepted",
-      "loadingContent": "Loading policy content...",
-      "acceptanceRequired": "Policy Acceptance Required",
-      "acceptanceInstructions": "Please read the policy above and click \"Accept\" to continue using Splitify.",
-      "acceptCheckbox": "I have read and accept this ",
-      "previous": "Previous",
-      "next": "Next",
-      "policiesAccepted": " policies accepted",
-      "accepting": "Accepting...",
-      "acceptAll": "Accept All & Continue",
-      "closeAriaLabel": "Close",
-      "errorTitle": "Error"
-    },
-    "policyRenderer": {
-      "bulletPoint": "• "
-    }
-  },
-  "uiComponents": {
-    "alert": {
-      "dismiss": "Dismiss alert"
-    },
-    "avatar": {
-      "unknown": "Unknown"
-    },
-    "button": {
-      "default": "Button"
-    },
-    "categorySuggestionInput": {
-      "requiredIndicator": "*",
-      "placeholder": "Enter category..."
-    },
-    "confirmDialog": {
-      "confirm": "Confirm",
-      "cancel": "Cancel"
-    },
-    "currencyAmountInput": {
-      "selectCurrency": "Select currency",
-      "searchPlaceholder": "Search by symbol, code, or country...",
-      "searchAriaLabel": "Search currencies",
-      "loading": "Loading currencies...",
-      "noCurrencies": "No currencies found",
-      "recent": "Recent",
-      "common": "Common",
-      "allCurrencies": "All Currencies",
-      "placeholder": "0.00",
-      "requiredIndicator": "*"
-    },
-    "currencySelector": {
-      "placeholder": "Select currency...",
-      "searchPlaceholder": "Search currencies",
-      "loading": "Loading currencies...",
-      "noCurrencies": "No currencies found",
-      "recent": "Recent",
-      "common": "Common",
-      "allCurrencies": "All Currencies"
-    },
-    "input": {
-      "requiredIndicator": "*"
-    },
-    "loadingSpinner": {
-      "loading": "Loading..."
-    },
-    "timeInput": {
-      "at": "at ",
-      "placeholder": "Enter time (e.g., 2:30pm)",
-      "requiredIndicator": "*"
-    },
-    "form": {
-      "submissionError": "Form submission error"
-    }
-  },
-  "pages": {
-    "addExpensePage": {
-      "errorTitle": "Error - Splitifyd",
-      "error": "Error",
-      "noGroupMessage": "No group specified. Cannot add expense without a group.",
-      "backToDashboard": "Back to Dashboard",
-      "loadingTitle": "Loading... - Splitifyd",
-      "groupNotFound": "Group Not Found",
-      "groupNotFoundMessage": "The group you're trying to add an expense to doesn't exist or you don't have access to it.",
-      "backToGroup": "Back to Group",
-      "copyExpenseTitle": "Copy Expense",
-      "editExpenseTitle": "Edit Expense",
-      "addExpenseTitle": "Add Expense",
-      "copyExpenseAction": "Copy expense",
-      "editExpenseAction": "Edit expense",
-      "addExpenseAction": "Add a new expense",
-      "titleSuffix": " - Splitifyd",
-      "titleIn": " in "
-    },
-    "expenseDetailPage": {
-      "missingGroupId": "Missing group ID",
-      "missingExpenseId": "Missing expense ID",
-      "failedToLoad": "Failed to load expense",
-      "cannotEdit": "This expense cannot be edited",
-      "containsDepartedMembers": "One or more participants have left the group. Historical records are preserved as read-only.",
-      "expenseLabel": "Expense: ",
-      "checkOutExpense": "Check out this expense: ",
-      "shareApiFailed": "Share API failed, falling back to clipboard",
-      "failedToCopy": "Failed to copy to clipboard",
-      "error": "Error",
-      "expenseNotFound": "Expense not found",
-      "backToGroup": "Back to Group",
-      "titleSeparator": " - ",
-      "expenseFor": "Expense for ",
-      "backButton": "← Back",
-      "date": "Date",
-      "ago": " ago",
-      "category": "Category",
-      "paidBy": "Paid by",
-      "unknown": "Unknown",
-      "discussion": "Discussion",
-      "receipt": "Receipt",
-      "clickToViewFullSize": "Click to view full size",
-      "added": "Added ",
-      "lastUpdated": "Last updated ",
-      "receiptViewer": "Receipt viewer",
-      "closeReceiptViewer": "Close receipt viewer",
-      "receiptFullSize": "Receipt - Full Size"
-    },
-    "groupDetailPage": {
-      "errorLoadingGroup": "Error Loading Group",
-      "backToDashboard": "Back to Dashboard",
-      "comments": "Comments",
-      "paymentHistory": "Settlements",
-      "toggleSection": "Toggle {{section}} section",
-      "titleSuffix": " - Splitifyd",
-      "manageExpensesFor": "Manage expenses for "
-    },
-    "landingPage": {
-      "title": "Effortless Bill Splitting - Splitifyd",
-      "description": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent. It's 100% free, with no ads and no limits.",
-      "disclaimer": "This is a tool for tracking expenses, not for making payments.",
-      "accountNote": " To save and manage your expenses, you'll need a free account.",
-      "privacyNote": "We will never ask for sensitive financial details.",
-      "transparencyNotice": {
-        "bold": "This is a tool for tracking expenses, not for making payments.",
-        "text": "To save and manage your expenses, you'll need a free account. We will never ask for sensitive financial details."
-      }
+    "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page"
+    },
+    "common": {
+        "loading": "Loading...",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "close": "Close",
+        "confirm": "Confirm",
+        "back": "Back",
+        "next": "Next",
+        "previous": "Previous",
+        "submit": "Submit",
+        "search": "Search",
+        "select": "Select",
+        "selectAll": "Select all",
+        "none": "None",
+        "all": "All",
+        "yes": "Yes",
+        "no": "No",
+        "ok": "OK",
+        "error": "Error",
+        "success": "Success",
+        "warning": "Warning",
+        "info": "Info",
+        "unknown": "Unknown",
+        "unknownUser": "Unknown User",
+        "includeDeleted": "Include deleted",
+        "you": "You",
+        "youSuffix": " (You)",
+        "required": "*",
+        "optional": "(optional)",
+        "or": "or",
+        "and": "and",
+        "copy": "Copy",
+        "share": "Share",
+        "dismiss": "Dismiss",
+        "dismissAlert": "Dismiss alert",
+        "justNow": "just now",
+        "active": "Active",
+        "inactive": "Inactive",
+        "total": "Total",
+        "member": "Member",
+        "members": "Members",
+        "user": "User",
+        "group": "Group",
+        "groups": "Groups",
+        "recent": "Recent",
+        "settings": "Settings",
+        "understood": "Understood",
+        "titleSuffix": " - Splitifyd",
+        "placeholder": {
+            "amount": "0.00",
+            "search": "Search...",
+            "searchCurrencies": "Search currencies...",
+            "selectCurrency": "Select currency...",
+            "selectPerson": "Select person"
+        }
+    },
+    "landing": {
+        "hero": {
+            "title": "Effortless Bill Splitting, Simplified & Smart.",
+            "subtitle": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.",
+            "highlight": "It's 100% free, with no ads and no limits.",
+            "focusMessage": "Focus on what matters, not on the math.",
+            "appScreenshotAlt": "Splitifyd App Screenshot"
+        },
+        "features": {
+            "sectionTitle": "Everything You Need, Nothing You Don't",
+            "smartGroupManagement": {
+                "title": "Smart Group Management",
+                "description": "Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page."
+            },
+            "flexibleSplitting": {
+                "title": "Flexible Splitting",
+                "description": "Split bills equally, by exact amounts, or by percentages. We handle all the complex math, so you don't have to."
+            },
+            "debtSimplification": {
+                "title": "Debt Simplification",
+                "description": "Our algorithm minimizes transactions, showing you the simplest way to settle up, saving everyone time and hassle."
+            },
+            "freeToUse": {
+                "title": "100% Free to Use",
+                "description": "Our service is and always will be free. No hidden fees or premium tiers—just a powerful, accessible tool for everyone."
+            },
+            "unlimitedUse": {
+                "title": "Unlimited Use",
+                "description": "Create as many groups, add as many friends, and track as many expenses as you need. No restrictions, no limits."
+            },
+            "noAds": {
+                "title": "Zero Ads, Ever",
+                "description": "Enjoy a clean, focused experience. We will never sell your data or clutter your screen with ads. Your privacy is our priority."
+            }
+        },
+        "cta": {
+            "title": "Ready to Simplify Your Shared Expenses?",
+            "subtitle": "Join thousands who are already making group payments stress-free and transparent. Get started today!",
+            "signUpButton": "Sign Up for Free"
+        },
+        "disclaimer": "This is a tool for tracking expenses, not for making payments. To save and manage your expenses, you'll need a free account. We will never ask for sensitive financial details.",
+        "globe": {
+            "loadError": "Unable to load 3D globe"
+        }
+    },
+    "app": {
+        "loading": "Loading...",
+        "loadingPage": "Loading page...",
+        "loadingExpenseForm": "Loading expense form...",
+        "checkingAuth": "Checking authentication..."
+    },
+    "main": {
+        "unknownButton": "Unknown Button",
+        "linkClick": "Link Click: ",
+        "unknownLink": "Unknown Link",
+        "elementClick": "Element Click: ",
+        "unknownElement": "Unknown Element"
+    },
+    "createGroupModal": {
+        "title": "Create a new group",
+        "groupNameLabel": "Group Name",
+        "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
+        "groupNameHelpText": "Choose a name that describes what you'll be splitting expenses for.",
+        "groupDescriptionLabel": "Description (optional)",
+        "groupDescriptionPlaceholder": "Add any details about this group...",
+        "groupDescriptionHelpText": "Optional description to help members understand the group's purpose.",
+        "closeButtonAriaLabel": "Close modal",
+        "cancelButton": "Cancel",
+        "submitButton": "Create Group",
+        "validation": {
+            "nameRequired": "Group name is required.",
+            "nameTooShort": "Group name must be at least 2 characters long.",
+            "nameTooLong": "Group name must be less than 50 characters."
+        }
+    },
+    "loginPage": {
+        "title": "Sign In",
+        "description": "Sign in to your Splitifyd account to manage your shared expenses",
+        "rememberMe": "Remember me",
+        "forgotPassword": "Forgot your password?",
+        "submitButton": "Sign In",
+        "noAccount": "Don't have an account?",
+        "signUp": "Sign up",
+        "validation": {
+            "emailRequired": "Email is required",
+            "passwordRequired": "Password is required"
+        }
     },
     "registerPage": {
-      "requiredIndicator": "*"
+        "title": "Create Account",
+        "description": "Create your Splitifyd account to start managing shared expenses",
+        "fullNameLabel": "Full Name",
+        "fullNamePlaceholder": "Enter your full name",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Create a strong password",
+        "confirmPasswordLabel": "Confirm Password",
+        "confirmPasswordPlaceholder": "Confirm your password",
+        "acceptTerms": "I accept the",
+        "termsOfService": "Terms of Service",
+        "cookiePolicy": "Cookie Policy",
+        "submitButton": "Create Account",
+        "hasAccount": "Already have an account?",
+        "signIn": "Sign in",
+        "requiredIndicator": "*",
+        "validation": {
+            "nameRequired": "Name is required",
+            "emailRequired": "Email is required",
+            "passwordRequired": "Password is required",
+            "passwordTooShort": "Password must be at least 12 characters",
+            "passwordsNoMatch": "Passwords do not match",
+            "termsRequired": "You must accept the Terms of Service",
+            "cookiesRequired": "You must accept the Cookie Policy"
+        }
     },
-    "resetPasswordPage": {
-      "failedToSendReset": "Failed to send reset email",
-      "checkYourEmail": "Check Your Email",
-      "resetInstructionsSent": "Password reset instructions have been sent to your email",
-      "emailSentSuccessfully": "Email Sent Successfully",
-      "sentInstructionsTo": "We've sent password reset instructions to:",
-      "whatsNext": "What's next?",
-      "checkEmailInbox": "• Check your email inbox (and spam folder)",
-      "clickResetLink": "• Click the reset link in the email",
-      "createNewPassword": "• Create a new password",
-      "signInWithNewPassword": "• Sign in with your new password",
-      "sendToDifferentEmail": "Send to Different Email",
-      "backToSignIn": "← Back to Sign In",
-      "resetPassword": "Reset Password",
-      "enterEmailForReset": "Enter your email address to receive password reset instructions",
-      "enterEmailDescription": "Enter the email address associated with your account and we'll send you a link to reset your password.",
-      "emailPlaceholder": "Enter your email address",
-      "sendResetInstructions": "Send Reset Instructions"
+    "auth": {
+        "refreshingSession": "Refreshing your session...",
+        "emailInput": {
+            "label": "Email",
+            "placeholder": "Enter your email",
+            "requiredIndicator": "*",
+            "validation": {
+                "required": "Email is required",
+                "invalid": "Please enter a valid email address"
+            }
+        },
+        "passwordInput": {
+            "label": "Password",
+            "placeholder": "Enter your password",
+            "requiredIndicator": "*",
+            "showPassword": "Show password",
+            "hidePassword": "Hide password",
+            "strength": "Password strength",
+            "strengthWeak": "Weak",
+            "strengthMedium": "Medium",
+            "strengthStrong": "Strong",
+            "validation": {
+                "required": "Password is required",
+                "tooShort": "Password must be at least 12 characters"
+            }
+        },
+        "defaultLoginButton": "Continue with Email"
+    },
+    "dashboard": {
+        "title": "Dashboard - Splitifyd",
+        "description": "Manage your groups and expenses with Splitifyd",
+        "welcomeMessage": "Welcome to Splitifyd, {{name}}!",
+        "welcomeDescription": "Get started by creating your first group to track and split expenses with friends.",
+        "yourGroups": "Your Groups",
+        "createGroup": "Create Group",
+        "groupsFilter": {
+            "label": "Filter groups",
+            "active": "Active",
+            "archived": "Archived"
+        },
+        "groupCard": {
+            "settledUp": "All settled up!",
+            "youOwe": "You owe {{amount}}",
+            "youAreOwed": "You're owed {{amount}}",
+            "addExpenseTooltip": "Add expense to {{groupName}}",
+            "inviteTooltip": "Invite members to {{groupName}}",
+            "noRecentActivity": "No recent activity",
+            "archivedBadge": "Archived"
+        },
+        "emptyState": {
+            "title": "No groups yet",
+            "subtitle": "Create your first group to start tracking shared expenses",
+            "createButton": "Create Group"
+        },
+        "stats": {
+            "totalGroups": "Total Groups",
+            "totalExpenses": "Total Expenses",
+            "totalBalance": "Total Balance"
+        },
+        "quickActions": {
+            "title": "Quick Actions",
+            "createGroup": "Create Group",
+            "addExpense": "Add Expense"
+        }
+    },
+    "activityFeed": {
+        "title": "Recent Activity",
+        "loading": "Loading...",
+        "emptyState": {
+            "title": "No activity yet",
+            "description": "Activity from your groups will appear here as it happens."
+        },
+        "error": {
+            "loadFailed": "We could not load your recent activity right now. Please try again."
+        },
+        "actions": {
+            "retry": "Retry",
+            "loadMore": "Load more",
+            "loadingMore": "Loading..."
+        },
+        "labels": {
+            "actorYou": "You",
+            "unknownUser": "Someone",
+            "unknownGroup": "a group",
+            "unknownExpense": "an expense",
+            "unknownSettlement": "a settlement",
+            "commentOnGroup": "the group discussion",
+            "commentOnExpense": "the expense \"{{description}}\""
+        },
+        "events": {
+            "expense-created": "{{actor}} added {{expense}} in {{group}}",
+            "expense-updated": "{{actor}} updated {{expense}} in {{group}}",
+            "expense-deleted": "{{actor}} deleted {{expense}} from {{group}}",
+            "member-joined": "{{actor}} added {{target}} to {{group}}",
+            "member-joined-self": "{{actor}} joined {{group}}",
+            "member-left": "{{actor}} removed {{target}} from {{group}}",
+            "member-left-self": "{{actor}} left {{group}}",
+            "comment-added": "{{actor}} commented on {{target}} in {{group}}",
+            "settlement-created": "{{actor}} recorded {{settlement}} in {{group}}",
+            "settlement-updated": "{{actor}} updated {{settlement}} in {{group}}",
+            "group-updated": "{{actor}} updated the group {{group}}",
+            "group-updated-from": "{{actor}} renamed {{previous}} to {{group}}",
+            "generic": "{{actor}} made changes in {{group}}"
+        }
+    },
+    "group": {
+        "header": {
+            "members": "{{count}} member",
+            "members_plural": "{{count}} members",
+            "expenses": "{{count}} expense",
+            "expenses_plural": "{{count}} expenses"
+        },
+        "actions": {
+            "addExpense": "Add Expense",
+            "viewExpenses": "View Expenses",
+            "settleUp": "Settle Up",
+            "shareGroup": "Share Group",
+            "editGroup": "Edit Group",
+            "leaveGroup": "Leave Group"
+        },
+        "share": {
+            "title": "Share Group",
+            "subtitle": "Invite others to join this group",
+            "copyLink": "Copy Link",
+            "linkCopied": "Link copied to clipboard!"
+        },
+        "edit": {
+            "title": "Edit Group",
+            "warningIcon": "⚠️"
+        },
+        "leave": {
+            "title": "Leave Group",
+            "message": "Are you sure you want to leave this group?",
+            "confirmButton": "Leave Group",
+            "cancelButton": "Cancel"
+        },
+        "members": {
+            "title": "Members",
+            "addMember": "Add Member",
+            "removeMember": "Remove Member",
+            "unknownUser": "Unknown User",
+            "user": "User"
+        },
+        "expenses": {
+            "title": "Expenses",
+            "noExpenses": "No expenses yet",
+            "addFirstExpense": "Add your first expense",
+            "unknown": "Unknown"
+        },
+        "balance": {
+            "title": "Balance Summary",
+            "settledUp": "All settled up!",
+            "unknown": "Unknown"
+        }
+    },
+    "expense": {
+        "form": {
+            "header": {
+                "add": "Add Expense",
+                "edit": "Edit Expense"
+            },
+            "description": "Description",
+            "amount": "Amount*",
+            "whoPaid": "Who paid?",
+            "whoPaidRequired": "*",
+            "splitBetween": "Split between",
+            "splitType": {
+                "label": "How to split",
+                "equal": "Equal",
+                "exactAmounts": "Exact amounts",
+                "percentage": "Percentage"
+            },
+            "splitInstructions": {
+                "exactAmounts": "Enter exact amounts for each person:",
+                "percentage": "Enter percentage for each person:",
+                "equal": "Each person pays:"
+            },
+            "selectAll": "Select all",
+            "saveExpense": "Save Expense",
+            "updateExpense": "Update Expense",
+            "cancel": "Cancel",
+            "percentageSymbol": "%",
+            "total": "Total:",
+            "unknown": "Unknown"
+        },
+        "actions": {
+            "edit": "Edit",
+            "copy": "Copy",
+            "copyExpense": "Copy expense",
+            "share": "Share",
+            "delete": "Delete",
+            "deleteError": "Failed to delete expense"
+        },
+        "splits": {
+            "splitEqually": "Split Equally",
+            "exactAmounts": "Exact Amounts",
+            "byPercentage": "By Percentage",
+            "customSplit": "Custom Split",
+            "splitBetween": "Split between {{count}} {{people}}",
+            "person": "person",
+            "people": "people",
+            "unknown": "Unknown",
+            "paid": "Paid",
+            "owes": "Owes {{payer}}",
+            "totalPercentage": "Total: {{percentage}}%"
+        }
+    },
+    "settlement": {
+        "form": {
+            "title": "Record Payment",
+            "updateTitle": "Update Payment",
+            "closeModal": "Close modal",
+            "whoPaidLabel": "Who paid?",
+            "whoReceivedLabel": "Who received the payment?",
+            "amountLabel": "Amount",
+            "dateLabel": "Date",
+            "noteLabel": "Note (optional)",
+            "selectPersonPlaceholder": "Select person",
+            "amountPlaceholder": "0.00",
+            "notePlaceholder": "e.g., Venmo, cash, bank transfer",
+            "youSuffix": " (You)",
+            "cancelButton": "Cancel",
+            "updatingButton": "Updating...",
+            "recordingButton": "Recording...",
+            "summary": "{{payer}} paid {{payee}} {{amount}}",
+            "validation": {
+                "selectPayer": "Please select who paid",
+                "selectPayee": "Please select who received the payment",
+                "samePersonError": "Payer and recipient cannot be the same person",
+                "validAmountRequired": "Please enter a valid amount greater than 0",
+                "amountTooLarge": "Amount cannot exceed 999,999.99",
+                "validCurrencyRequired": "Please select a valid currency",
+                "dateRequired": "Please select a date",
+                "dateInFuture": "Date cannot be in the future",
+                "recordPaymentFailed": "Failed to record payment"
+            },
+            "unknownUser": "Unknown User"
+        },
+        "history": {
+            "title": "Settlement History",
+            "noSettlements": "No settlements yet"
+        }
+    },
+    "comments": {
+        "section": {
+            "title": "Comments",
+            "noComments": "No comments yet"
+        },
+        "input": {
+            "placeholder": "Add a comment...",
+            "ariaLabel": "Comment text",
+            "sendButton": "Send",
+            "sendAriaLabel": "Send comment"
+        },
+        "item": {
+            "justNow": "just now",
+            "deleteButton": "Delete comment"
+        },
+        "list": {
+            "loading": "Loading comments...",
+            "error": "Failed to load comments"
+        },
+        "commentInput": {
+            "placeholder": "Add a comment...",
+            "tooLong": "Comment is too long",
+            "addFailed": "Failed to add comment",
+            "helpText": "Press Enter to send, Shift+Enter for new line"
+        },
+        "commentItem": {
+            "recently": "recently"
+        },
+        "commentsList": {
+            "loading": "Loading comments...",
+            "empty": "No comments yet",
+            "emptySubtext": "Be the first to comment!",
+            "loadingMore": "Loading...",
+            "loadMore": "Load more comments"
+        },
+        "commentsSection": {
+            "placeholderGroup": "Add a comment to this group...",
+            "placeholderExpense": "Add a comment to this expense..."
+        }
+    },
+    "joinGroup": {
+        "page": {
+            "title": "Join Group",
+            "loading": "Loading..."
+        },
+        "preview": {
+            "invited": "You've been invited to join this group",
+            "member": "Member",
+            "members": "Members",
+            "active": "Active",
+            "group": "Group",
+            "groupSize": "Group Size"
+        },
+        "button": {
+            "join": "Join Group",
+            "joining": "Joining..."
+        }
+    },
+    "ui": {
+        "alert": {
+            "dismiss": "Dismiss alert"
+        },
+        "confirmDialog": {
+            "confirm": "Confirm",
+            "cancel": "Cancel"
+        },
+        "currencySelector": {
+            "label": "Currency",
+            "placeholder": "Select currency...",
+            "required": "*",
+            "searchPlaceholder": "Search currencies...",
+            "noResults": "No currencies found",
+            "recent": "Recent",
+            "common": "Common",
+            "allCurrencies": "All Currencies"
+        },
+        "currencyAmountInput": {
+            "unknown": "?",
+            "searchCurrencies": "Search currencies"
+        },
+        "input": {
+            "required": "*"
+        },
+        "timeInput": {
+            "label": "Time",
+            "placeholder": "Select time"
+        },
+        "categorySuggestionInput": {
+            "placeholder": "Category (optional)"
+        },
+        "button": {
+            "default": "Button"
+        },
+        "loadingSpinner": {
+            "loading": "Loading..."
+        },
+        "loadingState": {
+            "loading": "Loading...",
+            "pleaseWait": "Please wait..."
+        },
+        "errorState": {
+            "error": "An error occurred",
+            "tryAgain": "Try again",
+            "goBack": "Go back"
+        },
+        "avatar": {
+            "userAvatar": "User avatar"
+        },
+        "warningBanner": {
+            "warning": "Warning"
+        },
+        "userIndicator": {
+            "online": "Online",
+            "offline": "Offline"
+        }
+    },
+    "navigation": {
+        "header": {
+            "fallback": "...",
+            "dashboard": "Dashboard",
+            "groups": "Groups",
+            "settings": "Settings"
+        },
+        "footer": {
+            "copyright": "© {{year}} Splitifyd. All rights reserved.",
+            "privacy": "Privacy Policy",
+            "terms": "Terms of Service",
+            "cookies": "Cookie Policy"
+        },
+        "userMenu": {
+            "profile": "Profile",
+            "settings": "Settings",
+            "logout": "Logout",
+            "help": "Help"
+        }
+    },
+    "settings": {
+        "title": "Settings",
+        "description": "Manage your account settings",
+        "accountSettingsHeader": "Account Settings",
+        "accountSettingsSubheader": "Update your profile information and preferences",
+        "successMessages": {
+            "profileUpdated": "Profile updated successfully",
+            "passwordChanged": "Password changed successfully"
+        },
+        "errorMessages": {
+            "profileUpdateFailed": "Failed to update profile",
+            "passwordAndNewRequired": "Current password and new password are required",
+            "passwordTooShort": "Password must be at least 12 characters",
+            "passwordsNoMatch": "Passwords do not match",
+            "passwordSameAsCurrent": "New password must be different from current password",
+            "currentPasswordIncorrect": "Current password is incorrect",
+            "passwordChangeFailed": "Failed to change password"
+        }
+    },
+    "policy": {
+        "acceptance": {
+            "title": "Accept Updated Policies",
+            "subtitle": "Policy {{current}} of {{total}}: {{name}}",
+            "progress": "Progress",
+            "progressText": "{{accepted}} of {{total}} accepted",
+            "accepted": "✓ Accepted",
+            "loading": "Loading policy content...",
+            "required": "Policy Acceptance Required",
+            "instruction": "Please read the policy above and click \"Accept\" to continue using Splitify.",
+            "checkbox": "I have read and accept this {{policy}}",
+            "previousButton": "Previous",
+            "nextButton": "Next",
+            "acceptingButton": "Accepting...",
+            "acceptAllButton": "Accept All & Continue",
+            "loadError": "Failed to load policy content: {{error}}",
+            "acceptError": "Failed to accept policies: {{error}}"
+        }
+    },
+    "pricing": {
+        "title": "Pricing (It's Free, Seriously)",
+        "description": "Simple, transparent pricing for Splitifyd. Split bills with friends for free.",
+        "subtitle": "Choose Your Adventure",
+        "plans": {
+            "starter": {
+                "title": "The \"Just Getting Started\" Plan",
+                "features": [
+                    "Unlimited expense tracking",
+                    "Unlimited groups",
+                    "Unlimited friends (if you have that many)",
+                    "Basic debt simplification",
+                    "Access to our highly sarcastic FAQ section"
+                ],
+                "button": "Sign Up (It's Still Free)"
+            },
+            "pro": {
+                "title": "The \"I'm Basically a Pro\" Plan",
+                "badge": "MOST POPULAR",
+                "features": [
+                    "Everything in \"Just Getting Started\"",
+                    "Advanced debt simplification (it's the same, but sounds cooler)",
+                    "Priority access to our \"we'll get to it when we get to it\" support",
+                    "The warm fuzzy feeling of not paying for anything",
+                    "Bragging rights to your friends about your free app"
+                ],
+                "button": "Join Now (Seriously, No Catch)"
+            },
+            "philanthropist": {
+                "title": "The \"I'm a Philanthropist\" Plan",
+                "features": [
+                    "Everything in \"I'm Basically a Pro\"",
+                    "The ability to tell people you're on the \"Philanthropist\" plan",
+                    "A deep sense of satisfaction from using a free app",
+                    "We'll send you good vibes (results may vary)",
+                    "Your name will be whispered in the halls of free software fame"
+                ],
+                "button": "Get Started (It's a Gift!)"
+            }
+        },
+        "disclaimer": "Disclaimer: All plans are, and always will be, absolutely free. We just like making fancy tables. No hidden fees, no premium features, no secret handshake required. Just pure, unadulterated free expense splitting. You're welcome."
+    },
+    "errors": {
+        "generic": "An error occurred",
+        "network": "Network error occurred",
+        "invalidLink": "Invalid Link",
+        "notFound": {
+            "page": "Page not found",
+            "group": "Group not found",
+            "expense": "Expense not found"
+        },
+        "loading": {
+            "cookiePolicy": "Error loading cookie policy",
+            "privacyPolicy": "Error loading privacy policy",
+            "terms": "Error loading terms"
+        },
+        "validation": {
+            "displayNameEmpty": "Display name cannot be empty",
+            "displayNameTooLong": "Display name must be 100 characters or less",
+            "passwordTooShort": "New password must be at least 12 characters long",
+            "passwordsNoMatch": "Passwords do not match",
+            "passwordSameAsCurrent": "New password must be different from current password",
+            "passwordAndNewRequired": "Current password and new password are required"
+        }
+    },
+    "seo": {
+        "titleSuffix": " | Splitifyd",
+        "siteName": "Splitifyd"
+    },
+    "expenseForm": {
+        "description": "Description",
+        "amount": "Amount*",
+        "whoPaid": "Who paid?",
+        "splitBetween": "Split between",
+        "exactAmounts": "Exact amounts",
+        "percentage": "Percentage",
+        "equal": "Equal",
+        "exactAmountsInstruction": "Enter exact amounts for each person:",
+        "percentageInstruction": "Enter percentage for each person:",
+        "selectAll": "Select all",
+        "saveExpense": "Save Expense",
+        "updateExpense": "Update Expense",
+        "cancel": "Cancel",
+        "errors": {
+            "expenseLocked": "This expense cannot be edited because one or more participants have left the group."
+        }
+    },
+    "settlementForm": {
+        "updatePayment": "Update Payment",
+        "recordPayment": "Record Payment",
+        "updateSettlement": "Update Settlement",
+        "recordSettlement": "Record Settlement",
+        "closeModal": "Close modal",
+        "whoPaidLabel": "Who paid?",
+        "whoReceivedPaymentLabel": "Who received the payment?",
+        "amountLabel": "Amount",
+        "dateLabel": "Date",
+        "noteLabel": "Note (optional)",
+        "selectPersonPlaceholder": "Select person",
+        "amountPlaceholder": "0.00",
+        "notePlaceholder": "e.g., Venmo, cash, bank transfer",
+        "youSuffix": " (You)",
+        "cancelButton": "Cancel",
+        "updatingButton": "Updating...",
+        "recordingButton": "Recording...",
+        "paymentSummary": "{{payer}} paid {{payee}} {{amount}}",
+        "validation": {
+            "selectPayer": "Please select who paid",
+            "selectPayee": "Please select who received the payment",
+            "samePersonError": "Payer and recipient cannot be the same person",
+            "validAmountRequired": "Please enter a valid amount greater than 0",
+            "amountTooLarge": "Amount cannot exceed 999,999.99",
+            "validCurrencyRequired": "Please select a valid currency",
+            "dateRequired": "Please select a date",
+            "dateInFuture": "Date cannot be in the future",
+            "recordPaymentFailed": "Failed to record payment"
+        },
+        "errors": {
+            "settlementLocked": "This settlement cannot be edited because a participant has left the group."
+        },
+        "warnings": {
+            "noDebt": "{{payer}} does not owe {{payee}} any money in {{currency}}. This settlement will create a debt in the opposite direction.",
+            "overpayment": "{{payer}} only owes {{payee}} {{debt}}, but you're settling {{amount}}. This will create a debt in the opposite direction.",
+            "underpayment": "You're recording {{amount}}, but {{payer}} will still owe {{payee}} {{remaining}} afterward. We'll keep the remaining balance updated."
+        }
+    },
+    "settlementHistory": {
+        "noPaymentsYet": "No payments recorded yet",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "editPaymentTooltip": "Edit payment",
+        "cannotEditTooltip": "Cannot edit - member has left the group",
+        "deletePaymentTooltip": "Delete payment",
+        "loadMore": "Load more",
+        "loadMorePayments": "Load More",
+        "deletePaymentTitle": "Delete Payment",
+        "deletePaymentMessage": "Are you sure you want to delete this payment of {{amount}} from {{payer}} to {{payee}}? This action cannot be undone.",
+        "deleteButton": "Delete",
+        "cancelButton": "Cancel",
+        "showAll": "Show all",
+        "noPaymentsForYou": "No payments involving you yet",
+        "deletedBy": "Deleted by"
+    },
+    "balanceSummary": {
+        "title": "Balances",
+        "loadingBalances": "Loading balances...",
+        "allSettledUp": "All settled up!",
+        "debtArrow": " → ",
+        "showOnlyMyBalances": "Show only my balances",
+        "showAll": "Show all",
+        "settleUp": "Settle",
+        "settleUpButton": "Record settlement for this debt"
+    },
+    "emptyGroupsState": {
+        "title": "No groups yet",
+        "description": "Create your first group to start splitting expenses with friends, family, or roommates.",
+        "createFirstGroup": "Create Your First Group",
+        "gettingStartedTitle": "Getting started with Splitifyd:",
+        "step1Title": "1. Create a group",
+        "step1Description": "Add friends, roommates, or travel companions",
+        "step2Title": "2. Add expenses",
+        "step2Description": "Track who paid and how to split costs",
+        "step3Title": "3. Settle up",
+        "step3Description": "See who owes what and settle balances"
+    },
+    "groupCard": {
+        "settledUp": "Settled up",
+        "youreOwed": "You're owed {{amount}}",
+        "youOwe": "You owe {{amount}}",
+        "addExpenseTooltip": "Add expense to {{groupName}}",
+        "inviteTooltip": "Invite to {{groupName}}",
+        "member": "member",
+        "members": "members",
+        "noRecentActivity": "No recent activity"
+    },
+    "quickActions": {
+        "title": "Quick Actions",
+        "createNewGroup": "Create New Group",
+        "viewAllExpenses": "View All Expenses"
+    },
+    "expenseFormHeader": {
+        "addExpense": "Add Expense",
+        "editExpense": "Edit Expense",
+        "copyExpense": "Copy Expense",
+        "cancel": "Cancel"
+    },
+    "expenseBasicFields": {
+        "title": "Expense Details",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "What was this expense for?",
+        "amountLabel": "Amount",
+        "categoryLabel": "Category",
+        "categoryPlaceholder": "Enter or select a category...",
+        "dateLabel": "Date",
+        "timeLabel": "Time",
+        "recentAmounts": "Recent amounts:",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisMorning": "This Morning",
+        "lastNight": "Last Night",
+        "addSpecificTime": "Add specific time"
+    },
+    "expensesList": {
+        "title": "Expenses",
+        "noExpensesYet": "No expenses yet. Add one to get started!",
+        "loadMore": "Load More"
+    },
+    "expenseItem": {
+        "paidBy": "Paid by",
+        "deleted": "Deleted",
+        "deletedBy": "Deleted by",
+        "copyExpense": "Copy expense"
+    },
+    "header": {
+        "logoAlt": "Splitifyd",
+        "login": "Login",
+        "signUp": "Sign Up"
+    },
+    "userMenu": {
+        "dashboard": "Dashboard",
+        "settings": "Settings",
+        "signOut": "Sign out",
+        "signingOut": "Signing out...",
+        "systemUserBadge": "System User",
+        "systemUserTooltip": "This account is used for automated or system-driven operations.",
+        "environmentLink": "env",
+        "diagnosticsLoading": "Loading diagnostics...",
+        "diagnosticsError": "Unable to load diagnostics:",
+        "browser": "Browser",
+        "browserUsers": "Users Browser"
+    },
+    "footer": {
+        "companyName": "Splitifyd",
+        "companyDescription": "Split bills easily with friends and family.",
+        "productSection": "Product",
+        "pricing": "Pricing",
+        "legalSection": "Legal",
+        "termsOfService": "Terms of Service",
+        "privacyPolicy": "Privacy Policy",
+        "cookiePolicy": "Cookie Policy",
+        "copyright": "© 2025 Pomo Corp ltd. All rights reserved."
+    },
+    "groupHeader": {
+        "membersCount": "{{count}} members",
+        "membersCount_one": "{{count}} member",
+        "membersCount_other": "{{count}} members",
+        "recent": "Recent",
+        "expenses": "expenses",
+        "createdPrefix": "Created",
+        "groupSettingsAriaLabel": "Group settings",
+        "groupSecurityAriaLabel": "Security and permissions"
+    },
+    "securitySettingsModal": {
+        "title": "Security & Permissions",
+        "description": "Configure presets, manage permissions, and control member access for this group.",
+        "unsavedChanges": "You have unsaved changes. Review everything, then press Save to apply them.",
+        "presets": {
+            "activeBadge": "Active",
+            "open": {
+                "label": "Preset: Open collaboration",
+                "description": "Everyone can invite members and manage expenses without restrictions."
+            },
+            "managed": {
+                "label": "Preset: Managed group",
+                "description": "Admins approve invites and control who can edit or delete expenses."
+            }
+        },
+        "custom": {
+            "heading": "Custom permissions",
+            "unsaved": "Custom permissions changed.",
+            "saveHelper": "Changes are queued until you press Save."
+        },
+        "success": {
+            "updated": "Security settings updated.",
+            "presetApplied": "Applied the {{preset}} preset."
+        },
+        "permissions": {
+            "expenseEditing": {
+                "label": "Who can edit expenses",
+                "description": "Choose who can update any expense in the group."
+            },
+            "expenseDeletion": {
+                "label": "Who can delete expenses",
+                "description": "Restrict the ability to remove expenses."
+            },
+            "memberInvitation": {
+                "label": "Who can invite members",
+                "description": "Determine who can generate invite links."
+            },
+            "memberApproval": {
+                "label": "New member approval",
+                "description": "Require an admin review before someone joins via an invite."
+            },
+            "settingsManagement": {
+                "label": "Who can change settings",
+                "description": "Control access to administrative settings."
+            },
+            "options": {
+                "anyone": "Any member",
+                "owner-and-admin": "Creators & admins",
+                "admin-only": "Admins only",
+                "automatic": "Automatic",
+                "admin-required": "Admin approval required"
+            }
+        },
+        "memberRoles": {
+            "heading": "Member roles",
+            "admin": "Admin",
+            "member": "Member",
+            "viewer": "Viewer"
+        },
+        "pendingMembers": {
+            "heading": "Pending members",
+            "requested": "Awaiting approval",
+            "empty": "No pending requests right now.",
+            "approve": "Approve",
+            "reject": "Reject"
+        },
+        "errors": {
+            "loadPending": "Unable to load pending members. Please try again.",
+            "updatePermissions": "We couldn't update the security settings. Please try again.",
+            "updateRole": "Updating the member's role failed.",
+            "pendingAction": "We couldn't process that request. Please try again."
+        }
+    },
+    "settingsPage": {
+        "title": "Settings - Splitifyd",
+        "description": "Manage your account settings",
+        "heroLabel": "Account",
+        "accountSettingsHeader": "Account Settings",
+        "accountSettingsSubheader": "Manage your profile information and password",
+        "profileSummaryTitle": "Profile overview",
+        "profileSummaryDescription": "This information helps other members recognize you.",
+        "profileInformationHeader": "Profile Information",
+        "profileInformationSubheader": "Update the details other members see across Splitifyd.",
+        "emailSectionTitle": "Email address",
+        "emailSectionDescription": "Update the email you use to sign in and receive notifications.",
+        "currentDisplayName": "Current display name:",
+        "email": "Email:",
+        "currentEmailLabel": "Current email",
+        "displayNameLabel": "Display Name",
+        "displayNamePlaceholder": "Enter your display name",
+        "displayNameHelper": "Use your full name or a nickname that teammates will recognize.",
+        "saveChangesButton": "Save Changes",
+        "passwordHeader": "Password",
+        "passwordIntro": "Set a strong password to keep your Splitifyd account secure.",
+        "changePasswordButton": "Change Password",
+        "changeEmailButton": "Change Email",
+        "newEmailLabel": "New Email",
+        "newEmailPlaceholder": "Enter your new email address",
+        "emailPasswordLabel": "Confirm with Password",
+        "updateEmailButton": "Update Email",
+        "currentPasswordLabel": "Current Password",
+        "newPasswordLabel": "New Password",
+        "confirmNewPasswordLabel": "Confirm New Password",
+        "updatePasswordButton": "Update Password",
+        "cancelButton": "Cancel",
+        "passwordRequirementsHeading": "Strong password checklist",
+        "passwordRequirements": {
+            "length": "Use at least 12 characters.",
+            "mix": "Blend upper- and lowercase letters, numbers, and symbols.",
+            "reuse": "Avoid passwords you've used elsewhere."
+        },
+        "profileSummaryRoleLabel": "Account role",
+        "profileSummaryRoleFallback": "Member",
+        "profileSummaryRole": {
+            "system_admin": "Administrator",
+            "system_user": "Member"
+        },
+        "successMessages": {
+            "profileUpdated": "Profile updated successfully",
+            "passwordChanged": "Password changed successfully",
+            "emailChanged": "Email updated successfully. Please verify the new address."
+        },
+        "errorMessages": {
+            "profileUpdateFailed": "Failed to update profile. Please try again.",
+            "passwordAndNewRequired": "Current password and new password are required",
+            "passwordTooShort": "New password must be at least 12 characters long",
+            "passwordsNoMatch": "Passwords do not match",
+            "passwordSameAsCurrent": "New password must be different from current password",
+            "currentPasswordIncorrect": "Current password is incorrect",
+            "passwordChangeFailed": "Failed to change password. Please try again.",
+            "displayNameEmpty": "Display name cannot be empty",
+            "displayNameTooLong": "Display name must be 100 characters or less",
+            "emailRequired": "New email is required",
+            "emailInvalid": "Enter a valid email address",
+            "emailSameAsCurrent": "New email must be different from current email",
+            "emailPasswordRequired": "Enter your current password to confirm this change",
+            "emailInUse": "That email is already linked to another Splitifyd account",
+            "emailChangeFailed": "Failed to change email. Please try again."
+        }
+    },
+    "editGroupModal": {
+        "title": "Edit Group",
+        "groupNameLabel": "Group Name",
+        "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
+        "descriptionLabel": "Description (optional)",
+        "descriptionPlaceholder": "Add any details about this group...",
+        "cancelButton": "Cancel",
+        "saveChangesButton": "Save Changes",
+        "deleteGroupButton": "Delete Group",
+        "validation": {
+            "nameRequired": "Group name is required.",
+            "nameTooShort": "Group name must be at least 2 characters long.",
+            "nameTooLong": "Group name must be less than 50 characters.",
+            "updateFailed": "Failed to update group"
+        },
+        "success": {
+            "updated": "Group details updated."
+        },
+        "deleteConfirmDialog": {
+            "title": "Permanently Delete Group",
+            "warningTitle": "⚠️ Permanent Deletion Warning",
+            "warningMessage": "This will permanently delete the group and ALL associated data:",
+            "warningList": {
+                "expenses": "All expenses and their comments",
+                "settlements": "All settlements and payment history",
+                "members": "All group members and permissions",
+                "history": "All change history and activity"
+            },
+            "cannotUndo": "This action cannot be undone.",
+            "typeToConfirm": "To confirm, type the group name \"{{groupName}}\" below:",
+            "deletingMessage": "Deleting group and all associated data...",
+            "deletingText": "Deleting...",
+            "confirmText": "Delete Group Permanently",
+            "cancelText": "Cancel",
+            "deleteFailed": "Failed to delete group"
+        }
+    },
+    "groupActions": {
+        "title": "Group Actions",
+        "addExpense": "Add Expense",
+        "settleUp": "Settle Up",
+        "inviteOthers": "Invite Others",
+        "settings": "Settings",
+        "leaveGroup": "Leave Group",
+        "archive": "Archive Group",
+        "unarchive": "Unarchive Group"
+    },
+    "groupSettingsModal": {
+        "title": "Group Settings",
+        "tabs": {
+            "identity": "Display name",
+            "general": "General",
+            "security": "Security & Permissions"
+        }
+    },
+    "groupDisplayNameSettings": {
+        "title": "Group display name",
+        "description": "Choose how other members see you in this group.",
+        "inputLabel": "Display name in this group",
+        "inputPlaceholder": "Enter a unique display name",
+        "save": "Save display name",
+        "saving": "Saving...",
+        "success": "Group display name updated.",
+        "errors": {
+            "required": "Enter a display name.",
+            "tooLong": "Display name must be 50 characters or fewer.",
+            "notChanged": "Enter a different display name before saving.",
+            "taken": "That name is already in use in this group.",
+            "unknown": "Failed to update display name. Try again."
+        }
+    },
+    "membersList": {
+        "title": "Members",
+        "admin": "Admin",
+        "member": "Member",
+        "viewer": "Viewer",
+        "thisMember": "This member",
+        "leaveGroup": "Leave Group",
+        "inviteOthers": "Invite Others",
+        "inviteOthersAriaLabel": "Invite Others",
+        "leaveGroupAriaLabel": "Leave Group",
+        "removeMemberAriaLabel": "Remove member",
+        "leaveGroupDialog": {
+            "title": "Leave Group?",
+            "messageWithBalance": "You have an outstanding balance in this group. Please settle up before leaving.",
+            "messageConfirm": "Are you sure you want to leave this group? You'll need an invitation to rejoin.",
+            "confirmText": "Leave Group",
+            "cancelText": "Cancel"
+        },
+        "removeMemberDialog": {
+            "title": "Remove Member?",
+            "messageWithBalance": "{{name}} has an outstanding balance in this group. Please settle up before removing.",
+            "messageConfirm": "Are you sure you want to remove {{name}} from the group?",
+            "confirmText": "Remove",
+            "cancelText": "Cancel"
+        }
+    },
+    "shareGroupModal": {
+        "title": "Invite Others",
+        "description": "Share this link with anyone you want to join this group.",
+        "closeButtonAriaLabel": "Close modal",
+        "copyLinkTitle": "Copy link",
+        "copyLinkAriaLabel": "Copy group invite link",
+        "qrCodeDescription": "Or scan this code",
+        "expirationLabel": "Invitation link expires in…",
+        "expirationOptions": {
+            "15m": "15 minutes",
+            "1h": "1 hour",
+            "1d": "1 day",
+            "5d": "5 days"
+        },
+        "expiresAt": "Expires at {{date}}",
+        "generateNew": "Generate New",
+        "linkCopied": "Link copied to clipboard",
+        "errors": {
+            "generateLinkFailed": "Failed to generate share link. Please try again."
+        }
+    },
+    "errorState": {
+        "defaultTitle": "Something went wrong",
+        "unexpectedError": "An unexpected error occurred",
+        "tryAgainButton": "Try Again"
+    },
+    "errorBoundary": {
+        "title": "Something went wrong",
+        "unexpectedError": "An unexpected error occurred"
+    },
+    "notFoundPage": {
+        "title": "404",
+        "pageNotFound": "Page not found",
+        "pageNotFoundDescription": "The page you're looking for doesn't exist.",
+        "groupNotFound": "Group not found or you don't have access",
+        "groupNotFoundDescription": "The group you're looking for doesn't exist or you need to be invited to access it.",
+        "goToDashboard": "Go to Dashboard",
+        "goHome": "Go Home"
+    },
+    "loadingState": {
+        "defaultMessage": "Loading..."
+    },
+    "joinGroupPage": {
+        "title": "Join Group",
+        "loadingGroup": "Loading group information...",
+        "alreadyMember": "You're already a member of this group",
+        "alreadyMemberDescription": "You can go directly to the group to view expenses and balances.",
+        "joinGroup": "Join Group",
+        "goToGroup": "Go to Group",
+        "joining": "Joining...",
+        "cancel": "Cancel",
+        "welcome": "Welcome to {{groupName}}!",
+        "joinSuccess": "You've successfully joined the group. Redirecting to group page...",
+        "joinedTitle": "Joined {{groupName}} - Splitifyd",
+        "backToDashboard": "Back to Dashboard",
+        "pendingApprovalTitle": "Awaiting approval",
+        "pendingApprovalMessage": "Your request to join {{groupName}} has been sent to the group admins.",
+        "pendingApprovalHelp": "We'll notify you once you're approved. You can head back to your dashboard for now.",
+        "errors": {
+            "invalidLink": "This invitation link is invalid or has expired",
+            "groupNotFound": "This group no longer exists",
+            "alreadyMember": "You are already a member of this group",
+            "joinFailed": "Failed to join group",
+            "loadFailed": "Failed to load group information"
+        },
+        "displayNameConflict": {
+            "title": "Choose a display name for {{groupName}}",
+            "description": "Your name \"{{currentName}}\" is already in use in this group. Pick a unique name so everyone knows who's who.",
+            "currentNameLabel": "Current name",
+            "inputLabel": "New group display name",
+            "inputPlaceholder": "Enter a unique display name",
+            "submit": "Save name & join",
+            "saving": "Saving...",
+            "cancel": "Cancel",
+            "errors": {
+                "required": "Enter a display name.",
+                "tooLong": "Display name must be 50 characters or fewer.",
+                "sameAsCurrent": "Choose a different name than your current one."
+            }
+        }
+    },
+    "dashboardComponents": {
+        "groupsList": {
+            "loading": "Loading your groups...",
+            "loadFailed": "Failed to load groups",
+            "tryAgain": "Try Again",
+            "creating": "Creating group...",
+            "noArchivedTitle": "No archived groups",
+            "noArchivedDescription": "Groups you archive will appear here. Archive a group from the Active tab to hide it from your dashboard."
+        }
+    },
+    "expenseComponents": {
+        "expenseFormActions": {
+            "cancel": "Cancel",
+            "updating": "Updating...",
+            "saving": "Saving...",
+            "update": "Update Expense",
+            "save": "Save Expense"
+        },
+        "participantSelector": {
+            "label": "Split between",
+            "requiredIndicator": "*",
+            "selectAll": "Select all",
+            "selectNone": "Select none",
+            "payerSuffix": "(Payer)"
+        },
+        "payerSelector": {
+            "label": "Who paid?",
+            "requiredIndicator": "*"
+        },
+        "splitAmountInputs": {
+            "exactAmountsInstruction": "Enter exact amounts for each person:",
+            "unknown": "Unknown",
+            "dollarSign": "$",
+            "total": "Total:",
+            "percentageInstruction": "Enter percentage for each person:",
+            "percentSign": "%",
+            "equalInstruction": "Each person pays:"
+        },
+        "splitTypeSelector": {
+            "label": "How to split",
+            "equal": "Equal",
+            "exactAmounts": "Exact amounts",
+            "percentage": "Percentage"
+        },
+        "expenseActions": {
+            "edit": "Edit",
+            "copyExpense": "Copy expense",
+            "copy": "Copy",
+            "share": "Share",
+            "delete": "Delete",
+            "deleteTitle": "Delete Expense",
+            "deleteConfirm": "Are you sure you want to delete \"{{expenseName}}\"? This action cannot be undone and will affect group balances.",
+            "deleteButton": "Delete",
+            "cancel": "Cancel",
+            "deleteFailed": "Failed to delete expense",
+            "cannotEditTooltip": "Cannot edit - participant has left the group"
+        },
+        "splitBreakdown": {
+            "splitBetween": "Split between ",
+            "person": " person",
+            "people": " people",
+            "splitEqually": "Split Equally",
+            "exactAmounts": "Exact Amounts",
+            "byPercentage": "By Percentage",
+            "customSplit": "Custom Split",
+            "unknown": "Unknown",
+            "paid": "Paid",
+            "owes": "Owes ",
+            "total": "Total: "
+        }
+    },
+    "groupComponents": {
+        "editGroupModal": {
+            "warningIcon": "⚠️"
+        },
+        "groupHeader": {
+            "ago": "ago"
+        },
+        "membersListWithManagement": {
+            "user": "User"
+        },
+        "shareGroupModal": {
+            "close": "Close",
+            "checkmark": "✓",
+            "ellipsis": "..."
+        }
+    },
+    "joinGroupComponents": {
+        "groupPreview": {
+            "member": "Member",
+            "members": "Members",
+            "active": "Active",
+            "group": "Group",
+            "invitationMessage": "You've been invited to join this group"
+        },
+        "joinButton": {
+            "joining": "Joining...",
+            "joinGroup": "Join Group"
+        },
+        "membersPreview": {
+            "groupSize": "Group Size",
+            "member": "member",
+            "members": "members"
+        }
+    },
+    "landingComponents": {
+        "ctaSection": {
+            "title": "Ready to Simplify Your Shared Expenses?",
+            "subtitle": "Join thousands who are already making group payments stress-free and transparent. Get started today!",
+            "signUpButton": "Sign Up for Free"
+        },
+        "featuresGrid": {
+            "smartGroupManagement": "Smart Group Management",
+            "smartGroupDescription": "Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page.",
+            "flexibleSplitting": "Flexible Splitting",
+            "flexibleSplittingDescription": "Split bills equally, by exact amounts, or by percentages. We handle all the complex math, so you don't have to.",
+            "debtSimplification": "Debt Simplification",
+            "debtSimplificationDescription": "Our algorithm minimizes transactions, showing you the simplest way to settle up, saving everyone time and hassle.",
+            "freeToUse": "100% Free to Use",
+            "freeToUseDescription": "Our service is and always will be free. No hidden fees or premium tiers—just a powerful, accessible tool for everyone.",
+            "unlimitedUse": "Unlimited Use",
+            "unlimitedUseDescription": "Create as many groups, add as many friends, and track as many expenses as you need. No restrictions, no limits.",
+            "zeroAds": "Zero Ads, Ever",
+            "zeroAdsDescription": "Enjoy a clean, focused experience. We will never sell your data or clutter your screen with ads. Your privacy is our priority.",
+            "subtitle": "Everything You Need, Nothing You Don't"
+        },
+        "globe": {
+            "loadError": "Unable to load 3D globe"
+        },
+        "heroSection": {
+            "title": "Effortless Bill Splitting,",
+            "subtitle": "Simplified & Smart.",
+            "description": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.",
+            "subDescription": "It's 100% free, with no ads and no limits.",
+            "focus": "Focus on what matters, not on the math."
+        }
+    },
+    "policyComponents": {
+        "policyAcceptanceModal": {
+            "title": "Accept Updated Policies",
+            "policyLabel": "Policy ",
+            "of": " of ",
+            "colon": ": ",
+            "close": "Close",
+            "progress": "Progress",
+            "accepted": " accepted",
+            "acceptedIcon": "✓ Accepted",
+            "loadingContent": "Loading policy content...",
+            "acceptanceRequired": "Policy Acceptance Required",
+            "acceptanceInstructions": "Please read the policy above and click \"Accept\" to continue using Splitify.",
+            "acceptCheckbox": "I have read and accept this ",
+            "previous": "Previous",
+            "next": "Next",
+            "policiesAccepted": " policies accepted",
+            "accepting": "Accepting...",
+            "acceptAll": "Accept All & Continue",
+            "closeAriaLabel": "Close",
+            "errorTitle": "Error"
+        },
+        "policyRenderer": {
+            "bulletPoint": "• "
+        }
+    },
+    "uiComponents": {
+        "alert": {
+            "dismiss": "Dismiss alert"
+        },
+        "avatar": {
+            "unknown": "Unknown"
+        },
+        "button": {
+            "default": "Button"
+        },
+        "categorySuggestionInput": {
+            "requiredIndicator": "*",
+            "placeholder": "Enter category..."
+        },
+        "confirmDialog": {
+            "confirm": "Confirm",
+            "cancel": "Cancel"
+        },
+        "currencyAmountInput": {
+            "selectCurrency": "Select currency",
+            "searchPlaceholder": "Search by symbol, code, or country...",
+            "searchAriaLabel": "Search currencies",
+            "loading": "Loading currencies...",
+            "noCurrencies": "No currencies found",
+            "recent": "Recent",
+            "common": "Common",
+            "allCurrencies": "All Currencies",
+            "placeholder": "0.00",
+            "requiredIndicator": "*"
+        },
+        "currencySelector": {
+            "placeholder": "Select currency...",
+            "searchPlaceholder": "Search currencies",
+            "loading": "Loading currencies...",
+            "noCurrencies": "No currencies found",
+            "recent": "Recent",
+            "common": "Common",
+            "allCurrencies": "All Currencies"
+        },
+        "input": {
+            "requiredIndicator": "*"
+        },
+        "loadingSpinner": {
+            "loading": "Loading..."
+        },
+        "timeInput": {
+            "at": "at ",
+            "placeholder": "Enter time (e.g., 2:30pm)",
+            "requiredIndicator": "*"
+        },
+        "form": {
+            "submissionError": "Form submission error"
+        }
+    },
+    "pages": {
+        "addExpensePage": {
+            "errorTitle": "Error - Splitifyd",
+            "error": "Error",
+            "noGroupMessage": "No group specified. Cannot add expense without a group.",
+            "backToDashboard": "Back to Dashboard",
+            "loadingTitle": "Loading... - Splitifyd",
+            "groupNotFound": "Group Not Found",
+            "groupNotFoundMessage": "The group you're trying to add an expense to doesn't exist or you don't have access to it.",
+            "backToGroup": "Back to Group",
+            "copyExpenseTitle": "Copy Expense",
+            "editExpenseTitle": "Edit Expense",
+            "addExpenseTitle": "Add Expense",
+            "copyExpenseAction": "Copy expense",
+            "editExpenseAction": "Edit expense",
+            "addExpenseAction": "Add a new expense",
+            "titleSuffix": " - Splitifyd",
+            "titleIn": " in "
+        },
+        "expenseDetailPage": {
+            "missingGroupId": "Missing group ID",
+            "missingExpenseId": "Missing expense ID",
+            "failedToLoad": "Failed to load expense",
+            "cannotEdit": "This expense cannot be edited",
+            "containsDepartedMembers": "One or more participants have left the group. Historical records are preserved as read-only.",
+            "expenseLabel": "Expense: ",
+            "checkOutExpense": "Check out this expense: ",
+            "shareApiFailed": "Share API failed, falling back to clipboard",
+            "failedToCopy": "Failed to copy to clipboard",
+            "error": "Error",
+            "expenseNotFound": "Expense not found",
+            "backToGroup": "Back to Group",
+            "titleSeparator": " - ",
+            "expenseFor": "Expense for ",
+            "backButton": "← Back",
+            "date": "Date",
+            "ago": " ago",
+            "category": "Category",
+            "paidBy": "Paid by",
+            "unknown": "Unknown",
+            "discussion": "Discussion",
+            "receipt": "Receipt",
+            "clickToViewFullSize": "Click to view full size",
+            "added": "Added ",
+            "lastUpdated": "Last updated ",
+            "receiptViewer": "Receipt viewer",
+            "closeReceiptViewer": "Close receipt viewer",
+            "receiptFullSize": "Receipt - Full Size"
+        },
+        "groupDetailPage": {
+            "errorLoadingGroup": "Error Loading Group",
+            "backToDashboard": "Back to Dashboard",
+            "comments": "Comments",
+            "paymentHistory": "Settlements",
+            "toggleSection": "Toggle {{section}} section",
+            "titleSuffix": " - Splitifyd",
+            "manageExpensesFor": "Manage expenses for "
+        },
+        "landingPage": {
+            "title": "Effortless Bill Splitting - Splitifyd",
+            "description": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent. It's 100% free, with no ads and no limits.",
+            "disclaimer": "This is a tool for tracking expenses, not for making payments.",
+            "accountNote": " To save and manage your expenses, you'll need a free account.",
+            "privacyNote": "We will never ask for sensitive financial details.",
+            "transparencyNotice": {
+                "bold": "This is a tool for tracking expenses, not for making payments.",
+                "text": "To save and manage your expenses, you'll need a free account. We will never ask for sensitive financial details."
+            }
+        },
+        "registerPage": {
+            "requiredIndicator": "*"
+        },
+        "resetPasswordPage": {
+            "failedToSendReset": "Failed to send reset email",
+            "checkYourEmail": "Check Your Email",
+            "resetInstructionsSent": "Password reset instructions have been sent to your email",
+            "emailSentSuccessfully": "Email Sent Successfully",
+            "sentInstructionsTo": "We've sent password reset instructions to:",
+            "whatsNext": "What's next?",
+            "checkEmailInbox": "• Check your email inbox (and spam folder)",
+            "clickResetLink": "• Click the reset link in the email",
+            "createNewPassword": "• Create a new password",
+            "signInWithNewPassword": "• Sign in with your new password",
+            "sendToDifferentEmail": "Send to Different Email",
+            "backToSignIn": "← Back to Sign In",
+            "resetPassword": "Reset Password",
+            "enterEmailForReset": "Enter your email address to receive password reset instructions",
+            "enterEmailDescription": "Enter the email address associated with your account and we'll send you a link to reset your password.",
+            "emailPlaceholder": "Enter your email address",
+            "sendResetInstructions": "Send Reset Instructions"
+        }
+    },
+    "authLayout": {
+        "titleSuffix": " - Splitifyd"
+    },
+    "authProvider": {
+        "authenticationError": "Authentication Error",
+        "retry": "Retry"
+    },
+    "usersBrowser": {
+        "title": "Users Browser",
+        "authTab": "Firebase Auth Users",
+        "firestoreTab": "Firestore Users",
+        "searchLabel": "Search",
+        "searchPlaceholder": "Search by email, display name, or user ID",
+        "searchPlaceholderSmart": "Enter email, UID, or display name",
+        "searchButton": "Search",
+        "resetButton": "Reset",
+        "noResults": "No users found",
+        "authLimitNote": "Firebase Auth returns up to {count} users per page.",
+        "firestoreLimitNote": "Firestore returns up to {count} documents per page.",
+        "jsonViewTitle": "User JSON",
+        "closeJsonViewer": "Close viewer",
+        "copyJson": "Copy JSON",
+        "copiedJson": "JSON copied",
+        "authDisplayNameNotSupported": "Display name search is not supported for Firebase Auth. Try an email or UID instead.",
+        "unauthorized": "You do not have permission to view the data browser.",
+        "viewJson": "View JSON",
+        "statusDisabled": "Disabled",
+        "statusEnabled": "Active",
+        "table": {
+            "auth": {
+                "uid": "UID",
+                "email": "Email",
+                "displayName": "Display Name",
+                "status": "Status",
+                "createdAt": "Created",
+                "lastSignInAt": "Last Sign-In"
+            },
+            "firestore": {
+                "id": "Document ID",
+                "role": "Role",
+                "updatedAt": "Updated",
+                "schema": "Schema Validation"
+            }
+        },
+        "loaders": {
+            "loadingAuth": "Loading Firebase Auth users…",
+            "loadingFirestore": "Loading Firestore users…"
+        },
+        "loadingUserData": "Loading user data…",
+        "errors": {
+            "auth": "Failed to load Firebase Auth users",
+            "firestore": "Failed to load Firestore users"
+        },
+        "searchFieldOptions": {
+            "email": "Email",
+            "uid": "User ID",
+            "displayName": "Display name"
+        },
+        "schema": {
+            "ok": "Schema matches expectations",
+            "missing": "Missing: {{field}}",
+            "unexpected": "Unexpected: {{field}}"
+        },
+        "jsonAuthTitle": "Firebase Auth user",
+        "jsonFirestoreTitle": "Firestore user document",
+        "jsonAuthMissing": "No Firebase Auth record was found for this user.",
+        "jsonFirestoreMissing": "No Firestore document was found for this user.",
+        "copyJsonAuth": "Copy Auth JSON",
+        "copyJsonFirestore": "Copy Firestore JSON",
+        "copiedJsonAuth": "Auth JSON copied",
+        "copiedJsonFirestore": "Firestore JSON copied"
+    },
+    "userIndicator": {
+        "unknown": "Unknown",
+        "plus": "+",
+        "moreUsers": " more users"
+    },
+    "staticPages": {
+        "common": {
+            "lastUpdated": "Last updated:"
+        },
+        "cookiePolicy": {
+            "title": "Cookie Policy",
+            "description": "Cookie Policy for Splitifyd - Learn about how we use cookies and similar technologies.",
+            "loadError": "Error loading cookie policy"
+        },
+        "privacyPolicy": {
+            "title": "Privacy Policy",
+            "description": "Privacy Policy for Splitifyd - Learn about how we collect, use, and protect your information.",
+            "loadError": "Error loading privacy policy"
+        },
+        "termsOfService": {
+            "title": "Terms of Service",
+            "description": "Terms of Service for Splitifyd - Read about our policies and user agreements.",
+            "loadError": "Error loading terms"
+        }
     }
-  },
-  "main": {
-    "unknownButton": "Unknown Button",
-    "linkClick": "Link Click: ",
-    "unknownLink": "Unknown Link",
-    "elementClick": "Element Click: ",
-    "unknownElement": "Unknown Element"
-  },
-  "authLayout": {
-    "titleSuffix": " - Splitifyd"
-  },
-  "authProvider": {
-    "authenticationError": "Authentication Error",
-    "retry": "Retry"
-  },
-  "userIndicator": {
-    "unknown": "Unknown",
-    "plus": "+",
-    "moreUsers": " more users"
-  },
-  "seo": {
-    "titleSuffix": " | Splitifyd",
-    "siteName": "Splitifyd"
-  },
-  "staticPages": {
-    "common": {
-      "lastUpdated": "Last updated:"
-    },
-    "cookiePolicy": {
-      "title": "Cookie Policy",
-      "description": "Cookie Policy for Splitifyd - Learn about how we use cookies and similar technologies.",
-      "loadError": "Error loading cookie policy"
-    },
-    "privacyPolicy": {
-      "title": "Privacy Policy",
-      "description": "Privacy Policy for Splitifyd - Learn about how we collect, use, and protect your information.",
-      "loadError": "Error loading privacy policy"
-    },
-    "termsOfService": {
-      "title": "Terms of Service",
-      "description": "Terms of Service for Splitifyd - Read about our policies and user agreements.",
-      "loadError": "Error loading terms"
-    }
-  }
 }

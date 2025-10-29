@@ -14,7 +14,7 @@
  * - Performance monitoring with sampling
  */
 
-import type { CommentDTO, ISOString, RegisteredUser, ShareLinkDTO, UserId } from '@splitifyd/shared';
+import type { CommentDTO, ISOString, ShareLinkDTO, SystemUserRole, UserId } from '@splitifyd/shared';
 import { DisplayName, ExpenseId, GroupId } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
@@ -33,9 +33,20 @@ export interface BatchWriteResult {
     results: WriteResult[];
 }
 
-export type FirestoreUserCreateData = Omit<RegisteredUser, 'id' | 'uid' | 'emailVerified' | 'photoURL' | 'displayName'>;
+interface FirestoreUserDocumentFields {
+    role?: SystemUserRole;
+    preferredLanguage?: string;
+    acceptedPolicies?: Record<string, string>;
+    termsAcceptedAt?: ISOString;
+    cookiePolicyAcceptedAt?: ISOString;
+    passwordChangedAt?: ISOString;
+    createdAt?: ISOString;
+    updatedAt?: ISOString;
+}
 
-export type FirestoreUserUpdateData = Partial<Omit<RegisteredUser, 'id' | 'photoURL' | 'displayName'>>;
+export type FirestoreUserCreateData = FirestoreUserDocumentFields;
+
+export type FirestoreUserUpdateData = Partial<FirestoreUserDocumentFields>;
 
 export interface IFirestoreWriter {
     // ========================================================================

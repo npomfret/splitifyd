@@ -27,6 +27,12 @@ import { changeEmail, changePassword, getUserProfile, updateUserProfile } from '
 import { getEnhancedConfigResponse } from './utils/config-response';
 import { ApiError } from './utils/errors';
 import { applyStandardMiddleware } from './utils/middleware';
+import { UserBrowserHandlers } from './browser/UserBrowserHandlers';
+import { getAppBuilder } from './ApplicationBuilderSingleton';
+import { getFirestore } from './firebase';
+
+const applicationBuilder = getAppBuilder();
+const userBrowserHandlers = new UserBrowserHandlers(applicationBuilder.buildAuthService(), getFirestore());
 
 let app: express.Application | null = null;
 
@@ -179,6 +185,9 @@ function setupRoutes(app: express.Application): void {
     app.put(`/admin/${FirestoreCollections.POLICIES}/:id`, authenticateAdmin, asyncHandler(updatePolicy));
     app.post(`/admin/${FirestoreCollections.POLICIES}/:id/publish`, authenticateAdmin, asyncHandler(publishPolicy));
     app.delete(`/admin/${FirestoreCollections.POLICIES}/:id/versions/:hash`, authenticateAdmin, asyncHandler(deletePolicyVersion));
+
+    app.get('/admin/browser/users/auth', authenticateSystemUser, asyncHandler(userBrowserHandlers.listAuthUsers));
+    app.get('/admin/browser/users/firestore', authenticateSystemUser, asyncHandler(userBrowserHandlers.listFirestoreUsers));
     app.use((req: express.Request, res: express.Response) => {
         res.status(HTTP_STATUS.NOT_FOUND).json({
             error: {

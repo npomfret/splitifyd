@@ -20,6 +20,7 @@ export const ROUTES = {
 
     // User Pages
     SETTINGS: '/settings',
+    USERS_BROWSER: '/browser/users',
 
     // Static Pages
     PRICING: '/pricing',

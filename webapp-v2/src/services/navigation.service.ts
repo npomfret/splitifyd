@@ -143,6 +143,28 @@ class NavigationService {
         return this.navigateTo(ROUTES.SETTINGS);
     }
 
+    goToUsersBrowser(): Promise<void> {
+        return this.navigateTo(ROUTES.USERS_BROWSER);
+    }
+
+    getUsersBrowserUrl(): string {
+        if (typeof window === 'undefined') {
+            return ROUTES.USERS_BROWSER;
+        }
+        return new URL(ROUTES.USERS_BROWSER, window.location.origin).toString();
+    }
+
+    openInNewTab(url: string): void {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+        if (newWindow) {
+            newWindow.opener = null;
+        }
+    }
+
     /**
      * Navigate to group detail page
      */

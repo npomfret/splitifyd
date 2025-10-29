@@ -14,7 +14,7 @@
  */
 
 import type { Email } from '@splitifyd/shared';
-import type { CreateRequest, DecodedIdToken, GetUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, GetUsersResult, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 export interface IAuthService {
     // ========================================================================
@@ -38,12 +38,28 @@ export interface IAuthService {
     getUser(uid: string): Promise<UserRecord | null>;
 
     /**
+     * Get a user by email
+     * @param email - Firebase user email address
+     * @returns UserRecord or null if not found
+     * @throws ApiError if operation fails
+     */
+    getUserByEmail(email: string): Promise<UserRecord | null>;
+
+    /**
      * Get multiple users by UIDs (batch operation)
      * @param uids - Array of Firebase user UIDs (max 100)
      * @returns GetUsersResult with found/not found users
      * @throws ApiError if operation fails
      */
     getUsers(uids: { uid: string; }[]): Promise<GetUsersResult>;
+
+    /**
+     * List users with pagination
+     * @param options.limit - Maximum number of users to return (1 - 1000)
+     * @param options.pageToken - Page token returned by a previous call
+     * @returns ListUsersResult from Firebase Auth
+     */
+    listUsers(options: { limit?: number; pageToken?: string; }): Promise<ListUsersResult>;
 
     /**
      * Update user profile in Firebase Auth

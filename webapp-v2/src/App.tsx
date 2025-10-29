@@ -38,6 +38,7 @@ const PrivacyPolicyPage = lazy(() => import('./pages/static/PrivacyPolicyPage').
 const CookiePolicyPage = lazy(() => import('./pages/static/CookiePolicyPage').then((m) => ({ default: m.CookiePolicyPage })));
 const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ default: m.JoinGroupPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const UsersBrowserPage = lazy(() => import('./pages/browser/UsersBrowserPage').then((m) => ({ default: m.UsersBrowserPage })));
 
 // Wrapper component to handle Suspense for lazy-loaded components
 function LazyRoute<T extends ComponentType<any>>({ component: Component, ...props }: LazyRouteProps<T>): VNode {
@@ -118,6 +119,7 @@ const PrivacyRoute = createLazyRoute(PrivacyPolicyPage);
 const CookieRoute = createLazyRoute(CookiePolicyPage);
 const JoinGroupRoute = createProtectedRoute(JoinGroupPage);
 const SettingsRoute = createProtectedRoute(SettingsPage);
+const UsersBrowserRoute = createProtectedRoute(UsersBrowserPage);
 
 export function App() {
     const authStore = useAuth();
@@ -150,6 +152,9 @@ export function App() {
 
                 {/* Settings Routes - Protected */}
                 <Route path='/settings' component={SettingsRoute} />
+
+                {/* Browser Routes - Protected */}
+                <Route path='/browser/users' component={UsersBrowserRoute} />
 
                 {/* Group Routes - Protected */}
                 <Route path='/groups/:id' component={GroupDetailRoute} />

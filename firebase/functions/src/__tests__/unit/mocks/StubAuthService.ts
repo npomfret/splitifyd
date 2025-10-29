@@ -1,5 +1,5 @@
 import type { Email } from '@splitifyd/shared';
-import type { CreateRequest, DecodedIdToken, GetUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, GetUsersResult, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { HTTP_STATUS } from '../../../constants';
 import type { IAuthService } from '../../../services/auth';
 import { ApiError } from '../../../utils/errors';
@@ -111,6 +111,11 @@ export class StubAuthService implements IAuthService {
         return this.users.get(uid) || null;
     }
 
+    async getUserByEmail(email: string): Promise<UserRecord | null> {
+        const user = Array.from(this.users.values()).find((u) => u.email === email && !this.deletedUsers.has(u.uid));
+        return user ?? null;
+    }
+
     async getUsers(uids: { uid: string; }[]): Promise<GetUsersResult> {
         const users: UserRecord[] = [];
         const notFound: { uid: string; }[] = [];
@@ -125,6 +130,29 @@ export class StubAuthService implements IAuthService {
         }
 
         return { users, notFound };
+    }
+
+    async listUsers(options: { limit?: number; pageToken?: string; } = {}): Promise<ListUsersResult> {
+        const limit = Math.max(1, Math.min(options.limit ?? 50, 1000));
+        const sorted = Array.from(this.users.values())
+            .filter((user) => !this.deletedUsers.has(user.uid))
+            .sort((a, b) => a.uid.localeCompare(b.uid));
+
+        let startIndex = 0;
+        if (options.pageToken) {
+            const index = sorted.findIndex((user) => user.uid === options.pageToken);
+            if (index >= 0) {
+                startIndex = index + 1;
+            }
+        }
+
+        const slice = sorted.slice(startIndex, startIndex + limit);
+        const nextPageToken = startIndex + limit < sorted.length ? slice[slice.length - 1]?.uid : undefined;
+
+        return {
+            users: slice,
+            pageToken: nextPageToken,
+        };
     }
 
     async updateUser(uid: string, updates: UpdateRequest): Promise<UserRecord> {

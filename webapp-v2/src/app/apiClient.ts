@@ -150,6 +150,34 @@ type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<Req
 type ResponseInterceptor = <T>(response: T, config: RequestConfig) => T | Promise<T>;
 
 // Retry configuration
+const AuthUserSchema = z
+    .object({
+        uid: z.string(),
+        email: z.string().email().nullable().optional(),
+        emailVerified: z.boolean().optional(),
+        displayName: z.string().nullable().optional(),
+        phoneNumber: z.string().nullable().optional(),
+        disabled: z.boolean().optional(),
+        metadata: z.any(),
+        customClaims: z.record(z.string(), z.any()).optional(),
+        providerData: z.array(z.any()).optional(),
+    })
+    .passthrough();
+
+const ListAuthUsersResponseSchema = z.object({
+    users: z.array(AuthUserSchema),
+    nextPageToken: z.string().optional(),
+    hasMore: z.boolean(),
+});
+
+const FirestoreUserSchema = z.object({ id: z.string() }).passthrough();
+
+const ListFirestoreUsersResponseSchema = z.object({
+    users: z.array(FirestoreUserSchema),
+    nextCursor: z.string().optional(),
+    hasMore: z.boolean(),
+});
+
 const RETRY_CONFIG = {
     maxAttempts: 3,
     retryableHttpMethods: ['GET', 'PUT'] as const,
@@ -918,6 +946,55 @@ class ApiClient {
             endpoint: '/register',
             method: 'POST',
             body: { email, password, displayName, termsAccepted, cookiePolicyAccepted },
+        });
+    }
+
+    async listAuthUsers(params: { limit?: number; pageToken?: string; email?: string; uid?: string; } = {}) {
+        const query: Record<string, string> = {};
+        if (params.limit !== undefined) {
+            query.limit = String(params.limit);
+        }
+        if (params.pageToken) {
+            query.pageToken = params.pageToken;
+        }
+        if (params.email) {
+            query.email = params.email;
+        }
+        if (params.uid) {
+            query.uid = params.uid;
+        }
+
+        return this.request({
+            endpoint: '/admin/browser/users/auth',
+            method: 'GET',
+            query: Object.keys(query).length > 0 ? query : undefined,
+            schema: ListAuthUsersResponseSchema,
+        });
+    }
+
+    async listFirestoreUsers(params: { limit?: number; cursor?: string; email?: string; uid?: string; displayName?: string; } = {}) {
+        const query: Record<string, string> = {};
+        if (params.limit !== undefined) {
+            query.limit = String(params.limit);
+        }
+        if (params.cursor) {
+            query.cursor = params.cursor;
+        }
+        if (params.email) {
+            query.email = params.email;
+        }
+        if (params.uid) {
+            query.uid = params.uid;
+        }
+        if (params.displayName) {
+            query.displayName = params.displayName;
+        }
+
+        return this.request({
+            endpoint: '/admin/browser/users/firestore',
+            method: 'GET',
+            query: Object.keys(query).length > 0 ? query : undefined,
+            schema: ListFirestoreUsersResponseSchema,
         });
     }
 
