@@ -300,7 +300,7 @@ async submitForm(): Promise<void> {
 
 ```typescript
 // In page objects
-import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
+import { translationEn } from '../translations/translation-en';
 
 export class CreateGroupModalPage extends BasePage {
     readonly modalTitle = translationEn.createGroupModal.title;
@@ -329,58 +329,27 @@ export class CreateGroupModalPage extends BasePage {
 - ❌ `page.reload()` for state sync - rely on real-time updates
 - ❌ Parallel multi-user actions - serialize operations
 
-### Configuration
-
-**Timeouts:**
-- Action: 1.5s
-- Test: 15s
-- Total suite: <2 min
-
-**Execution:**
-- 4 workers in parallel
-- Browser reuse between tests
-- 2 retries on CI, none locally
-
 **Reports:**
 - HTML reports: `e2e-tests/playwright-output/<type>/report/`
 - Console logs, screenshots, traces all captured
-
-### Common Patterns
-
-```typescript
-// Create group
-const groupId = await dashboardPage.createGroupAndNavigate('Group Name');
-await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
-
-// Form validation
-await loginPage.submitAndExpectError();
-await expect(loginPage.getErrorMessage()).toContainText('Invalid credentials');
-
-// Waiting for async state
-await expect(async () => {
-    const count = await groupDetailPage.getMemberCount();
-    expect(count).toBe(3);
-}).toPass({ timeout: 5000 });
-```
 
 ### Debugging
 
 1. **Check `playwright-output/` first** - traces, console logs, screenshots
 2. **Use `run-until-fail.sh`** - reproduce flaky failures
 3. **Read error messages** - proxy provides detailed context
-4. **Never serve HTML report** - use `PLAYWRIGHT_HTML_OPEN=never`
+4. **Never serve HTML report** - use `PLAYWRIGHT_HTML_OPEN=never` (the _run_ scripts already do this)
 
 ## Guidelines Summary
 
 **DO:**
 - Use builders for all test data
-- Poll for conditions, never sleep
+- Poll for conditions, never sleep, never assume instance state
 - Use fixtures for auth and page objects
 - Verify state before/after every action
-- Write deterministic tests (single path)
+- Write deterministic tests (single path, no "ifs" or "ors")
 - Fail fast with clear error messages
 - Use semantic selectors
-- Keep tests < code complexity
 
 **DON'T:**
 - Create test data manually
