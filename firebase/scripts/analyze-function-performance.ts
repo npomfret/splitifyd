@@ -206,14 +206,24 @@ class FunctionPerformanceAnalyzer {
                             const jsonString = line.substring(jsonStartIndex, jsonEndIndex);
                             const slowRequestData = JSON.parse(jsonString);
                             if (slowRequestData.message === 'slow-request') {
-                                this.slowRequests.push({
-                                    method: slowRequestData.method,
-                                    path: slowRequestData.path,
-                                    statusCode: slowRequestData.statusCode,
-                                    duration: slowRequestData.duration,
-                                    timestamp: new Date(currentTimestamp),
-                                    correlationId: slowRequestData.correlationId,
-                                });
+                                // Deduplicate: Firebase emulator logs each entry twice
+                                const isDuplicate = this.slowRequests.some(
+                                    (existing) =>
+                                        existing.correlationId === slowRequestData.correlationId &&
+                                        existing.duration === slowRequestData.duration &&
+                                        existing.path === slowRequestData.path,
+                                );
+
+                                if (!isDuplicate) {
+                                    this.slowRequests.push({
+                                        method: slowRequestData.method,
+                                        path: slowRequestData.path,
+                                        statusCode: slowRequestData.statusCode,
+                                        duration: slowRequestData.duration,
+                                        timestamp: new Date(currentTimestamp),
+                                        correlationId: slowRequestData.correlationId,
+                                    });
+                                }
                             }
                         } catch (error) {
                             // Skip malformed slow-request entries
@@ -258,14 +268,25 @@ class FunctionPerformanceAnalyzer {
                                     lineNumber,
                                 };
 
-                                this.phaseTimings.push(entry);
+                                // Deduplicate: Firebase emulator logs each entry twice (compact + verbose with metadata)
+                                // Skip if we already have an entry with same correlation ID and identical timing
+                                const isDuplicate = this.phaseTimings.some(
+                                    (existing) =>
+                                        existing.correlationId === entry.correlationId &&
+                                        existing.message === entry.message &&
+                                        JSON.stringify(existing.phases) === JSON.stringify(entry.phases),
+                                );
 
-                                // Group by message
-                                const key = timingData.message;
-                                if (!this.timingsByMessage.has(key)) {
-                                    this.timingsByMessage.set(key, []);
+                                if (!isDuplicate) {
+                                    this.phaseTimings.push(entry);
+
+                                    // Group by message
+                                    const key = timingData.message;
+                                    if (!this.timingsByMessage.has(key)) {
+                                        this.timingsByMessage.set(key, []);
+                                    }
+                                    this.timingsByMessage.get(key)!.push(entry);
                                 }
-                                this.timingsByMessage.get(key)!.push(entry);
                             }
                         } catch (error) {
                             // Skip malformed timing entries
