@@ -90,11 +90,40 @@ interface FunctionStats {
     };
 }
 
+interface PhaseTimingEntry {
+    message: string; // e.g., "expense-deleted", "comments-listed"
+    operation?: string; // e.g., "getUser", "verifyIdToken"
+    correlationId?: string;
+    timestamp: Date;
+    phases: Record<string, number>; // e.g., { "queryMs": 6, "transactionMs": 9, "totalMs": 15 }
+    lineNumber: number;
+}
+
+interface PhaseTimingStats {
+    message: string;
+    operation?: string;
+    count: number;
+    phases: Record<
+        string,
+        {
+            avg: number;
+            median: number;
+            min: number;
+            max: number;
+            p95: number;
+            p99: number;
+            values: number[];
+        }
+    >;
+}
+
 class FunctionPerformanceAnalyzer {
     private executions: FunctionExecution[] = [];
     private functionMap: Map<string, FunctionExecution[]> = new Map();
     private metricsReports: MetricsReportData[] = [];
     private slowRequests: SlowRequest[] = [];
+    private phaseTimings: PhaseTimingEntry[] = [];
+    private timingsByMessage: Map<string, PhaseTimingEntry[]> = new Map();
 
     async parseLogFile(filePath: string): Promise<void> {
         const fileStream = fs.createReadStream(filePath);
@@ -191,12 +220,65 @@ class FunctionPerformanceAnalyzer {
                     }
                 }
             }
+
+            // Match PerformanceTimer timing entries
+            // Example: [info] >  {"message":"expense-deleted","timings":{"queryMs":6,"transactionMs":9,"totalMs":15},...}
+            if (line.includes('"timings"') && line.includes('{')) {
+                const jsonStartIndex = line.indexOf('{');
+                if (jsonStartIndex !== -1) {
+                    // Find the matching closing brace by counting depth
+                    let depth = 0;
+                    let jsonEndIndex = -1;
+                    for (let i = jsonStartIndex; i < line.length; i++) {
+                        if (line[i] === '{') depth++;
+                        if (line[i] === '}') {
+                            depth--;
+                            if (depth === 0) {
+                                jsonEndIndex = i + 1;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (jsonEndIndex !== -1) {
+                        try {
+                            const jsonString = line.substring(jsonStartIndex, jsonEndIndex);
+                            const timingData = JSON.parse(jsonString);
+
+                            // Validate it has timings object
+                            if (timingData.timings && typeof timingData.timings === 'object' && timingData.message) {
+                                const entry: PhaseTimingEntry = {
+                                    message: timingData.message,
+                                    operation: timingData.operation,
+                                    correlationId: timingData.correlationId,
+                                    timestamp: new Date(currentTimestamp),
+                                    phases: timingData.timings,
+                                    lineNumber,
+                                };
+
+                                this.phaseTimings.push(entry);
+
+                                // Group by message
+                                const key = timingData.message;
+                                if (!this.timingsByMessage.has(key)) {
+                                    this.timingsByMessage.set(key, []);
+                                }
+                                this.timingsByMessage.get(key)!.push(entry);
+                            }
+                        } catch (error) {
+                            // Skip malformed timing entries
+                            // Silently ignore to avoid noise
+                        }
+                    }
+                }
+            }
         }
 
         console.log(`📊 Parsed ${this.executions.length} function executions from ${lineNumber} lines`);
         console.log(`🔍 Found ${this.functionMap.size} unique functions`);
         console.log(`📈 Found ${this.metricsReports.length} metrics reports`);
         console.log(`🐌 Found ${this.slowRequests.length} slow requests (>1s)`);
+        console.log(`⏱️  Found ${this.phaseTimings.length} phase timing entries (${this.timingsByMessage.size} unique operations)`);
     }
 
     analyzePerformance(): Map<string, FunctionStats> {
@@ -309,6 +391,71 @@ class FunctionPerformanceAnalyzer {
         }
 
         return null;
+    }
+
+    analyzePhaseTimings(): Map<string, PhaseTimingStats> {
+        const stats = new Map<string, PhaseTimingStats>();
+
+        for (const [message, entries] of this.timingsByMessage) {
+            if (entries.length === 0) continue;
+
+            // Collect all phase names across all entries for this message
+            const allPhaseNames = new Set<string>();
+            for (const entry of entries) {
+                for (const phaseName of Object.keys(entry.phases)) {
+                    allPhaseNames.add(phaseName);
+                }
+            }
+
+            // Build stats for each phase
+            const phaseStats: Record<string, { avg: number; median: number; min: number; max: number; p95: number; p99: number; values: number[]; }> = {};
+
+            for (const phaseName of allPhaseNames) {
+                const values: number[] = [];
+
+                // Collect all values for this phase
+                for (const entry of entries) {
+                    if (entry.phases[phaseName] !== undefined) {
+                        values.push(entry.phases[phaseName]);
+                    }
+                }
+
+                if (values.length > 0) {
+                    const sorted = [...values].sort((a, b) => a - b);
+                    const sum = sorted.reduce((a, b) => a + b, 0);
+                    const avg = sum / sorted.length;
+                    const median = this.calculateMedian(sorted);
+                    const min = sorted[0];
+                    const max = sorted[sorted.length - 1];
+                    const p95Index = Math.floor(sorted.length * 0.95);
+                    const p99Index = Math.floor(sorted.length * 0.99);
+                    const p95 = sorted[Math.min(p95Index, sorted.length - 1)];
+                    const p99 = sorted[Math.min(p99Index, sorted.length - 1)];
+
+                    phaseStats[phaseName] = {
+                        avg,
+                        median,
+                        min,
+                        max,
+                        p95,
+                        p99,
+                        values,
+                    };
+                }
+            }
+
+            // Get a representative operation name (use first entry's operation)
+            const operation = entries[0].operation;
+
+            stats.set(message, {
+                message,
+                operation,
+                count: entries.length,
+                phases: phaseStats,
+            });
+        }
+
+        return stats;
     }
 
     private calculateMedian(sortedArray: number[]): number {
@@ -460,12 +607,67 @@ class FunctionPerformanceAnalyzer {
         }
     }
 
-    printReport(stats: Map<string, FunctionStats>): void {
+    private printPhaseTimingsSummary(timingStats: Map<string, PhaseTimingStats>): void {
+        if (timingStats.size === 0) {
+            console.log('⏱️  PHASE TIMINGS: Not available in this log\n');
+            return;
+        }
+
+        console.log('⏱️  OPERATION PHASE TIMINGS (PerformanceTimer)');
+        console.log('▔'.repeat(60));
+        console.log(`📊 Total operations tracked: ${timingStats.size}`);
+        console.log('');
+
+        // Sort by total average time (slowest first)
+        const sortedStats = Array.from(timingStats.values()).sort((a, b) => {
+            const aTotal = a.phases.totalMs?.avg || 0;
+            const bTotal = b.phases.totalMs?.avg || 0;
+            return bTotal - aTotal;
+        });
+
+        // Show top 15 operations
+        const topOperations = sortedStats.slice(0, 15);
+
+        for (const stat of topOperations) {
+            const totalMs = stat.phases.totalMs;
+            const operationLabel = stat.operation ? `${stat.message} (${stat.operation})` : stat.message;
+
+            console.log(`\n┌─ 📋 ${operationLabel}`);
+            console.log(`├─ 🔢 Sample Count: ${stat.count}`);
+
+            if (totalMs) {
+                console.log(`├─ ⏱️  Total Time: avg=${totalMs.avg.toFixed(1)}ms, p95=${totalMs.p95}ms, p99=${totalMs.p99}ms`);
+            }
+
+            // Show phase breakdown (excluding totalMs)
+            const phases = Object.keys(stat.phases).filter((p) => p !== 'totalMs').sort();
+            if (phases.length > 0) {
+                console.log(`├─ 📊 Phase Breakdown:`);
+                for (const phaseName of phases) {
+                    const phase = stat.phases[phaseName];
+                    const percentage = totalMs ? ((phase.avg / totalMs.avg) * 100).toFixed(0) : '?';
+                    console.log(`│  ├─ ${phaseName.padEnd(20)}: avg=${phase.avg.toFixed(1).padStart(6)}ms (${percentage.padStart(3)}%), p95=${phase.p95.toString().padStart(4)}ms`);
+                }
+                console.log(`└─`);
+            } else {
+                console.log(`└─ (no phase breakdown available)`);
+            }
+        }
+
+        if (sortedStats.length > 15) {
+            console.log(`\n... and ${sortedStats.length - 15} more operations`);
+        }
+
+        console.log('');
+    }
+
+    printReport(stats: Map<string, FunctionStats>, timingStats: Map<string, PhaseTimingStats>): void {
         console.log('\n' + '🚀'.repeat(50));
         console.log('🎯 FIREBASE FUNCTIONS PERFORMANCE DASHBOARD 🎯'.padStart(75));
         console.log('🚀'.repeat(50) + '\n');
 
         this.printMetricsSummary();
+        this.printPhaseTimingsSummary(timingStats);
 
         // Sort by trend percentage (worst degradation first)
         const sortedStats = Array.from(stats.values()).sort((a, b) => b.trendPercentage - a.trendPercentage);
@@ -663,6 +865,85 @@ class FunctionPerformanceAnalyzer {
         console.log('🎯'.repeat(50));
     }
 
+    printFilteredReport(filterText: string): void {
+        console.log('\n' + '🔍'.repeat(50));
+        console.log(`FILTERED REPORT: "${filterText}"`.padStart(75));
+        console.log('🔍'.repeat(50) + '\n');
+
+        // Filter slow requests
+        const filteredSlowRequests = this.slowRequests.filter(
+            (req) => req.correlationId?.includes(filterText) || req.path?.includes(filterText) || req.method?.includes(filterText),
+        );
+
+        // Filter phase timings
+        const filteredPhaseTimings = this.phaseTimings.filter(
+            (timing) =>
+                timing.correlationId?.includes(filterText) ||
+                timing.message?.includes(filterText) ||
+                timing.operation?.includes(filterText) ||
+                JSON.stringify(timing.phases).includes(filterText),
+        );
+
+        console.log('📊 FILTERED RESULTS:');
+        console.log(`   Phase Timing Entries: ${filteredPhaseTimings.length}`);
+        console.log(`   Slow Requests: ${filteredSlowRequests.length}`);
+        console.log('');
+
+        if (filteredPhaseTimings.length === 0 && filteredSlowRequests.length === 0) {
+            console.log('❌ No matching entries found for the given filter.');
+            console.log('');
+            return;
+        }
+
+        // Show phase timings
+        if (filteredPhaseTimings.length > 0) {
+            console.log('⏱️  PHASE TIMING ENTRIES');
+            console.log('═'.repeat(60));
+
+            // Sort by timestamp
+            const sortedTimings = [...filteredPhaseTimings].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+
+            for (const timing of sortedTimings) {
+                const timestamp = timing.timestamp.toISOString().split('T')[1].substring(0, 12);
+                const correlationId = timing.correlationId ? ` [${timing.correlationId}]` : '';
+                const operation = timing.operation ? ` (${timing.operation})` : '';
+
+                console.log(`\n┌─ 📋 ${timing.message}${operation}`);
+                console.log(`├─ 🕐 ${timestamp}${correlationId}`);
+                console.log(`├─ 📊 Phase Timings:`);
+
+                // Show all phases
+                const phaseNames = Object.keys(timing.phases).sort();
+                for (const phaseName of phaseNames) {
+                    const value = timing.phases[phaseName];
+                    console.log(`│  ├─ ${phaseName.padEnd(20)}: ${value.toString().padStart(6)}ms`);
+                }
+                console.log(`└─ Line: ${timing.lineNumber}`);
+            }
+            console.log('');
+        }
+
+        // Show slow requests
+        if (filteredSlowRequests.length > 0) {
+            console.log('🐢 SLOW API REQUESTS (>1 second)');
+            console.log('═'.repeat(60));
+
+            const sortedSlowRequests = [...filteredSlowRequests].sort((a, b) => b.duration - a.duration);
+
+            for (let i = 0; i < sortedSlowRequests.length; i++) {
+                const req = sortedSlowRequests[i];
+                const timestamp = req.timestamp.toISOString().split('T')[1].substring(0, 12);
+                const correlationId = req.correlationId ? ` [${req.correlationId}]` : '';
+                console.log(`${(i + 1).toString().padStart(4)}. ${req.method.padEnd(6)} ${req.path.padEnd(40)} → ${req.duration}ms (${req.statusCode}) [${timestamp}]${correlationId}`);
+            }
+            console.log('');
+        }
+
+        console.log('🔍'.repeat(50));
+        console.log('END OF FILTERED REPORT'.padStart(75));
+        console.log('🔍'.repeat(50));
+    }
+
     exportToCSV(stats: Map<string, FunctionStats>, outputPath: string): void {
         const rows = ['Function,Executions,Avg Duration (ms),Median (ms),Min (ms),Max (ms),Std Dev (ms),CV (%),Outliers,Trend,Trend %'];
 
@@ -726,13 +1007,26 @@ async function main() {
         process.exit(1);
     }
 
+    // Handle optional filter (correlationId or any text)
+    const filterIndex = args.indexOf('--filter');
+    const filterText = filterIndex !== -1 && args[filterIndex + 1] ? args[filterIndex + 1] : null;
+
     const analyzer = new FunctionPerformanceAnalyzer();
 
     console.log(`📂 Analyzing log file: ${logFilePath}`);
+    if (filterText) {
+        console.log(`🔍 Filtering by: "${filterText}"`);
+    }
     await analyzer.parseLogFile(logFilePath);
 
     const stats = analyzer.analyzePerformance();
-    analyzer.printReport(stats);
+    const timingStats = analyzer.analyzePhaseTimings();
+
+    if (filterText) {
+        analyzer.printFilteredReport(filterText);
+    } else {
+        analyzer.printReport(stats, timingStats);
+    }
 
     // Handle optional CSV export (look through all args, not just after logFilePath)
     const csvIndex = args.indexOf('--csv');
