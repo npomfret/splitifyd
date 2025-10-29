@@ -17,7 +17,7 @@ Expense/settlement/comment/group services still carry a lot of repeated access-c
 - **Timestamp generation** – Multiple services produce ISO strings by hand (e.g. `ExpenseService.ts:188`, `SettlementService.ts:165`, `GroupService.ts:311`, `PolicyService.ts:146`). A date helper would ensure consistent formatting/timezone handling.
 - **ComponentBuilder factories** – Every `buildXService` repeats the lazy-init pattern in `ComponentBuilder.ts:60-153`. A generic memoized factory would remove noise.
 - **Group member access guards** – `GroupMemberService` duplicates admin/membership checks across approve/reject/role updates (`GroupMemberService.ts:23-203`). Consolidating these validators would reduce divergence risk.
-- **User display name lookups** – `GroupShareService` and `GroupService` still fetch user profiles manually before setting `groupDisplayName` (`GroupShareService.ts:323-351`, `GroupService.ts:320-347`). The new `UserService.resolveGroupMemberProfile` can cover these cases too.
+- **User display name lookups** – ✅ `GroupShareService` now funnels through `UserService.resolveJoinContext`, removing its manual profile fetch. `GroupService.ts:320-347` still hand-rolls lookups and should migrate to the shared helpers next.
 
 ## Next Steps
 
