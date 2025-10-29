@@ -359,8 +359,6 @@ export class UserService {
                 emailVerified: false,
             });
 
-            logger.info('Email changed successfully');
-
             return this._getProfile(userId);
         } catch (error: unknown) {
             if (error instanceof ApiError) {

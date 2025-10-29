@@ -188,6 +188,7 @@ function setupRoutes(app: express.Application): void {
 
     app.get('/admin/browser/users/auth', authenticateSystemUser, asyncHandler(userBrowserHandlers.listAuthUsers));
     app.get('/admin/browser/users/firestore', authenticateSystemUser, asyncHandler(userBrowserHandlers.listFirestoreUsers));
+
     app.use((req: express.Request, res: express.Response) => {
         res.status(HTTP_STATUS.NOT_FOUND).json({
             error: {
