@@ -7,14 +7,22 @@ import { getIdentityToolkitConfig } from '../client-config';
 import { getAuth, getFirestore } from '../firebase';
 import { logger, LoggerContext } from '../logger';
 import { applyCacheControl } from '../middleware/cache-control';
+import { tenantContextMiddleware, type TenantContextConfig } from '../middleware/tenant-context';
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { validateContentType, validateRequestStructure } from '../middleware/validation';
 import { ComponentBuilder } from '../services/ComponentBuilder';
 import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest } from './i18n';
+import '../types/tenant';
 
 // Initialize services
 const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
+const tenantRegistryService = applicationBuilder.buildTenantRegistryService();
+
+const tenantContextConfig: TenantContextConfig = {
+    allowOverrideHeader: () => !getConfig().isProduction,
+    allowDefaultFallback: () => true, // Always allow fallback to hardcoded default tenant
+};
 
 /**
  * Apply standard middleware stack to Express app
@@ -50,6 +58,9 @@ export const applyStandardMiddleware = (app: express.Application) => {
 
     // Parse JSON with size limit
     app.use(express.json({ limit: getConfig().requestBodyLimit }));
+
+    // Resolve tenant context for all subsequent middleware and handlers
+    app.use(tenantContextMiddleware(tenantRegistryService, tenantContextConfig));
 
     // Serialize all JSON responses through the API serializer
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {

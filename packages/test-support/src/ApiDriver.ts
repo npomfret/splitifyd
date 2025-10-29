@@ -453,6 +453,7 @@ export class ApiDriver {
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/x-serialized-json',
+                Host: 'localhost',
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
         };

@@ -12,11 +12,13 @@ import { FirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
 import { GroupService } from './GroupService';
 import { GroupShareService } from './GroupShareService';
+import { GroupLockEvaluator } from './locks/GroupLockEvaluator';
 import { PolicyService } from './PolicyService';
 import { SettlementService } from './SettlementService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import { UserPolicyService } from './UserPolicyService';
 import { UserService } from './UserService2';
+import { TenantRegistryService } from './tenant/TenantRegistryService';
 
 export class ComponentBuilder {
     // Base infrastructure - created once
@@ -31,8 +33,10 @@ export class ComponentBuilder {
     private groupMemberService?: GroupMemberService;
     private groupShareService?: GroupShareService;
     private groupTransactionManager?: GroupTransactionManager;
+    private groupLockEvaluator?: GroupLockEvaluator;
     private incrementalBalanceService?: IncrementalBalanceService;
     private activityFeedService?: ActivityFeedService;
+    private tenantRegistryService?: TenantRegistryService;
     private firestoreReader: IFirestoreReader;
     private firestoreWriter: IFirestoreWriter;
 
@@ -156,6 +160,13 @@ export class ComponentBuilder {
         return this.groupTransactionManager;
     }
 
+    buildGroupLockEvaluator(): GroupLockEvaluator {
+        if (!this.groupLockEvaluator) {
+            this.groupLockEvaluator = new GroupLockEvaluator(this.buildFirestoreReader());
+        }
+        return this.groupLockEvaluator;
+    }
+
     buildIncrementalBalanceService(): IncrementalBalanceService {
         if (!this.incrementalBalanceService) {
             this.incrementalBalanceService = new IncrementalBalanceService(this.buildFirestoreWriter());
@@ -182,6 +193,13 @@ export class ComponentBuilder {
             this.activityFeedService = new ActivityFeedService(this.buildFirestoreReader(), this.buildFirestoreWriter());
         }
         return this.activityFeedService;
+    }
+
+    buildTenantRegistryService(): TenantRegistryService {
+        if (!this.tenantRegistryService) {
+            this.tenantRegistryService = new TenantRegistryService(this.buildFirestoreReader());
+        }
+        return this.tenantRegistryService;
     }
 
     buildFirestoreReader(): IFirestoreReader {

@@ -58,6 +58,9 @@ export { GroupDocumentSchema } from './group';
 // Group membership schemas
 export { TopLevelGroupMemberSchema } from './group-membership';
 
+// Tenant schemas
+export { TenantDocumentSchema, type TenantDocument } from './tenant';
+
 // ==========================================
 // VALIDATION UTILITIES
 // ==========================================
