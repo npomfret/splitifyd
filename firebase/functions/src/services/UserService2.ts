@@ -128,7 +128,7 @@ export class UserService {
 
         const memberData = await this.firestoreReader.getGroupMember(groupId, userId);
 
-        const userProfile = await this.getUser(userId).catch((error) => {
+        const userProfile = await this.getUser(userId).catch((error) => {// todo: remove this
             if (error instanceof ApiError && error.code === 'NOT_FOUND') {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
             }
