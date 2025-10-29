@@ -95,8 +95,6 @@ export class ComponentBuilder {
                 this.buildActivityFeedService(),
                 this.buildUserService(),
                 this.buildGroupMemberService(),
-                this.buildGroupTransactionManager(),
-                this.buildGroupLockEvaluator(),
             );
         }
         return this.expenseService;
@@ -111,8 +109,6 @@ export class ComponentBuilder {
                 this.buildActivityFeedService(),
                 this.buildUserService(),
                 this.buildGroupMemberService(),
-                this.buildGroupTransactionManager(),
-                this.buildGroupLockEvaluator(),
             );
         }
         return this.settlementService;
