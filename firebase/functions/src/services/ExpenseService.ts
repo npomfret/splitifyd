@@ -23,6 +23,7 @@ import { ApiError, Errors } from '../utils/errors';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupLockEvaluator } from './locks/GroupLockEvaluator';
 import { GroupMemberService } from './GroupMemberService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import { UserService } from './UserService2';
@@ -40,6 +41,7 @@ export class ExpenseService {
         private readonly userService: UserService,
         private readonly groupMemberService: GroupMemberService,
         private readonly groupTransactionManager: GroupTransactionManager,
+        private readonly groupLockEvaluator: GroupLockEvaluator,
     ) {}
 
     /**
@@ -99,15 +101,6 @@ export class ExpenseService {
     }
 
     /**
-     * Check if expense is locked due to departed members
-     * An expense is locked if any participant is no longer in the group
-     */
-    private async isExpenseLocked(expense: ExpenseDTO): Promise<boolean> {
-        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(expense.groupId);
-        return expense.participants.some(uid => !currentMemberIds.includes(uid));
-    }
-
-    /**
      * Get a single expense by ID
      */
     async getExpense(expenseId: ExpenseId, userId: UserId): Promise<ExpenseDTO> {
@@ -121,7 +114,7 @@ export class ExpenseService {
         const expense = await this.fetchExpense(expenseId);
         timer.endPhase();
 
-        const isLocked = await this.isExpenseLocked(expense);
+        const isLocked = await this.groupLockEvaluator.isExpenseLocked(expense);
 
         logger.info('expense-retrieved', {
             id: expenseId,
@@ -276,7 +269,7 @@ export class ExpenseService {
         const expense = await this.fetchExpense(expenseId);
 
         // Check if expense is locked (any participant has left)
-        const isLocked = await this.isExpenseLocked(expense);
+        const isLocked = await this.groupLockEvaluator.isExpenseLocked(expense);
         if (isLocked) {
             throw new ApiError(
                 HTTP_STATUS.BAD_REQUEST,
@@ -642,7 +635,7 @@ export class ExpenseService {
             expense.participants.map((uid) => this.fetchParticipantData(expense.groupId, uid)),
         );
 
-        const isLocked = await this.isExpenseLocked(expense);
+        const isLocked = await this.groupLockEvaluator.isExpenseLocked(expense);
         timer.endPhase();
 
         // Format expense response

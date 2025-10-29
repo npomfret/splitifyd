@@ -9,6 +9,7 @@ import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { GroupShareService } from '../../../services/GroupShareService';
+import { GroupTransactionManager } from '../../../services/transactions/GroupTransactionManager';
 import { UserService } from '../../../services/UserService2';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -21,6 +22,7 @@ describe('GroupShareService', () => {
     let activityFeedService: ActivityFeedService;
     let userService: UserService;
     let authService: StubAuthService;
+    let groupTransactionManager: GroupTransactionManager;
 
     beforeEach(() => {
         // Create stub database
@@ -30,7 +32,8 @@ describe('GroupShareService', () => {
         firestoreReader = new FirestoreReader(db);
         const firestoreWriter = new FirestoreWriter(db);
         activityFeedService = new ActivityFeedService(firestoreReader, firestoreWriter);
-        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService);
+        groupTransactionManager = new GroupTransactionManager(firestoreReader, firestoreWriter);
+        groupMemberService = new GroupMemberService(firestoreReader, firestoreWriter, activityFeedService, groupTransactionManager);
         authService = new StubAuthService();
         userService = new UserService(firestoreReader, firestoreWriter, authService);
 
@@ -41,6 +44,7 @@ describe('GroupShareService', () => {
             groupMemberService,
             activityFeedService,
             userService,
+            groupTransactionManager,
         );
     });
 

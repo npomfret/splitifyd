@@ -23,6 +23,7 @@ import { LoggerContext } from '../utils/logger-context';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupLockEvaluator } from './locks/GroupLockEvaluator';
 import { GroupMemberService } from './GroupMemberService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import { UserService } from './UserService2';
@@ -42,6 +43,7 @@ export class SettlementService {
         private readonly userService: UserService,
         private readonly groupMemberService: GroupMemberService,
         private readonly groupTransactionManager: GroupTransactionManager,
+        private readonly groupLockEvaluator: GroupLockEvaluator,
     ) {}
     /**
      * Fetch group member data for settlements
@@ -52,16 +54,6 @@ export class SettlementService {
         return this.userService.resolveGroupMemberProfile(groupId, userId, {
             failureContext: 'settlement member fetch',
         });
-    }
-
-    /**
-     * Check if settlement is locked due to departed members
-     * A settlement is locked if payer or payee is no longer in the group
-     */
-    private async isSettlementLocked(settlement: SettlementDTO, groupId: GroupId): Promise<boolean> {
-        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
-        return !currentMemberIds.includes(settlement.payerId)
-            || !currentMemberIds.includes(settlement.payeeId);
     }
 
     /**
@@ -276,7 +268,7 @@ export class SettlementService {
         const settlement = settlementData;
 
         // Check if settlement is locked (payer or payee has left)
-        const isLocked = await this.isSettlementLocked(settlement, settlement.groupId);
+        const isLocked = await this.groupLockEvaluator.isSettlementLocked(settlement);
         if (isLocked) {
             throw new ApiError(
                 HTTP_STATUS.BAD_REQUEST,
