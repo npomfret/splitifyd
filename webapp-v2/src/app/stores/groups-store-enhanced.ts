@@ -1,11 +1,14 @@
-import { logInfo, logWarning } from '@/utils/browser-logger.ts';
+import { logInfo } from '@/utils/browser-logger.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
-import { batch, computed, ReadonlySignal, signal } from '@preact/signals';
-import { ActivityFeedItem, CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@splitifyd/shared';
+import { batch, ReadonlySignal, signal } from '@preact/signals';
+import { CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@splitifyd/shared';
 import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
-import { apiClient, ApiError } from '../apiClient';
-import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
+import { apiClient } from '../apiClient';
+import type { ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../services/activity-feed-realtime-service';
+import { GroupsPaginationController } from './helpers/groups-pagination-controller';
+import { GroupsErrorManager } from './helpers/groups-error-manager';
+import { GroupsRealtimeCoordinator } from './helpers/groups-realtime-coordinator';
 
 interface EnhancedGroupsStore {
     groups: GroupDTO[];
@@ -60,8 +63,6 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     // Private signals - encapsulated within the class
     readonly #groupsSignal = signal<GroupDTO[]>([]);
     readonly #loadingSignal = signal<boolean>(false);
-    readonly #validationErrorSignal = signal<string | null>(null); // Persists through refreshes
-    readonly #networkErrorSignal = signal<string | null>(null); // Cleared on successful refresh
     readonly #initializedSignal = signal<boolean>(false);
     readonly #isRefreshingSignal = signal<boolean>(false);
     readonly #lastRefreshSignal = signal<number>(0);
@@ -72,25 +73,21 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #pageSizeSignal = signal<number>(8);
     readonly #showArchivedSignal = signal<boolean>(false);
 
-    private readonly activityFeed: ActivityFeedRealtimeService;
     private readonly activityListenerId = 'groups-store';
-    private activityListenerRegistered = false;
-    private nextCursor: string | null = null;
-    private previousCursors: string[] = []; // Stack of cursors for previous pages
-
-    // Reference counting for subscription management
-    private subscriberCount = 0;
-    private subscriberIds = new Set<string>();
-    private currentUserId: string | null = null;
-
-    // Debouncing for refresh operations
-    private refreshDebounceTimer: NodeJS.Timeout | null = null;
-    private refreshDebounceDelay: number;
-    private pendingRefresh = false;
+    private readonly pagination: GroupsPaginationController;
+    private readonly errorManager = new GroupsErrorManager();
+    private readonly realtime: GroupsRealtimeCoordinator;
 
     constructor(activityFeed: ActivityFeedRealtimeService = activityFeedRealtimeService, debounceDelay: number = 300) {
-        this.activityFeed = activityFeed;
-        this.refreshDebounceDelay = debounceDelay;
+        this.pagination = new GroupsPaginationController(this.#currentPageSignal, this.#hasMoreSignal, this.#pageSizeSignal);
+        this.realtime = new GroupsRealtimeCoordinator({
+            activityFeed,
+            listenerId: this.activityListenerId,
+            debounceDelay,
+            isRefreshingSignal: this.#isRefreshingSignal,
+            onRefresh: () => this.fetchGroups(),
+            onGroupRemoval: this.handleGroupRemoval,
+        });
     }
 
     // State getters - readonly values for external consumers
@@ -101,7 +98,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         return this.#loadingSignal.value;
     }
     get error() {
-        return this.#validationErrorSignal.value || this.#networkErrorSignal.value;
+        return this.errorManager.combinedError;
     }
     get initialized() {
         return this.#initializedSignal.value;
@@ -139,8 +136,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         return this.#loadingSignal;
     }
     get errorSignal(): ReadonlySignal<string | null> {
-        // Create a computed signal that combines both error types
-        return computed(() => this.#validationErrorSignal.value || this.#networkErrorSignal.value);
+        return this.errorManager.errorSignal;
     }
     get initializedSignal(): ReadonlySignal<boolean> {
         return this.#initializedSignal;
@@ -172,10 +168,10 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
     async fetchGroups(limit?: number, cursor?: string): Promise<void> {
         this.#loadingSignal.value = true;
-        this.#networkErrorSignal.value = null; // Only clear network errors, not validation errors
+        this.errorManager.clearNetworkError(); // Only clear network errors, not validation errors
 
         const startTime = Date.now();
-        const pageSize = limit || this.#pageSizeSignal.value;
+        const pageSize = limit ?? this.pagination.pageSize;
 
         try {
             // Include metadata to get change information and pagination params
@@ -202,8 +198,10 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
             // Update pagination state
             this.#groupsSignal.value = response.groups;
-            this.#hasMoreSignal.value = response.hasMore;
-            this.nextCursor = response.nextCursor || null;
+            this.pagination.applyResult({
+                hasMore: response.hasMore,
+                nextCursor: response.nextCursor ?? null,
+            });
             this.#lastRefreshSignal.value = response.metadata?.serverTime || Date.now();
             this.#initializedSignal.value = true;
         } catch (error: any) {
@@ -211,12 +209,14 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             if (error?.status === 404 || error?.message?.includes('404')) {
                 logInfo('fetchGroups: No groups found (404), clearing list', { error: error?.message });
                 this.#groupsSignal.value = [];
-                this.#hasMoreSignal.value = false;
-                this.nextCursor = null;
+                this.pagination.applyResult({
+                    hasMore: false,
+                    nextCursor: null,
+                });
                 this.#lastRefreshSignal.value = Date.now();
                 this.#initializedSignal.value = true;
             } else {
-                this.#networkErrorSignal.value = this.getErrorMessage(error);
+                this.errorManager.setNetworkError(this.errorManager.getErrorMessage(error));
                 throw error;
             }
         } finally {
@@ -225,72 +225,52 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     async loadNextPage(): Promise<void> {
-        if (!this.#hasMoreSignal.value || !this.nextCursor) {
+        if (!this.pagination.canLoadNext()) {
             logInfo('loadNextPage: No more pages available');
             return;
         }
 
-        // Save current cursor for previous page navigation
-        if (this.nextCursor) {
-            this.previousCursors.push(this.nextCursor);
+        const cursor = this.pagination.prepareNextPageCursor();
+        if (!cursor) {
+            logInfo('loadNextPage: Next page cursor missing');
+            return;
         }
 
-        this.#currentPageSignal.value += 1;
-        await this.fetchGroups(this.#pageSizeSignal.value, this.nextCursor);
+        await this.fetchGroups(this.pagination.pageSize, cursor);
     }
 
     async loadPreviousPage(): Promise<void> {
-        if (this.#currentPageSignal.value <= 1) {
+        if (!this.pagination.canLoadPrevious()) {
             logInfo('loadPreviousPage: Already on first page');
             return;
         }
 
-        this.#currentPageSignal.value -= 1;
-
-        // Pop the last cursor and use the one before it (or undefined for page 1)
-        this.previousCursors.pop();
-        const previousCursor = this.previousCursors[this.previousCursors.length - 1];
-
-        // If we're going back to page 1, clear the cursor
-        const cursor = this.#currentPageSignal.value === 1 ? undefined : previousCursor;
-        await this.fetchGroups(this.#pageSizeSignal.value, cursor);
+        const cursor = this.pagination.preparePreviousPageCursor();
+        await this.fetchGroups(this.pagination.pageSize, cursor);
     }
 
     async setPageSize(size: number): Promise<void> {
-        if (size < 1) {
-            throw new Error('Page size must be at least 1');
-        }
-
-        this.#pageSizeSignal.value = size;
-        this.#currentPageSignal.value = 1;
-        this.previousCursors = [];
-        this.nextCursor = null;
+        this.pagination.setPageSize(size);
         await this.fetchGroups(size);
     }
 
     async createGroup(data: CreateGroupRequest): Promise<GroupDTO> {
         this.#isCreatingGroupSignal.value = true;
         // Clear both error types when starting a new operation
-        this.#validationErrorSignal.value = null;
-        this.#networkErrorSignal.value = null;
+        this.errorManager.clearAll();
 
         try {
             const newGroup = await apiClient.createGroup(data);
 
             // Reset to first page and fetch fresh data from server to ensure consistency
-            this.#currentPageSignal.value = 1;
-            this.previousCursors = [];
-            this.nextCursor = null;
-            await this.fetchGroups(this.#pageSizeSignal.value);
+            const pageSize = this.pagination.pageSize;
+            this.pagination.reset();
+            await this.fetchGroups(pageSize);
 
             return newGroup;
         } catch (error) {
             // Categorize errors: validation (400s) vs network/server errors
-            if (error instanceof ApiError && (error.code?.startsWith('VALIDATION_') || error.requestContext?.status === 400)) {
-                this.#validationErrorSignal.value = this.getErrorMessage(error);
-            } else {
-                this.#networkErrorSignal.value = this.getErrorMessage(error);
-            }
+            this.errorManager.handleApiError(error);
             throw error;
         } finally {
             this.#isCreatingGroupSignal.value = false;
@@ -321,15 +301,11 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
             // Fetch fresh data from server to ensure consistency (maintain current page)
             // This also ensures we get any server-side computed fields
-            const cursor = this.#currentPageSignal.value > 1 ? this.previousCursors[this.previousCursors.length - 1] : undefined;
-            await this.fetchGroups(this.#pageSizeSignal.value, cursor);
+            const cursor = this.pagination.cursorForCurrentPage();
+            await this.fetchGroups(this.pagination.pageSize, cursor);
         } catch (error) {
             // Categorize errors: validation (400s) vs network/server errors
-            if (error instanceof ApiError && (error.code?.startsWith('VALIDATION_') || error.requestContext?.status === 400)) {
-                this.#validationErrorSignal.value = this.getErrorMessage(error);
-            } else {
-                this.#networkErrorSignal.value = this.getErrorMessage(error);
-            }
+            this.errorManager.handleApiError(error);
             throw error;
         } finally {
             // Remove from updating set
@@ -353,13 +329,10 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         }
 
         this.#showArchivedSignal.value = showArchived;
-        this.#currentPageSignal.value = 1;
-        this.previousCursors = [];
-        this.nextCursor = null;
-        this.#validationErrorSignal.value = null;
-        this.#networkErrorSignal.value = null;
+        this.pagination.reset();
+        this.errorManager.clearAll();
 
-        await this.fetchGroups(this.#pageSizeSignal.value);
+        await this.fetchGroups(this.pagination.pageSize);
     }
 
     async toggleShowArchived(): Promise<void> {
@@ -367,37 +340,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     async refreshGroups(): Promise<void> {
-        // If a refresh is already pending, just wait for it
-        if (this.pendingRefresh) {
-            logInfo('refreshGroups: Refresh already pending, skipping duplicate request');
-            return;
-        }
-
-        // Clear any existing debounce timer
-        if (this.refreshDebounceTimer) {
-            clearTimeout(this.refreshDebounceTimer);
-        }
-
-        // Return a promise that resolves when the debounced refresh completes
-        return new Promise<void>((resolve, reject) => {
-            this.refreshDebounceTimer = setTimeout(async () => {
-                this.pendingRefresh = true;
-                this.#isRefreshingSignal.value = true;
-
-                logInfo('refreshGroups: Starting debounced refresh');
-
-                try {
-                    await this.fetchGroups();
-                    resolve();
-                } catch (error) {
-                    reject(error);
-                } finally {
-                    this.#isRefreshingSignal.value = false;
-                    this.pendingRefresh = false;
-                    this.refreshDebounceTimer = null;
-                }
-            }, this.refreshDebounceDelay);
-        });
+        await this.realtime.refresh();
     }
 
     /**
@@ -405,22 +348,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
      * Uses reference counting to manage subscriptions
      */
     registerComponent(componentId: string, userId: UserId): void {
-        // Add to subscriber tracking
-        this.subscriberIds.add(componentId);
-        this.subscriberCount++;
-
-        // If this is the first subscriber or user changed, set up subscription
-        if (this.subscriberCount === 1 || this.currentUserId !== userId) {
-            this.currentUserId = userId;
-            this.setupSubscription(userId).catch((error) =>
-                logWarning('Failed to set up activity feed subscription for groups store', {
-                    error: error instanceof Error ? error.message : String(error),
-                    userId,
-                })
-            );
-        }
-
-        // Component registered (routine)
+        this.realtime.registerComponent(componentId, userId);
     }
 
     /**
@@ -428,83 +356,10 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
      * Only disposes subscription when last component deregisters
      */
     deregisterComponent(componentId: string): void {
-        if (!this.subscriberIds.has(componentId)) {
-            return;
-        }
-
-        this.subscriberIds.delete(componentId);
-        this.subscriberCount--;
-
-        // Component deregistered (routine)
-
-        // Only dispose if this was the last subscriber
-        if (this.subscriberCount === 0) {
-            this.disposeSubscription();
-            this.currentUserId = null;
-        }
-    } /**
-     * Internal method to set up subscription
-     */
-
-    private async setupSubscription(userId: UserId): Promise<void> {
-        if (this.activityListenerRegistered) {
-            this.activityFeed.deregisterConsumer(this.activityListenerId);
-            this.activityListenerRegistered = false;
-        }
-
-        await this.activityFeed.registerConsumer(this.activityListenerId, userId, {
-            onUpdate: this.handleRealtimeUpdate,
-            onError: (error) => {
-                logWarning('Failed to process activity feed update for groups store', {
-                    error: error instanceof Error ? error.message : String(error),
-                    userId,
-                });
-            },
-        });
-        this.activityListenerRegistered = true;
-
-        this.refreshGroups().catch((error) =>
-            logWarning('Failed to refresh groups after subscription setup', {
-                error: error instanceof Error ? error.message : String(error),
-                userId,
-            })
-        );
+        this.realtime.deregisterComponent(componentId);
     }
 
-    private handleRealtimeUpdate = (payload: ActivityFeedRealtimePayload): void => {
-        for (const item of payload.newItems) {
-            this.handleActivityEvent(item);
-        }
-    };
-
-    private handleActivityEvent = (event: ActivityFeedItem): void => {
-        const { groupId, eventType, details } = event;
-        const userId = this.currentUserId;
-
-        if (!groupId || !userId) {
-            return;
-        }
-
-        logInfo('Activity feed event received for groups store', {
-            eventType,
-            groupId,
-        });
-
-        if (eventType === 'member-left' && details?.targetUserId === userId) {
-            this.handleGroupRemoval(groupId, details?.targetUserName ?? event.groupName);
-            return;
-        }
-
-        this.refreshGroups().catch((error) =>
-            logWarning('Failed to refresh groups after activity event', {
-                error: error instanceof Error ? error.message : String(error),
-                groupId,
-                eventType,
-            })
-        );
-    };
-
-    private handleGroupRemoval(groupId: GroupId, groupNameHint?: string): void {
+    private handleGroupRemoval = (groupId: GroupId, groupNameHint?: string): void => {
         const currentGroups = this.#groupsSignal.value;
         const removedGroup = currentGroups.find((group) => group.id === groupId);
         const groupName = groupNameHint || removedGroup?.name || 'Unknown Group';
@@ -541,69 +396,43 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             oldCount: currentGroups.length,
             newCount: filteredGroups.length,
         });
-    }
-
-    /**
-     * Internal method to dispose subscription
-     */
-    private disposeSubscription(): void {
-        if (this.activityListenerRegistered) {
-            this.activityFeed.deregisterConsumer(this.activityListenerId);
-            this.activityListenerRegistered = false;
-        }
-    }
+    };
 
     /**
      * Legacy API - subscribes without reference counting
      * @deprecated Use registerComponent/deregisterComponent instead
      */
     subscribeToChanges(userId: UserId): void {
-        this.setupSubscription(userId).catch((error) =>
-            logWarning('Legacy subscribeToChanges failed to register listener', {
-                error: error instanceof Error ? error.message : String(error),
-                userId,
-            })
-        );
+        this.realtime.subscribeToChanges(userId);
     }
 
     clearError(): void {
-        this.#validationErrorSignal.value = null;
-        this.#networkErrorSignal.value = null;
+        this.errorManager.clearAll();
     }
 
     clearValidationError(): void {
-        this.#validationErrorSignal.value = null;
+        this.errorManager.clearValidationError();
     }
 
     reset(): void {
-        // Clear any pending refresh operations
-        if (this.refreshDebounceTimer) {
-            clearTimeout(this.refreshDebounceTimer);
-            this.refreshDebounceTimer = null;
-        }
-        this.pendingRefresh = false;
-
-        // Reset pagination state
-        this.nextCursor = null;
-        this.previousCursors = [];
+        // Clear any pending refresh operations and reset helpers
+        this.realtime.clearRefreshState();
+        this.pagination.reset({ pageSize: 8 });
+        this.errorManager.clearAll();
 
         batch(() => {
             this.#groupsSignal.value = [];
             this.#loadingSignal.value = false;
-            this.#validationErrorSignal.value = null;
-            this.#networkErrorSignal.value = null;
             this.#initializedSignal.value = false;
             this.#isRefreshingSignal.value = false;
             this.#lastRefreshSignal.value = 0;
             this.#updatingGroupIdsSignal.value = new Set();
             this.#isCreatingGroupSignal.value = false;
-            this.#currentPageSignal.value = 1;
-            this.#hasMoreSignal.value = false;
-            this.#pageSizeSignal.value = 8;
             this.#showArchivedSignal.value = false;
         });
 
-        this.dispose();
+        // Mimic legacy behaviour: only dispose subscription when idle
+        this.realtime.disposeIfIdle();
     }
 
     /**
@@ -611,20 +440,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
      * @deprecated Use registerComponent/deregisterComponent instead
      */
     dispose(): void {
-        // Only dispose if no components are registered (legacy behavior)
-        if (this.subscriberCount === 0) {
-            this.disposeSubscription();
-        }
-    }
-
-    private getErrorMessage(error: unknown): string {
-        if (error instanceof ApiError) {
-            return error.message;
-        }
-        if (error instanceof Error) {
-            return error.message;
-        }
-        return 'An unexpected error occurred';
+        this.realtime.disposeIfIdle();
     }
 
     private resolveStatusFilter(): MemberStatus {
@@ -635,15 +451,15 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         const updatingIds = new Set(this.#updatingGroupIdsSignal.value);
         updatingIds.add(groupId);
         this.#updatingGroupIdsSignal.value = updatingIds;
-        this.#networkErrorSignal.value = null;
+        this.errorManager.clearNetworkError();
 
-        const cursor = this.#currentPageSignal.value > 1 ? this.previousCursors[this.previousCursors.length - 1] : undefined;
+        const cursor = this.pagination.cursorForCurrentPage();
 
         try {
             await operation();
-            await this.fetchGroups(this.#pageSizeSignal.value, cursor);
+            await this.fetchGroups(this.pagination.pageSize, cursor);
         } catch (error) {
-            this.#networkErrorSignal.value = this.getErrorMessage(error);
+            this.errorManager.setNetworkError(this.errorManager.getErrorMessage(error));
             throw error;
         } finally {
             const updatedIds = new Set(this.#updatingGroupIdsSignal.value);

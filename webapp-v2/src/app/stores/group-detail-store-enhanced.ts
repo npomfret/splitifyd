@@ -1,12 +1,13 @@
 import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
-import { permissionsStore } from '@/stores/permissions-store.ts';
 import { logError, logInfo, logWarning } from '@/utils/browser-logger';
 import { batch, signal } from '@preact/signals';
-import { ActivityFeedItem, ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers, UserId } from '@splitifyd/shared';
+import { ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers, UserId } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
-import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
+import type { ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../services/activity-feed-realtime-service';
-import { themeStore } from './theme-store';
+import { GroupDetailCollectionManager } from './helpers/group-detail-collection-manager';
+import { GroupDetailRealtimeCoordinator } from './helpers/group-detail-realtime-coordinator';
+import { GroupDetailSideEffectsManager } from './helpers/group-detail-side-effects';
 
 const GROUP_EXPENSE_PAGE_SIZE = 8;
 const GROUP_SETTLEMENT_PAGE_SIZE = 8;
@@ -80,21 +81,33 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     readonly #showDeletedSettlementsSignal = signal<boolean>(false);
     readonly #showDeletedExpensesSignal = signal<boolean>(false);
 
-    // Reference counting infrastructure for multi-group support
-    readonly #subscriberCounts = new Map<string, number>();
-
-    private readonly activityFeed: ActivityFeedRealtimeService;
     private readonly activityListenerId = 'group-detail-store';
-    private activityListenerRegistered = false;
-    private currentUserId: string | null = null;
+    private readonly expensesCollection: GroupDetailCollectionManager<ExpenseDTO>;
+    private readonly settlementsCollection: GroupDetailCollectionManager<SettlementWithMembers>;
+    private readonly realtime: GroupDetailRealtimeCoordinator;
+    private readonly sideEffects = new GroupDetailSideEffectsManager();
 
-    // Current group tracking for core functionality
     private currentGroupId: GroupId | null = null;
-    private expenseCursor: string | null = null;
-    private settlementCursor: string | null = null;
 
     constructor(activityFeed: ActivityFeedRealtimeService = activityFeedRealtimeService) {
-        this.activityFeed = activityFeed;
+        this.expensesCollection = new GroupDetailCollectionManager(
+            this.#expensesSignal,
+            this.#hasMoreExpensesSignal,
+            this.#loadingExpensesSignal,
+        );
+        this.settlementsCollection = new GroupDetailCollectionManager(
+            this.#settlementsSignal,
+            this.#hasMoreSettlementsSignal,
+            this.#loadingSettlementsSignal,
+        );
+        this.realtime = new GroupDetailRealtimeCoordinator({
+            activityFeed,
+            listenerId: this.activityListenerId,
+            getCurrentGroupId: () => this.currentGroupId,
+            onActivityRefresh: ({ groupId, eventType, eventId }) =>
+                this.handleActivityDrivenRefresh(groupId, eventType, eventId),
+            onSelfRemoval: ({ groupId, eventId }) => this.handleSelfRemoval(groupId, eventId),
+        });
     }
 
     // State getters
@@ -194,25 +207,21 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             batch(() => {
                 this.#groupSignal.value = fullDetails.group;
                 this.#membersSignal.value = fullDetails.members.members;
-                this.#expensesSignal.value = fullDetails.expenses.expenses;
                 this.#balancesSignal.value = fullDetails.balances;
-                this.#settlementsSignal.value = fullDetails.settlements.settlements;
                 this.#commentsResponseSignal.value = fullDetails.comments;
-                this.#hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
-                this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
-                this.#loadingExpensesSignal.value = false;
-                this.#loadingSettlementsSignal.value = false;
+                this.expensesCollection.replace(fullDetails.expenses.expenses, {
+                    hasMore: fullDetails.expenses.hasMore,
+                    nextCursor: fullDetails.expenses.nextCursor ?? null,
+                });
+                this.settlementsCollection.replace(fullDetails.settlements.settlements, {
+                    hasMore: fullDetails.settlements.hasMore,
+                    nextCursor: fullDetails.settlements.nextCursor ?? null,
+                });
                 this.#loadingSignal.value = false;
             });
 
-            for (const member of fullDetails.members.members) {
-                themeStore.setUserTheme(member.uid, member.themeColor);
-            }
-
-            this.expenseCursor = fullDetails.expenses.nextCursor ?? null;
-            this.settlementCursor = fullDetails.settlements.nextCursor ?? null;
-
-            permissionsStore.updateGroupData(fullDetails.group, fullDetails.members.members);
+            this.sideEffects.syncMemberThemes(fullDetails.members.members);
+            this.sideEffects.updatePermissionsSnapshot(fullDetails.group, fullDetails.members.members);
             logInfo('GroupDetailStore.loadGroup.success', {
                 groupId,
                 memberCount: fullDetails.members.members.length,
@@ -258,17 +267,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             if (isGroupDeleted) {
                 logInfo('GroupDTO deleted, clearing state', { groupId: this.currentGroupId });
 
+                this.#clearGroupData();
                 this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
-                batch(() => {
-                    this.#groupSignal.value = null;
-                    this.#membersSignal.value = [];
-                    this.#expensesSignal.value = [];
-                    this.#balancesSignal.value = null;
-                    this.#settlementsSignal.value = [];
-                    this.#commentsResponseSignal.value = null;
-                    this.#loadingSignal.value = false;
-                });
-
+                this.#loadingSignal.value = false;
                 this.currentGroupId = null;
                 return;
             }
@@ -277,17 +278,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 // User has been removed from the group - handle gracefully without error
                 logInfo('User removed from group, clearing state', { groupId: this.currentGroupId });
 
+                this.#clearGroupData();
                 this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.GROUP_DELETED;
-                batch(() => {
-                    this.#groupSignal.value = null;
-                    this.#membersSignal.value = [];
-                    this.#expensesSignal.value = [];
-                    this.#balancesSignal.value = null;
-                    this.#settlementsSignal.value = [];
-                    this.#commentsResponseSignal.value = null;
-                    this.#loadingSignal.value = false;
-                });
-
+                this.#loadingSignal.value = false;
                 this.currentGroupId = null;
                 return;
             }
@@ -326,230 +319,106 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     dispose(): void {
-        this.disposeSubscription();
-        // Note: We do NOT clear #subscriberCounts or call permissionsStore.dispose()
-        // to avoid breaking other components that might be using the reference-counted API
+        this.realtime.disposeIfIdle();
     }
 
     reset(): void {
-        this.dispose();
-
-        batch(() => {
-            this.#groupSignal.value = null;
-            this.#membersSignal.value = [];
-            this.#expensesSignal.value = [];
-            this.#balancesSignal.value = null;
-            this.#settlementsSignal.value = [];
-            this.#commentsResponseSignal.value = null;
-            this.#loadingSignal.value = false;
-            this.#errorSignal.value = null;
-        });
-
+        this.realtime.dispose();
+        this.#clearGroupData();
+        this.#loadingSignal.value = false;
+        this.#errorSignal.value = null;
+        if (this.currentGroupId) {
+            this.sideEffects.deregisterPermissions(this.currentGroupId);
+        }
         this.currentGroupId = null;
     }
 
     // Reference-counted registration - single detector approach
     async registerComponent(groupId: GroupId, userId: UserId): Promise<void> {
-        const currentCount = this.#subscriberCounts.get(groupId) || 0;
-        this.#subscriberCounts.set(groupId, currentCount + 1);
-
         logInfo('GroupDetailStore.registerComponent', {
             groupId,
             userId,
-            subscriberCount: currentCount + 1,
-            activityListenerRegistered: this.activityListenerRegistered,
-            currentUserId: this.currentUserId,
         });
 
         await this.loadGroup(groupId);
 
-        const shouldRegisterListener = !this.activityListenerRegistered || this.currentUserId !== userId;
-        if (shouldRegisterListener) {
-            this.currentUserId = userId;
-            try {
-                logInfo('GroupDetailStore.activityListener.register', {
-                    groupId,
-                    userId,
-                });
-                await this.activityFeed.registerConsumer(this.activityListenerId, userId, {
-                    onUpdate: this.handleRealtimeUpdate,
-                    onError: (error) => {
-                        logError('Failed to process activity feed update for group detail store', {
-                            error: error instanceof Error ? error.message : String(error),
-                            groupId,
-                            userId,
-                        });
-                    },
-                });
-                this.activityListenerRegistered = true;
-            } catch (error) {
-                logError('Failed to register activity feed listener for group detail store', {
-                    error: error instanceof Error ? error.message : String(error),
-                    groupId,
-                    userId,
-                });
-            }
-        }
+        await this.realtime.registerComponent(groupId, userId);
 
-        permissionsStore.registerComponent(groupId, userId);
+        logInfo('GroupDetailStore.registerComponent.state', {
+            groupId,
+            userId,
+            subscriberCount: this.realtime.getSubscriberCount(groupId),
+        });
+
+        this.sideEffects.registerPermissions(groupId, userId);
     }
 
     deregisterComponent(groupId: GroupId): void {
-        const currentCount = this.#subscriberCounts.get(groupId) || 0;
+        const remaining = this.realtime.deregisterComponent(groupId);
 
-        if (currentCount <= 1) {
-            this.#subscriberCounts.delete(groupId);
-
-            if (this.currentGroupId === groupId) {
-                this.#clearGroupData();
-                this.currentGroupId = null;
-            }
-
-            if (this.#subscriberCounts.size === 0) {
-                this.disposeSubscription();
-            }
-
-            logInfo('GroupDetailStore.deregisterComponent', {
-                groupId,
-                subscriberCount: 0,
-                activityListenerRegistered: this.activityListenerRegistered,
-            });
-        } else {
-            this.#subscriberCounts.set(groupId, currentCount - 1);
-            logInfo('GroupDetailStore.deregisterComponent', {
-                groupId,
-                subscriberCount: currentCount - 1,
-                activityListenerRegistered: this.activityListenerRegistered,
-            });
+        if (remaining === 0 && this.currentGroupId === groupId) {
+            this.#clearGroupData();
+            this.currentGroupId = null;
         }
 
-        permissionsStore.deregisterComponent(groupId);
+        this.sideEffects.deregisterPermissions(groupId);
     }
 
-    private handleRealtimeUpdate = (payload: ActivityFeedRealtimePayload): void => {
-        for (const item of payload.newItems) {
-            this.handleActivityEvent(item);
-        }
-    };
-
-    private handleActivityEvent = (event: ActivityFeedItem): void => {
-        const { groupId, eventType, details } = event;
-
-        logInfo('GroupDetailStore.activityEvent.received', {
-            eventId: event.id,
-            eventType,
+    private handleActivityDrivenRefresh(groupId: GroupId, eventType: string, eventId: string): void {
+        logInfo('GroupDetailStore.activityEvent.trigger-refresh', {
             groupId,
-            currentGroupId: this.currentGroupId,
-            subscriberCount: groupId ? this.#subscriberCounts.get(groupId) ?? 0 : 0,
-            activityListenerRegistered: this.activityListenerRegistered,
+            eventType,
+            eventId,
         });
 
-        if (!groupId || !this.#subscriberCounts.has(groupId)) {
-            logInfo('GroupDetailStore.activityEvent.ignored', {
-                eventId: event.id,
-                eventType,
-                reason: 'no-subscribers-for-group',
-            });
-            return;
-        }
-
-        if (this.currentGroupId !== groupId) {
-            logInfo('GroupDetailStore.activityEvent.ignored', {
-                eventId: event.id,
-                eventType,
-                reason: 'not-current-group',
-            });
-            return;
-        }
-
-        if (eventType === 'member-left' && details?.targetUserId && details.targetUserId === this.currentUserId) {
-            logInfo('Current user removed from group via activity feed', {
-                groupId,
-                eventId: event.id,
-            });
-            this.#clearGroupData();
-            this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
-            this.currentGroupId = null;
-            return;
-        }
-
-        const shouldRefresh = (() => {
-            switch (eventType) {
-                case 'expense-created':
-                case 'expense-updated':
-                case 'expense-deleted':
-                case 'settlement-created':
-                case 'settlement-updated':
-                case 'member-joined':
-                case 'member-left':
-                case 'comment-added':
-                    return true;
-                default:
-                    return true;
-            }
-        })();
-
-        if (shouldRefresh) {
-            logInfo('GroupDetailStore.activityEvent.trigger-refresh', {
+        this.refreshAll('activity-event').catch((error) =>
+            logError('Failed to refresh group detail after activity event', {
+                error: error instanceof Error ? error.message : String(error),
                 groupId,
                 eventType,
-                eventId: event.id,
-            });
-            this.refreshAll('activity-event').catch((error) =>
-                logError('Failed to refresh group detail after activity event', {
-                    error: error instanceof Error ? error.message : String(error),
-                    groupId,
-                    eventType,
-                    eventId: event.id,
-                })
-            );
-        }
-    };
+                eventId,
+            })
+        );
+    }
 
-    private disposeSubscription(): void {
-        if (this.activityListenerRegistered) {
-            this.activityFeed.deregisterConsumer(this.activityListenerId);
-            logInfo('GroupDetailStore.activityListener.deregister', {
-                currentUserId: this.currentUserId,
-            });
-            this.activityListenerRegistered = false;
-            this.currentUserId = null;
-        }
+    private handleSelfRemoval(groupId: GroupId, eventId: string): void {
+        logInfo('Current user removed from group via activity feed', {
+            groupId,
+            eventId,
+        });
+
+        this.#clearGroupData();
+        this.sideEffects.deregisterPermissions(groupId);
+        this.#errorSignal.value = GROUP_DETAIL_ERROR_CODES.USER_REMOVED_FROM_GROUP;
+        this.currentGroupId = null;
     }
 
     async loadMoreExpenses(): Promise<void> {
         if (!this.currentGroupId) {
             return;
         }
-        if (!this.#hasMoreExpensesSignal.value || !this.expenseCursor) {
+        if (!this.expensesCollection.hasMore || !this.expensesCollection.nextCursor) {
             return;
         }
 
-        this.#loadingExpensesSignal.value = true;
+        const cursor = this.expensesCollection.nextCursor;
+        this.expensesCollection.markLoading(true);
 
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
                 expenseLimit: GROUP_EXPENSE_PAGE_SIZE,
-                expenseCursor: this.expenseCursor,
+                expenseCursor: cursor,
                 includeDeletedExpenses: this.#showDeletedExpensesSignal.value,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
             });
 
-            const nextCursor = fullDetails.expenses.nextCursor ?? null;
-
-            batch(() => {
-                this.#expensesSignal.value = [
-                    ...this.#expensesSignal.value,
-                    ...fullDetails.expenses.expenses,
-                ];
-                this.#hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
-                this.#loadingExpensesSignal.value = false;
+            this.expensesCollection.append(fullDetails.expenses.expenses, {
+                hasMore: fullDetails.expenses.hasMore,
+                nextCursor: fullDetails.expenses.nextCursor ?? null,
             });
-
-            this.expenseCursor = nextCursor;
         } catch (error: any) {
-            this.#loadingExpensesSignal.value = false;
-            logError('loadMoreExpenses failed', { error, groupId: this.currentGroupId, cursor: this.expenseCursor });
+            this.expensesCollection.markLoading(false);
+            logError('loadMoreExpenses failed', { error, groupId: this.currentGroupId, cursor });
             throw error;
         }
     }
@@ -558,36 +427,29 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         if (!this.currentGroupId) {
             return;
         }
-        if (!this.#hasMoreSettlementsSignal.value || !this.settlementCursor) {
+        if (!this.settlementsCollection.hasMore || !this.settlementsCollection.nextCursor) {
             return;
         }
 
-        this.#loadingSettlementsSignal.value = true;
+        const cursor = this.settlementsCollection.nextCursor;
+        this.settlementsCollection.markLoading(true);
 
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
                 expenseLimit: GROUP_EXPENSE_PAGE_SIZE,
                 includeDeletedExpenses: this.#showDeletedExpensesSignal.value,
-                settlementCursor: this.settlementCursor,
+                settlementCursor: cursor,
                 includeDeletedSettlements: this.#showDeletedSettlementsSignal.value,
                 settlementLimit: GROUP_SETTLEMENT_PAGE_SIZE,
             });
 
-            const nextCursor = fullDetails.settlements.nextCursor ?? null;
-
-            batch(() => {
-                this.#settlementsSignal.value = [
-                    ...this.#settlementsSignal.value,
-                    ...fullDetails.settlements.settlements,
-                ];
-                this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
-                this.#loadingSettlementsSignal.value = false;
+            this.settlementsCollection.append(fullDetails.settlements.settlements, {
+                hasMore: fullDetails.settlements.hasMore,
+                nextCursor: fullDetails.settlements.nextCursor ?? null,
             });
-
-            this.settlementCursor = nextCursor;
         } catch (error: any) {
-            this.#loadingSettlementsSignal.value = false;
-            logError('loadMoreSettlements failed', { error, groupId: this.currentGroupId, cursor: this.settlementCursor });
+            this.settlementsCollection.markLoading(false);
+            logError('loadMoreSettlements failed', { error, groupId: this.currentGroupId, cursor });
             throw error;
         }
     }
@@ -595,7 +457,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     async fetchSettlements(): Promise<void> {
         if (!this.currentGroupId) return;
 
-        this.#loadingSettlementsSignal.value = true;
+        this.settlementsCollection.markLoading(true);
 
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
@@ -607,16 +469,13 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             });
 
             // Update only settlements (not the whole store)
-            batch(() => {
-                this.#settlementsSignal.value = fullDetails.settlements.settlements;
-                this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
-                this.#loadingSettlementsSignal.value = false;
+            this.settlementsCollection.replace(fullDetails.settlements.settlements, {
+                hasMore: fullDetails.settlements.hasMore,
+                nextCursor: fullDetails.settlements.nextCursor ?? null,
             });
-
-            this.settlementCursor = fullDetails.settlements.nextCursor ?? null;
         } catch (error: any) {
             logError('fetchSettlements failed', { error, groupId: this.currentGroupId });
-            this.#loadingSettlementsSignal.value = false;
+            this.settlementsCollection.markLoading(false);
             throw error;
         }
     }
@@ -628,20 +487,17 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         batch(() => {
             this.#groupSignal.value = null;
             this.#membersSignal.value = [];
-            this.#expensesSignal.value = [];
             this.#balancesSignal.value = null;
-            this.#settlementsSignal.value = [];
+            this.#commentsResponseSignal.value = null;
             this.#errorSignal.value = null;
             this.#loadingSignal.value = false;
             this.#loadingMembersSignal.value = false;
-            this.#loadingExpensesSignal.value = false;
-            this.#loadingSettlementsSignal.value = false;
-            this.#hasMoreExpensesSignal.value = true;
-            this.#hasMoreSettlementsSignal.value = false;
             this.#isDeletingGroupSignal.value = false; // Clear deletion flag
+            this.expensesCollection.reset();
+            this.settlementsCollection.reset();
+            this.#hasMoreExpensesSignal.value = true; // Back to initial state
+            this.#hasMoreSettlementsSignal.value = false;
         });
-        this.expenseCursor = null;
-        this.settlementCursor = null;
     }
 }
 
