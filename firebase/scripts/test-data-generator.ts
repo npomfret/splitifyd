@@ -9,11 +9,26 @@ import {
     PermissionLevels,
     PREDEFINED_EXPENSE_CATEGORIES,
     subtractAmounts,
+    toFeatureToggleAdvancedReporting,
+    toFeatureToggleCustomFields,
+    toFeatureToggleMultiCurrency,
     toISOString,
+    toTenantAppName,
+    toTenantDefaultFlag,
+    toTenantDomainName,
+    toTenantFaviconUrl,
+    toTenantLogoUrl,
+    toTenantPrimaryColor,
+    toTenantSecondaryColor,
+    toTenantMaxGroupsPerUser,
+    toTenantMaxUsersPerGroup,
     UserRegistration,
     zeroAmount,
 } from '@splitifyd/shared';
 import { ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import { getFirestore } from '../functions/src/firebase';
+import { FirestoreCollections } from '../functions/src/constants';
+import { Timestamp } from 'firebase-admin/firestore';
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -500,6 +515,48 @@ const generateRandomExpense = (): TestExpenseTemplate => {
     const amount = amountTypes[selectedIndex]().toFixed(2) as Amount;
     return { description, amount, category };
 };
+
+async function createDefaultTenant(): Promise<void> {
+    console.log('🏢 Creating default tenant for emulator...');
+
+    const db = getFirestore();
+    const tenantId = 'default-dev-tenant';
+
+    // Check if default tenant already exists
+    const existingTenant = await db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();
+    if (existingTenant.exists) {
+        console.log('♻️  Default tenant already exists, skipping creation');
+        return;
+    }
+
+    const defaultTenantDoc = {
+        branding: {
+            appName: toTenantAppName('Splitifyd Dev'),
+            logoUrl: toTenantLogoUrl('https://splitifyd.com/logo.svg'),
+            faviconUrl: toTenantFaviconUrl('https://splitifyd.com/favicon.ico'),
+            primaryColor: toTenantPrimaryColor('#1a73e8'),
+            secondaryColor: toTenantSecondaryColor('#34a853'),
+        },
+        features: {
+            enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
+            enableMultiCurrency: toFeatureToggleMultiCurrency(true),
+            enableCustomFields: toFeatureToggleCustomFields(true),
+            maxGroupsPerUser: toTenantMaxGroupsPerUser(100),
+            maxUsersPerGroup: toTenantMaxUsersPerGroup(200),
+        },
+        domains: {
+            primary: toTenantDomainName('localhost'),
+            aliases: [toTenantDomainName('127.0.0.1')],
+            normalized: [toTenantDomainName('localhost'), toTenantDomainName('127.0.0.1')],
+        },
+        defaultTenant: toTenantDefaultFlag(true),
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+    };
+
+    await db.collection(FirestoreCollections.TENANTS).doc(tenantId).set(defaultTenantDoc);
+    console.log('✅ Default tenant created successfully');
+}
 
 async function createTestPoolUsers(): Promise<void> {
     console.log('🏊 Initializing test pool users...');
@@ -1584,6 +1641,12 @@ export async function generateFullTestData(): Promise<void> {
     };
 
     console.log(`🚀 Starting test data generation in ${testConfig.mode} mode`);
+
+    // Create default tenant first (required for API routes to work)
+    console.log('Creating default tenant...');
+    const tenantCreationStart = Date.now();
+    await createDefaultTenant();
+    logTiming('Default tenant creation', tenantCreationStart);
 
     // Initialize test pool users first (before regular test data)
     console.log('Initializing test user pool...');

@@ -1,4 +1,4 @@
-import { AppConfiguration, EnvironmentConfig, FirebaseConfig } from '@splitifyd/shared';
+import { AppConfiguration, EnvironmentConfig, FirebaseConfig, TenantConfig } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { z } from 'zod';
@@ -287,4 +287,17 @@ export function getAppConfig(): AppConfiguration {
         }
     }
     return cachedAppConfig;
+}
+
+export function getTenantAwareAppConfig(tenant?: TenantConfig): AppConfiguration {
+    const baseConfig = getAppConfig();
+
+    if (!tenant) {
+        return baseConfig;
+    }
+
+    return {
+        ...baseConfig,
+        tenant,
+    };
 }

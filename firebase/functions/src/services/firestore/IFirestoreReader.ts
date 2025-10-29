@@ -13,7 +13,18 @@
  * - Real-time subscription management
  */
 
-import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, UserId } from '@splitifyd/shared';
+import type {
+    ActivityFeedItem,
+    CommentId,
+    ExpenseId,
+    ISOString,
+    MemberStatus,
+    TenantConfig,
+    TenantDomainName,
+    TenantId,
+    TenantDefaultFlag,
+    UserId,
+} from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
@@ -78,6 +89,13 @@ import { SettlementId } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import type { GroupBalanceDTO, ParsedShareLink, UserDocument } from '../../schemas';
 
+export interface TenantRegistryRecord {
+    tenant: TenantConfig;
+    primaryDomain: TenantDomainName | null;
+    domains: TenantDomainName[];
+    isDefault: TenantDefaultFlag;
+}
+
 export interface IFirestoreReader {
     // ========================================================================
     // Document Read Operations
@@ -123,6 +141,25 @@ export interface IFirestoreReader {
      * @returns Array of all policy documents
      */
     getAllPolicies(): Promise<PolicyDTO[]>;
+
+    // ========================================================================
+    // Tenant Registry Operations
+    // ========================================================================
+
+    /**
+     * Get tenant registry record by tenant ID
+     */
+    getTenantById(tenantId: TenantId): Promise<TenantRegistryRecord | null>;
+
+    /**
+     * Find tenant registry record by domain/host name
+     */
+    getTenantByDomain(domain: TenantDomainName): Promise<TenantRegistryRecord | null>;
+
+    /**
+     * Retrieve the default tenant configuration
+     */
+    getDefaultTenant(): Promise<TenantRegistryRecord | null>;
 
     // ========================================================================
     // Collection Read Operations - User-related

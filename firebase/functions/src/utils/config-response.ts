@@ -1,7 +1,6 @@
-import { AppConfiguration } from '@splitifyd/shared';
-import { getAppConfig } from '../client-config';
+import { AppConfiguration, TenantConfig } from '@splitifyd/shared';
+import { getTenantAwareAppConfig } from '../client-config';
 
-export const getEnhancedConfigResponse = (): AppConfiguration => {
-    // Return the lazily-loaded, validated configuration
-    return getAppConfig();
+export const getEnhancedConfigResponse = (tenant?: TenantConfig): AppConfiguration => {
+    return getTenantAwareAppConfig(tenant);
 };

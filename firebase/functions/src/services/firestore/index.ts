@@ -6,5 +6,5 @@
 
 export { FirestoreReader } from './FirestoreReader';
 export { FirestoreWriter } from './FirestoreWriter';
-export { GetGroupsForUserOptions, IFirestoreReader } from './IFirestoreReader';
+export { GetGroupsForUserOptions, IFirestoreReader, type TenantRegistryRecord } from './IFirestoreReader';
 export { IFirestoreWriter, type FirestoreUserCreateData, type FirestoreUserUpdateData } from './IFirestoreWriter';

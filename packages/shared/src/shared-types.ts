@@ -92,6 +92,12 @@ export const toTenantThemePaletteName = (value: string): TenantThemePaletteName 
 export type TenantCustomCss = BrandedString<'TenantCustomCss'>;
 export const toTenantCustomCss = (value: string): TenantCustomCss => value as TenantCustomCss;
 
+export type TenantDomainName = BrandedString<'TenantDomainName'>;
+export const toTenantDomainName = (value: string): TenantDomainName => value as TenantDomainName;
+
+export type TenantDefaultFlag = BrandedBoolean<'TenantDefaultFlag'>;
+export const toTenantDefaultFlag = (value: boolean): TenantDefaultFlag => value as TenantDefaultFlag;
+
 export type ShowLandingPageFlag = BrandedBoolean<'ShowLandingPageFlag'>;
 export const toShowLandingPageFlag = (value: boolean): ShowLandingPageFlag => value as ShowLandingPageFlag;
 
