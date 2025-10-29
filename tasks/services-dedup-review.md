@@ -16,14 +16,13 @@ Expense/settlement/comment/group services still carry a lot of repeated access-c
 - **Soft-delete patterns** – Expense and settlement deletions mirror each other: optimistic-lock fetch, balance rollback, `touchGroup`, set `deletedAt`, log (`ExpenseService.ts:578-646`, `SettlementService.ts:498-533`). Shared soft-delete primitives would simplify future changes.
 - **Timestamp generation** – Multiple services produce ISO strings by hand (e.g. `ExpenseService.ts:188`, `SettlementService.ts:165`, `GroupService.ts:311`, `PolicyService.ts:146`). A date helper would ensure consistent formatting/timezone handling.
 - **ComponentBuilder factories** – Every `buildXService` repeats the lazy-init pattern in `ComponentBuilder.ts:60-153`. A generic memoized factory would remove noise.
-- **Group member access guards** – `GroupMemberService` duplicates admin/membership checks across approve/reject/role updates (`GroupMemberService.ts:23-203`). Consolidating these validators would reduce divergence risk.
+- **Group member access guards** – ✅ `GroupMemberService.ensureActiveGroupAdmin()` and related helpers centralise admin validation and transaction setup for membership flows; HTTP handlers now reuse the same guard.
 - **User display name lookups** – ✅ `GroupShareService` now funnels through `UserService.resolveJoinContext`, removing its manual profile fetch. `GroupService.ts:320-347` still hand-rolls lookups and should migrate to the shared helpers next.
 
 ## Next Steps
 
-1. Design shared access guard & transaction helpers (likely in `GroupMemberService`/`UserService`).
-2. Introduce an activity feed payload builder with standard metadata.
-3. Replace ad-hoc date generation with a common utility.
-4. Refactor `ComponentBuilder` creation pattern via a small memoisation helper.
+1. Introduce an activity feed payload builder with standard metadata.
+2. Replace ad-hoc date generation with a common utility.
+3. Refactor `ComponentBuilder` creation pattern via a small memoisation helper.
 
 Document owners: Platform Engineering.
