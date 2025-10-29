@@ -54,5 +54,5 @@
 ## Open Questions
 - ✅ What layering should we use when exporting request schemas from `@splitifyd/shared` so that `createRequestValidator` (server-only) remains optional?  
   Resolved by exporting pure schema builders from the shared package while keeping `createRequestValidator` in Firebase-only utilities.
-- How should we evolve the localisation helpers (`translateJoiError`) now that Joi is gone—rename in place or consolidate under the shared validation module?
+- ✅ Renamed localisation helper to `translateValidationError` while keeping the translation logic in the validation utilities.
 - Do we need compatibility shims for any out-of-tree integrations that previously imported the Joi-specific helpers?

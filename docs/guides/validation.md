@@ -34,8 +34,8 @@
 5. ✅ **Cleanup**  
    - Removed remaining Joi imports and transitional adapters.  
    - Updated documentation/tests to reflect Zod-only validation pipeline.
+   - Renamed localisation helper to `translateValidationError` while keeping Zod-focused behaviour intact.
 
 ## Next Steps
-- Rename `translateJoiError` and related helpers to reflect Zod-only usage while keeping localisation behaviour intact.
 - Design and expose shared request schemas via `@splitifyd/shared` once API contracts stabilise, enabling client/server reuse.
 - Backfill unit coverage for the new validators (auth, policies, expenses, settlements) to lock in error-code parity.

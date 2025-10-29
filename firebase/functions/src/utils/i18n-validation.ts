@@ -59,9 +59,9 @@ function getSpecificTranslationKey(fieldPath: string, errorCode: string): string
 }
 
 /**
- * Translate a single Zod validation error
+ * Translate a single Zod validation issue
  */
-function translateValidationError(issue: ZodIssue, language: string): string {
+function translateValidationIssue(issue: ZodIssue, language: string): string {
     const fieldPath = issue.path.join('.');
     const errorCode = issue.code;
 
@@ -90,7 +90,6 @@ function translateValidationError(issue: ZodIssue, language: string): string {
 
 /**
  * Translate Zod validation error and return localized message
- * Internal use only - used by translateJoiError
  */
 function translateZodError(error: ZodError, language: string = 'en'): string {
     if (!error.issues || error.issues.length === 0) {
@@ -98,15 +97,10 @@ function translateZodError(error: ZodError, language: string = 'en'): string {
     }
 
     // Return the first error, translated
-    return translateValidationError(error.issues[0], language);
+    return translateValidationIssue(error.issues[0], language);
 }
 
-/**
- * Legacy function name for backwards compatibility
- * @deprecated Use translateZodError instead
- */
-export function translateJoiError(error: any, language: string = 'en'): string {
-    // If it's a ZodError, use the new function
+export function translateValidationError(error: unknown, language: string = 'en'): string {
     if (error instanceof ZodError) {
         return translateZodError(error, language);
     }
@@ -114,3 +108,5 @@ export function translateJoiError(error: any, language: string = 'en'): string {
     // For any other error type, return a generic message
     return translate('errors.server.internalError', language);
 }
+
+export { translateZodError };
