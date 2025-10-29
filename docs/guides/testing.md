@@ -4,7 +4,7 @@
 
 **Two test types:**
 - **Unit tests** - No emulator required, test isolated code
-- **Integration tests** - Require Firebase emulator or browser (Playwright)
+- **Integration tests** - Require Firebase emulator or a browser (via Playwright)
 
 **Principles:**
 - Reliability > Speed > Everything else
@@ -12,7 +12,7 @@
 - No skipped tests
 - Test isolation - no dependencies between tests
 - Focus on behavior, not implementation
-- Test complexity < code complexity
+- Test complexity must be lower code complexity -> extract complex test code into classes
 
 ## Tech Stack
 
@@ -42,7 +42,7 @@ cd webapp-v2
 
 # E2E tests (edit the run-until-fail.sh file to specify a test file and test case)
 cd e2e-tests
-./run-until-fail.sh                    # Debug flaky tests
+./run-until-fail.sh 1                   # Run and e2e test against the debugger
 ```
 
 ## Build System: No-Compile Development
@@ -67,19 +67,7 @@ Co-located tests:
 src/
   __tests__/
     unit/
-      vitest/           # Vitest unit tests
-      playwright/       # Browser unit tests (webapp-v2 only)
     integration/
-      your-test.test.ts
-```
-
-E2E tests separate:
-```
-e2e-tests/
-  src/tests/
-    normal-flow/
-    error-testing/
-    edge-cases/
 ```
 
 ## Builder Pattern (MANDATORY)
@@ -93,7 +81,7 @@ const expense = {
     description: "Lunch",
     currency: "USD",
     groupId: "abc123",
-    // ... 10 more fields
+    // ... 10 more unimportant fields
 };
 
 // ✅ DO
@@ -103,11 +91,9 @@ const expense = new CreateExpenseRequestBuilder()
     .build();
 ```
 
-**Available builders:**
-- Request: `CreateExpenseRequestBuilder`, `CreateGroupRequestBuilder`, `CreateSettlementRequestBuilder`
-- Documents: `FirestoreGroupBuilder`, `FirestoreExpenseBuilder`, `GroupMemberDocumentBuilder`
-- Updates: `GroupUpdateBuilder`, `UserUpdateBuilder`, `PasswordChangeBuilder`
-- Test Support: `ExpenseSplitBuilder`, `SplitAssertionBuilder`, `ThemeBuilder`
+**Builders:**
+
+All builders live in `packages/test-support`. If tehre isn't a builder for your data object, create one.
 
 ## Async Testing: Polling Pattern
 
@@ -142,10 +128,10 @@ const change = await pollForChange(
 
 ### Core Principles
 
+Always look at surrounding tests to see what patterns are in use.
+
 **Speed & Isolation:**
-- 1.5s action timeout - forces reliable selectors
-- 15s test timeout - tests must complete fast or fail
-- 4 parallel workers - absolute test isolation required
+- The app is very asynchronous, always wait for things to happen, but don't over-wait else failiures will slow down the build
 - Browser reuse between tests - never assume clean state
 
 **Determinism:**
@@ -158,30 +144,6 @@ const change = await pollForChange(
 - Verify state everywhere, fail early
 - Always assert navigation: `await expect(page).toHaveURL(/\/dashboard/)`
 - Use Web-First assertions: `expect(locator).toBeVisible()` (auto-waits)
-
-### Fixtures
-
-```typescript
-// Most common - pre-authenticated with page objects
-authenticatedPageTest('test name', async ({
-    authenticatedPage,  // { page, user }
-    dashboardPage,
-    groupDetailPage,
-}) => {
-    const { page, user } = authenticatedPage;
-    await expect(page).toHaveURL(/\/dashboard/);
-    // Test actions...
-});
-
-// Multi-user scenarios
-multiUserTest('collaboration', async ({
-    authenticatedPage,  // First user
-    secondUser,         // Second user with page objects
-}) => {
-    // User Alice acts, wait for sync, then User Bob acts
-    // NEVER perform actions in parallel
-});
-```
 
 ### Page Object Model (MANDATORY)
 
