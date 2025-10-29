@@ -1,4 +1,4 @@
-import type { Amount, CreateSettlementRequest, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest } from '@splitifyd/shared';
+import type { Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest } from '@splitifyd/shared';
 import {
     AuthenticatedFirebaseUser,
     compareAmounts,
@@ -13,7 +13,7 @@ import {
     UserRegistration,
     zeroAmount,
 } from '@splitifyd/shared';
-import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import { ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -113,6 +113,78 @@ const BILL_SPLITTER_REGISTRATION: UserRegistration = {
     cookiePolicyAccepted: true,
     privacyPolicyAccepted: true,
 };
+
+interface FirebaseSignInErrorResponse {
+    error?: {
+        message?: string;
+    };
+}
+
+async function signInExistingBillSplitter(): Promise<AuthenticatedFirebaseUser | null> {
+    const { identityToolkit } = getFirebaseEmulatorConfig();
+    const signInUrl = `${identityToolkit.baseUrl}/v1/accounts:signInWithPassword?key=${identityToolkit.apiKey}`;
+
+    const response = await fetch(signInUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: BILL_SPLITTER_REGISTRATION.email,
+            password: BILL_SPLITTER_REGISTRATION.password,
+            returnSecureToken: true,
+        }),
+    });
+
+    if (!response.ok) {
+        let errorMessage: string | undefined;
+        try {
+            const errorPayload = (await response.json()) as FirebaseSignInErrorResponse;
+            errorMessage = errorPayload.error?.message;
+        } catch {
+            // Ignore JSON parsing errors and fall back to status text
+        }
+
+        const normalizedMessage = (errorMessage ?? response.statusText ?? '').toUpperCase();
+        if (normalizedMessage.includes('EMAIL_NOT_FOUND')) {
+            return null;
+        }
+        if (normalizedMessage.includes('INVALID_PASSWORD')) {
+            throw new Error('Existing Bill Splitter user has an unexpected password configured.');
+        }
+
+        throw new Error(`Failed to sign in Bill Splitter user: ${errorMessage ?? response.statusText}`);
+    }
+
+    const signInData = (await response.json()) as { idToken?: string; };
+    const idToken = signInData.idToken;
+    if (!idToken) {
+        throw new Error('Sign-in response was missing an ID token for Bill Splitter user.');
+    }
+
+    const tokenParts = idToken.split('.');
+    if (tokenParts.length < 2) {
+        throw new Error('Sign-in token for Bill Splitter user was malformed.');
+    }
+
+    const payloadSegment = tokenParts[1];
+    const normalizedSegment = payloadSegment.replace(/-/g, '+').replace(/_/g, '/');
+    const decodedPayload = JSON.parse(Buffer.from(normalizedSegment, 'base64').toString('utf8')) as {
+        user_id?: string;
+        name?: string;
+    };
+
+    const uid = decodedPayload.user_id;
+    if (!uid) {
+        throw new Error('Sign-in token for Bill Splitter user did not include a user_id.');
+    }
+
+    const displayName = (decodedPayload.name as DisplayName | undefined) ?? BILL_SPLITTER_REGISTRATION.displayName;
+
+    return {
+        uid,
+        token: idToken,
+        displayName,
+    };
+}
 
 // Simple expense template for test data generation
 interface TestExpenseTemplate {
@@ -227,6 +299,16 @@ const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration
 
 export async function generateBillSplitterUser(): Promise<AuthenticatedFirebaseUser> {
     console.log('👤 Ensuring Bill Splitter test user exists...');
+
+    const existingUser = await signInExistingBillSplitter();
+    if (existingUser) {
+        console.log('♻️ Bill Splitter user already exists, reusing account...');
+        await runQueued(() => driver.promoteUserToAdmin(existingUser.token));
+        console.log(`✓ Bill Splitter user ready as admin (${existingUser.displayName})`);
+        return existingUser;
+    }
+
+    console.log('🆕 Creating Bill Splitter user...');
     const user = await runQueued(() => driver.createUser({ ...BILL_SPLITTER_REGISTRATION }));
     console.log('👑 Promoting Bill Splitter to system admin...');
     await runQueued(() => driver.promoteUserToAdmin(user.token));

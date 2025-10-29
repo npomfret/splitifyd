@@ -199,18 +199,23 @@ export class ExpenseService {
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // ===== READ PHASE: All reads must happen before any writes =====
 
+            timer.startPhase('transaction:getGroup');
             // Re-verify group exists within transaction - using DTO method
             const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, expenseData.groupId);
 
             if (!groupInTx) {
                 throw Errors.NOT_FOUND('Group');
             }
+            timer.endPhase();
 
+            timer.startPhase('transaction:getBalance');
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, expenseData.groupId);
+            timer.endPhase();
 
             // ===== WRITE PHASE: All writes happen after reads =====
 
+            timer.startPhase('transaction:createExpense');
             // Create the expense with the pre-generated ID
             createdExpenseRef = this.firestoreWriter.createInTransaction(
                 transaction,
@@ -218,13 +223,19 @@ export class ExpenseService {
                 expenseId, // Use the specific ID we generated
                 expense,
             );
+            timer.endPhase();
 
+            timer.startPhase('transaction:touchGroup');
             // Update group timestamp to track activity
             await this.firestoreWriter.touchGroup(expenseData.groupId, transaction);
+            timer.endPhase();
 
+            timer.startPhase('transaction:applyBalance');
             // Apply incremental balance update
             this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expense, memberIds);
+            timer.endPhase();
 
+            timer.startPhase('transaction:buildActivityItem');
             // Record activity feed items
             const activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId: expenseData.groupId,
@@ -239,8 +250,11 @@ export class ExpenseService {
                     expenseDescription: expense.description,
                 },
             });
+            timer.endPhase();
 
+            timer.startPhase('transaction:recordActivityFeed');
             this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+            timer.endPhase();
         });
         timer.endPhase();
 

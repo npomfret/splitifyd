@@ -427,11 +427,16 @@ export class GroupShareService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
+            timer.startPhase('transaction:getMemberships');
             const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
+            timer.endPhase();
 
+            timer.startPhase('transaction:touchGroup');
             // Update group timestamp to reflect membership change
             await context.touchGroup();
+            timer.endPhase();
 
+            timer.startPhase('transaction:createMembership');
             // Write to top-level collection for improved querying (using ISO strings - DTOs)
             const topLevelMemberDoc = {
                 ...createTopLevelMembershipDocument(memberDoc, now),
@@ -441,11 +446,13 @@ export class GroupShareService {
 
             // FirestoreWriter.createInTransaction handles conversion and validation
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, newTopLevelMembershipDocId(userId, groupId), topLevelMemberDoc);
+            timer.endPhase();
 
             // Note: Group notifications are handled by the trackGroupChanges trigger
             // which fires when the group's updatedAt timestamp is modified above
 
             if (!requiresApproval) {
+                timer.startPhase('transaction:buildActivityRecipients');
                 const activityRecipients = new Set<string>();
                 for (const doc of membershipsSnapshot.docs) {
                     const data = doc.data() as { uid?: string; memberStatus?: string; };
@@ -460,8 +467,10 @@ export class GroupShareService {
                 }
 
                 activityRecipients.add(userId);
+                timer.endPhase();
 
                 if (activityRecipients.size > 0) {
+                    timer.startPhase('transaction:buildActivityItem');
                     const groupName = groupInTransaction.name;
 
                     logger.info('JOIN: Recording activity feed for member join', {
@@ -485,8 +494,11 @@ export class GroupShareService {
                             targetUserName: memberDoc.groupDisplayName,
                         },
                     });
+                    timer.endPhase();
 
+                    timer.startPhase('transaction:recordActivityFeed');
                     this.activityFeedService.recordActivityForUsers(transaction, Array.from(activityRecipients), activityItem);
+                    timer.endPhase();
                 }
             }
 

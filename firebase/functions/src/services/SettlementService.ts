@@ -180,27 +180,38 @@ export class SettlementService {
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // ===== READ PHASE: All reads must happen before any writes =====
 
+            timer.startPhase('transaction:getGroup');
             // Verify group still exists
             const groupInTx = await this.firestoreReader.getGroupInTransaction(transaction, settlementData.groupId);
             if (!groupInTx) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
+            timer.endPhase();
 
+            timer.startPhase('transaction:getBalance');
             // Read current balance BEFORE any writes (Firestore transaction rule)
             const currentBalance = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, settlementData.groupId);
+            timer.endPhase();
 
             // ===== WRITE PHASE: All writes happen after reads =====
 
+            timer.startPhase('transaction:createSettlement');
             // Create settlement in transaction
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.SETTLEMENTS, settlementId, settlementDataToCreate);
+            timer.endPhase();
 
+            timer.startPhase('transaction:touchGroup');
             // Update group timestamp to track activity
             await this.firestoreWriter.touchGroup(settlementData.groupId, transaction);
+            timer.endPhase();
 
+            timer.startPhase('transaction:applyBalance');
             // Apply incremental balance update
             const settlementToApply: SettlementDTO = { id: settlementId, ...settlementDataToCreate };
             this.incrementalBalanceService.applySettlementCreated(transaction, settlementData.groupId, currentBalance, settlementToApply, memberIds);
+            timer.endPhase();
 
+            timer.startPhase('transaction:buildActivityItem');
             // Record activity feed items
             const activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId: settlementData.groupId,
@@ -215,8 +226,11 @@ export class SettlementService {
                     settlementDescription: settlementData.note,
                 },
             });
+            timer.endPhase();
 
+            timer.startPhase('transaction:recordActivityFeed');
             this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+            timer.endPhase();
         });
         timer.endPhase();
 
