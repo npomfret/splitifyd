@@ -1,44 +1,47 @@
+interface PhaseStackEntry {
+    name: string;
+    startTime: number;
+}
+
 /**
- * Reusable performance timer for tracking operation timings
+ * Reusable performance timer for tracking operation timings with support for nested phases
  */
 export class PerformanceTimer {
     private phases: Map<string, number> = new Map();
-    private currentPhase: string | null = null;
-    private phaseStart: number = 0;
+    private phaseStack: PhaseStackEntry[] = [];
 
     /**
-     * Start timing a phase
+     * Start timing a phase (supports nesting)
      */
     startPhase(phaseName: string): void {
-        // End current phase if one is running
-        if (this.currentPhase) {
-            this.endPhase();
-        }
-
-        this.currentPhase = phaseName;
-        this.phaseStart = performance.now();
+        this.phaseStack.push({
+            name: phaseName,
+            startTime: performance.now(),
+        });
     }
 
     /**
-     * End the current phase
+     * End the most recently started phase
      */
     endPhase(): void {
-        if (!this.currentPhase) {
+        if (this.phaseStack.length === 0) {
             return;
         }
 
-        const duration = performance.now() - this.phaseStart;
-        this.phases.set(this.currentPhase, duration);
-        this.currentPhase = null;
-        this.phaseStart = 0;
+        const phase = this.phaseStack.pop()!;
+        const duration = performance.now() - phase.startTime;
+
+        // Accumulate time if phase was already recorded (allows multiple measurements of same phase)
+        const existingDuration = this.phases.get(phase.name) || 0;
+        this.phases.set(phase.name, existingDuration + duration);
     }
 
     /**
      * Get timing results in milliseconds
      */
     getTimings(): Record<string, number> {
-        // End current phase if still running
-        if (this.currentPhase) {
+        // End all remaining phases on the stack
+        while (this.phaseStack.length > 0) {
             this.endPhase();
         }
 
@@ -65,7 +68,6 @@ export class PerformanceTimer {
      */
     reset(): void {
         this.phases.clear();
-        this.currentPhase = null;
-        this.phaseStart = 0;
+        this.phaseStack = [];
     }
 }
