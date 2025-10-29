@@ -225,59 +225,6 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
     });
 
-    describe('getUsers', () => {
-        it('should fetch multiple users efficiently', async () => {
-            const users = [
-                { uid: 'user1', email: 'user1@example.com', displayName: 'User One' },
-                { uid: 'user2', email: 'user2@example.com', displayName: 'User Two' },
-                { uid: 'user3', email: 'user3@example.com', displayName: 'User Three' },
-            ];
-
-            // Set up Auth users and Firestore documents
-            users.forEach((user) => {
-                stubAuth.setUser(user.uid, user);
-                db.seedUser(user.uid, {
-                    displayName: user.displayName,
-                });
-            });
-
-            const uids = users.map((u) => u.uid);
-            const profiles = await userService.getUsers(uids);
-
-            expect(profiles.size).toBe(3);
-            for (const user of users) {
-                const profile = profiles.get(user.uid);
-                expect(profile).toBeDefined();
-                expect(profile!.uid).toBe(user.uid);
-                expect(profile!.displayName).toBe(user.displayName);
-            }
-        });
-
-        it('should handle empty input gracefully', async () => {
-            const profiles = await userService.getUsers([]);
-            expect(profiles.size).toBe(0);
-        });
-
-        it('should handle mix of existing and non-existent users', async () => {
-            // Set up one existing user
-            stubAuth.setUser('existing-user', {
-                uid: 'existing-user',
-                email: 'existing@example.com',
-                displayName: 'Existing User',
-            });
-
-            db.seedUser('existing-user', {
-                displayName: 'Existing User',
-            });
-
-            const profiles = await userService.getUsers(['existing-user', 'non-existent-user']);
-
-            expect(profiles.size).toBe(1);
-            expect(profiles.get('existing-user')).toBeDefined();
-            expect(profiles.get('non-existent-user')).toBeUndefined();
-        });
-    });
-
     describe('updateProfile', () => {
         it('should update display name in both Auth and Firestore', async () => {
             const uid = 'test-user';

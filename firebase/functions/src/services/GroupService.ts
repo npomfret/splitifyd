@@ -571,7 +571,7 @@ export class GroupService {
 
         // Get actor info for activity feed
         const actor = await this.userService.getUser(userId);
-        const actorDisplayName = actor.displayName;
+        const actorDisplayName = actor.displayName;// todo: this should be the "groupDisplayName" for this user...
 
         logger.info('Initiating group soft delete', {
             ...requestContext,

@@ -119,54 +119,6 @@ export class UserService {
         }
     }
 
-    /**
-     * Get multiple user profiles by UIDs (batch operation)
-     */
-    async getUsers(uids: UserId[]): Promise<Map<UserId, RegisteredUser>> {
-        return measureDb('UserService2.getUsers', async () => this._getUsers(uids));
-    }
-
-    private async _getUsers(uids: UserId[]): Promise<Map<UserId, RegisteredUser>> {
-        LoggerContext.update({ operation: 'batch-get-users', userCount: uids.length });
-
-        const result = new Map<UserId, RegisteredUser>();
-
-        // Fetch all users in batches (Firebase Auth supports up to 100 users per batch)
-        if (uids.length > 0) {
-            const batchSize = 100;
-            for (let i = 0; i < uids.length; i += batchSize) {
-                const batch = uids.slice(i, i + batchSize);
-                await this.fetchUserBatch(batch, result);
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Fetch a batch of users and add to result map
-     */
-    private async fetchUserBatch(uids: UserId[], result: Map<UserId, RegisteredUser>): Promise<void> {
-        const getUsersResult = await this.authService.getUsers(uids.map((uid) => ({ uid })));
-
-        // Process found users
-        for (const userRecord of getUsersResult.users) {
-            // Ensure required fields are present
-            this.validateUserRecord(userRecord);
-
-            // Fetch Firestore data for this user via reader
-            const userData = await this.firestoreReader.getUser(userRecord.uid);
-
-            const profile = this.createUserProfile(userRecord, userData);
-
-            // Add to result
-            result.set(userRecord.uid, profile);
-        }
-
-        // Handle not found users - log warning but don't throw error
-        // Let calling code handle missing users gracefully
-    }
-
     async resolveGroupMemberProfile(
         groupId: GroupId,
         userId: UserId,
@@ -438,38 +390,17 @@ export class UserService {
 
     async getGroupMembersResponseFromSubcollection(groupId: GroupId): Promise<GroupMembersResponse> {
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-        const memberIds = memberDocs.map((doc) => doc.uid);
-
-        const memberProfiles = await this.getUsers(memberIds);
-
         const members: GroupMember[] = memberDocs.map((memberDoc: GroupMembershipDTO): GroupMember => {
-            const profile = memberProfiles.get(memberDoc.uid);
-            const fallbackName = memberDoc.groupDisplayName || profile?.displayName || 'Unknown User';
-
-            if (!profile) {
-                return {
-                    uid: memberDoc.uid,
-                    initials: this.getInitials(fallbackName),
-                    themeColor: memberDoc.theme,
-                    // Group membership metadata
-                    joinedAt: memberDoc.joinedAt, // Already ISO string from DTO
-                    memberRole: memberDoc.memberRole,
-                    invitedBy: memberDoc.invitedBy,
-                    memberStatus: memberDoc.memberStatus,
-                    groupDisplayName: fallbackName,
-                };
-            }
-
             return {
                 uid: memberDoc.uid,
-                initials: this.getInitials(fallbackName),
+                initials: this.getInitials(memberDoc.groupDisplayName),
                 themeColor: memberDoc.theme,
                 // Group membership metadata (required for permissions)
                 joinedAt: memberDoc.joinedAt, // Already ISO string from DTO
                 memberRole: memberDoc.memberRole,
                 invitedBy: memberDoc.invitedBy,
                 memberStatus: memberDoc.memberStatus,
-                groupDisplayName: fallbackName,
+                groupDisplayName: memberDoc.groupDisplayName,
             };
         });
 
