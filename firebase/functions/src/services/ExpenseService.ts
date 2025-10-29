@@ -134,8 +134,8 @@ export class ExpenseService {
             group,
             memberIds,
             actorMember,
-            actorDisplayName,
         } = await this.groupMemberService.getGroupAccessContext(validatedExpenseData.groupId, userId);
+        const actorDisplayName = actorMember.groupDisplayName;
         timer.endPhase();
 
         // Check if user can create expenses in this group
@@ -303,8 +303,8 @@ export class ExpenseService {
             group,
             memberIds,
             actorMember,
-            actorDisplayName,
         } = await this.groupMemberService.getGroupAccessContext(expense.groupId, userId);
+        const actorDisplayName = actorMember.groupDisplayName;
         timer.endPhase();
 
         // Group is already a GroupDTO from FirestoreReader
@@ -535,8 +535,8 @@ export class ExpenseService {
             group,
             memberIds,
             actorMember,
-            actorDisplayName,
         } = await this.groupMemberService.getGroupAccessContext(expense.groupId, userId);
+        const actorDisplayName = actorMember.groupDisplayName;
         timer.endPhase();
 
         const canDeleteExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseDeletion', { expense: expense });

@@ -120,7 +120,6 @@ export class ComponentBuilder {
                 this.buildFirestoreReader(),
                 this.buildFirestoreWriter(),
                 this.buildGroupMemberService(),
-                this.buildAuthService(),
                 this.buildActivityFeedService(),
             );
         }

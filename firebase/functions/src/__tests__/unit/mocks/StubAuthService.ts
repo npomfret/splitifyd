@@ -116,22 +116,6 @@ export class StubAuthService implements IAuthService {
         return user ?? null;
     }
 
-    async getUsers(uids: { uid: string; }[]): Promise<GetUsersResult> {
-        const users: UserRecord[] = [];
-        const notFound: { uid: string; }[] = [];
-
-        for (const { uid } of uids) {
-            const user = this.users.get(uid);
-            if (user && !this.deletedUsers.has(uid)) {
-                users.push(user);
-            } else {
-                notFound.push({ uid });
-            }
-        }
-
-        return { users, notFound };
-    }
-
     async listUsers(options: { limit?: number; pageToken?: string; } = {}): Promise<ListUsersResult> {
         const limit = Math.max(1, Math.min(options.limit ?? 50, 1000));
         const sorted = Array.from(this.users.values())

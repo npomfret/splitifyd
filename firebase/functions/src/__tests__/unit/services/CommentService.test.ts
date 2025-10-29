@@ -2,7 +2,7 @@ import { toGroupId } from '@splitifyd/shared';
 import type { CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
 import { toCommentId, toExpenseId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
-import { AuthUserRecordBuilder, ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';
@@ -24,16 +24,6 @@ describe('CommentService - Consolidated Tests', () => {
 
         commentService = applicationBuilder.buildCommentService();
 
-        // Set up test user in auth stub
-        stubAuth.setUser(
-            'user-id',
-            new AuthUserRecordBuilder()
-                .withUid('user-id')
-                .withEmail('test@example.com')
-                .withDisplayName('Test User')
-                .withPhotoURL('https://example.com/photo.jpg')
-                .build(),
-        );
     });
 
     describe('listGroupComments', () => {
@@ -110,50 +100,35 @@ describe('CommentService - Consolidated Tests', () => {
             const membershipDoc = new GroupMemberDocumentBuilder()
                 .withUserId('user-id')
                 .withGroupId(testGroup.id)
+                .withGroupDisplayName('Captain Comment')
                 .build();
             db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
-
-            // Set up user in auth stub (CommentService calls authService.getUser)
-            stubAuth.setUser(
-                'user-id',
-                new AuthUserRecordBuilder()
-                    .withUid('user-id')
-                    .withEmail('test@example.com')
-                    .withDisplayName('Test User')
-                    .withPhotoURL('https://example.com/photo.jpg')
-                    .build(),
-            );
 
             const result = await commentService.createGroupComment(testGroup.id, { text: 'New test comment', groupId: testGroup.id }, 'user-id');
 
             expect(result.id).toBeTruthy();
             expect(result.text).toBe('New test comment');
             expect(result.authorId).toBe('user-id');
-            expect(result.authorName).toBe('Test User');
+            expect(result.authorName).toBe('Captain Comment');
         });
 
-        it('should throw error when user not found in auth', async () => {
+        it('should throw when group display name missing', async () => {
             const testGroup = new GroupDTOBuilder()
                 .withId('test-group')
                 .build();
 
-            // Set up test data
             db.seedGroup(testGroup.id, testGroup);
 
-            // Set up group membership for a different user
             const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('unknown-user')
+                .withUserId('user-id')
                 .withGroupId(testGroup.id)
+                .withGroupDisplayName('')
                 .build();
-            db.seedGroupMember(testGroup.id, 'unknown-user', membershipDoc);
-
-            // Try to create comment with a user that doesn't exist in auth (not 'user-id' which is set up in beforeEach)
+            db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
 
             await expect(
-                commentService.createGroupComment(testGroup.id, { text: 'Test comment', groupId: testGroup.id }, 'unknown-user'),
-            )
-                .rejects
-                .toThrow();
+                commentService.createGroupComment(testGroup.id, { text: 'Fallback comment', groupId: testGroup.id }, 'user-id'),
+            ).rejects.toThrow(ApiError);
         });
 
         it('should throw error when user lacks access', async () => {
@@ -217,7 +192,7 @@ describe('CommentService - Consolidated Tests', () => {
 
     describe('Unit Test Scenarios - Error Handling and Edge Cases', () => {
         describe('createComment - Unit Scenarios', () => {
-            it('should create a comment successfully with real implementation', async () => {
+            it('should create a comment using the group display name', async () => {
                 const userId = 'user-123';
                 const targetId = toGroupId('group-456');
                 const commentData: CreateGroupCommentRequest = {
@@ -225,7 +200,6 @@ describe('CommentService - Consolidated Tests', () => {
                     groupId: targetId,
                 };
 
-                // Set up group and membership for real validation
                 const testGroup = new GroupDTOBuilder()
                     .withId(targetId)
                     .build();
@@ -234,40 +208,30 @@ describe('CommentService - Consolidated Tests', () => {
                 const membershipDoc = new GroupMemberDocumentBuilder()
                     .withUserId(userId)
                     .withGroupId(targetId)
+                    .withGroupDisplayName('Group Display Name')
                     .build();
                 db.seedGroupMember(targetId, userId, membershipDoc);
-
-                // Set up auth user
-                stubAuth.setUser(
-                    userId,
-                    new AuthUserRecordBuilder()
-                        .withUid(userId)
-                        .withEmail('test@example.com')
-                        .withDisplayName('Test User')
-                        .build(),
-                );
 
                 const result = await commentService.createGroupComment(targetId, commentData, userId);
 
                 expect(result).toMatchObject({
                     id: expect.any(String),
                     authorId: userId,
-                    authorName: 'Test User',
+                    authorName: 'Group Display Name',
                     text: 'Test comment',
                 });
                 expect(result.createdAt).toBeDefined();
                 expect(result.updatedAt).toBeDefined();
             });
 
-            it('should handle user with email fallback for display name', async () => {
+            it('should create a comment even when auth service has no record', async () => {
                 const userId = 'user-456';
                 const targetId = toGroupId('group-789');
                 const commentData: CreateGroupCommentRequest = {
-                    text: 'Comment from user without display name',
+                    text: 'Comment without auth record',
                     groupId: targetId,
                 };
 
-                // Set up group and membership for real validation
                 const testGroup = new GroupDTOBuilder()
                     .withId(targetId)
                     .build();
@@ -276,67 +240,51 @@ describe('CommentService - Consolidated Tests', () => {
                 const membershipDoc = new GroupMemberDocumentBuilder()
                     .withUserId(userId)
                     .withGroupId(targetId)
+                    .withGroupDisplayName('Member Display')
                     .build();
                 db.seedGroupMember(targetId, userId, membershipDoc);
 
-                // Set up auth user without displayName
-                stubAuth.setUser(
-                    userId,
-                    new AuthUserRecordBuilder()
-                        .withUid(userId)
-                        .withEmail('user456@example.com')
-                        .withDisplayName(undefined) // Explicitly clear displayName for email fallback test
-                        .build(),
-                );
-
                 const result = await commentService.createGroupComment(targetId, commentData, userId);
 
-                expect(result.authorName).toBe('user456');
+                expect(result.authorName).toBe('Member Display');
             });
 
-            it('should throw error when user not found', async () => {
-                const userId = 'nonexistent-user';
+            it('should throw error when user is not a group member', async () => {
+                const userId = 'non-member';
                 const targetId = toGroupId('group-123');
                 const commentData: CreateGroupCommentRequest = {
                     text: 'Test comment',
                     groupId: targetId,
                 };
 
-                // User not set in stubAuth
-
                 await expect(commentService.createGroupComment(targetId, commentData, userId)).rejects.toThrow(ApiError);
             });
 
-            it('should throw error when access verification fails', async () => {
-                const userId = 'user-123';
+            it('should throw error when group data is missing', async () => {
+                const userId = 'user-789';
                 const targetId = toGroupId('group-456');
                 const commentData: CreateGroupCommentRequest = {
                     text: 'Test comment',
                     groupId: targetId,
                 };
 
-                stubAuth.setUser(
-                    userId,
-                    new AuthUserRecordBuilder()
-                        .withUid(userId)
-                        .withEmail('test@example.com')
-                        .withDisplayName('Test User')
-                        .build(),
-                );
+                const membershipDoc = new GroupMemberDocumentBuilder()
+                    .withUserId(userId)
+                    .withGroupId(targetId)
+                    .build();
+                db.seedGroupMember(targetId, userId, membershipDoc);
 
-                // Access should be denied since no proper setup
                 await expect(commentService.createGroupComment(targetId, commentData, userId)).rejects.toThrow(ApiError);
             });
 
-            it('should verify user exists in auth before creating comment', async () => {
-                const userId = 'user-123';
-                const targetId = toGroupId('group-456');
+            it('should throw error when group display name is empty', async () => {
+                const userId = 'user-999';
+                const targetId = toGroupId('group-999');
                 const commentData: CreateGroupCommentRequest = {
-                    text: 'Test comment',
+                    text: 'Display name test',
                     groupId: targetId,
                 };
 
-                // Set up group and membership for real validation
                 const testGroup = new GroupDTOBuilder()
                     .withId(targetId)
                     .build();
@@ -345,12 +293,11 @@ describe('CommentService - Consolidated Tests', () => {
                 const membershipDoc = new GroupMemberDocumentBuilder()
                     .withUserId(userId)
                     .withGroupId(targetId)
+                    .withGroupDisplayName('')
                     .build();
                 db.seedGroupMember(targetId, userId, membershipDoc);
 
-                // Don't set up user in stubAuth - this will trigger an error when trying to get user info
-
-                await expect(commentService.createGroupComment(targetId, commentData, userId)).rejects.toThrow();
+                await expect(commentService.createGroupComment(targetId, commentData, userId)).rejects.toThrow(ApiError);
             });
         });
 
@@ -428,21 +375,14 @@ describe('CommentService - Consolidated Tests', () => {
                 const membershipDoc = new GroupMemberDocumentBuilder()
                     .withUserId(userId)
                     .withGroupId(targetId)
+                    .withGroupDisplayName('Group Commenter')
                     .build();
                 db.seedGroupMember(targetId, userId, membershipDoc);
-
-                stubAuth.setUser(
-                    userId,
-                    new AuthUserRecordBuilder()
-                        .withUid(userId)
-                        .withEmail('test@example.com')
-                        .withDisplayName('Test User')
-                        .build(),
-                );
 
                 const result = await commentService.createGroupComment(targetId, commentData, userId);
 
                 expect(result.text).toBe('Group comment');
+                expect(result.authorName).toBe('Group Commenter');
             });
 
             it('should support expense comments', async () => {
@@ -469,21 +409,14 @@ describe('CommentService - Consolidated Tests', () => {
                 const membershipDoc = new GroupMemberDocumentBuilder()
                     .withUserId(userId)
                     .withGroupId(groupId)
+                    .withGroupDisplayName('Expense Commenter')
                     .build();
                 db.seedGroupMember(groupId, userId, membershipDoc);
-
-                stubAuth.setUser(
-                    userId,
-                    new AuthUserRecordBuilder()
-                        .withUid(userId)
-                        .withEmail('test@example.com')
-                        .withDisplayName('Test User')
-                        .build(),
-                );
 
                 const result = await commentService.createExpenseComment(targetId, commentData, userId);
 
                 expect(result.text).toBe('Expense comment');
+                expect(result.authorName).toBe('Expense Commenter');
             });
         });
 
@@ -505,17 +438,9 @@ describe('CommentService - Consolidated Tests', () => {
                 const membershipDoc = new GroupMemberDocumentBuilder()
                     .withUserId(userId)
                     .withGroupId(targetId)
+                    .withGroupDisplayName('Integration Member')
                     .build();
                 db.seedGroupMember(targetId, userId, membershipDoc);
-
-                stubAuth.setUser(
-                    userId,
-                    new AuthUserRecordBuilder()
-                        .withUid(userId)
-                        .withEmail('test@example.com')
-                        .withDisplayName('Test User')
-                        .build(),
-                );
 
                 // Create the comment
                 const createdComment = await commentService.createGroupComment(targetId, commentData, userId);

@@ -285,29 +285,6 @@ export class FirebaseAuthService implements IAuthService {
         );
     }
 
-    async getUsers(uids: { uid: string; }[]): Promise<GetUsersResult> {
-        const context = this.createContext('getUsers');
-
-        // Extract UIDs and validate if enabled
-        const uidList = uids.map((u) => u.uid);
-        const validatedUids = this.enableValidation ? validateBatchUserIds(uidList) : uidList;
-
-        LoggerContext.update({
-            operation: 'getUsers',
-            userCount: validatedUids.length,
-        });
-
-        return this.executeWithMetrics(
-            'FirebaseAuthService.getUsers',
-            async () => {
-                const result = await this.auth.getUsers(uids);
-
-                return result;
-            },
-            context,
-        );
-    }
-
     async listUsers(options: { limit?: number; pageToken?: string; } = {}): Promise<ListUsersResult> {
         const context = this.createContext('listUsers');
 

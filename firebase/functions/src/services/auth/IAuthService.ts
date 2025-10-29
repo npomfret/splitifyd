@@ -46,14 +46,6 @@ export interface IAuthService {
     getUserByEmail(email: string): Promise<UserRecord | null>;
 
     /**
-     * Get multiple users by UIDs (batch operation)
-     * @param uids - Array of Firebase user UIDs (max 100)
-     * @returns GetUsersResult with found/not found users
-     * @throws ApiError if operation fails
-     */
-    getUsers(uids: { uid: string; }[]): Promise<GetUsersResult>;
-
-    /**
      * List users with pagination
      * @param options.limit - Maximum number of users to return (1 - 1000)
      * @param options.pageToken - Page token returned by a previous call

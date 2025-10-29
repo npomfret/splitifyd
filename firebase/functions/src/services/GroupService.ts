@@ -22,7 +22,7 @@ import {
     toISOString,
     UpdateGroupRequest,
 } from '@splitifyd/shared';
-import {DOCUMENT_CONFIG, FirestoreCollections} from '../constants';
+import {DOCUMENT_CONFIG, FirestoreCollections, HTTP_STATUS} from '../constants';
 import {logger, LoggerContext} from '../logger';
 import * as measure from '../monitoring/measure';
 import {PerformanceTimer} from '../monitoring/PerformanceTimer';
@@ -397,6 +397,7 @@ export class GroupService {
 
         logger.info('group-created', {
             groupId,
+            name: groupData.name,/* keep this - its helpful for debugging tests */
             timings: timer.getTimings(),
         });
 
@@ -435,7 +436,14 @@ export class GroupService {
                 .map((doc) => (doc.data().uid as string | null | undefined) ?? null)
                 .filter((id): id is string => Boolean(id));
             const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);
-            const actorDisplayName = actorMembershipDoc?.data().groupDisplayName ?? 'Unknown member';
+            const actorDisplayName = actorMembershipDoc?.data().groupDisplayName?.trim();
+            if (!actorDisplayName) {
+                throw new ApiError(
+                    HTTP_STATUS.INTERNAL_ERROR,
+                    'GROUP_DISPLAY_NAME_MISSING',
+                    'Group member is missing required display name',
+                );
+            }
 
             // Optimistic locking: Check if group was updated since we fetched it (compare ISO strings)
             if (group.updatedAt !== currentGroup.updatedAt) {
@@ -603,7 +611,14 @@ export class GroupService {
 
             // Get actor's group display name from membership
             const actorMembershipDoc = membershipSnapshot.docs.find((doc) => doc.data().uid === userId);
-            const actorDisplayName = actorMembershipDoc?.data().groupDisplayName ?? 'Unknown member';
+            const actorDisplayName = actorMembershipDoc?.data().groupDisplayName?.trim();
+            if (!actorDisplayName) {
+                throw new ApiError(
+                    HTTP_STATUS.INTERNAL_ERROR,
+                    'GROUP_DISPLAY_NAME_MISSING',
+                    'Group member is missing required display name',
+                );
+            }
 
             this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, {
                 deletedAt: now,
@@ -620,7 +635,14 @@ export class GroupService {
             // Record MEMBER_LEFT activity for each member
             for (const memberId of memberIdsInTransaction) {
                 const memberDoc = membershipSnapshot.docs.find((doc) => (doc.data() as { uid?: string; }).uid === memberId);
-                const targetUserName = (memberDoc?.data() as { groupDisplayName?: string; })?.groupDisplayName ?? 'Unknown member';
+                const targetUserName = (memberDoc?.data() as { groupDisplayName?: string; })?.groupDisplayName?.trim();
+                if (!targetUserName) {
+                    throw new ApiError(
+                        HTTP_STATUS.INTERNAL_ERROR,
+                        'GROUP_DISPLAY_NAME_MISSING',
+                        'Group member is missing required display name',
+                    );
+                }
                 const activityItem = this.activityFeedService.buildGroupActivityItem({
                     groupId,
                     groupName: group.name,

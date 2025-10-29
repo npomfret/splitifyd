@@ -132,8 +132,8 @@ export class SettlementService {
             group,
             memberIds,
             actorMember,
-            actorDisplayName,
         } = await this.groupMemberService.getGroupAccessContext(settlementData.groupId, userId);
+        const actorDisplayName = actorMember.groupDisplayName;
 
         // Verify payer and payee are still in the group (race condition protection)
         for (const uid of [settlementData.payerId, settlementData.payeeId]) {
@@ -326,7 +326,10 @@ export class SettlementService {
             throw Errors.FORBIDDEN();
         }
 
-        const actorDisplayName = member.groupDisplayName || 'Unknown member';
+        const actorDisplayName = member.groupDisplayName?.trim();
+        if (!actorDisplayName) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'GROUP_DISPLAY_NAME_MISSING', 'Group member is missing required display name');
+        }
 
         timer.endPhase();
 

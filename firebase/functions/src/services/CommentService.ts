@@ -7,7 +7,6 @@ import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ApiError } from '../utils/errors';
 import * as loggerContext from '../utils/logger-context';
 import { ActivityFeedService } from './ActivityFeedService';
-import type { IAuthService } from './auth';
 import { ExpenseCommentStrategy } from './comments/ExpenseCommentStrategy';
 import { GroupCommentStrategy } from './comments/GroupCommentStrategy';
 import type { IFirestoreReader } from './firestore';
@@ -25,7 +24,6 @@ export class CommentService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         readonly groupMemberService: GroupMemberService,
-        private readonly authService: IAuthService,
         private readonly activityFeedService: ActivityFeedService,
     ) {
         this.groupCommentStrategy = new GroupCommentStrategy(firestoreReader, groupMemberService);
@@ -138,24 +136,18 @@ export class CommentService {
             group,
             memberIds,
             actorMember,
-            actorDisplayName: defaultDisplayName,
         } = await this.groupMemberService.getGroupAccessContext(groupId, userId, {
             notFoundErrorFactory: () => new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'),
             forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group'),
         });
 
-        const userRecord = await this.authService.getUser(userId);
-        if (!userRecord) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
-        }
-        const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
-        const actorDisplayName = actorMember.groupDisplayName || authorName || defaultDisplayName;
+        const authorName = actorMember.groupDisplayName;
+        const activityActorDisplayName = actorMember.groupDisplayName;
 
         const now = toISOString(new Date().toISOString());
         const commentCreateData: Omit<CommentDTO, 'id'> = {
             authorId: userId,
             authorName,
-            authorAvatar: userRecord.photoURL,
             text: commentData.text,
             createdAt: now,
             updatedAt: now,
@@ -178,7 +170,7 @@ export class CommentService {
                 eventType: ActivityFeedEventTypes.COMMENT_ADDED,
                 action: ActivityFeedActions.COMMENT,
                 actorId: userId,
-                actorName: actorDisplayName,
+                actorName: activityActorDisplayName,
                 timestamp: now,
                 details,
             });
@@ -224,24 +216,18 @@ export class CommentService {
             group,
             memberIds,
             actorMember,
-            actorDisplayName: defaultDisplayName,
         } = await this.groupMemberService.getGroupAccessContext(expense.groupId, userId, {
             notFoundErrorFactory: () => new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'),
             forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group'),
         });
 
-        const userRecord = await this.authService.getUser(userId);
-        if (!userRecord) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
-        }
-        const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
-        const actorDisplayName = actorMember.groupDisplayName || authorName || defaultDisplayName;
+        const authorName = actorMember.groupDisplayName;
+        const activityActorDisplayName = actorMember.groupDisplayName;
 
         const now = toISOString(new Date().toISOString());
         const commentCreateData: Omit<CommentDTO, 'id'> = {
             authorId: userId,
             authorName,
-            authorAvatar: userRecord.photoURL,
             text: commentData.text,
             createdAt: now,
             updatedAt: now,
@@ -269,7 +255,7 @@ export class CommentService {
                 eventType: ActivityFeedEventTypes.COMMENT_ADDED,
                 action: ActivityFeedActions.COMMENT,
                 actorId: userId,
-                actorName: actorDisplayName,
+                actorName: activityActorDisplayName,
                 timestamp: now,
                 details,
             });
