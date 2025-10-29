@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
+import { SystemUserRoles } from '@splitifyd/shared';
 
 interface PasswordChangeData {
     currentPassword: string;
@@ -321,14 +322,17 @@ export function SettingsPage() {
                                             {user.email}
                                         </div>
                                     </div>
-                                    <div class='rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-3'>
-                                        <span class='text-slate-500'>{t('settingsPage.profileSummaryRoleLabel')}</span>
-                                        <div class='font-medium text-slate-900'>
-                                            {user.role
-                                                ? t(`settingsPage.profileSummaryRole.${user.role}`, { defaultValue: t('settingsPage.profileSummaryRoleFallback') })
-                                                : t('settingsPage.profileSummaryRoleFallback')}
+                                    {/* Only show account role to system admins - it's not meaningful to regular users */}
+                                    {user.role === SystemUserRoles.SYSTEM_ADMIN && (
+                                        <div class='rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-3'>
+                                            <span class='text-slate-500'>{t('settingsPage.profileSummaryRoleLabel')}</span>
+                                            <div class='font-medium text-slate-900'>
+                                                {user.role
+                                                    ? t(`settingsPage.profileSummaryRole.${user.role}`, { defaultValue: t('settingsPage.profileSummaryRoleFallback') })
+                                                    : t('settingsPage.profileSummaryRoleFallback')}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </Card>

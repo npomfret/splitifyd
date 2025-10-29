@@ -226,7 +226,9 @@ const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration
 export async function generateBillSplitterUser(): Promise<AuthenticatedFirebaseUser> {
     console.log('👤 Ensuring Bill Splitter test user exists...');
     const user = await runQueued(() => driver.createUser({ ...BILL_SPLITTER_REGISTRATION }));
-    console.log(`✓ Bill Splitter user ready (${user.displayName})`);
+    console.log('👑 Promoting Bill Splitter to system admin...');
+    await runQueued(() => driver.promoteUserToAdmin(user.token));
+    console.log(`✓ Bill Splitter user ready as admin (${user.displayName})`);
     return user;
 }
 

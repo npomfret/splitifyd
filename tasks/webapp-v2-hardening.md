@@ -1,32 +1,11 @@
 # Task: Webapp-v2 Hardening & Cleanup
 
-## Overview
-Track the outstanding correctness and maintainability issues surfaced during the recent webapp-v2 deep-dives.
+## Focus
+Last remaining hardening item: simplify `enhancedGroupsStore` and `enhancedGroupDetailStore` by teasing apart pagination, realtime, and auxiliary responsibilities.
 
-## Issues To Address
-- [x] **Move navigation side effects into effects**  
-  - `src/App.tsx` redirect now runs from a `useEffect` keyed on auth state, keeping render pure.  
-  - `src/pages/GroupDetailPage.tsx` waits for redirects via effects and surfaces inline errors only when actionable.
-
-- [x] **Centralize routing through navigation service**  
-  - `src/app/hooks/useFormSubmission.ts` delegates all navigations to `navigationService` to preserve logging and URL-change waits.
-
-- [x] **Tighten type safety around lazy routes**  
-  - `src/App.tsx` wraps lazy and protected components with typed helpers, replacing the former `any` usage.
-
-- [x] **Consolidate duplicate group routes**  
-  - `/group/:id` alias removed; `/groups/:id` is the single group detail path and 404 detection updated accordingly.
-
-- [x] **Abstract Firebase coupling in stores/services**  
-  - Activity feed store now consumes a dedicated `ActivityFeedGateway`, removing direct `FirebaseService` dependencies.
-  - Auth store now routes all Firebase auth calls through an `AuthGateway`, isolating sign-in/refresh logic for easier substitution.
-  - Realtime consumers (comments, groups, group detail, dashboard) now subscribe via an `ActivityFeedRealtimeService`, keeping Firebase-specific wiring isolated to gateways.
-
-- [x] **Eliminate magic strings for storage and error codes**  
-  - Centralized storage identifiers (session/local) via `STORAGE_KEYS`; `GroupDetail` now relies on `GROUP_DETAIL_ERROR_CODES` rather than string literals.
-
-- [x] **Review auth registration flow for atomicity and error handling**  
-  - `auth-store` now verifies the `/register` response, attempts Firebase sign-in directly, and surfaces a clear fallback message if automatic login fails so users can retry manually.
-
-- [ ] **Simplify complex store logic where possible**  
-  - `enhancedGroupsStore` and `enhancedGroupDetailStore` have large surface areas. Identify opportunities to split concerns (e.g., pagination, subscriptions) into focused helpers to reduce cognitive load.
+## Plan
+1. Introduce helper modules for the groups store (pagination controller, error state manager, refresh/realtime coordinator) without changing the public API.
+2. Refactor `enhancedGroupsStore` to compose those helpers so pagination, realtime wiring, and error handling stay encapsulated while existing behaviour remains intact.
+3. Add analogous helpers for the group-detail store (paginated collections, realtime orchestration, external integration hooks).
+4. Refactor `enhancedGroupDetailStore` to lean on the helpers, keeping core state updates concise and readable.
+5. Update or extend tests/docs as needed and run targeted checks after the refactor.

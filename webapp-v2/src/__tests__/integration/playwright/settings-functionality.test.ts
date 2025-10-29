@@ -1,4 +1,5 @@
-import { SettingsPage } from '@splitifyd/test-support';
+import { SettingsPage, ClientUserBuilder } from '@splitifyd/test-support';
+import { SystemUserRoles } from '@splitifyd/shared';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
@@ -334,19 +335,57 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         await expect(avatarOrInitials).toBeVisible();
     });
 
-    test('should display account role in profile summary', async ({ authenticatedPage }) => {
+    test('should hide account role from regular users', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
         const settingsPage = new SettingsPage(page);
 
         // 1. Navigate to settings page
         await settingsPage.navigate();
 
-        // 2. Verify account role label is visible
-        await expect(page.getByText('Account role')).toBeVisible();
+        // 2. Verify account role label is NOT visible for regular users (only shown to system admins)
+        await expect(page.getByText('Account role')).not.toBeVisible();
+    });
 
-        // 3. Verify role value is displayed (either "Administrator" or "Member")
-        const roleText = page.locator('text=/Administrator|Member/').first();
-        await expect(roleText).toBeVisible();
+    test('should display account role for system admins', async ({ authenticatedMockFirebase, pageWithLogging }) => {
+        // 1. Create a system admin user
+        const adminUser = ClientUserBuilder
+            .validUser()
+            .withRole(SystemUserRoles.SYSTEM_ADMIN)
+            .build();
+
+        // 2. Set up authenticated mock Firebase with admin user
+        await authenticatedMockFirebase(adminUser);
+        await setupSuccessfulApiMocks(pageWithLogging);
+
+        // 3. Mock user profile GET endpoint with admin role
+        await pageWithLogging.route('**/api/user/profile', async (route) => {
+            if (route.request().method() === 'GET') {
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        displayName: adminUser.displayName,
+                        email: adminUser.email,
+                        emailVerified: adminUser.emailVerified ?? true,
+                        photoURL: adminUser.photoURL,
+                        role: adminUser.role,
+                    }),
+                });
+            } else {
+                await route.continue();
+            }
+        });
+
+        const settingsPage = new SettingsPage(pageWithLogging);
+
+        // 4. Navigate to settings page
+        await settingsPage.navigate();
+
+        // 5. Verify account role label IS visible for system admins
+        await expect(pageWithLogging.getByText('Account role')).toBeVisible();
+
+        // 6. Verify role value shows "Administrator"
+        await expect(pageWithLogging.getByText('Administrator')).toBeVisible();
     });
 
     test('should display password requirements checklist', async ({ authenticatedPage }) => {
