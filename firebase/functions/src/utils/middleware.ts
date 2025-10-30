@@ -13,7 +13,7 @@ import { ComponentBuilder } from '../services/ComponentBuilder';
 import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest } from './i18n';
 
 // Initialize services
-const applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig());
+const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 
 /**

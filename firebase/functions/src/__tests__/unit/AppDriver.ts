@@ -78,15 +78,11 @@ export class AppDriver {
     private db = new SplitifydFirestoreTestDatabase();
     private authService = new StubAuthService();
     private handlerRegistry: Record<string, RequestHandler>;
-    private firestoreReader: IFirestoreReader;
 
     constructor() {
         // Create handler registry using the ApplicationFactory
         // This creates a fresh ComponentBuilder internally with our test dependencies
         this.handlerRegistry = createHandlerRegistry(this.authService, this.db);
-
-        // Create firestore reader for test middleware
-        this.firestoreReader = new FirestoreReader(this.db);
 
         // Note: We don't populate the global routeDefinitions here because
         // that would mutate shared state across test instances. Instead,
@@ -99,7 +95,7 @@ export class AppDriver {
      * Unlike production middleware, this doesn't verify tokens - it trusts the user already attached by createStubRequest.
      */
     private createTestMiddleware() {
-        const firestoreReader = this.firestoreReader;
+        const firestoreReader = new FirestoreReader(this.db);
 
         /**
          * Test authentication middleware - validates user is attached to request

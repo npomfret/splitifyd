@@ -24,7 +24,7 @@ import { ComponentBuilder } from '../../services/ComponentBuilder';
 describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
     const apiDriver = new ApiDriver();
     const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
-    const applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), identityToolkit);
+    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), identityToolkit);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     let users: PooledTestUser[];
 

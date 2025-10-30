@@ -46,7 +46,7 @@ async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>,
 describe('Concurrent Operations Integration Tests', () => {
     const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
 
-    const applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), identityToolkit);
+    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), identityToolkit);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();

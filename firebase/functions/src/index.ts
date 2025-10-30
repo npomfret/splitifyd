@@ -17,7 +17,7 @@ import { applyStandardMiddleware } from './utils/middleware';
 import { routeDefinitions, populateRouteHandlers } from './routes/route-config';
 import type { RequestHandler } from 'express';
 import { createHandlerRegistry } from './ApplicationFactory';
-import { getAppBuilder } from './ApplicationBuilderSingleton';
+import { getComponentBuilder } from './ComponentBuilderSingleton';
 
 let app: express.Application | null = null;
 
@@ -54,7 +54,7 @@ const asyncHandler = (fn: Function) => (req: express.Request, res: express.Respo
  */
 function getHandlerRegistry(): Record<string, RequestHandler> {
     // Get application builder and create handler registry from factory
-    const appBuilder = getAppBuilder();
+    const appBuilder = getComponentBuilder();
     const handlerRegistry = createHandlerRegistry(
         appBuilder.buildAuthService(),
         appBuilder.getDatabase()
@@ -241,13 +241,6 @@ function setupRoutes(app: express.Application): void {
             },
         });
     });
-}
-
-/**
- * Exports the handler and middleware registries for use in testing
- */
-export function getHandlerRegistryForTesting(): Record<string, RequestHandler> {
-    return getHandlerRegistry();
 }
 
 export function getMiddlewareRegistryForTesting(): Record<string, RequestHandler> {

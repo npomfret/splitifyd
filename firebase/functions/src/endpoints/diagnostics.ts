@@ -2,7 +2,7 @@ import { toISOString } from '@splitifyd/shared';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as v8 from 'v8';
-import { getAppBuilder } from '../ApplicationBuilderSingleton';
+import { getComponentBuilder } from '../ComponentBuilderSingleton';
 import { getConfig } from '../client-config';
 import { HTTP_STATUS, SYSTEM } from '../constants';
 import { getAuth } from '../firebase';
@@ -149,7 +149,7 @@ export const buildEnvPayload = () => {
 export const runHealthChecks = async (): Promise<HealthCheckMap> => {
     const checks: HealthCheckMap = {};
 
-    const appBuilder = getAppBuilder();
+    const appBuilder = getComponentBuilder();
     const firestoreWriter = appBuilder.buildFirestoreWriter();
 
     const firestoreHealthCheck = await firestoreWriter.performHealthCheck();

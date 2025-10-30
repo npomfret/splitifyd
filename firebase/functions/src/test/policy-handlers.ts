@@ -6,7 +6,7 @@ import { logger } from '../logger';
 import { ComponentBuilder } from '../services/ComponentBuilder';
 
 const firestore = getFirestore();
-const applicationBuilder = ComponentBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
+const applicationBuilder = ComponentBuilder.createComponentBuilder(firestore, getAuth(), getIdentityToolkitConfig());
 const authService = applicationBuilder.buildAuthService();
 const firestoreWriter = applicationBuilder.buildFirestoreWriter();
 

@@ -7,9 +7,9 @@ import { ComponentBuilder } from './services/ComponentBuilder';
 let appBuilder: ComponentBuilder | null = null;
 
 // Export function to get the initialized ApplicationBuilder
-export function getAppBuilder(): ComponentBuilder {
+export function getComponentBuilder(): ComponentBuilder {
     if (!appBuilder) {
-        appBuilder = ComponentBuilder.createApplicationBuilder(
+        appBuilder = ComponentBuilder.createComponentBuilder(
             getFirestore(),
             getAuth(),
             getIdentityToolkitConfig(),

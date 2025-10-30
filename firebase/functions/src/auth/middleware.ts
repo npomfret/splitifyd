@@ -9,7 +9,7 @@ import { ComponentBuilder } from '../services/ComponentBuilder';
 import { Errors, sendError } from '../utils/errors';
 
 const firestore = getFirestore();
-const applicationBuilder = ComponentBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
+const applicationBuilder = ComponentBuilder.createComponentBuilder(firestore, getAuth(), getIdentityToolkitConfig());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const authService = applicationBuilder.buildAuthService();
 

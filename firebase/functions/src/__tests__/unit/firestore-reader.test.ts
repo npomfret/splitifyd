@@ -21,7 +21,7 @@ const identityToolkitConfig = {
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
-    const applicationBuilder = ComponentBuilder.createApplicationBuilder(firestore, getAuth(), identityToolkitConfig);
+    const applicationBuilder = ComponentBuilder.createComponentBuilder(firestore, getAuth(), identityToolkitConfig);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
 
     test('should be instantiable', () => {

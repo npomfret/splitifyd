@@ -9,7 +9,7 @@ import { TestUserPoolService } from './TestUserPoolService';
 
 // todo: use the singleton
 const firestore = getFirestore();
-const applicationBuilder = ComponentBuilder.createApplicationBuilder(firestore, getAuth(), getIdentityToolkitConfig());
+const applicationBuilder = ComponentBuilder.createComponentBuilder(firestore, getAuth(), getIdentityToolkitConfig());
 const firestoreWriter = applicationBuilder.buildFirestoreWriter();
 const userService = applicationBuilder.buildUserService();
 const authService = applicationBuilder.buildAuthService();

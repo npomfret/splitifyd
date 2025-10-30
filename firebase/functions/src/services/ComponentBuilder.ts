@@ -43,7 +43,7 @@ export class ComponentBuilder {
         this.firestoreWriter = new FirestoreWriter(db);
     }
 
-    static createApplicationBuilder(firestore: Firestore, auth: Auth, identityToolkit: IdentityToolkitConfig) {
+    static createComponentBuilder(firestore: Firestore, auth: Auth, identityToolkit: IdentityToolkitConfig) {
         // Wrap the Firestore instance with our abstraction layer
         const wrappedDb = createFirestoreDatabase(firestore);
 

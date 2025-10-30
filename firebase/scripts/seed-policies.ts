@@ -54,7 +54,7 @@ if (env.isEmulator) {
 // Get Firebase instances
 const firestoreDb = getFirestore();
 
-const applicationBuilder = ComponentBuilder.createApplicationBuilder(firestoreDb, getAuth(), identityToolkitConfig);
+const applicationBuilder = ComponentBuilder.createComponentBuilder(firestoreDb, getAuth(), identityToolkitConfig);
 const policyService = applicationBuilder.buildPolicyService();
 
 /**
