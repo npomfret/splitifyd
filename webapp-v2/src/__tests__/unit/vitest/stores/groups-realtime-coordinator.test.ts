@@ -26,7 +26,7 @@ const createContext = (): TestContext => {
         activityFeed: {
             registerConsumer,
             deregisterConsumer,
-        },
+        } as any,
         listenerId: 'groups',
         debounceDelay: 10,
         isRefreshingSignal: signal(false),

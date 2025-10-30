@@ -154,14 +154,14 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         if (!isOpen) return;
 
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
+            if (e.key === 'Escape' && !isSubmitting) {
                 onClose();
             }
         };
 
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
-    }, [isOpen, onClose]);
+    }, [isOpen, onClose, isSubmitting]);
 
     useEffect(() => {
         if (amountPrecisionError) {

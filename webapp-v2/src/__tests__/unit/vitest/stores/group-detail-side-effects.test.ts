@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { GroupDetailSideEffectsManager } from '@/app/stores/helpers/group-detail-side-effects';
+import { toGroupId } from '@splitifyd/shared';
 
 describe('GroupDetailSideEffectsManager', () => {
     const createManager = () => {
@@ -31,15 +32,15 @@ describe('GroupDetailSideEffectsManager', () => {
 
     it('updates permissions snapshots and registration lifecycle', () => {
         const { manager, permissions } = createManager();
-        const group = { id: 'group-1' } as any;
+        const group = { id: toGroupId('group-1') } as any;
         const members = [{ uid: 'user-1' }] as any;
 
         manager.updatePermissionsSnapshot(group, members);
-        manager.registerPermissions('group-1', 'user-1');
-        manager.deregisterPermissions('group-1');
+        manager.registerPermissions(toGroupId('group-1'), 'user-1');
+        manager.deregisterPermissions(toGroupId('group-1'));
 
         expect(permissions.updateGroupData).toHaveBeenCalledWith(group, members);
-        expect(permissions.registerComponent).toHaveBeenCalledWith('group-1', 'user-1');
-        expect(permissions.deregisterComponent).toHaveBeenCalledWith('group-1');
+        expect(permissions.registerComponent).toHaveBeenCalledWith(toGroupId('group-1'), 'user-1');
+        expect(permissions.deregisterComponent).toHaveBeenCalledWith(toGroupId('group-1'));
     });
 });

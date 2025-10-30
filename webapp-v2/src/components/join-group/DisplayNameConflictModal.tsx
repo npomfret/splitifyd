@@ -29,49 +29,41 @@ export function DisplayNameConflictModal({
     const [displayName, setDisplayName] = useState(currentName);
     const [validationError, setValidationError] = useState<string | null>(null);
 
-    const clearErrorRef = useRef(onClearError);
-    const cancelRef = useRef(onCancel);
-
+    // Initialize form state when modal opens
     useEffect(() => {
-        clearErrorRef.current = onClearError;
-        cancelRef.current = onCancel;
-    }, [onClearError, onCancel]);
-
-    useEffect(() => {
-        if (!isOpen) {
-            return;
-        }
+        if (!isOpen) return;
 
         setDisplayName(currentName);
         setValidationError(null);
-        clearErrorRef.current();
+        onClearError();
+
+        queueMicrotask(() => {
+            inputRef.current?.focus();
+        });
+    }, [isOpen, currentName, onClearError]);
+
+    // Handle escape key to close modal
+    useEffect(() => {
+        if (!isOpen) return;
 
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
+            if (event.key === 'Escape' && !loading) {
                 event.preventDefault();
-                cancelRef.current();
+                onCancel();
             }
         };
 
         document.addEventListener('keydown', handleKeyDown);
-
-        // Focus the input after the modal renders
-        queueMicrotask(() => {
-            inputRef.current?.focus();
-        });
-
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [isOpen, currentName]);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onCancel, loading]);
 
     if (!isOpen) {
         return null;
     }
 
     const handleBackdropClick = (event: Event) => {
-        if (event.target === event.currentTarget) {
-            cancelRef.current();
+        if (event.target === event.currentTarget && !loading) {
+            onCancel();
         }
     };
 
@@ -109,7 +101,7 @@ export function DisplayNameConflictModal({
             setValidationError(null);
         }
         if (error) {
-            clearErrorRef.current();
+            onClearError();
         }
     };
 

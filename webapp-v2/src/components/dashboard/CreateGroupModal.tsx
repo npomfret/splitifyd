@@ -51,7 +51,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         if (!isOpen) return;
 
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
+            if (e.key === 'Escape' && !isSubmitting) {
                 emitModalDebugLog('[CreateGroupModal] Closing modal: Escape key pressed', {
                     key: e.key,
                     isSubmitting,
@@ -62,7 +62,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
-    }, [isOpen, onClose]);
+    }, [isOpen, onClose, isSubmitting]);
 
     // Handle click outside modal to close - but not during submission
     const handleBackdropClick = (e: Event) => {
