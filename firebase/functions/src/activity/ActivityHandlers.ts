@@ -2,12 +2,9 @@ import type { ActivityFeedItem } from '@splitifyd/shared';
 import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
-import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
-import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { ActivityFeedService } from '../services/ActivityFeedService';
-import { ComponentBuilder } from '../services/ComponentBuilder';
 
 interface ActivityFeedQuery {
     limit?: number;
@@ -23,12 +20,7 @@ interface ActivityFeedResponse {
 export class ActivityFeedHandlers {
     constructor(private readonly activityFeedService: ActivityFeedService) {}
 
-    static createActivityFeedHandlers(applicationBuilder: ComponentBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
-        const activityFeedService = applicationBuilder.buildActivityFeedService();
-        return new ActivityFeedHandlers(activityFeedService);
-    }
-
-    async getActivityFeed(req: AuthenticatedRequest, res: Response): Promise<void> {
+    getActivityFeed = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const userId = validateUserAuth(req);
         const { limit, cursor } = this.parseQuery(req.query);
 

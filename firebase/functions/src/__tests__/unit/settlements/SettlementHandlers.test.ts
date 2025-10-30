@@ -1,8 +1,10 @@
-import { CreateSettlementRequestBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
+import { CreateSettlementRequestBuilder, SettlementUpdateBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { SettlementHandlers } from '../../../settlements/SettlementHandlers';
 import { AppDriver } from '../AppDriver';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('SettlementHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -829,8 +831,11 @@ describe('SettlementHandlers - Unit Tests', () => {
     });
 
     describe('Static Factory Method', () => {
-        it('should create SettlementHandlers instance with default ApplicationBuilder', () => {
-            const handlers = SettlementHandlers.createSettlementHandlers();
+        it('should create SettlementHandlers instance with SettlementService', () => {
+            const db = new SplitifydFirestoreTestDatabase();
+            const authService = new StubAuthService();
+            const componentBuilder = new ComponentBuilder(authService, db);
+            const handlers = new SettlementHandlers(componentBuilder.buildSettlementService());
             expect(handlers).toBeInstanceOf(SettlementHandlers);
             expect(handlers.createSettlement).toBeDefined();
             expect(handlers.updateSettlement).toBeDefined();

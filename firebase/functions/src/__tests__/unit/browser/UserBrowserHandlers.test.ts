@@ -27,7 +27,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
         db = new SplitifydFirestoreTestDatabase();
         authService = new StubAuthService();
         componentBuilder = new ComponentBuilder(authService, db);
-        handlers = UserBrowserHandlers.createUserBrowserHandlers(componentBuilder);
+        handlers = new UserBrowserHandlers(authService, db);
 
         // Setup mock request and response
         jsonSpy = vi.fn();

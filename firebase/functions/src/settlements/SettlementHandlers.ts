@@ -1,10 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
-import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
-import { getAuth, getFirestore } from '../firebase';
-import { ComponentBuilder } from '../services/ComponentBuilder';
 import { SettlementService } from '../services/SettlementService';
 import { logger } from '../utils/contextual-logger';
 import { LoggerContext } from '../utils/logger-context';
@@ -12,11 +9,6 @@ import { validateCreateSettlement, validateSettlementId, validateUpdateSettlemen
 
 export class SettlementHandlers {
     constructor(private readonly settlementService: SettlementService) {
-    }
-
-    static createSettlementHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
-        const settlementService = applicationBuilder.buildSettlementService();
-        return new SettlementHandlers(settlementService);
     }
 
     createSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

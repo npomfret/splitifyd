@@ -1,9 +1,11 @@
 import { CommentDTO } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
 import { HTTP_STATUS } from '../../../constants';
 import { AppDriver } from '../AppDriver';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -496,8 +498,11 @@ describe('CommentHandlers - Unit Tests', () => {
     });
 
     describe('Static Factory Method', () => {
-        it('should create CommentHandlers instance with default ApplicationBuilder', () => {
-            const handlers = CommentHandlers.createCommentHandlers();
+        it('should create CommentHandlers instance with CommentService', () => {
+            const db = new SplitifydFirestoreTestDatabase();
+            const authService = new StubAuthService();
+            const componentBuilder = new ComponentBuilder(authService, db);
+            const handlers = new CommentHandlers(componentBuilder.buildCommentService());
             expect(handlers).toBeInstanceOf(CommentHandlers);
             expect(handlers.createComment).toBeDefined();
             expect(handlers.listGroupComments).toBeDefined();

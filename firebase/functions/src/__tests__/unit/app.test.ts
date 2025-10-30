@@ -15,7 +15,6 @@ import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toExpenseId } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
-import { FirestoreCollections } from '../../constants';
 import { AppDriver } from './AppDriver';
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
@@ -732,7 +731,7 @@ describe('app tests', () => {
             expect(user2Groups.groups[0].id).toBe(groupId);
         });
 
-        it('should persist custom share link expiration timestamps', async () => {
+        it('should respect custom share link expiration timestamps', async () => {
             const group = await appDriver.createGroup(user1, new CreateGroupRequestBuilder().withName('Custom Expiry Group').build());
             const groupId = group.id;
 
@@ -742,49 +741,28 @@ describe('app tests', () => {
 
             expect(shareLink.expiresAt).toBe(customExpiration);
 
-            const { db } = appDriver.getTestHarness();
-            const shareLinksSnapshot = await db.collection('groups').doc(groupId).collection('shareLinks').get();
-            const storedDoc = shareLinksSnapshot.docs.find((doc) => doc.data()?.token === shareLink.linkId);
-            expect(storedDoc).toBeDefined();
-            expect(storedDoc?.data()?.expiresAt).toBe(customExpiration);
+            const preview = await appDriver.previewGroupByLink(user2, shareLink.linkId);
+            expect(preview.groupId).toBe(groupId);
+            expect(preview.isAlreadyMember).toBe(false);
+
+            const joinResult = await appDriver.joinGroupByLink(user2, shareLink.linkId);
+            expect(joinResult.success).toBe(true);
+
+            const members = (await appDriver.getGroupFullDetails(user1, groupId)).members.members;
+            expect(members.some(({ uid }) => uid === user2)).toBe(true);
         });
 
         it('should reject preview and join operations once a share link has expired', async () => {
             const group = await appDriver.createGroup(user1, new CreateGroupRequestBuilder().withName('Expiring Group').build());
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const nearFutureExpiration = new Date(Date.now() + 1000).toISOString();
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId, nearFutureExpiration);
 
-            const { db } = appDriver.getTestHarness();
-            const shareLinksSnapshot = await db.collection('groups').doc(groupId).collection('shareLinks').get();
-            const storedDoc = shareLinksSnapshot.docs.find((doc) => doc.data()?.token === linkId);
-            expect(storedDoc).toBeDefined();
-
-            const expiredAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-            const shareLinkPath = `groups/${groupId}/shareLinks/${storedDoc!.id}`;
-            const existingData = storedDoc!.data();
-
-            db.seed(shareLinkPath, {
-                ...existingData,
-                expiresAt: expiredAt,
-            });
-
-            db.seed(`${FirestoreCollections.SHARE_LINK_TOKENS}/${linkId}`, {
-                groupId,
-                shareLinkId: storedDoc!.id,
-                createdBy: existingData?.createdBy,
-                createdAt: existingData?.createdAt,
-                expiresAt: expiredAt,
-            });
+            await new Promise((resolve) => setTimeout(resolve, 1200));
 
             await expect(appDriver.previewGroupByLink(user2, linkId)).rejects.toMatchObject({ code: 'LINK_EXPIRED' });
             await expect(appDriver.joinGroupByLink(user2, linkId)).rejects.toMatchObject({ code: 'INVALID_LINK' });
-
-            const refreshedShareLink = await db.collection('groups').doc(groupId).collection('shareLinks').doc(storedDoc!.id).get();
-            expect(refreshedShareLink.exists).toBe(false);
-
-            const tokenDoc = await db.collection(FirestoreCollections.SHARE_LINK_TOKENS).doc(linkId).get();
-            expect(tokenDoc.exists).toBe(false);
         });
 
         it('should let members update their own group display name', async () => {

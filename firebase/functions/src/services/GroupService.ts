@@ -40,6 +40,7 @@ import {GroupShareService} from './GroupShareService';
 import {SettlementService} from './SettlementService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import {UserService} from './UserService2';
+import {DisplayName} from "@splitifyd/shared/src";
 
 /**
  * Service for managing group operations
@@ -744,6 +745,8 @@ export class GroupService {
             comments: commentsData,
         };
     }
-}
 
-// ServiceRegistry handles service instantiation
+    updateGroupMemberDisplayName(groupId: GroupId, userId: UserId, newDisplayName: DisplayName): Promise<void> {
+        return this.firestoreWriter.updateGroupMemberDisplayName(groupId, userId, newDisplayName);
+    }
+}

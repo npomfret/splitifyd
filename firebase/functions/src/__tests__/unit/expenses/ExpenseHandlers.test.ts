@@ -1,9 +1,11 @@
 import type { UpdateExpenseRequest } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
 import { AppDriver } from '../AppDriver';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('ExpenseHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -426,8 +428,11 @@ describe('ExpenseHandlers - Unit Tests', () => {
     });
 
     describe('Static Factory Method', () => {
-        it('should create ExpenseHandlers instance with default ApplicationBuilder', () => {
-            const handlers = ExpenseHandlers.createExpenseHandlers();
+        it('should create ExpenseHandlers instance with ExpenseService', () => {
+            const db = new SplitifydFirestoreTestDatabase();
+            const authService = new StubAuthService();
+            const componentBuilder = new ComponentBuilder(authService, db);
+            const handlers = new ExpenseHandlers(componentBuilder.buildExpenseService());
             expect(handlers).toBeInstanceOf(ExpenseHandlers);
             expect(handlers.createExpense).toBeDefined();
             expect(handlers.updateExpense).toBeDefined();

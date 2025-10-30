@@ -14,6 +14,9 @@ export interface RouteDefinition {
     /** Handler function identifier */
     handlerName: string;
 
+    /** The actual handler function (set by ApplicationFactory) */
+    handler?: RequestHandler;
+
     /** Middleware names to apply before the handler */
     middleware?: Array<'authenticate' | 'authenticateAdmin' | 'authenticateSystemUser'>;
 
@@ -453,3 +456,20 @@ export const routeDefinitions: RouteDefinition[] = [
         middleware: ['authenticateSystemUser'],
     },
 ];
+
+/**
+ * Populates the handler functions on route definitions from the handler registry.
+ * This connects the route definitions to the actual handler implementations.
+ *
+ * @param handlerRegistry - Map of handler names to handler functions from ApplicationFactory
+ */
+export function populateRouteHandlers(handlerRegistry: Record<string, RequestHandler>): void {
+    for (const route of routeDefinitions) {
+        const handler = handlerRegistry[route.handlerName];
+        if (handler) {
+            route.handler = handler;
+        } else if (!route.isInline) {
+            console.warn(`Warning: No handler found for route ${route.method} ${route.path} (${route.handlerName})`);
+        }
+    }
+}

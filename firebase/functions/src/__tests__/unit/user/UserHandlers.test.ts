@@ -1,9 +1,11 @@
-import { PasswordChangeRequestBuilder, RegisteredUserBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
+import { PasswordChangeRequestBuilder, RegisteredUserBuilder, UserUpdateBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { UserHandlers } from '../../../user/UserHandlers';
 import { initializeI18n } from '../../../utils/i18n';
 import { AppDriver } from '../AppDriver';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('UserHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -227,8 +229,11 @@ describe('UserHandlers - Unit Tests', () => {
     });
 
     describe('Static Factory Method', () => {
-        it('should create UserHandlers instance with default ApplicationBuilder', () => {
-            const handlers = UserHandlers.createUserHandlers();
+        it('should create UserHandlers instance with UserService', () => {
+            const db = new SplitifydFirestoreTestDatabase();
+            const authService = new StubAuthService();
+            const componentBuilder = new ComponentBuilder(authService, db);
+            const handlers = new UserHandlers(componentBuilder.buildUserService());
             expect(handlers).toBeInstanceOf(UserHandlers);
             expect(handlers.updateUserProfile).toBeDefined();
             expect(handlers.changePassword).toBeDefined();

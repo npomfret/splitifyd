@@ -4,7 +4,6 @@ import { FirestoreCollections } from '../constants';
 import { Timestamp, type IFirestoreDatabase, type IDocumentSnapshot } from '../firestore-wrapper';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
-import { ComponentBuilder } from "../services/ComponentBuilder";
 
 interface ListAuthQuery {
     limit: number;
@@ -86,13 +85,6 @@ function serializeFirestoreDocument(doc: IDocumentSnapshot): Record<string, unkn
 
 export class UserBrowserHandlers {
     constructor(private readonly authService: IAuthService, private readonly db: IFirestoreDatabase) {}
-
-    static createUserBrowserHandlers(componentBuilder: ComponentBuilder): UserBrowserHandlers {
-        return new UserBrowserHandlers(
-            componentBuilder.buildAuthService(),
-            componentBuilder.getDatabase()
-        );
-    }
 
     listAuthUsers = async (req: Request, res: Response): Promise<void> => {
         const query: ListAuthQuery = {

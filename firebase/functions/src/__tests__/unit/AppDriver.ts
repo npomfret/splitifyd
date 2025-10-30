@@ -42,25 +42,14 @@ import { DisplayName } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@splitifyd/test-support';
 import { expect } from 'vitest';
-import { ActivityFeedHandlers } from '../../activity/ActivityHandlers';
-import { CommentHandlers } from '../../comments/CommentHandlers';
-import { ExpenseHandlers } from '../../expenses/ExpenseHandlers';
-import { GroupHandlers } from '../../groups/GroupHandlers';
-import { GroupMemberHandlers } from '../../groups/GroupMemberHandlers';
-import { GroupSecurityHandlers } from '../../groups/GroupSecurityHandlers';
-import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
-import { PolicyHandlers } from '../../policies/PolicyHandlers';
-import { UserHandlers as PolicyUserHandlers } from '../../policies/UserHandlers';
-import { ComponentBuilder } from '../../services/ComponentBuilder';
-import { FirestoreWriter } from '../../services/firestore';
-import { SettlementHandlers } from '../../settlements/SettlementHandlers';
-import { UserHandlers } from '../../user/UserHandlers';
 import { RegisterUserResult } from '../../services/UserService2';
 import { StubAuthService } from './mocks/StubAuthService';
 import { routeDefinitions, RouteDefinition } from '../../routes/route-config';
 import type { RequestHandler, Request, Response, NextFunction } from 'express';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { Errors, sendError } from '../../utils/errors';
+import { createHandlerRegistry } from '../../ApplicationFactory';
+import { FirestoreReader, type IFirestoreReader } from '../../services/firestore';
 
 /**
  * Extended request interface for authenticated requests in AppDriver
@@ -88,114 +77,29 @@ interface AuthenticatedRequest extends Request {
 export class AppDriver {
     private db = new SplitifydFirestoreTestDatabase();
     private authService = new StubAuthService();
+    private handlerRegistry: Record<string, RequestHandler>;
+    private firestoreReader: IFirestoreReader;
 
-    private componentBuilder = new ComponentBuilder(this.authService, this.db);
-    private settlementHandlers = new SettlementHandlers(this.componentBuilder.buildSettlementService());
-    private groupHandlers = new GroupHandlers(this.componentBuilder.buildGroupService(), new FirestoreWriter(this.db));
-    private groupShareHandlers = new GroupShareHandlers(this.componentBuilder.buildGroupShareService());
-    private groupMemberHandlers = new GroupMemberHandlers(this.componentBuilder.buildGroupMemberService());
-    private expenseHandlers = new ExpenseHandlers(this.componentBuilder.buildExpenseService());
-    private commentHandlers = new CommentHandlers(this.componentBuilder.buildCommentService());
-    private userHandlers = new UserHandlers(this.componentBuilder.buildUserService());
-    private policyHandlers = new PolicyHandlers(this.componentBuilder.buildPolicyService());
-    private policyUserHandlers = new PolicyUserHandlers(this.componentBuilder.buildUserPolicyService());
-    private activityFeedHandlers = new ActivityFeedHandlers(this.componentBuilder.buildActivityFeedService());
-    private groupSecurityHandlers = new GroupSecurityHandlers(
-        this.componentBuilder.buildGroupService(),
-        this.componentBuilder.buildGroupMemberService(),
-    );
+    constructor() {
+        // Create handler registry using the ApplicationFactory
+        // This creates a fresh ComponentBuilder internally with our test dependencies
+        this.handlerRegistry = createHandlerRegistry(this.authService, this.db);
 
-    /**
-     * Creates a mapping of handler names to actual handler functions for test execution
-     */
-    private createHandlerMap(): Record<string, RequestHandler> {
-        return {
-            // Group handlers
-            createGroup: (req, res) => this.groupHandlers.createGroup(req, res),
-            listGroups: (req, res) => this.groupHandlers.listGroups(req, res),
-            getGroupFullDetails: (req, res) => this.groupHandlers.getGroupFullDetails(req, res),
-            updateGroup: (req, res) => this.groupHandlers.updateGroup(req, res),
-            deleteGroup: (req, res) => this.groupHandlers.deleteGroup(req, res),
-            updateGroupMemberDisplayName: (req, res) => this.groupHandlers.updateGroupMemberDisplayName(req, res),
+        // Create firestore reader for test middleware
+        this.firestoreReader = new FirestoreReader(this.db);
 
-            // Group share handlers
-            generateShareableLink: (req, res) => this.groupShareHandlers.generateShareableLink(req, res),
-            joinGroupByLink: (req, res) => this.groupShareHandlers.joinGroupByLink(req, res),
-            previewGroupByLink: (req, res) => this.groupShareHandlers.previewGroupByLink(req, res),
-
-            // Group member handlers
-            leaveGroup: (req, res) => this.groupMemberHandlers.leaveGroup(req, res),
-            removeGroupMember: (req, res) => this.groupMemberHandlers.removeGroupMember(req, res),
-            archiveGroupForUser: (req, res) => this.groupMemberHandlers.archiveGroupForUser(req, res),
-            unarchiveGroupForUser: (req, res) => this.groupMemberHandlers.unarchiveGroupForUser(req, res),
-
-            // Group security handlers
-            updateGroupPermissions: (req, res) => this.groupSecurityHandlers.updateGroupPermissions(req, res),
-            getPendingMembers: (req, res) => this.groupSecurityHandlers.getPendingMembers(req, res),
-            updateMemberRole: (req, res) => this.groupSecurityHandlers.updateMemberRole(req, res),
-            approveMember: (req, res) => this.groupSecurityHandlers.approveMember(req, res),
-            rejectMember: (req, res) => this.groupSecurityHandlers.rejectMember(req, res),
-
-            // Expense handlers
-            createExpense: (req, res) => this.expenseHandlers.createExpense(req, res),
-            updateExpense: (req, res) => this.expenseHandlers.updateExpense(req, res),
-            deleteExpense: (req, res) => this.expenseHandlers.deleteExpense(req, res),
-            getExpenseFullDetails: (req, res) => this.expenseHandlers.getExpenseFullDetails(req, res),
-
-            // Settlement handlers
-            createSettlement: (req, res) => this.settlementHandlers.createSettlement(req, res),
-            updateSettlement: (req, res) => this.settlementHandlers.updateSettlement(req, res),
-            deleteSettlement: (req, res) => this.settlementHandlers.deleteSettlement(req, res),
-
-            // Comment handlers
-            createComment: (req, res) => this.commentHandlers.createComment(req, res),
-            createCommentForExpense: (req, res) => this.commentHandlers.createComment(req, res),
-            listGroupComments: (req, res) => this.commentHandlers.listGroupComments(req, res),
-            listExpenseComments: (req, res) => this.commentHandlers.listExpenseComments(req, res),
-
-            // User handlers
-            getUserProfile: (req, res) => this.userHandlers.getUserProfile(req, res),
-            updateUserProfile: (req, res) => this.userHandlers.updateUserProfile(req, res),
-            changePassword: (req, res) => this.userHandlers.changePassword(req, res),
-            changeEmail: (req, res) => this.userHandlers.changeEmail(req, res),
-
-            // Policy handlers
-            createPolicy: (req, res) => this.policyHandlers.createPolicy(req, res),
-            listPolicies: (req, res) => this.policyHandlers.listPolicies(req, res),
-            getPolicy: (req, res) => this.policyHandlers.getPolicy(req, res),
-            getPolicyVersion: (req, res) => this.policyHandlers.getPolicyVersion(req, res),
-            updatePolicy: (req, res) => this.policyHandlers.updatePolicy(req, res),
-            publishPolicy: (req, res) => this.policyHandlers.publishPolicy(req, res),
-            deletePolicyVersion: (req, res) => this.policyHandlers.deletePolicyVersion(req, res),
-            acceptMultiplePolicies: (req, res) => this.policyUserHandlers.acceptMultiplePolicies(req, res),
-            getUserPolicyStatus: (req, res) => this.policyUserHandlers.getUserPolicyStatus(req, res),
-
-            // Activity feed
-            getActivityFeed: (req, res) => this.activityFeedHandlers.getActivityFeed(req, res),
-
-            // Auth
-            register: async (req, res) => {
-                const userService = this.componentBuilder.buildUserService();
-                const result = await userService.registerUser(req.body);
-                res.status(201).json(result);
-            },
-
-            // Public policy handlers
-            getCurrentPolicy: async (req, res) => {
-                const { id } = req.params;
-                const policyService = this.componentBuilder.buildPolicyService();
-                const result = await policyService.getCurrentPolicy(id);
-                res.json(result);
-            },
-        };
+        // Note: We don't populate the global routeDefinitions here because
+        // that would mutate shared state across test instances. Instead,
+        // we look up handlers from our local registry in dispatchByHandler().
     }
+
 
     /**
      * Test-specific middleware that works with stub requests.
      * Unlike production middleware, this doesn't verify tokens - it trusts the user already attached by createStubRequest.
      */
     private createTestMiddleware() {
-        const firestoreReader = this.componentBuilder.buildFirestoreReader();
+        const firestoreReader = this.firestoreReader;
 
         /**
          * Test authentication middleware - validates user is attached to request
@@ -292,8 +196,7 @@ export class AppDriver {
      * and the handler function. Creates and returns the response object.
      * This provides route-aware testing with middleware execution.
      *
-     * The handler function is looked up from the handler map, eliminating the need
-     * for passing it as a parameter.
+     * The handler function is looked up from the route definition.
      */
     private async dispatchByHandler(handlerName: string, req: any): Promise<any> {
         const route = this.findRouteByHandler(handlerName);
@@ -302,11 +205,10 @@ export class AppDriver {
             throw new Error(`No route found for handler: ${handlerName}`);
         }
 
-        // Get the handler function from the handler map
-        const handlerMap = this.createHandlerMap();
-        const handlerFn = handlerMap[handlerName];
+        // Get the handler function from our local registry
+        const handlerFn = this.handlerRegistry[handlerName];
         if (!handlerFn) {
-            throw new Error(`Handler function not found in map: ${handlerName}`);
+            throw new Error(`Handler function not found in registry: ${handlerName}`);
         }
 
         // Set method and path from route configuration
@@ -405,18 +307,6 @@ export class AppDriver {
             email: user.email,
             displayName: user.displayName,
         });
-    }
-
-    /**
-     * Exposes the underlying test infrastructure so specialized harnesses
-     * (e.g. Firestore trigger simulators) can hook into the same stubbed
-     * database and application container.
-     */
-    getTestHarness() {
-        return {
-            db: this.db,
-            applicationBuilder: this.componentBuilder,
-        };
     }
 
     dispose() {}
@@ -865,6 +755,7 @@ export class AppDriver {
     /**
      * Test helper - directly reads activity feed items from database for assertions
      */
+    // TODO: Replace direct DB read with getActivityFeed API usage in tests if real-time ordering is not required.
     async getActivityFeedItems(userId: UserId) {
         const snapshot = await this.db.collection('activity-feed').doc(userId).collection('items').get();
         return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -873,6 +764,7 @@ export class AppDriver {
     /**
      * Test helper - verifies that expected activity feed events were created
      */
+    // TODO: Migrate expectation checks to assert against handler responses instead of raw DB state.
     async expectNotificationUpdate(
         userId: UserId,
         groupId: GroupId | string,
@@ -934,5 +826,54 @@ export class AppDriver {
         for (const userId of memberUserIds) {
             await this.joinGroupByLink(userId, shareLink.linkId);
         }
+    }
+
+    /**
+     * Test helper - subscribe to group comments via the underlying stub database.
+     * Returns an unsubscribe function mirroring Firestore's onSnapshot behaviour.
+     */
+    watchGroupComments(
+        groupId: GroupId | string,
+        onChange: (comments: Array<{ id: string; [key: string]: unknown; }>) => void,
+        options: { order?: 'asc' | 'desc'; limit?: number; } = {},
+    ): () => void {
+        let query = this.db
+            .collection(`groups/${groupId}/comments`)
+            .orderBy('createdAt', options.order ?? 'desc');
+
+        if (typeof options.limit === 'number') {
+            query = query.limit(options.limit);
+        }
+
+        return query.onSnapshot((snapshot) => {
+            const comments = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            onChange(comments);
+        });
+    }
+
+    /**
+     * Test helper - fetches a comment snapshot mirroring a Firestore query.
+     */
+    // TODO: Prefer listGroupComments handler where suitable once tests can assert via API responses.
+    async getGroupCommentSnapshot(
+        groupId: GroupId | string,
+        options: { order?: 'asc' | 'desc'; limit?: number; } = {},
+    ): Promise<Array<{ id: string; [key: string]: unknown; }>> {
+        let query = this.db
+            .collection(`groups/${groupId}/comments`)
+            .orderBy('createdAt', options.order ?? 'desc');
+
+        if (typeof options.limit === 'number') {
+            query = query.limit(options.limit);
+        }
+
+        const snapshot = await query.get();
+        return snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
     }
 }

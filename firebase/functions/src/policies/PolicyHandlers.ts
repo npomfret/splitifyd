@@ -1,11 +1,8 @@
 import { CreatePolicyResponse, DeletePolicyVersionResponse, PublishPolicyResponse, UpdatePolicyResponse } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
-import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
-import { ComponentBuilder } from '../services/ComponentBuilder';
 import { PolicyService } from '../services/PolicyService';
 import { validateCreatePolicy, validatePublishPolicy, validateUpdatePolicy } from './validation';
 
@@ -13,11 +10,6 @@ export class PolicyHandlers {
     constructor(
         private readonly policyService: PolicyService,
     ) {
-    }
-
-    static createPolicyHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
-        const policyService = applicationBuilder.buildPolicyService();
-        return new PolicyHandlers(policyService);
     }
 
     /**

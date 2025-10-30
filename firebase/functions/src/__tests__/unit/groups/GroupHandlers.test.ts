@@ -1,8 +1,11 @@
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
 import { AppDriver } from '../AppDriver';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { StubAuthService } from '../mocks/StubAuthService';
+import { FirestoreWriter } from '../../../services/firestore';
 
 describe('GroupHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -499,8 +502,12 @@ describe('GroupHandlers - Unit Tests', () => {
     });
 
     describe('Static Factory Method', () => {
-        it('should create GroupHandlers instance with default ApplicationBuilder', () => {
-            const handlers = GroupHandlers.createGroupHandlers();
+        it('should create GroupHandlers instance with GroupService and FirestoreWriter', () => {
+            const db = new SplitifydFirestoreTestDatabase();
+            const authService = new StubAuthService();
+            const componentBuilder = new ComponentBuilder(authService, db);
+            const firestoreWriter = new FirestoreWriter(db);
+            const handlers = new GroupHandlers(componentBuilder.buildGroupService());
             expect(handlers).toBeInstanceOf(GroupHandlers);
             expect(handlers.createGroup).toBeDefined();
             expect(handlers.updateGroup).toBeDefined();

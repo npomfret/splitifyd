@@ -7,22 +7,9 @@ import { AppDriver } from '../AppDriver';
 
 describe('Group lifecycle behaviour (stub firestore)', () => {
     let appDriver: AppDriver;
-    let groupService: ReturnType<ApplicationBuilderInstance['buildGroupService']>;
-    let groupMemberService: ReturnType<ApplicationBuilderInstance['buildGroupMemberService']>;
-    let groupShareService: NonNullable<ReturnType<ApplicationBuilderInstance['buildGroupShareService']>>;
-    let firestoreReader: ReturnType<ApplicationBuilderInstance['buildFirestoreReader']>;
-
-    type Harness = ReturnType<AppDriver['getTestHarness']>;
-    type ApplicationBuilderInstance = Harness['applicationBuilder'];
 
     beforeEach(() => {
         appDriver = new AppDriver();
-        const harness = appDriver.getTestHarness();
-        const builder = harness.applicationBuilder;
-        groupService = builder.buildGroupService();
-        groupMemberService = builder.buildGroupMemberService();
-        groupShareService = builder.buildGroupShareService();
-        firestoreReader = builder.buildFirestoreReader();
     });
 
     afterEach(() => {
@@ -36,7 +23,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
     };
 
     const createGroupWithMembers = async (ownerId: string, memberIds: string[], name: string = 'Joined Group') => {
-        const group = await groupService.createGroup(
+        const group = await appDriver.createGroup(
             ownerId,
             new CreateGroupRequestBuilder()
                 .withName(name)
@@ -44,10 +31,10 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         );
 
         if (memberIds.length > 0) {
-            const { linkId } = await groupShareService.generateShareableLink(ownerId, group.id);
+            const { linkId } = await appDriver.generateShareableLink(ownerId, group.id);
             let counter = 1;
             for (const memberId of memberIds) {
-                await groupShareService.joinGroupByLink(memberId, linkId, `Test Member ${counter++}`);
+                await appDriver.joinGroupByLink(memberId, linkId, `Test Member ${counter++}`);
             }
         }
 
@@ -59,7 +46,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const member = { id: 'member-user', displayName: 'Member' };
         seedUsers(owner, member);
 
-        const group = await groupService.createGroup(
+        const group = await appDriver.createGroup(
             owner.id,
             new CreateGroupRequestBuilder()
                 .withName('Cascade Group')
@@ -67,8 +54,11 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                 .build(),
         );
 
-        const { linkId } = await groupShareService.generateShareableLink(owner.id, group.id);
-        await groupShareService.joinGroupByLink(member.id, linkId, "Test Member");
+        const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
+        await appDriver.joinGroupByLink(member.id, linkId, "Test Member");
+
+        const groupDetails = await appDriver.getGroupFullDetails(owner.id, group.id);
+        expect(groupDetails.members.members).toHaveLength(2);
 
         const expense = await appDriver.createExpense(
             owner.id,
@@ -91,22 +81,19 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                 .build(),
         );
 
-        const response = await groupService.deleteGroup(group.id, owner.id);
+        const response = await appDriver.deleteGroup(owner.id, group.id);
         expect(response.message).toBe('Group deleted successfully');
 
-        await expect(firestoreReader.getGroup(group.id)).resolves.toBeNull();
+        await expect(appDriver.getGroupFullDetails(owner.id, group.id)).rejects.toThrow();
+        await expect(appDriver.getGroupFullDetails(member.id, group.id)).rejects.toThrow();
 
-        const softDeletedGroup = await firestoreReader.getGroup(group.id, { includeDeleted: true });
-        expect(softDeletedGroup).not.toBeNull();
-        expect(softDeletedGroup?.deletedAt).not.toBeNull();
+        await expect(appDriver.getExpenseFullDetails(owner.id, expense.id)).rejects.toThrow();
+        await expect(appDriver.getSettlement(owner.id, group.id, settlement.id)).rejects.toThrow();
 
-        await expect(firestoreReader.getExpense(expense.id)).resolves.not.toBeNull();
-        await expect(firestoreReader.getSettlement(settlement.id)).resolves.not.toBeNull();
+        const groupsAfterDelete = await appDriver.listGroups(owner.id);
+        expect(groupsAfterDelete.groups.some(({ id }) => id === group.id)).toBe(false);
 
-        const remainingMembers = await firestoreReader.getAllGroupMembers(group.id);
-        expect(remainingMembers).toHaveLength(2);
-
-        const repeatDelete = await groupService.deleteGroup(group.id, owner.id);
+        const repeatDelete = await appDriver.deleteGroup(owner.id, group.id);
         expect(repeatDelete.message).toBe('Group deleted successfully');
     });
 
@@ -115,17 +102,19 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const member = { id: 'delete-member', displayName: 'Member' };
         seedUsers(owner, member);
 
-        const group = await groupService.createGroup(
+        const group = await appDriver.createGroup(
             owner.id,
             new CreateGroupRequestBuilder()
                 .withName('Protected Group')
                 .build(),
         );
-        const { linkId } = await groupShareService.generateShareableLink(owner.id, group.id);
-        await groupShareService.joinGroupByLink(member.id, linkId, "Test Member");
+        const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
+        await appDriver.joinGroupByLink(member.id, linkId, "Test Member");
 
-        await expect(groupService.deleteGroup(group.id, member.id)).rejects.toThrow();
-        await expect(firestoreReader.getGroup(group.id)).resolves.not.toBeNull();
+        await expect(appDriver.deleteGroup(member.id, group.id)).rejects.toThrow();
+
+        const groupDetails = await appDriver.getGroupFullDetails(owner.id, group.id);
+        expect(groupDetails.group.id).toBe(group.id);
     });
 
     it('enforces security for full details access and writes', async () => {
@@ -134,24 +123,24 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const outsider = { id: 'secure-outsider', displayName: 'Outsider' };
         seedUsers(owner, member, outsider);
 
-        const group = await groupService.createGroup(
+        const group = await appDriver.createGroup(
             owner.id,
             new CreateGroupRequestBuilder()
                 .withName('Security Group')
                 .build(),
         );
 
-        const { linkId } = await groupShareService.generateShareableLink(owner.id, group.id);
-        await groupShareService.joinGroupByLink(member.id, linkId, "Test Member");
+        const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
+        await appDriver.joinGroupByLink(member.id, linkId, "Test Member");
 
-        await expect(groupService.getGroupFullDetails(group.id, outsider.id)).rejects.toThrow();
+        await expect(appDriver.getGroupFullDetails(outsider.id, group.id)).rejects.toThrow();
 
-        const memberResult = await groupService.getGroupFullDetails(group.id, member.id);
+        const memberResult = await appDriver.getGroupFullDetails(member.id, group.id);
         expect(memberResult.group.id).toBe(group.id);
 
-        await expect(groupService.updateGroup(
-            group.id,
+        await expect(appDriver.updateGroup(
             member.id,
+            group.id,
             {
                 name: toGroupName('Intrusion Attempt'),
             },
@@ -159,7 +148,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             .rejects
             .toThrow();
 
-        await expect(groupService.deleteGroup(group.id, member.id)).rejects.toThrow();
+        await expect(appDriver.deleteGroup(member.id, group.id)).rejects.toThrow();
     });
 
     it('exposes top-level member state via reader utilities', async () => {
@@ -167,26 +156,26 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const member = { id: 'member-joiner', displayName: 'Joiner' };
         seedUsers(owner, member);
 
-        const group = await groupService.createGroup(
+        const group = await appDriver.createGroup(
             owner.id,
             new CreateGroupRequestBuilder()
                 .withName('Member Ops')
                 .build(),
         );
 
-        const { linkId } = await groupShareService.generateShareableLink(owner.id, group.id);
-        await groupShareService.joinGroupByLink(member.id, linkId, "Test Member");
+        const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
+        await appDriver.joinGroupByLink(member.id, linkId, "Test Member");
 
-        const members = await firestoreReader.getAllGroupMembers(group.id);
+        const members = (await appDriver.getGroupFullDetails(owner.id, group.id)).members.members;
         expect(members).toHaveLength(2);
 
         const createdMember = members.find((m) => m.uid === member.id)!;
         expect(createdMember.memberRole).toBe(MemberRoles.MEMBER);
         expect(createdMember.memberStatus).toBe(MemberStatuses.ACTIVE);
 
-        await groupMemberService.removeGroupMember(owner.id, group.id, member.id);
-        const afterRemoval = await firestoreReader.getGroupMember(group.id, member.id);
-        expect(afterRemoval).toBeNull();
+        await appDriver.removeGroupMember(owner.id, group.id, member.id);
+        const afterRemoval = (await appDriver.getGroupFullDetails(owner.id, group.id)).members.members;
+        expect(afterRemoval.some((m) => m.uid === member.id)).toBe(false);
     });
 
     it('allows members to leave groups and loses access afterwards', async () => {
@@ -199,10 +188,10 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const response = await appDriver.leaveGroup(member.id, group.id);
         expect(response.message).toContain('Successfully left the group');
 
-        const membership = await firestoreReader.getGroupMember(group.id, member.id);
-        expect(membership).toBeNull();
+        const remainingMembers = (await appDriver.getGroupFullDetails(owner.id, group.id)).members.members;
+        expect(remainingMembers.some(({ uid }) => uid === member.id)).toBe(false);
 
-        await expect(groupService.getGroupFullDetails(group.id, member.id)).rejects.toThrow();
+        await expect(appDriver.getGroupFullDetails(member.id, group.id)).rejects.toThrow();
     });
 
     it('updates timestamps when members leave', async () => {
@@ -212,12 +201,12 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
         const group = await createGroupWithMembers(owner.id, [member.id], 'Timestamp Group');
 
-        const before = await groupService.getGroupFullDetails(group.id, owner.id);
+        const before = await appDriver.getGroupFullDetails(owner.id, group.id);
 
         await new Promise((resolve) => setTimeout(resolve, 10));
 
         await appDriver.leaveGroup(member.id, group.id);
-        const after = await groupService.getGroupFullDetails(group.id, owner.id);
+        const after = await appDriver.getGroupFullDetails(owner.id, group.id);
 
         expect(new Date(after.group.updatedAt).getTime()).toBeGreaterThan(new Date(before.group.updatedAt).getTime());
     });
@@ -233,7 +222,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         await appDriver.leaveGroup(memberOne.id, group.id);
         await appDriver.leaveGroup(memberTwo.id, group.id);
 
-        const remainingMembers = await firestoreReader.getAllGroupMembers(group.id);
+        const remainingMembers = (await appDriver.getGroupFullDetails(owner.id, group.id)).members.members;
         expect(remainingMembers.map((m) => m.uid)).toEqual([owner.id]);
     });
 
@@ -245,10 +234,10 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
         const group = await createGroupWithMembers(owner.id, [memberOne.id, memberTwo.id], 'Mixed Flow');
 
-        await groupMemberService.removeGroupMember(owner.id, group.id, memberOne.id);
+        await appDriver.removeGroupMember(owner.id, group.id, memberOne.id);
         await appDriver.leaveGroup(memberTwo.id, group.id);
 
-        const members = await firestoreReader.getAllGroupMembers(group.id);
+        const members = (await appDriver.getGroupFullDetails(owner.id, group.id)).members.members;
         expect(members.map((m) => m.uid)).toEqual([owner.id]);
     });
 
@@ -299,7 +288,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             expect(limited.settlements).toHaveProperty('hasMore');
         });
 
-        it('stays consistent with service projections', async () => {
+        it('presents consistent projections to group members', async () => {
             const owner = { id: 'consistent-owner', displayName: 'Owner' };
             const member = { id: 'consistent-member', displayName: 'Member' };
             seedUsers(owner, member);
@@ -317,13 +306,31 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                     .build(),
             );
 
-            const handlerResult = await appDriver.getGroupFullDetails(owner.id, group.id);
-            const serviceResult = await groupService.getGroupFullDetails(group.id, owner.id, {
-                expenseLimit: 20,
-                settlementLimit: 20,
+            const ownerView = await appDriver.getGroupFullDetails(owner.id, group.id);
+            const memberView = await appDriver.getGroupFullDetails(member.id, group.id);
+
+            // Both views should have the same group data (non-balance fields)
+            expect(ownerView.group.id).toBe(memberView.group.id);
+            expect(ownerView.group.name).toBe(memberView.group.name);
+            expect(ownerView.expenses).toEqual(memberView.expenses);
+            expect(ownerView.settlements).toEqual(memberView.settlements);
+
+            // Balances are user-relative: owner is owed $50, member owes $50
+            expect(ownerView.group.balance).toBeDefined();
+            expect(ownerView.group.balance?.balancesByCurrency.USD).toEqual({
+                currency: 'USD',
+                netBalance: '50.00',
+                totalOwed: '50.00',
+                totalOwing: '0.00',
             });
 
-            expect(handlerResult).toEqual(serviceResult);
+            expect(memberView.group.balance).toBeDefined();
+            expect(memberView.group.balance?.balancesByCurrency.USD).toEqual({
+                currency: 'USD',
+                netBalance: '-50.00',
+                totalOwed: '0.00',
+                totalOwing: '50.00',
+            });
         });
     });
 

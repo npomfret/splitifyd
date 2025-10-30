@@ -1,35 +1,23 @@
 // Endpoint inventory: see docs/firebase-api-surface.md for route descriptions.
 import express from 'express';
 import { onRequest } from 'firebase-functions/v2/https';
-import { getActivityFeed } from './activity/handlers';
-import { register } from './auth/handlers';
 import { authenticate, authenticateAdmin, authenticateSystemUser } from './auth/middleware';
 import { getConfig as getClientConfig } from './client-config';
-import { createComment, listExpenseComments, listGroupComments } from './comments/handlers';
 import { FirestoreCollections, HTTP_STATUS } from './constants';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
-import { createExpense, deleteExpense, getExpenseFullDetails, updateExpense } from './expenses/handlers';
-import { createGroup, deleteGroup, getGroupFullDetails, listGroups, updateGroup, updateGroupMemberDisplayName } from './groups/handlers';
-import { archiveGroupForUser, leaveGroup, removeGroupMember, unarchiveGroupForUser } from './groups/memberHandlers';
-import { approveMember, getPendingMembers, rejectMember, updateGroupPermissions, updateMemberRole } from './groups/security';
-import { generateShareableLink, joinGroupByLink, previewGroupByLink } from './groups/shareHandlers';
 import { logger } from './logger';
 import { disableETags } from './middleware/cache-control';
 import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
-import { createPolicy, deletePolicyVersion, getPolicy, getPolicyVersion, listPolicies, publishPolicy, updatePolicy } from './policies/handlers';
-import { getCurrentPolicy } from './policies/public-handlers';
-import { acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
 import { logMetrics } from './scheduled/metrics-logger';
-import { createSettlement, deleteSettlement, updateSettlement } from './settlements/handlers';
 import { borrowTestUser, returnTestUser } from './test-pool/handlers';
 import { testClearPolicyAcceptances, testPromoteToAdmin } from './test/policy-handlers';
-import { changeEmail, changePassword, getUserProfile, updateUserProfile } from './user/handlers';
 import { getEnhancedConfigResponse } from './utils/config-response';
 import { ApiError } from './utils/errors';
 import { applyStandardMiddleware } from './utils/middleware';
-import { listAuthUsers, listFirestoreUsers } from './browser/handlers';
-import { routeDefinitions } from './routes/route-config';
+import { routeDefinitions, populateRouteHandlers } from './routes/route-config';
 import type { RequestHandler } from 'express';
+import { createHandlerRegistry } from './ApplicationFactory';
+import { getAppBuilder } from './ApplicationBuilderSingleton';
 
 let app: express.Application | null = null;
 
@@ -62,9 +50,16 @@ const asyncHandler = (fn: Function) => (req: express.Request, res: express.Respo
 
 /**
  * Handler registry that maps handler names from route configuration to actual handler functions.
- * This includes both imported handlers and inline handlers.
+ * Combines ApplicationFactory handlers with inline diagnostic and test handlers.
  */
 function getHandlerRegistry(): Record<string, RequestHandler> {
+    // Get application builder and create handler registry from factory
+    const appBuilder = getAppBuilder();
+    const handlerRegistry = createHandlerRegistry(
+        appBuilder.buildAuthService(),
+        appBuilder.getDatabase()
+    );
+
     // Inline handlers for diagnostic endpoints
     const getMetrics: RequestHandler = (req, res) => {
         const snapshot = metrics.getSnapshot();
@@ -102,8 +97,11 @@ function getHandlerRegistry(): Record<string, RequestHandler> {
         }
     };
 
+    // Merge factory handlers with inline handlers
     return {
-        // Diagnostics
+        ...handlerRegistry,
+
+        // Diagnostics (override/add)
         getMetrics,
         getHealth,
         headHealth,
@@ -111,76 +109,11 @@ function getHandlerRegistry(): Record<string, RequestHandler> {
         getConfig,
         reportCspViolation,
 
-        // Public policies
-        getCurrentPolicy,
-
-        // Test endpoints
+        // Test endpoints (override/add)
         borrowTestUser,
         returnTestUser,
         testClearPolicyAcceptances,
         testPromoteToAdmin,
-
-        // User & policy management
-        acceptMultiplePolicies,
-        getUserPolicyStatus,
-        getUserProfile,
-        updateUserProfile,
-        changePassword,
-        changeEmail,
-
-        // Registration
-        register,
-
-        // Expenses
-        createExpense,
-        updateExpense,
-        deleteExpense,
-        getExpenseFullDetails,
-
-        // Groups
-        createGroup,
-        listGroups,
-        generateShareableLink,
-        previewGroupByLink,
-        joinGroupByLink,
-        getGroupFullDetails,
-        getActivityFeed,
-        updateGroup,
-        deleteGroup,
-        updateGroupPermissions,
-        leaveGroup,
-        archiveGroupForUser,
-        unarchiveGroupForUser,
-        updateGroupMemberDisplayName,
-        getPendingMembers,
-        updateMemberRole,
-        approveMember,
-        rejectMember,
-        removeGroupMember,
-
-        // Settlements
-        createSettlement,
-        updateSettlement,
-        deleteSettlement,
-
-        // Comments
-        listGroupComments,
-        createComment,
-        listExpenseComments,
-        createCommentForExpense: createComment, // Both expense and group comments use the same handler
-
-        // Admin policies
-        createPolicy,
-        listPolicies,
-        getPolicy,
-        getPolicyVersion,
-        updatePolicy,
-        publishPolicy,
-        deletePolicyVersion,
-
-        // Admin browser
-        listAuthUsers,
-        listFirestoreUsers,
     };
 }
 
@@ -200,6 +133,9 @@ function setupRoutes(app: express.Application): void {
     const middlewareRegistry = getMiddlewareRegistry();
     const config = getClientConfig();
 
+    // Populate route definitions with handlers from the registry
+    populateRouteHandlers(handlerRegistry);
+
     // Setup routes from configuration
     for (const route of routeDefinitions) {
         // Skip test-only routes in production
@@ -207,10 +143,10 @@ function setupRoutes(app: express.Application): void {
             continue;
         }
 
-        // Get the handler
-        const handler = handlerRegistry[route.handlerName];
+        // Get the handler from the route definition (already populated)
+        const handler = route.handler || handlerRegistry[route.handlerName];
         if (!handler) {
-            throw new Error(`Handler not found in registry: ${route.handlerName}`);
+            throw new Error(`Handler not found for route: ${route.handlerName}`);
         }
 
         // Build middleware chain

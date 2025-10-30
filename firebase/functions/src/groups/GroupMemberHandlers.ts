@@ -1,19 +1,11 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { getIdentityToolkitConfig } from '../client-config';
-import { getAuth, getFirestore } from '../firebase';
-import { ComponentBuilder } from '../services/ComponentBuilder';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { logger } from '../utils/contextual-logger';
 import { validateGroupId } from './validation';
 
 export class GroupMemberHandlers {
     constructor(private readonly groupMemberService: GroupMemberService) {
-    }
-
-    static createGroupMemberHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
-        const groupMemberService = applicationBuilder.buildGroupMemberService();
-        return new GroupMemberHandlers(groupMemberService);
     }
 
     leaveGroup = async (req: AuthenticatedRequest, res: Response) => {

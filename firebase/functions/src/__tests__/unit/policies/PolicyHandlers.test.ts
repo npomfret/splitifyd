@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { AppDriver } from '../AppDriver';
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('PolicyHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -405,8 +408,11 @@ describe('PolicyHandlers - Unit Tests', () => {
     });
 
     describe('Static Factory Method', () => {
-        it('should create PolicyHandlers instance with default ApplicationBuilder', () => {
-            const handlers = PolicyHandlers.createPolicyHandlers();
+        it('should create PolicyHandlers instance with PolicyService', () => {
+            const db = new SplitifydFirestoreTestDatabase();
+            const authService = new StubAuthService();
+            const componentBuilder = new ComponentBuilder(authService, db);
+            const handlers = new PolicyHandlers(componentBuilder.buildPolicyService());
             expect(handlers).toBeInstanceOf(PolicyHandlers);
         });
     });

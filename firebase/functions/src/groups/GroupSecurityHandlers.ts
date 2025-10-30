@@ -2,10 +2,7 @@ import type { GroupId, UserId } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
-import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
-import { getAuth, getFirestore } from '../firebase';
-import { ComponentBuilder } from '../services/ComponentBuilder';
 import { GroupMemberService } from '../services/GroupMemberService';
 import { GroupService } from '../services/GroupService';
 import { validateGroupId, validateMemberId, validateUpdateGroupPermissionsRequest, validateUpdateMemberRoleRequest } from './validation';
@@ -21,12 +18,6 @@ export class GroupSecurityHandlers {
         const groupId = validateGroupId(req.params.id);
         await this.groupMemberService.ensureActiveGroupAdmin(groupId, userId);
         return { userId, groupId };
-    }
-
-    static createGroupSecurityHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
-        const groupService = applicationBuilder.buildGroupService();
-        const groupMemberService = applicationBuilder.buildGroupMemberService();
-        return new GroupSecurityHandlers(groupService, groupMemberService);
     }
 
     updateGroupPermissions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

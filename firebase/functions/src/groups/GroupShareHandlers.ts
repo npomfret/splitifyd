@@ -2,10 +2,7 @@ import type { GenerateShareLinkRequest } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
-import { getAuth, getFirestore } from '../firebase';
-import { ComponentBuilder } from '../services/ComponentBuilder';
 import { GroupShareService } from '../services/GroupShareService';
 import { logger } from '../utils/contextual-logger';
 import { ApiError } from '../utils/errors';
@@ -15,11 +12,6 @@ export class GroupShareHandlers {
         if (!this.groupShareService.generateShareableLink) {
             throw Error();
         }
-    }
-
-    static createGroupShareHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
-        const groupShareService = applicationBuilder.buildGroupShareService();
-        return new GroupShareHandlers(groupShareService);
     }
 
     generateShareableLink = async (req: AuthenticatedRequest, res: Response) => {

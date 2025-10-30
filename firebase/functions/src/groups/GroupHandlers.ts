@@ -2,27 +2,13 @@ import { MemberStatuses } from '@splitifyd/shared';
 import type { MemberStatus } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { getIdentityToolkitConfig } from '../client-config';
 import { DOCUMENT_CONFIG, HTTP_STATUS } from '../constants';
-import { getAuth, getFirestore } from '../firebase';
-import { ComponentBuilder } from '../services/ComponentBuilder';
-import { IFirestoreWriter } from '../services/firestore';
 import { GroupService } from '../services/GroupService';
 import { Errors } from '../utils/errors';
 import { sanitizeGroupData, validateCreateGroup, validateGroupId, validateUpdateDisplayName, validateUpdateGroup } from './validation';
 
 export class GroupHandlers {
-    constructor(
-        private readonly groupService: GroupService,
-        private readonly firestoreWriter: IFirestoreWriter,
-    ) {
-    }
-
-    static createGroupHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
-        const groupService = applicationBuilder.buildGroupService();
-        const firestoreWriter = applicationBuilder.buildFirestoreWriter();
-        return new GroupHandlers(groupService, firestoreWriter);
-    }
+    constructor(private readonly groupService: GroupService,) {}
 
     /**
      * Create a new group
@@ -177,7 +163,7 @@ export class GroupHandlers {
         const { displayName } = validateUpdateDisplayName(req.body);
 
         // Update the display name using FirestoreWriter directly
-        await this.firestoreWriter.updateGroupMemberDisplayName(groupId, userId, displayName);
+        await this.groupService.updateGroupMemberDisplayName(groupId, userId, displayName);
 
         res.json({ message: 'Display name updated successfully' });
     };

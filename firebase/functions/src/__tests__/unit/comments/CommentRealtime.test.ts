@@ -35,23 +35,19 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
                     .withGroupDisplayName('Owner Display')
                     .build(),
             );
-            const { db } = appDriver.getTestHarness();
 
             // Set up listener like the frontend does
             let receivedComments: any[] = [];
             let callbackCount = 0;
 
-            const unsubscribe = db
-                .collection(`groups/${group.id}/comments`)
-                .orderBy('createdAt', 'desc')
-                .limit(20)
-                .onSnapshot((snapshot) => {
+            const unsubscribe = appDriver.watchGroupComments(
+                group.id,
+                (comments) => {
                     callbackCount++;
-                    receivedComments = snapshot.docs.map((doc) => ({
-                        id: doc.id,
-                        ...doc.data(),
-                    }));
-                });
+                    receivedComments = comments;
+                },
+                { order: 'desc', limit: 20 },
+            );
 
             // Wait for initial snapshot (empty)
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -84,8 +80,6 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
             const shareLink = await appDriver.generateShareableLink(userIds[0], group.id);
             await appDriver.joinGroupByLink(userIds[1], shareLink.linkId);
 
-            const { db } = appDriver.getTestHarness();
-
             // Add comments with slight delay to ensure ordering
             await appDriver.createGroupComment(userIds[0], group.id, 'First comment');
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -93,12 +87,7 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
             await new Promise((resolve) => setTimeout(resolve, 10));
 
             // Query with descending order (newest first)
-            const snapshot = await db
-                .collection(`groups/${group.id}/comments`)
-                .orderBy('createdAt', 'desc')
-                .get();
-
-            const comments = snapshot.docs.map((doc) => doc.data());
+            const comments = await appDriver.getGroupCommentSnapshot(group.id, { order: 'desc' });
 
             expect(comments.length).toBeGreaterThanOrEqual(2);
 
@@ -127,19 +116,15 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
             await appDriver.joinGroupByLink(userIds[1], shareLink.linkId);
             await appDriver.joinGroupByLink(userIds[2], shareLink.linkId);
 
-            const { db } = appDriver.getTestHarness();
-
             let receivedComments: any[] = [];
 
-            const unsubscribe = db
-                .collection(`groups/${group.id}/comments`)
-                .orderBy('createdAt', 'desc')
-                .onSnapshot((snapshot) => {
-                    receivedComments = snapshot.docs.map((doc) => ({
-                        id: doc.id,
-                        ...doc.data(),
-                    }));
-                });
+            const unsubscribe = appDriver.watchGroupComments(
+                group.id,
+                (comments) => {
+                    receivedComments = comments;
+                },
+                { order: 'desc' },
+            );
 
             // Wait for initial snapshot
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -176,21 +161,18 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
                     .withGroupDisplayName('Owner Display')
                     .build(),
             );
-            const { db } = appDriver.getTestHarness();
 
             let receivedComments: any[] = [];
             let callbackCount = 0;
 
-            const unsubscribe = db
-                .collection(`groups/${group.id}/comments`)
-                .orderBy('createdAt', 'desc')
-                .onSnapshot((snapshot) => {
+            const unsubscribe = appDriver.watchGroupComments(
+                group.id,
+                (comments) => {
                     callbackCount++;
-                    receivedComments = snapshot.docs.map((doc) => ({
-                        id: doc.id,
-                        ...doc.data(),
-                    }));
-                });
+                    receivedComments = comments;
+                },
+                { order: 'desc' },
+            );
 
             // Wait for initial snapshot
             await new Promise((resolve) => setTimeout(resolve, 10));

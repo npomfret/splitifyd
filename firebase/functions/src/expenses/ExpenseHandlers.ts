@@ -2,21 +2,13 @@ import { MessageResponse } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
-import { getIdentityToolkitConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
-import { getAuth, getFirestore } from '../firebase';
 import { logger } from '../logger';
-import { ComponentBuilder } from '../services/ComponentBuilder';
 import { ExpenseService } from '../services/ExpenseService';
 import { validateCreateExpense, validateExpenseId, validateUpdateExpense } from './validation';
 
 export class ExpenseHandlers {
     constructor(private readonly expenseService: ExpenseService) {
-    }
-
-    static createExpenseHandlers(applicationBuilder = ComponentBuilder.createApplicationBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig())) {
-        const expenseService = applicationBuilder.buildExpenseService();
-        return new ExpenseHandlers(expenseService);
     }
 
     createExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
