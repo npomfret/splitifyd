@@ -4,10 +4,10 @@ import { useEffect } from 'preact/hooks';
 
 export function useConfig(): AppConfiguration | null {
     useEffect(() => {
-        if (!configStore.config && !configStore.loading) {
+        if (!configStore.configSignal.value && !configStore.loading) {
             configStore.loadConfig().catch(() => {});
         }
     }, []);
 
-    return configStore.config;
+    return configStore.configSignal.value;
 }

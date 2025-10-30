@@ -4,12 +4,14 @@ import { lazy, Suspense } from 'preact/compat';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './app/hooks/useAuth';
+import { useConfig } from './hooks/useConfig.ts';
 import { TokenRefreshIndicator } from './components/auth/TokenRefreshIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
 import { LoadingState, WarningBanner } from './components/ui';
 import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
 import { navigationService } from './services/navigation.service';
+import { FeatureGate } from './utils/feature-flags.ts';
 
 type RouterInjectedProps = Partial<{
     matches: Record<string, string | undefined>;
@@ -124,8 +126,12 @@ const UsersBrowserRoute = createProtectedRoute(UsersBrowserPage);
 export function App() {
     const authStore = useAuth();
     const { needsAcceptance, pendingPolicies, refreshPolicyStatus } = usePolicyAcceptance();
+    const config = useConfig();
 
     const user = authStore?.user;
+    const marketingFlags = config?.tenant?.branding?.marketingFlags;
+    const showLandingPage = marketingFlags?.showLandingPage ?? true;
+    const showPricingPage = marketingFlags?.showPricingPage ?? true;
 
     const handlePolicyAcceptance = async () => {
         // Refresh policy status after acceptance to hide the modal
@@ -140,7 +146,7 @@ export function App() {
             <WarningBanner />
             <TokenRefreshIndicator />
             <Router>
-                <Route path='/' component={LandingRoute} />
+                <Route path='/' component={showLandingPage ? LandingRoute : user ? DashboardRoute : LoginRoute} />
 
                 {/* Auth Routes */}
                 <Route path='/login' component={LoginRoute} />
@@ -154,7 +160,9 @@ export function App() {
                 <Route path='/settings' component={SettingsRoute} />
 
                 {/* Browser Routes - Protected */}
-                <Route path='/browser/users' component={UsersBrowserRoute} />
+                <FeatureGate feature='enableAdvancedReporting' defaultValue>
+                    <Route path='/browser/users' component={UsersBrowserRoute} />
+                </FeatureGate>
 
                 {/* Group Routes - Protected */}
                 <Route path='/groups/:id' component={GroupDetailRoute} />
@@ -169,7 +177,7 @@ export function App() {
                 <Route path='/join' component={JoinGroupRoute} />
 
                 {/* Static Pages */}
-                <Route path='/pricing' component={PricingRoute} />
+                {showPricingPage && <Route path='/pricing' component={PricingRoute} />}
                 <Route path='/terms-of-service' component={TermsRoute} />
                 <Route path='/terms' component={TermsRoute} />
                 <Route path='/privacy-policy' component={PrivacyRoute} />
