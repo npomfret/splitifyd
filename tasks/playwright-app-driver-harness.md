@@ -205,6 +205,49 @@ test('password reset flow', async ({ page, emulatorBackend }) => {
 - [ ] Endpoint + capability matrix spreadsheet
 - [ ] List of AppDriver limitations requiring emulator fallback
 
+#### Step 0.1 Findings (Initial Pass)
+
+- Drafted the endpoint coverage matrix below; this will evolve, but it already shows where AppDriver can replace MSW today vs. where we still need dedicated stubs or emulator support.
+
+| Endpoint (method) | Playwright usage today | AppDriver coverage | Notes |
+| --- | --- | --- | --- |
+| GET `/api/config` | Bootstrap config in every spec via `mockFirebase` | Not routed through AppDriver | Keep lightweight harness stub; response just seeds client config |
+| GET `/__/firebase/init.json` | Firebase SDK init for auth stub | Not routed through AppDriver | Maintain existing init script stub to avoid real SDK boot |
+| GET `/api/user/policies/status` | `mockFullyAcceptedPoliciesApi`, policy modal specs | `getUserPolicyStatus` | Requires seeded policies + user memberships before call |
+| POST `/api/user/policies/accept-multiple` | Policy acceptance modal | `acceptMultiplePolicies` | Harness must translate serialized body into handler call |
+| GET `/api/policies/:policyId/current` | Policy modal fetch | `getCurrentPolicy` | Public endpoint (no auth) – gateway just forwards ID |
+| GET `/api/groups?includeMetadata=true` | Dashboard listings, realtime tests | `listGroups` | Need query passthrough (`cursor`, `statusFilter`, etc.) |
+| GET `/api/groups/:id/full-details` | Majority of group/expense specs | `getGroupFullDetails` | Supports expense/settlement pagination; ensure query mapping |
+| POST `/api/groups` | Group creation UI flows | `createGroup` | AppDriver already returns canonical DTO |
+| POST `/api/groups/share` | Share-link modal tests | `generateShareableLink` | Validate optional `expiresAt` |
+| POST `/api/groups/preview` | Join-group preview | `previewGroupByLink` | |
+| POST `/api/groups/join` | Join-group happy/edge cases | `joinGroupByLink` | Handle display-name payload + error surfacing |
+| POST `/api/groups/:id/archive`/`unarchive` | Dashboard archive toggles | `archiveGroupForUser` / `unarchiveGroupForUser` | |
+| PUT `/api/groups/:id/members/display-name` | Display name settings flows | `updateGroupMemberDisplayName` | Body matcher currently used for asserts – harness should expose actual response |
+| GET `/api/groups/:id/members/pending` | Pending member management specs | `getPendingMembers` | Need to seed pending invites + ensure pagination optionality |
+| POST `/api/groups/:id/members/:memberId/approve`/`reject` | Pending member approval/rejection | `approveMember` / `rejectMember` | Route params must map to handler `memberId` argument |
+| PATCH `/api/groups/:id/security/permissions` | Group security settings | `updateGroupPermissions` | MSW currently injects success/error; harness needs failure injection toggle |
+| GET `/api/groups/:id/comments` (+ cursor) | Comment pagination specs | `listGroupComments` | Ensure query parameters (`cursor`, `limit`) propagate |
+| POST `/api/groups/:id/comments` | Comment creation flows | `createGroupComment` | Handler already emits full comment DTO |
+| GET `/api/expenses/:id/full-details` | Expense detail + locked views | `getExpenseFullDetails` | |
+| GET `/api/expenses/:id/comments` | Expense comment pagination | `listExpenseComments` | |
+| POST `/api/expenses/:id/comments` | Expense comment creation | `createExpenseComment` | |
+| POST `/api/expenses` | Expense creation form submission | `createExpense` | |
+| PUT/DELETE `/api/expenses?id=:expenseId` | Expense edit/delete flows | `updateExpense` / `deleteExpense` | Gateway must map query param to handler |
+| POST `/api/settlements` | Settlement recording UI | `createSettlement` | |
+| PUT/DELETE `/api/settlements/:settlementId` | Settlement edit/cancel | `updateSettlement` / `deleteSettlement` | Handler expects `settlementId` param |
+| GET `/api/activity-feed` | Dashboard activity feed & navigation tests | `getActivityFeed` | Supports pagination (`cursor`, `limit`) |
+| GET `/api/user/profile` | Settings/profile specs | `getUserProfile` | |
+| PUT `/api/user/profile` | Settings edits | `updateUserProfile` | |
+| POST `/api/user/change-password` | Settings password change scenarios | `changePassword` | Depends on `StubAuthService` password store |
+| POST `/api/user/change-email` | Email change flow | `changeEmail` | Ensure stub auth enforces password check |
+| POST `/api/register` | Registration success/failure tests | `registerUser` | Returns service result; UI still uses mock auth to log in |
+
+- AppDriver gaps that still require emulator fallback (or additional harness work):
+  - Firestore security rules are not enforced by `SplitifydFirestoreTestDatabase`; any rule-validation scenarios must continue to run against the emulator.
+  - Firebase Authentication flows (real email/password login, password reset emails, MFA) are not implemented in `StubAuthService`; tests covering end-to-end auth must use the emulator.
+  - Cloud Functions triggers (background jobs, Firestore listeners executed server-side) do not fire in AppDriver; emulator remains the path for trigger-driven behaviour.
+
 #### Step 0.2: Auth Bridging Prototype (2 days)
 1. **CRITICAL**: Implement proof-of-concept for Option C (Hybrid Auth):
    - Mock auth in browser → extract UID → pass to AppDriver
@@ -218,6 +261,13 @@ test('password reset flow', async ({ page, emulatorBackend }) => {
 - [ ] Auth bridging implementation guide
 - [ ] List of tests requiring real auth (emulator mode)
 
+##### Initial Auth Bridging Requirements
+- `MockFirebase` issues two token shapes (`mock-token-for-${uid}` on login, `mock-token` on refresh); we cannot rely on header parsing alone. The fixture must hold the authoritative “current user” and share it with the request interceptor.
+- Each authenticated session has to be registered with AppDriver up-front (`appDriver.seedUser`) so handlers see consistent profile data (uid, email, displayName). Multi-user specs will need a pool so we can impersonate different members.
+- When the browser signs in/out via the exposed `__testHarnessMockSignIn/SignOut` callbacks, mirror that state back to Node (e.g. via `page.exposeBinding`) so the gateway knows whether to attach `req.user` or return a 401.
+- Gateway should fabricate the same `req.user` shape Express middleware provides (`{ uid, displayName }`) and skip token verification; StubAuthService already trusts the seeded users.
+- Preserve failure scenarios covered by today’s mocks (`mockLoginFailure`, delayed logins). For the POC we can keep those flows in pure mock mode, but the harness needs a guard so AppDriver mode only activates when login succeeds.
+- Ensure the bridge leaves room for custom claims/roles: store decoded token metadata alongside uid so emulator mode can populate real claims later.
 #### Step 0.3: Adapter Design (1 day)
 1. Request routing strategy:
    - Playwright `page.route()` interception vs. MSW
