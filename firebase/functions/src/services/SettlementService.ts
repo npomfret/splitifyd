@@ -129,10 +129,10 @@ export class SettlementService {
 
         // Verify group exists first (like ExpenseService)
         const {
-            group,
             memberIds,
             actorMember,
         } = await this.groupMemberService.getGroupAccessContext(settlementData.groupId, userId);
+
         const actorDisplayName = actorMember.groupDisplayName;
 
         // Verify payer and payee are still in the group (race condition protection)
