@@ -12,7 +12,7 @@ describe('PolicyHandlers - Unit Tests', () => {
     describe('createPolicy', () => {
         it('should create a new policy successfully with valid data', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const result = await appDriver.createPolicy(userId, {
                 policyName: 'Terms of Service',
@@ -29,21 +29,21 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should reject creation with missing policy name', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             await expect(appDriver.createPolicy(userId, { policyName: '', text: 'Some policy text' } as any)).rejects.toThrow();
         });
 
         it('should reject creation with missing text', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             await expect(appDriver.createPolicy(userId, { policyName: 'Privacy Policy', text: '' } as any)).rejects.toThrow();
         });
 
         it('should reject creation when policy already exists', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             await appDriver.createPolicy(userId, {
                 policyName: 'Terms of Service',
@@ -64,7 +64,7 @@ describe('PolicyHandlers - Unit Tests', () => {
     describe('listPolicies', () => {
         it('should return empty list when no policies exist', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const result = await appDriver.listPolicies(userId);
 
@@ -76,7 +76,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should return all policies when they exist', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const policy1 = await appDriver.createPolicy(userId, {
                 policyName: 'Terms Of Service', // Maps to 'terms-of-service'
@@ -103,7 +103,7 @@ describe('PolicyHandlers - Unit Tests', () => {
     describe('getPolicy', () => {
         it('should return policy details for valid policy ID', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Privacy Policy',
@@ -124,7 +124,7 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             const policyId = 'non-existent-policy';
 
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             await expect(appDriver.getPolicy(userId, policyId)).rejects.toThrow('Policy not found');
         });
@@ -133,7 +133,7 @@ describe('PolicyHandlers - Unit Tests', () => {
     describe('getPolicyVersion', () => {
         it('should return specific policy version content', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Terms of Service',
@@ -154,14 +154,14 @@ describe('PolicyHandlers - Unit Tests', () => {
             const policyId = 'non-existent-policy';
             const versionHash = 'some-hash';
 
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             await expect(appDriver.getPolicyVersion(userId, policyId, versionHash)).rejects.toThrow('Policy not found');
         });
 
         it('should reject request for non-existent version', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Terms of Service',
@@ -177,7 +177,7 @@ describe('PolicyHandlers - Unit Tests', () => {
     describe('updatePolicy', () => {
         it('should create new draft version without publishing', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Privacy Policy',
@@ -199,7 +199,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should create and publish new version when publish is true', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Privacy Policy',
@@ -222,7 +222,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should reject update with missing text', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Privacy Policy',
@@ -243,7 +243,7 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             const policyId = 'non-existent-policy';
 
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             await expect(
                 appDriver.updatePolicy(userId, policyId, {
@@ -258,7 +258,7 @@ describe('PolicyHandlers - Unit Tests', () => {
     describe('publishPolicy', () => {
         it('should publish an existing draft version', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Cookie Policy',
@@ -281,7 +281,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should reject publish with missing version hash', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Cookie Policy',
@@ -295,14 +295,14 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             const policyId = 'non-existent-policy';
 
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             await expect(appDriver.publishPolicy(userId, policyId, 'some-hash')).rejects.toThrow('Policy not found');
         });
 
         it('should reject publish for non-existent version', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Cookie Policy',
@@ -318,7 +318,7 @@ describe('PolicyHandlers - Unit Tests', () => {
     describe('deletePolicyVersion', () => {
         it('should delete a non-current version successfully', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Terms of Service',
@@ -340,7 +340,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should reject deletion of current version', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Terms of Service',
@@ -354,7 +354,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should reject deletion when it would leave no versions', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Terms of Service',
@@ -379,14 +379,14 @@ describe('PolicyHandlers - Unit Tests', () => {
             const policyId = 'non-existent-policy';
             const versionHash = 'some-hash';
 
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             await expect(appDriver.deletePolicyVersion(userId, policyId, versionHash)).rejects.toThrow('Policy not found');
         });
 
         it('should reject deletion for non-existent version', async () => {
             const userId = 'admin-user';
-            appDriver.seedUser(userId, {});
+            appDriver.seedAdminUser(userId, {});
 
             const created = await appDriver.createPolicy(userId, {
                 policyName: 'Terms of Service',

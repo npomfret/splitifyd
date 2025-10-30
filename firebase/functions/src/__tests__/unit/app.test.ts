@@ -2705,6 +2705,10 @@ describe('app tests', () => {
     });
 
     describe('policy acceptance and status', () => {
+        beforeEach(() => {
+            // Seed admin user for creating policies in tests
+            appDriver.seedAdminUser(user1, {});
+        });
         describe('acceptMultiplePolicies - happy path', () => {
             it('should accept a single policy', async () => {
                 const policy1 = await appDriver.createPolicy(user1, {
@@ -3654,6 +3658,11 @@ describe('app tests', () => {
     });
 
     describe('policy administration flows', () => {
+        
+        beforeEach(() => {
+            // Seed admin user for policy administration tests
+            appDriver.seedAdminUser(policyAdmin, {});
+        });
         const policyAdmin = user1;
 
         it('should allow admin to create, update, and publish policies', async () => {
