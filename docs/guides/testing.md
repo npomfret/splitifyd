@@ -3,8 +3,10 @@
 ## Philosophy
 
 **Two test types:**
-- **Unit tests** - No emulator required, test isolated code
-- **Integration tests** - Require Firebase emulator or a browser (via Playwright)
+- **Unit tests** - No external dependencies are required
+- **Integration tests** - Which either require...
+  - the Firebase emulator (e.g. `e2e-tests/src/__tests__/integration`, `firebase/functions/src/__tests__/integration`)
+  - a web-browser using Playwright (e.g. `webapp-v2/src/__tests__/integration`). These tests run their own webserver.
 
 **Principles:**
 - Reliability > Speed > Everything else
@@ -24,25 +26,35 @@
 
 Avoid runnning entier suites, they are often very slow.  Focus on running specific test cases.
 
-```bash
-# Root (all workspaces)
-npm run test              # All tests
-npm run test:unit         # Unit tests only
-npm run test:integration  # Integration tests
+To run single tests:
 
+```bash
 # Single unit test:
 npx vitest run src/__tests__/unit/your-test.test.ts
+```
 
-# Webapp-v2 Playwright tests (MUST use wrapper script)
+```bash
+# Webapp-v2 (Playwright) integration tests (MUST use wrapper script)
 cd webapp-v2
 ./run-test.sh login                    # Run login.test.ts
 ./run-test.sh login "specific test"    # Run specific test
 ./run-test.sh login --headed           # Debug with visible browser
 ./run-test.sh login --repeat 10        # Flakiness detection
+```
 
-# E2E tests (edit the run-until-fail.sh file to specify a test file and test case)
+```bash
+# E2E (Playwright _ firebase) tests 
+# edit the run-until-fail.sh file to specify a test file and test case
 cd e2e-tests
 ./run-until-fail.sh 1                   # Run and e2e test against the debugger
+```
+
+To run a suite, these commands can be run from the root or any subdir
+```bash
+# Root (all workspaces)
+npm run test              # All tests
+npm run test:unit         # Unit tests only
+npm run test:integration  # Integration tests
 ```
 
 ## Build System: No-Compile Development
