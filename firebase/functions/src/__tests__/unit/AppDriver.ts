@@ -57,12 +57,28 @@ import { FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
 import { StubAuthService } from './mocks/StubAuthService';
+import { routeDefinitions, RouteDefinition } from '../../routes/route-config';
+import type { RequestHandler, Request, Response, NextFunction } from 'express';
+import { SystemUserRoles } from '@splitifyd/shared';
+import { Errors, sendError } from '../../utils/errors';
+
+/**
+ * Extended request interface for authenticated requests in AppDriver
+ */
+interface AuthenticatedRequest extends Request {
+    user?: {
+        uid: string;
+        displayName?: string;
+        role?: string;
+    };
+}
 
 /**
  * Thin façade around the public HTTP handlers.
  * - Uses the same handler classes the Express app wires up.
  * - Seeds data into an in-memory Firestore stub (no emulator required).
  * - Feeds handlers authenticated requests via the stub auth service.
+ * - Now includes route-aware dispatch with middleware execution for better test coverage.
  *
  * Tests call into this driver to hit the actual validation/permission logic
  * without needing to spin up the Firebase runtime.
@@ -88,6 +104,190 @@ export class AppDriver {
         this.applicationBuilder.buildGroupService(),
         this.applicationBuilder.buildGroupMemberService(),
     );
+
+    /**
+     * Test-specific middleware that works with stub requests.
+     * Unlike production middleware, this doesn't verify tokens - it trusts the user already attached by createStubRequest.
+     */
+    private createTestMiddleware() {
+        const firestoreReader = this.applicationBuilder.buildFirestoreReader();
+
+        /**
+         * Test authentication middleware - validates user is attached to request
+         */
+        const authenticate: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+            if (!req.user || !req.user.uid) {
+                sendError(res as any, Errors.UNAUTHORIZED(), undefined);
+                return;
+            }
+
+            // Fetch role from Firestore (mimics production middleware)
+            try {
+                const userDocument = await firestoreReader.getUser(req.user.uid);
+                if (userDocument) {
+                    req.user.role = userDocument.role;
+                }
+            } catch (error) {
+                // User might not exist in Firestore yet (e.g., during registration), continue anyway
+            }
+
+            next();
+        };
+
+        /**
+         * Test admin middleware - checks for admin role
+         */
+        const requireAdmin: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+            if (!req.user) {
+                sendError(res as any, Errors.UNAUTHORIZED(), undefined);
+                return;
+            }
+
+            if (req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
+                sendError(res as any, Errors.FORBIDDEN(), undefined);
+                return;
+            }
+
+            next();
+        };
+
+        /**
+         * Test system user middleware - checks for system user or admin role
+         */
+        const requireSystemRole: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+            if (!req.user) {
+                sendError(res as any, Errors.UNAUTHORIZED(), undefined);
+                return;
+            }
+
+            if (req.user.role !== SystemUserRoles.SYSTEM_USER && req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
+                sendError(res as any, Errors.FORBIDDEN(), undefined);
+                return;
+            }
+
+            next();
+        };
+
+        const authenticateAdmin: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+            await authenticate(req, res, async (error?: any) => {
+                if (error) {
+                    next(error);
+                    return;
+                }
+                await requireAdmin(req, res, next);
+            });
+        };
+
+        const authenticateSystemUser: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+            await authenticate(req, res, async (error?: any) => {
+                if (error) {
+                    next(error);
+                    return;
+                }
+                await requireSystemRole(req, res, next);
+            });
+        };
+
+        return {
+            authenticate,
+            authenticateAdmin,
+            authenticateSystemUser,
+        };
+    }
+
+    /**
+     * Matches a route from the route configuration by method and path pattern
+     */
+    private matchRoute(method: string, path: string): RouteDefinition | undefined {
+        return routeDefinitions.find(route => {
+            if (route.method !== method) {
+                return false;
+            }
+
+            // Convert Express route pattern to regex for matching
+            // Simple implementation - handles :param patterns
+            const pattern = route.path
+                .replace(/:[^/]+/g, '[^/]+')  // Replace :param with regex
+                .replace(/\//g, '\\/');        // Escape forward slashes
+
+            const regex = new RegExp(`^${pattern}$`);
+            return regex.test(path);
+        });
+    }
+
+    /**
+     * Dispatches a request through the routing system, executing middleware and handler.
+     * This provides route-aware testing with middleware execution.
+     */
+    private async dispatchRoute(method: string, path: string, req: any, res: any): Promise<void> {
+        const route = this.matchRoute(method, path);
+
+        if (!route) {
+            throw new Error(`No route found for ${method} ${path}`);
+        }
+
+        // Get test middleware registry
+        const middlewareRegistry = this.createTestMiddleware();
+
+        // Build middleware chain
+        const middlewareChain: RequestHandler[] = [];
+        if (route.middleware) {
+            for (const middlewareName of route.middleware) {
+                const middleware = (middlewareRegistry as any)[middlewareName];
+                if (!middleware) {
+                    throw new Error(`Middleware not found: ${middlewareName}`);
+                }
+                middlewareChain.push(middleware);
+            }
+        }
+
+        // Execute middleware chain
+        for (const middleware of middlewareChain) {
+            let nextCalled = false;
+            let error: any = null;
+
+            await new Promise<void>((resolve, reject) => {
+                const next = (err?: any) => {
+                    nextCalled = true;
+                    if (err) {
+                        error = err;
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                };
+
+                // Execute middleware
+                const result = middleware(req, res, next);
+
+                // Handle async middleware
+                if (result && result instanceof Promise) {
+                    result.then(() => {
+                        if (!nextCalled) {
+                            resolve();
+                        }
+                    }).catch(reject);
+                } else if (!nextCalled) {
+                    // Synchronous middleware that didn't call next - assume success
+                    resolve();
+                }
+            });
+
+            // If middleware sent a response (e.g., error), stop execution
+            if (res.getStatus && res.getStatus()) {
+                return;
+            }
+
+            if (error) {
+                throw error;
+            }
+        }
+
+        // Middleware passed, now call the handler
+        // Note: We don't execute the handler here because the high-level AppDriver methods
+        // already call the specific handlers directly. This middleware execution adds the
+        // missing middleware coverage to those calls.
+    }
 
     seedUser(userId: UserId, userData: Record<string, any> = {}) {
         const user = this.db.seedUser(userId, userData);
@@ -194,9 +394,17 @@ export class AppDriver {
 
     async createGroup(userId1: UserId, groupRequest = new CreateGroupRequestBuilder().build()) {
         const req = createStubRequest(userId1, groupRequest);
+        req.method = 'POST';
+        req.path = '/groups';
         const res = createStubResponse();
 
-        await this.groupHandlers.createGroup(req, res);
+        // Execute routing middleware before handler
+        await this.dispatchRoute('POST', '/groups', req, res);
+
+        // Only call handler if middleware didn't already send a response (e.g., auth failure)
+        if (!res.getStatus || !res.getStatus()) {
+            await this.groupHandlers.createGroup(req, res);
+        }
 
         return (res as any).getJson() as GroupDTO;
     }
@@ -359,9 +567,17 @@ export class AppDriver {
 
     async createExpense(userId1: UserId, expenseRequest: CreateExpenseRequest): Promise<ExpenseDTO> {
         const req = createStubRequest(userId1, expenseRequest);
+        req.method = 'POST';
+        req.path = '/expenses';
         const res = createStubResponse();
 
-        await this.expenseHandlers.createExpense(req, res);
+        // Execute routing middleware before handler
+        await this.dispatchRoute('POST', '/expenses', req, res);
+
+        // Only call handler if middleware didn't already send a response
+        if (!res.getStatus || !res.getStatus()) {
+            await this.expenseHandlers.createExpense(req, res);
+        }
 
         return (res as any).getJson() as ExpenseDTO;
     }

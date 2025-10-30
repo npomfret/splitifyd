@@ -4,7 +4,7 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { getActivityFeed } from './activity/handlers';
 import { register } from './auth/handlers';
 import { authenticate, authenticateAdmin, authenticateSystemUser } from './auth/middleware';
-import { getConfig } from './client-config';
+import { getConfig as getClientConfig } from './client-config';
 import { createComment, listExpenseComments, listGroupComments } from './comments/handlers';
 import { FirestoreCollections, HTTP_STATUS } from './constants';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
@@ -30,6 +30,8 @@ import { applyStandardMiddleware } from './utils/middleware';
 import { UserBrowserHandlers } from './browser/UserBrowserHandlers';
 import { getAppBuilder } from './ApplicationBuilderSingleton';
 import { getFirestore } from './firebase';
+import { routeDefinitions } from './routes/route-config';
+import type { RequestHandler } from 'express';
 
 const applicationBuilder = getAppBuilder();
 const userBrowserHandlers = new UserBrowserHandlers(applicationBuilder.buildAuthService(), getFirestore());
@@ -56,66 +58,188 @@ function getApp(): express.Application {
     return app;
 }
 
-function setupRoutes(app: express.Application): void {
-    app.get('/metrics', (req: express.Request, res: express.Response) => {
+/**
+ * Wraps async handlers to ensure errors are caught and passed to Express error middleware
+ */
+const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+/**
+ * Handler registry that maps handler names from route configuration to actual handler functions.
+ * This includes both imported handlers and inline handlers.
+ */
+function getHandlerRegistry(): Record<string, RequestHandler> {
+    // Inline handlers for diagnostic endpoints
+    const getMetrics: RequestHandler = (req, res) => {
         const snapshot = metrics.getSnapshot();
         res.json(toAggregatedReport(snapshot));
-    });
-
-    const asyncHandler = (fn: Function) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        Promise.resolve(fn(req, res, next)).catch(next);
     };
 
-    // Health check endpoint
-    app.get(
-        '/health',
-        asyncHandler(async (req: express.Request, res: express.Response) => {
-            const checks = await runHealthChecks();
-            const payload = buildHealthPayload(checks);
-            const statusCode = resolveHealthStatusCode(checks);
-            res.status(statusCode).json(payload);
-        }),
-    );
+    const getHealth: RequestHandler = async (req, res) => {
+        const checks = await runHealthChecks();
+        const payload = buildHealthPayload(checks);
+        const statusCode = resolveHealthStatusCode(checks);
+        res.status(statusCode).json(payload);
+    };
 
-    app.head(
-        '/health',
-        asyncHandler(async (req: express.Request, res: express.Response) => {
-            const checks = await runHealthChecks();
-            const statusCode = resolveHealthStatusCode(checks);
-            res.status(statusCode).end();
-        }),
-    );
+    const headHealth: RequestHandler = async (req, res) => {
+        const checks = await runHealthChecks();
+        const statusCode = resolveHealthStatusCode(checks);
+        res.status(statusCode).end();
+    };
 
-    // Environment diagnostics endpoint (restricted to system-level users)
-    app.get(
-        '/env',
-        authenticateSystemUser,
-        (req: express.Request, res: express.Response) => {
-            res.json(buildEnvPayload());
-        },
-    );
+    const getEnv: RequestHandler = (req, res) => {
+        res.json(buildEnvPayload());
+    };
 
-    app.get(
-        '/config',
-        asyncHandler((req: express.Request, res: express.Response) => {
-            const config = getEnhancedConfigResponse();
+    const getConfig: RequestHandler = (req, res) => {
+        const config = getEnhancedConfigResponse();
+        res.json(config);
+    };
 
-            res.json(config);
-        }),
-    );
-
-    app.post('/csp-violation-report', (req: express.Request, res: express.Response) => {
+    const reportCspViolation: RequestHandler = (req, res) => {
         try {
             res.status(204).send();
         } catch (error) {
             logger.error('Error processing CSP violation report', error);
             res.status(500).json({ error: 'Internal server error' });
         }
-    });
+    };
 
-    app.get('/policies/:id/current', asyncHandler(getCurrentPolicy));
+    return {
+        // Diagnostics
+        getMetrics,
+        getHealth,
+        headHealth,
+        getEnv,
+        getConfig,
+        reportCspViolation,
 
-    if (getConfig().isProduction) {
+        // Public policies
+        getCurrentPolicy,
+
+        // Test endpoints
+        borrowTestUser,
+        returnTestUser,
+        testClearPolicyAcceptances,
+        testPromoteToAdmin,
+
+        // User & policy management
+        acceptMultiplePolicies,
+        getUserPolicyStatus,
+        getUserProfile,
+        updateUserProfile,
+        changePassword,
+        changeEmail,
+
+        // Registration
+        register,
+
+        // Expenses
+        createExpense,
+        updateExpense,
+        deleteExpense,
+        getExpenseFullDetails,
+
+        // Groups
+        createGroup,
+        listGroups,
+        generateShareableLink,
+        previewGroupByLink,
+        joinGroupByLink,
+        getGroupFullDetails,
+        getActivityFeed,
+        updateGroup,
+        deleteGroup,
+        updateGroupPermissions,
+        leaveGroup,
+        archiveGroupForUser,
+        unarchiveGroupForUser,
+        updateGroupMemberDisplayName,
+        getPendingMembers,
+        updateMemberRole,
+        approveMember,
+        rejectMember,
+        removeGroupMember,
+
+        // Settlements
+        createSettlement,
+        updateSettlement,
+        deleteSettlement,
+
+        // Comments
+        listGroupComments,
+        createComment,
+        listExpenseComments,
+        createCommentForExpense: createComment, // Both expense and group comments use the same handler
+
+        // Admin policies
+        createPolicy,
+        listPolicies,
+        getPolicy,
+        getPolicyVersion,
+        updatePolicy,
+        publishPolicy,
+        deletePolicyVersion,
+
+        // Admin browser
+        listAuthUsers: userBrowserHandlers.listAuthUsers,
+        listFirestoreUsers: userBrowserHandlers.listFirestoreUsers,
+    };
+}
+
+/**
+ * Middleware registry that maps middleware names to actual middleware functions
+ */
+function getMiddlewareRegistry(): Record<string, RequestHandler> {
+    return {
+        authenticate,
+        authenticateAdmin,
+        authenticateSystemUser,
+    };
+}
+
+function setupRoutes(app: express.Application): void {
+    const handlerRegistry = getHandlerRegistry();
+    const middlewareRegistry = getMiddlewareRegistry();
+    const config = getClientConfig();
+
+    // Setup routes from configuration
+    for (const route of routeDefinitions) {
+        // Skip test-only routes in production
+        if (route.testOnly && config.isProduction) {
+            continue;
+        }
+
+        // Get the handler
+        const handler = handlerRegistry[route.handlerName];
+        if (!handler) {
+            throw new Error(`Handler not found in registry: ${route.handlerName}`);
+        }
+
+        // Build middleware chain
+        const middlewareChain: RequestHandler[] = [];
+        if (route.middleware) {
+            for (const middlewareName of route.middleware) {
+                const middleware = middlewareRegistry[middlewareName];
+                if (!middleware) {
+                    throw new Error(`Middleware not found in registry: ${middlewareName}`);
+                }
+                middlewareChain.push(middleware);
+            }
+        }
+
+        // Wrap handler in asyncHandler for error handling
+        const wrappedHandler = asyncHandler(handler);
+
+        // Register the route
+        const method = route.method.toLowerCase() as keyof express.Application;
+        (app[method] as Function)(route.path, ...middlewareChain, wrappedHandler);
+    }
+
+    // Add test endpoint protection for production
+    if (config.isProduction) {
         app.all(/^\/test-pool.*/, (req, res) => {
             logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
             res.status(404).json({ error: 'Not found' });
@@ -124,71 +248,9 @@ function setupRoutes(app: express.Application): void {
             logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
             res.status(404).json({ error: 'Not found' });
         });
-    } else {
-        app.post('/test-pool/borrow', asyncHandler(borrowTestUser));
-        app.post('/test-pool/return', asyncHandler(returnTestUser));
-
-        app.post('/test/user/clear-policy-acceptances', asyncHandler(testClearPolicyAcceptances));
-        app.post('/test/user/promote-to-admin', asyncHandler(testPromoteToAdmin));
     }
 
-    app.post('/user/policies/accept-multiple', authenticate, asyncHandler(acceptMultiplePolicies));
-    app.get('/user/policies/status', authenticate, asyncHandler(getUserPolicyStatus));
-
-    app.get('/user/profile', authenticate, asyncHandler(getUserProfile));
-    app.put('/user/profile', authenticate, asyncHandler(updateUserProfile));
-    app.post('/user/change-password', authenticate, asyncHandler(changePassword));
-    app.post('/user/change-email', authenticate, asyncHandler(changeEmail));
-
-    app.post('/register', asyncHandler(register));
-
-    app.post(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(createExpense));
-    app.put(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(updateExpense));
-    app.delete(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(deleteExpense));
-    app.get(`/${FirestoreCollections.EXPENSES}/:id/full-details`, authenticate, asyncHandler(getExpenseFullDetails));
-
-    app.post(`/${FirestoreCollections.GROUPS}`, authenticate, asyncHandler(createGroup));
-    app.get(`/${FirestoreCollections.GROUPS}`, authenticate, asyncHandler(listGroups));
-
-    app.post(`/${FirestoreCollections.GROUPS}/share`, authenticate, asyncHandler(generateShareableLink));
-    app.post(`/${FirestoreCollections.GROUPS}/preview`, authenticate, asyncHandler(previewGroupByLink));
-    app.post(`/${FirestoreCollections.GROUPS}/join`, authenticate, asyncHandler(joinGroupByLink));
-
-    app.get(`/${FirestoreCollections.GROUPS}/:id/full-details`, authenticate, asyncHandler(getGroupFullDetails));
-    app.get('/activity-feed', authenticate, asyncHandler(getActivityFeed));
-    app.put(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(updateGroup));
-    app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
-    app.patch(`/${FirestoreCollections.GROUPS}/:id/security/permissions`, authenticate, asyncHandler(updateGroupPermissions));
-    app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
-    app.post(`/${FirestoreCollections.GROUPS}/:id/archive`, authenticate, asyncHandler(archiveGroupForUser));
-    app.post(`/${FirestoreCollections.GROUPS}/:id/unarchive`, authenticate, asyncHandler(unarchiveGroupForUser));
-    app.put(`/${FirestoreCollections.GROUPS}/:id/members/display-name`, authenticate, asyncHandler(updateGroupMemberDisplayName));
-    app.get(`/${FirestoreCollections.GROUPS}/:id/members/pending`, authenticate, asyncHandler(getPendingMembers));
-    app.patch(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/role`, authenticate, asyncHandler(updateMemberRole));
-    app.post(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/approve`, authenticate, asyncHandler(approveMember));
-    app.post(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/reject`, authenticate, asyncHandler(rejectMember));
-    app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
-
-    app.post(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(createSettlement));
-    app.put(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(updateSettlement));
-    app.delete(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(deleteSettlement));
-
-    app.get(`/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(listGroupComments));
-    app.post(`/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(createComment));
-    app.get(`/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(listExpenseComments));
-    app.post(`/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(createComment));
-
-    app.post(`/admin/${FirestoreCollections.POLICIES}`, authenticateAdmin, asyncHandler(createPolicy));
-    app.get(`/admin/${FirestoreCollections.POLICIES}`, authenticateAdmin, asyncHandler(listPolicies));
-    app.get(`/admin/${FirestoreCollections.POLICIES}/:id`, authenticateAdmin, asyncHandler(getPolicy));
-    app.get(`/admin/${FirestoreCollections.POLICIES}/:id/versions/:hash`, authenticateAdmin, asyncHandler(getPolicyVersion));
-    app.put(`/admin/${FirestoreCollections.POLICIES}/:id`, authenticateAdmin, asyncHandler(updatePolicy));
-    app.post(`/admin/${FirestoreCollections.POLICIES}/:id/publish`, authenticateAdmin, asyncHandler(publishPolicy));
-    app.delete(`/admin/${FirestoreCollections.POLICIES}/:id/versions/:hash`, authenticateAdmin, asyncHandler(deletePolicyVersion));
-
-    app.get('/admin/browser/users/auth', authenticateSystemUser, asyncHandler(userBrowserHandlers.listAuthUsers));
-    app.get('/admin/browser/users/firestore', authenticateSystemUser, asyncHandler(userBrowserHandlers.listFirestoreUsers));
-
+    // 404 handler for unmatched routes
     app.use((req: express.Request, res: express.Response) => {
         res.status(HTTP_STATUS.NOT_FOUND).json({
             error: {
@@ -198,6 +260,7 @@ function setupRoutes(app: express.Application): void {
         });
     });
 
+    // Global error handler
     app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
         const correlationId = req.headers['x-correlation-id'] as string;
 
@@ -247,6 +310,17 @@ function setupRoutes(app: express.Application): void {
             },
         });
     });
+}
+
+/**
+ * Exports the handler and middleware registries for use in testing
+ */
+export function getHandlerRegistryForTesting(): Record<string, RequestHandler> {
+    return getHandlerRegistry();
+}
+
+export function getMiddlewareRegistryForTesting(): Record<string, RequestHandler> {
+    return getMiddlewareRegistry();
 }
 
 export const api = onRequest(
