@@ -31,42 +31,35 @@ afterEach(() => {
 });
 
 describe('joinGroupStore', () => {
-    it('sets conflict state when join response indicates display name conflict', async () => {
+    it('successfully joins a group with provided display name', async () => {
         mockedApiClient.joinGroupByLink.mockResolvedValue({
             groupId: 'group-123',
             groupName: 'Test Group',
             success: true,
-            displayNameConflict: true,
+            memberStatus: 'active',
         });
 
-        const response = await joinGroupStore.joinGroup('share-link');
+        const response = await joinGroupStore.joinGroup('share-link', 'John Doe');
 
         expect(response).not.toBeNull();
-        expect(response?.displayNameConflict).toBe(true);
-        expect(joinGroupStore.displayNameConflict).toBe(true);
-        expect(joinGroupStore.joinSuccess).toBe(false);
+        expect(response?.groupId).toBe('group-123');
+        expect(joinGroupStore.joinSuccess).toBe(true);
         expect(joinGroupStore.joinedGroupId).toBe('group-123');
+        expect(mockedApiClient.joinGroupByLink).toHaveBeenCalledWith('share-link', 'John Doe');
     });
 
-    it('resolves conflict by updating display name and marking join success', async () => {
-        mockedApiClient.joinGroupByLink.mockResolvedValue({
-            groupId: 'group-456',
-            groupName: 'Design Squad',
-            success: true,
-            displayNameConflict: true,
+    it('throws error when display name conflicts', async () => {
+        mockedApiClient.joinGroupByLink.mockRejectedValue({
+            code: 'DISPLAY_NAME_CONFLICT',
+            message: 'The name "John" is already in use by another member. Please choose a different name.',
         });
-        mockedApiClient.updateGroupMemberDisplayName.mockResolvedValue({ message: 'ok' });
 
-        await joinGroupStore.joinGroup('conflict-link');
+        await expect(joinGroupStore.joinGroup('conflict-link', 'John')).rejects.toEqual({
+            code: 'DISPLAY_NAME_CONFLICT',
+            message: 'The name "John" is already in use by another member. Please choose a different name.',
+        });
 
-        expect(joinGroupStore.displayNameConflict).toBe(true);
-
-        await joinGroupStore.resolveDisplayNameConflict('UI Specialist');
-
-        expect(mockedApiClient.updateGroupMemberDisplayName).toHaveBeenCalledWith('group-456', 'UI Specialist');
-        expect(joinGroupStore.displayNameConflict).toBe(false);
-        expect(joinGroupStore.joinSuccess).toBe(true);
-        expect(joinGroupStore.displayNameUpdateError).toBeNull();
+        expect(joinGroupStore.joinSuccess).toBe(false);
     });
 
     it('sets an error when the share link has expired', async () => {
@@ -75,7 +68,7 @@ describe('joinGroupStore', () => {
             message: 'expired',
         });
 
-        await joinGroupStore.joinGroup('expired-link');
+        await joinGroupStore.joinGroup('expired-link', 'Jane Doe');
 
         expect(joinGroupStore.error).toBe('This invitation link is invalid or has expired');
         expect(joinGroupStore.joinSuccess).toBe(false);

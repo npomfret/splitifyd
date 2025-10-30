@@ -1,4 +1,4 @@
-import type { GroupMembershipDTO, GroupName, ISOString, JoinGroupResponse, UserId } from '@splitifyd/shared';
+import type { DisplayName, GroupMembershipDTO, GroupName, ISOString, JoinGroupResponse, UserId } from '@splitifyd/shared';
 import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, GroupId, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import { toISOString } from '@splitifyd/shared';
 import { z } from 'zod';
@@ -336,11 +336,11 @@ export class GroupShareService {
         };
     }
 
-    async joinGroupByLink(userId: UserId, linkId: string): Promise<JoinGroupResponse> {
-        return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, linkId));
+    async joinGroupByLink(userId: UserId, linkId: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
+        return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, linkId, groupDisplayName));
     }
 
-    private async _joinGroupByLink(userId: UserId, linkId: string): Promise<JoinGroupResponse> {
+    private async _joinGroupByLink(userId: UserId, linkId: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
         const timer = new PerformanceTimer();
 
         if (!linkId) {
@@ -379,11 +379,21 @@ export class GroupShareService {
 
         // Pre-compute member data outside transaction for speed
         const joinedAt = toISOString(new Date().toISOString());
+
+        // Check for display name conflicts
         const {
-            displayName: userDisplayName,
             existingMembers,
             displayNameConflict,
-        } = await this.userService.resolveJoinContext(groupId, userId);
+        } = await this.userService.checkDisplayNameConflict(groupId, groupDisplayName);
+
+        if (displayNameConflict) {
+            throw new ApiError(
+                HTTP_STATUS.CONFLICT,
+                'DISPLAY_NAME_CONFLICT',
+                `The name "${groupDisplayName}" is already in use by another member. Please choose a different name.`,
+            );
+        }
+
         const existingMemberIds = existingMembers.map((member) => member.uid);
 
         logger.info('JOIN: Fetched existing members before transaction', {
@@ -412,7 +422,7 @@ export class GroupShareService {
             joinedAt: joinedAt,
             memberStatus: requiresApproval ? MemberStatuses.PENDING : MemberStatuses.ACTIVE,
             invitedBy: shareLink.createdBy,
-            groupDisplayName: userDisplayName, // Default to user's account display name
+            groupDisplayName: groupDisplayName,
         };
 
         const now = toISOString(new Date().toISOString());
@@ -517,7 +527,6 @@ export class GroupShareService {
             userId,
             linkId: linkId.substring(0, 4) + '...',
             invitedBy: result.invitedBy,
-            displayNameConflict,
             memberStatus: memberDoc.memberStatus,
             timings: timer.getTimings(),
         });
@@ -526,7 +535,6 @@ export class GroupShareService {
             groupId,
             groupName: result.groupName,
             success: !requiresApproval,
-            displayNameConflict,
             memberStatus: memberDoc.memberStatus,
         };
     }

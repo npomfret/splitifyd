@@ -2,7 +2,6 @@ import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
-import { DisplayNameConflictModalPage } from './DisplayNameConflictModalPage';
 import { HeaderPage } from './HeaderPage';
 
 const translation = translationEn;
@@ -304,9 +303,16 @@ export class JoinGroupPage extends BasePage {
     /**
      * Click join button and wait for join to complete
      * Fluent version - verifies navigation to group page or success screen
+     * Now handles the display name prompt modal
      */
     async clickJoinGroupAndWaitForJoin(): Promise<void> {
         await this.clickJoinGroup();
+
+        // Wait for the display name modal to appear
+        await this.waitForDisplayNameModal();
+
+        // Submit the modal with the pre-filled display name
+        await this.submitDisplayNameModal();
 
         // Wait for join to complete using single polling loop
         await expect(async () => {
@@ -484,9 +490,47 @@ export class JoinGroupPage extends BasePage {
         await this.clickButton(cancelButton, { buttonName: 'Cancel Join Group' });
     }
 
-    async openDisplayNameConflictModal(): Promise<DisplayNameConflictModalPage> {
-        const modal = new DisplayNameConflictModalPage(this.page);
-        await modal.waitForOpen(TEST_TIMEOUTS.API_RESPONSE);
-        return modal;
+    // ============================================================================
+    // DISPLAY NAME PROMPT MODAL METHODS
+    // ============================================================================
+
+    private getDisplayNameModal(): Locator {
+        return this.page.locator('[data-testid="join-display-name-input"]').locator('..');
+    }
+
+    private getDisplayNameInput(): Locator {
+        return this.page.getByTestId('join-display-name-input');
+    }
+
+    private getModalJoinButton(): Locator {
+        return this.page.locator('button:has-text("Join Group")').last();
+    }
+
+    private getModalCancelButton(): Locator {
+        return this.page.locator('button:has-text("Cancel")').last();
+    }
+
+    async waitForDisplayNameModal(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
+        await expect(this.getDisplayNameInput()).toBeVisible({ timeout });
+    }
+
+    async fillDisplayNameInModal(value: string): Promise<void> {
+        await this.fillPreactInput(this.getDisplayNameInput(), value);
+    }
+
+    async submitDisplayNameModal(): Promise<void> {
+        await this.clickButton(this.getModalJoinButton(), { buttonName: 'Join Group (Modal)' });
+    }
+
+    async cancelDisplayNameModal(): Promise<void> {
+        await this.clickButton(this.getModalCancelButton(), { buttonName: 'Cancel (Modal)' });
+    }
+
+    async verifyDisplayNameModalVisible(): Promise<void> {
+        await expect(this.getDisplayNameInput()).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+    }
+
+    async verifyDisplayNameModalValue(expectedValue: string): Promise<void> {
+        await expect(this.getDisplayNameInput()).toHaveValue(expectedValue);
     }
 }

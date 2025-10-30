@@ -1,7 +1,6 @@
 export { BasePage } from './BasePage';
 export { CreateGroupModalPage } from './CreateGroupModalPage';
 export { DashboardPage } from './DashboardPage';
-export { DisplayNameConflictModalPage } from './DisplayNameConflictModalPage';
 export { ExpenseDetailPage } from './ExpenseDetailPage';
 export { ExpenseFormPage } from './ExpenseFormPage';
 export { GroupDetailPage } from './GroupDetailPage';

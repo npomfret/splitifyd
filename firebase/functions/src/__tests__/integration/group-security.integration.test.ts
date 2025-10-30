@@ -55,7 +55,6 @@ describe('Group Security Endpoints', () => {
 
             const joinResult = await apiDriver.joinGroupViaShareLink(linkId, memberUser.token);
             expect(joinResult.success).toBe(false);
-            expect(joinResult.displayNameConflict).toBe(false);
             expect(joinResult.memberStatus).toBe(MemberStatuses.PENDING);
 
             let pendingMembers = await apiDriver.getPendingMembers(group.id, adminUser.token);

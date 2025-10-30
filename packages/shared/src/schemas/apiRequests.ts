@@ -24,6 +24,8 @@ export const PASSWORD_REGEX = new RegExp(`^.{${PASSWORD_MIN_LENGTH},}$`);
 
 export const PHONE_E164_REGEX = /^\+[1-9]\d{1,14}$/;
 
+// Display names can contain letters, numbers, spaces, and common punctuation
+// Confusable characters (0/O, I/l) are allowed but normalized during conflict checking
 const DISPLAY_NAME_PATTERN = /^[a-zA-Z0-9\s\-_.]+$/;
 const DEFAULT_DISPLAY_NAME_MIN = 2;
 const DEFAULT_DISPLAY_NAME_MAX = 50;
@@ -643,6 +645,15 @@ export const ChangeEmailRequestSchema = z.object({
         .string()
         .min(1, 'Current password cannot be empty'),
     newEmail: EmailSchema,
+});
+
+// ---------------------------------------------------------------------------
+// Join group requests
+// ---------------------------------------------------------------------------
+
+export const JoinGroupRequestSchema = z.object({
+    linkId: z.string().trim().min(1, 'Link ID is required'),
+    groupDisplayName: DisplayNameSchema,
 });
 
 // ---------------------------------------------------------------------------

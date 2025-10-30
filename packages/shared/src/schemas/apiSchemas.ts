@@ -197,7 +197,6 @@ const JoinGroupResponseSchema = z.object({
     groupId: z.string(),
     groupName: z.string(),
     success: z.boolean(),
-    displayNameConflict: z.boolean(),
     memberStatus: z.enum(['active', 'pending', 'archived']),
 });
 

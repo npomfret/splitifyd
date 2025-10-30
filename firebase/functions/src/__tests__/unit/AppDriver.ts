@@ -215,8 +215,9 @@ export class AppDriver {
         return (res as any).getJson() as ShareLinkResponse;
     }
 
-    async joinGroupByLink(userId1: UserId, linkId: string): Promise<JoinGroupResponse> {
-        const req = createStubRequest(userId1, { linkId });
+    async joinGroupByLink(userId1: UserId, linkId: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
+        const displayName = groupDisplayName || `User ${userId1}`;
+        const req = createStubRequest(userId1, { linkId, groupDisplayName: displayName });
         const res = createStubResponse();
 
         await this.groupShareHandlers.joinGroupByLink(req, res);

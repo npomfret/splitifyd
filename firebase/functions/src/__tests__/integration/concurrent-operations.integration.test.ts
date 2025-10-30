@@ -89,9 +89,9 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Execute all member additions concurrently via share link
             const addPromises = [
-                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser2.uid, linkId),
-                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser3.uid, linkId),
-                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser4.uid, linkId),
+                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser2.uid, linkId, "Test User 2"),
+                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser3.uid, linkId, "Test User 3"),
+                applicationBuilder.buildGroupShareService().joinGroupByLink(testUser4.uid, linkId, "Test User 4"),
             ];
 
             // All operations should complete successfully
@@ -113,7 +113,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Add initial member via share link (production code path)
             const { linkId: initialLinkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, initialLinkId);
+            await groupShareService.joinGroupByLink(testUser2.uid, initialLinkId, "Test User 2");
 
             // Run concurrent operations: queries while adding/removing members
             const { linkId: concurrentLinkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
@@ -123,7 +123,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 () => firestoreReader.getGroupMember(testGroup.id, testUser2.uid),
 
                 // Modification operations (production code paths)
-                () => groupShareService.joinGroupByLink(testUser3.uid, concurrentLinkId),
+                () => groupShareService.joinGroupByLink(testUser3.uid, concurrentLinkId, "Test User 3"),
                 () => groupMemberService.removeGroupMember(testUser1.uid, testGroup.id, testUser2.uid),
             ];
 
@@ -153,8 +153,9 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Add members to group via share link (production code path)
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
+            let counter = 2;
             for (const user of [testUser2, testUser3, testUser4]) {
-                await groupShareService.joinGroupByLink(user.uid, linkId);
+                await groupShareService.joinGroupByLink(user.uid, linkId, `Test User ${counter++}`);
             }
 
             // Create concurrent expenses
@@ -201,7 +202,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Add member via share link (production code path)
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, linkId);
+            await groupShareService.joinGroupByLink(testUser2.uid, linkId, "Test User 2");
 
             // Create expense
             await expenseService.createExpense(
@@ -243,7 +244,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Add a member via share link (production code path)
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, linkId);
+            await groupShareService.joinGroupByLink(testUser2.uid, linkId, "Test User 2");
 
             // Create operations where some will succeed and some will fail
             const operations = [
@@ -288,8 +289,8 @@ describe('Concurrent Operations Integration Tests', () => {
             );
 
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, linkId);
-            await groupShareService.joinGroupByLink(testUser3.uid, linkId);
+            await groupShareService.joinGroupByLink(testUser2.uid, linkId, "Test User 2");
+            await groupShareService.joinGroupByLink(testUser3.uid, linkId, "Test User 3");
 
             // Expense configurations: [payer, amount, participants]
             const expenseConfigs: Array<[PooledTestUser, number, string[]]> = [
@@ -364,7 +365,7 @@ describe('Concurrent Operations Integration Tests', () => {
             );
 
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, linkId);
+            await groupShareService.joinGroupByLink(testUser2.uid, linkId, "Test User 2");
 
             const operations = Array.from({ length: 8 }, (_, i) => () =>
                 expenseService.createExpense(
@@ -405,8 +406,8 @@ describe('Concurrent Operations Integration Tests', () => {
             );
 
             const { linkId } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
-            await groupShareService.joinGroupByLink(testUser2.uid, linkId);
-            await groupShareService.joinGroupByLink(testUser3.uid, linkId);
+            await groupShareService.joinGroupByLink(testUser2.uid, linkId, "Test User 2");
+            await groupShareService.joinGroupByLink(testUser3.uid, linkId, "Test User 3");
 
             const operations = [
                 () =>

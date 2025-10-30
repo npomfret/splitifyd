@@ -464,6 +464,9 @@ simpleTest.describe('Group Settings & Management', () => {
         await approverJoinPage.verifyJoinGroupHeadingVisible();
         await approverJoinPage.verifyJoinButtonEnabled();
         await approverJoinPage.clickJoinGroupButton();
+        // Handle the display name modal
+        await approverJoinPage.waitForDisplayNameModal();
+        await approverJoinPage.submitDisplayNameModal();
         await approverJoinPage.verifyPendingApprovalAlertVisible(groupName);
         await approverJoinPage.verifyJoinButtonDisabled();
 
@@ -484,6 +487,9 @@ simpleTest.describe('Group Settings & Management', () => {
         await rejectJoinPage.verifyJoinGroupHeadingVisible();
         await rejectJoinPage.verifyJoinButtonEnabled();
         await rejectJoinPage.clickJoinGroupButton();
+        // Handle the display name modal
+        await rejectJoinPage.waitForDisplayNameModal();
+        await rejectJoinPage.submitDisplayNameModal();
         await rejectJoinPage.verifyPendingApprovalAlertVisible(groupName);
         await rejectJoinPage.verifyJoinButtonDisabled();
 

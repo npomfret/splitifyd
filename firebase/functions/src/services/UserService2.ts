@@ -3,6 +3,7 @@ import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@splitify
 import { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email, UserId } from '@splitifyd/shared';
+import { normalizeDisplayNameForComparison } from '@splitifyd/shared';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';
@@ -191,33 +192,38 @@ export class UserService {
         };
     }
 
-    async resolveJoinContext(
+    /**
+     * Check if a display name conflicts with existing group members.
+     * Uses base58 normalization to detect confusable characters (0/O, I/l, etc.).
+     * The original display name is stored as-is; normalization is only for comparison.
+     *
+     * @param groupId - The group to check
+     * @param displayName - The display name to check
+     * @returns Object containing existing members and conflict status
+     *
+     * @example
+     * // These would all be considered conflicts:
+     * checkDisplayNameConflict(groupId, "Alice") // conflicts with existing "Alice"
+     * checkDisplayNameConflict(groupId, "Al1ce") // conflicts with existing "Alice" (1 → i)
+     * checkDisplayNameConflict(groupId, "ALICE") // conflicts with existing "Alice" (case-insensitive)
+     * checkDisplayNameConflict(groupId, "B0b")   // conflicts with existing "Bob" (0 → o)
+     */
+    async checkDisplayNameConflict(
         groupId: GroupId,
-        userId: UserId,
+        displayName: DisplayName,
     ): Promise<{
-        displayName: DisplayName;
         existingMembers: GroupMembershipDTO[];
         displayNameConflict: boolean;
     }> {
-        const userProfile = await this.getUser(userId).catch((error) => {
-            if (error instanceof ApiError && error.code === 'NOT_FOUND') {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User profile not found');
-            }
+        const existingMembers = await this.firestoreReader.getAllGroupMembers(groupId);
+        const normalizedNewName = normalizeDisplayNameForComparison(displayName.trim());
 
-            logger.error('Failed to resolve user profile during join workflow', error as Error, {
-                userId,
-                groupId,
-            });
-            throw error;
+        const displayNameConflict = existingMembers.some((member) => {
+            const normalizedExistingName = normalizeDisplayNameForComparison(member.groupDisplayName.trim());
+            return normalizedExistingName === normalizedNewName;
         });
 
-        const existingMembers = await this.firestoreReader.getAllGroupMembers(groupId);
-        const normalizedDisplayName = userProfile.displayName.trim().toLowerCase();
-
-        const displayNameConflict = existingMembers.some((member) => member.groupDisplayName.trim().toLowerCase() === normalizedDisplayName);
-
         return {
-            displayName: userProfile.displayName,
             existingMembers,
             displayNameConflict,
         };

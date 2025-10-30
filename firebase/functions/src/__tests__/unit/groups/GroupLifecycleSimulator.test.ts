@@ -45,8 +45,9 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
         if (memberIds.length > 0) {
             const { linkId } = await groupShareService.generateShareableLink(ownerId, group.id);
+            let counter = 1;
             for (const memberId of memberIds) {
-                await groupShareService.joinGroupByLink(memberId, linkId);
+                await groupShareService.joinGroupByLink(memberId, linkId, `Test Member ${counter++}`);
             }
         }
 
@@ -67,7 +68,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         );
 
         const { linkId } = await groupShareService.generateShareableLink(owner.id, group.id);
-        await groupShareService.joinGroupByLink(member.id, linkId);
+        await groupShareService.joinGroupByLink(member.id, linkId, "Test Member");
 
         const expense = await appDriver.createExpense(
             owner.id,
@@ -121,7 +122,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                 .build(),
         );
         const { linkId } = await groupShareService.generateShareableLink(owner.id, group.id);
-        await groupShareService.joinGroupByLink(member.id, linkId);
+        await groupShareService.joinGroupByLink(member.id, linkId, "Test Member");
 
         await expect(groupService.deleteGroup(group.id, member.id)).rejects.toThrow();
         await expect(firestoreReader.getGroup(group.id)).resolves.not.toBeNull();
@@ -141,7 +142,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         );
 
         const { linkId } = await groupShareService.generateShareableLink(owner.id, group.id);
-        await groupShareService.joinGroupByLink(member.id, linkId);
+        await groupShareService.joinGroupByLink(member.id, linkId, "Test Member");
 
         await expect(groupService.getGroupFullDetails(group.id, outsider.id)).rejects.toThrow();
 
@@ -174,7 +175,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         );
 
         const { linkId } = await groupShareService.generateShareableLink(owner.id, group.id);
-        await groupShareService.joinGroupByLink(member.id, linkId);
+        await groupShareService.joinGroupByLink(member.id, linkId, "Test Member");
 
         const members = await firestoreReader.getAllGroupMembers(group.id);
         expect(members).toHaveLength(2);

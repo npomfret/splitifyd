@@ -123,23 +123,17 @@ class JoinGroupStore {
         }
     }
 
-    async joinGroup(linkId: string): Promise<JoinGroupResponse | null> {
+    async joinGroup(linkId: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse | null> {
         this.#joiningSignal.value = true;
         this.#errorSignal.value = null;
         this.#displayNameConflictSignal.value = false;
         this.#displayNameUpdateErrorSignal.value = null;
 
         try {
-            const response = await apiClient.joinGroupByLink(linkId);
+            const response = await apiClient.joinGroupByLink(linkId, groupDisplayName);
             this.#joinedGroupIdSignal.value = response.groupId;
-            this.#displayNameConflictSignal.value = response.displayNameConflict;
             this.#joiningSignal.value = false;
             this.#memberStatusSignal.value = response.memberStatus;
-            if (response.displayNameConflict) {
-                // Conflict will be handled by UI prompting for a new name
-                this.#joinSuccessSignal.value = false;
-                return response;
-            }
 
             // Preserve existing preview details but ensure IDs/names match response
             if (this.#groupSignal.value) {
@@ -176,7 +170,11 @@ class JoinGroupStore {
         } catch (error: any) {
             let errorMessage = 'Failed to join group';
 
-            if (error.code === 'ALREADY_MEMBER') {
+            if (error.code === 'DISPLAY_NAME_CONFLICT') {
+                // Re-throw conflict errors so the UI can handle them specially
+                this.#joiningSignal.value = false;
+                throw error;
+            } else if (error.code === 'ALREADY_MEMBER') {
                 errorMessage = 'You are already a member of this group';
             } else if (error.code === 'INVALID_LINK' || error.code === 'LINK_EXPIRED') {
                 errorMessage = 'This invitation link is invalid or has expired';
@@ -215,39 +213,6 @@ class JoinGroupStore {
         this.#errorSignal.value = null;
     }
 
-    async resolveDisplayNameConflict(displayName: DisplayName): Promise<void> {
-        if (!this.#joinedGroupIdSignal.value) {
-            throw new Error('No group joined yet');
-        }
-
-        this.#updatingDisplayNameSignal.value = true;
-        this.#displayNameUpdateErrorSignal.value = null;
-
-        try {
-            await apiClient.updateGroupMemberDisplayName(toGroupId(this.#joinedGroupIdSignal.value), displayName);
-
-            this.#displayNameConflictSignal.value = false;
-            this.#joinSuccessSignal.value = true;
-            this.#memberStatusSignal.value = 'active';
-        } catch (error: any) {
-            this.#displayNameUpdateErrorSignal.value = error?.message || 'Failed to update display name';
-            throw error;
-        } finally {
-            this.#updatingDisplayNameSignal.value = false;
-        }
-    }
-
-    markConflictCancelled() {
-        this.#displayNameConflictSignal.value = false;
-        this.#joinSuccessSignal.value = true;
-        this.#updatingDisplayNameSignal.value = false;
-        this.#displayNameUpdateErrorSignal.value = null;
-        this.#memberStatusSignal.value = 'active';
-    }
-
-    clearDisplayNameError() {
-        this.#displayNameUpdateErrorSignal.value = null;
-    }
 }
 
 // Export a singleton instance

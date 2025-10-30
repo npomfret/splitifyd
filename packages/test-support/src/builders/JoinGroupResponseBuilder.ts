@@ -12,7 +12,6 @@ export class JoinGroupResponseBuilder {
         groupId: toGroupId(`group-${generateShortId()}`),
         groupName: toGroupName('Test Group'),
         success: true,
-        displayNameConflict: false,
         memberStatus: 'active',
     };
 
@@ -31,10 +30,6 @@ export class JoinGroupResponseBuilder {
         return this;
     }
 
-    withDisplayNameConflict(conflict: boolean): this {
-        this.fields.displayNameConflict = conflict;
-        return this;
-    }
 
     withMemberStatus(status: MemberStatus): this {
         this.fields.memberStatus = status;

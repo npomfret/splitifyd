@@ -882,11 +882,15 @@ export interface PreviewGroupResponse {
     isAlreadyMember: boolean;
 }
 
+export interface JoinGroupRequest {
+    linkId: string;
+    groupDisplayName: DisplayName;
+}
+
 export interface JoinGroupResponse {
     groupId: GroupId;
     groupName: GroupName;
     success: boolean;
-    displayNameConflict: boolean; // True if user's display name conflicts with existing member
     memberStatus: MemberStatus;
 }
 

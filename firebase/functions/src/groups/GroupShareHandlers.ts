@@ -71,11 +71,19 @@ export class GroupShareHandlers {
     };
 
     joinGroupByLink = async (req: AuthenticatedRequest, res: Response) => {
-        const { linkId } = req.body;
+        const { linkId, groupDisplayName } = req.body;
         const userId = req.user!.uid;
 
+        if (!linkId || typeof linkId !== 'string') {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Link ID is required');
+        }
+
+        if (!groupDisplayName || typeof groupDisplayName !== 'string' || groupDisplayName.trim().length === 0) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_DISPLAY_NAME', 'Group display name is required');
+        }
+
         try {
-            const result = await this.groupShareService.joinGroupByLink(userId, linkId);
+            const result = await this.groupShareService.joinGroupByLink(userId, linkId, groupDisplayName.trim());
             res.status(HTTP_STATUS.OK).json(result);
         } catch (error) {
             if (error instanceof ApiError) throw error;

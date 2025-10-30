@@ -931,12 +931,11 @@ class ApiClient {
         });
     }
 
-    async joinGroupByLink(linkId: string): Promise<JoinGroupResponse> {
+    async joinGroupByLink(linkId: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
         return this.request<JoinGroupResponse>({
             endpoint: '/groups/join',
             method: 'POST',
-            body: { linkId },
-            // Override: This POST is safe to retry because joining a group is idempotent
+            body: { linkId, groupDisplayName },
             skipRetry: false,
         });
     }

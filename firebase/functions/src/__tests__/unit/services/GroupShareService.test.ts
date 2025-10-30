@@ -286,7 +286,7 @@ describe('GroupShareService', () => {
 
             seedUserProfile('joining-user', { displayName: 'Joining User' });
 
-            await expect(groupShareService.joinGroupByLink('joining-user', expiredToken)).rejects.toMatchObject({
+            await expect(groupShareService.joinGroupByLink('joining-user', expiredToken, 'Joining User')).rejects.toMatchObject({
                 code: 'LINK_EXPIRED',
             });
         });
@@ -357,15 +357,9 @@ describe('GroupShareService', () => {
                 db.seedGroupMember(groupId, member.uid, member);
             });
 
-            // Set up the new user's profile so joinGroupByLink can read their displayName
-            seedUserProfile(newUserId, {
-                displayName: 'New User',
-            });
-
             // Should succeed - we're at 49 members, adding 1 more = 50 (at cap, but still allowed)
-            const result = await groupShareService.joinGroupByLink(newUserId, linkId);
+            const result = await groupShareService.joinGroupByLink(newUserId, linkId, 'New User');
             expect(result).toBeDefined();
-            expect(result.displayNameConflict).toBe(false);
         });
 
         it(`should fail when group already has ${MAX_GROUP_MEMBERS} members`, async () => {
@@ -381,15 +375,10 @@ describe('GroupShareService', () => {
                 db.seedGroupMember(groupId, member.uid, member);
             });
 
-            // Set up the new user's profile so joinGroupByLink can read their displayName
-            seedUserProfile(newUserId, {
-                displayName: 'New User',
-            });
-
             // Should fail with GROUP_AT_CAPACITY
             let caughtError: ApiError | undefined;
             try {
-                await groupShareService.joinGroupByLink(newUserId, linkId);
+                await groupShareService.joinGroupByLink(newUserId, linkId, 'New User');
             } catch (error) {
                 caughtError = error as ApiError;
             }
@@ -467,18 +456,13 @@ describe('GroupShareService', () => {
             db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
             // Set up new user with unique display name
-            seedUserProfile(newUserId, {
-                displayName: 'New User',
-            });
+            const result = await groupShareService.joinGroupByLink(newUserId, linkId, 'New User');
 
-            const result = await groupShareService.joinGroupByLink(newUserId, linkId);
-
-            expect(result.displayNameConflict).toBe(false);
             expect(result.groupId).toBe(groupId);
             expect(result.success).toBe(true);
         });
 
-        it('should return displayNameConflict: true when display name matches existing member', async () => {
+        it('should throw DISPLAY_NAME_CONFLICT error when display name matches existing member', async () => {
             // Create existing member with display name "Test User"
             const existingMember = new GroupMemberDocumentBuilder()
                 .withUserId('existing-user')
@@ -487,16 +471,11 @@ describe('GroupShareService', () => {
                 .buildDocument();
             db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
-            // Set up new user with same display name
-            seedUserProfile(newUserId, {
-                displayName: 'Test User', // Same as existing member
+            // Attempt to join with same display name should throw error
+            await expect(groupShareService.joinGroupByLink(newUserId, linkId, 'Test User')).rejects.toMatchObject({
+                code: 'DISPLAY_NAME_CONFLICT',
+                message: expect.stringContaining('Test User'),
             });
-
-            const result = await groupShareService.joinGroupByLink(newUserId, linkId);
-
-            expect(result.displayNameConflict).toBe(true);
-            expect(result.groupId).toBe(groupId);
-            expect(result.success).toBe(true);
         });
 
         it('should detect case-insensitive display name conflicts', async () => {
@@ -508,17 +487,11 @@ describe('GroupShareService', () => {
                 .buildDocument();
             db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
-            // Set up new user with "Test User" (different case)
-            seedUserProfile(newUserId, {
-                displayName: 'Test User',
+            // Attempt to join with "Test User" (different case) should throw error
+            await expect(groupShareService.joinGroupByLink(newUserId, linkId, 'Test User')).rejects.toMatchObject({
+                code: 'DISPLAY_NAME_CONFLICT',
+                message: expect.stringContaining('Test User'),
             });
-
-            const result = await groupShareService.joinGroupByLink(newUserId, linkId);
-
-            // Should detect conflict (case-insensitive comparison)
-            expect(result.displayNameConflict).toBe(true);
-            expect(result.groupId).toBe(groupId);
-            expect(result.success).toBe(true);
         });
     });
 
@@ -567,7 +540,7 @@ describe('GroupShareService', () => {
         });
 
         it('should mark joins as pending when admin approval is required', async () => {
-            const result = await groupShareService.joinGroupByLink(pendingUserId, linkId);
+            const result = await groupShareService.joinGroupByLink(pendingUserId, linkId, 'Pending User');
             expect(result.success).toBe(false);
             expect(result.memberStatus).toBe(MemberStatuses.PENDING);
 
@@ -615,7 +588,7 @@ describe('GroupShareService', () => {
         });
 
         it('should activate members immediately when approval is automatic', async () => {
-            const result = await groupShareService.joinGroupByLink(joiningUserId, linkId);
+            const result = await groupShareService.joinGroupByLink(joiningUserId, linkId, "Joining User");
             expect(result.success).toBe(true);
             expect(result.memberStatus).toBe(MemberStatuses.ACTIVE);
 
@@ -662,7 +635,7 @@ describe('GroupShareService', () => {
 
             seedUserProfile(joiningUserId, { displayName: 'Joining User' });
 
-            await groupShareService.joinGroupByLink(joiningUserId, linkId);
+            await groupShareService.joinGroupByLink(joiningUserId, linkId, "Joining User");
 
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
             expect(ownerFeed.items[0]).toMatchObject({
@@ -736,7 +709,7 @@ describe('GroupShareService', () => {
             seedUserProfile(joiningUserId, { displayName: 'New Joiner' });
 
             // Third user joins the group
-            await groupShareService.joinGroupByLink(joiningUserId, linkId);
+            await groupShareService.joinGroupByLink(joiningUserId, linkId, "Joining User");
 
             // CRITICAL: All three users should receive the activity feed event
             // This verifies that the transaction-based recipient fetching includes
@@ -817,7 +790,7 @@ describe('GroupShareService', () => {
             seedUserProfile(joiningUserId, { displayName: 'New Joiner' });
 
             // New user joins the group
-            await groupShareService.joinGroupByLink(joiningUserId, linkId);
+            await groupShareService.joinGroupByLink(joiningUserId, linkId, "Joining User");
 
             // Owner should receive notification (active member)
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);

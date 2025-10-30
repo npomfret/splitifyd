@@ -10,11 +10,11 @@ import { Button } from '@/components/ui';
 import { LoadingSpinner } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { useComputed } from '@preact/signals';
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { joinGroupStore } from '../app/stores/join-group-store';
-import { DisplayNameConflictModal } from '../components/join-group/DisplayNameConflictModal';
+import { Input } from '@/components/ui';
 import { GroupPreview } from '../components/join-group/GroupPreview';
 import { JoinButton } from '../components/join-group/JoinButton';
 import { MembersPreview } from '../components/join-group/MembersPreview';
@@ -31,10 +31,6 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     const currentUser = useComputed(() => authStore.user);
     // Note: Since this route is now protected by ProtectedRoute, user is guaranteed to be authenticated
     const { group, memberCount, loadingPreview, joining, joinSuccess, error, isAlreadyMember } = joinGroupStore;
-    const displayNameConflict = joinGroupStore.displayNameConflict;
-    const joinedGroupId = joinGroupStore.joinedGroupId;
-    const displayNameUpdateError = joinGroupStore.displayNameUpdateError;
-    const updatingDisplayName = joinGroupStore.updatingDisplayName;
     const memberStatus = joinGroupStore.memberStatus;
     const pendingApproval = memberStatus === 'pending';
 
@@ -57,23 +53,60 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
 
     // No auto-redirect - let user choose when to navigate
 
+    const [displayName, setDisplayName] = useState('');
+    const [showNamePrompt, setShowNamePrompt] = useState(false);
+    const [nameError, setNameError] = useState<string | null>(null);
+
+    // Initialize display name from Firebase auth
+    useEffect(() => {
+        if (currentUser.value?.displayName) {
+            setDisplayName(currentUser.value.displayName);
+        }
+    }, [currentUser.value?.displayName]);
+
     const handleJoinGroup = async () => {
         if (!actualLinkId) return;
+        setShowNamePrompt(true);
+    };
 
-        const joinedGroup = await joinGroupStore.joinGroup(actualLinkId);
-        if (joinedGroup) {
-            // Success handled by useEffect above
+    const handleConfirmJoin = async () => {
+        if (!actualLinkId) return;
+
+        const trimmedName = displayName.trim();
+        if (!trimmedName) {
+            setNameError('Display name is required');
+            return;
+        }
+
+        if (trimmedName.length < 2) {
+            setNameError('Display name must be at least 2 characters');
+            return;
+        }
+
+        if (trimmedName.length > 50) {
+            setNameError('Display name cannot exceed 50 characters');
+            return;
+        }
+
+        setNameError(null);
+
+        try {
+            const joinedGroup = await joinGroupStore.joinGroup(actualLinkId, trimmedName);
+            if (joinedGroup) {
+                setShowNamePrompt(false);
+            }
+        } catch (error: any) {
+            if (error.code === 'DISPLAY_NAME_CONFLICT') {
+                setNameError(error.message || 'This name is already in use. Please choose a different name.');
+            }
         }
     };
 
-    const handleResolveDisplayName = async (newName: string) => {
-        if (!joinedGroupId) return;
-        await joinGroupStore.resolveDisplayNameConflict(newName);
+    const handleCancelNamePrompt = () => {
+        setShowNamePrompt(false);
+        setNameError(null);
     };
 
-    const handleCancelConflict = () => {
-        joinGroupStore.markConflictCancelled();
-    };
 
     // Show error if no link ID provided
     if (!actualLinkId) {
@@ -156,16 +189,6 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                         </div>
                     </Card>
                 </div>
-                <DisplayNameConflictModal
-                    isOpen={displayNameConflict}
-                    groupName={group.name}
-                    currentName={currentUser.value?.displayName || ''}
-                    loading={updatingDisplayName}
-                    error={displayNameUpdateError}
-                    onSubmit={handleResolveDisplayName}
-                    onCancel={handleCancelConflict}
-                    onClearError={() => joinGroupStore.clearDisplayNameError()}
-                />
             </BaseLayout>
         );
     }
@@ -235,16 +258,51 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                         </Stack>
                     </div>
                 </div>
-                <DisplayNameConflictModal
-                    isOpen={displayNameConflict}
-                    groupName={group.name}
-                    currentName={currentUser.value?.displayName || ''}
-                    loading={updatingDisplayName}
-                    error={displayNameUpdateError}
-                    onSubmit={handleResolveDisplayName}
-                    onCancel={handleCancelConflict}
-                    onClearError={() => joinGroupStore.clearDisplayNameError()}
-                />
+
+                {/* Display Name Prompt Modal */}
+                {showNamePrompt && (
+                    <div
+                        className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50'
+                        onClick={(e) => e.target === e.currentTarget && handleCancelNamePrompt()}
+                    >
+                        <div className='relative top-20 mx-auto w-full max-w-md bg-white rounded-lg shadow-xl p-6'>
+                            <h3 className='text-lg font-semibold text-gray-900 mb-4'>
+                                Choose your display name
+                            </h3>
+                            <p className='text-sm text-gray-600 mb-4'>
+                                This is how other members will see you in "{group.name}"
+                            </p>
+                            <Input
+                                label='Display Name'
+                                value={displayName}
+                                onChange={(value) => {
+                                    setDisplayName(value);
+                                    setNameError(null);
+                                }}
+                                error={nameError || undefined}
+                                disabled={joining}
+                                data-testid='join-display-name-input'
+                            />
+                            <div className='flex flex-col gap-2 mt-4'>
+                                <Button
+                                    onClick={handleConfirmJoin}
+                                    disabled={joining}
+                                    fullWidth
+                                >
+                                    {joining ? 'Joining...' : 'Join Group'}
+                                </Button>
+                                <Button
+                                    variant='secondary'
+                                    onClick={handleCancelNamePrompt}
+                                    disabled={joining}
+                                    fullWidth
+                                >
+                                    Cancel
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </BaseLayout>
         );
     }

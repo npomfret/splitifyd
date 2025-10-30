@@ -17,5 +17,8 @@ export * from './constants';
 // Export runtime schemas
 export * from './schemas';
 
+// Export base58 normalization utilities
+export * from './base58-normalization';
+
 // Export API serialization utilities
 export * from './api/serialization';

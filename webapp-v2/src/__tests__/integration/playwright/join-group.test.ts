@@ -77,7 +77,7 @@ test.describe('Join Group Page - Already a Member', () => {
 
 test.describe('Join Group Page - Successful Join', () => {
     test('should successfully join a group', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+        const { page, user } = authenticatedPage;
         const joinGroupPage = new JoinGroupPage(page);
 
         await setupSuccessfulApiMocks(page);
@@ -95,7 +95,15 @@ test.describe('Join Group Page - Successful Join', () => {
 
         await joinGroupPage.verifyJoinGroupHeadingVisible();
         await joinGroupPage.verifyJoinButtonEnabled();
+
+        // Click join button - this opens the display name modal
         await joinGroupPage.clickJoinGroupButton();
+
+        // The modal should appear with default display name pre-filled
+        await joinGroupPage.waitForDisplayNameModal(1000);
+
+        // Submit the modal to actually join
+        await joinGroupPage.submitDisplayNameModal();
 
         await joinGroupPage.verifyJoinSuccessIndicatorVisible();
         await joinGroupPage.verifySuccessIconVisible();
@@ -127,6 +135,10 @@ test.describe('Join Group Page - Successful Join', () => {
         await joinGroupPage.verifyJoinGroupHeadingVisible();
         await joinGroupPage.clickJoinGroupButton();
 
+        // Wait for modal and submit
+        await joinGroupPage.waitForDisplayNameModal(1000);
+        await joinGroupPage.submitDisplayNameModal();
+
         await joinGroupPage.verifyPendingApprovalAlertVisible('Managed Group');
         await joinGroupPage.verifyJoinButtonDisabled();
     });
@@ -148,6 +160,11 @@ test.describe('Join Group Page - Successful Join', () => {
 
         await joinGroupPage.verifyJoinGroupHeadingVisible();
         await joinGroupPage.clickJoinGroupButton();
+
+        // Wait for modal and submit
+        await joinGroupPage.waitForDisplayNameModal(1000);
+        await joinGroupPage.submitDisplayNameModal();
+
         await joinGroupPage.verifyErrorMessageContains('You do not have permission to join this group');
     });
 });
@@ -182,138 +199,5 @@ test.describe('Join Group Page - Navigation', () => {
         await joinGroupPage.clickBackToDashboard();
 
         await expect(page).toHaveURL('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION });
-    });
-});
-
-test.describe('Join Group Page - Display Name Conflict', () => {
-    test('should show conflict modal when display name is already taken', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
-        const joinGroupPage = new JoinGroupPage(page);
-
-        await setupSuccessfulApiMocks(page);
-
-        const previewResponse = PreviewGroupResponseBuilder
-            .newMember()
-            .withGroupName('Design Team')
-            .build();
-        await mockGroupPreviewApi(page, previewResponse);
-
-        const joinResponse = new JoinGroupResponseBuilder()
-            .withGroupId('group-123')
-            .withGroupName('Design Team')
-            .withDisplayNameConflict(true)
-            .build();
-        await mockJoinGroupApi(page, joinResponse);
-
-        await page.goto('/join?linkId=test-link-123');
-
-        await joinGroupPage.verifyJoinGroupHeadingVisible();
-        await joinGroupPage.verifyJoinButtonEnabled();
-        await joinGroupPage.clickJoinGroupButton();
-
-        const conflictModal = await joinGroupPage.openDisplayNameConflictModal();
-        await conflictModal.verifyTitleContains('Choose a display name');
-        await conflictModal.verifyDescriptionContains('already in use');
-    });
-
-    test('should successfully resolve conflict and join group', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
-        const joinGroupPage = new JoinGroupPage(page);
-
-        await setupSuccessfulApiMocks(page);
-
-        const previewResponse = PreviewGroupResponseBuilder
-            .newMember()
-            .withGroupName('Engineering Squad')
-            .build();
-        await mockGroupPreviewApi(page, previewResponse);
-
-        const conflictResponse = new JoinGroupResponseBuilder()
-            .withGroupId('group-456')
-            .withGroupName('Engineering Squad')
-            .withDisplayNameConflict(true)
-            .build();
-        await mockJoinGroupApi(page, conflictResponse);
-
-        // Mock the update display name API to succeed
-        await mockUpdateGroupDisplayNameApi(page, 'group-456', {
-            message: 'Display name updated successfully',
-        });
-
-        await page.goto('/join?linkId=test-link-123');
-        await joinGroupPage.verifyJoinGroupHeadingVisible();
-
-        await joinGroupPage.clickJoinGroupButton();
-
-        const conflictModal = await joinGroupPage.openDisplayNameConflictModal();
-        await conflictModal.fillDisplayName('Senior Engineer');
-        await conflictModal.submit();
-        await conflictModal.waitForClose(TEST_TIMEOUTS.API_RESPONSE);
-
-        await joinGroupPage.verifyJoinSuccessIndicatorVisible();
-    });
-
-    test('should show validation error in modal for empty name', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
-        const joinGroupPage = new JoinGroupPage(page);
-
-        await setupSuccessfulApiMocks(page);
-
-        const previewResponse = PreviewGroupResponseBuilder.newMember().build();
-        await mockGroupPreviewApi(page, previewResponse);
-
-        const conflictResponse = new JoinGroupResponseBuilder()
-            .withGroupId('group-789')
-            .withGroupName('Project Alpha')
-            .withDisplayNameConflict(true)
-            .build();
-        await mockJoinGroupApi(page, conflictResponse);
-
-        await page.goto('/join?linkId=test-link-123');
-        await joinGroupPage.clickJoinGroupButton();
-
-        const conflictModal = await joinGroupPage.openDisplayNameConflictModal();
-
-        // Try to submit with empty name
-        await conflictModal.fillDisplayName('');
-        await conflictModal.submit();
-
-        // Validation error should appear and modal remains open
-        await conflictModal.verifyValidationErrorContains('Enter a display name');
-        await conflictModal.verifyTitleContains('Choose');
-    });
-
-    test('should allow canceling from conflict modal and show success', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
-        const joinGroupPage = new JoinGroupPage(page);
-
-        await setupSuccessfulApiMocks(page);
-
-        const previewResponse = PreviewGroupResponseBuilder
-            .newMember()
-            .withGroupName('Art Collective')
-            .build();
-        await mockGroupPreviewApi(page, previewResponse);
-
-        const conflictResponse = new JoinGroupResponseBuilder()
-            .withGroupId('group-999')
-            .withGroupName('Art Collective')
-            .withDisplayNameConflict(true)
-            .build();
-        await mockJoinGroupApi(page, conflictResponse);
-
-        await page.goto('/join?linkId=test-link-123');
-        await joinGroupPage.clickJoinGroupButton();
-
-        const conflictModal = await joinGroupPage.openDisplayNameConflictModal();
-
-        // Click cancel
-        await conflictModal.clickCancel();
-        await conflictModal.waitForClose();
-
-        // Should show success message (user has joined despite not resolving conflict)
-        await expect(page).toHaveURL(/\/join/);
-        await joinGroupPage.verifyJoinSuccessIndicatorVisible();
-        await joinGroupPage.verifySuccessHeadingContains('Welcome to Art Collective');
     });
 });

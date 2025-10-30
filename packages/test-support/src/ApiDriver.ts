@@ -216,8 +216,9 @@ export class ApiDriver {
         return await this.apiRequest('/groups/share', 'POST', body, token);
     }
 
-    async joinGroupViaShareLink(linkId: string, token: string): Promise<JoinGroupResponse> {
-        return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
+    async joinGroupViaShareLink(linkId: string, token: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
+        const displayName = groupDisplayName || `Test User ${Date.now()}`;
+        return await this.apiRequest('/groups/join', 'POST', { linkId, groupDisplayName: displayName }, token);
     }
 
     async createGroupWithMembers(name: string | GroupName, members: UserToken[], creatorToken: string): Promise<GroupDTO> {
