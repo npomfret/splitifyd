@@ -16,22 +16,6 @@
 - Not trying to eliminate all mocks (they're faster and useful for edge cases)
 - Not building a general-purpose testing framework (optimize for this codebase only)
 
-## Success Metrics
-
-### Baseline (Capture Before Starting)
-- [ ] Current e2e suite runtime: `______` seconds
-- [ ] Current e2e flake rate: `______`%
-- [ ] Number of e2e scenarios: `______`
-- [ ] Playwright suite runtime: `______` seconds
-- [ ] Playwright scenario count: `______`
-
-### Target (Measure at Completion)
-- [ ] Scenario coverage: ≥95% of e2e scenarios migrated or declared obsolete
-- [ ] Mock suite runtime: <300 seconds (5 minutes)
-- [ ] Emulator suite runtime: <600 seconds (10 minutes)
-- [ ] Combined flake rate: <2%
-- [ ] Developer satisfaction: no complaints about workflow confusion for 2 weeks
-
 ## Timeline & Effort Estimates
 
 | Phase | Steps | Estimated Effort | Critical Path? |
@@ -155,8 +139,6 @@ Annotation idea: `test.use({ backendMode: 'emulator' })` or `test.describe.confi
 
 ## Identified Gaps & Next Data Needed
 
-- Runtime baseline missing: need to capture current averages for e2e suite and Playwright suite before changes.
-- Flake metrics unknown: gather recent CI history (pass rate, retries) to populate success metrics checklist.
 - Multi-user auth utilities: confirm availability of user pool endpoints outside e2e package and document constraints (rate limits, parallel sessions).
 - Accessibility/SEO decision: clarify ownership (marketing vs app team) before migrating or dropping those tests.
 
@@ -207,29 +189,43 @@ Map every existing e2e scenario to an equivalent (or missing) Playwright spec. I
 Refactor the current Playwright harness to expose a unified backend fixture able to switch between mock shim and real emulator connection.
 
 **Deliverables:**
-- [ ] `createBackendFixture({ mode: 'mock' | 'emulator' })` API
-- [ ] MSW disabled automatically in emulator mode
-- [ ] Firebase SDK initialization per mode
-- [ ] Error if test tries to mix modes
+- [ ] `backendMode` option registered via `test.use({ backendMode: 'mock' \| 'emulator' })`
+- [ ] `firebaseHarness` fixture that exposes a consistent surface in both modes:
+  - `auth`: helpers for sign-in/out, token refresh
+  - `data`: helpers for seeding Firestore/REST data
+  - `cleanup`: per-test teardown hook
+- [ ] MSW automatically suspended whenever `backendMode === 'emulator'`
+- [ ] Guard rails that throw if a test mixes mock-specific helpers (e.g. `mockFirebase`) while in emulator mode
 
-**Architecture:**
-```typescript
-// playwright/fixtures/backend.ts
-export const backend = base.extend({
-  backendMode: ['mock', { option: true }],
-  backend: async ({ backendMode, page }, use) => {
-    if (backendMode === 'emulator') {
-      // Connect to real emulator, no MSW
-      const firebase = initializeEmulatorFirebase();
-      await use(firebase);
-    } else {
-      // Setup MSW handlers
-      await setupMSW(page);
-      await use(mockBackend);
-    }
-  }
-});
-```
+**Design Outline:**
+- Create `webapp-v2/src/__tests__/utils/backend-fixture.ts` that extends the existing `console-logging` base:
+  - Register `backendMode` as an option (default `'mock'`); allow override via `test` metadata and CLI env (`BACKEND_MODE`).
+  - Expose `firebaseHarness` fixture; in mock mode it wraps the current `MockFirebase` utilities, in emulator mode it forwards to a new `EmulatorHarness`.
+  - Ensure the existing `mockFirebase` and `authenticatedPage` fixtures delegate to `firebaseHarness` internally so tests remain backwards-compatible.
+- Implement `EmulatorHarness` using pieces from `e2e-tests`:
+  - Reuse `AuthenticationWorkflow` (ported to shared helper) for UI-driven login, plus `ApiDriver` for direct setup.
+  - Provide per-test user provisioning via the remote pool (`borrowTestUsers`) and accept policies through `ApiDriver`.
+  - Offer data helpers that write through REST endpoints or Firestore SDK (e.g. `seedGroup`, `seedExpense`, `waitForBalance`).
+- Modify `console-logging-fixture`:
+  - Skip MSW controller setup when `backendMode === 'emulator'`; emit warning if a test attempts to register MSW handlers in that mode.
+  - Ensure log/screenshot handling remains intact in both modes.
+- Add a `withBackend('emulator', callback)` helper for ergonomic opt-in; under the hood it calls `test.skip` when the ambient mode doesn’t match.
+
+**Integration Notes:**
+- Update Playwright config to read `PLAYWRIGHT_BACKEND_MODE` and set project-level `use.backendMode`.
+- Provide sample spec (`backend-mode.smoke.test.ts`) that demonstrates both mock and emulator usage to prevent regressions.
+
+**Shared Auth/Data Utilities Needed**
+- **AuthenticationWorkflow** (currently `e2e-tests/src/workflows/authentication.workflow.ts`) → move to `@splitifyd/test-support/playwright` and make it UI-agnostic.
+- **User pool helpers**: `UserPool`, `ApiDriver`, and `borrowTestUsers` already live in `@splitifyd/test-support`; ensure Playwright global setup defines `__registerTestUsers` mirroring `firebase/functions/vitest.setup.ts`.
+- **Page objects**: identify which E2E page classes (e.g., `DashboardPage`, `ExpenseFormPage`, `PolicyAcceptanceModalPage`) should be promoted to shared package or re-implemented locally. Minimally, need `DashboardPage` for login assertions in emulator mode.
+- **API seeding utilities**: expose thin wrappers around `ApiDriver` for common operations (`acceptPolicies`, `createGroup`, `createExpense`, `settleBalance`) so emulator-mode tests can seed data without verbose plumbing.
+- **Async polling helpers**: reuse `PollOptions` / `pollUntil` from `test-support` to wait for backend state changes.
+
+**Outstanding Gaps**
+- Playwright environment currently lacks a global hook to auto-return borrowed users; add a teardown hook in `global-setup.ts` (or per-test fixture) to call `ApiDriver.returnTestUser`.
+- Need consistent configuration source for emulator host/ports (`getFirebaseEmulatorConfig`) so both ApiDriver and frontend share values; ensure Playwright tests read from same module without bundler issues.
+- Determine how to surface emulator authentication tokens to the browser—options: reuse UI login via `AuthenticationWorkflow` or inject ID tokens via localStorage; decision pending spike.
 
 **Exit Criteria:**
 - [ ] Both modes work in sample test
