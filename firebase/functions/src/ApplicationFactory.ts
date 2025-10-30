@@ -36,12 +36,10 @@ import { UserBrowserHandlers } from './browser/UserBrowserHandlers';
  * @param db - Database implementation (Firestore or test database)
  * @returns Record mapping handler names to handler functions
  */
-export function createHandlerRegistry(
-    authService: IAuthService,
-    db: IFirestoreDatabase
-): Record<string, RequestHandler> {
+export function createHandlerRegistry(componentBuilder: ComponentBuilder): Record<string, RequestHandler> {
     // Create ComponentBuilder with injected dependencies
-    const componentBuilder = new ComponentBuilder(authService, db);
+    const authService: IAuthService = componentBuilder.buildAuthService();
+    const db: IFirestoreDatabase = componentBuilder.getDatabase();
 
     // Instantiate all handler classes
     const settlementHandlers = new SettlementHandlers(componentBuilder.buildSettlementService());

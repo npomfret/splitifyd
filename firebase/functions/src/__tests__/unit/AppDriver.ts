@@ -44,12 +44,12 @@ import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from
 import { expect } from 'vitest';
 import { RegisterUserResult } from '../../services/UserService2';
 import { StubAuthService } from './mocks/StubAuthService';
-import { routeDefinitions, RouteDefinition } from '../../routes/route-config';
+import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
 import type { RequestHandler, Request, Response, NextFunction } from 'express';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { Errors, sendError } from '../../utils/errors';
-import { createHandlerRegistry } from '../../ApplicationFactory';
-import { FirestoreReader, type IFirestoreReader } from '../../services/firestore';
+import { FirestoreReader } from '../../services/firestore';
+import { ComponentBuilder } from '../../services/ComponentBuilder';
 
 /**
  * Extended request interface for authenticated requests in AppDriver
@@ -77,16 +77,14 @@ interface AuthenticatedRequest extends Request {
 export class AppDriver {
     private db = new SplitifydFirestoreTestDatabase();
     private authService = new StubAuthService();
-    private handlerRegistry: Record<string, RequestHandler>;
+    private routeDefinitions: RouteDefinition[];
 
     constructor() {
-        // Create handler registry using the ApplicationFactory
-        // This creates a fresh ComponentBuilder internally with our test dependencies
-        this.handlerRegistry = createHandlerRegistry(this.authService, this.db);
+        // Create a ComponentBuilder with our test dependencies
+        const componentBuilder = new ComponentBuilder(this.authService, this.db);
 
-        // Note: We don't populate the global routeDefinitions here because
-        // that would mutate shared state across test instances. Instead,
-        // we look up handlers from our local registry in dispatchByHandler().
+        // Create populated route definitions using the component builder
+        this.routeDefinitions = createRouteDefinitions(componentBuilder);
     }
 
 
@@ -184,7 +182,7 @@ export class AppDriver {
      * Looks up route configuration by handler name
      */
     private findRouteByHandler(handlerName: string): RouteDefinition | undefined {
-        return routeDefinitions.find(route => route.handlerName === handlerName);
+        return this.routeDefinitions.find(route => route.handlerName === handlerName);
     }
 
     /**
@@ -201,10 +199,10 @@ export class AppDriver {
             throw new Error(`No route found for handler: ${handlerName}`);
         }
 
-        // Get the handler function from our local registry
-        const handlerFn = this.handlerRegistry[handlerName];
+        // Get the handler function from the route definition
+        const handlerFn = route.handler;
         if (!handlerFn) {
-            throw new Error(`Handler function not found in registry: ${handlerName}`);
+            throw new Error(`Handler function not found on route: ${handlerName}`);
         }
 
         // Set method and path from route configuration

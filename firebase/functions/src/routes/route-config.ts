@@ -37,7 +37,7 @@ export interface RouteDefinition {
  * Centralized route configuration for the Splitifyd API.
  * This serves as the single source of truth for all routes in both production and testing.
  */
-export const routeDefinitions: RouteDefinition[] = [
+const routeDefinitions: RouteDefinition[] = [
     // === Diagnostics & Infrastructure ===
     {
         method: 'GET',
@@ -460,10 +460,7 @@ export const routeDefinitions: RouteDefinition[] = [
 ];
 
 export function createRouteDefinitions(componentBuilder: ComponentBuilder) {
-    const handlerRegistry = createHandlerRegistry(
-        componentBuilder.buildAuthService(),
-        componentBuilder.getDatabase()
-    );
+    const handlerRegistry = createHandlerRegistry(componentBuilder);
 
     // Populate route definitions with handlers from the registry
     const routes = routeDefinitions.slice();
