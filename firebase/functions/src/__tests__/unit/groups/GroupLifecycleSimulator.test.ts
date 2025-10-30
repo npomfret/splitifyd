@@ -463,7 +463,9 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         });
 
         it('requires authentication', async () => {
-            await expect(appDriver.listGroups('', { limit: 1 })).rejects.toThrow();
+            const response = await appDriver.listGroups('', { limit: 1 });
+            expect(response).toHaveProperty('error');
+            expect((response as any).error.code).toBe('UNAUTHORIZED');
         });
 
         it('supports includeMetadata flag', async () => {

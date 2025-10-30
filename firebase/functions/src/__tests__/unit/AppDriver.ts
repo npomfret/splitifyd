@@ -50,12 +50,12 @@ import { GroupMemberHandlers } from '../../groups/GroupMemberHandlers';
 import { GroupSecurityHandlers } from '../../groups/GroupSecurityHandlers';
 import { GroupShareHandlers } from '../../groups/GroupShareHandlers';
 import { PolicyHandlers } from '../../policies/PolicyHandlers';
-import { getCurrentPolicy } from '../../policies/public-handlers';
 import { UserHandlers as PolicyUserHandlers } from '../../policies/UserHandlers';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreWriter } from '../../services/firestore';
 import { SettlementHandlers } from '../../settlements/SettlementHandlers';
 import { UserHandlers } from '../../user/UserHandlers';
+import { RegisterUserResult } from '../../services/UserService2';
 import { StubAuthService } from './mocks/StubAuthService';
 import { routeDefinitions, RouteDefinition } from '../../routes/route-config';
 import type { RequestHandler, Request, Response, NextFunction } from 'express';
@@ -172,6 +172,21 @@ export class AppDriver {
 
             // Activity feed
             getActivityFeed: (req, res) => this.activityFeedHandlers.getActivityFeed(req, res),
+
+            // Auth
+            register: async (req, res) => {
+                const userService = this.componentBuilder.buildUserService();
+                const result = await userService.registerUser(req.body);
+                res.status(201).json(result);
+            },
+
+            // Public policy handlers
+            getCurrentPolicy: async (req, res) => {
+                const { id } = req.params;
+                const policyService = this.componentBuilder.buildPolicyService();
+                const result = await policyService.getCurrentPolicy(id);
+                res.json(result);
+            },
         };
     }
 
@@ -436,11 +451,9 @@ export class AppDriver {
         }
 
         req.query = query;
-        const res = createStubResponse();
+        const res = await this.dispatchByHandler('listGroups', req);
 
-        await this.groupHandlers.listGroups(req, res);
-
-        return (res as any).getJson() as ListGroupsResponse;
+        return res.getJson() as ListGroupsResponse;
     }
 
     async getGroupFullDetails(
@@ -478,11 +491,9 @@ export class AppDriver {
         }
 
         req.query = query;
-        const res = createStubResponse();
+        const res = await this.dispatchByHandler('getGroupFullDetails', req);
 
-        await this.groupHandlers.getGroupFullDetails(req, res);
-
-        return (res as any).getJson() as GroupFullDetailsDTO;
+        return res.getJson() as GroupFullDetailsDTO;
     }
 
     async createGroup(userId1: UserId, groupRequest = new CreateGroupRequestBuilder().build()) {
@@ -759,8 +770,10 @@ export class AppDriver {
         return res.getJson() as UserProfileResponse;
     }
 
-    async registerUser(registration: UserRegistration): Promise<{ success: boolean; message: string; user: { uid: string; displayName: DisplayName | undefined; }; }> {
-        return this.componentBuilder.buildUserService().registerUser(registration);
+    async registerUser(registration: UserRegistration): Promise<RegisterUserResult> {
+        const req = createStubRequest('', registration);
+        const res = await this.dispatchByHandler('register', req);
+        return res.getJson() as RegisterUserResult;
     }
 
     async createPolicy(userId: UserId, policyData: { policyName: string; text: string; }): Promise<CreatePolicyResponse> {
@@ -819,11 +832,8 @@ export class AppDriver {
 
     async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
         const req = createStubRequest('', {}, { id: policyId });
-        const res = createStubResponse();
-
-        await getCurrentPolicy(req, res);
-
-        return (res as any).getJson() as CurrentPolicyResponse;
+        const res = await this.dispatchByHandler('getCurrentPolicy', req);
+        return res.getJson() as CurrentPolicyResponse;
     }
 
     async getActivityFeed(
@@ -841,18 +851,28 @@ export class AppDriver {
         }
 
         req.query = query;
-        const res = createStubResponse();
+        const res = await this.dispatchByHandler('getActivityFeed', req);
 
-        await this.activityFeedHandlers.getActivityFeed(req, res);
-
-        return (res as any).getJson() as { items: ActivityFeedItem[]; hasMore: boolean; nextCursor?: string; };
+        return res.getJson() as { items: ActivityFeedItem[]; hasMore: boolean; nextCursor?: string; };
     }
 
+    // =============================================================================
+    // Test Helper Methods
+    // These methods directly access the database for test assertions and setup.
+    // They do NOT go through the HTTP handler layer.
+    // =============================================================================
+
+    /**
+     * Test helper - directly reads activity feed items from database for assertions
+     */
     async getActivityFeedItems(userId: UserId) {
         const snapshot = await this.db.collection('activity-feed').doc(userId).collection('items').get();
         return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     }
 
+    /**
+     * Test helper - verifies that expected activity feed events were created
+     */
     async expectNotificationUpdate(
         userId: UserId,
         groupId: GroupId | string,
@@ -906,7 +926,9 @@ export class AppDriver {
         }
     }
 
-    // convenience function - not a public interface method
+    /**
+     * Test helper - convenience function for adding multiple members to a group
+     */
     async addMembersToGroup(groupId: GroupId | string, ownerUserId: string, memberUserIds: string[]) {
         const shareLink = await this.generateShareableLink(ownerUserId, groupId);
         for (const userId of memberUserIds) {

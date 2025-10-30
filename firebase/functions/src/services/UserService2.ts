@@ -24,7 +24,7 @@ const REGISTRATION_FAILURE_MESSAGE = 'Unable to create account. If you already r
 /**
  * Result of a successful user registration
  */
-interface RegisterUserResult {
+export interface RegisterUserResult {
     success: boolean;
     message: string;
     user: {
