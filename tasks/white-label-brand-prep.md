@@ -25,6 +25,8 @@
 ## Progress
 - Exported shared tenant/app configuration schemas so both Functions and the webapp enforce the branded Phase 1 types.
 - Re-pointed Functions config validation (with unit coverage) at the shared schema to accept tenant payloads and reject incomplete Firebase client configs.
+- Introduced the tenant-identification middleware (plus route exemption list) so the Express pipeline resolves host, override, and fallback flows before handing off to `/config`.
+- Added Vitest coverage for domain, override, fallback, and error paths to lock in the identification behaviour.
 
 ## Agent's Ideas (Based on App Analysis)
 

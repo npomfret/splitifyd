@@ -7,7 +7,7 @@ import { getIdentityToolkitConfig } from '../client-config';
 import { getAuth, getFirestore } from '../firebase';
 import { logger, LoggerContext } from '../logger';
 import { applyCacheControl } from '../middleware/cache-control';
-import { tenantContextMiddleware, type TenantContextConfig } from '../middleware/tenant-context';
+import { createTenantIdentificationMiddleware, type TenantIdentificationConfig } from '../middleware/tenant-identification';
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { validateContentType, validateRequestStructure } from '../middleware/validation';
 import { ComponentBuilder } from '../services/ComponentBuilder';
@@ -19,7 +19,7 @@ const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const tenantRegistryService = applicationBuilder.buildTenantRegistryService();
 
-const tenantContextConfig: TenantContextConfig = {
+const tenantIdentificationConfig: TenantIdentificationConfig = {
     allowOverrideHeader: () => !getConfig().isProduction,
     allowDefaultFallback: () => true, // Always allow fallback to hardcoded default tenant
 };
@@ -60,7 +60,7 @@ export const applyStandardMiddleware = (app: express.Application) => {
     app.use(express.json({ limit: getConfig().requestBodyLimit }));
 
     // Resolve tenant context for all subsequent middleware and handlers
-    app.use(tenantContextMiddleware(tenantRegistryService, tenantContextConfig));
+    app.use(createTenantIdentificationMiddleware(tenantRegistryService, tenantIdentificationConfig));
 
     // Serialize all JSON responses through the API serializer
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
