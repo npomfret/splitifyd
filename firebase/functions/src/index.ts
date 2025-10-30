@@ -3,15 +3,12 @@ import express from 'express';
 import { onRequest } from 'firebase-functions/v2/https';
 import { authenticate, authenticateAdmin, authenticateSystemUser } from './auth/middleware';
 import { getConfig as getClientConfig } from './client-config';
-import { FirestoreCollections, HTTP_STATUS } from './constants';
-import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
+import { HTTP_STATUS } from './constants';
 import { logger } from './logger';
 import { disableETags } from './middleware/cache-control';
-import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
 import { logMetrics } from './scheduled/metrics-logger';
 import { borrowTestUser, returnTestUser } from './test-pool/handlers';
 import { testClearPolicyAcceptances, testPromoteToAdmin } from './test/policy-handlers';
-import { getEnhancedConfigResponse } from './utils/config-response';
 import { ApiError } from './utils/errors';
 import { applyStandardMiddleware } from './utils/middleware';
 import { routeDefinitions, populateRouteHandlers } from './routes/route-config';
@@ -50,71 +47,20 @@ const asyncHandler = (fn: Function) => (req: express.Request, res: express.Respo
 
 /**
  * Handler registry that maps handler names from route configuration to actual handler functions.
- * Combines ApplicationFactory handlers with inline diagnostic and test handlers.
+ * Uses ApplicationFactory to create all handlers with proper dependency injection.
  */
 function getHandlerRegistry(): Record<string, RequestHandler> {
-    // Get application builder and create handler registry from factory
     const appBuilder = getComponentBuilder();
-    const handlerRegistry = createHandlerRegistry(
+    return createHandlerRegistry(
         appBuilder.buildAuthService(),
-        appBuilder.getDatabase()
-    );
-
-    // Inline handlers for diagnostic endpoints
-    const getMetrics: RequestHandler = (req, res) => {
-        const snapshot = metrics.getSnapshot();
-        res.json(toAggregatedReport(snapshot));
-    };
-
-    const getHealth: RequestHandler = async (req, res) => {
-        const checks = await runHealthChecks();
-        const payload = buildHealthPayload(checks);
-        const statusCode = resolveHealthStatusCode(checks);
-        res.status(statusCode).json(payload);
-    };
-
-    const headHealth: RequestHandler = async (req, res) => {
-        const checks = await runHealthChecks();
-        const statusCode = resolveHealthStatusCode(checks);
-        res.status(statusCode).end();
-    };
-
-    const getEnv: RequestHandler = (req, res) => {
-        res.json(buildEnvPayload());
-    };
-
-    const getConfig: RequestHandler = (req, res) => {
-        const config = getEnhancedConfigResponse();
-        res.json(config);
-    };
-
-    const reportCspViolation: RequestHandler = (req, res) => {
-        try {
-            res.status(204).send();
-        } catch (error) {
-            logger.error('Error processing CSP violation report', error);
-            res.status(500).json({ error: 'Internal server error' });
+        appBuilder.getDatabase(),
+        {
+            borrowTestUser,
+            returnTestUser,
+            testClearPolicyAcceptances,
+            testPromoteToAdmin,
         }
-    };
-
-    // Merge factory handlers with inline handlers
-    return {
-        ...handlerRegistry,
-
-        // Diagnostics (override/add)
-        getMetrics,
-        getHealth,
-        headHealth,
-        getEnv,
-        getConfig,
-        reportCspViolation,
-
-        // Test endpoints (override/add)
-        borrowTestUser,
-        returnTestUser,
-        testClearPolicyAcceptances,
-        testPromoteToAdmin,
-    };
+    );
 }
 
 /**

@@ -2,7 +2,11 @@ import type { RequestHandler } from 'express';
 import { ComponentBuilder } from './services/ComponentBuilder';
 import type { IAuthService } from './services/auth';
 import type { IFirestoreDatabase } from './firestore-wrapper';
-import { FirestoreWriter } from './services/firestore';
+import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
+import { getConfig as getClientConfig } from './client-config';
+import { getEnhancedConfigResponse } from './utils/config-response';
+import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
+import { logger } from './logger';
 
 // Handler imports
 import { GroupHandlers } from './groups/GroupHandlers';
@@ -19,20 +23,31 @@ import { ActivityFeedHandlers } from './activity/ActivityHandlers';
 import { UserBrowserHandlers } from './browser/UserBrowserHandlers';
 
 /**
+ * Optional test handlers that can be included in the registry
+ */
+export interface TestHandlers {
+    borrowTestUser: RequestHandler;
+    returnTestUser: RequestHandler;
+    testClearPolicyAcceptances: RequestHandler;
+    testPromoteToAdmin: RequestHandler;
+}
+
+/**
  * Factory function that creates all application handlers with proper dependency injection.
  * This is the single source of truth for handler instantiation.
  *
  * @param authService - Authentication service implementation (Firebase or stub for testing)
  * @param db - Database implementation (Firestore or test database)
+ * @param testHandlers - Optional test handlers (only provided in non-production environments)
  * @returns Record mapping handler names to handler functions
  */
 export function createHandlerRegistry(
     authService: IAuthService,
-    db: IFirestoreDatabase
+    db: IFirestoreDatabase,
+    testHandlers?: TestHandlers
 ): Record<string, RequestHandler> {
     // Create ComponentBuilder with injected dependencies
     const componentBuilder = new ComponentBuilder(authService, db);
-    const firestoreWriter = componentBuilder.buildFirestoreWriter();
 
     // Instantiate all handler classes
     const settlementHandlers = new SettlementHandlers(componentBuilder.buildSettlementService());
@@ -58,8 +73,45 @@ export function createHandlerRegistry(
     const userService = componentBuilder.buildUserService();
     const policyService = componentBuilder.buildPolicyService();
 
-    // Return handler registry
-    return {
+    // Inline diagnostic handlers
+    const getMetrics: RequestHandler = (req, res) => {
+        const snapshot = metrics.getSnapshot();
+        res.json(toAggregatedReport(snapshot));
+    };
+
+    const getHealth: RequestHandler = async (req, res) => {
+        const checks = await runHealthChecks();
+        const payload = buildHealthPayload(checks);
+        const statusCode = resolveHealthStatusCode(checks);
+        res.status(statusCode).json(payload);
+    };
+
+    const headHealth: RequestHandler = async (req, res) => {
+        const checks = await runHealthChecks();
+        const statusCode = resolveHealthStatusCode(checks);
+        res.status(statusCode).end();
+    };
+
+    const getEnv: RequestHandler = (req, res) => {
+        res.json(buildEnvPayload());
+    };
+
+    const getConfig: RequestHandler = (req, res) => {
+        const config = getEnhancedConfigResponse();
+        res.json(config);
+    };
+
+    const reportCspViolation: RequestHandler = (req, res) => {
+        try {
+            res.status(204).send();
+        } catch (error) {
+            logger.error('Error processing CSP violation report', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    };
+
+    // Build handler registry
+    const registry: Record<string, RequestHandler> = {
         // Group handlers
         createGroup: groupHandlers.createGroup,
         listGroups: groupHandlers.listGroups,
@@ -139,5 +191,23 @@ export function createHandlerRegistry(
             const result = await policyService.getCurrentPolicy(id);
             res.json(result);
         },
+
+        // Diagnostic handlers
+        getMetrics,
+        getHealth,
+        headHealth,
+        getEnv,
+        getConfig,
+        reportCspViolation,
     };
+
+    // Add test handlers if provided
+    if (testHandlers) {
+        registry.borrowTestUser = testHandlers.borrowTestUser;
+        registry.returnTestUser = testHandlers.returnTestUser;
+        registry.testClearPolicyAcceptances = testHandlers.testClearPolicyAcceptances;
+        registry.testPromoteToAdmin = testHandlers.testPromoteToAdmin;
+    }
+
+    return registry;
 }
