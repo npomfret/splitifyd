@@ -45,7 +45,7 @@ const DEFAULT_CACHE_KEY = '__default__';
  * This ensures the application can always run even if no tenants are configured in Firestore.
  * Used for development, testing, and as a safety fallback.
  */
-const HARDCODED_FALLBACK_TENANT: TenantRegistryRecord = {
+export const HARDCODED_FALLBACK_TENANT: TenantRegistryRecord = {
     tenant: {
         tenantId: toTenantId('system-fallback-tenant'),
         branding: {
