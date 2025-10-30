@@ -10,9 +10,8 @@ import {disableETags} from './middleware/cache-control';
 import {logMetrics} from './scheduled/metrics-logger';
 import {ApiError} from './utils/errors';
 import {applyStandardMiddleware} from './utils/middleware';
-import {populateRouteHandlers, routeDefinitions} from './routes/route-config';
-import {createHandlerRegistry} from './ApplicationFactory';
 import {getComponentBuilder} from './ComponentBuilderSingleton';
+import {createRouteDefinitions} from "./routes/route-config";
 
 let app: express.Application | null = null;
 
@@ -45,11 +44,7 @@ const asyncHandler = (fn: Function) => (req: express.Request, res: express.Respo
 
 function setupRoutes(app: express.Application): void {
     const appBuilder = getComponentBuilder();
-
-    const handlerRegistry = createHandlerRegistry(
-        appBuilder.buildAuthService(),
-        appBuilder.getDatabase()
-    );
+    const routeDefinitions = createRouteDefinitions(appBuilder);
 
     const middlewareRegistry = {
         authenticate,
@@ -59,9 +54,6 @@ function setupRoutes(app: express.Application): void {
 
     const config = getClientConfig();
 
-    // Populate route definitions with handlers from the registry
-    populateRouteHandlers(handlerRegistry);
-
     // Setup routes from configuration
     for (const route of routeDefinitions) {
         // Skip test-only routes in production
@@ -70,7 +62,7 @@ function setupRoutes(app: express.Application): void {
         }
 
         // Get the handler from the route definition (already populated)
-        const handler = route.handler || handlerRegistry[route.handlerName];
+        const handler = route.handler;
         if (!handler) {
             throw new Error(`Handler not found for route: ${route.handlerName}`);
         }

@@ -1,5 +1,7 @@
 import type { RequestHandler } from 'express';
 import { FirestoreCollections } from '../constants';
+import {createHandlerRegistry} from "../ApplicationFactory";
+import { ComponentBuilder } from "../services/ComponentBuilder";
 
 /**
  * Route configuration type defining the structure of each route
@@ -457,14 +459,16 @@ export const routeDefinitions: RouteDefinition[] = [
     },
 ];
 
-/**
- * Populates the handler functions on route definitions from the handler registry.
- * This connects the route definitions to the actual handler implementations.
- *
- * @param handlerRegistry - Map of handler names to handler functions from ApplicationFactory
- */
-export function populateRouteHandlers(handlerRegistry: Record<string, RequestHandler>): void {
-    for (const route of routeDefinitions) {
+export function createRouteDefinitions(componentBuilder: ComponentBuilder) {
+    const handlerRegistry = createHandlerRegistry(
+        componentBuilder.buildAuthService(),
+        componentBuilder.getDatabase()
+    );
+
+    // Populate route definitions with handlers from the registry
+    const routes = routeDefinitions.slice();
+
+    for (const route of routes) {
         const handler = handlerRegistry[route.handlerName];
         if (handler) {
             route.handler = handler;
@@ -472,4 +476,6 @@ export function populateRouteHandlers(handlerRegistry: Record<string, RequestHan
             console.warn(`Warning: No handler found for route ${route.method} ${route.path} (${route.handlerName})`);
         }
     }
+
+    return routes;
 }
