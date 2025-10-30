@@ -11,7 +11,6 @@ import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal
 import { LoadingState, WarningBanner } from './components/ui';
 import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
 import { navigationService } from './services/navigation.service';
-import { FeatureGate } from './utils/feature-flags.ts';
 
 type RouterInjectedProps = Partial<{
     matches: Record<string, string | undefined>;
@@ -132,6 +131,7 @@ export function App() {
     const marketingFlags = config?.tenant?.branding?.marketingFlags;
     const showLandingPage = marketingFlags?.showLandingPage ?? false;
     const showPricingPage = marketingFlags?.showPricingPage ?? false;
+    const enableAdvancedReporting = config?.tenant?.features?.enableAdvancedReporting ?? true;
 
     const handlePolicyAcceptance = async () => {
         // Refresh policy status after acceptance to hide the modal
@@ -160,9 +160,7 @@ export function App() {
                 <Route path='/settings' component={SettingsRoute} />
 
                 {/* Browser Routes - Protected */}
-                <FeatureGate feature='enableAdvancedReporting' defaultValue>
-                    <Route path='/browser/users' component={UsersBrowserRoute} />
-                </FeatureGate>
+                {enableAdvancedReporting && <Route path='/browser/users' component={UsersBrowserRoute} />}
 
                 {/* Group Routes - Protected */}
                 <Route path='/groups/:id' component={GroupDetailRoute} />
