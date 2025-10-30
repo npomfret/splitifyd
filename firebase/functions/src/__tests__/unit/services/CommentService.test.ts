@@ -112,25 +112,6 @@ describe('CommentService - Consolidated Tests', () => {
             expect(result.authorName).toBe('Captain Comment');
         });
 
-        it('should throw when group display name missing', async () => {
-            const testGroup = new GroupDTOBuilder()
-                .withId('test-group')
-                .build();
-
-            db.seedGroup(testGroup.id, testGroup);
-
-            const membershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('user-id')
-                .withGroupId(testGroup.id)
-                .withGroupDisplayName('')
-                .build();
-            db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
-
-            await expect(
-                commentService.createGroupComment(testGroup.id, { text: 'Fallback comment', groupId: testGroup.id }, 'user-id'),
-            ).rejects.toThrow(ApiError);
-        });
-
         it('should throw error when user lacks access', async () => {
             // Don't set up any group data
 
@@ -271,29 +252,6 @@ describe('CommentService - Consolidated Tests', () => {
                 const membershipDoc = new GroupMemberDocumentBuilder()
                     .withUserId(userId)
                     .withGroupId(targetId)
-                    .build();
-                db.seedGroupMember(targetId, userId, membershipDoc);
-
-                await expect(commentService.createGroupComment(targetId, commentData, userId)).rejects.toThrow(ApiError);
-            });
-
-            it('should throw error when group display name is empty', async () => {
-                const userId = 'user-999';
-                const targetId = toGroupId('group-999');
-                const commentData: CreateGroupCommentRequest = {
-                    text: 'Display name test',
-                    groupId: targetId,
-                };
-
-                const testGroup = new GroupDTOBuilder()
-                    .withId(targetId)
-                    .build();
-                db.seedGroup(targetId, testGroup);
-
-                const membershipDoc = new GroupMemberDocumentBuilder()
-                    .withUserId(userId)
-                    .withGroupId(targetId)
-                    .withGroupDisplayName('')
                     .build();
                 db.seedGroupMember(targetId, userId, membershipDoc);
 

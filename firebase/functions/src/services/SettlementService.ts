@@ -1,18 +1,4 @@
-import {
-    ActivityFeedActions,
-    ActivityFeedEventTypes,
-    CreateSettlementRequest,
-    GroupId,
-    GroupMember,
-    ISOString,
-    SettlementDTO,
-    SettlementId,
-    SettlementWithMembers,
-    toISOString,
-    toSettlementId,
-    UpdateSettlementRequest,
-    UserId,
-} from '@splitifyd/shared';
+import {ActivityFeedActions, ActivityFeedEventTypes, CreateSettlementRequest, GroupId, ISOString, SettlementDTO, SettlementId, SettlementWithMembers, toISOString, toSettlementId, UpdateSettlementRequest, UserId,} from '@splitifyd/shared';
 import {FirestoreCollections, HTTP_STATUS} from '../constants';
 import {FieldValue} from '../firestore-wrapper';
 import {logger} from '../logger';
@@ -133,8 +119,6 @@ export class SettlementService {
             actorMember,
         } = await this.groupMemberService.getGroupAccessContext(settlementData.groupId, userId);
 
-        const actorDisplayName = actorMember.groupDisplayName;
-
         // Verify payer and payee are still in the group (race condition protection)
         for (const uid of [settlementData.payerId, settlementData.payeeId]) {
             if (!memberIds.includes(uid)) {
@@ -219,7 +203,7 @@ export class SettlementService {
                 eventType: ActivityFeedEventTypes.SETTLEMENT_CREATED,
                 action: ActivityFeedActions.CREATE,
                 actorId: userId,
-                actorName: actorDisplayName,
+                actorName: actorMember.groupDisplayName,
                 timestamp: now,
                 details: this.activityFeedService.buildDetails({
                     settlement: {

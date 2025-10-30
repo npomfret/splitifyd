@@ -1,6 +1,6 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, GroupDTO, amountToSmallestUnit, GroupId, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse, UserId } from '@splitifyd/shared';
 import { toISOString } from '@splitifyd/shared';
-import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import { FirestoreCollections } from '../constants';
 import { FieldValue } from '../firestore-wrapper';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -66,11 +66,7 @@ export class GroupMemberService {
             throw options.forbiddenErrorFactory?.() ?? Errors.FORBIDDEN();
         }
 
-        return {
-            group: context.group,
-            memberIds: context.memberIds,
-            actorMember: context.actorMember,
-        };
+        return context;
     }
 
     private async runMembershipTransaction<T>(
@@ -109,17 +105,6 @@ export class GroupMemberService {
         if (!actorMember || !memberIds.includes(userId)) {
             throw options.forbiddenErrorFactory?.() ?? Errors.FORBIDDEN();
         }
-
-        const normalizedDisplayName = actorMember.groupDisplayName?.trim();
-        if (!normalizedDisplayName) {
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'GROUP_DISPLAY_NAME_MISSING',
-                'Group member is missing required display name',
-            );
-        }
-
-        actorMember.groupDisplayName = normalizedDisplayName;
 
         return {
             group,
@@ -217,14 +202,7 @@ export class GroupMemberService {
                 throw Errors.NOT_FOUND('Group');
             }
 
-            const actorDisplayName = targetMembership.groupDisplayName?.trim();
-            if (!actorDisplayName) {
-                throw new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR,
-                    'GROUP_DISPLAY_NAME_MISSING',
-                    'Group member is missing required display name',
-                );
-            }
+            const actorDisplayName = targetMembership.groupDisplayName;
             const now = toISOString(new Date().toISOString());
 
             await this.runMembershipTransaction(groupId, async (context) => {
@@ -430,27 +408,12 @@ export class GroupMemberService {
         timer.endPhase();
 
         const actorId = isLeaving ? targetUserId : requestingUserId;
-        const targetDisplayName = memberDoc.groupDisplayName?.trim();
-        if (!targetDisplayName) {
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'GROUP_DISPLAY_NAME_MISSING',
-                'Group member is missing required display name',
-            );
-        }
+        const targetDisplayName = memberDoc.groupDisplayName;
         let actorDisplayName = targetDisplayName;
 
         if (!isLeaving) {
             const actorMembership = await this.firestoreReader.getGroupMember(groupId, requestingUserId);
-            const normalizedActorName = actorMembership?.groupDisplayName?.trim();
-            if (!normalizedActorName) {
-                throw new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR,
-                    'GROUP_DISPLAY_NAME_MISSING',
-                    'Group member is missing required display name',
-                );
-            }
-            actorDisplayName = normalizedActorName;
+            actorDisplayName = actorMembership!.groupDisplayName;
         }
 
         const now = toISOString(new Date().toISOString());

@@ -1,17 +1,16 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toCommentId, toISOString } from '@splitifyd/shared';
-import type { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
-import { HTTP_STATUS } from '../constants';
-import { logger } from '../logger';
+import type {ExpenseId, GroupId, UserId} from '@splitifyd/shared';
+import {ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toCommentId, toISOString} from '@splitifyd/shared';
+import {HTTP_STATUS} from '../constants';
+import {logger} from '../logger';
 import * as measure from '../monitoring/measure';
-import { PerformanceTimer } from '../monitoring/PerformanceTimer';
-import { ApiError } from '../utils/errors';
+import {PerformanceTimer} from '../monitoring/PerformanceTimer';
+import {ApiError} from '../utils/errors';
 import * as loggerContext from '../utils/logger-context';
-import { ActivityFeedService } from './ActivityFeedService';
-import { ExpenseCommentStrategy } from './comments/ExpenseCommentStrategy';
-import { GroupCommentStrategy } from './comments/GroupCommentStrategy';
-import type { IFirestoreReader } from './firestore';
-import type { IFirestoreWriter } from './firestore';
-import { GroupMemberService } from './GroupMemberService';
+import {ActivityFeedService} from './ActivityFeedService';
+import {ExpenseCommentStrategy} from './comments/ExpenseCommentStrategy';
+import {GroupCommentStrategy} from './comments/GroupCommentStrategy';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import {GroupMemberService} from './GroupMemberService';
 
 /**
  * Service for managing comment operations
@@ -141,13 +140,10 @@ export class CommentService {
             forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group'),
         });
 
-        const authorName = actorMember.groupDisplayName;
-        const activityActorDisplayName = actorMember.groupDisplayName;
-
         const now = toISOString(new Date().toISOString());
         const commentCreateData: Omit<CommentDTO, 'id'> = {
             authorId: userId,
-            authorName,
+            authorName: actorMember.groupDisplayName,
             text: commentData.text,
             createdAt: now,
             updatedAt: now,
@@ -166,7 +162,7 @@ export class CommentService {
                 eventType: ActivityFeedEventTypes.COMMENT_ADDED,
                 action: ActivityFeedActions.COMMENT,
                 actorId: userId,
-                actorName: activityActorDisplayName,
+                actorName: actorMember.groupDisplayName,
                 timestamp: now,
                 details: this.activityFeedService.buildDetails({
                     comment: {

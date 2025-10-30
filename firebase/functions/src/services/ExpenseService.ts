@@ -135,7 +135,6 @@ export class ExpenseService {
             memberIds,
             actorMember,
         } = await this.groupMemberService.getGroupAccessContext(validatedExpenseData.groupId, userId);
-        const actorDisplayName = actorMember.groupDisplayName;
         timer.endPhase();
 
         // Check if user can create expenses in this group
@@ -243,7 +242,7 @@ export class ExpenseService {
                 eventType: ActivityFeedEventTypes.EXPENSE_CREATED,
                 action: ActivityFeedActions.CREATE,
                 actorId: userId,
-                actorName: actorDisplayName,
+                actorName: actorMember.groupDisplayName,
                 timestamp: now,
                 details: this.activityFeedService.buildDetails({
                     expense: {
@@ -306,7 +305,6 @@ export class ExpenseService {
             memberIds,
             actorMember,
         } = await this.groupMemberService.getGroupAccessContext(expense.groupId, userId);
-        const actorDisplayName = actorMember.groupDisplayName;
         timer.endPhase();
 
         // Group is already a GroupDTO from FirestoreReader
@@ -408,7 +406,7 @@ export class ExpenseService {
                 eventType: ActivityFeedEventTypes.EXPENSE_UPDATED,
                 action: ActivityFeedActions.UPDATE,
                 actorId: userId,
-                actorName: actorDisplayName,
+                actorName: actorMember.groupDisplayName,
                 timestamp: updates.updatedAt,
                 details: this.activityFeedService.buildDetails({
                     expense: {
@@ -540,7 +538,6 @@ export class ExpenseService {
             memberIds,
             actorMember,
         } = await this.groupMemberService.getGroupAccessContext(expense.groupId, userId);
-        const actorDisplayName = actorMember.groupDisplayName;
         timer.endPhase();
 
         const canDeleteExpense = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'expenseDeletion', { expense: expense });
@@ -597,7 +594,7 @@ export class ExpenseService {
                     eventType: ActivityFeedEventTypes.EXPENSE_DELETED,
                     action: ActivityFeedActions.DELETE,
                     actorId: userId,
-                    actorName: actorDisplayName,
+                    actorName: actorMember.groupDisplayName,
                     timestamp: now,
                     details: this.activityFeedService.buildDetails({
                         expense: {

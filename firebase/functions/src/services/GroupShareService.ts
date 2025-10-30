@@ -210,12 +210,18 @@ export class GroupShareService {
         }
 
         timer.startPhase('query');
-        const {
-            group,
-        } = await this.groupMemberService.getGroupAccessContext(groupId, userId, {
-            notFoundErrorFactory: () => new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found'),
-            forbiddenErrorFactory: () => new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links'),
-        });
+        const [group, isMember] = await Promise.all([
+            this.firestoreReader.getGroup(groupId),
+            this.groupMemberService.isGroupMemberAsync(groupId, userId),
+        ]);
+
+        if (!group) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+        }
+
+        if (!isMember) {
+            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
+        }
 
         const shareToken = generateShareToken();
         timer.endPhase();
