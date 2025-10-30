@@ -93,6 +93,7 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
                 userIds[0],
                 new CreateGroupRequestBuilder()
                     .withName(`Private Group ${uuidv4()}`)
+                    .withGroupDisplayName("Owner Display")
                     .build(),
             );
 

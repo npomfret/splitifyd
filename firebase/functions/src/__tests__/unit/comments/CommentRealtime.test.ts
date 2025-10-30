@@ -2,6 +2,7 @@
 // Migrated from integration/comments.test.ts to avoid Firebase emulator dependency
 
 import { beforeEach, describe, expect, test } from 'vitest';
+import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { AppDriver } from '../AppDriver';
 
 describe('Comment Real-time Subscriptions - Unit Tests', () => {
@@ -27,7 +28,13 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
     describe('Real-time onSnapshot Updates', () => {
         test('should receive real-time updates when comments are added', async () => {
             // Create group
-            const group = await appDriver.createGroup(userIds[0]);
+            const group = await appDriver.createGroup(
+                userIds[0],
+                new CreateGroupRequestBuilder()
+                    .withName('Realtime Group')
+                    .withGroupDisplayName('Owner Display')
+                    .build(),
+            );
             const { db } = appDriver.getTestHarness();
 
             // Set up listener like the frontend does
@@ -67,7 +74,13 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
 
         test('should handle Firestore query ordering correctly', async () => {
             // Create group and add all users as members
-            const group = await appDriver.createGroup(userIds[0]);
+            const group = await appDriver.createGroup(
+                userIds[0],
+                new CreateGroupRequestBuilder()
+                    .withName('Realtime Members Group')
+                    .withGroupDisplayName('Owner Display')
+                    .build(),
+            );
             const shareLink = await appDriver.generateShareableLink(userIds[0], group.id);
             await appDriver.joinGroupByLink(userIds[1], shareLink.linkId);
 
@@ -103,7 +116,13 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
 
         test('should receive updates for multiple comments in real-time', async () => {
             // Create group and add all users as members
-            const group = await appDriver.createGroup(userIds[0]);
+            const group = await appDriver.createGroup(
+                userIds[0],
+                new CreateGroupRequestBuilder()
+                    .withName('Realtime Updates Group')
+                    .withGroupDisplayName('Owner Display')
+                    .build(),
+            );
             const shareLink = await appDriver.generateShareableLink(userIds[0], group.id);
             await appDriver.joinGroupByLink(userIds[1], shareLink.linkId);
             await appDriver.joinGroupByLink(userIds[2], shareLink.linkId);
@@ -150,7 +169,13 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
     describe('Subscription Lifecycle', () => {
         test('should stop receiving updates after unsubscribe', async () => {
             // Create group
-            const group = await appDriver.createGroup(userIds[0]);
+            const group = await appDriver.createGroup(
+                userIds[0],
+                new CreateGroupRequestBuilder()
+                    .withName('Realtime Error Group')
+                    .withGroupDisplayName('Owner Display')
+                    .build(),
+            );
             const { db } = appDriver.getTestHarness();
 
             let receivedComments: any[] = [];

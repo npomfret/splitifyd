@@ -78,6 +78,10 @@ export class CreateGroupModalPage extends BasePage {
         return this.getModalContainer().locator('input[name="name"]');
     }
 
+    getGroupDisplayNameInput(): Locator {
+        return this.getModalContainer().getByTestId('group-display-name-input');
+    }
+
     /**
      * Group description textarea field
      */
@@ -97,6 +101,13 @@ export class CreateGroupModalPage extends BasePage {
      */
     getGroupDescriptionHelpText(): Locator {
         return this.getModalContainer().getByText(translation.createGroupModal.groupDescriptionHelpText);
+    }
+
+    /**
+     * Group display name help text
+     */
+    getGroupDisplayNameHelpText(): Locator {
+        return this.getModalContainer().getByText(translation.createGroupModal.groupDisplayNameHelpText);
     }
 
     // ============================================================================
@@ -188,6 +199,7 @@ export class CreateGroupModalPage extends BasePage {
         // Wait for inputs to be editable (not just visible)
         // This ensures the modal is fully ready and stable
         await expect(this.getGroupNameInput()).toBeEditable({ timeout });
+        await expect(this.getGroupDisplayNameInput()).toBeEditable({ timeout });
         await expect(this.getGroupDescriptionInput()).toBeEditable({ timeout });
 
         // Submit button should be visible and attached to DOM
@@ -269,11 +281,24 @@ export class CreateGroupModalPage extends BasePage {
         await input.blur();
     }
 
+    async fillGroupDisplayName(displayName: string): Promise<void> {
+        const input = this.getGroupDisplayNameInput();
+        await expect(input).toBeVisible();
+        await expect(input).toBeEnabled();
+        await input.click();
+        await input.fill(displayName);
+        await input.dispatchEvent('input');
+        await input.blur();
+    }
+
     /**
      * Fill both group name and description fields
      */
-    async fillGroupForm(name: string, description?: string): Promise<void> {
+    async fillGroupForm(name: string, description?: string, displayName?: string): Promise<void> {
         await this.fillGroupName(name);
+        if (displayName) {
+            await this.fillGroupDisplayName(displayName);
+        }
         if (description) {
             await this.fillGroupDescription(description);
         }
@@ -303,7 +328,7 @@ export class CreateGroupModalPage extends BasePage {
      * Complete create group process with form data
      * Does NOT wait for modal to close - caller should handle that
      */
-    async createGroup(name: string, description?: string): Promise<void> {
+    async createGroup(name: string, description?: string, displayName?: string): Promise<void> {
         // Defensive check: Verify modal is open at the start of the operation
         // This will fail early with clear error if modal is not visible
         // Error will include the group name being created for debugging context
@@ -313,7 +338,7 @@ export class CreateGroupModalPage extends BasePage {
             throw new Error(`Create Group Modal must be open before calling createGroup("${name}"). Modal not found or already closed.`);
         }
         console.log(`Creating new group: ${name}`);
-        await this.fillGroupForm(name, description);
+        await this.fillGroupForm(name, description, displayName);
         await this.submitForm();
     }
 
@@ -360,6 +385,7 @@ export class CreateGroupModalPage extends BasePage {
         await expect(this.getModalContainer()).toBeVisible();
         await expect(this.getModalTitle()).toBeVisible();
         await expect(this.getGroupNameInput()).toBeVisible();
+        await expect(this.getGroupDisplayNameInput()).toBeVisible();
         await expect(this.getGroupDescriptionInput()).toBeVisible();
         await expect(this.getSubmitButton()).toBeVisible();
         await expect(this.getCancelButton()).toBeVisible();
@@ -378,6 +404,7 @@ export class CreateGroupModalPage extends BasePage {
      */
     async verifyFormEmpty(): Promise<void> {
         await expect(this.getGroupNameInput()).toHaveValue('');
+        await expect(this.getGroupDisplayNameInput()).toBeVisible();
         await expect(this.getGroupDescriptionInput()).toHaveValue('');
         await expect(this.getSubmitButton()).toBeDisabled();
     }
@@ -387,6 +414,7 @@ export class CreateGroupModalPage extends BasePage {
      */
     async verifyFormEnabled(): Promise<void> {
         await expect(this.getGroupNameInput()).toBeEnabled();
+        await expect(this.getGroupDisplayNameInput()).toBeEnabled();
         await expect(this.getGroupDescriptionInput()).toBeEnabled();
         await expect(this.getSubmitButton()).toBeEnabled();
         await expect(this.getCancelButton()).toBeEnabled();
@@ -397,6 +425,7 @@ export class CreateGroupModalPage extends BasePage {
      */
     async verifyFormDisabled(): Promise<void> {
         await expect(this.getGroupNameInput()).toBeDisabled();
+        await expect(this.getGroupDisplayNameInput()).toBeDisabled();
         await expect(this.getGroupDescriptionInput()).toBeDisabled();
         await expect(this.getSubmitButton()).toBeDisabled();
         await expect(this.getCancelButton()).toBeDisabled();
@@ -448,6 +477,7 @@ export class CreateGroupModalPage extends BasePage {
      */
     async verifyHelpTextDisplayed(): Promise<void> {
         await expect(this.getGroupNameHelpText()).toBeVisible();
+        await expect(this.getGroupDisplayNameHelpText()).toBeVisible();
         await expect(this.getGroupDescriptionHelpText()).toBeVisible();
     }
 

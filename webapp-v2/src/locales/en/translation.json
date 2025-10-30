@@ -125,6 +125,9 @@
         "groupNameLabel": "Group Name",
         "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
         "groupNameHelpText": "Choose a name that describes what you'll be splitting expenses for.",
+        "groupDisplayNameLabel": "Your display name in this group",
+        "groupDisplayNamePlaceholder": "How should other members see your name?",
+        "groupDisplayNameHelpText": "This name appears above your expenses, comments, and activity in this group.",
         "groupDescriptionLabel": "Description (optional)",
         "groupDescriptionPlaceholder": "Add any details about this group...",
         "groupDescriptionHelpText": "Optional description to help members understand the group's purpose.",
@@ -134,7 +137,12 @@
         "validation": {
             "nameRequired": "Group name is required.",
             "nameTooShort": "Group name must be at least 2 characters long.",
-            "nameTooLong": "Group name must be less than 50 characters."
+            "nameTooLong": "Group name must be less than 50 characters.",
+            "displayNameRequired": "Enter a display name.",
+            "displayNameTooShort": "Display name must be at least 2 characters long.",
+            "displayNameTooLong": "Display name must be 50 characters or fewer.",
+            "displayNameInvalid": "Display name can only use letters, numbers, spaces, hyphens, underscores, and periods.",
+            "displayNameTaken": "That display name is already in use in this group."
         }
     },
     "loginPage": {

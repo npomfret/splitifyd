@@ -1,6 +1,8 @@
+import { ApiError } from '@/app/apiClient';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { logInfo } from '@/utils/browser-logger';
-import { signal } from '@preact/signals';
+import { signal, useComputed } from '@preact/signals';
 import { CreateGroupRequest, GroupId, toGroupName } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -12,10 +14,15 @@ interface CreateGroupModalProps {
     onSuccess?: (groupId: GroupId) => void;
 }
 
+const DISPLAY_NAME_PATTERN = /^[a-zA-Z0-9\s\-_.]+$/;
+
 export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModalProps) {
     const { t } = useTranslation();
+    const authStore = useAuthRequired();
+    const currentUser = useComputed(() => authStore.user);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
+    const [displayNameValidationError, setDisplayNameValidationError] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
     const emitModalDebugLog = (message: string, data?: Record<string, unknown>) => {
         if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
@@ -34,6 +41,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     // Create fresh signals for each modal instance to avoid stale state
     const [groupNameSignal] = useState(() => signal(''));
     const [groupDescriptionSignal] = useState(() => signal(''));
+    const [groupDisplayNameSignal] = useState(() => signal(currentUser.value?.displayName?.trim() ?? ''));
     const previousIsOpenRef = useRef(isOpen);
 
     // Reset form when modal opens (only on open transition, not while already open)
@@ -46,11 +54,13 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         if (!wasOpen && isNowOpen) {
             groupNameSignal.value = '';
             groupDescriptionSignal.value = '';
+            groupDisplayNameSignal.value = currentUser.value?.displayName?.trim() ?? '';
             setValidationError(null);
+            setDisplayNameValidationError(null);
             // Clear any validation errors from previous attempts
             enhancedGroupsStore.clearValidationError();
         }
-    }, [isOpen]);
+    }, [isOpen, currentUser.value?.displayName]);
 
     // Handle escape key to close modal
     useEffect(() => {
@@ -109,22 +119,53 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         return null;
     };
 
+    const validateDisplayName = (): string | null => {
+        const displayName = groupDisplayNameSignal.value.trim();
+
+        if (!displayName) {
+            return t('createGroupModal.validation.displayNameRequired');
+        }
+
+        if (displayName.length < 2) {
+            return t('createGroupModal.validation.displayNameTooShort');
+        }
+
+        if (displayName.length > 50) {
+            return t('createGroupModal.validation.displayNameTooLong');
+        }
+
+        if (!DISPLAY_NAME_PATTERN.test(displayName)) {
+            return t('createGroupModal.validation.displayNameInvalid');
+        }
+
+        return null;
+    };
+
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
 
         const validationError = validateForm();
         if (validationError) {
-            // Validation error is displayed in the modal
             setValidationError(validationError);
+            return;
+        }
+
+        const displayNameError = validateDisplayName();
+        if (displayNameError) {
+            setDisplayNameValidationError(displayNameError);
             return;
         }
 
         setIsSubmitting(true);
         setValidationError(null);
+        setDisplayNameValidationError(null);
 
         try {
+            const trimmedGroupName = groupNameSignal.value.trim();
+            const trimmedDisplayName = groupDisplayNameSignal.value.trim();
             const groupData: CreateGroupRequest = {
-                name: toGroupName(groupNameSignal.value.trim()),
+                name: toGroupName(trimmedGroupName),
+                groupDisplayName: trimmedDisplayName,
                 description: groupDescriptionSignal.value.trim() || undefined,
             };
 
@@ -138,8 +179,14 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             if (onSuccess) {
                 onSuccess(newGroup.id);
             }
+            setDisplayNameValidationError(null);
             onClose();
         } catch (error) {
+            if (error instanceof ApiError && error.code === 'DISPLAY_NAME_TAKEN') {
+                enhancedGroupsStore.clearValidationError();
+                setDisplayNameValidationError(t('createGroupModal.validation.displayNameTaken'));
+                return;
+            }
             // Error is already handled by the store (sets enhancedGroupsStore.errorSignal)
             // Just prevent unhandled promise rejection - don't close modal on error
         } finally {
@@ -149,7 +196,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
     if (!isOpen) return null;
 
-    const isFormValid = groupNameSignal.value.trim().length >= 2;
+    const trimmedGroupName = groupNameSignal.value.trim();
+    const trimmedDisplayName = groupDisplayNameSignal.value.trim();
+    const isFormValid = trimmedGroupName.length >= 2
+        && trimmedDisplayName.length >= 2
+        && trimmedDisplayName.length <= 50
+        && DISPLAY_NAME_PATTERN.test(trimmedDisplayName);
 
     return (
         <div class='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
@@ -201,6 +253,27 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 error={validationError || undefined}
                             />
                             <p class='mt-1 text-sm text-gray-500'>{t('createGroupModal.groupNameHelpText')}</p>
+                        </div>
+
+                        {/* Group Display Name */}
+                        <div>
+                            <Input
+                                label={t('createGroupModal.groupDisplayNameLabel')}
+                                type='text'
+                                name='groupDisplayName'
+                                data-testid='group-display-name-input'
+                                placeholder={t('createGroupModal.groupDisplayNamePlaceholder')}
+                                value={groupDisplayNameSignal.value}
+                                onChange={(value) => {
+                                    groupDisplayNameSignal.value = value;
+                                    setDisplayNameValidationError(null);
+                                    enhancedGroupsStore.clearValidationError();
+                                }}
+                                required
+                                disabled={isSubmitting}
+                                error={displayNameValidationError || undefined}
+                            />
+                            <p class='mt-1 text-sm text-gray-500'>{t('createGroupModal.groupDisplayNameHelpText')}</p>
                         </div>
 
                         {/* Group Description (Optional) */}

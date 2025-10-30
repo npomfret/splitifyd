@@ -18,6 +18,7 @@ describe('GroupHandlers - Unit Tests', () => {
 
             const groupRequest = new CreateGroupRequestBuilder()
                 .withName('My Test Group')
+                .withGroupDisplayName('Captain')
                 .withDescription('A test group description')
                 .build();
 
@@ -37,6 +38,7 @@ describe('GroupHandlers - Unit Tests', () => {
 
             const groupRequest = new CreateGroupRequestBuilder()
                 .withName('Simple Group')
+                .withGroupDisplayName('Skipper')
                 .build();
             delete (groupRequest as any).description;
 
@@ -64,6 +66,32 @@ describe('GroupHandlers - Unit Tests', () => {
             const longName = 'a'.repeat(101);
             const groupRequest = new CreateGroupRequestBuilder()
                 .withName(longName)
+                .build();
+
+            await expect(appDriver.createGroup('test-user', groupRequest)).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.BAD_REQUEST,
+                    code: 'INVALID_INPUT',
+                }),
+            );
+        });
+
+        it('should reject group creation with empty display name', async () => {
+            const groupRequest = new CreateGroupRequestBuilder()
+                .withGroupDisplayName('')
+                .build();
+
+            await expect(appDriver.createGroup('test-user', groupRequest)).rejects.toThrow(
+                expect.objectContaining({
+                    statusCode: HTTP_STATUS.BAD_REQUEST,
+                    code: 'INVALID_INPUT',
+                }),
+            );
+        });
+
+        it('should reject group creation when display name contains unsupported characters', async () => {
+            const groupRequest = new CreateGroupRequestBuilder()
+                .withGroupDisplayName('Name<script>')
                 .build();
 
             await expect(appDriver.createGroup('test-user', groupRequest)).rejects.toThrow(
@@ -362,6 +390,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 userId,
                 new CreateGroupRequestBuilder()
                     .withName('Adventure Squad')
+                    .withGroupDisplayName('Owner User')
                     .build(),
             );
 

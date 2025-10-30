@@ -26,6 +26,10 @@ export const validateCreateGroup = (body: unknown): CreateGroupRequest => {
             code: 'INVALID_INPUT',
             message: '', // Use Zod's message
         },
+        groupDisplayName: {
+            code: 'INVALID_INPUT',
+            message: '',
+        },
         description: {
             code: 'INVALID_INPUT',
             message: '', // Use Zod's message
@@ -94,6 +98,10 @@ export const sanitizeGroupData = <T extends CreateGroupRequest | UpdateGroupRequ
 
     if ('name' in data && data.name) {
         sanitized.name = toGroupName(sanitizeString(data.name as string));
+    }
+
+    if ('groupDisplayName' in data && data.groupDisplayName !== undefined) {
+        sanitized.groupDisplayName = sanitizeString((data as any).groupDisplayName).trim();
     }
 
     if ('description' in data && data.description !== undefined) {

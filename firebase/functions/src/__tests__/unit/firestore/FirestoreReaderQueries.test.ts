@@ -30,6 +30,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             // Create a group
             const group = await appDriver.createGroup(userId, {
                 name: toGroupName('Test Group V2'),
+                groupDisplayName: 'Owner Display',
                 description: 'Test group for query testing',
             });
 
@@ -58,6 +59,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             for (const name of groupNames) {
                 await appDriver.createGroup(userId, {
                     name: toGroupName(name),
+                    groupDisplayName: `Owner ${name}`,
                     description: `Test group ${name}`,
                 });
             }
@@ -83,6 +85,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             for (let i = 0; i < 5; i++) {
                 await appDriver.createGroup(userId, {
                     name: toGroupName(`Group ${i}`),
+                    groupDisplayName: `Owner Alias ${i}`,
                     description: `Test group ${i}`,
                 });
             }
@@ -118,6 +121,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             // Create groups with slight delays
             const group1 = await appDriver.createGroup(userId, {
                 name: toGroupName('First Group'),
+                groupDisplayName: 'Owner Display',
                 description: 'Created first',
             });
 
@@ -125,6 +129,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
 
             const group2 = await appDriver.createGroup(userId, {
                 name: toGroupName('Second Group'),
+                groupDisplayName: 'Owner Display',
                 description: 'Created second',
             });
 
@@ -132,6 +137,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
 
             const group3 = await appDriver.createGroup(userId, {
                 name: toGroupName('Third Group'),
+                groupDisplayName: 'Owner Display',
                 description: 'Created third',
             });
 
@@ -151,6 +157,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         test('should get group by id', async () => {
             const group = await appDriver.createGroup(userId, {
                 name: toGroupName('Group for getGroup test'),
+                groupDisplayName: 'Owner Display',
                 description: 'Direct retrieval test',
             });
 
@@ -175,6 +182,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
 
             const group = await appDriver.createGroup(userId, {
                 name: toGroupName('Private Group'),
+                groupDisplayName: 'Owner Display',
                 description: 'Only creator can access',
             });
 
@@ -193,7 +201,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         });
 
         test('should handle limit larger than total groups', async () => {
-            await appDriver.createGroup(userId, { name: toGroupName('Only Group') });
+            await appDriver.createGroup(userId, { name: toGroupName('Only Group'), groupDisplayName: 'Owner Display' });
 
             const groups = await appDriver.listGroups(userId, { limit: 100 });
             expect(groups.groups).toHaveLength(1);
@@ -201,8 +209,8 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         });
 
         test('should handle limit of 1', async () => {
-            await appDriver.createGroup(userId, { name: toGroupName('Group 1') });
-            await appDriver.createGroup(userId, { name: toGroupName('Group 2') });
+            await appDriver.createGroup(userId, { name: toGroupName('Group 1'), groupDisplayName: 'Owner Display' });
+            await appDriver.createGroup(userId, { name: toGroupName('Group 2'), groupDisplayName: 'Owner Display' });
 
             const groups = await appDriver.listGroups(userId, { limit: 1 });
             expect(groups.groups).toHaveLength(1);
@@ -215,6 +223,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             for (let i = 0; i < 10; i++) {
                 const group = await appDriver.createGroup(userId, {
                     name: toGroupName(`Group ${String(i).padStart(2, '0')}`),
+                    groupDisplayName: `Owner Alias ${i}`,
                 });
                 createdGroups.push(group);
                 await new Promise((resolve) => setTimeout(resolve, 2));

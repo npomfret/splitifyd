@@ -8,6 +8,7 @@ export class CreateGroupRequestBuilder {
     constructor() {
         this.group = {
             name: toGroupName(`${randomChoice(['Team', 'Group', 'Squad', 'Club', 'Circle'])} ${randomString(6)}`),
+            groupDisplayName: `Member ${generateShortId()}`,
             description: `${randomChoice(['Fun', 'Cool', 'Awesome', 'Great', 'Nice'])} group ${generateShortId()}`,
         };
     }
@@ -22,9 +23,15 @@ export class CreateGroupRequestBuilder {
         return this;
     }
 
+    withGroupDisplayName(displayName: string): this {
+        this.group.groupDisplayName = displayName;
+        return this;
+    }
+
     build(): CreateGroupRequest {
         const result: CreateGroupRequest = {
             name: this.group.name,
+            groupDisplayName: this.group.groupDisplayName,
         };
 
         if (this.group.description !== undefined) {

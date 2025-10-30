@@ -223,8 +223,11 @@ export class ApiDriver {
 
     async createGroupWithMembers(name: string | GroupName, members: UserToken[], creatorToken: string): Promise<GroupDTO> {
         // Step 1: Create group with just the creator
+        const creatorDisplayName = `Owner ${Math.random().toString(36).slice(2, 8)}`;
+
         const groupData = {
             name: typeof name === 'string' ? toGroupName(name) : name,
+            groupDisplayName: creatorDisplayName,
             description: `Test group created at ${new Date().toISOString()}`,
         };
 

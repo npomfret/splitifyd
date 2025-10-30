@@ -33,6 +33,9 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyModalOpen();
         await createGroupModal.verifyFormEmpty();
         await createGroupModal.verifyHelpTextDisplayed();
+
+        const displayNameInput = createGroupModal.getGroupDisplayNameInput();
+        await expect(displayNameInput).toHaveValue(user.displayName ?? '');
     });
 
     const formValidationCases = [
@@ -174,6 +177,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         const createGroupModal2 = await dashboardPage.clickCreateGroup();
         await createGroupModal2.verifyModalOpen();
         await createGroupModal2.verifyFormEmpty();
+        await expect(createGroupModal2.getGroupDisplayNameInput()).toHaveValue(user.displayName ?? '');
         await createGroupModal2.verifyNoValidationError();
     });
 

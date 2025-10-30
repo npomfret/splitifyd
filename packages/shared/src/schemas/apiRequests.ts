@@ -12,6 +12,7 @@ import { z } from 'zod';
 import { getCurrency } from '../currencies';
 import { parseMonetaryAmount } from '../split-utils';
 import { SplitTypes, type Amount } from '../shared-types';
+import { createDisplayNameSchema, DisplayNameSchema, type DisplayNameSchemaOptions } from './primitives';
 
 // ---------------------------------------------------------------------------
 // Shared primitives
@@ -24,43 +25,8 @@ export const PASSWORD_REGEX = new RegExp(`^.{${PASSWORD_MIN_LENGTH},}$`);
 
 export const PHONE_E164_REGEX = /^\+[1-9]\d{1,14}$/;
 
-// Display names can contain letters, numbers, spaces, and common punctuation
-// Confusable characters (0/O, I/l) are allowed but normalized during conflict checking
-const DISPLAY_NAME_PATTERN = /^[a-zA-Z0-9\s\-_.]+$/;
-const DEFAULT_DISPLAY_NAME_MIN = 2;
-const DEFAULT_DISPLAY_NAME_MAX = 50;
-
-export interface DisplayNameSchemaOptions {
-    min?: number;
-    max?: number;
-    minMessage?: string;
-    maxMessage?: string;
-    patternMessage?: string;
-    pattern?: RegExp | null;
-}
-
-export const createDisplayNameSchema = (options?: DisplayNameSchemaOptions) => {
-    const min = options?.min ?? DEFAULT_DISPLAY_NAME_MIN;
-    const max = options?.max ?? DEFAULT_DISPLAY_NAME_MAX;
-    const minMessage = options?.minMessage ?? `Display name must be at least ${min} characters`;
-    const maxMessage = options?.maxMessage ?? `Display name cannot exceed ${max} characters`;
-    const patternMessage = options?.patternMessage ?? 'Display name can only contain letters, numbers, spaces, hyphens, underscores, and periods';
-    const pattern = options?.pattern === undefined ? DISPLAY_NAME_PATTERN : options.pattern;
-
-    let schema = z
-        .string()
-        .trim()
-        .min(min, minMessage)
-        .max(max, maxMessage);
-
-    if (pattern) {
-        schema = schema.regex(pattern, patternMessage);
-    }
-
-    return schema;
-};
-
-export const DisplayNameSchema = createDisplayNameSchema();
+// Re-export display name schema utilities for backwards compatibility
+export { createDisplayNameSchema, DisplayNameSchema, type DisplayNameSchemaOptions };
 
 export const EmailSchema = z
     .string()

@@ -33,6 +33,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         // Create group
         const group = await appDriver.createGroup(userId, {
             name: toGroupName('Concurrent Update Test Group'),
+            groupDisplayName: 'Owner Display',
             description: 'Testing expense concurrent updates',
         });
 
@@ -99,6 +100,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         // Create group
         const group = await appDriver.createGroup(userId, {
             name: toGroupName('Transaction Conflict Test'),
+            groupDisplayName: 'Owner Display',
         });
 
         // Create an expense
@@ -166,6 +168,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         // Create group and expense
         const group = await appDriver.createGroup(userId, {
             name: toGroupName('Access Control Test'),
+            groupDisplayName: 'Owner Display',
         });
 
         const expense = await appDriver.createExpense(

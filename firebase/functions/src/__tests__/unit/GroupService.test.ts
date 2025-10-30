@@ -207,6 +207,7 @@ describe('GroupService - Unit Tests', () => {
             const validGroupData: CreateGroupRequest = new CreateGroupRequestBuilder()
                 .withName('Test Group')
                 .withDescription('A test group for validation')
+                .withGroupDisplayName('Test User')
                 .build();
 
             describe('Group Name Validation', () => {
@@ -349,6 +350,7 @@ describe('GroupService - Unit Tests', () => {
                     expect(result).toEqual({
                         name: 'Test Group',
                         description: 'A test group for validation',
+                        groupDisplayName: 'Test User',
                     });
                 });
 
@@ -541,14 +543,14 @@ describe('GroupService - Unit Tests', () => {
                 const maxLengthName = 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH);
                 const tooLongName = 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_NAME_LENGTH + 1);
 
-                expect(() => validateCreateGroup({ name: maxLengthName })).not.toThrow();
-                expect(() => validateCreateGroup({ name: tooLongName })).toThrow();
+                expect(() => validateCreateGroup({ name: maxLengthName, groupDisplayName: 'Test' })).not.toThrow();
+                expect(() => validateCreateGroup({ name: tooLongName, groupDisplayName: 'Test' })).toThrow();
 
                 const maxLengthDescription = 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH);
                 const tooLongDescription = 'A'.repeat(VALIDATION_LIMITS.MAX_GROUP_DESCRIPTION_LENGTH + 1);
 
-                expect(() => validateCreateGroup({ name: 'Test', description: maxLengthDescription })).not.toThrow();
-                expect(() => validateCreateGroup({ name: 'Test', description: tooLongDescription })).toThrow();
+                expect(() => validateCreateGroup({ name: 'Test', groupDisplayName: 'Test', description: maxLengthDescription })).not.toThrow();
+                expect(() => validateCreateGroup({ name: 'Test', groupDisplayName: 'Test', description: tooLongDescription })).toThrow();
             });
         });
     });

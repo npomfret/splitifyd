@@ -1,6 +1,7 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
 import { z } from 'zod';
+import { createDisplayNameSchema } from './schemas/primitives';
 import type { ColorPattern } from './user-colors';
 
 // ========================================================================
@@ -645,6 +646,7 @@ export interface GroupDTO extends Group, BaseDTO<GroupId> {
 // Request/Response types
 export interface CreateGroupRequest {
     name: GroupName;
+    groupDisplayName: DisplayName;
     description?: string;
 }
 
@@ -660,6 +662,11 @@ export interface UpdateDisplayNameRequest {
 // Validation schemas
 export const CreateGroupRequestSchema = z.object({
     name: z.string().trim().min(1, 'Group name is required').max(100, 'Group name must be less than 100 characters').transform(toGroupName),
+    groupDisplayName: createDisplayNameSchema({
+        minMessage: 'Enter a display name.',
+        maxMessage: 'Display name must be 50 characters or fewer.',
+        patternMessage: 'Display name can only use letters, numbers, spaces, hyphens, underscores, and periods.',
+    }),
     description: z.string().trim().max(500).optional(),
 });
 
