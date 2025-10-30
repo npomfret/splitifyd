@@ -131,7 +131,7 @@ export function App() {
     const user = authStore?.user;
     const marketingFlags = config?.tenant?.branding?.marketingFlags;
     const showLandingPage = marketingFlags?.showLandingPage ?? true;
-    const showPricingPage = marketingFlags?.showPricingPage ?? true;
+    const showPricingPage = marketingFlags?.showPricingPage ?? false;
 
     const handlePolicyAcceptance = async () => {
         // Refresh policy status after acceptance to hide the modal
