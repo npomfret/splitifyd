@@ -25,6 +25,7 @@ import {
     toTenantThemePaletteName,
     toTenantCustomCss,
     toShowLandingPageFlag,
+    toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toShowBlogPageFlag,
     toFeatureToggleAdvancedReporting,
@@ -66,6 +67,7 @@ const FormDefaultsSchema = z.object({
 
 const BrandingMarketingFlagsSchema = z.object({
     showLandingPage: z.boolean().transform(toShowLandingPageFlag).optional(),
+    showMarketingContent: z.boolean().transform(toShowMarketingContentFlag).optional(),
     showPricingPage: z.boolean().transform(toShowPricingPageFlag).optional(),
     showBlogPage: z.boolean().transform(toShowBlogPageFlag).optional(),
 });

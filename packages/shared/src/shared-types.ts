@@ -107,6 +107,9 @@ export const toShowPricingPageFlag = (value: boolean): ShowPricingPageFlag => va
 export type ShowBlogPageFlag = BrandedBoolean<'ShowBlogPageFlag'>;
 export const toShowBlogPageFlag = (value: boolean): ShowBlogPageFlag => value as ShowBlogPageFlag;
 
+export type ShowMarketingContentFlag = BrandedBoolean<'ShowMarketingContentFlag'>;
+export const toShowMarketingContentFlag = (value: boolean): ShowMarketingContentFlag => value as ShowMarketingContentFlag;
+
 export type FeatureToggleAdvancedReporting = BrandedBoolean<'FeatureToggleAdvancedReporting'>;
 export const toFeatureToggleAdvancedReporting = (value: boolean): FeatureToggleAdvancedReporting => value as FeatureToggleAdvancedReporting;
 
@@ -240,6 +243,7 @@ export const DELETED_AT_FIELD = 'deletedAt';
 
 export interface BrandingMarketingFlags {
     showLandingPage?: ShowLandingPageFlag;
+    showMarketingContent?: ShowMarketingContentFlag;
     showPricingPage?: ShowPricingPageFlag;
     showBlogPage?: ShowBlogPageFlag;
 }

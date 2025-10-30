@@ -32,6 +32,7 @@
 - Header swaps the logo/button label using tenant branding so white-label tenants see their assets without code changes.
 - Feature-flag utilities (hooks + `FeatureGate`) now gate browser/admin routes and marketing pages per tenant config, with unit tests verifying signal-driven updates.
 - Footer marketing links honour tenant marketing flags, hiding pricing funnels when disabled and covered by unit tests.
+- Landing page marketing sections (features grid + CTA) now respond to tenant marketing flags so white-label tenants avoid Splitifyd promo content, with dedicated unit coverage.
 
 ## Agent's Ideas (Based on App Analysis)
 

@@ -130,7 +130,7 @@ export function App() {
 
     const user = authStore?.user;
     const marketingFlags = config?.tenant?.branding?.marketingFlags;
-    const showLandingPage = marketingFlags?.showLandingPage ?? true;
+    const showLandingPage = marketingFlags?.showLandingPage ?? false;
     const showPricingPage = marketingFlags?.showPricingPage ?? false;
 
     const handlePolicyAcceptance = async () => {

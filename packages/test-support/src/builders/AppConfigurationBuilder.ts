@@ -15,6 +15,7 @@ import {
     toFeatureToggleMultiCurrency,
     toShowBlogPageFlag,
     toShowLandingPageFlag,
+    toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
@@ -44,6 +45,7 @@ export interface TenantBrandingOverrides {
 
 export interface TenantBrandingFlagsOverrides {
     showLandingPage?: boolean;
+    showMarketingContent?: boolean;
     showPricingPage?: boolean;
     showBlogPage?: boolean;
 }
@@ -182,6 +184,7 @@ export class AppConfigurationBuilder {
                 secondaryColor: toTenantSecondaryColor('#654321'),
                 marketingFlags: this.createBrandingFlags({
                     showLandingPage: true,
+                    showMarketingContent: true,
                     showPricingPage: true,
                     showBlogPage: false,
                 }),
@@ -256,6 +259,10 @@ export class AppConfigurationBuilder {
             flags.showLandingPage = toShowLandingPageFlag(overrides.showLandingPage);
         }
 
+        if (overrides.showMarketingContent !== undefined) {
+            flags.showMarketingContent = toShowMarketingContentFlag(overrides.showMarketingContent);
+        }
+
         if (overrides.showPricingPage !== undefined) {
             flags.showPricingPage = toShowPricingPageFlag(overrides.showPricingPage);
         }
@@ -272,6 +279,10 @@ export class AppConfigurationBuilder {
 
         if (flags.showLandingPage !== undefined) {
             marketing.showLandingPage = toShowLandingPageFlag(flags.showLandingPage);
+        }
+
+        if (flags.showMarketingContent !== undefined) {
+            marketing.showMarketingContent = toShowMarketingContentFlag(flags.showMarketingContent);
         }
 
         if (flags.showPricingPage !== undefined) {
