@@ -1,8 +1,8 @@
-import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
+import { describe, expect, it, vi } from 'vitest';
+import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { GroupDetailRealtimeCoordinator } from '@/app/stores/helpers/group-detail-realtime-coordinator';
 import type { GroupId } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { describe, expect, it, vi } from 'vitest';
 
 interface TestContext {
     coordinator: GroupDetailRealtimeCoordinator;
@@ -24,11 +24,6 @@ const createContext = (): TestContext => {
     const deregisterConsumer = vi.fn();
     const onActivityRefresh = vi.fn().mockResolvedValue(undefined);
     const onSelfRemoval = vi.fn();
-
-    const activityFeed = {
-        registerConsumer,
-        deregisterConsumer,
-    } as unknown as ActivityFeedRealtimeService;
 
     const coordinator = new GroupDetailRealtimeCoordinator({
         activityFeed: {

@@ -22,6 +22,10 @@
 - Firestore-backed tenant registry resolves request hosts to tenant configs via middleware, with cached lookups and dev-only override/default fallbacks feeding the `/config` endpoint.
 - Added a safety integration test exercising `/config` and `/health` to confirm the tenant fallback flows without requiring Firestore seed data.
 
+## Progress
+- Exported shared tenant/app configuration schemas so both Functions and the webapp enforce the branded Phase 1 types.
+- Re-pointed Functions config validation (with unit coverage) at the shared schema to accept tenant payloads and reject incomplete Firebase client configs.
+
 ## Agent's Ideas (Based on App Analysis)
 
 *   **Extend `AppConfiguration` in `@splitifyd/shared`:**
