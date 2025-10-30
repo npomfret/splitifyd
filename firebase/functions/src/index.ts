@@ -27,14 +27,9 @@ import { changeEmail, changePassword, getUserProfile, updateUserProfile } from '
 import { getEnhancedConfigResponse } from './utils/config-response';
 import { ApiError } from './utils/errors';
 import { applyStandardMiddleware } from './utils/middleware';
-import { UserBrowserHandlers } from './browser/UserBrowserHandlers';
-import { getAppBuilder } from './ApplicationBuilderSingleton';
-import { getFirestore } from './firebase';
+import { listAuthUsers, listFirestoreUsers } from './browser/handlers';
 import { routeDefinitions } from './routes/route-config';
 import type { RequestHandler } from 'express';
-
-const applicationBuilder = getAppBuilder();
-const userBrowserHandlers = new UserBrowserHandlers(applicationBuilder.buildAuthService(), getFirestore());
 
 let app: express.Application | null = null;
 
@@ -184,8 +179,8 @@ function getHandlerRegistry(): Record<string, RequestHandler> {
         deletePolicyVersion,
 
         // Admin browser
-        listAuthUsers: userBrowserHandlers.listAuthUsers,
-        listFirestoreUsers: userBrowserHandlers.listFirestoreUsers,
+        listAuthUsers,
+        listFirestoreUsers,
     };
 }
 

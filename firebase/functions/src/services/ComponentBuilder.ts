@@ -38,7 +38,7 @@ export class ComponentBuilder {
     private firestoreReader: IFirestoreReader;
     private firestoreWriter: IFirestoreWriter;
 
-    constructor(private authService: IAuthService, db: IFirestoreDatabase) {
+    constructor(private authService: IAuthService, private db: IFirestoreDatabase) {
         this.firestoreReader = new FirestoreReader(db);
         this.firestoreWriter = new FirestoreWriter(db);
     }
@@ -203,5 +203,9 @@ export class ComponentBuilder {
 
     buildAuthService(): IAuthService {
         return this.authService;
+    }
+
+    getDatabase(): IFirestoreDatabase {
+        return this.db;
     }
 }

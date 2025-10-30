@@ -1,11 +1,10 @@
 import type { Request, Response } from 'express';
-import { FieldPath } from 'firebase-admin/firestore';
-import type { DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 import type { UserRecord } from 'firebase-admin/auth';
 import { FirestoreCollections } from '../constants';
-import { Timestamp } from '../firestore-wrapper';
+import { Timestamp, type IFirestoreDatabase, type IDocumentSnapshot } from '../firestore-wrapper';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
+import { ComponentBuilder } from "../services/ComponentBuilder";
 
 interface ListAuthQuery {
     limit: number;
@@ -75,7 +74,7 @@ function normalizeFirestoreValue(value: unknown): unknown {
     return value;
 }
 
-function serializeFirestoreDocument(doc: DocumentSnapshot): Record<string, unknown> {
+function serializeFirestoreDocument(doc: IDocumentSnapshot): Record<string, unknown> {
     const raw = doc.data() ?? {};
     const normalized = normalizeFirestoreValue(raw);
     const details = normalized && typeof normalized === 'object' && !Array.isArray(normalized)
@@ -86,7 +85,14 @@ function serializeFirestoreDocument(doc: DocumentSnapshot): Record<string, unkno
 }
 
 export class UserBrowserHandlers {
-    constructor(private readonly authService: IAuthService, private readonly firestore: Firestore) {}
+    constructor(private readonly authService: IAuthService, private readonly db: IFirestoreDatabase) {}
+
+    static createUserBrowserHandlers(componentBuilder: ComponentBuilder): UserBrowserHandlers {
+        return new UserBrowserHandlers(
+            componentBuilder.buildAuthService(),
+            componentBuilder.getDatabase()
+        );
+    }
 
     listAuthUsers = async (req: Request, res: Response): Promise<void> => {
         const query: ListAuthQuery = {
@@ -135,7 +141,7 @@ export class UserBrowserHandlers {
 
         try {
             if (query.uid) {
-                const doc = await this.firestore.collection(FirestoreCollections.USERS).doc(query.uid).get();
+                const doc = await this.db.collection(FirestoreCollections.USERS).doc(query.uid).get();
                 if (!doc.exists) {
                     res.json({ users: [], hasMore: false });
                     return;
@@ -148,7 +154,7 @@ export class UserBrowserHandlers {
             if (query.email || query.displayName) {
                 const field = query.email ? 'email' : 'displayName';
                 const value = query.email ?? query.displayName;
-                const snapshot = await this.firestore
+                const snapshot = await this.db
                     .collection(FirestoreCollections.USERS)
                     .where(field, '==', value)
                     .limit(query.limit)
@@ -159,7 +165,7 @@ export class UserBrowserHandlers {
                 return;
             }
 
-            let collectionQuery = this.firestore.collection(FirestoreCollections.USERS).orderBy(FieldPath.documentId()).limit(query.limit + 1);
+            let collectionQuery = this.db.collection(FirestoreCollections.USERS).orderBy('__name__').limit(query.limit + 1);
             if (query.cursor) {
                 collectionQuery = collectionQuery.startAfter(query.cursor);
             }
