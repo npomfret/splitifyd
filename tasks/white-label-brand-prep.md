@@ -27,6 +27,7 @@
 - Re-pointed Functions config validation (with unit coverage) at the shared schema to accept tenant payloads and reject incomplete Firebase client configs.
 - Introduced the tenant-identification middleware (plus route exemption list) so the Express pipeline resolves host, override, and fallback flows before handing off to `/config`.
 - Added Vitest coverage for domain, override, fallback, and error paths to lock in the identification behaviour.
+- Routed `/config` through cloned tenant configs so requests without Firestore data still receive the hardcoded fallback, with unit tests guarding both the fallback and custom-tenant paths.
 
 ## Agent's Ideas (Based on App Analysis)
 
