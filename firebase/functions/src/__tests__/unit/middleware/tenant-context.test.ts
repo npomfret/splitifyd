@@ -228,7 +228,7 @@ describe('tenantContextMiddleware', () => {
     });
 
     describe('exempt routes', () => {
-        const exemptRoutes = ['/', '/health', '/metrics', '/env', '/config', '/csp-violation-report'];
+        const exemptRoutes = ['/', '/health', '/metrics', '/env', '/csp-violation-report'];
 
         exemptRoutes.forEach((route) => {
             it(`should skip tenant resolution for ${route}`, async () => {
