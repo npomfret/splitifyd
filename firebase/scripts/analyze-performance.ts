@@ -1033,7 +1033,7 @@ class FunctionPerformanceAnalyzer {
         console.log('');
         console.log('To see all timing data for this request, run:');
         console.log('');
-        console.log(`  ./scripts/analyze-function-performance.ts ${logFilePath} --filter "${slowestRequest.correlationId}"`);
+        console.log(`  ./scripts/analyze-performance.ts ${logFilePath} --filter "${slowestRequest.correlationId}"`);
         console.log('');
         console.log('💡'.repeat(50) + '\n');
     }
