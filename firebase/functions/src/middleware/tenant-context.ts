@@ -32,7 +32,6 @@ const TENANT_OPTIONAL_ROUTES = [
     '/health',
     '/metrics',
     '/env',
-    '/config',
     '/csp-violation-report',
 ];
 

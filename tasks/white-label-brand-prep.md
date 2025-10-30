@@ -20,6 +20,7 @@
 - Tenant branding metadata persists in Firestore (one document per tenant) with asset uploads stored in Cloud Storage; edits flow through a simple management UI.
 - Provide a guarded default tenant configuration (mirroring the demo/showroom branding) for development and unrecognized hosts, while unknown production domains fail closed.
 - Firestore-backed tenant registry resolves request hosts to tenant configs via middleware, with cached lookups and dev-only override/default fallbacks feeding the `/config` endpoint.
+- Added a safety integration test exercising `/config` and `/health` to confirm the tenant fallback flows without requiring Firestore seed data.
 
 ## Agent's Ideas (Based on App Analysis)
 
