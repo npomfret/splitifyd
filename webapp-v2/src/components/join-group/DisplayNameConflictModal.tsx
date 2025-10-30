@@ -28,19 +28,35 @@ export function DisplayNameConflictModal({
     const inputRef = useRef<HTMLInputElement>(null);
     const [displayName, setDisplayName] = useState(currentName);
     const [validationError, setValidationError] = useState<string | null>(null);
+    const previousIsOpenRef = useRef(isOpen);
 
-    // Initialize form state when modal opens
+    // Stable refs for callbacks to prevent event listener churn
+    const onCancelRef = useRef(onCancel);
+    const onClearErrorRef = useRef(onClearError);
+
+    // Keep refs in sync with props
     useEffect(() => {
-        if (!isOpen) return;
+        onCancelRef.current = onCancel;
+        onClearErrorRef.current = onClearError;
+    }, [onCancel, onClearError]);
 
-        setDisplayName(currentName);
-        setValidationError(null);
-        onClearError();
+    // Initialize form state when modal opens (only on open transition, not while already open)
+    useEffect(() => {
+        const wasOpen = previousIsOpenRef.current;
+        const isNowOpen = isOpen;
+        previousIsOpenRef.current = isOpen;
 
-        queueMicrotask(() => {
-            inputRef.current?.focus();
-        });
-    }, [isOpen, currentName, onClearError]);
+        // Only run initialization when transitioning from closed to open
+        if (!wasOpen && isNowOpen) {
+            setDisplayName(currentName);
+            setValidationError(null);
+            onClearErrorRef.current();
+
+            queueMicrotask(() => {
+                inputRef.current?.focus();
+            });
+        }
+    }, [isOpen, currentName]);
 
     // Handle escape key to close modal
     useEffect(() => {
@@ -49,13 +65,13 @@ export function DisplayNameConflictModal({
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape' && !loading) {
                 event.preventDefault();
-                onCancel();
+                onCancelRef.current();
             }
         };
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, onCancel, loading]);
+    }, [isOpen, loading]);
 
     if (!isOpen) {
         return null;
@@ -63,7 +79,7 @@ export function DisplayNameConflictModal({
 
     const handleBackdropClick = (event: Event) => {
         if (event.target === event.currentTarget && !loading) {
-            onCancel();
+            onCancelRef.current();
         }
     };
 
@@ -101,7 +117,7 @@ export function DisplayNameConflictModal({
             setValidationError(null);
         }
         if (error) {
-            onClearError();
+            onClearErrorRef.current();
         }
     };
 
@@ -132,7 +148,7 @@ export function DisplayNameConflictModal({
                         <button
                             type='button'
                             class='text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-100'
-                            onClick={onCancel}
+                            onClick={() => onCancelRef.current()}
                             aria-label={t('common.close')}
                             disabled={loading}
                         >
@@ -181,7 +197,7 @@ export function DisplayNameConflictModal({
                         <Button
                             type='button'
                             variant='secondary'
-                            onClick={onCancel}
+                            onClick={() => onCancelRef.current()}
                             disabled={loading}
                             fullWidth
                         >

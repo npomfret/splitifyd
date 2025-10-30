@@ -34,10 +34,16 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     // Create fresh signals for each modal instance to avoid stale state
     const [groupNameSignal] = useState(() => signal(''));
     const [groupDescriptionSignal] = useState(() => signal(''));
+    const previousIsOpenRef = useRef(isOpen);
 
-    // Reset form when modal opens/closes
+    // Reset form when modal opens (only on open transition, not while already open)
     useEffect(() => {
-        if (isOpen) {
+        const wasOpen = previousIsOpenRef.current;
+        const isNowOpen = isOpen;
+        previousIsOpenRef.current = isOpen;
+
+        // Only reset form when transitioning from closed to open
+        if (!wasOpen && isNowOpen) {
             groupNameSignal.value = '';
             groupDescriptionSignal.value = '';
             setValidationError(null);

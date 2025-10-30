@@ -63,12 +63,18 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [note, setNote] = useState('');
     const [amountPrecisionError, setAmountPrecisionError] = useState<string | null>(null);
+    const previousIsOpenRef = useRef(isOpen);
 
     const currentUser = authStore.user;
     const members = enhancedGroupDetailStore.members || [];
 
     useEffect(() => {
-        if (isOpen) {
+        const wasOpen = previousIsOpenRef.current;
+        const isNowOpen = isOpen;
+        previousIsOpenRef.current = isOpen;
+
+        // Only initialize form when transitioning from closed to open
+        if (!wasOpen && isNowOpen) {
             if (editMode && settlementToEdit) {
                 // Check if settlement is locked
                 if (settlementToEdit.isLocked) {
