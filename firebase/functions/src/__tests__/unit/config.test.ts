@@ -36,9 +36,9 @@ describe('Configuration Response Functions', () => {
         });
 
         it('should reject invalid configuration', () => {
-            const invalidConfig = new AppConfigurationBuilder()
-                .withFirebaseConfig({ appId: '' })
-                .build();
+            const invalidConfig = new AppConfigurationBuilder().build();
+            const firebaseConfig = invalidConfig.firebase as unknown as Record<string, unknown>;
+            delete firebaseConfig.appId;
 
             expect(() => validateAppConfiguration(invalidConfig)).toThrow();
         });
