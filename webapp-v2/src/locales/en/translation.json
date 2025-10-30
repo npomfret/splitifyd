@@ -1149,19 +1149,14 @@
             "joinFailed": "Failed to join group",
             "loadFailed": "Failed to load group information"
         },
-        "displayNameConflict": {
-            "title": "Choose a display name for {{groupName}}",
-            "description": "Your name \"{{currentName}}\" is already in use in this group. Pick a unique name so everyone knows who's who.",
-            "currentNameLabel": "Current name",
-            "inputLabel": "New group display name",
-            "inputPlaceholder": "Enter a unique display name",
-            "submit": "Save name & join",
-            "saving": "Saving...",
-            "cancel": "Cancel",
+        "displayName": {
+            "label": "Group display name",
+            "placeholder": "How should other members see your name?",
+            "help": "Pick a unique name for this group. Other members will use it to identify you.",
             "errors": {
                 "required": "Enter a display name.",
-                "tooLong": "Display name must be 50 characters or fewer.",
-                "sameAsCurrent": "Choose a different name than your current one."
+                "taken": "That display name is already in use in this group.",
+                "invalid": "Display name can only use letters, numbers, spaces, hyphens, underscores, and periods."
             }
         }
     },

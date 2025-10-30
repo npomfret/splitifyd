@@ -11,6 +11,7 @@
 
 // Import types
 import type { CommentDTO, DisplayName, Email, ISOString, ShareLinkDTO, UserId } from '@splitifyd/shared';
+import { normalizeDisplayNameForComparison } from '@splitifyd/shared';
 // Import schemas for validation
 import { ExpenseId, GroupId, PolicyId } from '@splitifyd/shared';
 import { z } from 'zod';
@@ -695,10 +696,14 @@ export class FirestoreWriter implements IFirestoreWriter {
 
     async updateGroupMemberDisplayName(groupId: GroupId, userId: UserId, newDisplayName: DisplayName): Promise<void> {
         return measureDb('FirestoreWriter.updateGroupMemberDisplayName', async () => {
+            const trimmedDisplayName = newDisplayName?.trim() ?? '';
+
             // Validate display name before transaction
-            if (!newDisplayName || newDisplayName.trim().length === 0) {
+            if (!trimmedDisplayName) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_INPUT', 'Display name cannot be empty');
             }
+
+            const normalizedNewDisplayName = normalizeDisplayNameForComparison(trimmedDisplayName);
 
             await this.db.runTransaction(async (transaction) => {
                 // PHASE 1: ALL READS FIRST
@@ -713,11 +718,22 @@ export class FirestoreWriter implements IFirestoreWriter {
                 // Check if display name is already taken by another user
                 // Note: member documents use 'uid' field to store the user ID
                 // Every member MUST have groupDisplayName set (no fallbacks)
-                const members = membershipsSnapshot.docs.map((doc) => doc.data());
-                const nameTaken = members.some((m) => m.uid !== userId && m.groupDisplayName === newDisplayName);
+                const members = membershipsSnapshot.docs.map((doc) => doc.data() as { uid?: string; groupDisplayName?: string; });
+                const nameTaken = members.some((member) => {
+                    if (!member?.uid || member.uid === userId) {
+                        return false;
+                    }
+
+                    const existing = member.groupDisplayName ?? '';
+                    if (!existing.trim()) {
+                        return false;
+                    }
+
+                    return normalizeDisplayNameForComparison(existing) === normalizedNewDisplayName;
+                });
 
                 if (nameTaken) {
-                    throw new ApiError(HTTP_STATUS.CONFLICT, 'DISPLAY_NAME_TAKEN', `Display name "${newDisplayName}" is already in use in this group`);
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'DISPLAY_NAME_TAKEN', `Display name "${trimmedDisplayName}" is already in use in this group`);
                 }
 
                 // Find the target member's document
@@ -730,7 +746,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 // Update the member's groupDisplayName
                 const memberRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${memberDoc.id}`);
                 transaction.update(memberRef, {
-                    groupDisplayName: newDisplayName,
+                    groupDisplayName: trimmedDisplayName,
                     updatedAt: FieldValue.serverTimestamp(),
                 });
 
@@ -743,7 +759,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 logger.info('Group member display name updated', {
                     groupId,
                     userId,
-                    newDisplayName,
+                    newDisplayName: trimmedDisplayName,
                 });
             });
         });

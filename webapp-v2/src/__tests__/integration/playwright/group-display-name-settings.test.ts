@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Page, Route } from '@playwright/test';
 import type { ClientUser, GroupId } from '@splitifyd/shared';
 import { MemberRoles } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
@@ -6,18 +6,23 @@ import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberB
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
 
+interface DisplayNameUpdateContext {
+    displayName: string;
+    route: Route;
+    respondSuccess: (nextDisplayName: string) => Promise<void>;
+    respondConflict: (message: string) => Promise<void>;
+}
+
+type DisplayNameUpdateHandler = (context: DisplayNameUpdateContext) => Promise<boolean> | boolean;
+
 interface GroupTestSetupOptions {
     groupId?: GroupId;
     ownerId?: string;
     initialDisplayName?: string;
+    onDisplayNameUpdate?: DisplayNameUpdateHandler;
 }
 
-interface GroupTestSetupResult {
-    groupId: GroupId;
-    setMemberDisplayName: (next: string) => void;
-}
-
-async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTestSetupOptions = {}): Promise<GroupTestSetupResult> {
+async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTestSetupOptions = {}): Promise<{ groupId: GroupId; }> {
     const groupId = options.groupId ?? toGroupId('group-display-name-' + user.uid);
     const ownerId = options.ownerId ?? 'owner-123';
     let memberDisplayName = options.initialDisplayName ?? 'Current Alias';
@@ -58,29 +63,53 @@ async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTest
         await fulfillWithSerialization(route, { body: { members: [] } });
     });
 
-    return {
-        groupId,
-        setMemberDisplayName: (next: string) => {
-            memberDisplayName = next;
-        },
-    };
+    await page.route(`**/api/groups/${groupId}/members/display-name`, async (route) => {
+        const requestBody = JSON.parse(route.request().postData() ?? '{}') as { displayName?: string; };
+        const requestedDisplayName = requestBody.displayName ?? '';
+
+        const respondSuccess = async (nextDisplayName: string) => {
+            memberDisplayName = nextDisplayName;
+            await fulfillWithSerialization(route, {
+                body: { message: 'Group display name updated.' },
+            });
+        };
+
+        const respondConflict = async (message: string) => {
+            await fulfillWithSerialization(route, {
+                status: 409,
+                body: {
+                    error: {
+                        message,
+                        code: 'DISPLAY_NAME_TAKEN',
+                    },
+                },
+            });
+        };
+
+        if (options.onDisplayNameUpdate) {
+            const handled = await options.onDisplayNameUpdate({
+                displayName: requestedDisplayName,
+                route,
+                respondSuccess,
+                respondConflict,
+            });
+
+            if (handled) {
+                return;
+            }
+        }
+
+        await respondSuccess(requestedDisplayName);
+    });
+
+    return { groupId };
 }
 
 test.describe('Group display name settings', () => {
     test('allows group members to update their display name from the settings modal', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
-        const { groupId, setMemberDisplayName } = await setupGroupRoutes(page, user, { initialDisplayName: 'Current Alias' });
-
-        await page.route(`**/api/groups/${groupId}/members/display-name`, async (route) => {
-            const requestBody = JSON.parse(route.request().postData() ?? '{}') as { displayName?: string; };
-            const nextDisplayName = requestBody.displayName ?? '';
-            setMemberDisplayName(nextDisplayName);
-
-            await fulfillWithSerialization(route, {
-                body: { message: 'Group display name updated.' },
-            });
-        });
+        const { groupId } = await setupGroupRoutes(page, user, { initialDisplayName: 'Current Alias' });
 
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupTitle('Display Name Test Group');
@@ -107,14 +136,14 @@ test.describe('Group display name settings', () => {
     test('validates the display name input before submitting', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
-        const { groupId } = await setupGroupRoutes(page, user, { initialDisplayName: 'Alias For Validation' });
         let updateCalled = false;
-
-        await page.route(`**/api/groups/${groupId}/members/display-name`, async (route) => {
-            updateCalled = true;
-            await fulfillWithSerialization(route, {
-                body: { message: 'This request should not be sent during validation.' },
-            });
+        const { groupId } = await setupGroupRoutes(page, user, {
+            initialDisplayName: 'Alias For Validation',
+            onDisplayNameUpdate: async ({ displayName, respondSuccess }) => {
+                updateCalled = true;
+                await respondSuccess(displayName);
+                return true;
+            },
         });
 
         await groupDetailPage.navigateToGroup(groupId);
@@ -146,34 +175,40 @@ test.describe('Group display name settings', () => {
         expect(updateCalled).toBe(false);
     });
 
-    test('shows a server error when the display name is already taken', async ({ authenticatedPage }) => {
+    test('surfaces a conflict error when the server rejects a duplicate display name', async ({ authenticatedPage }) => {
         const { page, user } = authenticatedPage;
         const groupDetailPage = new GroupDetailPage(page);
-        const { groupId } = await setupGroupRoutes(page, user, { initialDisplayName: 'Existing Alias' });
+        const { groupId } = await setupGroupRoutes(page, user, {
+            initialDisplayName: 'Alice',
+            onDisplayNameUpdate: async ({ displayName, respondConflict, respondSuccess }) => {
+                if (displayName.trim().toLowerCase() === 'alice') {
+                    await respondConflict('That name is already in use in this group.');
+                    return true;
+                }
 
-        await page.route(`**/api/groups/${groupId}/members/display-name`, async (route) => {
-            await fulfillWithSerialization(route, {
-                status: 409,
-                body: {
-                    error: {
-                        message: 'That name is already in use in this group.',
-                        code: 'DISPLAY_NAME_TAKEN',
-                    },
-                },
-            });
+                await respondSuccess(displayName);
+                return true;
+            },
         });
 
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupTitle('Display Name Test Group');
 
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('identity');
-        await modal.fillDisplayName('Conflicting Alias');
+        await modal.fillDisplayName('ALICE');
         await modal.saveDisplayName();
 
         const serverError = modal.getDisplayNameError();
         await expect(serverError).toBeVisible();
         await expect(serverError).toContainText('already in use');
 
-        await expect(modal.getDisplayNameSuccess()).toHaveCount(0);
+        // User retries with a unique name; request now succeeds and the success toast is shown
+        await modal.fillDisplayName('Alicia Cooper');
+        await modal.saveDisplayName();
+
+        await expect(serverError).toHaveCount(0);
+        await expect(modal.getDisplayNameSuccess()).toBeVisible();
+        const displayNameInput = modal.getDisplayNameInput();
+        await expect(displayNameInput).toHaveValue('Alicia Cooper');
     });
 });
