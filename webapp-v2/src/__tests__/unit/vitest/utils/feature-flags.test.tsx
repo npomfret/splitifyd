@@ -1,19 +1,6 @@
 import { act, cleanup, render, screen, waitFor } from '@testing-library/preact';
-import type { AppConfiguration, FeatureConfig } from '@splitifyd/shared';
-import {
-    toFeatureToggleAdvancedReporting,
-    toFeatureToggleCustomFields,
-    toFeatureToggleMultiCurrency,
-    toISOString,
-    toTenantAppName,
-    toTenantFaviconUrl,
-    toTenantId,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-    toTenantMaxGroupsPerUser,
-    toTenantMaxUsersPerGroup,
-} from '@splitifyd/shared';
+import type { AppConfiguration } from '@splitifyd/shared';
+import { AppConfigurationBuilder, type TenantOverrides } from '@splitifyd/test-support';
 import { signal } from '@preact/signals';
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 
@@ -33,38 +20,8 @@ vi.mock('@/stores/config-store.ts', () => {
 const { configStore } = await import('@/stores/config-store.ts');
 const { FeatureGate, readFeatureFlag, useFeatureFlag } = await import('@/utils/feature-flags.ts');
 
-const buildConfig = (features: Partial<FeatureConfig> = {}): AppConfiguration => ({
-    firebase: {
-        apiKey: 'test',
-        authDomain: 'test',
-        projectId: 'test',
-        storageBucket: 'test',
-        messagingSenderId: 'test',
-        appId: 'test',
-    },
-    environment: {},
-    formDefaults: {},
-    tenant: {
-        tenantId: toTenantId('tenant'),
-        branding: {
-            appName: toTenantAppName('Splitifyd Tenant'),
-            logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-            faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
-            primaryColor: toTenantPrimaryColor('#112233'),
-            secondaryColor: toTenantSecondaryColor('#445566'),
-        },
-        features: {
-            enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
-            enableMultiCurrency: toFeatureToggleMultiCurrency(false),
-            enableCustomFields: toFeatureToggleCustomFields(false),
-            maxGroupsPerUser: toTenantMaxGroupsPerUser(10),
-            maxUsersPerGroup: toTenantMaxUsersPerGroup(20),
-            ...features,
-        },
-        createdAt: toISOString('2025-01-01T00:00:00.000Z'),
-        updatedAt: toISOString('2025-01-01T00:00:00.000Z'),
-    },
-});
+const buildConfig = (overrides: TenantOverrides = {}): AppConfiguration =>
+    new AppConfigurationBuilder().withTenantOverrides(overrides).build();
 
 const updateConfig = (config: AppConfiguration | null) => {
     act(() => {
@@ -87,7 +44,9 @@ describe('feature-flags utilities', () => {
         expect(readFeatureFlag('enableAdvancedReporting')).toBe(true);
 
         updateConfig(buildConfig({
-            enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
+            features: {
+                enableAdvancedReporting: false,
+            },
         }));
 
         expect(readFeatureFlag('enableAdvancedReporting')).toBe(false);
@@ -108,7 +67,9 @@ describe('feature-flags utilities', () => {
         expect(screen.getByText('enabled')).toBeInTheDocument();
 
         updateConfig(buildConfig({
-            enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
+            features: {
+                enableAdvancedReporting: false,
+            },
         }));
 
         expect(await screen.findByText('disabled')).toBeInTheDocument();
@@ -124,7 +85,9 @@ describe('feature-flags utilities', () => {
         expect(screen.getByText('protected')).toBeInTheDocument();
 
         updateConfig(buildConfig({
-            enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
+            features: {
+                enableAdvancedReporting: false,
+            },
         }));
 
         await waitFor(() => expect(screen.queryByText('protected')).not.toBeInTheDocument());

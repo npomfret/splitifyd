@@ -31,6 +31,7 @@
 - Webapp now hydrates tenant branding on load—config store pushes palettes/favicons into the DOM and theme store mirrors tenant colours—backed by unit tests.
 - Header swaps the logo/button label using tenant branding so white-label tenants see their assets without code changes.
 - Feature-flag utilities (hooks + `FeatureGate`) now gate browser/admin routes and marketing pages per tenant config, with unit tests verifying signal-driven updates.
+- Footer marketing links honour tenant marketing flags, hiding pricing funnels when disabled and covered by unit tests.
 
 ## Agent's Ideas (Based on App Analysis)
 
