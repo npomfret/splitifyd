@@ -1,20 +1,18 @@
 // Endpoint inventory: see docs/firebase-api-surface.md for route descriptions.
+import type {RequestHandler} from 'express';
 import express from 'express';
-import { onRequest } from 'firebase-functions/v2/https';
-import { authenticate, authenticateAdmin, authenticateSystemUser } from './auth/middleware';
-import { getConfig as getClientConfig } from './client-config';
-import { HTTP_STATUS } from './constants';
-import { logger } from './logger';
-import { disableETags } from './middleware/cache-control';
-import { logMetrics } from './scheduled/metrics-logger';
-import { borrowTestUser, returnTestUser } from './test-pool/handlers';
-import { testClearPolicyAcceptances, testPromoteToAdmin } from './test/policy-handlers';
-import { ApiError } from './utils/errors';
-import { applyStandardMiddleware } from './utils/middleware';
-import { routeDefinitions, populateRouteHandlers } from './routes/route-config';
-import type { RequestHandler } from 'express';
-import { createHandlerRegistry } from './ApplicationFactory';
-import { getComponentBuilder } from './ComponentBuilderSingleton';
+import {onRequest} from 'firebase-functions/v2/https';
+import {authenticate, authenticateAdmin, authenticateSystemUser} from './auth/middleware';
+import {getConfig as getClientConfig} from './client-config';
+import {HTTP_STATUS} from './constants';
+import {logger} from './logger';
+import {disableETags} from './middleware/cache-control';
+import {logMetrics} from './scheduled/metrics-logger';
+import {ApiError} from './utils/errors';
+import {applyStandardMiddleware} from './utils/middleware';
+import {populateRouteHandlers, routeDefinitions} from './routes/route-config';
+import {createHandlerRegistry} from './ApplicationFactory';
+import {getComponentBuilder} from './ComponentBuilderSingleton';
 
 let app: express.Application | null = null;
 
@@ -45,38 +43,20 @@ const asyncHandler = (fn: Function) => (req: express.Request, res: express.Respo
     Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-/**
- * Handler registry that maps handler names from route configuration to actual handler functions.
- * Uses ApplicationFactory to create all handlers with proper dependency injection.
- */
-function getHandlerRegistry(): Record<string, RequestHandler> {
+function setupRoutes(app: express.Application): void {
     const appBuilder = getComponentBuilder();
-    return createHandlerRegistry(
-        appBuilder.buildAuthService(),
-        appBuilder.getDatabase(),
-        {
-            borrowTestUser,
-            returnTestUser,
-            testClearPolicyAcceptances,
-            testPromoteToAdmin,
-        }
-    );
-}
 
-/**
- * Middleware registry that maps middleware names to actual middleware functions
- */
-function getMiddlewareRegistry(): Record<string, RequestHandler> {
-    return {
+    const handlerRegistry = createHandlerRegistry(
+        appBuilder.buildAuthService(),
+        appBuilder.getDatabase()
+    );
+
+    const middlewareRegistry = {
         authenticate,
         authenticateAdmin,
         authenticateSystemUser,
     };
-}
 
-function setupRoutes(app: express.Application): void {
-    const handlerRegistry = getHandlerRegistry();
-    const middlewareRegistry = getMiddlewareRegistry();
     const config = getClientConfig();
 
     // Populate route definitions with handlers from the registry
@@ -118,12 +98,12 @@ function setupRoutes(app: express.Application): void {
     // Add test endpoint protection for production
     if (config.isProduction) {
         app.all(/^\/test-pool.*/, (req, res) => {
-            logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
-            res.status(404).json({ error: 'Not found' });
+            logger.warn('Test endpoint accessed in production', {path: req.path, ip: req.ip});
+            res.status(404).json({error: 'Not found'});
         });
         app.all(/^\/test\/user.*/, (req, res) => {
-            logger.warn('Test endpoint accessed in production', { path: req.path, ip: req.ip });
-            res.status(404).json({ error: 'Not found' });
+            logger.warn('Test endpoint accessed in production', {path: req.path, ip: req.ip});
+            res.status(404).json({error: 'Not found'});
         });
     }
 
@@ -189,10 +169,6 @@ function setupRoutes(app: express.Application): void {
     });
 }
 
-export function getMiddlewareRegistryForTesting(): Record<string, RequestHandler> {
-    return getMiddlewareRegistry();
-}
-
 export const api = onRequest(
     {
         invoker: 'public',
@@ -207,9 +183,9 @@ export const api = onRequest(
     },
 );
 
-export { logMetrics };
-export { env } from './endpoints/env';
-export { health } from './endpoints/health';
+export {logMetrics};
+export {env} from './endpoints/env';
+export {health} from './endpoints/health';
 
 // Exposed for integration testing to allow direct access to the Express app
 export function getApiAppForTesting(): express.Application {

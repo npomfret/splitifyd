@@ -7,6 +7,11 @@ import { getConfig as getClientConfig } from './client-config';
 import { getEnhancedConfigResponse } from './utils/config-response';
 import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
 import { logger } from './logger';
+import { TestUserPoolService } from './test-pool/TestUserPoolService';
+import { isEmulator } from './firebase';
+import { requireInstanceMode } from './shared/instance-mode';
+import { SystemUserRoles, TestErrorResponse, TestPromoteToAdminResponse, TestSuccessResponse, ReturnTestUserResponse } from '@splitifyd/shared';
+import type { Request, Response } from 'express';
 
 // Handler imports
 import { GroupHandlers } from './groups/GroupHandlers';
@@ -22,15 +27,6 @@ import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
 import { ActivityFeedHandlers } from './activity/ActivityHandlers';
 import { UserBrowserHandlers } from './browser/UserBrowserHandlers';
 
-/**
- * Optional test handlers that can be included in the registry
- */
-export interface TestHandlers {
-    borrowTestUser: RequestHandler;
-    returnTestUser: RequestHandler;
-    testClearPolicyAcceptances: RequestHandler;
-    testPromoteToAdmin: RequestHandler;
-}
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.
@@ -38,13 +34,11 @@ export interface TestHandlers {
  *
  * @param authService - Authentication service implementation (Firebase or stub for testing)
  * @param db - Database implementation (Firestore or test database)
- * @param testHandlers - Optional test handlers (only provided in non-production environments)
  * @returns Record mapping handler names to handler functions
  */
 export function createHandlerRegistry(
     authService: IAuthService,
-    db: IFirestoreDatabase,
-    testHandlers?: TestHandlers
+    db: IFirestoreDatabase
 ): Record<string, RequestHandler> {
     // Create ComponentBuilder with injected dependencies
     const componentBuilder = new ComponentBuilder(authService, db);
@@ -69,9 +63,10 @@ export function createHandlerRegistry(
         db,
     );
 
-    // User service for auth handlers
+    // Services for inline handlers
     const userService = componentBuilder.buildUserService();
     const policyService = componentBuilder.buildPolicyService();
+    const firestoreWriter = componentBuilder.buildFirestoreWriter();
 
     // Inline diagnostic handlers
     const getMetrics: RequestHandler = (req, res) => {
@@ -107,6 +102,194 @@ export function createHandlerRegistry(
         } catch (error) {
             logger.error('Error processing CSP violation report', error);
             res.status(500).json({ error: 'Internal server error' });
+        }
+    };
+
+    // Test endpoint handlers (only active in non-production)
+    const config = getClientConfig();
+
+    const isTestEnvironment = (): boolean => {
+        try {
+            return requireInstanceMode() === 'test';
+        } catch {
+            return false;
+        }
+    };
+
+    const isPoolEnabled = (): boolean => isEmulator() || isTestEnvironment();
+
+    const testPool = TestUserPoolService.getInstance(firestoreWriter, userService, authService);
+
+    const borrowTestUser: RequestHandler = async (req, res) => {
+        if (!isPoolEnabled()) {
+            res.status(403).json({ error: 'Test pool only available in emulator or test environments' });
+            return;
+        }
+
+        try {
+            const poolUser = await testPool.borrowUser();
+            res.json(poolUser);
+        } catch (error: any) {
+            logger.error('Failed to borrow test user', error);
+            res.status(500).json({
+                error: 'Failed to borrow test user',
+                details: error.message,
+            });
+        }
+    };
+
+    const returnTestUser: RequestHandler = async (req, res) => {
+        if (!isPoolEnabled()) {
+            res.status(403).json({ error: 'Test pool only available in emulator or test environments' });
+            return;
+        }
+
+        const { email } = req.body;
+
+        if (!email) {
+            res.status(400).json({ error: 'Email required' });
+            return;
+        }
+
+        try {
+            await testPool.returnUser(email);
+
+            const response: ReturnTestUserResponse = {
+                message: 'User returned to pool',
+                email,
+            };
+            res.json(response);
+        } catch (error: any) {
+            logger.error('Failed to return test user', error);
+            res.status(500).json({
+                error: 'Failed to return test user',
+                details: error.message,
+            });
+        }
+    };
+
+    const testClearPolicyAcceptances: RequestHandler = async (req, res) => {
+        if (config.isProduction) {
+            const response: TestErrorResponse = {
+                error: {
+                    code: 'FORBIDDEN',
+                    message: 'Test endpoints not available in production',
+                },
+            };
+            res.status(403).json(response);
+            return;
+        }
+
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            const response: TestErrorResponse = {
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'Authorization token required',
+                },
+            };
+            res.status(401).json(response);
+            return;
+        }
+
+        const token = authHeader.substring(7);
+        let decodedToken;
+
+        try {
+            decodedToken = await authService.verifyIdToken(token);
+        } catch (error) {
+            const response: TestErrorResponse = {
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'Invalid token',
+                },
+            };
+            res.status(401).json(response);
+            return;
+        }
+
+        try {
+            await firestoreWriter.updateUser(decodedToken.uid, {
+                acceptedPolicies: {},
+            });
+
+            logger.info('Test policy acceptances cleared', {
+                userId: decodedToken.uid,
+            });
+
+            const response: TestSuccessResponse = {
+                success: true,
+                message: 'Policy acceptances cleared',
+            };
+            res.json(response);
+        } catch (error) {
+            logger.error('Failed to clear policy acceptances via test endpoint', error as Error, {
+                userId: decodedToken.uid,
+            });
+            throw error;
+        }
+    };
+
+    const testPromoteToAdmin: RequestHandler = async (req, res) => {
+        if (config.isProduction) {
+            const response: TestErrorResponse = {
+                error: {
+                    code: 'FORBIDDEN',
+                    message: 'Test endpoints not available in production',
+                },
+            };
+            res.status(403).json(response);
+            return;
+        }
+
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            const response: TestErrorResponse = {
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'Authorization token required',
+                },
+            };
+            res.status(401).json(response);
+            return;
+        }
+
+        const token = authHeader.substring(7);
+        let decodedToken;
+
+        try {
+            decodedToken = await authService.verifyIdToken(token);
+        } catch (error) {
+            const response: TestErrorResponse = {
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'Invalid token',
+                },
+            };
+            res.status(401).json(response);
+            return;
+        }
+
+        try {
+            await firestoreWriter.updateUser(decodedToken.uid, {
+                role: SystemUserRoles.SYSTEM_ADMIN,
+            });
+
+            logger.info('Test user promoted to admin', {
+                userId: decodedToken.uid,
+            });
+
+            const response: TestPromoteToAdminResponse = {
+                success: true,
+                message: 'User promoted to admin role',
+                userId: decodedToken.uid,
+            };
+            res.json(response);
+        } catch (error) {
+            logger.error('Failed to promote user to admin via test endpoint', error as Error, {
+                userId: decodedToken.uid,
+            });
+            throw error;
         }
     };
 
@@ -199,15 +382,13 @@ export function createHandlerRegistry(
         getEnv,
         getConfig,
         reportCspViolation,
-    };
 
-    // Add test handlers if provided
-    if (testHandlers) {
-        registry.borrowTestUser = testHandlers.borrowTestUser;
-        registry.returnTestUser = testHandlers.returnTestUser;
-        registry.testClearPolicyAcceptances = testHandlers.testClearPolicyAcceptances;
-        registry.testPromoteToAdmin = testHandlers.testPromoteToAdmin;
-    }
+        // Test endpoint handlers
+        borrowTestUser,
+        returnTestUser,
+        testClearPolicyAcceptances,
+        testPromoteToAdmin,
+    };
 
     return registry;
 }
