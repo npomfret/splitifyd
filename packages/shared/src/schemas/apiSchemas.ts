@@ -90,7 +90,7 @@ const FeatureConfigSchema = z.object({
     maxUsersPerGroup: z.number().int().min(0).transform(toTenantMaxUsersPerGroup),
 });
 
-const TenantConfigSchema = z.object({
+export const TenantConfigSchema = z.object({
     tenantId: z.string().min(1).transform(toTenantId),
     branding: BrandingConfigSchema,
     features: FeatureConfigSchema,
@@ -98,7 +98,7 @@ const TenantConfigSchema = z.object({
     updatedAt: z.string().datetime().transform(toISOString),
 });
 
-const AppConfigurationSchema = z.object({
+export const AppConfigurationSchema = z.object({
     firebase: FirebaseConfigSchema,
     environment: EnvironmentConfigSchema,
     formDefaults: FormDefaultsSchema,
