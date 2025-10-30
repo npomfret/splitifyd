@@ -28,6 +28,7 @@
 - Introduced the tenant-identification middleware (plus route exemption list) so the Express pipeline resolves host, override, and fallback flows before handing off to `/config`.
 - Added Vitest coverage for domain, override, fallback, and error paths to lock in the identification behaviour.
 - Routed `/config` through cloned tenant configs so requests without Firestore data still receive the hardcoded fallback, with unit tests guarding both the fallback and custom-tenant paths.
+- Webapp now hydrates tenant branding on load—config store pushes palettes/favicons into the DOM and theme store mirrors tenant colours—backed by unit tests.
 
 ## Agent's Ideas (Based on App Analysis)
 

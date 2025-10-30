@@ -1,6 +1,7 @@
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { AppConfiguration } from '@splitifyd/shared';
+import type { AppConfiguration, BrandingConfig } from '@splitifyd/shared';
 import { firebaseConfigManager } from '../app/firebase-config';
+import { applyBrandingPalette } from '../utils/branding';
 
 interface ConfigStore {
     // State getters - readonly values for external consumers
@@ -62,7 +63,9 @@ class ConfigStoreImpl implements ConfigStore {
 
         try {
             const config = await firebaseConfigManager.getConfig();
+
             this.#configSignal.value = config;
+            this.applyBranding(config.tenant?.branding ?? null);
             this.#errorSignal.value = null;
             configLoaded = true;
         } catch (error) {
@@ -79,6 +82,11 @@ class ConfigStoreImpl implements ConfigStore {
         this.#configSignal.value = null;
         this.#loadingSignal.value = false;
         this.#errorSignal.value = null;
+        applyBrandingPalette(null);
+    }
+
+    private applyBranding(branding: BrandingConfig | null): void {
+        applyBrandingPalette(branding);
     }
 }
 
