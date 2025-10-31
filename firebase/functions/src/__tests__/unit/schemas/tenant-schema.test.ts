@@ -140,6 +140,7 @@ describe('TenantDocumentSchema', () => {
                     ...validTenantData.branding,
                     marketingFlags: {
                         showLandingPage: true,
+                        showMarketingContent: true,
                         showPricingPage: false,
                         showBlogPage: true,
                     },
@@ -149,6 +150,7 @@ describe('TenantDocumentSchema', () => {
             const result = TenantDocumentSchema.parse(dataWithFlags);
 
             expect(result.branding.marketingFlags?.showLandingPage).toBe(true);
+            expect(result.branding.marketingFlags?.showMarketingContent).toBe(true);
             expect(result.branding.marketingFlags?.showPricingPage).toBe(false);
             expect(result.branding.marketingFlags?.showBlogPage).toBe(true);
         });

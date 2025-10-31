@@ -16,6 +16,10 @@ import {
     toTenantMaxGroupsPerUser,
     toTenantMaxUsersPerGroup,
     toTenantDefaultFlag,
+    toShowBlogPageFlag,
+    toShowLandingPageFlag,
+    toShowMarketingContentFlag,
+    toShowPricingPageFlag,
     toISOString,
 } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
@@ -54,6 +58,12 @@ export const HARDCODED_FALLBACK_TENANT: TenantRegistryRecord = {
             faviconUrl: toTenantFaviconUrl('https://splitifyd.com/favicon.ico'),
             primaryColor: toTenantPrimaryColor('#1a73e8'),
             secondaryColor: toTenantSecondaryColor('#34a853'),
+            marketingFlags: {
+                showLandingPage: toShowLandingPageFlag(true),
+                showMarketingContent: toShowMarketingContentFlag(true),
+                showPricingPage: toShowPricingPageFlag(true),
+                showBlogPage: toShowBlogPageFlag(false),
+            },
         },
         features: {
             enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
