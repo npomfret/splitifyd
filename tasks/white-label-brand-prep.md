@@ -33,6 +33,7 @@
 - Feature-flag utilities (hooks + `FeatureGate`) now gate browser/admin routes and marketing pages per tenant config, with unit tests verifying signal-driven updates.
 - Footer marketing links honour tenant marketing flags, hiding pricing funnels when disabled and covered by unit tests.
 - Landing page marketing sections (features grid + CTA) now respond to tenant marketing flags so white-label tenants avoid Splitifyd promo content, with dedicated unit coverage.
+- Functions config integration tests now assert marketing flags (including showMarketingContent) propagate for default and override tenants.
 
 ## Agent's Ideas (Based on App Analysis)
 
