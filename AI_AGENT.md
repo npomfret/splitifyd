@@ -25,7 +25,7 @@ Read these first!
 | **git-delta** | Better `git diff`/pager | `git -c core.pager=delta diff` | Side-by-side, syntax-colored diffs in terminal |
 | **timeout** | Limits command execution time | `timeout 10s my_script.sh`, `timeout /t 30 /nobreak` | Prevents indefinite execution; useful for scripting and automation |
 
-If you are "Claude Code", there are agents defined in `.claude/agents`. Use agents freely, appropiately and liberally!
+If you are "Claude Code", there are agents defined in `@.claude/agents`. Use agents freely, appropiately and liberally!
 
 **Direct usage (optional):**
 
@@ -40,12 +40,3 @@ If you are "Claude Code", there are agents defined in `.claude/agents`. Use agen
 - Framework: Firebase Functions
 - Dev Environment: Firebase Emulator Suite
 - It's a mono-repo - both the client (webapp-v2) and the server (firebase) are subprojects
-
-# Commands
-
-- Start local dev server (with auto-reload): `npm run dev`
-- Build: `npm run build`
-- Test: `npm test`
-- Super clean (removes all node_modules): `npm run super-clean`
-
-Note: never use the system browser, always use Chromium
