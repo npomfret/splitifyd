@@ -9,6 +9,8 @@ Read these first!
 - [Type Guidelines](docs/guides/types.md)
 - [Webapp & Style Guide](docs/guides/webapp-and-style-guide.md)
 
+Remember: failing tests, or compile errors are not permitted. You are not finished if you have left the project in a broken state.
+
 ## Available Tools
 
 | Tool | What it is | Typical command(s) | Why it’s an upgrade |
