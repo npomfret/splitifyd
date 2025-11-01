@@ -11,9 +11,19 @@ Read these first!
 
 ## Available Tools
 
-**View all tools:**
-
-- `/agent-list` - See subagents (quality enforcement)
+| Tool | What it is | Typical command(s) | Why it’s an upgrade |
+|---|---|---|---|
+| **fd** | Fast, user-friendly file finder | `fd src`, `fd -e ts foo` | Simpler than `find`, respects `.gitignore`, very fast |
+| **ripgrep (rg)** | Recursive code searcher | `rg "TODO"`, `rg -n --glob '!dist'` | Much faster than `grep`/`ack`/`ag`; great defaults |
+| **ast-grep (sg)** | AST-aware search & refactor | `sg -p 'if ($A) { $B }'` | Searches syntax, not text; precise refactors |
+| **jq** | JSON processor | `jq '.items[].id' < resp.json` | Structured JSON queries, filters, transforms |
+| **fzf** | Fuzzy finder (any list ➜ filtered) | `fzf`, ``history | fzf`` | Interactively filters lists; fewer long paths |
+| **bat** | `cat` with syntax, paging, git | `bat file.ts`, `bat -p README.md` | Syntax highlighting, line numbers, Git integration |
+| **eza** | Modern `ls` | `eza -l --git`, `eza -T` | Better defaults, icons/trees/git info |
+| **zoxide** | Smart `cd` (learns paths) | `z foo`, `zi my/project` | Jumps to dirs by frecency; fewer long paths |
+| **httpie (http)** | Human-friendly HTTP client | `http GET api/foo`, `http POST api bar=1` | Cleaner than `curl` for JSON; shows colors/headers |
+| **git-delta** | Better `git diff`/pager | `git -c core.pager=delta diff` | Side-by-side, syntax-colored diffs in terminal |
+| **timeout** | Limits command execution time | `timeout 10s my_script.sh`, `timeout /t 30 /nobreak` | Prevents indefinite execution; useful for scripting and automation |
 
 Use agents freely, appropiately and liberally!
 
