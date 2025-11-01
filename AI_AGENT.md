@@ -25,7 +25,7 @@ Read these first!
 | **git-delta** | Better `git diff`/pager | `git -c core.pager=delta diff` | Side-by-side, syntax-colored diffs in terminal |
 | **timeout** | Limits command execution time | `timeout 10s my_script.sh`, `timeout /t 30 /nobreak` | Prevents indefinite execution; useful for scripting and automation |
 
-Use agents freely, appropiately and liberally!
+If you are "Claude Code", there are agents defined in `.claude/agents`. Use agents freely, appropiately and liberally!
 
 **Direct usage (optional):**
 

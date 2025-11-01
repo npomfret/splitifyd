@@ -1,6 +1,5 @@
 {
-  "hooks": {
-  },
+  "hooks": {},
   "permissions": {
     "allow": [
       "Bash(awk:*)",
@@ -26,7 +25,8 @@
       "Bash(vitest:*)",
       "Bash(xargs:*)",
       "Read",
-      "WebFetch"
+      "WebFetch",
+      "WebSearch"
     ],
     "deny": [
       "Bash(git commit:*)",
