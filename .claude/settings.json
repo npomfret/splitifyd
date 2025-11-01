@@ -1,5 +1,16 @@
 {
-  "hooks": {},
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/prompt-enhancer.sh"
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(awk:*)",
@@ -13,12 +24,12 @@
       "Bash(fd:*)",
       "Bash(find:*)",
       "Bash(fzf:*)",
-      "Bash(git:*)",
       "Bash(git amend:*)",
       "Bash(git cherry-pick:*)",
       "Bash(git filter-branch:*)",
       "Bash(git rebase:*)",
       "Bash(git reset:*)",
+      "Bash(git:*)",
       "Bash(grep:*)",
       "Bash(http:*)",
       "Bash(jest:*)",
