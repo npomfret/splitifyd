@@ -27,6 +27,7 @@
       "Bash(git amend:*)",
       "Bash(git cherry-pick:*)",
       "Bash(git filter-branch:*)",
+      "Bash(git merge-base:*)",
       "Bash(git rebase:*)",
       "Bash(git reset:*)",
       "Bash(git:*)",
