@@ -30,7 +30,6 @@
     "@splitifyd/test-support": "^1.0.0",
     "@types/node": "^24.0.14",
     "tsup": "^8.0.0",
-    "tsx": "^4.7.0",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   },

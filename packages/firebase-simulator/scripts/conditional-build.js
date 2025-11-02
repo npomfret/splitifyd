@@ -5,7 +5,7 @@
  *
  * - In production or test environments we emit compiled bundles with tsup.
  * - During local development we create lightweight wrappers that delegate to the
- *   TypeScript sources. This keeps hot-reload tooling (Vite, Vitest, tsx) fast
+ *   TypeScript sources. This keeps hot-reload tooling (Vite, Vitest) fast
  *   while still letting Node.js consumers require the package without manual builds.
  */
 
@@ -32,15 +32,14 @@ if (shouldEmitBundles) {
     process.exit(0);
 }
 
-console.log('⚡  Preparing @splitifyd/firebase-simulator development wrappers (tsx-powered)');
+console.log('⚡  Preparing @splitifyd/firebase-simulator development wrappers');
 
 if (!fs.existsSync(distDir)) {
     fs.mkdirSync(distDir, { recursive: true });
 }
 
 const cjsWrapper = `// Auto-generated development wrapper for CommonJS consumers
-// Registers tsx so we can execute the TypeScript sources without a manual build.
-require('tsx');
+// Re-exports the TypeScript sources directly (requires bundler/loader support).
 module.exports = require('../src/index.ts');
 `;
 
