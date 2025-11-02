@@ -72,7 +72,12 @@ interface AuthenticatedRequest extends Request {
  * Tests call into this driver to hit the actual validation/permission logic
  * without needing to spin up the Firebase runtime.
  *
- * DO NOT use for load / concurrency testing - it will not accurately simulate firestore bahviour under load
+ * DO NOT use for load / concurrency testing - it will not accurately simulate firestore behaviour under load
+ *
+ * This class implements the operations defined in IApiClient with a UserId-based authentication model.
+ * It follows the pattern: method(userId, data) where userId is used for direct database access in tests.
+ *
+ * @see IApiClient for the complete list of supported operations
  */
 export class AppDriver {
     private db = new SplitifydFirestoreTestDatabase();

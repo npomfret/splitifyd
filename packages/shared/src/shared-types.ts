@@ -1145,6 +1145,33 @@ export interface ExpenseDraft {
 }
 
 /**
+ * Options for listing groups
+ * Used by API clients for group list queries
+ */
+export interface ListGroupsOptions {
+    limit?: number;
+    cursor?: string;
+    order?: 'asc' | 'desc';
+    includeMetadata?: boolean;
+    statusFilter?: MemberStatus | MemberStatus[];
+}
+
+/**
+ * Options for getting group full details
+ * Used by API clients for fetching complete group information
+ */
+export interface GetGroupFullDetailsOptions {
+    expenseLimit?: number;
+    expenseCursor?: string;
+    includeDeletedExpenses?: boolean;
+    settlementLimit?: number;
+    settlementCursor?: string;
+    includeDeletedSettlements?: boolean;
+    commentLimit?: number;
+    commentCursor?: string;
+}
+
+/**
  * Query parameters for comment pagination
  * Used in comment listing endpoints
  */

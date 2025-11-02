@@ -19,12 +19,14 @@ import type {
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     GenerateShareLinkRequest,
+    GetGroupFullDetailsOptions,
     GroupDTO,
     GroupFullDetailsDTO,
     GroupMembershipDTO,
     GroupPermissions,
     JoinGroupResponse,
     ListCommentsResponse,
+    ListGroupsOptions,
     ListGroupsResponse,
     MemberRole,
     MemberStatus,
@@ -228,7 +230,15 @@ function isAbortError(error: unknown, signal?: AbortSignal | null): boolean {
     return false;
 }
 
-// Main API client class
+/**
+ * Main API client class for frontend application.
+ *
+ * This class implements the operations defined in IApiClient with an internally managed token.
+ * It follows the pattern: method(data) where the auth token is managed via setAuthToken().
+ * Includes automatic token refresh, request/response interceptors, and retry logic.
+ *
+ * @see IApiClient for the complete list of supported operations
+ */
 class ApiClient {
     private authToken: string | null = null;
     private requestInterceptors: RequestInterceptor[] = [];
@@ -670,7 +680,7 @@ class ApiClient {
 
     // Convenience methods for common endpoints (using enhanced RequestConfig internally)
     async getGroups(
-        options?: { includeMetadata?: boolean; page?: number; limit?: number; order?: 'asc' | 'desc'; cursor?: string; statusFilter?: MemberStatus | MemberStatus[]; },
+        options?: ListGroupsOptions & { page?: number; },
     ): Promise<ListGroupsResponse> {
         const query: Record<string, string> = {};
         if (options?.includeMetadata) query.includeMetadata = 'true';
@@ -714,16 +724,7 @@ class ApiClient {
 
     async getGroupFullDetails(
         id: string,
-        options?: {
-            expenseLimit?: number;
-            expenseCursor?: string;
-            includeDeletedExpenses?: boolean;
-            settlementLimit?: number;
-            settlementCursor?: string;
-            includeDeletedSettlements?: boolean;
-            commentLimit?: number;
-            commentCursor?: string;
-        },
+        options?: GetGroupFullDetailsOptions,
     ): Promise<GroupFullDetailsDTO> {
         const queryParams: Record<string, string> = {};
 
