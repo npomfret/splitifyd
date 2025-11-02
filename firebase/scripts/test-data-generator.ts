@@ -538,8 +538,8 @@ async function createDefaultTenant(): Promise<void> {
     const defaultTenantDoc = {
         branding: {
             appName: toTenantAppName('Splitifyd Dev'),
-            logoUrl: toTenantLogoUrl('https://splitifyd.com/logo.svg'),
-            faviconUrl: toTenantFaviconUrl('https://splitifyd.com/favicon.ico'),
+            logoUrl: toTenantLogoUrl('/logo.svg'),
+            faviconUrl: toTenantFaviconUrl('/favicon.ico'),
             primaryColor: toTenantPrimaryColor('#1a73e8'),
             secondaryColor: toTenantSecondaryColor('#34a853'),
         },
