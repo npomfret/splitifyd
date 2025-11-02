@@ -12,7 +12,6 @@ import { FirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
 import { GroupService } from './GroupService';
 import { GroupShareService } from './GroupShareService';
-import { GroupLockEvaluator } from './locks/GroupLockEvaluator';
 import { PolicyService } from './PolicyService';
 import { SettlementService } from './SettlementService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
@@ -32,7 +31,6 @@ export class ComponentBuilder {
     private groupMemberService?: GroupMemberService;
     private groupShareService?: GroupShareService;
     private groupTransactionManager?: GroupTransactionManager;
-    private groupLockEvaluator?: GroupLockEvaluator;
     private incrementalBalanceService?: IncrementalBalanceService;
     private activityFeedService?: ActivityFeedService;
     private firestoreReader: IFirestoreReader;
@@ -156,13 +154,6 @@ export class ComponentBuilder {
             this.groupTransactionManager = new GroupTransactionManager(this.buildFirestoreReader(), this.buildFirestoreWriter());
         }
         return this.groupTransactionManager;
-    }
-
-    buildGroupLockEvaluator(): GroupLockEvaluator {
-        if (!this.groupLockEvaluator) {
-            this.groupLockEvaluator = new GroupLockEvaluator(this.buildFirestoreReader());
-        }
-        return this.groupLockEvaluator;
     }
 
     buildIncrementalBalanceService(): IncrementalBalanceService {
