@@ -53,11 +53,11 @@ import {
     type GroupBalanceDTO,
     GroupDocumentSchema,
     type ParsedShareLink,
-    type UserDocument,
     PolicyDocumentSchema,
     SettlementDocumentSchema,
     ShareLinkDocumentSchema,
     TopLevelGroupMemberSchema,
+    type UserDocument,
     UserDocumentSchema,
 } from '../../schemas';
 import type { TopLevelGroupMemberDocument } from '../../types';

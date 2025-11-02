@@ -1,5 +1,5 @@
-import type { GroupDTO, GroupId, GroupMember, UserId } from '@splitifyd/shared';
 import { permissionsStore } from '@/stores/permissions-store.ts';
+import type { GroupDTO, GroupId, GroupMember, UserId } from '@splitifyd/shared';
 import { themeStore } from '../theme-store';
 
 /**

@@ -1,6 +1,6 @@
 import { ApiError } from '@/app/apiClient';
-import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
+import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { logInfo } from '@/utils/browser-logger';
 import { signal, useComputed } from '@preact/signals';
 import { CreateGroupRequest, GroupId, toGroupName } from '@splitifyd/shared';

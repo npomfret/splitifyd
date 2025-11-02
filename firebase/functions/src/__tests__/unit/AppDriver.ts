@@ -39,17 +39,17 @@ import {
 } from '@splitifyd/shared';
 import { ExpenseId, SettlementId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
+import { SystemUserRoles } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@splitifyd/test-support';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { expect } from 'vitest';
-import { RegisterUserResult } from '../../services/UserService2';
-import { StubAuthService } from './mocks/StubAuthService';
 import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
-import type { RequestHandler, Request, Response, NextFunction } from 'express';
-import { SystemUserRoles } from '@splitifyd/shared';
-import { Errors, sendError } from '../../utils/errors';
-import { FirestoreReader } from '../../services/firestore';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
+import { FirestoreReader } from '../../services/firestore';
+import { RegisterUserResult } from '../../services/UserService2';
+import { Errors, sendError } from '../../utils/errors';
+import { StubAuthService } from './mocks/StubAuthService';
 
 /**
  * Extended request interface for authenticated requests in AppDriver
@@ -86,7 +86,6 @@ export class AppDriver {
         // Create populated route definitions using the component builder
         this.routeDefinitions = createRouteDefinitions(componentBuilder);
     }
-
 
     /**
      * Test-specific middleware that works with stub requests.
@@ -248,11 +247,13 @@ export class AppDriver {
 
                 // Handle async middleware
                 if (result && result instanceof Promise) {
-                    result.then(() => {
-                        if (!nextCalled) {
-                            resolve();
-                        }
-                    }).catch(reject);
+                    result
+                        .then(() => {
+                            if (!nextCalled) {
+                                resolve();
+                            }
+                        })
+                        .catch(reject);
                 } else if (!nextCalled) {
                     // Synchronous middleware that didn't call next - assume success
                     resolve();
@@ -831,7 +832,8 @@ export class AppDriver {
         onChange: (comments: Array<{ id: string; [key: string]: unknown; }>) => void,
         options: { order?: 'asc' | 'desc'; limit?: number; } = {},
     ): () => void {
-        let query = this.db
+        let query = this
+            .db
             .collection(`groups/${groupId}/comments`)
             .orderBy('createdAt', options.order ?? 'desc');
 
@@ -856,7 +858,8 @@ export class AppDriver {
         groupId: GroupId | string,
         options: { order?: 'asc' | 'desc'; limit?: number; } = {},
     ): Promise<Array<{ id: string; [key: string]: unknown; }>> {
-        let query = this.db
+        let query = this
+            .db
             .collection(`groups/${groupId}/comments`)
             .orderBy('createdAt', options.order ?? 'desc');
 

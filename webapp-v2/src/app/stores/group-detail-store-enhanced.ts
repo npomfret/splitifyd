@@ -104,8 +104,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             activityFeed,
             listenerId: this.activityListenerId,
             getCurrentGroupId: () => this.currentGroupId,
-            onActivityRefresh: ({ groupId, eventType, eventId }) =>
-                this.handleActivityDrivenRefresh(groupId, eventType, eventId),
+            onActivityRefresh: ({ groupId, eventType, eventId }) => this.handleActivityDrivenRefresh(groupId, eventType, eventId),
             onSelfRemoval: ({ groupId, eventId }) => this.handleSelfRemoval(groupId, eventId),
         });
     }

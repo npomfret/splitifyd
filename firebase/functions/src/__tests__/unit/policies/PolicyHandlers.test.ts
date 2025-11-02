@@ -1,8 +1,8 @@
+import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
-import { AppDriver } from '../AppDriver';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('PolicyHandlers - Unit Tests', () => {

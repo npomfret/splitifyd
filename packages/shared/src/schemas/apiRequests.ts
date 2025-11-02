@@ -10,8 +10,8 @@
 
 import { z } from 'zod';
 import { getCurrency } from '../currencies';
+import { type Amount, SplitTypes } from '../shared-types';
 import { parseMonetaryAmount } from '../split-utils';
-import { SplitTypes, type Amount } from '../shared-types';
 import { createDisplayNameSchema, DisplayNameSchema, type DisplayNameSchemaOptions } from './primitives';
 
 // ---------------------------------------------------------------------------
@@ -350,7 +350,8 @@ export const UpdateExpenseRequestSchema = z
     .object({
         amount: createAmountSchema({
             max: Number.POSITIVE_INFINITY,
-        }).optional(),
+        })
+            .optional(),
         currency: CurrencyCodeSchema.optional(),
         description: z
             .string()
@@ -567,7 +568,8 @@ export const UpdateUserProfileRequestSchema = z
             minMessage: 'Display name cannot be empty',
             maxMessage: 'Display name must be 100 characters or less',
             pattern: null,
-        }).optional(),
+        })
+            .optional(),
         photoURL: z
             .union([
                 z.string().url('Invalid photo URL format'),
@@ -626,8 +628,4 @@ export const JoinGroupRequestSchema = z.object({
 // Re-export group request schemas for convenience
 // ---------------------------------------------------------------------------
 
-export {
-    CreateGroupRequestSchema,
-    UpdateGroupRequestSchema,
-    UpdateDisplayNameRequestSchema,
-} from '../shared-types';
+export { CreateGroupRequestSchema, UpdateDisplayNameRequestSchema, UpdateGroupRequestSchema } from '../shared-types';

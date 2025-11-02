@@ -1,6 +1,6 @@
+import { GroupsPaginationController } from '@/app/stores/helpers/groups-pagination-controller';
 import { signal } from '@preact/signals';
 import { describe, expect, it } from 'vitest';
-import { GroupsPaginationController } from '@/app/stores/helpers/groups-pagination-controller';
 
 const createController = () => {
     const currentPage = signal(1);

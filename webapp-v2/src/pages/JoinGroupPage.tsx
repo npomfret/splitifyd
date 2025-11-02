@@ -8,13 +8,13 @@ import { Card } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { LoadingSpinner } from '@/components/ui';
+import { Input } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { useComputed } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { joinGroupStore } from '../app/stores/join-group-store';
-import { Input } from '@/components/ui';
 import { GroupPreview } from '../components/join-group/GroupPreview';
 import { JoinButton } from '../components/join-group/JoinButton';
 import { MembersPreview } from '../components/join-group/MembersPreview';
@@ -106,7 +106,6 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
         setShowNamePrompt(false);
         setNameError(null);
     };
-
 
     // Show error if no link ID provided
     if (!actualLinkId) {

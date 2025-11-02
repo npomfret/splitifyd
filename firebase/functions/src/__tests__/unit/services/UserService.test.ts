@@ -946,21 +946,33 @@ describe('UserService - Consolidated Unit Tests', () => {
             const user2 = 'user-2';
             const user3 = 'user-3';
 
-            db.seedGroupMember(groupId, user1, new GroupMemberDocumentBuilder()
-                .withUserId(user1 as any)
-                .withGroupId(groupId)
-                .withGroupDisplayName('Member One')
-                .buildDocument());
-            db.seedGroupMember(groupId, user2, new GroupMemberDocumentBuilder()
-                .withUserId(user2 as any)
-                .withGroupId(groupId)
-                .withGroupDisplayName('Member Two')
-                .buildDocument());
-            db.seedGroupMember(groupId, user3, new GroupMemberDocumentBuilder()
-                .withUserId(user3 as any)
-                .withGroupId(groupId)
-                .withGroupDisplayName('Member Three')
-                .buildDocument());
+            db.seedGroupMember(
+                groupId,
+                user1,
+                new GroupMemberDocumentBuilder()
+                    .withUserId(user1 as any)
+                    .withGroupId(groupId)
+                    .withGroupDisplayName('Member One')
+                    .buildDocument(),
+            );
+            db.seedGroupMember(
+                groupId,
+                user2,
+                new GroupMemberDocumentBuilder()
+                    .withUserId(user2 as any)
+                    .withGroupId(groupId)
+                    .withGroupDisplayName('Member Two')
+                    .buildDocument(),
+            );
+            db.seedGroupMember(
+                groupId,
+                user3,
+                new GroupMemberDocumentBuilder()
+                    .withUserId(user3 as any)
+                    .withGroupId(groupId)
+                    .withGroupDisplayName('Member Three')
+                    .buildDocument(),
+            );
 
             const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any, user2 as any, user3 as any]);
 
@@ -977,11 +989,15 @@ describe('UserService - Consolidated Unit Tests', () => {
             const user1 = 'user-1';
             const user2 = 'departed-user';
 
-            db.seedGroupMember(groupId, user1, new GroupMemberDocumentBuilder()
-                .withUserId(user1 as any)
-                .withGroupId(groupId)
-                .withGroupDisplayName('Active Member')
-                .buildDocument());
+            db.seedGroupMember(
+                groupId,
+                user1,
+                new GroupMemberDocumentBuilder()
+                    .withUserId(user1 as any)
+                    .withGroupId(groupId)
+                    .withGroupDisplayName('Active Member')
+                    .buildDocument(),
+            );
 
             const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any, user2 as any]);
 
@@ -1002,11 +1018,15 @@ describe('UserService - Consolidated Unit Tests', () => {
             const groupId = toGroupId('test-group');
             const user1 = 'user-1';
 
-            db.seedGroupMember(groupId, user1, new GroupMemberDocumentBuilder()
-                .withUserId(user1 as any)
-                .withGroupId(groupId)
-                .withGroupDisplayName('Alice')
-                .buildDocument());
+            db.seedGroupMember(
+                groupId,
+                user1,
+                new GroupMemberDocumentBuilder()
+                    .withUserId(user1 as any)
+                    .withGroupId(groupId)
+                    .withGroupDisplayName('Alice')
+                    .buildDocument(),
+            );
 
             const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any]);
 
@@ -1017,11 +1037,15 @@ describe('UserService - Consolidated Unit Tests', () => {
             const groupId = toGroupId('test-group');
             const user1 = 'user-1';
 
-            db.seedGroupMember(groupId, user1, new GroupMemberDocumentBuilder()
-                .withUserId(user1 as any)
-                .withGroupId(groupId)
-                .withGroupDisplayName('John Smith')
-                .buildDocument());
+            db.seedGroupMember(
+                groupId,
+                user1,
+                new GroupMemberDocumentBuilder()
+                    .withUserId(user1 as any)
+                    .withGroupId(groupId)
+                    .withGroupDisplayName('John Smith')
+                    .buildDocument(),
+            );
 
             const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any]);
 
@@ -1032,11 +1056,15 @@ describe('UserService - Consolidated Unit Tests', () => {
             const groupId = toGroupId('test-group');
             const user1 = 'user-1';
 
-            db.seedGroupMember(groupId, user1, new GroupMemberDocumentBuilder()
-                .withUserId(user1 as any)
-                .withGroupId(groupId)
-                .withGroupDisplayName('First Middle Last')
-                .buildDocument());
+            db.seedGroupMember(
+                groupId,
+                user1,
+                new GroupMemberDocumentBuilder()
+                    .withUserId(user1 as any)
+                    .withGroupId(groupId)
+                    .withGroupDisplayName('First Middle Last')
+                    .buildDocument(),
+            );
 
             const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1 as any]);
 

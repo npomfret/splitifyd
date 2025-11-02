@@ -1,11 +1,11 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { Alert, Avatar, Button, Card, Form, Input } from '@/components/ui';
+import { SystemUserRoles } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { SystemUserRoles } from '@splitifyd/shared';
 
 interface PasswordChangeData {
     currentPassword: string;

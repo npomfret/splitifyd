@@ -107,7 +107,7 @@ export class GroupsPaginationController {
         this.reset();
     }
 
-    reset(options?: { pageSize?: number }): void {
+    reset(options?: { pageSize?: number; }): void {
         this.previousCursors = [];
         this.nextCursor = null;
         this.currentPageSignal.value = 1;

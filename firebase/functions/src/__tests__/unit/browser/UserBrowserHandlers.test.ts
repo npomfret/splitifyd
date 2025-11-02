@@ -1,9 +1,9 @@
 import { RegisteredUserBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import type { Request, Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UserBrowserHandlers } from '../../../browser/UserBrowserHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
-import type { Request, Response } from 'express';
 
 describe('UserBrowserHandlers - Unit Tests', () => {
     let handlers: UserBrowserHandlers;
@@ -71,7 +71,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
                         expect.objectContaining({ uid: 'user2', email: 'user2@test.com' }),
                     ]),
                     hasMore: false,
-                })
+                }),
             );
         });
 
@@ -93,7 +93,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
                 expect.objectContaining({
                     users: [expect.objectContaining({ uid: 'user1', email: 'user1@test.com' })],
                     hasMore: false,
-                })
+                }),
             );
         });
 
@@ -115,7 +115,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
                 expect.objectContaining({
                     users: [expect.objectContaining({ uid: 'user1' })],
                     hasMore: false,
-                })
+                }),
             );
         });
 
@@ -128,7 +128,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
                 expect.objectContaining({
                     users: [],
                     hasMore: false,
-                })
+                }),
             );
         });
 
@@ -153,7 +153,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
                     users: expect.arrayContaining([
                         expect.any(Object),
                     ]),
-                })
+                }),
             );
 
             const callArgs = jsonSpy.mock.calls[0][0];
@@ -184,7 +184,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
                         expect.objectContaining({ id: 'user2', email: 'user2@test.com' }),
                     ]),
                     hasMore: false,
-                })
+                }),
             );
         });
 
@@ -209,7 +209,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
                 expect.objectContaining({
                     users: [expect.objectContaining({ id: 'user1', email: 'user1@test.com' })],
                     hasMore: false,
-                })
+                }),
             );
         });
 
@@ -222,7 +222,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
                 expect.objectContaining({
                     users: [],
                     hasMore: false,
-                })
+                }),
             );
         });
 
@@ -249,7 +249,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
                         expect.objectContaining({ id: 'user1', email: 'user1@test.com' }),
                     ]),
                     hasMore: false,
-                })
+                }),
             );
         });
 

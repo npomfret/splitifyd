@@ -35,13 +35,7 @@ import {
     validateUpdate,
 } from '../../schemas';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
-import type {
-    BatchWriteResult,
-    FirestoreUserCreateData,
-    FirestoreUserUpdateData,
-    IFirestoreWriter,
-    WriteResult,
-} from './IFirestoreWriter';
+import type { BatchWriteResult, FirestoreUserCreateData, FirestoreUserUpdateData, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness

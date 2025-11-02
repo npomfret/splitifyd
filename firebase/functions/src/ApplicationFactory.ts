@@ -1,32 +1,30 @@
+import { ReturnTestUserResponse, SystemUserRoles, TestErrorResponse, TestPromoteToAdminResponse, TestSuccessResponse } from '@splitifyd/shared';
 import type { RequestHandler } from 'express';
-import { ComponentBuilder } from './services/ComponentBuilder';
-import type { IAuthService } from './services/auth';
-import type { IFirestoreDatabase } from './firestore-wrapper';
-import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
 import { getConfig as getClientConfig } from './client-config';
-import { getEnhancedConfigResponse } from './utils/config-response';
-import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
-import { logger } from './logger';
-import { TestUserPoolService } from './test-pool/TestUserPoolService';
+import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
 import { isEmulator } from './firebase';
+import type { IFirestoreDatabase } from './firestore-wrapper';
+import { logger } from './logger';
+import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
+import type { IAuthService } from './services/auth';
+import { ComponentBuilder } from './services/ComponentBuilder';
 import { requireInstanceMode } from './shared/instance-mode';
-import { SystemUserRoles, TestErrorResponse, TestPromoteToAdminResponse, TestSuccessResponse, ReturnTestUserResponse } from '@splitifyd/shared';
-import type { Request, Response } from 'express';
+import { TestUserPoolService } from './test-pool/TestUserPoolService';
+import { getEnhancedConfigResponse } from './utils/config-response';
 
 // Handler imports
-import { GroupHandlers } from './groups/GroupHandlers';
-import { GroupShareHandlers } from './groups/GroupShareHandlers';
-import { GroupMemberHandlers } from './groups/GroupMemberHandlers';
-import { GroupSecurityHandlers } from './groups/GroupSecurityHandlers';
-import { ExpenseHandlers } from './expenses/ExpenseHandlers';
-import { SettlementHandlers } from './settlements/SettlementHandlers';
-import { CommentHandlers } from './comments/CommentHandlers';
-import { UserHandlers } from './user/UserHandlers';
-import { PolicyHandlers } from './policies/PolicyHandlers';
-import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
 import { ActivityFeedHandlers } from './activity/ActivityHandlers';
 import { UserBrowserHandlers } from './browser/UserBrowserHandlers';
-
+import { CommentHandlers } from './comments/CommentHandlers';
+import { ExpenseHandlers } from './expenses/ExpenseHandlers';
+import { GroupHandlers } from './groups/GroupHandlers';
+import { GroupMemberHandlers } from './groups/GroupMemberHandlers';
+import { GroupSecurityHandlers } from './groups/GroupSecurityHandlers';
+import { GroupShareHandlers } from './groups/GroupShareHandlers';
+import { PolicyHandlers } from './policies/PolicyHandlers';
+import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
+import { SettlementHandlers } from './settlements/SettlementHandlers';
+import { UserHandlers } from './user/UserHandlers';
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.

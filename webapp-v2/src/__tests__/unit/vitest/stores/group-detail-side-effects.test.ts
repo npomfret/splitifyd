@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
 import { GroupDetailSideEffectsManager } from '@/app/stores/helpers/group-detail-side-effects';
 import { toGroupId } from '@splitifyd/shared';
+import { describe, expect, it, vi } from 'vitest';
 
 describe('GroupDetailSideEffectsManager', () => {
     const createManager = () => {

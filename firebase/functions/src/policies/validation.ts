@@ -2,9 +2,9 @@ import {
     AcceptMultiplePoliciesRequestSchema,
     AcceptPolicyRequest,
     CreatePolicyRequestSchema,
+    type PolicyId,
     PublishPolicyRequestSchema,
     UpdatePolicyRequestSchema,
-    type PolicyId,
     VersionHash,
 } from '@splitifyd/shared';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';

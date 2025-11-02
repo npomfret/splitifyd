@@ -15,9 +15,9 @@ import { GroupShareService } from './GroupShareService';
 import { GroupLockEvaluator } from './locks/GroupLockEvaluator';
 import { PolicyService } from './PolicyService';
 import { SettlementService } from './SettlementService';
+import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import { UserPolicyService } from './UserPolicyService';
 import { UserService } from './UserService2';
-import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 
 export class ComponentBuilder {
     // Base infrastructure - created once

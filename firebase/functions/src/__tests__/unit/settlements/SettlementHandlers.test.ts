@@ -1,9 +1,9 @@
 import { CreateSettlementRequestBuilder, SettlementUpdateBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { SettlementHandlers } from '../../../settlements/SettlementHandlers';
 import { AppDriver } from '../AppDriver';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('SettlementHandlers - Unit Tests', () => {

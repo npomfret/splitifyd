@@ -347,7 +347,9 @@ export class ApiDriver {
         return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async register(userData: { email: Email; password: string; displayName: DisplayName; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; privacyPolicyAccepted?: boolean; }): Promise<RegisterResponse> {
+    async register(
+        userData: { email: Email; password: string; displayName: DisplayName; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; privacyPolicyAccepted?: boolean; },
+    ): Promise<RegisterResponse> {
         // Ensure required policy acceptance fields are provided with defaults
         const registrationData = {
             ...userData,

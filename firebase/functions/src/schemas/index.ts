@@ -47,7 +47,7 @@ export { SettlementDocumentSchema } from './settlement';
 export { type ParsedShareLink, ShareLinkDataSchema, ShareLinkDocumentSchema } from './sharelink';
 
 // User schemas
-export { UserDocumentSchema, type UserDocument } from './user';
+export { type UserDocument, UserDocumentSchema } from './user';
 
 // Policy schemas
 export { PolicyDocumentSchema } from './policy';

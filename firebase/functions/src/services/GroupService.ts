@@ -1,4 +1,4 @@
-import type {CurrencyISOCode, UserId} from '@splitifyd/shared';
+import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
 import {
     ActivityFeedActions,
     ActivityFeedEventTypes,
@@ -22,25 +22,25 @@ import {
     toISOString,
     UpdateGroupRequest,
 } from '@splitifyd/shared';
-import {DOCUMENT_CONFIG, FirestoreCollections, HTTP_STATUS} from '../constants';
-import {logger, LoggerContext} from '../logger';
+import { DisplayName } from '@splitifyd/shared/src';
+import { DOCUMENT_CONFIG, FirestoreCollections, HTTP_STATUS } from '../constants';
+import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
-import {PerformanceTimer} from '../monitoring/PerformanceTimer';
-import {PermissionEngine} from '../permissions';
-import {GroupBalanceDTO} from '../schemas';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
+import { PermissionEngine } from '../permissions';
+import { GroupBalanceDTO } from '../schemas';
 import * as dateHelpers from '../utils/dateHelpers';
-import {ApiError, Errors} from '../utils/errors';
-import {newTopLevelMembershipDocId} from '../utils/idGenerator';
-import {ActivityFeedService} from './ActivityFeedService';
-import {CommentService} from './CommentService';
-import {ExpenseService} from './ExpenseService';
-import type {GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter} from './firestore';
-import {GroupMemberService} from './GroupMemberService';
-import {GroupShareService} from './GroupShareService';
-import {SettlementService} from './SettlementService';
+import { ApiError, Errors } from '../utils/errors';
+import { newTopLevelMembershipDocId } from '../utils/idGenerator';
+import { ActivityFeedService } from './ActivityFeedService';
+import { CommentService } from './CommentService';
+import { ExpenseService } from './ExpenseService';
+import type { GetGroupsForUserOptions, IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
+import { GroupShareService } from './GroupShareService';
+import { SettlementService } from './SettlementService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
-import {UserService} from './UserService2';
-import {DisplayName} from "@splitifyd/shared/src";
+import { UserService } from './UserService2';
 
 /**
  * Service for managing group operations
@@ -389,7 +389,7 @@ export class GroupService {
 
         logger.info('group-created', {
             groupId,
-            name: groupData.name,/* keep this - its helpful for debugging tests */
+            name: groupData.name, /* keep this - its helpful for debugging tests */
             timings: timer.getTimings(),
         });
 

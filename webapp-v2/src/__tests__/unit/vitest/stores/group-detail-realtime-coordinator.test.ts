@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from 'vitest';
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
 import { GroupDetailRealtimeCoordinator } from '@/app/stores/helpers/group-detail-realtime-coordinator';
 import type { GroupId } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
+import { describe, expect, it, vi } from 'vitest';
 
 interface TestContext {
     coordinator: GroupDetailRealtimeCoordinator;

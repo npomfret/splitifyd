@@ -1,7 +1,7 @@
-import { mkdtempSync, rmSync, existsSync, copyFileSync, mkdirSync } from 'node:fs';
-import { join, resolve } from 'node:path';
-import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 
 type DeployMode = 'all' | 'functions' | 'hosting' | 'rules' | 'indexes';
 
@@ -47,13 +47,12 @@ function ensureFile(path: string, description: string): void {
     }
 }
 
-function cloneRepository(): { tempRoot: string; cloneDir: string } {
+function cloneRepository(): { tempRoot: string; cloneDir: string; } {
     const tempRoot = mkdtempSync(join(tmpdir(), 'splitifyd-deploy-'));
     const cloneDir = join(tempRoot, 'repo');
     run('git', ['clone', '--depth', '1', repoRoot, cloneDir]);
     return { tempRoot, cloneDir };
 }
-
 
 function installDependencies(cloneDir: string, env: NodeJS.ProcessEnv): void {
     run('npm', ['install'], { cwd: cloneDir, env });
@@ -69,7 +68,7 @@ function runMonorepoBuild(cloneDir: string, env: NodeJS.ProcessEnv): void {
     });
 }
 
-function copySecretsIntoClone(cloneFirebaseDir: string): { envPath: string; serviceAccountPath: string } {
+function copySecretsIntoClone(cloneFirebaseDir: string): { envPath: string; serviceAccountPath: string; } {
     const envSource = join(functionsDir, envTemplateName);
     const envDestination = join(cloneFirebaseDir, 'functions', envTemplateName);
     copyFileSync(envSource, envDestination);

@@ -8,7 +8,7 @@ import { Errors } from '../utils/errors';
 import { sanitizeGroupData, validateCreateGroup, validateGroupId, validateUpdateDisplayName, validateUpdateGroup } from './validation';
 
 export class GroupHandlers {
-    constructor(private readonly groupService: GroupService,) {}
+    constructor(private readonly groupService: GroupService) {}
 
     /**
      * Create a new group

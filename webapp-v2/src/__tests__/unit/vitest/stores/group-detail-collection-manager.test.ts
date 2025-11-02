@@ -1,6 +1,6 @@
+import { GroupDetailCollectionManager } from '@/app/stores/helpers/group-detail-collection-manager';
 import { signal } from '@preact/signals';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { GroupDetailCollectionManager } from '@/app/stores/helpers/group-detail-collection-manager';
 
 describe('GroupDetailCollectionManager', () => {
     let itemsSignal = signal<number[]>([]);

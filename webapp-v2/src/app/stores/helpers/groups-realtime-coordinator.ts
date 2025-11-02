@@ -1,6 +1,6 @@
 import { logInfo, logWarning } from '@/utils/browser-logger.ts';
-import type { ActivityFeedItem, GroupId, UserId } from '@splitifyd/shared';
 import type { Signal } from '@preact/signals';
+import type { ActivityFeedItem, GroupId, UserId } from '@splitifyd/shared';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../../services/activity-feed-realtime-service';
 
 interface GroupsRealtimeCoordinatorOptions {

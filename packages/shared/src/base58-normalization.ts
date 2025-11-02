@@ -20,8 +20,8 @@
 export function normalizeDisplayNameForComparison(displayName: string): string {
     return displayName
         .toLowerCase()
-        .replace(/0/g, 'o')    // zero → o
-        .replace(/l/g, 'i');   // lowercase L → i (after toLowerCase, both I and l become i)
+        .replace(/0/g, 'o') // zero → o
+        .replace(/l/g, 'i'); // lowercase L → i (after toLowerCase, both I and l become i)
 }
 
 /**

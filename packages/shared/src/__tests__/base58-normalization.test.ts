@@ -23,8 +23,8 @@ describe('normalizeDisplayNameForComparison', () => {
     it('should handle combined replacements', () => {
         expect(normalizeDisplayNameForComparison('Al1ce')).toBe('ai1ce'); // l→i, 1 stays
         expect(normalizeDisplayNameForComparison('ALICE')).toBe('aiice'); // uppercase→lowercase, l→i
-        expect(normalizeDisplayNameForComparison('B0b')).toBe('bob');     // 0→o
-        expect(normalizeDisplayNameForComparison('BOB')).toBe('bob');     // uppercase→lowercase
+        expect(normalizeDisplayNameForComparison('B0b')).toBe('bob'); // 0→o
+        expect(normalizeDisplayNameForComparison('BOB')).toBe('bob'); // uppercase→lowercase
     });
 
     it('should preserve spaces and other allowed characters', () => {

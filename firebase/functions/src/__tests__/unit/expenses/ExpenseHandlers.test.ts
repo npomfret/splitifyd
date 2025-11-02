@@ -3,8 +3,8 @@ import { CreateExpenseRequestBuilder, SplitifydFirestoreTestDatabase } from '@sp
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
-import { AppDriver } from '../AppDriver';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('ExpenseHandlers - Unit Tests', () => {

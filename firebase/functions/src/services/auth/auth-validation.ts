@@ -176,7 +176,7 @@ export function validateEmailAddress(email: unknown): string {
     return result.data;
 }
 
-export function validateListUsersOptions(options: unknown): { limit?: number; pageToken?: string } {
+export function validateListUsersOptions(options: unknown): { limit?: number; pageToken?: string; } {
     const result = listUsersOptionsSchema.safeParse(options ?? {});
 
     if (!result.success) {

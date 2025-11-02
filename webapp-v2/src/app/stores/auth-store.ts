@@ -257,7 +257,14 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    async register(email: Email, password: string, displayName: DisplayName, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true, privacyPolicyAccepted: boolean = true): Promise<void> {
+    async register(
+        email: Email,
+        password: string,
+        displayName: DisplayName,
+        termsAccepted: boolean = true,
+        cookiePolicyAccepted: boolean = true,
+        privacyPolicyAccepted: boolean = true,
+    ): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
 

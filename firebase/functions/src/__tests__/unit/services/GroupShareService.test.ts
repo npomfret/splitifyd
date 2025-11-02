@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, USER_COLORS, toGroupId, toISOString } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toGroupId, toISOString, USER_COLORS } from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
@@ -98,7 +98,7 @@ describe('GroupShareService', () => {
                     pattern,
                     assignedAt,
                     colorIndex,
-                })),
+                }))
             );
 
             vi.spyOn(Math, 'random').mockReturnValue(0);
@@ -588,7 +588,7 @@ describe('GroupShareService', () => {
         });
 
         it('should activate members immediately when approval is automatic', async () => {
-            const result = await groupShareService.joinGroupByLink(joiningUserId, linkId, "Joining User");
+            const result = await groupShareService.joinGroupByLink(joiningUserId, linkId, 'Joining User');
             expect(result.success).toBe(true);
             expect(result.memberStatus).toBe(MemberStatuses.ACTIVE);
 
@@ -635,7 +635,7 @@ describe('GroupShareService', () => {
 
             seedUserProfile(joiningUserId, { displayName: 'Joining User' });
 
-            await groupShareService.joinGroupByLink(joiningUserId, linkId, "Joining User");
+            await groupShareService.joinGroupByLink(joiningUserId, linkId, 'Joining User');
 
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
             expect(ownerFeed.items[0]).toMatchObject({
@@ -709,7 +709,7 @@ describe('GroupShareService', () => {
             seedUserProfile(joiningUserId, { displayName: 'New Joiner' });
 
             // Third user joins the group
-            await groupShareService.joinGroupByLink(joiningUserId, linkId, "Joining User");
+            await groupShareService.joinGroupByLink(joiningUserId, linkId, 'Joining User');
 
             // CRITICAL: All three users should receive the activity feed event
             // This verifies that the transaction-based recipient fetching includes
@@ -790,7 +790,7 @@ describe('GroupShareService', () => {
             seedUserProfile(joiningUserId, { displayName: 'New Joiner' });
 
             // New user joins the group
-            await groupShareService.joinGroupByLink(joiningUserId, linkId, "Joining User");
+            await groupShareService.joinGroupByLink(joiningUserId, linkId, 'Joining User');
 
             // Owner should receive notification (active member)
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);

@@ -1,4 +1,16 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, GroupDTO, amountToSmallestUnit, GroupId, GroupMembershipDTO, MemberRole, MemberRoles, MemberStatuses, MessageResponse, UserId } from '@splitifyd/shared';
+import {
+    ActivityFeedActions,
+    ActivityFeedEventTypes,
+    amountToSmallestUnit,
+    GroupDTO,
+    GroupId,
+    GroupMembershipDTO,
+    MemberRole,
+    MemberRoles,
+    MemberStatuses,
+    MessageResponse,
+    UserId,
+} from '@splitifyd/shared';
 import { toISOString } from '@splitifyd/shared';
 import { FirestoreCollections } from '../constants';
 import { FieldValue } from '../firestore-wrapper';

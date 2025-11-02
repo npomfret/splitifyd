@@ -30,7 +30,6 @@ export class JoinGroupResponseBuilder {
         return this;
     }
 
-
     withMemberStatus(status: MemberStatus): this {
         this.fields.memberStatus = status;
         return this;

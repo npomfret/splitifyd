@@ -1,8 +1,8 @@
 import type { GroupDTO, GroupId } from '@splitifyd/shared';
 import type { ITransaction } from '../../firestore-wrapper';
+import type { GroupBalanceDTO } from '../../schemas';
 import { Errors } from '../../utils/errors';
 import type { IFirestoreReader, IFirestoreWriter } from '../firestore';
-import type { GroupBalanceDTO } from '../../schemas';
 
 export interface GroupTransactionOptions {
     preloadBalance?: boolean;

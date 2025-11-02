@@ -2,10 +2,10 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuil
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
-import { AppDriver } from '../AppDriver';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import { StubAuthService } from '../mocks/StubAuthService';
 import { FirestoreWriter } from '../../../services/firestore';
+import { AppDriver } from '../AppDriver';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('GroupHandlers - Unit Tests', () => {
     let appDriver: AppDriver;

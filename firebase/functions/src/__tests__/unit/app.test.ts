@@ -1381,31 +1381,31 @@ describe('app tests', () => {
             const { linkId } = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
-        await expect(appDriver.updateGroupMemberDisplayName(user2, groupId, ''))
-            .rejects
-            .toMatchObject({ code: 'INVALID_INPUT' });
-    });
+            await expect(appDriver.updateGroupMemberDisplayName(user2, groupId, ''))
+                .rejects
+                .toMatchObject({ code: 'INVALID_INPUT' });
+        });
 
-    it('should reject group member display name updates when the name collides with another member (base58 normalization)', async () => {
-        const group = await appDriver.createGroup(user1);
-        const groupId = group.id;
+        it('should reject group member display name updates when the name collides with another member (base58 normalization)', async () => {
+            const group = await appDriver.createGroup(user1);
+            const groupId = group.id;
 
-        const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-        await appDriver.joinGroupByLink(user2, linkId);
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            await appDriver.joinGroupByLink(user2, linkId);
 
-        // Owner picks a display name that should conflict with visually similar variants.
-        await appDriver.updateGroupMemberDisplayName(user1, groupId, 'Alice');
+            // Owner picks a display name that should conflict with visually similar variants.
+            await appDriver.updateGroupMemberDisplayName(user1, groupId, 'Alice');
 
-        await expect(appDriver.updateGroupMemberDisplayName(user2, groupId, 'ALICE'))
-            .rejects
-            .toMatchObject({ code: 'DISPLAY_NAME_TAKEN' });
-    });
+            await expect(appDriver.updateGroupMemberDisplayName(user2, groupId, 'ALICE'))
+                .rejects
+                .toMatchObject({ code: 'DISPLAY_NAME_TAKEN' });
+        });
 
-    it('should reject settlements involving non-members', async () => {
-        const group = await appDriver.createGroup(user1);
+        it('should reject settlements involving non-members', async () => {
+            const group = await appDriver.createGroup(user1);
 
-        const groupId = group.id;
-        const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const groupId = group.id;
+            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
             await appDriver.joinGroupByLink(user2, linkId);
 
             const settlement = new CreateSettlementRequestBuilder()
@@ -3389,7 +3389,9 @@ describe('app tests', () => {
                     cookiePolicyAccepted: true,
                     privacyPolicyAccepted: false,
                 }),
-            ).rejects.toThrow(/Privacy Policy/);
+            )
+                .rejects
+                .toThrow(/Privacy Policy/);
         });
 
         describe('updateUserProfile', () => {
@@ -3636,7 +3638,6 @@ describe('app tests', () => {
     });
 
     describe('policy administration flows', () => {
-        
         beforeEach(() => {
             // Seed admin user for policy administration tests
             appDriver.seedAdminUser(policyAdmin, {});

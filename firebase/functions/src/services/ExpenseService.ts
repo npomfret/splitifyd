@@ -1,18 +1,32 @@
-import {ActivityFeedActions, ActivityFeedEventTypes, CreateExpenseRequest, DELETED_AT_FIELD, ExpenseDTO, ExpenseFullDetailsDTO, ExpenseId, GroupDTO, GroupId, toExpenseId, toISOString, UpdateExpenseRequest, UserId,} from '@splitifyd/shared';
-import {z} from 'zod';
-import {FirestoreCollections, HTTP_STATUS} from '../constants';
+import {
+    ActivityFeedActions,
+    ActivityFeedEventTypes,
+    CreateExpenseRequest,
+    DELETED_AT_FIELD,
+    ExpenseDTO,
+    ExpenseFullDetailsDTO,
+    ExpenseId,
+    GroupDTO,
+    GroupId,
+    toExpenseId,
+    toISOString,
+    UpdateExpenseRequest,
+    UserId,
+} from '@splitifyd/shared';
+import { z } from 'zod';
+import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import * as expenseValidation from '../expenses/validation';
-import type {IDocumentReference} from '../firestore-wrapper';
-import {logger, LoggerContext} from '../logger';
+import type { IDocumentReference } from '../firestore-wrapper';
+import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
-import {PerformanceTimer} from '../monitoring/PerformanceTimer';
-import {PermissionEngineAsync} from '../permissions/permission-engine-async';
-import {ApiError, Errors} from '../utils/errors';
-import {ActivityFeedService} from './ActivityFeedService';
-import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
-import type {IFirestoreReader, IFirestoreWriter} from './firestore';
-import {GroupMemberService} from './GroupMemberService';
-import {UserService} from './UserService2';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
+import { PermissionEngineAsync } from '../permissions/permission-engine-async';
+import { ApiError, Errors } from '../utils/errors';
+import { ActivityFeedService } from './ActivityFeedService';
+import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
+import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
+import { UserService } from './UserService2';
 
 /**
  * Service for managing expenses
@@ -687,7 +701,6 @@ export class ExpenseService {
             members: { members: participantData }, // Wrap in object to match ExpenseFullDetailsDTO.members structure
         };
     }
-
 }
 
 // ServiceRegistry handles service instantiation

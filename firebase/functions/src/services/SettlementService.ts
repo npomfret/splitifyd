@@ -1,16 +1,29 @@
-import {ActivityFeedActions, ActivityFeedEventTypes, CreateSettlementRequest, GroupId, ISOString, SettlementDTO, SettlementId, SettlementWithMembers, toISOString, toSettlementId, UpdateSettlementRequest, UserId,} from '@splitifyd/shared';
-import {FirestoreCollections, HTTP_STATUS} from '../constants';
-import {FieldValue} from '../firestore-wrapper';
-import {logger} from '../logger';
+import {
+    ActivityFeedActions,
+    ActivityFeedEventTypes,
+    CreateSettlementRequest,
+    GroupId,
+    ISOString,
+    SettlementDTO,
+    SettlementId,
+    SettlementWithMembers,
+    toISOString,
+    toSettlementId,
+    UpdateSettlementRequest,
+    UserId,
+} from '@splitifyd/shared';
+import { FirestoreCollections, HTTP_STATUS } from '../constants';
+import { FieldValue } from '../firestore-wrapper';
+import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
-import {PerformanceTimer} from '../monitoring/PerformanceTimer';
-import {ApiError, Errors} from '../utils/errors';
-import {LoggerContext} from '../utils/logger-context';
-import {ActivityFeedService} from './ActivityFeedService';
-import {IncrementalBalanceService} from './balance/IncrementalBalanceService';
-import type {IFirestoreReader, IFirestoreWriter} from './firestore';
-import {GroupMemberService} from './GroupMemberService';
-import {UserService} from './UserService2';
+import { PerformanceTimer } from '../monitoring/PerformanceTimer';
+import { ApiError, Errors } from '../utils/errors';
+import { LoggerContext } from '../utils/logger-context';
+import { ActivityFeedService } from './ActivityFeedService';
+import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
+import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import { GroupMemberService } from './GroupMemberService';
+import { UserService } from './UserService2';
 
 /**
  * Zod schema for User document - ensures critical fields are present

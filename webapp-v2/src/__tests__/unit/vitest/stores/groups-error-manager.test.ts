@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
-import { GroupsErrorManager } from '@/app/stores/helpers/groups-error-manager';
 import { ApiError } from '@/app/apiClient';
+import { GroupsErrorManager } from '@/app/stores/helpers/groups-error-manager';
+import { describe, expect, it } from 'vitest';
 
 describe('GroupsErrorManager', () => {
     it('categorises validation errors and exposes the validation message', () => {

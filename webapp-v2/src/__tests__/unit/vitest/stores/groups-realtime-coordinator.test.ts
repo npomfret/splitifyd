@@ -1,7 +1,7 @@
-import { signal } from '@preact/signals';
-import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
 import { GroupsRealtimeCoordinator } from '@/app/stores/helpers/groups-realtime-coordinator';
+import { signal } from '@preact/signals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 interface TestContext {
     coordinator: GroupsRealtimeCoordinator;

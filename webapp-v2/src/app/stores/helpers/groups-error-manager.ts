@@ -1,4 +1,4 @@
-import { computed, signal, type ReadonlySignal } from '@preact/signals';
+import { computed, type ReadonlySignal, signal } from '@preact/signals';
 import { ApiError } from '../../apiClient';
 
 const VALIDATION_STATUS_CODE = 400;

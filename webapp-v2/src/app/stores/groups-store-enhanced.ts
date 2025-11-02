@@ -6,8 +6,8 @@ import type { GroupId, GroupName, UserId } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 import type { ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../services/activity-feed-realtime-service';
-import { GroupsPaginationController } from './helpers/groups-pagination-controller';
 import { GroupsErrorManager } from './helpers/groups-error-manager';
+import { GroupsPaginationController } from './helpers/groups-pagination-controller';
 import { GroupsRealtimeCoordinator } from './helpers/groups-realtime-coordinator';
 
 interface EnhancedGroupsStore {

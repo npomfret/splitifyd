@@ -14,7 +14,7 @@
  */
 
 import type { Email } from '@splitifyd/shared';
-import type { CreateRequest, DecodedIdToken, GetUsersResult, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 export interface IAuthService {
     // ========================================================================

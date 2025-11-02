@@ -1,8 +1,8 @@
 // Unit tests for comment real-time subscriptions using SplitifydFirestoreTestDatabase
 // Migrated from integration/comments.test.ts to avoid Firebase emulator dependency
 
-import { beforeEach, describe, expect, test } from 'vitest';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
 describe('Comment Real-time Subscriptions - Unit Tests', () => {

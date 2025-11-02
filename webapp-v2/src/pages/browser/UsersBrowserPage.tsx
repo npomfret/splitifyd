@@ -1,10 +1,10 @@
-import { useAuth } from '@/app/hooks/useAuth';
 import { apiClient } from '@/app/apiClient';
+import { useAuth } from '@/app/hooks/useAuth';
 import { Alert, Button, Card, Input, LoadingState, Pagination } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
-import { SystemUserRoles } from '@splitifyd/shared';
 import { computed, useSignal, useSignalEffect } from '@preact/signals';
+import { SystemUserRoles } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
@@ -151,7 +151,7 @@ export function UsersBrowserPage() {
     const firestoreHasSearchApplied = useSignal(false);
 
     // Smart search field detection
-    function detectSearchField(value: string): { type: 'email' | 'uid' | 'displayName'; value: string } {
+    function detectSearchField(value: string): { type: 'email' | 'uid' | 'displayName'; value: string; } {
         const trimmed = value.trim();
 
         // Email detection (contains @)
@@ -409,26 +409,28 @@ export function UsersBrowserPage() {
                             </Button>
                         </div>
                     </div>
-                    {jsonViewLoading.value ? (
-                        <div class='flex-1 flex items-center justify-center p-8'>
-                            <LoadingState message={t('usersBrowser.loadingUserData')} />
-                        </div>
-                    ) : (
-                        <div class='flex-1 overflow-auto grid grid-cols-2 gap-4 p-4'>
-                            <div class='flex flex-col'>
-                                <h3 class='text-sm font-semibold text-gray-700 mb-2 px-4 py-2 bg-blue-50 rounded-t-lg'>Firebase Auth</h3>
-                                <pre class='flex-1 overflow-auto p-4 text-sm bg-gray-50 text-gray-800 whitespace-pre-wrap border border-gray-200 rounded-b-lg'>
+                    {jsonViewLoading.value
+                        ? (
+                            <div class='flex-1 flex items-center justify-center p-8'>
+                                <LoadingState message={t('usersBrowser.loadingUserData')} />
+                            </div>
+                        )
+                        : (
+                            <div class='flex-1 overflow-auto grid grid-cols-2 gap-4 p-4'>
+                                <div class='flex flex-col'>
+                                    <h3 class='text-sm font-semibold text-gray-700 mb-2 px-4 py-2 bg-blue-50 rounded-t-lg'>Firebase Auth</h3>
+                                    <pre class='flex-1 overflow-auto p-4 text-sm bg-gray-50 text-gray-800 whitespace-pre-wrap border border-gray-200 rounded-b-lg'>
                                     {JSON.stringify(selectedUserData.value?.auth ?? null, null, 2)}
-                                </pre>
-                            </div>
-                            <div class='flex flex-col'>
-                                <h3 class='text-sm font-semibold text-gray-700 mb-2 px-4 py-2 bg-green-50 rounded-t-lg'>Firestore Document</h3>
-                                <pre class='flex-1 overflow-auto p-4 text-sm bg-gray-50 text-gray-800 whitespace-pre-wrap border border-gray-200 rounded-b-lg'>
+                                    </pre>
+                                </div>
+                                <div class='flex flex-col'>
+                                    <h3 class='text-sm font-semibold text-gray-700 mb-2 px-4 py-2 bg-green-50 rounded-t-lg'>Firestore Document</h3>
+                                    <pre class='flex-1 overflow-auto p-4 text-sm bg-gray-50 text-gray-800 whitespace-pre-wrap border border-gray-200 rounded-b-lg'>
                                     {JSON.stringify(selectedUserData.value?.firestore ?? null, null, 2)}
-                                </pre>
+                                    </pre>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                 </div>
             </div>
         );
@@ -450,184 +452,188 @@ export function UsersBrowserPage() {
             </div>
 
             <Card className='p-6 space-y-6'>
-                {activeTab.value === 'auth' ? (
-                    <div class='space-y-6'>
-                        <p class='text-sm text-gray-600'>{t('usersBrowser.authLimitNote', { count: DEFAULT_AUTH_LIMIT })}</p>
-                        <form class='flex gap-4' onSubmit={handleAuthSearch}>
-                            <label class='flex flex-col text-sm text-gray-700 flex-1'>
-                                <span class='mb-1'>{t('usersBrowser.searchLabel')}</span>
-                                <Input value={authSearchValue.value} onChange={(value) => (authSearchValue.value = value)} placeholder={t('usersBrowser.searchPlaceholderSmart')} />
-                            </label>
-                            <div class='flex gap-2 items-end'>
-                                <Button type='submit'>{t('usersBrowser.searchButton')}</Button>
-                                <Button type='button' variant='secondary' onClick={handleAuthReset}>
-                                    {t('usersBrowser.resetButton')}
-                                </Button>
-                            </div>
-                        </form>
+                {activeTab.value === 'auth'
+                    ? (
+                        <div class='space-y-6'>
+                            <p class='text-sm text-gray-600'>{t('usersBrowser.authLimitNote', { count: DEFAULT_AUTH_LIMIT })}</p>
+                            <form class='flex gap-4' onSubmit={handleAuthSearch}>
+                                <label class='flex flex-col text-sm text-gray-700 flex-1'>
+                                    <span class='mb-1'>{t('usersBrowser.searchLabel')}</span>
+                                    <Input value={authSearchValue.value} onChange={(value) => (authSearchValue.value = value)} placeholder={t('usersBrowser.searchPlaceholderSmart')} />
+                                </label>
+                                <div class='flex gap-2 items-end'>
+                                    <Button type='submit'>{t('usersBrowser.searchButton')}</Button>
+                                    <Button type='button' variant='secondary' onClick={handleAuthReset}>
+                                        {t('usersBrowser.resetButton')}
+                                    </Button>
+                                </div>
+                            </form>
 
-                        {authLoading.value && (
-                            <div class='flex justify-center py-6'>
-                                <LoadingState message={t('usersBrowser.loaders.loadingAuth')} />
-                            </div>
-                        )}
+                            {authLoading.value && (
+                                <div class='flex justify-center py-6'>
+                                    <LoadingState message={t('usersBrowser.loaders.loadingAuth')} />
+                                </div>
+                            )}
 
-                        {authError.value && <Alert type='error' message={authError.value} />}
+                            {authError.value && <Alert type='error' message={authError.value} />}
 
-                        {!authLoading.value && authUsers.value.length === 0 && !authError.value && (
-                            <Alert type='info' message={t('usersBrowser.noResults')} />
-                        )}
+                            {!authLoading.value && authUsers.value.length === 0 && !authError.value && <Alert type='info' message={t('usersBrowser.noResults')} />}
 
-                        {authUsers.value.length > 0 && (
-                            <div class='overflow-x-auto border border-gray-200 rounded-lg'>
-                                <table class='min-w-full divide-y divide-gray-200'>
-                                    <thead class='bg-gray-50'>
-                                        <tr>
-                                            <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                                {t('usersBrowser.table.auth.uid')}
-                                            </th>
-                                            <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                                {t('usersBrowser.table.auth.email')}
-                                            </th>
-                                            <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                                {t('usersBrowser.table.auth.displayName')}
-                                            </th>
-                                            <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                                {t('usersBrowser.table.auth.status')}
-                                            </th>
-                                            <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                                {t('usersBrowser.table.auth.createdAt')}
-                                            </th>
-                                            <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                                {t('usersBrowser.table.auth.lastSignInAt')}
-                                            </th>
-                                            <th scope='col' class='px-4 py-3'>
-                                                <span class='sr-only'>{t('usersBrowser.viewJson')}</span>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class='bg-white divide-y divide-gray-200'>
-                                        {authUsers.value.map((authUser) => {
-                                            const metadata = authUser.metadata;
-                                            return (
-                                                <tr key={String(authUser.uid)}>
-                                                    <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(authUser.uid ?? '')}</td>
-                                                    <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(authUser.email ?? '')}</td>
-                                                    <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(authUser.displayName ?? '')}</td>
-                                                    <td class='px-4 py-3 text-sm'>
-                                                        <span class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${authUser.disabled ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                                                            {authUser.disabled ? t('usersBrowser.statusDisabled') : t('usersBrowser.statusEnabled')}
-                                                        </span>
-                                                    </td>
-                                                    <td class='px-4 py-3 text-sm text-gray-700'>{getMetadataField(metadata, 'creationTime')}</td>
-                                                    <td class='px-4 py-3 text-sm text-gray-700'>{getMetadataField(metadata, 'lastSignInTime')}</td>
+                            {authUsers.value.length > 0 && (
+                                <div class='overflow-x-auto border border-gray-200 rounded-lg'>
+                                    <table class='min-w-full divide-y divide-gray-200'>
+                                        <thead class='bg-gray-50'>
+                                            <tr>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                    {t('usersBrowser.table.auth.uid')}
+                                                </th>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                    {t('usersBrowser.table.auth.email')}
+                                                </th>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                    {t('usersBrowser.table.auth.displayName')}
+                                                </th>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                    {t('usersBrowser.table.auth.status')}
+                                                </th>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                    {t('usersBrowser.table.auth.createdAt')}
+                                                </th>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                    {t('usersBrowser.table.auth.lastSignInAt')}
+                                                </th>
+                                                <th scope='col' class='px-4 py-3'>
+                                                    <span class='sr-only'>{t('usersBrowser.viewJson')}</span>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class='bg-white divide-y divide-gray-200'>
+                                            {authUsers.value.map((authUser) => {
+                                                const metadata = authUser.metadata;
+                                                return (
+                                                    <tr key={String(authUser.uid)}>
+                                                        <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(authUser.uid ?? '')}</td>
+                                                        <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(authUser.email ?? '')}</td>
+                                                        <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(authUser.displayName ?? '')}</td>
+                                                        <td class='px-4 py-3 text-sm'>
+                                                            <span
+                                                                class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                                                    authUser.disabled
+                                                                        ? 'bg-red-100 text-red-800'
+                                                                        : 'bg-green-100 text-green-800'
+                                                                }`}
+                                                            >
+                                                                {authUser.disabled ? t('usersBrowser.statusDisabled') : t('usersBrowser.statusEnabled')}
+                                                            </span>
+                                                        </td>
+                                                        <td class='px-4 py-3 text-sm text-gray-700'>{getMetadataField(metadata, 'creationTime')}</td>
+                                                        <td class='px-4 py-3 text-sm text-gray-700'>{getMetadataField(metadata, 'lastSignInTime')}</td>
+                                                        <td class='px-4 py-3 text-right text-sm'>
+                                                            <div class='flex items-center justify-end gap-2'>
+                                                                <Button variant='secondary' onClick={() => void handleViewJson(String(authUser.uid))}>
+                                                                    {t('usersBrowser.viewJson')}
+                                                                </Button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {!authHasSearchApplied.value && authUsers.value.length > 0 && (
+                                <Pagination
+                                    currentPage={authPage.value}
+                                    hasMore={authHasMore.value}
+                                    hasPrevious={hasAuthPrevious.value}
+                                    onNext={handleAuthNext}
+                                    onPrevious={handleAuthPrevious}
+                                    loading={authLoading.value}
+                                />
+                            )}
+                        </div>
+                    )
+                    : (
+                        <div class='space-y-6'>
+                            <p class='text-sm text-gray-600'>{t('usersBrowser.firestoreLimitNote', { count: DEFAULT_FIRESTORE_LIMIT })}</p>
+                            <form class='flex gap-4' onSubmit={handleFirestoreSearch}>
+                                <label class='flex flex-col text-sm text-gray-700 flex-1'>
+                                    <span class='mb-1'>{t('usersBrowser.searchLabel')}</span>
+                                    <Input value={firestoreSearchValue.value} onChange={(value) => (firestoreSearchValue.value = value)} placeholder={t('usersBrowser.searchPlaceholderSmart')} />
+                                </label>
+                                <div class='flex gap-2 items-end'>
+                                    <Button type='submit'>{t('usersBrowser.searchButton')}</Button>
+                                    <Button type='button' variant='secondary' onClick={handleFirestoreReset}>
+                                        {t('usersBrowser.resetButton')}
+                                    </Button>
+                                </div>
+                            </form>
+
+                            {firestoreLoading.value && (
+                                <div class='flex justify-center py-6'>
+                                    <LoadingState message={t('usersBrowser.loaders.loadingFirestore')} />
+                                </div>
+                            )}
+
+                            {firestoreError.value && <Alert type='error' message={firestoreError.value} />}
+
+                            {!firestoreLoading.value && firestoreUsers.value.length === 0 && !firestoreError.value && <Alert type='info' message={t('usersBrowser.noResults')} />}
+
+                            {firestoreUsers.value.length > 0 && (
+                                <div class='overflow-x-auto border border-gray-200 rounded-lg'>
+                                    <table class='min-w-full divide-y divide-gray-200'>
+                                        <thead class='bg-gray-50'>
+                                            <tr>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                    {t('usersBrowser.table.firestore.id')}
+                                                </th>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                    {t('usersBrowser.table.firestore.role')}
+                                                </th>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                    {t('usersBrowser.table.firestore.updatedAt')}
+                                                </th>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                    {t('usersBrowser.table.firestore.schema')}
+                                                </th>
+                                                <th scope='col' class='px-4 py-3'>
+                                                    <span class='sr-only'>{t('usersBrowser.viewJson')}</span>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class='bg-white divide-y divide-gray-200'>
+                                            {firestoreUsers.value.map((firestoreUser) => (
+                                                <tr key={String(firestoreUser.id)}>
+                                                    <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(firestoreUser.id ?? '')}</td>
+                                                    <td class='px-4 py-3 text-sm text-gray-700 break-all'>{String(firestoreUser.role ?? '')}</td>
+                                                    <td class='px-4 py-3 text-sm text-gray-700'>{formatDate(firestoreUser.updatedAt)}</td>
+                                                    <td class='px-4 py-3'>{renderSchemaStatus(analyzeFirestoreUserSchema(firestoreUser), t)}</td>
                                                     <td class='px-4 py-3 text-right text-sm'>
-                                                        <div class='flex items-center justify-end gap-2'>
-                                                            <Button variant='secondary' onClick={() => void handleViewJson(String(authUser.uid))}>
-                                                                {t('usersBrowser.viewJson')}
-                                                            </Button>
-                                                        </div>
+                                                        <Button variant='secondary' onClick={() => void handleViewJson(String(firestoreUser.id))}>
+                                                            {t('usersBrowser.viewJson')}
+                                                        </Button>
                                                     </td>
                                                 </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
 
-                        {!authHasSearchApplied.value && authUsers.value.length > 0 && (
-                            <Pagination
-                                currentPage={authPage.value}
-                                hasMore={authHasMore.value}
-                                hasPrevious={hasAuthPrevious.value}
-                                onNext={handleAuthNext}
-                                onPrevious={handleAuthPrevious}
-                                loading={authLoading.value}
-                            />
-                        )}
-                    </div>
-                ) : (
-                    <div class='space-y-6'>
-                        <p class='text-sm text-gray-600'>{t('usersBrowser.firestoreLimitNote', { count: DEFAULT_FIRESTORE_LIMIT })}</p>
-                        <form class='flex gap-4' onSubmit={handleFirestoreSearch}>
-                            <label class='flex flex-col text-sm text-gray-700 flex-1'>
-                                <span class='mb-1'>{t('usersBrowser.searchLabel')}</span>
-                                <Input value={firestoreSearchValue.value} onChange={(value) => (firestoreSearchValue.value = value)} placeholder={t('usersBrowser.searchPlaceholderSmart')} />
-                            </label>
-                            <div class='flex gap-2 items-end'>
-                                <Button type='submit'>{t('usersBrowser.searchButton')}</Button>
-                                <Button type='button' variant='secondary' onClick={handleFirestoreReset}>
-                                    {t('usersBrowser.resetButton')}
-                                </Button>
-                            </div>
-                        </form>
-
-                        {firestoreLoading.value && (
-                            <div class='flex justify-center py-6'>
-                                <LoadingState message={t('usersBrowser.loaders.loadingFirestore')} />
-                            </div>
-                        )}
-
-                        {firestoreError.value && <Alert type='error' message={firestoreError.value} />}
-
-                        {!firestoreLoading.value && firestoreUsers.value.length === 0 && !firestoreError.value && (
-                            <Alert type='info' message={t('usersBrowser.noResults')} />
-                        )}
-
-                        {firestoreUsers.value.length > 0 && (
-                            <div class='overflow-x-auto border border-gray-200 rounded-lg'>
-                                <table class='min-w-full divide-y divide-gray-200'>
-                                    <thead class='bg-gray-50'>
-                                        <tr>
-                                            <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                                {t('usersBrowser.table.firestore.id')}
-                                            </th>
-                                            <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                                {t('usersBrowser.table.firestore.role')}
-                                            </th>
-                                            <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                                {t('usersBrowser.table.firestore.updatedAt')}
-                                            </th>
-                                            <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
-                                                {t('usersBrowser.table.firestore.schema')}
-                                            </th>
-                                            <th scope='col' class='px-4 py-3'>
-                                                <span class='sr-only'>{t('usersBrowser.viewJson')}</span>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class='bg-white divide-y divide-gray-200'>
-                                        {firestoreUsers.value.map((firestoreUser) => (
-                                            <tr key={String(firestoreUser.id)}>
-                                                <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(firestoreUser.id ?? '')}</td>
-                                                <td class='px-4 py-3 text-sm text-gray-700 break-all'>{String(firestoreUser.role ?? '')}</td>
-                                                <td class='px-4 py-3 text-sm text-gray-700'>{formatDate(firestoreUser.updatedAt)}</td>
-                                                <td class='px-4 py-3'>{renderSchemaStatus(analyzeFirestoreUserSchema(firestoreUser), t)}</td>
-                                                <td class='px-4 py-3 text-right text-sm'>
-                                                    <Button variant='secondary' onClick={() => void handleViewJson(String(firestoreUser.id))}>
-                                                        {t('usersBrowser.viewJson')}
-                                                    </Button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-
-                        {!firestoreHasSearchApplied.value && firestoreUsers.value.length > 0 && (
-                            <Pagination
-                                currentPage={firestorePage.value}
-                                hasMore={firestoreHasMore.value}
-                                hasPrevious={hasFirestorePrevious.value}
-                                onNext={handleFirestoreNext}
-                                onPrevious={handleFirestorePrevious}
-                                loading={firestoreLoading.value}
-                            />
-                        )}
-                    </div>
-                )}
+                            {!firestoreHasSearchApplied.value && firestoreUsers.value.length > 0 && (
+                                <Pagination
+                                    currentPage={firestorePage.value}
+                                    hasMore={firestoreHasMore.value}
+                                    hasPrevious={hasFirestorePrevious.value}
+                                    onNext={handleFirestoreNext}
+                                    onPrevious={handleFirestorePrevious}
+                                    loading={firestoreLoading.value}
+                                />
+                            )}
+                        </div>
+                    )}
             </Card>
 
             {renderJsonViewer()}

@@ -310,9 +310,9 @@ describe('PerformanceTimer', () => {
 
             // Test relative relationships rather than absolute timing
             expect(timings.transactionMs).toBeGreaterThanOrEqual(
-                timings['transaction:getMembershipsMs'] +
-                timings['transaction:createMembershipMs'] +
-                timings['transaction:recordActivityFeedMs']
+                timings['transaction:getMembershipsMs']
+                    + timings['transaction:createMembershipMs']
+                    + timings['transaction:recordActivityFeedMs'],
             );
 
             // Total should include query + transaction

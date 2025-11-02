@@ -171,19 +171,21 @@ export class GroupDetailRealtimeCoordinator {
             return;
         }
 
-        Promise.resolve(
-            this.options.onActivityRefresh({
-                groupId,
-                eventType,
-                eventId: event.id,
-            })
-        ).catch((error) => {
-            logWarning('GroupDetailRealtimeCoordinator.activity-event.refresh-failed', {
-                error: error instanceof Error ? error.message : String(error),
-                groupId,
-                eventType,
-                eventId: event.id,
+        Promise
+            .resolve(
+                this.options.onActivityRefresh({
+                    groupId,
+                    eventType,
+                    eventId: event.id,
+                }),
+            )
+            .catch((error) => {
+                logWarning('GroupDetailRealtimeCoordinator.activity-event.refresh-failed', {
+                    error: error instanceof Error ? error.message : String(error),
+                    groupId,
+                    eventType,
+                    eventId: event.id,
+                });
             });
-        });
     }
 }

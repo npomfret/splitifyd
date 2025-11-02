@@ -1,7 +1,7 @@
 import type { RequestHandler } from 'express';
+import { createHandlerRegistry } from '../ApplicationFactory';
 import { FirestoreCollections } from '../constants';
-import {createHandlerRegistry} from "../ApplicationFactory";
-import { ComponentBuilder } from "../services/ComponentBuilder";
+import { ComponentBuilder } from '../services/ComponentBuilder';
 
 /**
  * Route configuration type defining the structure of each route

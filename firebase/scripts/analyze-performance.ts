@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 
 import * as fs from 'fs';
-import * as readline from 'readline';
 import * as os from 'os';
 import * as path from 'path';
+import * as readline from 'readline';
 
 interface FunctionExecution {
     functionName: string;
@@ -209,9 +209,9 @@ class FunctionPerformanceAnalyzer {
                                 // Deduplicate: Firebase emulator logs each entry twice
                                 const isDuplicate = this.slowRequests.some(
                                     (existing) =>
-                                        existing.correlationId === slowRequestData.correlationId &&
-                                        existing.duration === slowRequestData.duration &&
-                                        existing.path === slowRequestData.path,
+                                        existing.correlationId === slowRequestData.correlationId
+                                        && existing.duration === slowRequestData.duration
+                                        && existing.path === slowRequestData.path,
                                 );
 
                                 if (!isDuplicate) {
@@ -272,9 +272,9 @@ class FunctionPerformanceAnalyzer {
                                 // Skip if we already have an entry with same correlation ID and identical timing
                                 const isDuplicate = this.phaseTimings.some(
                                     (existing) =>
-                                        existing.correlationId === entry.correlationId &&
-                                        existing.message === entry.message &&
-                                        JSON.stringify(existing.phases) === JSON.stringify(entry.phases),
+                                        existing.correlationId === entry.correlationId
+                                        && existing.message === entry.message
+                                        && JSON.stringify(existing.phases) === JSON.stringify(entry.phases),
                                 );
 
                                 if (!isDuplicate) {
@@ -944,10 +944,10 @@ class FunctionPerformanceAnalyzer {
         // Filter phase timings
         const filteredPhaseTimings = this.phaseTimings.filter(
             (timing) =>
-                timing.correlationId?.includes(filterText) ||
-                timing.message?.includes(filterText) ||
-                timing.operation?.includes(filterText) ||
-                JSON.stringify(timing.phases).includes(filterText),
+                timing.correlationId?.includes(filterText)
+                || timing.message?.includes(filterText)
+                || timing.operation?.includes(filterText)
+                || JSON.stringify(timing.phases).includes(filterText),
         );
 
         console.log('📊 FILTERED RESULTS:');
@@ -1301,12 +1301,16 @@ class FunctionPerformanceAnalyzer {
             </div>
         </div>
 
-        ${degradingFunctions > 0 ? `
+        ${
+            degradingFunctions > 0
+                ? `
         <div class="alert">
             <div class="alert-title">⚠️ Performance Alerts</div>
             <div>${degradingFunctions} function(s) showing performance degradation over time</div>
         </div>
-        ` : ''}
+        `
+                : ''
+        }
 
         <h2 class="section-title">⏱️ Operation Phase Timings</h2>
         <div class="table-description">
@@ -1332,29 +1336,34 @@ class FunctionPerformanceAnalyzer {
                 </tr>
             </thead>
             <tbody>
-                ${sortedTimingStats.slice(0, 20).map((stat) => {
-            const totalMs = stat.phases.totalMs;
-            const operationLabel = stat.operation ? `${stat.message} (${stat.operation})` : stat.message;
-            const phases = Object.keys(stat.phases).filter((p) => p !== 'totalMs').sort();
+                ${
+            sortedTimingStats
+                .slice(0, 20)
+                .map((stat) => {
+                    const totalMs = stat.phases.totalMs;
+                    const operationLabel = stat.operation ? `${stat.message} (${stat.operation})` : stat.message;
+                    const phases = Object.keys(stat.phases).filter((p) => p !== 'totalMs').sort();
 
-            // Calculate total from sum of phases if totalMs doesn't exist
-            let totalAvg = totalMs?.avg;
-            let totalP95 = totalMs?.p95;
-            let totalP99 = totalMs?.p99;
+                    // Calculate total from sum of phases if totalMs doesn't exist
+                    let totalAvg = totalMs?.avg;
+                    let totalP95 = totalMs?.p95;
+                    let totalP99 = totalMs?.p99;
 
-            if (!totalMs && phases.length > 0) {
-                totalAvg = phases.reduce((sum, phaseName) => sum + stat.phases[phaseName].avg, 0);
-                totalP95 = phases.reduce((sum, phaseName) => sum + stat.phases[phaseName].p95, 0);
-                totalP99 = phases.reduce((sum, phaseName) => sum + stat.phases[phaseName].p99, 0);
-            }
+                    if (!totalMs && phases.length > 0) {
+                        totalAvg = phases.reduce((sum, phaseName) => sum + stat.phases[phaseName].avg, 0);
+                        totalP95 = phases.reduce((sum, phaseName) => sum + stat.phases[phaseName].p95, 0);
+                        totalP99 = phases.reduce((sum, phaseName) => sum + stat.phases[phaseName].p99, 0);
+                    }
 
-            const phaseBreakdown = phases.map((phaseName) => {
-                const phase = stat.phases[phaseName];
-                const percentage = totalAvg ? ((phase.avg / totalAvg) * 100).toFixed(0) : '?';
-                return `<li>${phaseName}: <strong>${phase.avg.toFixed(1)}ms</strong> (${percentage}%)</li>`;
-            }).join('');
+                    const phaseBreakdown = phases
+                        .map((phaseName) => {
+                            const phase = stat.phases[phaseName];
+                            const percentage = totalAvg ? ((phase.avg / totalAvg) * 100).toFixed(0) : '?';
+                            return `<li>${phaseName}: <strong>${phase.avg.toFixed(1)}ms</strong> (${percentage}%)</li>`;
+                        })
+                        .join('');
 
-            return `
+                    return `
                     <tr>
                         <td><strong>${operationLabel}</strong></td>
                         <td style="text-align: right">${stat.count.toLocaleString()}</td>
@@ -1363,11 +1372,15 @@ class FunctionPerformanceAnalyzer {
                         <td style="text-align: right">${totalP99 !== undefined ? totalP99.toFixed(0) : 'N/A'}</td>
                         <td><ul class="phase-breakdown">${phaseBreakdown || '<li>N/A</li>'}</ul></td>
                     </tr>`;
-        }).join('')}
+                })
+                .join('')
+        }
             </tbody>
         </table>
 
-        ${this.slowRequests.length > 0 ? `
+        ${
+            this.slowRequests.length > 0
+                ? `
         <h2 class="section-title">🐢 Slow API Requests (>1 second)</h2>
         <div class="table-description">
             <div class="intro">These requests took longer than 1 second to complete:</div>
@@ -1388,11 +1401,14 @@ class FunctionPerformanceAnalyzer {
                 </tr>
             </thead>
             <tbody>
-                ${sortedSlowRequests.slice(0, 50).map((req) => {
-            const timestamp = req.timestamp.toISOString().split('T')[1].substring(0, 12);
-            const statusBadge = req.statusCode >= 500 ? 'badge-danger' : req.statusCode >= 400 ? 'badge-warning' : 'badge-success';
+                ${
+                    sortedSlowRequests
+                        .slice(0, 50)
+                        .map((req) => {
+                            const timestamp = req.timestamp.toISOString().split('T')[1].substring(0, 12);
+                            const statusBadge = req.statusCode >= 500 ? 'badge-danger' : req.statusCode >= 400 ? 'badge-warning' : 'badge-success';
 
-            return `
+                            return `
                     <tr>
                         <td><strong>${req.method}</strong></td>
                         <td><code style="font-size: 0.9em;">${req.path}</code></td>
@@ -1401,10 +1417,14 @@ class FunctionPerformanceAnalyzer {
                         <td>${timestamp}</td>
                         <td><code style="font-size: 0.85em;">${req.correlationId || 'N/A'}</code></td>
                     </tr>`;
-        }).join('')}
+                        })
+                        .join('')
+                }
             </tbody>
         </table>
-        ` : ''}
+        `
+                : ''
+        }
 
         <div class="timestamp">
             Report generated: ${timestamp}

@@ -14,7 +14,7 @@
  */
 
 import type { Auth } from 'firebase-admin/auth';
-import type { CreateRequest, DecodedIdToken, GetUsersResult, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 import { IAuthService } from './IAuthService';
 
@@ -62,7 +62,7 @@ import { measureDb } from '../../monitoring/measure';
 import { ApiError, Errors } from '../../utils/errors';
 import { LoggerContext } from '../../utils/logger-context';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
-import { validateBatchUserIds, validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateListUsersOptions, validateUpdateUser, validateUserId } from './auth-validation';
+import { validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateListUsersOptions, validateUpdateUser, validateUserId } from './auth-validation';
 
 export interface IdentityToolkitConfig {
     apiKey: string;
@@ -88,7 +88,7 @@ export class FirebaseAuthService implements IAuthService {
     constructor(
         private readonly auth: Auth,
         identityToolkit: IdentityToolkitConfig,
-        private readonly enableValidation: boolean = true,// todo: wtf is this?
+        private readonly enableValidation: boolean = true, // todo: wtf is this?
         private readonly enableMetrics: boolean = true,
     ) {
         this.identityToolkitConfig = {

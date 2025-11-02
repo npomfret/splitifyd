@@ -11,11 +11,11 @@ import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import { validateChangeEmail, validateChangePassword, validateUpdateUserProfile } from '../user/validation';
 import { ApiError, Errors } from '../utils/errors';
+import { createPhantomGroupMember } from '../utils/groupMembershipHelpers';
 import { LoggerContext } from '../utils/logger-context';
 import { withMinimumDuration } from '../utils/timing';
 import type { IAuthService } from './auth';
 import type { FirestoreUserCreateData, IFirestoreReader, IFirestoreWriter } from './firestore';
-import { createPhantomGroupMember } from '../utils/groupMembershipHelpers';
 
 const MIN_REGISTRATION_DURATION_MS = 600;
 const REGISTRATION_FAILURE_ERROR_CODE = 'REGISTRATION_FAILED';
@@ -144,7 +144,8 @@ export class UserService {
             }
 
             // Extract initials from display name
-            const initials = memberData.groupDisplayName
+            const initials = memberData
+                .groupDisplayName
                 .split(' ')
                 .filter(Boolean)
                 .map((n: string) => n[0])
@@ -168,11 +169,12 @@ export class UserService {
     async resolveGroupMemberProfile(groupId: GroupId, userId: UserId): Promise<GroupMember> {
         const memberData = await this.firestoreReader.getGroupMember(groupId, userId);
 
-        if (!memberData) {// when does this happen? maybe when a user has left the group
+        if (!memberData) { // when does this happen? maybe when a user has left the group
             return createPhantomGroupMember(userId, userId.toString());
         }
 
-        const initials = memberData!.groupDisplayName
+        const initials = memberData!
+            .groupDisplayName
             .split(' ')
             .filter(Boolean)
             .map((n) => n[0])

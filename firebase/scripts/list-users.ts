@@ -1,15 +1,7 @@
 #!/usr/bin/env npx tsx
 import * as admin from 'firebase-admin';
 import type { UserRecord } from 'firebase-admin/auth';
-import {
-    DocumentData,
-    DocumentSnapshot,
-    FieldPath,
-    Firestore,
-    Query,
-    QueryDocumentSnapshot,
-    QuerySnapshot,
-} from 'firebase-admin/firestore';
+import { DocumentData, DocumentSnapshot, FieldPath, Firestore, Query, QueryDocumentSnapshot, QuerySnapshot } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../functions/src/constants';
 import { initializeFirebase, parseEnvironment } from './firebase-init';
 
@@ -389,7 +381,7 @@ async function listUsers(): Promise<void> {
         const pagesToShow = Math.min(maxPages, totalPages);
         console.log(`Will display up to ${pagesToShow} pages\n`);
 
-const baseQuery: Query<DocumentData> = firestoreDb.collection(FirestoreCollections.USERS).orderBy(FieldPath.documentId());
+        const baseQuery: Query<DocumentData> = firestoreDb.collection(FirestoreCollections.USERS).orderBy(FieldPath.documentId());
 
         let pageNumber = 1;
         let pagesDisplayed = 0;

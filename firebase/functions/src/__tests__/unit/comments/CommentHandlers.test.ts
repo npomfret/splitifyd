@@ -3,8 +3,8 @@ import { CreateExpenseRequestBuilder, SplitifydFirestoreTestDatabase } from '@sp
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
 import { HTTP_STATUS } from '../../../constants';
-import { AppDriver } from '../AppDriver';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

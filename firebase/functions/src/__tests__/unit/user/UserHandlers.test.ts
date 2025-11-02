@@ -1,10 +1,10 @@
-import { PasswordChangeRequestBuilder, RegisteredUserBuilder, UserUpdateBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { PasswordChangeRequestBuilder, RegisteredUserBuilder, SplitifydFirestoreTestDatabase, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { UserHandlers } from '../../../user/UserHandlers';
 import { initializeI18n } from '../../../utils/i18n';
 import { AppDriver } from '../AppDriver';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('UserHandlers - Unit Tests', () => {

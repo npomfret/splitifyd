@@ -7,7 +7,6 @@
 import { ReadonlySignal, signal } from '@preact/signals';
 import { GroupDTO, JoinGroupResponse, MemberStatus } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
 import { toISOString } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 
@@ -212,7 +211,6 @@ class JoinGroupStore {
     clearError() {
         this.#errorSignal.value = null;
     }
-
 }
 
 // Export a singleton instance

@@ -55,7 +55,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         );
 
         const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
-        await appDriver.joinGroupByLink(member.id, linkId, "Test Member");
+        await appDriver.joinGroupByLink(member.id, linkId, 'Test Member');
 
         const groupDetails = await appDriver.getGroupFullDetails(owner.id, group.id);
         expect(groupDetails.members.members).toHaveLength(2);
@@ -109,7 +109,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                 .build(),
         );
         const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
-        await appDriver.joinGroupByLink(member.id, linkId, "Test Member");
+        await appDriver.joinGroupByLink(member.id, linkId, 'Test Member');
 
         await expect(appDriver.deleteGroup(member.id, group.id)).rejects.toThrow();
 
@@ -131,7 +131,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         );
 
         const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
-        await appDriver.joinGroupByLink(member.id, linkId, "Test Member");
+        await appDriver.joinGroupByLink(member.id, linkId, 'Test Member');
 
         await expect(appDriver.getGroupFullDetails(outsider.id, group.id)).rejects.toThrow();
 
@@ -164,7 +164,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         );
 
         const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
-        await appDriver.joinGroupByLink(member.id, linkId, "Test Member");
+        await appDriver.joinGroupByLink(member.id, linkId, 'Test Member');
 
         const members = (await appDriver.getGroupFullDetails(owner.id, group.id)).members.members;
         expect(members).toHaveLength(2);

@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { FirestoreCollections } from '../constants';
-import { Timestamp, type IFirestoreDatabase, type IDocumentSnapshot } from '../firestore-wrapper';
+import { type IDocumentSnapshot, type IFirestoreDatabase, Timestamp } from '../firestore-wrapper';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 
@@ -146,7 +146,8 @@ export class UserBrowserHandlers {
             if (query.email || query.displayName) {
                 const field = query.email ? 'email' : 'displayName';
                 const value = query.email ?? query.displayName;
-                const snapshot = await this.db
+                const snapshot = await this
+                    .db
                     .collection(FirestoreCollections.USERS)
                     .where(field, '==', value)
                     .limit(query.limit)

@@ -1,5 +1,5 @@
 import type { Email } from '@splitifyd/shared';
-import type { CreateRequest, DecodedIdToken, GetUsersResult, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import type { CreateRequest, DecodedIdToken, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { HTTP_STATUS } from '../../../constants';
 import type { IAuthService } from '../../../services/auth';
 import { ApiError } from '../../../utils/errors';
@@ -118,7 +118,8 @@ export class StubAuthService implements IAuthService {
 
     async listUsers(options: { limit?: number; pageToken?: string; } = {}): Promise<ListUsersResult> {
         const limit = Math.max(1, Math.min(options.limit ?? 50, 1000));
-        const sorted = Array.from(this.users.values())
+        const sorted = Array
+            .from(this.users.values())
             .filter((user) => !this.deletedUsers.has(user.uid))
             .sort((a, b) => a.uid.localeCompare(b.uid));
 

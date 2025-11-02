@@ -40,7 +40,7 @@ export class ActivityFeedHandlers {
             });
             throw error;
         }
-    }
+    };
 
     private parseQuery(query: Record<string, unknown>): ActivityFeedQuery {
         const result: ActivityFeedQuery = {};

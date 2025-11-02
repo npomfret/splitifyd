@@ -23,7 +23,6 @@ describe('CommentService - Consolidated Tests', () => {
         const applicationBuilder = new ComponentBuilder(stubAuth, db);
 
         commentService = applicationBuilder.buildCommentService();
-
     });
 
     describe('listGroupComments', () => {
