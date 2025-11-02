@@ -19,13 +19,17 @@ import type {
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     GenerateShareLinkRequest,
+    GetActivityFeedOptions,
     GetGroupFullDetailsOptions,
     GroupDTO,
     GroupFullDetailsDTO,
     GroupMembershipDTO,
     GroupPermissions,
     JoinGroupResponse,
+    ListAuthUsersOptions,
+    ListCommentsOptions,
     ListCommentsResponse,
+    ListFirestoreUsersOptions,
     ListGroupsOptions,
     ListGroupsResponse,
     MemberRole,
@@ -703,7 +707,7 @@ class ApiClient {
         });
     }
 
-    async getActivityFeed(options: { cursor?: string; limit?: number; } = {}): Promise<ActivityFeedResponse> {
+    async getActivityFeed(options: GetActivityFeedOptions = {}): Promise<ActivityFeedResponse> {
         const query: Record<string, string> = {};
 
         if (options.limit !== undefined) {
@@ -949,7 +953,7 @@ class ApiClient {
         });
     }
 
-    async listAuthUsers(params: { limit?: number; pageToken?: string; email?: string; uid?: string; } = {}) {
+    async listAuthUsers(params: ListAuthUsersOptions = {}) {
         const query: Record<string, string> = {};
         if (params.limit !== undefined) {
             query.limit = String(params.limit);
@@ -972,7 +976,7 @@ class ApiClient {
         });
     }
 
-    async listFirestoreUsers(params: { limit?: number; cursor?: string; email?: string; uid?: string; displayName?: string; } = {}) {
+    async listFirestoreUsers(params: ListFirestoreUsersOptions = {}) {
         const query: Record<string, string> = {};
         if (params.limit !== undefined) {
             query.limit = String(params.limit);
@@ -1095,9 +1099,10 @@ class ApiClient {
         });
     }
 
-    async getGroupComments(groupId: GroupId, cursor?: string): Promise<ListCommentsResponse> {
+    async getGroupComments(groupId: GroupId, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
         const query: Record<string, string> = {};
-        if (cursor) query.cursor = cursor;
+        if (options?.cursor) query.cursor = options.cursor;
+        if (options?.limit) query.limit = options.limit.toString();
 
         return this.request<ListCommentsResponse>({
             endpoint: '/groups/:groupId/comments',
@@ -1107,9 +1112,10 @@ class ApiClient {
         });
     }
 
-    async getExpenseComments(expenseId: ExpenseId, cursor?: string): Promise<ListCommentsResponse> {
+    async getExpenseComments(expenseId: ExpenseId, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
         const query: Record<string, string> = {};
-        if (cursor) query.cursor = cursor;
+        if (options?.cursor) query.cursor = options.cursor;
+        if (options?.limit) query.limit = options.limit.toString();
 
         return this.request<ListCommentsResponse>({
             endpoint: '/expenses/:expenseId/comments',

@@ -19,6 +19,7 @@ import {
     type GroupMembershipDTO,
     type GroupPermissions,
     JoinGroupResponse,
+    type ListCommentsOptions,
     ListCommentsResponse,
     type ListGroupsOptions,
     ListGroupsResponse,
@@ -421,19 +422,19 @@ export class ApiDriver {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
-    async listGroupComments(groupId: GroupId | string, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
+    async listGroupComments(groupId: GroupId | string, token: string, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
-        if (cursor) params.append('cursor', cursor);
-        if (limit) params.append('limit', limit.toString());
+        if (options?.cursor) params.append('cursor', options.cursor);
+        if (options?.limit) params.append('limit', options.limit.toString());
         const query = params.toString() ? `?${params.toString()}` : '';
 
         return await this.apiRequest(`/groups/${groupId}/comments${query}`, 'GET', null, token);
     }
 
-    async listExpenseComments(expenseId: ExpenseId | string, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId | string, token: string, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
-        if (cursor) params.append('cursor', cursor);
-        if (limit) params.append('limit', limit.toString());
+        if (options?.cursor) params.append('cursor', options.cursor);
+        if (options?.limit) params.append('limit', options.limit.toString());
         const query = params.toString() ? `?${params.toString()}` : '';
 
         const response = await this.apiRequest(`/expenses/${expenseId}/comments${query}`, 'GET', null, token);

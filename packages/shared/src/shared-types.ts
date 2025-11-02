@@ -1181,6 +1181,47 @@ export interface CommentQuery {
 }
 
 /**
+ * Options for listing comments
+ * Used by API clients for comment list queries
+ */
+export interface ListCommentsOptions {
+    cursor?: string;
+    limit?: number;
+}
+
+/**
+ * Options for getting activity feed
+ * Used by API clients for activity feed queries
+ */
+export interface GetActivityFeedOptions {
+    cursor?: string;
+    limit?: number;
+}
+
+/**
+ * Options for listing Firestore users (admin endpoint)
+ * Used by API clients for user management queries
+ */
+export interface ListFirestoreUsersOptions {
+    limit?: number;
+    cursor?: string;
+    email?: string;
+    uid?: string;
+    displayName?: string;
+}
+
+/**
+ * Options for listing Auth users (admin endpoint)
+ * Used by API clients for user management queries
+ */
+export interface ListAuthUsersOptions {
+    limit?: number;
+    pageToken?: string;
+    email?: string;
+    uid?: string;
+}
+
+/**
  * User profile update request
  * Used for updating user profile information
  */

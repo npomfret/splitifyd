@@ -11,13 +11,17 @@ import {
     DeletePolicyVersionResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
+    GetActivityFeedOptions,
+    GetGroupFullDetailsOptions,
     GroupDTO,
     GroupFullDetailsDTO,
     GroupId,
     GroupMembershipDTO,
     GroupPermissions,
     JoinGroupResponse,
+    ListCommentsOptions,
     ListCommentsResponse,
+    ListGroupsOptions,
     ListGroupsResponse,
     MemberRole,
     MemberStatus,
@@ -313,13 +317,7 @@ export class AppDriver {
 
     async listGroups(
         userId1: UserId,
-        options: {
-            limit?: number;
-            cursor?: string;
-            order?: 'asc' | 'desc';
-            includeMetadata?: boolean;
-            statusFilter?: MemberStatus | MemberStatus[];
-        } = {},
+        options: ListGroupsOptions = {},
     ) {
         const req = createStubRequest(userId1, {});
         const query: Record<string, string> = {};
@@ -349,14 +347,7 @@ export class AppDriver {
     async getGroupFullDetails(
         userId1: UserId,
         groupId: GroupId | string,
-        options: {
-            expenseLimit?: number;
-            expenseCursor?: string;
-            includeDeletedExpenses?: boolean;
-            settlementLimit?: number;
-            settlementCursor?: string;
-            includeDeletedSettlements?: boolean;
-        } = {},
+        options: GetGroupFullDetailsOptions = {},
     ) {
         const req = createStubRequest(userId1, {}, { id: groupId });
         const query: Record<string, string> = {};
@@ -597,7 +588,7 @@ export class AppDriver {
     async listGroupComments(
         userId: UserId,
         groupId: GroupId | string,
-        options: { cursor?: string; limit?: number; } = {},
+        options: ListCommentsOptions = {},
     ): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { groupId });
         const query: Record<string, string> = {};
@@ -621,7 +612,7 @@ export class AppDriver {
     async listExpenseComments(
         userId: UserId,
         expenseId: ExpenseId | string,
-        options: { cursor?: string; limit?: number; } = {},
+        options: ListCommentsOptions = {},
     ): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { expenseId });
         const query: Record<string, string> = {};
@@ -728,7 +719,7 @@ export class AppDriver {
 
     async getActivityFeed(
         userId: UserId,
-        options: { limit?: number; cursor?: string; } = {},
+        options: GetActivityFeedOptions = {},
     ): Promise<{ items: ActivityFeedItem[]; hasMore: boolean; nextCursor?: string; }> {
         const req = createStubRequest(userId, {});
         const query: Record<string, string> = {};
