@@ -39,6 +39,7 @@ import type {
     PreviewGroupResponse,
     RegisterResponse,
     SettlementDTO,
+    SettlementWithMembers,
     ShareLinkResponse,
     UpdateDisplayNameRequest,
     UpdateGroupRequest,
@@ -683,7 +684,7 @@ class ApiClient {
     }
 
     // Convenience methods for common endpoints (using enhanced RequestConfig internally)
-    async getGroups(
+    async listGroups(
         options?: ListGroupsOptions & { page?: number; },
     ): Promise<ListGroupsResponse> {
         const query: Record<string, string> = {};
@@ -860,7 +861,7 @@ class ApiClient {
         });
     }
 
-    async updateSettlement(settlementId: SettlementId, data: UpdateSettlementRequest): Promise<SettlementDTO> {
+    async updateSettlement(settlementId: SettlementId, data: UpdateSettlementRequest): Promise<SettlementWithMembers> {
         return this.request({
             endpoint: '/settlements/:settlementId',
             method: 'PUT',
@@ -1099,7 +1100,7 @@ class ApiClient {
         });
     }
 
-    async getGroupComments(groupId: GroupId, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
+    async listGroupComments(groupId: GroupId, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
         const query: Record<string, string> = {};
         if (options?.cursor) query.cursor = options.cursor;
         if (options?.limit) query.limit = options.limit.toString();
@@ -1112,7 +1113,7 @@ class ApiClient {
         });
     }
 
-    async getExpenseComments(expenseId: ExpenseId, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
         const query: Record<string, string> = {};
         if (options?.cursor) query.cursor = options.cursor;
         if (options?.limit) query.limit = options.limit.toString();

@@ -175,7 +175,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
         try {
             // Include metadata to get change information and pagination params
-            const response = await apiClient.getGroups({
+            const response = await apiClient.listGroups({
                 includeMetadata: true,
                 limit: pageSize,
                 cursor,
