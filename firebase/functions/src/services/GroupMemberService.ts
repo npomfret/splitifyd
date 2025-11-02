@@ -63,24 +63,6 @@ export class GroupMemberService {
         return membership;
     }
 
-    async getGroupAdminContext(
-        groupId: GroupId,
-        userId: UserId,
-        options: AccessContextOptions = {},
-    ): Promise<{
-        group: GroupDTO;
-        memberIds: UserId[];
-        actorMember: GroupMembershipDTO;
-    }> {
-        const context = await this.getGroupAccessContext(groupId, userId, options);
-
-        if (context.actorMember.memberRole !== MemberRoles.ADMIN || context.actorMember.memberStatus !== MemberStatuses.ACTIVE) {
-            throw options.forbiddenErrorFactory?.() ?? Errors.FORBIDDEN();
-        }
-
-        return context;
-    }
-
     private async runMembershipTransaction<T>(
         groupId: GroupId,
         executor: (context: GroupTransactionContext) => Promise<T>,
