@@ -821,60 +821,11 @@ export class FirestoreWriter implements IFirestoreWriter {
         return this.createCommentInTransactionInternal(transaction, this.getExpenseCommentCollectionPath(expenseId), commentData);
     }
 
-    async addGroupComment(groupId: GroupId, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.addGroupComment', async () => {
-            try {
-                const commentId = await this.addCommentInternal(this.getGroupCommentCollectionPath(groupId), commentData);
-                logger.info('Group comment added', { groupId, commentId });
-                return {
-                    id: commentId,
-                    success: true,
-                    timestamp: new Date(),
-                };
-            } catch (error) {
-                logger.error('Failed to add group comment', error, { groupId });
-                return {
-                    id: '',
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
-    async addExpenseComment(expenseId: ExpenseId, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.addExpenseComment', async () => {
-            try {
-                const commentId = await this.addCommentInternal(this.getExpenseCommentCollectionPath(expenseId), commentData);
-                logger.info('Expense comment added', { expenseId, commentId });
-                return {
-                    id: commentId,
-                    success: true,
-                    timestamp: new Date(),
-                };
-            } catch (error) {
-                logger.error('Failed to add expense comment', error, { expenseId });
-                return {
-                    id: '',
-                    success: false,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                };
-            }
-        });
-    }
-
     private createCommentInTransactionInternal(transaction: ITransaction, collectionPath: string, commentData: Omit<CommentDTO, 'id'>) {
         const commentRef = this.db.collection(collectionPath).doc();
         const finalData = this.buildCommentWriteData(commentData);
         transaction.set(commentRef, finalData);
         return commentRef;
-    }
-
-    private async addCommentInternal(collectionPath: string, commentData: Omit<CommentDTO, 'id'>): Promise<string> {
-        const commentRef = this.db.collection(collectionPath).doc();
-        const finalData = this.buildCommentWriteData(commentData);
-        await commentRef.set(finalData);
-        return commentRef.id;
     }
 
     // ========================================================================
@@ -965,19 +916,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         return docRef;
     }
 
-    async getActivityFeedItemsForUserInTransaction(transaction: ITransaction, userId: UserId, limit: number) {
-        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
-        const query = collectionRef.orderBy('createdAt', 'desc').limit(limit);
-        const snapshot = await transaction.get(query);
-        return snapshot.docs;
-    }
-
-    deleteActivityFeedItemInTransaction(transaction: ITransaction, userId: UserId, documentId: string) {
-        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
-        const docRef = collectionRef.doc(documentId);
-        transaction.delete(docRef);
-    }
-
     /**
      * Get activity feed items for a user (non-transaction version for async cleanup)
      */
@@ -1047,33 +985,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
 
         return shareLinkRef;
-    }
-
-    async deleteExpiredShareLinksInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: ISOString): Promise<number> {
-        const shareLinksCollection = this
-            .db
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('shareLinks');
-
-        const expiredQuery = shareLinksCollection.where('expiresAt', '<=', cutoffIso);
-        const snapshot = await transaction.get(expiredQuery);
-
-        let deleted = 0;
-        for (const doc of snapshot.docs) {
-            const data = doc.data() as ShareLinkDTO;
-            if (data?.token) {
-                const indexRef = this
-                    .db
-                    .collection(FirestoreCollections.SHARE_LINK_TOKENS)
-                    .doc(data.token);
-                transaction.delete(indexRef);
-            }
-            transaction.delete(doc.ref);
-            deleted += 1;
-        }
-
-        return deleted;
     }
 
     async deleteShareLink(groupId: GroupId, shareLinkId: string, token: string): Promise<void> {
@@ -1307,77 +1218,6 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     // ========================================================================
-    // Transaction Helper Methods (Phase 1 - Transaction Foundation)
-    // ========================================================================
-
-    /**
-     * Delete multiple documents within a transaction atomically
-     * @param transaction - The transaction context
-     * @param documentPaths - Array of document paths to delete
-     * @throws Error if any deletion fails (transaction will be aborted)
-     */
-    bulkDeleteInTransaction(transaction: ITransaction, documentPaths: string[]): void {
-        if (!Array.isArray(documentPaths)) {
-            throw new Error('documentPaths must be an array');
-        }
-
-        if (documentPaths.length === 0) {
-            logger.warn('bulkDeleteInTransaction called with empty paths array');
-            return;
-        }
-
-        // Enhanced validation and monitoring for bulk delete operations
-        const collectionCounts: Record<string, number> = {};
-        const validatedPaths: string[] = [];
-
-        // Pre-validate all paths and collect statistics
-        for (const path of documentPaths) {
-            if (!path || typeof path !== 'string') {
-                throw new Error(`Invalid document path: ${path}`);
-            }
-
-            // Validate path format (collection/document or collection/document/subcollection/document)
-            const pathSegments = path.split('/');
-            if (pathSegments.length < 2 || pathSegments.length % 2 !== 0) {
-                throw new Error(`Invalid document path format: ${path}. Must be collection/document or collection/document/subcollection/document`);
-            }
-
-            // Track deletions by collection for monitoring
-            const collection = pathSegments[0];
-            collectionCounts[collection] = (collectionCounts[collection] || 0) + 1;
-            validatedPaths.push(path);
-        }
-
-        logger.info('Bulk delete in transaction initiated (enhanced validation)', {
-            operation: 'bulkDeleteInTransaction',
-            documentCount: validatedPaths.length,
-            collectionBreakdown: collectionCounts,
-            collections: Object.keys(collectionCounts),
-        });
-
-        // Perform all deletions
-        for (const path of validatedPaths) {
-            try {
-                const docRef = this.db.doc(path);
-                transaction.delete(docRef);
-            } catch (error) {
-                logger.error('Failed to delete document in transaction', error, {
-                    path,
-                    operation: 'bulkDeleteInTransaction',
-                });
-                throw new Error(`Failed to delete document at path: ${path}`);
-            }
-        }
-
-        logger.info('Bulk delete in transaction completed (enhanced monitoring)', {
-            operation: 'bulkDeleteInTransaction',
-            documentCount: validatedPaths.length,
-            collectionBreakdown: collectionCounts,
-            validationStatus: 'all paths validated',
-        });
-    }
-
-    // ========================================================================
     // Group Deletion and Recovery Operations
     // ========================================================================
 
@@ -1386,74 +1226,5 @@ export class FirestoreWriter implements IFirestoreWriter {
      */
     getDocumentReferenceInTransaction(transaction: ITransaction, collection: string, documentId: string) {
         return this.db.collection(collection).doc(documentId);
-    }
-
-    async leaveGroupAtomic(groupId: GroupId, userId: UserId): Promise<BatchWriteResult> {
-        return measureDb('FirestoreWriter.leaveGroupAtomic', async () => {
-            try {
-                const membershipDocId = await this.db.runTransaction(async (transaction) => {
-                    const membershipQuery = this
-                        .db
-                        .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                        .where('groupId', '==', groupId);
-                    const membershipsSnapshot = await transaction.get(membershipQuery);
-
-                    if (membershipsSnapshot.empty) {
-                        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'NO_MEMBERS_FOUND', 'No members found in group');
-                    }
-
-                    const memberDoc = membershipsSnapshot.docs.find((doc) => doc.data().userId === userId);
-
-                    if (!memberDoc) {
-                        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_A_MEMBER', 'User is not a member of this group');
-                    }
-
-                    const membershipDocId = newTopLevelMembershipDocId(userId, groupId);
-
-                    const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
-                    transaction.update(groupRef, {
-                        updatedAt: FieldValue.serverTimestamp(),
-                    });
-
-                    const membershipRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${membershipDocId}`);
-                    transaction.delete(membershipRef);
-
-                    return membershipDocId;
-                });
-
-                logger.info('User left group atomically - group updated, membership deleted', {
-                    userId,
-                    groupId,
-                    membershipDocId,
-                });
-
-                return {
-                    successCount: 2,
-                    failureCount: 0,
-                    results: [
-                        { id: groupId, success: true, timestamp: new Date() },
-                        { id: membershipDocId, success: true, timestamp: new Date() },
-                    ],
-                };
-            } catch (error) {
-                logger.error('Atomic leave group operation failed', error);
-                return {
-                    successCount: 0,
-                    failureCount: 2,
-                    results: [
-                        {
-                            id: groupId,
-                            success: false,
-                            error: error instanceof Error ? error.message : 'Unknown error',
-                        },
-                        {
-                            id: `${userId}_${groupId}`,
-                            success: false,
-                            error: error instanceof Error ? error.message : 'Unknown error',
-                        },
-                    ],
-                };
-            }
-        });
     }
 }

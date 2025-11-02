@@ -102,22 +102,6 @@ export interface IFirestoreWriter {
     // ========================================================================
 
     /**
-     * Add a comment to a group
-     * @param groupId - The group ID
-     * @param commentData - The comment data (DTO with ISO strings)
-     * @returns Write result with generated comment ID
-     */
-    addGroupComment(groupId: GroupId, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult>;
-
-    /**
-     * Add a comment to an expense
-     * @param expenseId - The expense ID
-     * @param commentData - The comment data (DTO with ISO strings)
-     * @returns Write result with generated comment ID
-     */
-    addExpenseComment(expenseId: ExpenseId, commentData: Omit<CommentDTO, 'id'>): Promise<WriteResult>;
-
-    /**
      * Create a group comment inside an existing transaction
      */
     createGroupCommentInTransaction(transaction: ITransaction, groupId: GroupId, commentData: Omit<CommentDTO, 'id'>): IDocumentReference;
@@ -139,15 +123,6 @@ export interface IFirestoreWriter {
      * @returns Document reference
      */
     createShareLinkInTransaction(transaction: ITransaction, groupId: GroupId, shareLinkData: Omit<ShareLinkDTO, 'id'>): IDocumentReference;
-
-    /**
-     * Delete expired share links for a group within a transaction
-     * @param transaction - The transaction object
-     * @param groupId - The group ID
-     * @param cutoffIso - Expiration cutoff timestamp (ISO 8601)
-     * @returns Number of deleted share links
-     */
-    deleteExpiredShareLinksInTransaction(transaction: ITransaction, groupId: GroupId, cutoffIso: ISOString): Promise<number>;
 
     /**
      * Hard delete a share link and its token index
@@ -211,16 +186,6 @@ export interface IFirestoreWriter {
      * Create an activity feed document within a user-scoped subcollection during a transaction.
      */
     createActivityFeedItemInTransaction(transaction: ITransaction, userId: UserId, documentId: string | null, data: Record<string, any>): IDocumentReference;
-
-    /**
-     * Fetch recent activity feed snapshots for a user within a transaction.
-     */
-    getActivityFeedItemsForUserInTransaction(transaction: ITransaction, userId: UserId, limit: number): Promise<IDocumentSnapshot[]>;
-
-    /**
-     * Delete an activity feed document within a transaction.
-     */
-    deleteActivityFeedItemInTransaction(transaction: ITransaction, userId: UserId, documentId: string): void;
 
     /**
      * Get activity feed items for a user (non-transaction version for async cleanup)
@@ -314,18 +279,6 @@ export interface IFirestoreWriter {
     updateGroupBalanceInTransaction(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void;
 
     // ========================================================================
-    // Transaction Helper Methods (Phase 1 - Transaction Foundation)
-    // ========================================================================
-
-    /**
-     * Delete multiple documents within a transaction atomically
-     * @param transaction - The transaction context
-     * @param documentPaths - Array of document paths to delete
-     * @throws Error if any deletion fails (transaction will be aborted)
-     */
-    bulkDeleteInTransaction(transaction: ITransaction, documentPaths: string[]): void;
-
-    // ========================================================================
     // Group Deletion and Recovery Operations
     // ========================================================================
 
@@ -337,12 +290,4 @@ export interface IFirestoreWriter {
      * @returns Document reference for transaction operations
      */
     getDocumentReferenceInTransaction(transaction: ITransaction, collection: string, documentId: string): IDocumentReference;
-
-    /**
-     * Atomically update group timestamp, delete membership, and remove from notifications
-     * @param groupId - The group ID to update
-     * @param userId - The user ID to remove from notifications
-     * @returns Batch write result
-     */
-    leaveGroupAtomic(groupId: GroupId, userId: UserId): Promise<BatchWriteResult>;
 }
