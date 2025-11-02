@@ -228,11 +228,6 @@ export class GroupDetailPage extends BasePage {
         await this.ensureToggleExpanded(this.getBalanceToggle());
     }
 
-    async expectBalancesCollapsed(): Promise<void> {
-        const toggle = this.getBalanceToggle();
-        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    }
-
     async expectBalancesExpanded(): Promise<void> {
         const toggle = this.getBalanceToggle();
         await expect(toggle).toHaveAttribute('aria-expanded', 'true');
@@ -567,13 +562,6 @@ export class GroupDetailPage extends BasePage {
         return this.getMemberItem(memberName).locator('[data-testid="remove-member-button"]');
     }
 
-    /**
-     * Add Member button - looks for button with "add" and "member" text
-     */
-    getAddMemberButton(): Locator {
-        return this.getMembersContainer().getByRole('button', { name: /add.*member/i });
-    }
-
     // ============================================================================
     // EXPENSES SECTION
     // ============================================================================
@@ -815,33 +803,6 @@ export class GroupDetailPage extends BasePage {
     // ============================================================================
     // MODALS
     // ============================================================================
-
-    /**
-     * Edit Group Modal
-     */
-    getEditGroupModal(): Locator {
-        return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByRole('heading', { name: translation.group.edit.title }),
-        });
-    }
-
-    /**
-     * Share Group Modal
-     */
-    getShareGroupModal(): Locator {
-        return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByRole('heading', { name: translation.group.share.title }),
-        });
-    }
-
-    /**
-     * Leave Group Dialog
-     */
-    getLeaveGroupDialog(): Locator {
-        return this.page.locator('[role="dialog"]').filter({
-            has: this.page.getByText(/leave.*group/i),
-        });
-    }
 
     // ============================================================================
     // ACTION METHODS
@@ -1087,15 +1048,6 @@ export class GroupDetailPage extends BasePage {
         } catch {
             // Loading text may not appear; ignore timeout
         }
-    }
-
-    /**
-     * Utility to ensure a newly created group page is ready for interactions.
-     */
-    async ensureNewGroupPageReadyWithOneMember(groupId: GroupId | string): Promise<void> {
-        await this.waitForDomContentLoaded();
-        await this.waitForMemberCount(1);
-        await this.waitForBalancesSection(groupId);
     }
 
     /**
@@ -1589,15 +1541,6 @@ export class GroupDetailPage extends BasePage {
     // ============================================================================
 
     /**
-     * Click Edit Group button
-     * Non-fluent version - clicks without verification, for flexibility
-     */
-    async clickEditGroup(): Promise<void> {
-        const button = this.getEditGroupButton();
-        await this.clickButton(button, { buttonName: translation.groupActions.settings });
-    }
-
-    /**
      * Click Settings button and open group settings modal
      * Fluent version - verifies modal opens and returns GroupSettingsModalPage
      */
@@ -1616,15 +1559,6 @@ export class GroupDetailPage extends BasePage {
         await modalPage.waitForModalToOpen({ tab });
 
         return modalPage;
-    }
-
-    /**
-     * Click Share Group button
-     * Non-fluent version - clicks without verification, for flexibility
-     */
-    async clickShareGroup(): Promise<void> {
-        const button = this.getShareGroupButton();
-        await this.clickButton(button, { buttonName: translation.groupActions.inviteOthers });
     }
 
     /**
@@ -1678,13 +1612,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Verify Edit Group button is NOT visible (permission check)
-     */
-    async verifyCannotEditGroup(): Promise<void> {
-        await expect(this.getEditGroupButton()).not.toBeVisible();
-    }
-
-    /**
      * Verify Leave Group button is NOT visible (owner or last member)
      */
     async verifyCannotLeaveGroup(): Promise<void> {
@@ -1698,20 +1625,6 @@ export class GroupDetailPage extends BasePage {
      */
     private async waitForNetworkIdle(): Promise<void> {
         await this.page.waitForLoadState('domcontentloaded');
-    }
-
-    /**
-     * Wait for expense to appear
-     */
-    async waitForExpenseToAppear(description: string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
-        await expect(this.getExpenseByDescription(description)).toBeVisible({ timeout });
-    }
-
-    /**
-     * Wait for member to appear
-     */
-    async waitForMemberToAppear(memberName: string, timeout: number = TEST_TIMEOUTS.ELEMENT_VISIBLE): Promise<void> {
-        await expect(this.getMemberCard(memberName)).toBeVisible({ timeout });
     }
 
     /**

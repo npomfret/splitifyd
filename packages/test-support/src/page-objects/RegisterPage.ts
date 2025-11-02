@@ -285,45 +285,12 @@ export class RegisterPage extends BasePage {
     }
 
     /**
-     * Uncheck the Privacy Policy checkbox (ensure it's unchecked)
-     */
-    async uncheckPrivacyCheckbox(): Promise<void> {
-        const checkbox = this.getPrivacyCheckbox();
-        await expect(checkbox).toBeVisible();
-        await checkbox.uncheck();
-    }
-
-    /**
      * Accept both policy checkboxes
      */
     async acceptAllPolicies(): Promise<void> {
         await this.checkTermsCheckbox();
         await this.checkCookieCheckbox();
         await this.checkPrivacyCheckbox();
-    }
-
-    /**
-     * Click the Terms of Service link
-     */
-    async clickTermsLink(): Promise<void> {
-        const link = this.getTermsLink();
-        await link.click();
-    }
-
-    /**
-     * Click the Cookie Policy link
-     */
-    async clickCookiePolicyLink(): Promise<void> {
-        const link = this.getCookiePolicyLink();
-        await link.click();
-    }
-
-    /**
-     * Click the Privacy Policy link
-     */
-    async clickPrivacyPolicyLink(): Promise<void> {
-        const link = this.getPrivacyPolicyLink();
-        await link.click();
     }
 
     /**
@@ -406,22 +373,6 @@ export class RegisterPage extends BasePage {
     async clickSignIn(): Promise<void> {
         const button = this.getSignInButton();
         await this.clickButton(button, { buttonName: translation.registerPage.signIn });
-    }
-
-    /**
-     * Click the sign in button and navigate to login page
-     * Fluent version - verifies navigation and would return LoginPage (when imported)
-     */
-    async clickSignInAndNavigateToLogin(): Promise<void> {
-        await this.clickSignIn();
-        await expect(this.page).toHaveURL(/\/login/, { timeout: TEST_TIMEOUTS.NAVIGATION });
-
-        // TODO: Return LoginPage when circular dependency is resolved
-        // For now we avoid importing LoginPage to prevent circular dependency
-        // import { LoginPage } from './LoginPage';
-        // const loginPage = new LoginPage(this.page);
-        // await loginPage.verifyLoginPageLoaded();
-        // return loginPage;
     }
 
     // ============================================================================
@@ -514,25 +465,6 @@ export class RegisterPage extends BasePage {
     }
 
     /**
-     * Verify form is empty (all fields cleared)
-     */
-    async verifyFormEmpty(): Promise<void> {
-        await expect(this.getNameInput()).toHaveValue('');
-        await expect(this.getEmailInput()).toHaveValue('');
-        await expect(this.getPasswordInput()).toHaveValue('');
-        await expect(this.getConfirmPasswordInput()).toHaveValue('');
-        await this.verifyCheckboxStates(false, false, false);
-    }
-
-    /**
-     * Verify form has persisted values (after error, form should retain user input)
-     */
-    async verifyFormPersistedValues(name: string, email: Email): Promise<void> {
-        await expect(this.getNameInput()).toHaveValue(name);
-        await expect(this.getEmailInput()).toHaveValue(email);
-    }
-
-    /**
      * Verify checkboxes are visible
      */
     async verifyTermsCheckboxVisible(): Promise<void> {
@@ -570,12 +502,6 @@ export class RegisterPage extends BasePage {
 
     async verifyCookiePolicyLinkAttributes(expectedHref: string, expectedTarget: string = '_blank'): Promise<void> {
         const link = this.getCookiePolicyLink();
-        await expect(link).toHaveAttribute('href', expectedHref);
-        await expect(link).toHaveAttribute('target', expectedTarget);
-    }
-
-    async verifyPrivacyPolicyLinkAttributes(expectedHref: string, expectedTarget: string = '_blank'): Promise<void> {
-        const link = this.getPrivacyPolicyLink();
         await expect(link).toHaveAttribute('href', expectedHref);
         await expect(link).toHaveAttribute('target', expectedTarget);
     }
@@ -672,13 +598,6 @@ export class RegisterPage extends BasePage {
      */
     async verifyEmailInputValue(expectedValue: string): Promise<void> {
         await expect(this.getEmailInput()).toHaveValue(expectedValue);
-    }
-
-    /**
-     * Verify password input is visible
-     */
-    async verifyPasswordInputVisible(): Promise<void> {
-        await expect(this.getPasswordInput()).toBeVisible();
     }
 
     /**

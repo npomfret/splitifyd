@@ -207,14 +207,6 @@ export class GroupSettingsModalPage extends BasePage {
         return this.getModalContainer().getByTestId('edit-group-validation-error');
     }
 
-    getDeleteError(): Locator {
-        return this.getDeleteDialog().locator('[role="alert"]');
-    }
-
-    // ============================================================================
-    // MODAL LIFECYCLE
-    // ============================================================================
-
     async waitForModalToOpen(options: { tab?: GroupSettingsTab; timeout?: number; } = {}): Promise<void> {
         const { tab, timeout = TEST_TIMEOUTS.MODAL_TRANSITION } = options;
         await expect(this.getModalContainer()).toBeVisible({ timeout });
@@ -244,14 +236,6 @@ export class GroupSettingsModalPage extends BasePage {
                 await this.ensureSecurityTab();
             }
         }
-    }
-
-    async waitForModalToClose(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
-        await expect(this.getModalContainer()).not.toBeVisible({ timeout });
-    }
-
-    async waitForModalVisible(): Promise<void> {
-        await this.waitForModalToOpen();
     }
 
     getModal(): Locator {
@@ -325,13 +309,6 @@ export class GroupSettingsModalPage extends BasePage {
         }
     }
 
-    async fillGroupForm(name: string, description?: string): Promise<void> {
-        await this.fillGroupName(name);
-        if (description !== undefined) {
-            await this.fillGroupDescription(description);
-        }
-    }
-
     getGeneralSuccessAlert(): Locator {
         return this.getModalContainer().getByTestId('group-general-success');
     }
@@ -369,11 +346,6 @@ export class GroupSettingsModalPage extends BasePage {
         await this.ensureIdentityTab();
         const saveButton = this.getDisplayNameSaveButton();
         await this.clickButton(saveButton, { buttonName: translation.common.save });
-    }
-
-    async updateDisplayName(name: string): Promise<void> {
-        await this.fillDisplayName(name);
-        await this.saveDisplayName();
     }
 
     async saveChanges(): Promise<void> {
@@ -418,11 +390,6 @@ export class GroupSettingsModalPage extends BasePage {
         }
     }
 
-    async clickOutsideToClose(): Promise<void> {
-        const backdrop = this.getModalBackdrop();
-        await backdrop.click({ position: { x: 10, y: 10 } });
-    }
-
     async pressEscapeToClose(): Promise<void> {
         await super.pressEscapeToClose(this.getModalContainer());
     }
@@ -463,11 +430,6 @@ export class GroupSettingsModalPage extends BasePage {
     async confirmDelete(): Promise<void> {
         const button = this.getConfirmDeleteButton();
         await this.clickButton(button, { buttonName: translation.editGroupModal.deleteConfirmDialog.confirmText });
-    }
-
-    async cancelDelete(): Promise<void> {
-        const button = this.getCancelDeleteButton();
-        await this.clickButton(button, { buttonName: translation.editGroupModal.deleteConfirmDialog.cancelText });
     }
 
     async deleteGroup(groupName: GroupName): Promise<void> {
@@ -512,12 +474,6 @@ export class GroupSettingsModalPage extends BasePage {
             .toPass({ timeout: 8000 });
     }
 
-    async selectPermission(key: string, option: string): Promise<void> {
-        await this.ensureSecurityTab();
-        const select = this.getPermissionSelect(key);
-        await select.selectOption(option);
-    }
-
     async approvePendingMember(memberId: string): Promise<void> {
         await this.ensureSecurityTab();
         await this.getPendingApproveButton(memberId).click();
@@ -544,69 +500,6 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(this.getSaveButton()).toBeVisible();
         await expect(this.getCancelButton()).toBeVisible();
         await expect(this.getDeleteButton()).toBeVisible();
-    }
-
-    async verifyModalClosed(): Promise<void> {
-        await expect(this.getModalContainer()).not.toBeVisible();
-    }
-
-    async verifyFormValues(expectedName: string, expectedDescription?: string): Promise<void> {
-        await this.ensureGeneralTab();
-        await expect(this.getGroupNameInput()).toHaveValue(expectedName);
-        if (expectedDescription !== undefined) {
-            await expect(this.getGroupDescriptionInput()).toHaveValue(expectedDescription);
-        }
-    }
-
-    async verifySaveButtonState(shouldBeEnabled: boolean): Promise<void> {
-        await this.ensureGeneralTab();
-        if (shouldBeEnabled) {
-            await expect(this.getSaveButton()).toBeEnabled();
-        } else {
-            await expect(this.getSaveButton()).toBeDisabled();
-        }
-    }
-
-    async verifyValidationError(expectedMessage: string): Promise<void> {
-        await expect(this.getValidationError()).toBeVisible();
-        await expect(this.getValidationError()).toContainText(expectedMessage);
-    }
-
-    async verifyNoValidationError(): Promise<void> {
-        await expect(this.getValidationError()).not.toBeVisible();
-    }
-
-    async verifyDeleteDialogOpen(): Promise<void> {
-        await expect(this.getDeleteDialog()).toBeVisible();
-        await expect(this.getDeleteConfirmationInput()).toBeVisible();
-        await expect(this.getConfirmDeleteButton()).toBeVisible();
-        await expect(this.getCancelDeleteButton()).toBeVisible();
-    }
-
-    async verifyDeleteDialogClosed(): Promise<void> {
-        await expect(this.getDeleteDialog()).not.toBeVisible();
-    }
-
-    async verifyConfirmDeleteButtonState(shouldBeEnabled: boolean): Promise<void> {
-        const confirmButton = this.getConfirmDeleteButton();
-        if (shouldBeEnabled) {
-            await expect(confirmButton).toBeEnabled();
-        } else {
-            await expect(confirmButton).toBeDisabled();
-        }
-    }
-
-    async verifySaveButtonDisabled(): Promise<void> {
-        await this.ensureGeneralTab();
-        await expect(this.getSaveButton()).toBeDisabled();
-    }
-
-    async clickSaveButton(): Promise<void> {
-        await this.submitForm();
-    }
-
-    async clickCancelButton(): Promise<void> {
-        await this.clickCancel();
     }
 
     async cancel(): Promise<void> {

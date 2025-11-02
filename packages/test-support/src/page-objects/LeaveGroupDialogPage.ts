@@ -128,13 +128,6 @@ export class LeaveGroupDialogPage extends BasePage {
     }
 
     /**
-     * Wait for dialog to close
-     */
-    async waitForDialogToClose(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
-        await expect(this.getDialogContainer()).not.toBeVisible({ timeout });
-    }
-
-    /**
      * Click confirm button
      */
     async clickConfirm(): Promise<void> {
@@ -148,14 +141,6 @@ export class LeaveGroupDialogPage extends BasePage {
     async clickCancel(): Promise<void> {
         const button = this.getCancelButton();
         await this.clickButton(button, { buttonName: 'Cancel' });
-    }
-
-    /**
-     * Close dialog by clicking backdrop
-     */
-    async clickOutsideToClose(): Promise<void> {
-        const backdrop = this.getDialogBackdrop();
-        await backdrop.click({ position: { x: 10, y: 10 } });
     }
 
     /**
@@ -205,29 +190,6 @@ export class LeaveGroupDialogPage extends BasePage {
     }
 
     /**
-     * Complete leave group workflow: confirm and wait for redirect
-     * Use when expecting successful leave (no outstanding balance)
-     */
-    async confirmLeaveAndWaitForRedirect(): Promise<void> {
-        await this.confirmLeaveGroup<void>(() => undefined);
-    }
-
-    /**
-     * Attempt to leave with outstanding balance and verify blocked
-     * Use when expecting leave to be prevented due to balance
-     */
-    async attemptLeaveWithBalance(): Promise<void> {
-        // Verify warning is shown
-        await this.verifyOutstandingBalanceWarning();
-
-        // Click confirm - but this should not actually leave
-        await this.clickConfirm();
-
-        // Dialog should remain open (leave was blocked)
-        await expect(this.getDialogContainer()).toBeVisible();
-    }
-
-    /**
      * Alias for cancel action with legacy naming.
      */
     async cancelLeaveGroup(): Promise<void> {
@@ -237,48 +199,6 @@ export class LeaveGroupDialogPage extends BasePage {
     // ============================================================================
     // VERIFICATION METHODS
     // ============================================================================
-
-    /**
-     * Verify dialog is open with correct structure
-     */
-    async verifyDialogOpen(): Promise<void> {
-        await expect(this.getDialogContainer()).toBeVisible();
-        await expect(this.getConfirmationDialog()).toBeVisible();
-        await expect(this.getDialogTitle()).toBeVisible();
-        await expect(this.getDialogMessage()).toBeVisible();
-        await expect(this.getConfirmButton()).toBeVisible();
-        await expect(this.getCancelButton()).toBeVisible();
-    }
-
-    /**
-     * Alias for wait method used by legacy e2e helpers.
-     */
-    async waitForDialogVisible(timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
-        await this.waitForDialogToOpen(timeout);
-    }
-
-    /**
-     * Verify dialog is closed
-     */
-    async verifyDialogClosed(): Promise<void> {
-        await expect(this.getDialogContainer()).not.toBeVisible();
-    }
-
-    /**
-     * Verify dialog shows standard leave confirmation (no balance issues)
-     */
-    async verifyStandardLeaveConfirmation(): Promise<void> {
-        await expect(this.getDialogTitle()).toBeVisible();
-        await expect(this.getDialogMessage()).toBeVisible();
-
-        // Confirm button should show "Leave" or similar action text
-        const confirmText = await this.getConfirmButtonText();
-        expect(confirmText.toLowerCase()).toMatch(/leave|confirm/);
-
-        // Should not show balance warning
-        const hasWarning = await this.hasOutstandingBalanceWarning();
-        expect(hasWarning).toBe(false);
-    }
 
     /**
      * Verify dialog shows outstanding balance warning
@@ -294,43 +214,6 @@ export class LeaveGroupDialogPage extends BasePage {
         // Confirm button should show "Understood" or similar acknowledgment
         const confirmText = await this.getConfirmButtonText();
         expect(confirmText.toLowerCase()).toMatch(/understood|ok/);
-    }
-
-    /**
-     * Verify specific message text
-     */
-    async verifyMessage(expectedMessage: string): Promise<void> {
-        await expect(this.getDialogMessage()).toBeVisible();
-        await expect(this.getDialogMessage()).toContainText(expectedMessage);
-    }
-
-    /**
-     * Verify dialog variant (warning vs info)
-     */
-    async verifyDialogVariant(expectedVariant: 'warning' | 'info'): Promise<void> {
-        const icon = this.getWarningIcon();
-        await expect(icon).toBeVisible();
-
-        if (expectedVariant === 'warning') {
-            // Warning icon should have yellow/warning colors
-            const classes = await icon.locator('..').getAttribute('class');
-            expect(classes).toMatch(/yellow|warning/);
-        } else {
-            // Info icon should have blue/info colors
-            const classes = await icon.locator('..').getAttribute('class');
-            expect(classes).toMatch(/blue|info/);
-        }
-    }
-
-    /**
-     * Verify confirm button state
-     */
-    async verifyConfirmButtonState(shouldBeEnabled: boolean): Promise<void> {
-        if (shouldBeEnabled) {
-            await expect(this.getConfirmButton()).toBeEnabled();
-        } else {
-            await expect(this.getConfirmButton()).toBeDisabled();
-        }
     }
 
     /**

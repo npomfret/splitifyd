@@ -117,13 +117,6 @@ export class ShareGroupModalPage extends BasePage {
         return this.getModalContainer().getByTestId('share-group-error-message');
     }
 
-    /**
-     * Expiration hint text
-     */
-    getExpirationHint(): Locator {
-        return this.getModalContainer().getByTestId('share-link-expiration-hint');
-    }
-
     // ============================================================================
     // STATE VERIFICATION METHODS
     // ============================================================================
@@ -199,14 +192,6 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
-     * Choose a new expiration duration
-     */
-    async selectExpiration(optionValue: '15m' | '1h' | '1d' | '5d'): Promise<void> {
-        const option = this.getExpirationOption(optionValue);
-        await option.click();
-    }
-
-    /**
      * Click close button
      */
     async clickClose(): Promise<void> {
@@ -227,14 +212,6 @@ export class ShareGroupModalPage extends BasePage {
      */
     async pressEscapeToClose(): Promise<void> {
         await super.pressEscapeToClose(this.getModalContainer());
-    }
-
-    /**
-     * Select share link text
-     */
-    async selectShareLink(): Promise<void> {
-        const input = this.getShareLinkInput();
-        await input.click();
     }
 
     /**
@@ -321,13 +298,6 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
-     * Verify no error is displayed
-     */
-    async verifyNoError(): Promise<void> {
-        await expect(this.getErrorMessage()).not.toBeVisible();
-    }
-
-    /**
      * Verify copy success toast appears
      */
     async verifyCopySuccess(): Promise<void> {
@@ -335,11 +305,4 @@ export class ShareGroupModalPage extends BasePage {
         await expect(this.getToastNotification()).toContainText(/copied/i);
     }
 
-    /**
-     * Verify toast notification disappears after timeout
-     * Toast is programmed to show for 3 seconds, so we wait slightly longer
-     */
-    async verifyToastDisappears(timeout: number = TEST_TIMEOUTS.ERROR_DISPLAY + 1000): Promise<void> {
-        await expect(this.getToastNotification()).not.toBeVisible({ timeout });
-    }
 }

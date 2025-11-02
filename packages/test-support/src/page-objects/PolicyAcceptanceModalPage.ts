@@ -26,16 +26,8 @@ export class PolicyAcceptanceModalPage extends BasePage {
         return this.page.locator('p.text-sm.text-gray-600.mt-1');
     }
 
-    getCloseButton(): Locator {
-        return this.page.locator('button[aria-label="Close"]');
-    }
-
     getProgressBar(): Locator {
         return this.page.locator('div.w-full.bg-gray-200.rounded-full.h-2');
-    }
-
-    getProgressText(): Locator {
-        return this.page.locator('span:has-text("of"):has-text("accepted")');
     }
 
     getPolicyCard(): Locator {
@@ -68,18 +60,6 @@ export class PolicyAcceptanceModalPage extends BasePage {
 
     getAcceptanceLabel(): Locator {
         return this.page.locator('label:has-text("I have read and accept this")');
-    }
-
-    getPreviousButton(): Locator {
-        return this.page.locator('button:has-text("Previous")');
-    }
-
-    getNextButton(): Locator {
-        return this.page.locator('button:has-text("Next")');
-    }
-
-    getErrorState(): Locator {
-        return this.page.locator('[data-testid="error-state"], .error-state');
     }
 
     // ============================================================================

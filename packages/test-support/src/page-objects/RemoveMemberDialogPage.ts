@@ -31,10 +31,4 @@ export class RemoveMemberDialogPage extends BasePage {
         await this.clickButton(this.confirmButton, { buttonName: 'Confirm Remove' });
     }
 
-    /**
-     * Accessor for the underlying dialog (useful for extra assertions).
-     */
-    getDialog(): Locator {
-        return this.dialog;
-    }
 }

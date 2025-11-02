@@ -26,10 +26,6 @@ export class GroupDetailCollectionManager<T> {
         return this.hasMoreSignal.value;
     }
 
-    get isLoading(): boolean {
-        return this.loadingSignal.value;
-    }
-
     get nextCursor(): string | null {
         return this.cursor;
     }
@@ -59,7 +55,4 @@ export class GroupDetailCollectionManager<T> {
         this.cursor = null;
     }
 
-    clearCursor(): void {
-        this.cursor = null;
-    }
 }

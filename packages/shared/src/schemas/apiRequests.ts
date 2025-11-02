@@ -616,15 +616,6 @@ export const ChangeEmailRequestSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Join group requests
-// ---------------------------------------------------------------------------
-
-export const JoinGroupRequestSchema = z.object({
-    linkId: z.string().trim().min(1, 'Link ID is required'),
-    groupDisplayName: DisplayNameSchema,
-});
-
-// ---------------------------------------------------------------------------
 // Re-export group request schemas for convenience
 // ---------------------------------------------------------------------------
 

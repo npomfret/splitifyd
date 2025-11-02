@@ -51,17 +51,8 @@ class JoinGroupStore {
     get isAlreadyMember() {
         return this.#isAlreadyMemberSignal.value;
     }
-    get displayNameConflict() {
-        return this.#displayNameConflictSignal.value;
-    }
     get joinedGroupId() {
         return this.#joinedGroupIdSignal.value;
-    }
-    get updatingDisplayName() {
-        return this.#updatingDisplayNameSignal.value;
-    }
-    get displayNameUpdateError() {
-        return this.#displayNameUpdateErrorSignal.value;
     }
     get memberStatus() {
         return this.#memberStatusSignal.value;

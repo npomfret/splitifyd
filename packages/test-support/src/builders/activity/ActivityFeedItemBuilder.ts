@@ -260,11 +260,6 @@ export class ActivityFeedItemBuilder {
         return this;
     }
 
-    mergeDetails(details: ActivityFeedItem['details']): ActivityFeedItemBuilder {
-        this.item.details = { ...this.item.details, ...details };
-        return this;
-    }
-
     build(): ActivityFeedItem {
         return cloneItem(this.item);
     }

@@ -61,15 +61,6 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Welcome section for new users
-     */
-    getWelcomeSection(): Locator {
-        return this.page.locator('div').filter({
-            has: this.page.getByRole('heading', { level: 2 }).filter({ hasText: /welcome/i }),
-        });
-    }
-
-    /**
      * Error message container within the dashboard
      */
     getErrorContainer(): Locator {
@@ -229,13 +220,6 @@ export class DashboardPage extends BasePage {
         await expect(this.getPaginationContainer()).toBeVisible();
     }
 
-    async verifyPaginationVisibleMobile(): Promise<void> {
-        // Mobile pagination doesn't have a nav container, check for mobile buttons directly
-        const nextButton = this.getPaginationNextButtonMobile();
-        const prevButton = this.getPaginationPreviousButtonMobile();
-        await expect(nextButton.or(prevButton)).toBeVisible();
-    }
-
     async verifyPaginationNextEnabled(): Promise<void> {
         await expect(this.getPaginationNextButton()).toBeEnabled();
     }
@@ -271,15 +255,6 @@ export class DashboardPage extends BasePage {
         })();
     }
 
-    clickPaginationPreviousWithoutWait(): Promise<void> {
-        const button = this.getPaginationPreviousButton();
-        return (async () => {
-            await expect(button).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
-            await this.expectButtonEnabled(button, 'Pagination Previous');
-            await button.click();
-        })();
-    }
-
     async verifyPaginationIndicatorEquals(expectedText: string): Promise<void> {
         // Search entire page for exact text match (page indicator may be outside nav container)
         await expect(this.page.getByText(expectedText, { exact: true })).toBeVisible();
@@ -289,26 +264,8 @@ export class DashboardPage extends BasePage {
         await expect(this.getPaginationNextButtonMobile()).toBeEnabled();
     }
 
-    async verifyPaginationNextMobileDisabled(): Promise<void> {
-        await expect(this.getPaginationNextButtonMobile()).toBeDisabled();
-    }
-
-    async verifyPaginationPreviousMobileEnabled(): Promise<void> {
-        await expect(this.getPaginationPreviousButtonMobile()).toBeEnabled();
-    }
-
     async verifyPaginationPreviousMobileDisabled(): Promise<void> {
         await expect(this.getPaginationPreviousButtonMobile()).toBeDisabled();
-    }
-
-    async clickPaginationNextMobile(): Promise<void> {
-        const button = this.getPaginationNextButtonMobile();
-        await this.clickButton(button, { buttonName: 'Pagination Next Mobile' });
-    }
-
-    async clickPaginationPreviousMobile(): Promise<void> {
-        const button = this.getPaginationPreviousButtonMobile();
-        await this.clickButton(button, { buttonName: 'Pagination Previous Mobile' });
     }
 
     /**
@@ -366,40 +323,6 @@ export class DashboardPage extends BasePage {
      */
     getGroupCardInviteButton(groupName: GroupName | string): Locator {
         return this.getGroupCard(groupName).locator('button[title*="Invite"], button[aria-label*="Invite"]');
-    }
-
-    // ============================================================================
-    // LOADING AND STATE INDICATORS
-    // ============================================================================
-
-    /**
-     * Loading indicator for creating new group
-     */
-    getCreateGroupLoadingIndicator(): Locator {
-        return this
-            .getGroupsGrid()
-            .locator('div')
-            .filter({
-                has: this.page.getByText(translation.dashboardComponents.groupsList.creating),
-            });
-    }
-
-    /**
-     * Group update loading overlay
-     */
-    getGroupUpdateLoadingOverlay(groupId?: string): Locator {
-        const baseSelector = this
-            .getGroupsGrid()
-            .locator('.absolute.inset-0')
-            .filter({
-                has: this.page.locator('[data-testid="loading-spinner"], .animate-spin'),
-            });
-
-        if (groupId) {
-            return this.getGroupCard(`[data-group-id="${groupId}"]`).locator('.absolute.inset-0');
-        }
-
-        return baseSelector;
     }
 
     // ============================================================================

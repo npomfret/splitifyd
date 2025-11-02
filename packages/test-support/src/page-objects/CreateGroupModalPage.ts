@@ -410,48 +410,11 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     /**
-     * Verify form fields are enabled (not in loading state)
-     */
-    async verifyFormEnabled(): Promise<void> {
-        await expect(this.getGroupNameInput()).toBeEnabled();
-        await expect(this.getGroupDisplayNameInput()).toBeEnabled();
-        await expect(this.getGroupDescriptionInput()).toBeEnabled();
-        await expect(this.getSubmitButton()).toBeEnabled();
-        await expect(this.getCancelButton()).toBeEnabled();
-    }
-
-    /**
-     * Verify form fields are disabled (in loading state)
-     */
-    async verifyFormDisabled(): Promise<void> {
-        await expect(this.getGroupNameInput()).toBeDisabled();
-        await expect(this.getGroupDisplayNameInput()).toBeDisabled();
-        await expect(this.getGroupDescriptionInput()).toBeDisabled();
-        await expect(this.getSubmitButton()).toBeDisabled();
-        await expect(this.getCancelButton()).toBeDisabled();
-    }
-
-    /**
      * Verify specific error message is displayed
      */
     async verifyErrorMessage(expectedMessage: string): Promise<void> {
         await expect(this.getErrorContainer()).toBeVisible();
         await expect(this.getErrorContainer()).toContainText(expectedMessage);
-    }
-
-    /**
-     * Verify specific validation error is displayed
-     */
-    async verifyValidationError(expectedMessage: string): Promise<void> {
-        await expect(this.getValidationError()).toBeVisible();
-        await expect(this.getValidationError()).toContainText(expectedMessage);
-    }
-
-    /**
-     * Verify no error message is displayed
-     */
-    async verifyNoErrorMessage(): Promise<void> {
-        await expect(this.getErrorContainer()).not.toBeVisible();
     }
 
     /**
@@ -479,19 +442,5 @@ export class CreateGroupModalPage extends BasePage {
         await expect(this.getGroupNameHelpText()).toBeVisible();
         await expect(this.getGroupDisplayNameHelpText()).toBeVisible();
         await expect(this.getGroupDescriptionHelpText()).toBeVisible();
-    }
-
-    /**
-     * Click the create button (alias for submitForm for semantic consistency)
-     */
-    async clickCreateButton(): Promise<void> {
-        await this.submitForm();
-    }
-
-    /**
-     * Verify error message is visible (without checking specific text)
-     */
-    async verifyErrorMessageVisible(): Promise<void> {
-        await expect(this.getErrorContainer()).toBeVisible();
     }
 }

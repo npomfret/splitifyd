@@ -126,98 +126,6 @@ export class JoinGroupPage extends BasePage {
         return text.trim();
     }
 
-    /**
-     * Check if user is logged in by examining page elements
-     */
-    async isUserLoggedIn(): Promise<boolean> {
-        try {
-            // First check: If we're on the login page, definitely not logged in
-            const currentUrl = this.page.url();
-            if (currentUrl.includes('/login') || currentUrl.includes('/register')) {
-                return false;
-            }
-
-            // Second check: Look for authentication loading states
-            const checkingAuth = await this
-                .page
-                .getByText('Checking authentication...')
-                .isVisible({ timeout: 500 })
-                .catch(() => false);
-            if (checkingAuth) {
-                // Wait for auth check to complete
-                await this.waitForDomContentLoaded();
-                // Re-check URL after auth check
-                if (this.page.url().includes('/login')) {
-                    return false;
-                }
-            }
-
-            // FIRST: Special case for join group page - if we can see join elements, user is authenticated
-            const joinButtonVisible = await this.getJoinGroupButton().isVisible({ timeout: 1000 }).catch(() => false);
-            const joinGroupHeadingVisible = await this.getJoinGroupHeading().isVisible({ timeout: 1000 }).catch(() => false);
-            const groupInviteMessage = await this
-                .page
-                .getByText(/you've been invited|invited to join/i)
-                .isVisible({ timeout: 1000 })
-                .catch(() => false);
-
-            if (joinButtonVisible || joinGroupHeadingVisible || groupInviteMessage) {
-                return true;
-            }
-
-            // Then check: Look for login/register UI elements (reliable indicator for other pages)
-            const loginVisible = await this.getLoginButton().isVisible({ timeout: 1000 }).catch(() => false);
-            const registerVisible = await this.getRegisterButton().isVisible({ timeout: 1000 }).catch(() => false);
-
-            // If we see login/register buttons, user is definitely not logged in
-            if (loginVisible || registerVisible) {
-                return false;
-            }
-
-            // Look for user-specific UI elements that indicate login
-            const userMenuVisible = await this.header.getUserMenuButton().isVisible({ timeout: 1000 }).catch(() => false);
-
-            // If we see user menu, definitely logged in
-            if (userMenuVisible) {
-                return true;
-            }
-
-            // Final check: Look for other authenticated UI patterns
-            const dashboardContent = await this
-                .page
-                .getByText(/create group|your groups|my groups/i)
-                .isVisible({ timeout: 1000 })
-                .catch(() => false);
-
-            if (dashboardContent) {
-                return true;
-            }
-
-            // Default: If no login buttons and no clear auth indicators, assume not logged in for safety
-            return false;
-        } catch {
-            // If we can't determine state, assume not logged in for safety
-            return false;
-        }
-    }
-
-    async isUserAlreadyMember(): Promise<boolean> {
-        try {
-            return await this.getAlreadyMemberMessage().isVisible({ timeout: 2000 });
-        } catch {
-            return false;
-        }
-    }
-
-    async isJoinPageVisible(): Promise<boolean> {
-        try {
-            await this.getJoinGroupHeading().waitFor({ timeout: 3000 });
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
     async isErrorPage(): Promise<boolean> {
         try {
             return await this.getErrorMessage().isVisible({ timeout: 2000 });
@@ -400,14 +308,6 @@ export class JoinGroupPage extends BasePage {
         await this.clickButton(backButton, { buttonName: 'Back to Dashboard' });
     }
 
-    /**
-     * Verify that an invalid link error is displayed
-     */
-    async verifyInvalidLinkError(): Promise<void> {
-        const errorMessage = this.getErrorMessage();
-        await expect(errorMessage).toBeVisible();
-    }
-
     async verifyInvalidLinkWarningVisible(): Promise<void> {
         await expect(this.getInvalidLinkWarning()).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
     }
@@ -440,25 +340,6 @@ export class JoinGroupPage extends BasePage {
     }
 
     /**
-     * Verify group name matches expected text
-     * Uses Playwright's polling to handle async content loading
-     */
-    async verifyGroupNameMatchesText(expectedName: string): Promise<void> {
-        await expect(async () => {
-            const actualName = await this.getGroupName();
-            expect(actualName).toBe(expectedName);
-        })
-            .toPass({ timeout: 5000 });
-    }
-
-    /**
-     * Check if join button is visible (without throwing)
-     */
-    async isJoinButtonVisible(): Promise<boolean> {
-        return await this.getJoinGroupButton().isVisible().catch(() => false);
-    }
-
-    /**
      * Expect current URL to match pattern
      */
     async expectUrl(pattern: RegExp): Promise<void> {
@@ -479,10 +360,6 @@ export class JoinGroupPage extends BasePage {
 
     async verifyGoToGroupButtonVisible(): Promise<void> {
         await expect(this.getOkButton()).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
-    }
-
-    async clickGoToGroupButton(): Promise<void> {
-        await this.clickOkButton();
     }
 
     async clickCancelButton(): Promise<void> {
@@ -506,23 +383,7 @@ export class JoinGroupPage extends BasePage {
         await expect(this.getDisplayNameInput()).toBeVisible({ timeout });
     }
 
-    async fillDisplayNameInModal(value: string): Promise<void> {
-        await this.fillPreactInput(this.getDisplayNameInput(), value);
-    }
-
     async submitDisplayNameModal(): Promise<void> {
         await this.clickButton(this.getModalJoinButton(), { buttonName: 'Join Group (Modal)' });
-    }
-
-    async cancelDisplayNameModal(): Promise<void> {
-        await this.clickButton(this.getModalCancelButton(), { buttonName: 'Cancel (Modal)' });
-    }
-
-    async verifyDisplayNameModalVisible(): Promise<void> {
-        await expect(this.getDisplayNameInput()).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
-    }
-
-    async verifyDisplayNameModalValue(expectedValue: string): Promise<void> {
-        await expect(this.getDisplayNameInput()).toHaveValue(expectedValue);
     }
 }

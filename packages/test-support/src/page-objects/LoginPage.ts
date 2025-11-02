@@ -34,16 +34,6 @@ export class LoginPage extends BasePage {
     }
 
     /**
-     * Login page heading container - helps identify we're on the right page
-     */
-    getPageHeading(): Locator {
-        return this
-            .getLoginFormContainer()
-            .locator('..')
-            .getByRole('heading', { name: /sign.*in/i });
-    }
-
-    /**
      * Error message container within the login form
      * ErrorMessage component renders with role="alert"
      */
@@ -108,15 +98,6 @@ export class LoginPage extends BasePage {
         return this.getLoginFormContainer().locator('..').getByRole('heading', { name: translation.loginPage.title });
     }
 
-    /**
-     * Default/Demo login button (if present)
-     */
-    getDefaultLoginButton(): Locator {
-        return this.getLoginFormContainer().locator('button').filter({
-            hasText: /demo/i,
-        });
-    }
-
     // ============================================================================
     // STATE VERIFICATION METHODS
     // ============================================================================
@@ -155,14 +136,6 @@ export class LoginPage extends BasePage {
     }
 
     /**
-     * Navigate to homepage (for e2e-tests compatibility)
-     */
-    async navigateToHomepage(): Promise<void> {
-        await this.page.goto('/');
-        await this.page.waitForLoadState('domcontentloaded');
-    }
-
-    /**
      * Fill the email field using proper Preact handling
      */
     async fillEmail(email: Email): Promise<void> {
@@ -182,17 +155,6 @@ export class LoginPage extends BasePage {
     async fillCredentials(email: Email, password: string): Promise<void> {
         await this.fillEmail(email);
         await this.fillPassword(password);
-    }
-
-    /**
-     * Fill login form (e2e-tests compatibility method)
-     */
-    async fillLoginForm(email: Email, password: string, rememberMe = false): Promise<void> {
-        await this.fillEmail(email);
-        await this.fillPassword(password);
-        if (rememberMe) {
-            await this.toggleRememberMe();
-        }
     }
 
     /**
@@ -264,37 +226,12 @@ export class LoginPage extends BasePage {
     }
 
     /**
-     * Click the forgot password button
-     */
-    async clickForgotPassword(): Promise<void> {
-        await this.clickButton(this.getForgotPasswordButton(), {
-            buttonName: 'Forgot Password',
-        });
-    }
-
-    /**
      * Click the sign up button
      * Non-fluent version - clicks without verification, for flexibility
      */
     async clickSignUp(): Promise<void> {
         const button = this.getSignUpButton();
         await this.clickButton(button, { buttonName: 'Sign Up' });
-    }
-
-    /**
-     * Click the sign up button and navigate to register page
-     * Fluent version - verifies navigation and would return RegisterPage (when created)
-     * For now returns void until RegisterPage POM is created
-     */
-    async clickSignUpAndNavigateToRegister(): Promise<void> {
-        await this.clickSignUp();
-        await expect(this.page).toHaveURL(/\/register/, { timeout: TEST_TIMEOUTS.NAVIGATION });
-
-        // TODO: Return RegisterPage when it's created
-        // import { RegisterPage } from './RegisterPage';
-        // const registerPage = new RegisterPage(this.page);
-        // await registerPage.verifyRegisterPageLoaded();
-        // return registerPage;
     }
 
     // ============================================================================

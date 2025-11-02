@@ -201,36 +201,11 @@ export class SettingsPage extends BasePage {
         await this.clickButton(button, { buttonName: this.updatePasswordButtonText });
     }
 
-    async clickChangePasswordButton(): Promise<void> {
-        const button = this.getChangePasswordButton();
-        await this.clickButton(button, { buttonName: this.changePasswordButtonText });
-    }
-
     /**
      * Password Form Verification Methods
      */
     async verifyChangePasswordButtonVisible(): Promise<void> {
         await expect(this.getChangePasswordButton()).toBeVisible();
-    }
-
-    async verifyCurrentPasswordInputVisible(): Promise<void> {
-        await expect(this.getCurrentPasswordInput()).toBeVisible();
-    }
-
-    async verifyNewPasswordInputVisible(): Promise<void> {
-        await expect(this.getNewPasswordInput()).toBeVisible();
-    }
-
-    async verifyConfirmPasswordInputVisible(): Promise<void> {
-        await expect(this.getConfirmPasswordInput()).toBeVisible();
-    }
-
-    async verifyUpdatePasswordButtonVisible(): Promise<void> {
-        await expect(this.getUpdatePasswordButton()).toBeVisible();
-    }
-
-    async verifyUpdatePasswordButtonDisabled(): Promise<void> {
-        await expect(this.getUpdatePasswordButton()).toBeDisabled();
     }
 
     async fillPasswordChangeForm(

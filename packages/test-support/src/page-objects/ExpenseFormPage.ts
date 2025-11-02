@@ -29,43 +29,6 @@ export class ExpenseFormPage extends BasePage {
     // ============================================================================
 
     /**
-     * Wait for the expense form to finish loading and ensure all expected participants are present.
-     */
-    async waitForFormReady(expectedMemberNames: string[] = [], timeout: number = 5000): Promise<void> {
-        const currentUrl = this.page.url();
-        const urlPattern = /\/groups\/[a-zA-Z0-9]+\/(add|edit|copy)-expense/;
-
-        if (!urlPattern.test(currentUrl)) {
-            throw new Error(
-                `Expense form URL validation failed. Expected pattern: /groups/[id]/add-expense, got: ${currentUrl}`,
-            );
-        }
-
-        await this.waitForDomContentLoaded();
-
-        await expect(async () => {
-            const title = await this.page.title();
-            if (title.includes('Loading...')) {
-                throw new Error(`Page still loading: ${title}`);
-            }
-        })
-            .toPass({ timeout, intervals: [100, 250, 500] });
-
-        await expect(this.getPageHeading()).toBeVisible({ timeout: 3000 });
-        await expect(this.getCancelButton()).toBeVisible({ timeout: 3000 });
-
-        const formElement = this.page.locator('form');
-        await expect(formElement).toBeVisible({ timeout: 3000 });
-
-        await this.waitForExpenseFormSections();
-        await expect(this.getDescriptionInput()).toBeVisible({ timeout: 3000 });
-
-        if (expectedMemberNames.length > 0) {
-            await this.waitForMembersInExpenseForm(expectedMemberNames, timeout);
-        }
-    }
-
-    /**
      * Wait for the key expense form sections to be visible.
      */
     async waitForExpenseFormSections(): Promise<void> {
@@ -141,13 +104,6 @@ export class ExpenseFormPage extends BasePage {
      */
     private getExpenseDetailsSection(): Locator {
         return this.page.getByTestId('expense-details-section');
-    }
-
-    /**
-     * Amount field validation error message
-     */
-    getAmountErrorMessage(): Locator {
-        return this.page.getByTestId('currency-input-error-message');
     }
 
     /**
@@ -627,10 +583,6 @@ export class ExpenseFormPage extends BasePage {
         await expect(this.getSubmitButton()).toBeEnabled();
     }
 
-    async expectSaveButtonDisabled(): Promise<void> {
-        await expect(this.getSubmitButton()).toBeDisabled();
-    }
-
     /**
      * Complete the expense submission workflow using a data object.
      */
@@ -692,14 +644,6 @@ export class ExpenseFormPage extends BasePage {
             }
             throw navigationError;
         }
-    }
-
-    /**
-     * Click cancel button
-     */
-    async clickCancel(): Promise<void> {
-        const button = this.getCancelButton();
-        await this.clickButton(button, { buttonName: 'Cancel' });
     }
 
     /**
@@ -937,12 +881,6 @@ export class ExpenseFormPage extends BasePage {
         const dateInput = this.getDateInput();
         await dateInput.fill(value);
         await dateInput.blur();
-    }
-
-    async expectParticipantsErrorContains(text: string): Promise<void> {
-        const error = this.page.getByTestId('validation-error-participants');
-        await expect(error).toBeVisible();
-        await expect(error).toContainText(text);
     }
 
     async verifyAmountErrorMessageContains(text: string): Promise<void> {

@@ -120,13 +120,6 @@ export class SettlementFormPage extends BasePage {
         }
     }
 
-    async waitForFormReady(expectedMemberCount?: number, timeout?: number): Promise<void> {
-        await this.waitForReady({
-            expectedMemberCount,
-            timeout,
-        });
-    }
-
     async selectCurrency(currency: CurrencyISOCode): Promise<void> {
         await this.waitForReady();
 

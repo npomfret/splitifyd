@@ -122,20 +122,8 @@ export class HeaderPage extends BasePage {
         await expect(userMenuButton).toContainText(expectedText);
     }
 
-    async verifyUserMenuButtonVisible(): Promise<void> {
-        await expect(this.getUserMenuButton()).toBeVisible();
-    }
-
-    async verifyUserDropdownHidden(): Promise<void> {
-        await expect(this.getUserDropdownMenu()).not.toBeVisible();
-    }
-
     async verifyUserDropdownVisible(): Promise<void> {
         await expect(this.getUserDropdownMenu()).toBeVisible();
-    }
-
-    async verifyDashboardLinkVisible(): Promise<void> {
-        await expect(this.getDashboardLink()).toBeVisible();
     }
 
     async verifyDashboardMenuItemVisible(): Promise<void> {

@@ -889,11 +889,6 @@ export interface PreviewGroupResponse {
     isAlreadyMember: boolean;
 }
 
-export interface JoinGroupRequest {
-    linkId: string;
-    groupDisplayName: DisplayName;
-}
-
 export interface JoinGroupResponse {
     groupId: GroupId;
     groupName: GroupName;
@@ -1007,8 +1002,6 @@ export interface CreateGroupCommentRequest extends BaseCreateCommentRequest {
 export interface CreateExpenseCommentRequest extends BaseCreateCommentRequest {
     expenseId: ExpenseId;
 }
-
-export type CreateCommentRequest = CreateGroupCommentRequest | CreateExpenseCommentRequest;
 
 export interface ListMembersResponse { // todo: there should be no pagination - all members are returned
     members: GroupMember[];

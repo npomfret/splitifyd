@@ -27,10 +27,6 @@ export class GroupsPaginationController {
         return this.currentPageSignal.value > 1;
     }
 
-    get currentPage(): number {
-        return this.currentPageSignal.value;
-    }
-
     get pageSize(): number {
         return this.pageSizeSignal.value;
     }
