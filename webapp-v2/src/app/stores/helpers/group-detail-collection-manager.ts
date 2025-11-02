@@ -1,6 +1,6 @@
 import type { Signal } from '@preact/signals';
 
-export interface GroupDetailCollectionMeta {
+interface GroupDetailCollectionMeta {
     hasMore: boolean;
     nextCursor?: string | null;
 }

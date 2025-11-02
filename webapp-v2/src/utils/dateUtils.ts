@@ -5,7 +5,7 @@ export const formatLocalDateTime = (utcString: string): string => {
     return date.toLocaleString();
 };
 
-export const getUserTimeZone = (): string | undefined => {
+const getUserTimeZone = (): string | undefined => {
     if (typeof Intl === 'undefined' || typeof Intl.DateTimeFormat !== 'function') {
         return undefined;
     }

@@ -7,8 +7,6 @@ import type { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
  * (groups, expenses, settlements, etc.) and eliminates the need for type-dispatching
  * conditionals in the CommentService.
  */
-export type T = GroupId | ExpenseId;
-
 export interface ICommentStrategy<T> {
     /**
      * Verify that a user has access to comment on the target entity

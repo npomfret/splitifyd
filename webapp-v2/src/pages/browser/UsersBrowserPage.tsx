@@ -640,5 +640,3 @@ export function UsersBrowserPage() {
         </div>
     );
 }
-
-export default UsersBrowserPage;

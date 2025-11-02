@@ -13,7 +13,7 @@ export interface AuthGateway {
     performUserRefresh(): Promise<void>;
 }
 
-export class FirebaseAuthGateway implements AuthGateway {
+class FirebaseAuthGateway implements AuthGateway {
     constructor(private readonly firebaseService: FirebaseService) {}
 
     connect(): Promise<void> {

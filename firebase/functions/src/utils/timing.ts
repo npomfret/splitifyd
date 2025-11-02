@@ -6,7 +6,7 @@
  * Sleep for the requested number of milliseconds.
  * @param durationMs Number of milliseconds to wait.
  */
-export const sleep = async (durationMs: number): Promise<void> => {
+const sleep = async (durationMs: number): Promise<void> => {
     if (durationMs <= 0) {
         return;
     }

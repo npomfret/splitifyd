@@ -1,4 +1,4 @@
-export type DevInstanceMode = `dev${number}`;
+type DevInstanceMode = `dev${number}`;
 export type InstanceMode = DevInstanceMode | 'prod' | 'test';
 
 const DEV_MODE_PATTERN = /^dev[0-9]+$/;

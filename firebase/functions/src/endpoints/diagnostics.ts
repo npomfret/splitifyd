@@ -9,7 +9,7 @@ import { getAuth } from '../firebase';
 import { BUILD_INFO } from '../utils/build-info';
 import { APP_VERSION } from '../utils/version';
 
-export type HealthCheckMap = Record<
+type HealthCheckMap = Record<
     string,
     {
         status: 'healthy' | 'unhealthy';
@@ -185,7 +185,7 @@ export const runHealthChecks = async (): Promise<HealthCheckMap> => {
     return checks;
 };
 
-export const calculateOverallHealth = (checks: HealthCheckMap): 'healthy' | 'unhealthy' => {
+const calculateOverallHealth = (checks: HealthCheckMap): 'healthy' | 'unhealthy' => {
     return Object.values(checks).every((check) => check.status === 'healthy') ? 'healthy' : 'unhealthy';
 };
 

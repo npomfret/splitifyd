@@ -1,6 +1,6 @@
 import type { Signal } from '@preact/signals';
 
-export interface GroupsPageResultMeta {
+interface GroupsPageResultMeta {
     hasMore: boolean;
     nextCursor?: string | null;
 }

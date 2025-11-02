@@ -21,7 +21,7 @@ export interface ActivityFeedGateway {
     ): () => void;
 }
 
-export class FirebaseActivityFeedGateway implements ActivityFeedGateway {
+class FirebaseActivityFeedGateway implements ActivityFeedGateway {
     constructor(private readonly firebaseService: FirebaseService) {}
 
     async connect(): Promise<void> {

@@ -1,7 +1,7 @@
 import { z, type ZodError, type ZodSchema } from 'zod';
 import { parseWithApiError, type ValidationErrorMapping } from '../../utils/validation';
 
-export interface RequestValidatorConfig<TSchema extends z.ZodTypeAny> {
+interface RequestValidatorConfig<TSchema extends z.ZodTypeAny> {
     schema: TSchema;
     /**
      * Optional error mapping to translate Zod issues into ApiError metadata.

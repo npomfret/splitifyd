@@ -22,7 +22,7 @@ import type { FirestoreAuditMetadata } from '../../schemas/common';
  */
 export type FirestoreOrderField = keyof Pick<FirestoreAuditMetadata, 'createdAt' | 'updatedAt'>;
 
-export interface OrderBy {
+interface OrderBy {
     field: string;
     direction: 'asc' | 'desc';
 }

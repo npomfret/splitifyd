@@ -186,15 +186,3 @@ export function validateListUsersOptions(options: unknown): { limit?: number; pa
     return result.data;
 }
 
-/**
- * Validate batch user IDs
- */
-export function validateBatchUserIds(uids: unknown): string[] {
-    const result = batchUserIdsSchema.safeParse(uids);
-
-    if (!result.success) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, AuthErrorCode.INVALID_UID, result.error.issues[0].message);
-    }
-
-    return result.data;
-}

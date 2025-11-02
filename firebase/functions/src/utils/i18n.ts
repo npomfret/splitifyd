@@ -94,10 +94,3 @@ export function detectLanguageFromHeader(acceptLanguage?: string): string {
     return 'en'; // Default fallback
 }
 
-/**
- * Translate a key with optional interpolation values
- */
-export function translate(key: string, language: string = 'en', interpolation?: Record<string, any>): string {
-    const t = getTranslationFunction(language);
-    return t(key, interpolation);
-}

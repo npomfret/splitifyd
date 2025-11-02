@@ -5,7 +5,7 @@ import { apiClient } from '../apiClient';
 import { ACTIVITY_FEED_PAGE_SIZE, type ActivityFeedRealtimePayload, ActivityFeedRealtimeService, activityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 import { normalizeActivityFeedItem } from '../utils/activity-feed-utils';
 
-export interface ActivityFeedStore {
+interface ActivityFeedStore {
     readonly items: ActivityFeedItem[];
     readonly loading: boolean;
     readonly initialized: boolean;

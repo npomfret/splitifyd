@@ -4,13 +4,13 @@ import { ApiError } from '../../utils/errors';
 
 type IssueMessage = string | ((issue: z.ZodIssue) => string | undefined);
 
-export interface IssueMapping {
+interface IssueMapping {
     code: string;
     message?: IssueMessage;
     details?: IssueMessage;
 }
 
-export interface ErrorMapperOptions {
+interface ErrorMapperOptions {
     defaultCode: string;
     defaultMessage?: IssueMessage;
     defaultDetails?: IssueMessage;

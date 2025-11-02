@@ -136,7 +136,7 @@ const baseValidateUpdateSettlement = createRequestValidator({
     mapError: (error) => mapUpdateSettlementError(error),
 }) as (body: unknown) => UpdateSettlementRequest;
 
-export const settlementIdSchema = z
+const settlementIdSchema = z
     .string()
     .trim()
     .min(1, 'Settlement ID cannot be empty');
@@ -161,10 +161,4 @@ export const validateSettlementId = (value: unknown): SettlementId => {
     }
 
     return toSettlementId(result.data);
-};
-
-export const schemas = {
-    createSettlementSchema: CreateSettlementRequestSchema,
-    updateSettlementSchema: UpdateSettlementRequestSchema,
-    settlementIdSchema,
 };
