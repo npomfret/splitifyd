@@ -17,19 +17,14 @@ import { PolicyService } from '../../services/PolicyService';
  */
 describe('PolicyService - Integration Tests (Essential Firebase Operations Only)', () => {
     let policyService: PolicyService;
-    let firestoreReader: FirestoreReader;
-    let firestoreWriter: FirestoreWriter;
     let firestore: FirebaseFirestore.Firestore;
-
-    // Helper to generate unique policy names for each test
-    const uniquePolicyName = (baseName: string) => `${baseName} ${generateShortId()}`;
 
     beforeEach(async () => {
         // Initialize real Firestore instances for integration testing
         firestore = getFirestore();
         const wrappedDb = createFirestoreDatabase(firestore);
-        firestoreReader = new FirestoreReader(wrappedDb);
-        firestoreWriter = new FirestoreWriter(wrappedDb);
+        const firestoreReader = new FirestoreReader(wrappedDb);
+        const firestoreWriter = new FirestoreWriter(wrappedDb);
 
         // Create service with real dependencies
         policyService = new PolicyService(firestoreReader, firestoreWriter);

@@ -490,14 +490,6 @@ export class JoinGroupPage extends BasePage {
         await this.clickButton(cancelButton, { buttonName: 'Cancel Join Group' });
     }
 
-    // ============================================================================
-    // DISPLAY NAME PROMPT MODAL METHODS
-    // ============================================================================
-
-    private getDisplayNameModal(): Locator {
-        return this.page.locator('[data-testid="join-display-name-input"]').locator('..');
-    }
-
     private getDisplayNameInput(): Locator {
         return this.page.getByTestId('join-display-name-input');
     }

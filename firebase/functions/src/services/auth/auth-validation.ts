@@ -43,11 +43,6 @@ const idTokenSchema = z.string().min(1, 'ID token must not be empty');
 
 const customClaimsSchema = z.record(z.string(), z.any()).optional();
 
-const batchUserIdsSchema = z
-    .array(userIdSchema)
-    .min(1, 'At least one user ID is required')
-    .max(1000, 'At most 1000 user IDs are allowed');
-
 const listUsersOptionsSchema = z
     .object({
         limit: z.number().int('Limit must be an integer').min(1, 'Limit must be at least 1').max(1000, 'Limit must be at most 1000').optional(),

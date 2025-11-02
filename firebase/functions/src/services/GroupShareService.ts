@@ -322,7 +322,7 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'LINK_EXPIRED', 'This invitation link has expired. Please request a new one from the group admin.');
         }
 
-        const { groupId, shareLink } = shareLinkLookup;
+        const { groupId } = shareLinkLookup;
 
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {

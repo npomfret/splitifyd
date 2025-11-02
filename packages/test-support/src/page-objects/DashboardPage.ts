@@ -885,13 +885,6 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Activity feed loading more button (during pagination)
-     */
-    private getActivityFeedLoadingMoreButton(): Locator {
-        return this.getActivityFeedContainer().getByRole('button', { name: 'Loading more...' });
-    }
-
-    /**
      * Activity feed item button by description
      */
     private getActivityFeedItemButton(description: string): Locator {

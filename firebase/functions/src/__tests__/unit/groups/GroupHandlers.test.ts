@@ -506,7 +506,7 @@ describe('GroupHandlers - Unit Tests', () => {
             const db = new SplitifydFirestoreTestDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(authService, db);
-            const firestoreWriter = new FirestoreWriter(db);
+
             const handlers = new GroupHandlers(componentBuilder.buildGroupService());
             expect(handlers).toBeInstanceOf(GroupHandlers);
             expect(handlers.createGroup).toBeDefined();

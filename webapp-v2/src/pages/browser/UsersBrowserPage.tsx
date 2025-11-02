@@ -16,19 +16,9 @@ type SchemaAnalysis = {
     unexpected: string[];
 };
 
-const REQUIRED_AUTH_FIELDS = ['uid', 'email', 'displayName', 'disabled', 'emailVerified'] as const;
-const OPTIONAL_AUTH_FIELDS = ['metadata', 'customClaims', 'providerData', 'phoneNumber', 'photoURL', 'tenantId', 'tokensValidAfterTime'] as const;
-const ALLOWED_AUTH_FIELDS = new Set<string>([...REQUIRED_AUTH_FIELDS, ...OPTIONAL_AUTH_FIELDS]);
-
 const REQUIRED_FIRESTORE_FIELDS = ['createdAt', 'updatedAt'] as const;
 const OPTIONAL_FIRESTORE_FIELDS = ['role', 'preferredLanguage', 'acceptedPolicies', 'termsAcceptedAt', 'cookiePolicyAcceptedAt', 'privacyPolicyAcceptedAt', 'passwordChangedAt'] as const;
 const ALLOWED_FIRESTORE_FIELDS = new Set<string>(['id', ...REQUIRED_FIRESTORE_FIELDS, ...OPTIONAL_FIRESTORE_FIELDS]);
-
-function analyzeAuthUserSchema(user: Record<string, unknown>): SchemaAnalysis {
-    const missing = REQUIRED_AUTH_FIELDS.filter((field) => !(field in user));
-    const unexpected = Object.keys(user).filter((field) => !ALLOWED_AUTH_FIELDS.has(field));
-    return { missing, unexpected };
-}
 
 function analyzeFirestoreUserSchema(user: Record<string, unknown>): SchemaAnalysis {
     const keys = Object.keys(user).filter((key) => key !== 'id');

@@ -38,8 +38,7 @@ type ActivityFeedDetailsInput = {
     previousGroupName?: GroupName | string | null | undefined;
 };
 
-const MAX_ITEMS_PER_USER = 10;
-const CLEANUP_KEEP_COUNT = 20; // Keep last 20 items, cleanup happens async during reads
+const CLEANUP_KEEP_COUNT = 10; // Keep last x items, cleanup happens async during reads
 
 export class ActivityFeedService {
     constructor(

@@ -22,11 +22,6 @@ interface AuthError {
     message: string;
 }
 
-interface MockApiOptions {
-    delayMs?: number;
-    status?: number;
-}
-
 interface MockFirebaseState {
     currentUser: ClientUser | null;
     loginBehavior: 'success' | 'failure' | 'delayed' | 'unconfigured';

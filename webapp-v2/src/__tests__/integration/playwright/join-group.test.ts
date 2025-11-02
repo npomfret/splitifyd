@@ -77,7 +77,7 @@ test.describe('Join Group Page - Already a Member', () => {
 
 test.describe('Join Group Page - Successful Join', () => {
     test('should successfully join a group', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
+        const { page } = authenticatedPage;
         const joinGroupPage = new JoinGroupPage(page);
 
         await setupSuccessfulApiMocks(page);
