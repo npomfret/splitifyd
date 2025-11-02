@@ -24,6 +24,7 @@
       "Bash(fd:*)",
       "Bash(find:*)",
       "Bash(fzf:*)",
+      "Bash(git add:*)",
       "Bash(git amend:*)",
       "Bash(git cherry-pick:*)",
       "Bash(git filter-branch:*)",
