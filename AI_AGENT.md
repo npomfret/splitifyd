@@ -9,7 +9,10 @@ Read these first!
 - [Type Guidelines](docs/guides/types.md)
 - [Webapp & Style Guide](docs/guides/webapp-and-style-guide.md)
 
-Remember: failing tests, or compile errors are not permitted. You are not finished if you have left the project in a broken state.
+Remember: 
+
+ * failing tests, or compile errors are not permitted. You are not finished if you have left the project in a broken state.
+ * do not run full test suites (they are too slow), instead: pick and choose isolated tests to run (assume the user will run the full suite)
 
 ## Available Tools
 
