@@ -575,13 +575,7 @@ export class ApiDriver {
 
     async clearUserPolicyAcceptances(token: string): Promise<void> {
         // Clear all policy acceptances for the user to reset their state
-        // Use test endpoint which handles token verification server-side
-        await this.apiRequest('/test/user/clear-policy-acceptances', 'POST', {}, token);
-    }
-
-    async promoteUserToAdmin(token: string): Promise<void> {
-        // Promote the user to admin role for testing admin endpoints
-        await this.apiRequest('/test/user/promote-to-admin', 'POST', {}, token);
+        await this.apiRequest('/user/clear-policy-acceptances', 'POST', {}, token);
     }
 
     async resetPoliciesToBaseState(adminToken?: string): Promise<void> {

@@ -1,19 +1,11 @@
-import type { Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest } from '@splitifyd/shared';
-import {
-    AuthenticatedFirebaseUser,
-    compareAmounts,
-    isZeroAmount,
-    MemberRoles,
-    minAmount,
-    normalizeAmount,
-    PermissionLevels,
-    PREDEFINED_EXPENSE_CATEGORIES,
-    subtractAmounts,
-    toISOString,
-    UserRegistration,
-    zeroAmount,
-} from '@splitifyd/shared';
-import { ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import type {Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest, UserId} from '@splitifyd/shared';
+import {AuthenticatedFirebaseUser, compareAmounts, isZeroAmount, MemberRoles, minAmount, normalizeAmount, PermissionLevels, PREDEFINED_EXPENSE_CATEGORIES, subtractAmounts, toISOString, UserRegistration, zeroAmount,} from '@splitifyd/shared';
+import {ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig} from '@splitifyd/test-support';
+import {getFirestore} from 'firebase-admin/firestore';
+import {createFirestoreDatabase} from "@splitifyd/firebase-simulator/src";
+import {FirestoreWriter} from "../functions/src/services/firestore";
+
+const firestoreDb = createFirestoreDatabase(getFirestore())
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -301,9 +293,11 @@ export async function generateBillSplitterUser(): Promise<AuthenticatedFirebaseU
     console.log('👤 Ensuring Bill Splitter test user exists...');
 
     const existingUser = await signInExistingBillSplitter();
+    const firestoreWriter = new FirestoreWriter(firestoreDb);
+
     if (existingUser) {
         console.log('♻️ Bill Splitter user already exists, reusing account...');
-        await runQueued(() => driver.promoteUserToAdmin(existingUser.token));
+        await firestoreWriter.promoteUserToAdmin(existingUser.uid);
         console.log(`✓ Bill Splitter user ready as admin (${existingUser.displayName})`);
         return existingUser;
     }
@@ -311,7 +305,7 @@ export async function generateBillSplitterUser(): Promise<AuthenticatedFirebaseU
     console.log('🆕 Creating Bill Splitter user...');
     const user = await runQueued(() => driver.createUser({ ...BILL_SPLITTER_REGISTRATION }));
     console.log('👑 Promoting Bill Splitter to system admin...');
-    await runQueued(() => driver.promoteUserToAdmin(user.token));
+    await firestoreWriter.promoteUserToAdmin(user.uid);
     console.log(`✓ Bill Splitter user ready as admin (${user.displayName})`);
     return user;
 }

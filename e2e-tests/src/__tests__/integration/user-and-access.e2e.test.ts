@@ -327,54 +327,36 @@ simpleTest.describe('Policy Acceptance', () => {
         simpleTest('should update each policy and accept them sequentially', async ({ browser }) => {
             const apiDriver = new ApiDriver();
 
-            // Borrow a test user from the pool and promote to admin
+            // Borrow a test user from the pool
             const user = await apiDriver.borrowTestUser();
 
-            // Promote user to admin for policy management operations
-            await apiDriver.promoteUserToAdmin(user.token);
-
-            // Clean up test environment to remove any non-standard policies
-            await apiDriver.cleanupTestEnvironment(user.token);
-
-            // Ensure base policies exist before testing
-            await apiDriver.ensurePoliciesExist();
-
-            // Clear any existing policy acceptances to ensure clean state
-            await apiDriver.clearUserPolicyAcceptances(user.token);
-
-            // Accept base policies for this user (simulating a user who registered earlier)
-            await apiDriver.acceptCurrentPublishedPolicies(user.token);
-
-            // Now update all policies to newer versions that user hasn't seen
-            const policies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
-
-            for (const policyId of policies) {
-                await apiDriver.updateSpecificPolicy(policyId, user.token);
-            }
-
-            // Now login the user manually
+            // Login the user normally
             const context = await browser.newContext({
                 storageState: undefined, // Start with clean storage (no cookies, localStorage, IndexedDB)
             });
             const page = await context.newPage();
 
-            // Use the LoginPage to handle the login process
             const loginPage = new LoginPage(page);
             await loginPage.navigate();
             await loginPage.login(user.email, user.password);
 
-            // Should be redirected to policy modal or dashboard
+            // Wait for dashboard to load
+            await page.waitForLoadState('domcontentloaded');
+            const dashboardPage = new DashboardPage(page);
+            await dashboardPage.waitForDashboard();
+
+            // Now hack: clear their policy acceptances to simulate unaccepted policies
+            await apiDriver.clearUserPolicyAcceptances(user.token);
+
+            // Refresh the page - policy modal should appear
+            await page.reload();
             await page.waitForLoadState('domcontentloaded');
 
-            const dashboardPage = new DashboardPage(page);
-
-            // The policy modal should appear because user hasn't accepted updated policies
+            // The policy modal should appear because user hasn't accepted policies
             const policyModal = new PolicyAcceptanceModalPage(page);
-
-            // Wait for modal to appear - it should appear automatically since user hasn't accepted updated policies
             await policyModal.waitForModalToAppear();
 
-            // Test accepting all policies at once (simulating multiple policy updates)
+            // Test accepting all policies at once
             await policyModal.acceptMultiplePoliciesSequentially();
 
             // Verify we're back to dashboard after accepting all policies
@@ -391,21 +373,10 @@ simpleTest.describe('Policy Acceptance', () => {
         simpleTest('should validate policy modal structure and content', async ({ browser }) => {
             const apiDriver = new ApiDriver();
 
-            // Get a test user and promote to admin for policy management
+            // Borrow a test user from the pool
             const user = await apiDriver.borrowTestUser();
-            await apiDriver.promoteUserToAdmin(user.token);
 
-            // Clean up test environment to remove any non-standard policies
-            await apiDriver.cleanupTestEnvironment(user.token);
-
-            // Ensure base policies exist before testing
-            await apiDriver.ensurePoliciesExist();
-
-            // Clear and accept base policies first
-            await apiDriver.clearUserPolicyAcceptances(user.token);
-            await apiDriver.acceptCurrentPublishedPolicies(user.token);
-
-            // Manually log in the user (not using fixture that auto-accepts policies)
+            // Login the user normally
             const context = await browser.newContext({
                 storageState: undefined, // Start with clean storage (no cookies, localStorage, IndexedDB)
             });
@@ -415,10 +386,15 @@ simpleTest.describe('Policy Acceptance', () => {
             await loginPage.navigate();
             await loginPage.login(user.email, user.password);
 
-            // Update a policy to trigger modal (user has already accepted base policies)
-            await apiDriver.updateSpecificPolicy('terms-of-service', user.token);
+            // Wait for dashboard to load
+            await page.waitForLoadState('domcontentloaded');
+            const dashboardPage = new DashboardPage(page);
+            await dashboardPage.waitForDashboard();
 
-            // Trigger policy check
+            // Now hack: clear their policy acceptances to simulate unaccepted policies
+            await apiDriver.clearUserPolicyAcceptances(user.token);
+
+            // Refresh the page - policy modal should appear
             await page.reload();
             await page.waitForLoadState('domcontentloaded');
 

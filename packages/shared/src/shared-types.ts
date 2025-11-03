@@ -1090,12 +1090,6 @@ export interface TestSuccessResponse {
     message: string;
 }
 
-export interface TestPromoteToAdminResponse {
-    success: boolean;
-    message: string;
-    userId: UserId;
-}
-
 // ========================================================================
 // UI Form Data Types (for client-side forms and E2E tests)
 // ========================================================================

@@ -35,7 +35,11 @@ export class PolicyAcceptanceModalPage extends BasePage {
     }
 
     getPolicyTitle(): Locator {
-        return this.getModalContainer().locator('h3.text-lg.font-semibold.text-gray-900');
+        // Get the policy title - it's the ONLY h3 that appears alongside the accepted badge
+        // in the flex container (one has the policy name, the other spot has the checkmark badge)
+        return this.getPolicyCard()
+            .locator('div.flex.items-center.justify-between')
+            .getByRole('heading', { level: 3 });
     }
 
     getAcceptedBadge(): Locator {

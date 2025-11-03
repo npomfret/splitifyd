@@ -1,4 +1,4 @@
-import { ReturnTestUserResponse, SystemUserRoles, TestErrorResponse, TestPromoteToAdminResponse, TestSuccessResponse } from '@splitifyd/shared';
+import { ReturnTestUserResponse, SystemUserRoles, TestErrorResponse, TestSuccessResponse } from '@splitifyd/shared';
 import type { RequestHandler } from 'express';
 import { getConfig as getClientConfig } from './client-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
@@ -164,7 +164,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         }
     };
 
-    const testClearPolicyAcceptances: RequestHandler = async (req, res) => {
+    const clearUserPolicyAcceptances: RequestHandler = async (req, res) => {
         if (config.isProduction) {
             const response: TestErrorResponse = {
                 error: {
@@ -209,7 +209,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
                 acceptedPolicies: {},
             });
 
-            logger.info('Test policy acceptances cleared', {
+            logger.info('Policy acceptances cleared', {
                 userId: decodedToken.uid,
             });
 
@@ -219,70 +219,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
             };
             res.json(response);
         } catch (error) {
-            logger.error('Failed to clear policy acceptances via test endpoint', error as Error, {
-                userId: decodedToken.uid,
-            });
-            throw error;
-        }
-    };
-
-    const testPromoteToAdmin: RequestHandler = async (req, res) => {
-        if (config.isProduction) {
-            const response: TestErrorResponse = {
-                error: {
-                    code: 'FORBIDDEN',
-                    message: 'Test endpoints not available in production',
-                },
-            };
-            res.status(403).json(response);
-            return;
-        }
-
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            const response: TestErrorResponse = {
-                error: {
-                    code: 'UNAUTHORIZED',
-                    message: 'Authorization token required',
-                },
-            };
-            res.status(401).json(response);
-            return;
-        }
-
-        const token = authHeader.substring(7);
-        let decodedToken;
-
-        try {
-            decodedToken = await authService.verifyIdToken(token);
-        } catch (error) {
-            const response: TestErrorResponse = {
-                error: {
-                    code: 'UNAUTHORIZED',
-                    message: 'Invalid token',
-                },
-            };
-            res.status(401).json(response);
-            return;
-        }
-
-        try {
-            await firestoreWriter.updateUser(decodedToken.uid, {
-                role: SystemUserRoles.SYSTEM_ADMIN,
-            });
-
-            logger.info('Test user promoted to admin', {
-                userId: decodedToken.uid,
-            });
-
-            const response: TestPromoteToAdminResponse = {
-                success: true,
-                message: 'User promoted to admin role',
-                userId: decodedToken.uid,
-            };
-            res.json(response);
-        } catch (error) {
-            logger.error('Failed to promote user to admin via test endpoint', error as Error, {
+            logger.error('Failed to clear policy acceptances', error as Error, {
                 userId: decodedToken.uid,
             });
             throw error;
@@ -382,8 +319,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         // Test endpoint handlers
         borrowTestUser,
         returnTestUser,
-        testClearPolicyAcceptances,
-        testPromoteToAdmin,
+        clearUserPolicyAcceptances,
     };
 
     return registry;

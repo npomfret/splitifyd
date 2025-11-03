@@ -108,16 +108,9 @@ const routeDefinitions: RouteDefinition[] = [
     },
     {
         method: 'POST',
-        path: '/test/user/clear-policy-acceptances',
-        handlerName: 'testClearPolicyAcceptances',
-        category: 'test',
-        testOnly: true,
-    },
-    {
-        method: 'POST',
-        path: '/test/user/promote-to-admin',
-        handlerName: 'testPromoteToAdmin',
-        category: 'test',
+        path: '/user/clear-policy-acceptances',
+        handlerName: 'clearUserPolicyAcceptances',
+        category: 'user',
         testOnly: true,
     },
 

@@ -36,6 +36,7 @@ import {
 } from '../../schemas';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
 import type { BatchWriteResult, FirestoreUserCreateData, FirestoreUserUpdateData, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
+import {SystemUserRoles} from "@splitifyd/shared";
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -631,6 +632,12 @@ export class FirestoreWriter implements IFirestoreWriter {
                     error: error instanceof Error ? error.message : 'Unknown error',
                 };
             }
+        });
+    }
+
+    async promoteUserToAdmin(userId: UserId): Promise<void> {
+        await this.db.collection(FirestoreCollections.USERS).doc(userId).update({
+            role: SystemUserRoles.SYSTEM_ADMIN,
         });
     }
 

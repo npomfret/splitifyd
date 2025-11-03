@@ -22,7 +22,7 @@ import {
     toISOString,
     UpdateGroupRequest,
 } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared/src';
+import { DisplayName } from '@splitifyd/shared';
 import { DOCUMENT_CONFIG, FirestoreCollections, HTTP_STATUS } from '../constants';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';
