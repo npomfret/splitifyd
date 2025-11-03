@@ -117,7 +117,10 @@ describe('CommentsStoreImpl', () => {
 
         store.registerComponent(groupTarget('group-1'));
 
-        await mockedApiClient.listGroupComments.mock.results[0]!.value;
+        // Wait for the async API call to complete
+        await vi.waitFor(() => {
+            expect(mockedApiClient.listGroupComments).toHaveBeenCalledTimes(1);
+        });
 
         expect(store.comments).toEqual([first]);
         expect(store.groupId).toBe('group-1');
@@ -129,7 +132,10 @@ describe('CommentsStoreImpl', () => {
         expect(registerConsumerMock).toHaveBeenCalledTimes(1);
         expect(deregisterConsumerMock).not.toHaveBeenCalled();
 
-        await mockedApiClient.listGroupComments.mock.results[1]!.value;
+        // Wait for the second async API call to complete
+        await vi.waitFor(() => {
+            expect(mockedApiClient.listGroupComments).toHaveBeenCalledTimes(2);
+        });
 
         expect(store.comments).toEqual([second]);
         expect(store.groupId).toBe('group-2');
@@ -143,7 +149,11 @@ describe('CommentsStoreImpl', () => {
         mockedApiClient.listGroupComments.mockResolvedValue(responseFor([first]));
 
         store.registerComponent(groupTarget('group-1'));
-        await mockedApiClient.listGroupComments.mock.results[0]!.value;
+
+        // Wait for the async API call to complete
+        await vi.waitFor(() => {
+            expect(mockedApiClient.listGroupComments).toHaveBeenCalledTimes(1);
+        });
 
         store.registerComponent(groupTarget('group-1'));
 

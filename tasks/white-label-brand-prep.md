@@ -415,45 +415,12 @@ function App() {
 
 #### Phase 6: Data Isolation (Week 7-8)
 
-**Persist tenant context everywhere**
+**Architecture Decision**: TenantId is UI-only (domain-based filtering). No tenant isolation in backend data models.
 
-- Users: when registering (`firebase/functions/src/auth/register.ts`), inject `tenantId` from the resolved request and propagate it into the stored user doc plus custom auth claims. Existing admin promotion flows must retain the claim.
-- Groups/Expenses/Settlements/Comments/etc.: enforce `tenantId` at creation time via service constructors—extend DTO builders to require a tenant and ensure every Firestore write includes it. For legacy data, plan a one-time backfill script keyed off existing ownership.
-- APIs: decorate `request.auth.token.tenantId` in the auth middleware so downstream handlers can trust the claim; add guard helpers (e.g., `assertTenantAccess(docTenantId, requestTenantId)`) in each service before returning data.
-
-**Firestore security rules (`firebase/firestore.rules`)**
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    function userTenant() {
-      return request.auth != null ? request.auth.token.tenantId : null;
-    }
-
-    match /users/{userId} {
-      allow read, update: if userTenant() != null && resource.data.tenantId == userTenant();
-      allow create: if userTenant() != null && request.resource.data.tenantId == userTenant();
-    }
-
-    match /groups/{groupId} {
-      allow read, write: if userTenant() != null && resource.data.tenantId == userTenant();
-    }
-
-    match /expenses/{expenseId} {
-      allow read, write: if userTenant() != null && resource.data.tenantId == userTenant();
-    }
-
-    match /tenants/{tenantId} {
-      allow read: if tenantId == userTenant();
-      allow write: if tenantId == userTenant() && request.auth.token.role == 'tenant-admin';
-    }
-  }
-}
-```
-
-- Cloud Functions should double-check claims vs payload to avoid privilege escalation (never trust client-provided `tenantId`).
-- Add smoke tests that sign in as two tenants and ensure cross-tenant reads/writes fail.
+- **Users**: Global, no tenantId
+- **Groups/Expenses/Settlements**: No tenantId stored
+- **Frontend**: Filter group listings by `req.tenant.tenantId` from domain
+- **Backend**: All groups accessible to authenticated members regardless of domain
 
 #### Phase 7: Organization Hierarchy (Future / Optional)
 
