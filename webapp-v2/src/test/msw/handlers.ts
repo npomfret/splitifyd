@@ -199,6 +199,31 @@ export function appConfigHandler(options: HandlerOptions = {}): SerializedMswHan
                 currency: 'USD',
                 splitType: 'equal',
             },
+            tenant: {
+                tenantId: 'system-fallback-tenant',
+                branding: {
+                    appName: 'Splitifyd',
+                    logoUrl: '/logo.svg',
+                    faviconUrl: '/favicon.ico',
+                    primaryColor: '#1a73e8',
+                    secondaryColor: '#34a853',
+                    marketingFlags: {
+                        showLandingPage: true,
+                        showMarketingContent: true,
+                        showPricingPage: true,
+                        showBlogPage: false,
+                    },
+                },
+                features: {
+                    enableAdvancedReporting: true,
+                    enableMultiCurrency: true,
+                    enableCustomFields: true,
+                    maxGroupsPerUser: 100,
+                    maxUsersPerGroup: 200,
+                },
+                createdAt: '2025-01-01T00:00:00.000Z',
+                updatedAt: '2025-01-01T00:00:00.000Z',
+            },
         },
         options,
     );

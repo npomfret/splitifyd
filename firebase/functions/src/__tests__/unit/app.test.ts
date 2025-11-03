@@ -3479,4 +3479,169 @@ describe('app tests', () => {
             expect(currentVersion?.text).toBe('Updated terms version 2');
         });
     });
+
+    describe('tenant settings endpoints', () => {
+        const tenantAdmin = user1;
+        const regularUser = user2;
+
+        beforeEach(() => {
+            // Seed tenant admin user for tenant settings tests
+            appDriver.seedTenantAdminUser(tenantAdmin, {});
+        });
+
+        describe('GET /settings/tenant', () => {
+            it('should allow tenant admin to get tenant settings', async () => {
+                const settings = await appDriver.getTenantSettings(tenantAdmin);
+
+                expect(settings).toMatchObject({
+                    tenantId: expect.any(String),
+                    config: expect.objectContaining({
+                        tenantId: expect.any(String),
+                        branding: expect.any(Object),
+                        features: expect.any(Object),
+                    }),
+                    domains: expect.any(Array),
+                    primaryDomain: expect.any(String),
+                });
+
+                expect(settings.config.branding).toMatchObject({
+                    appName: expect.any(String),
+                    logoUrl: expect.any(String),
+                    faviconUrl: expect.any(String),
+                    primaryColor: expect.any(String),
+                    secondaryColor: expect.any(String),
+                    marketingFlags: expect.objectContaining({
+                        showLandingPage: expect.any(Boolean),
+                        showPricingPage: expect.any(Boolean),
+                    }),
+                });
+
+                expect(settings.config.features).toMatchObject({
+                    enableAdvancedReporting: expect.any(Boolean),
+                    maxGroupsPerUser: expect.any(Number),
+                    maxUsersPerGroup: expect.any(Number),
+                });
+            });
+
+            it('should deny regular user access to tenant settings', async () => {
+                const result = await appDriver.getTenantSettings(regularUser);
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'FORBIDDEN',
+                    },
+                });
+            });
+        });
+
+        describe('GET /settings/tenant/domains', () => {
+            it('should allow tenant admin to list domains', async () => {
+                const result = await appDriver.listTenantDomains(tenantAdmin);
+
+                expect(result).toMatchObject({
+                    domains: expect.any(Array),
+                    primaryDomain: expect.any(String),
+                });
+
+                expect(result.domains.length).toBeGreaterThan(0);
+                expect(result.domains).toContain(result.primaryDomain);
+            });
+
+            it('should deny regular user access to list domains', async () => {
+                const result = await appDriver.listTenantDomains(regularUser);
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'FORBIDDEN',
+                    },
+                });
+            });
+        });
+
+        describe('PUT /settings/tenant/branding', () => {
+            it('should return 501 not implemented for branding update', async () => {
+                const brandingData = {
+                    appName: 'Custom Brand',
+                    primaryColor: '#FF0000',
+                };
+
+                const result = await appDriver.updateTenantBranding(tenantAdmin, brandingData);
+
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'NOT_IMPLEMENTED',
+                        message: expect.stringContaining('not yet implemented'),
+                    },
+                });
+            });
+
+            it('should deny regular user access to update branding', async () => {
+                const brandingData = {
+                    appName: 'Custom Brand',
+                };
+
+                const result = await appDriver.updateTenantBranding(regularUser, brandingData);
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'FORBIDDEN',
+                    },
+                });
+            });
+        });
+
+        describe('POST /settings/tenant/domains', () => {
+            it('should return 501 not implemented for domain addition', async () => {
+                const domainData = {
+                    domain: 'custom.example.com',
+                };
+
+                const result = await appDriver.addTenantDomain(tenantAdmin, domainData);
+
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'NOT_IMPLEMENTED',
+                        message: expect.stringContaining('not yet implemented'),
+                    },
+                });
+            });
+
+            it('should deny regular user access to add domain', async () => {
+                const domainData = {
+                    domain: 'custom.example.com',
+                };
+
+                const result = await appDriver.addTenantDomain(regularUser, domainData);
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'FORBIDDEN',
+                    },
+                });
+            });
+        });
+
+        describe('authorization - system admin access', () => {
+            const systemAdmin = user3;
+
+            beforeEach(() => {
+                // System admin should also have access to tenant settings
+                appDriver.seedAdminUser(systemAdmin, {});
+            });
+
+            it('should allow system admin to access tenant settings', async () => {
+                const settings = await appDriver.getTenantSettings(systemAdmin);
+
+                expect(settings).toMatchObject({
+                    tenantId: expect.any(String),
+                    config: expect.any(Object),
+                });
+            });
+
+            it('should allow system admin to list domains', async () => {
+                const result = await appDriver.listTenantDomains(systemAdmin);
+
+                expect(result).toMatchObject({
+                    domains: expect.any(Array),
+                    primaryDomain: expect.any(String),
+                });
+            });
+        });
+    });
 });

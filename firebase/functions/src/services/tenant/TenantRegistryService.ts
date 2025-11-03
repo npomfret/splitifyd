@@ -95,10 +95,14 @@ export class TenantRegistryService {
             }
             const tenantId = toTenantId(overrideTenantId);
             const record = await this.getByTenantId(tenantId);
-            if (!record) {
+            if (record) {
+                return this.toResolution(record, 'override');
+            }
+            // If override tenant doesn't exist and fallback is not allowed, throw error
+            if (!allowDefaultFallback) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_OVERRIDE_NOT_FOUND', 'Specified tenant override does not exist');
             }
-            return this.toResolution(record, 'override');
+            // Otherwise, fall through to default tenant resolution
         }
 
         if (host) {

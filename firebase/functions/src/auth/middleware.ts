@@ -152,3 +152,42 @@ export const authenticateSystemUser = async (req: AuthenticatedRequest, res: Res
         await requireSystemRole(req, res, next);
     });
 };
+
+/**
+ * Tenant admin middleware - requires user to be authenticated and have tenant-admin or system-admin role
+ * Must be used after authenticate middleware
+ */
+const requireTenantAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+    if (req.method === 'OPTIONS') {
+        next();
+        return;
+    }
+
+    const correlationId = req.headers['x-correlation-id'] as string;
+
+    if (!req.user) {
+        sendError(res, Errors.UNAUTHORIZED(), correlationId);
+        return;
+    }
+
+    // Allow both tenant-admin and system-admin roles
+    if (req.user.role !== SystemUserRoles.TENANT_ADMIN && req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
+        sendError(res, Errors.FORBIDDEN(), correlationId);
+        return;
+    }
+
+    next();
+};
+
+/**
+ * Combined middleware for tenant admin endpoints - authenticates and checks tenant-admin role
+ */
+export const authenticateTenantAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+    await authenticate(req, res, async (error?: any) => {
+        if (error) {
+            next(error);
+            return;
+        }
+        await requireTenantAdmin(req, res, next);
+    });
+};

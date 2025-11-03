@@ -191,10 +191,38 @@ export class AppDriver {
             });
         };
 
+        /**
+         * Test tenant admin middleware - checks for tenant admin or system admin role
+         */
+        const requireTenantAdmin: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+            if (!req.user) {
+                sendError(res as any, Errors.UNAUTHORIZED(), undefined);
+                return;
+            }
+
+            if (req.user.role !== SystemUserRoles.TENANT_ADMIN && req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
+                sendError(res as any, Errors.FORBIDDEN(), undefined);
+                return;
+            }
+
+            next();
+        };
+
+        const authenticateTenantAdmin: RequestHandler = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+            await authenticate(req, res, async (error?: any) => {
+                if (error) {
+                    next(error);
+                    return;
+                }
+                await requireTenantAdmin(req, res, next);
+            });
+        };
+
         return {
             authenticate,
             authenticateAdmin,
             authenticateSystemUser,
+            authenticateTenantAdmin,
         };
     }
 
@@ -316,6 +344,22 @@ export class AppDriver {
         const user = this.db.seedUser(userId, {
             ...userData,
             role: SystemUserRoles.SYSTEM_ADMIN,
+        });
+
+        this.authService.setUser(userId, {
+            uid: userId,
+            email: user.email,
+            displayName: user.displayName,
+        });
+    }
+
+    /**
+     * Seeds a tenant admin user for testing tenant admin endpoints
+     */
+    seedTenantAdminUser(userId: UserId, userData: Record<string, any> = {}) {
+        const user = this.db.seedUser(userId, {
+            ...userData,
+            role: SystemUserRoles.TENANT_ADMIN,
         });
 
         this.authService.setUser(userId, {
@@ -862,5 +906,30 @@ export class AppDriver {
             id: doc.id,
             ...doc.data(),
         }));
+    }
+
+    // Tenant Settings API methods
+    async getTenantSettings(userId: UserId): Promise<any> {
+        const req = createStubRequest(userId, {});
+        const res = await this.dispatchByHandler('getTenantSettings', req);
+        return res.getJson();
+    }
+
+    async updateTenantBranding(userId: UserId, brandingData: any): Promise<any> {
+        const req = createStubRequest(userId, brandingData);
+        const res = await this.dispatchByHandler('updateTenantBranding', req);
+        return res.getJson();
+    }
+
+    async listTenantDomains(userId: UserId): Promise<any> {
+        const req = createStubRequest(userId, {});
+        const res = await this.dispatchByHandler('listTenantDomains', req);
+        return res.getJson();
+    }
+
+    async addTenantDomain(userId: UserId, domainData: any): Promise<any> {
+        const req = createStubRequest(userId, domainData);
+        const res = await this.dispatchByHandler('addTenantDomain', req);
+        return res.getJson();
     }
 }

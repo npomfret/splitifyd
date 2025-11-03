@@ -11,8 +11,8 @@
 
 **Next: Phase 6 - Tenant Admin Panel 🔄**
 - Build internal UI for managing tenant configuration
-- Branding editor, domain management, feature toggles
-- Backend APIs under `/tenant-admin` prefix
+- Branding editor, domain management
+- Backend APIs under `/settings/tenant` prefix
 
 ## Ideas
 - Centralize tenant branding (name, palette, logos, marketing flags) in a dedicated descriptor that both web and functions read, so swapping tenants is a config change rather than a code edit.
@@ -127,25 +127,21 @@
 
 2. **Domain Management**
    - List mapped domains, show verification status (CNAME/SSL provisioning).
-   - Provide copy-ready DNS instructions for new domains; expose “showroom” preview link.
-
-3. **Feature Toggles**
-   - Surface boolean/range config (e.g., advanced reporting, group limits) with contextual descriptions.
-   - Changes trigger backend validation via the tenant registry service.
+   - Provide copy-ready DNS instructions for new domains; expose "showroom" preview link.
 
 **Implementation notes**
 - Build forms with shared validation schema (`zod`) so the same rules run server-side.
 
 **Backend/Frontend interface**
-- **APIs (new endpoints under `/tenant-admin`)**
-  - `GET /tenant-admin/tenant` → returns current tenant config and domain info
-  - `PUT /tenant-admin/tenant` → updates branding/features; payload validated via shared schemas
-  - `GET /tenant-admin/domains` / `POST /tenant-admin/domains` → enumerate/add domains, trigger verification workflow
-  - All routes require auth middleware that enforces `tenantId` + `tenant-admin` claim; rate-limit mutations
+- **APIs (new endpoints under `/settings/tenant`)**
+  - `GET /settings/tenant` → returns current tenant config and domain info
+  - `PUT /settings/tenant/branding` → updates branding; payload validated via shared schemas
+  - `GET /settings/tenant/domains` / `POST /settings/tenant/domains` → enumerate/add domains, trigger verification workflow
+  - All routes require auth middleware that enforces `tenantId` + `tenant-admin` custom claim; rate-limit mutations
 
 - **Frontend structure**
-  - Add guarded routes (`/admin`, `/admin/branding`, `/admin/domains`, `/admin/features`) that lazy-load module pages
-  - Admin layout component pulls `/tenant-admin/tenant` on mount, provides context store for child tabs
+  - Add guarded routes under `/settings/tenant` (`/settings/tenant/branding`, `/settings/tenant/domains`) that lazy-load module pages
+  - Tenant settings layout component pulls `/settings/tenant` on mount, provides context store for child tabs
   - Use shared form components with inline validation + live preview, wiring submissions to the corresponding API endpoints
 
 ### Implementation Timeline

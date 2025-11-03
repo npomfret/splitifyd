@@ -314,6 +314,7 @@ export interface SoftDeletable {
 // These control admin panel access and system-wide features
 export const SystemUserRoles = {
     SYSTEM_ADMIN: 'system_admin', // Can access admin panel, manage all users
+    TENANT_ADMIN: 'tenant_admin', // Can manage tenant configuration (branding, domains)
     SYSTEM_USER: 'system_user', // Regular user, no admin access
 } as const;
 

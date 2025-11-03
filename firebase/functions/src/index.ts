@@ -2,7 +2,7 @@
 import type { RequestHandler } from 'express';
 import express from 'express';
 import { onRequest } from 'firebase-functions/v2/https';
-import { authenticate, authenticateAdmin, authenticateSystemUser } from './auth/middleware';
+import { authenticate, authenticateAdmin, authenticateSystemUser, authenticateTenantAdmin } from './auth/middleware';
 import { getConfig as getClientConfig } from './client-config';
 import { getComponentBuilder } from './ComponentBuilderSingleton';
 import { HTTP_STATUS } from './constants';
@@ -50,6 +50,7 @@ function setupRoutes(app: express.Application): void {
         authenticate,
         authenticateAdmin,
         authenticateSystemUser,
+        authenticateTenantAdmin,
     };
 
     const config = getClientConfig();

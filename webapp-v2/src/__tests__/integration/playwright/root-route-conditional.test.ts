@@ -90,6 +90,25 @@ test.describe('Root Route - Conditional Rendering', () => {
         test('should show /browser/users route when enableAdvancedReporting is enabled', async ({ authenticatedPage }) => {
             const { page } = authenticatedPage;
 
+            // Mock required APIs for dashboard
+            await mockGroupsApi(page, {
+                groups: [],
+                count: 0,
+                hasMore: false,
+                pagination: { limit: 20, order: 'desc' },
+                metadata: {
+                    serverTime: Date.now(),
+                    lastChangeTimestamp: Date.now(),
+                    changeCount: 0,
+                },
+            });
+            await mockActivityFeedApi(page, []);
+
+            // Navigate to dashboard first to load the app and config
+            // This ensures the config is loaded and feature flags are evaluated
+            await page.goto('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
+
+            // Now navigate to the feature-gated route
             // Default tenant has enableAdvancedReporting: true
             await page.goto('/browser/users', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
 
