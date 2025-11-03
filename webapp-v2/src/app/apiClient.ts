@@ -774,7 +774,7 @@ class ApiClient {
         });
     }
 
-    async archiveGroup(groupId: GroupId): Promise<MessageResponse> {
+    async archiveGroupForUser(groupId: GroupId): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/archive',
             method: 'POST',
@@ -782,7 +782,7 @@ class ApiClient {
         });
     }
 
-    async unarchiveGroup(groupId: GroupId): Promise<MessageResponse> {
+    async unarchiveGroupForUser(groupId: GroupId): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/unarchive',
             method: 'POST',
@@ -878,7 +878,7 @@ class ApiClient {
         });
     }
 
-    async generateShareLink(groupId: GroupId, expiresAt?: ISOString): Promise<ShareLinkResponse> {
+    async generateShareableLink(groupId: GroupId, expiresAt?: ISOString): Promise<ShareLinkResponse> {
         const body: GenerateShareLinkRequest = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;
@@ -907,14 +907,14 @@ class ApiClient {
         });
     }
 
-    async approvePendingMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
+    async approveMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${groupId}/members/${memberId}/approve`,
             method: 'POST',
         });
     }
 
-    async rejectPendingMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
+    async rejectMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${groupId}/members/${memberId}/reject`,
             method: 'POST',

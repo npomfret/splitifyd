@@ -1,5 +1,6 @@
 import type { Email, GroupName, VersionHash } from '@splitifyd/shared';
 import {
+    type ActivityFeedResponse,
     ApiSerializer,
     AuthenticatedFirebaseUser,
     CommentDTO,
@@ -11,6 +12,7 @@ import {
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     ExpenseId,
+    type GetActivityFeedOptions,
     type GetGroupFullDetailsOptions,
     GroupBalances,
     GroupDTO,
@@ -27,6 +29,7 @@ import {
     MessageResponse,
     PolicyId,
     PooledTestUser,
+    type PreviewGroupResponse,
     RegisterResponse,
     type SettlementDTO,
     SettlementId,
@@ -182,8 +185,8 @@ export class ApiDriver {
         return response as ExpenseDTO;
     }
 
-    async updateExpense(expenseId: ExpenseId | string, updateData: Partial<ExpenseDTO>, token: string): Promise<ExpenseDTO> {
-        return await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', updateData, token);
+    async updateExpense(expenseId: ExpenseId | string, data: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseDTO> {
+        return await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', data, token);
     }
 
     async deleteExpense(expenseId: ExpenseId | string, token: string): Promise<MessageResponse> {
@@ -217,7 +220,7 @@ export class ApiDriver {
         return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
     }
 
-    async generateShareLink(groupId: GroupId | string, token: string, expiresAt?: string): Promise<ShareLinkResponse> {
+    async generateShareableLink(groupId: GroupId | string, token: string, expiresAt?: string): Promise<ShareLinkResponse> {
         const body: Record<string, unknown> = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;
@@ -226,9 +229,13 @@ export class ApiDriver {
         return await this.apiRequest('/groups/share', 'POST', body, token);
     }
 
-    async joinGroupViaShareLink(linkId: string, token: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
+    async joinGroupByLink(linkId: string, token: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
         const displayName = groupDisplayName || `Test User ${Date.now()}`;
         return await this.apiRequest('/groups/join', 'POST', { linkId, groupDisplayName: displayName }, token);
+    }
+
+    async previewGroupByLink(linkId: string, token: string): Promise<PreviewGroupResponse> {
+        return await this.apiRequest('/groups/preview', 'POST', { linkId }, token);
     }
 
     async createGroupWithMembers(name: string | GroupName, members: UserToken[], creatorToken: string): Promise<GroupDTO> {
@@ -252,11 +259,11 @@ export class ApiDriver {
 
     async addMembersViaShareLink(groupId: GroupId | string, toAdd: UserToken[], creatorToken: string) {
         if (toAdd.length > 0) {
-            const { linkId } = await this.generateShareLink(groupId, creatorToken);
+            const { linkId } = await this.generateShareableLink(groupId, creatorToken);
 
             // Step 3: Have other members join using the share link
             for (const member of toAdd) {
-                await this.joinGroupViaShareLink(linkId, member.token);
+                await this.joinGroupByLink(linkId, member.token);
             }
         }
     }
@@ -318,8 +325,8 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/role`, 'PATCH', { role }, token);
     }
 
-    async updateGroupMemberDisplayName(groupId: GroupId | string, newDisplayName: DisplayName, token: string): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/display-name`, 'PUT', { displayName: newDisplayName }, token);
+    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/members/display-name`, 'PUT', { displayName }, token);
     }
 
     async approveMember(groupId: GroupId | string, memberId: string, token: string): Promise<MessageResponse> {
@@ -352,6 +359,14 @@ export class ApiDriver {
         return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
+    async getActivityFeed(token: string, options?: GetActivityFeedOptions): Promise<ActivityFeedResponse> {
+        const queryParams = new URLSearchParams();
+        if (options?.limit) queryParams.append('limit', options.limit.toString());
+        if (options?.cursor) queryParams.append('cursor', options.cursor);
+        const queryString = queryParams.toString();
+        return await this.apiRequest(`/activity-feed${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
+    }
+
     async register(
         userData: { email: Email; password: string; displayName: DisplayName; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; privacyPolicyAccepted?: boolean; },
     ): Promise<RegisterResponse> {
@@ -371,6 +386,14 @@ export class ApiDriver {
 
     async leaveGroup(groupId: GroupId | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/leave`, 'POST', null, token);
+    }
+
+    async archiveGroupForUser(groupId: GroupId | string, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/archive`, 'POST', null, token);
+    }
+
+    async unarchiveGroupForUser(groupId: GroupId | string, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/unarchive`, 'POST', null, token);
     }
 
     async removeGroupMember(groupId: GroupId | string, memberId: string, token: string): Promise<MessageResponse> {
