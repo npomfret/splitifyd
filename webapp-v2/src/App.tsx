@@ -131,6 +131,7 @@ export function App() {
     const marketingFlags = config?.tenant?.branding?.marketingFlags;
     const showLandingPage = marketingFlags?.showLandingPage ?? false;
     const showPricingPage = marketingFlags?.showPricingPage ?? false;
+    const showBlogPage = marketingFlags?.showBlogPage ?? false;
     const enableAdvancedReporting = config?.tenant?.features?.enableAdvancedReporting ?? false;
 
     const handlePolicyAcceptance = async () => {
@@ -141,12 +142,22 @@ export function App() {
     // Only show policy modal for authenticated users who need acceptance
     const shouldShowPolicyModal = user && needsAcceptance && pendingPolicies.length > 0;
 
+    // Determine root route component based on tenant marketing flags and auth state
+    // If landing page is enabled, show it to everyone
+    // Otherwise, redirect authenticated users to dashboard or unauthenticated users to login
+    const getRootRouteComponent = () => {
+        if (showLandingPage) {
+            return LandingRoute;
+        }
+        return user ? DashboardRoute : LoginRoute;
+    };
+
     return (
         <ErrorBoundary>
             <WarningBanner />
             <TokenRefreshIndicator />
             <Router>
-                <Route path='/' component={showLandingPage ? LandingRoute : user ? DashboardRoute : LoginRoute} />
+                <Route path='/' component={getRootRouteComponent()} />
 
                 {/* Auth Routes */}
                 <Route path='/login' component={LoginRoute} />
@@ -174,8 +185,11 @@ export function App() {
                 {/* Join Group Route - Protected */}
                 <Route path='/join' component={JoinGroupRoute} />
 
-                {/* Static Pages */}
+                {/* Marketing Pages - Conditionally rendered based on tenant branding flags */}
                 {showPricingPage && <Route path='/pricing' component={PricingRoute} />}
+                {/* showBlogPage flag exists but no BlogPage component implemented yet */}
+
+                {/* Legal Pages - Always available */}
                 <Route path='/terms-of-service' component={TermsRoute} />
                 <Route path='/terms' component={TermsRoute} />
                 <Route path='/privacy-policy' component={PrivacyRoute} />

@@ -35,6 +35,21 @@
 - Landing page marketing sections (features grid + CTA) now respond to tenant marketing flags so white-label tenants avoid Splitifyd promo content, with dedicated unit coverage.
 - Functions config integration tests now assert marketing flags (including showMarketingContent) propagate for default and override tenants.
 
+**Phase 5 Feature Flags & Conditional Routing (Complete):**
+- Root route (`/`) now uses clear `getRootRouteComponent()` logic to conditionally show landing page or redirect to dashboard/login based on `showLandingPage` flag and auth state.
+- Pricing route (`/pricing`) conditionally rendered based on `showPricingPage` flag.
+- Browser routes (`/browser/users`) feature-gated with `enableAdvancedReporting` flag.
+- Added `showBlogPage` flag extraction for future blog page implementation (component not yet created).
+- Improved route organization with section comments distinguishing marketing pages from legal pages.
+- All existing tests (497 total: 193 unit + 304 integration) passing with conditional routing logic.
+- Added comprehensive integration test suite for root route conditional rendering (6 tests in `root-route-conditional.test.ts`):
+  - Landing page display for authenticated and unauthenticated users when `showLandingPage: true`
+  - Dashboard redirect for authenticated users accessing protected routes
+  - Login redirect for unauthenticated users accessing protected routes
+  - Feature-gated routes (`/browser/users`) when `enableAdvancedReporting: true`
+  - Pricing page conditional rendering (shows 404 when `showPricingPage: false`)
+- Test coverage now: 503 total tests (193 unit + 310 integration), all passing.
+
 ## Agent's Ideas (Based on App Analysis)
 
 *   **Extend `AppConfiguration` in `@splitifyd/shared`:**
