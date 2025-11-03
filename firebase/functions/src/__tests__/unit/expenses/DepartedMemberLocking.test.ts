@@ -30,7 +30,7 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
     const addMembersToGroup = async (groupId: GroupId, ownerUserId: string, memberUserIds: string[]) => {
         const shareLink = await appDriver.generateShareableLink(ownerUserId, groupId);
         for (const userId of memberUserIds) {
-            await appDriver.joinGroupByLink(userId, shareLink.linkId);
+            await appDriver.joinGroupByLink(userId, shareLink.shareToken);
         }
     };
 

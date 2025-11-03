@@ -43,7 +43,7 @@ import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelper
 import { ApiError } from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
-import { toCommentId, toExpenseId, toGroupId, toGroupName, toSettlementId } from '@splitifyd/shared';
+import { toCommentId, toExpenseId, toGroupId, toGroupName, toSettlementId, toShareLinkId, ShareLinkId } from '@splitifyd/shared';
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,
@@ -959,7 +959,7 @@ export class FirestoreReader implements IFirestoreReader {
     // Share Link Operations
     // ========================================================================
 
-    async findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLinkId: string; shareLink: ParsedShareLink | null; } | null> {
+    async findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLinkId: ShareLinkId; shareLink: ParsedShareLink | null; } | null> {
         try {
             // Validate token format - Firestore document IDs cannot contain forward slashes
             if (token.includes('/')) {
@@ -1004,7 +1004,7 @@ export class FirestoreReader implements IFirestoreReader {
                 });
                 return {
                     groupId: indexData.groupId,
-                    shareLinkId: indexData.shareLinkId,
+                    shareLinkId: toShareLinkId(indexData.shareLinkId),
                     shareLink: null,
                 };
             }
@@ -1026,7 +1026,7 @@ export class FirestoreReader implements IFirestoreReader {
             const normalizedData = this.convertTimestampsToISO(dataWithId);
             const shareLink = ShareLinkDocumentSchema.parse(normalizedData);
 
-            return { groupId, shareLinkId: shareLinkDoc.id, shareLink };
+            return { groupId, shareLinkId: toShareLinkId(shareLinkDoc.id), shareLink };
         } catch (error) {
             logger.error('Failed to find share link by token', error);
             throw error;

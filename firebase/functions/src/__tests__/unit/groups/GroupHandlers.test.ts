@@ -429,8 +429,8 @@ describe('GroupHandlers - Unit Tests', () => {
             appDriver.seedUser(memberId, { displayName: 'Member User' });
 
             const group = await appDriver.createGroup(userId);
-            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(memberId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(memberId, shareToken);
 
             const expenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)

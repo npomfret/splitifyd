@@ -49,7 +49,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const shareLink = await apiDriver.generateShareableLink(testGroup.id, users[0].token);
 
             // Both users try to join simultaneously
-            const joinPromises = [apiDriver.joinGroupByLink(shareLink.linkId, users[1].token), apiDriver.joinGroupByLink(shareLink.linkId, users[2].token)];
+            const joinPromises = [apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token), apiDriver.joinGroupByLink(shareLink.shareToken, users[2].token)];
 
             const results = await Promise.allSettled(joinPromises);
 
@@ -87,7 +87,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add second user as member
             const shareLink = await apiDriver.generateShareableLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupByLink(shareLink.linkId, users[1].token);
+            await apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token);
 
             // Same user tries multiple concurrent updates
             const updatePromises = [
@@ -318,7 +318,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // User joins while expense is being created simultaneously
             const promises = [
-                apiDriver.joinGroupByLink(shareLink.linkId, users[1].token),
+                apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token),
                 apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
@@ -361,7 +361,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add second user to the group
             const shareLink = await apiDriver.generateShareableLink(group.id, users[0].token);
-            await apiDriver.joinGroupByLink(shareLink.linkId, users[1].token);
+            await apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token);
 
             // Verify 2 members before deletion
             const { members } = await apiDriver.getGroupFullDetails(group.id, users[0].token);
@@ -397,7 +397,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add second user to the group
             const shareResponse = await apiDriver.generateShareableLink(testGroup.id, user1.token);
-            await apiDriver.joinGroupByLink(shareResponse.linkId, user2.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
 
             // Create an expense
             const expenseData = new CreateExpenseRequestBuilder()
@@ -448,8 +448,8 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add other users to the group
             const shareResponse = await apiDriver.generateShareableLink(testGroup.id, user1.token);
-            await apiDriver.joinGroupByLink(shareResponse.linkId, user2.token);
-            await apiDriver.joinGroupByLink(shareResponse.linkId, user3.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, user3.token);
 
             // Create multiple expenses and soft-delete them all
             const expenseIds: string[] = [];
@@ -502,7 +502,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             // Add multiple members to create subcollection documents
             const shareResponse = await apiDriver.generateShareableLink(testGroup.id, owner.token);
             for (const member of members) {
-                await apiDriver.joinGroupByLink(shareResponse.linkId, member.token);
+                await apiDriver.joinGroupByLink(shareResponse.shareToken, member.token);
             }
 
             // Verify all members are in the group
@@ -542,7 +542,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add second user
             const shareResponse = await apiDriver.generateShareableLink(testGroup.id, user1.token);
-            await apiDriver.joinGroupByLink(shareResponse.linkId, user2.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
 
             // Create an active expense (don't delete it)
             const expenseData = new CreateExpenseRequestBuilder()
@@ -591,9 +591,9 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Add multiple members to create member documents
             const shareResponse = await apiDriver.generateShareableLink(groupId, owner.token);
-            await apiDriver.joinGroupByLink(shareResponse.linkId, member1.token);
-            await apiDriver.joinGroupByLink(shareResponse.linkId, member2.token);
-            await apiDriver.joinGroupByLink(shareResponse.linkId, member3.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, member1.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, member2.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, member3.token);
 
             // Create multiple expenses (both active and soft-deleted) to populate various collections
             const expenses = [];

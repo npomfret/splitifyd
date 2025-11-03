@@ -590,7 +590,7 @@ export async function mockUpdateGroupDisplayNameApi(
 /**
  * Mock generate share link API endpoint
  * The endpoint is POST /api/groups/share with body: { groupId }
- * Response format: { linkId: string, shareablePath: string }
+ * Response format: { shareToken: string, shareablePath: string }
  * @param delayMs - Optional delay in milliseconds before responding
  */
 export async function mockGenerateShareLinkApi(
@@ -606,8 +606,8 @@ export async function mockGenerateShareLinkApi(
         page,
         generateShareLinkHandler(
             {
-                linkId: shareToken,
-                shareablePath: `/join/${shareToken}`,
+                shareToken,
+                shareablePath: `/join?shareToken=${shareToken}`,
                 expiresAt,
             },
             {

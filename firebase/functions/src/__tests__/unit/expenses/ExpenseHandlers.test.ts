@@ -23,8 +23,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, {});
 
             const group = await appDriver.createGroup(userId);
-            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(payerId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
+            await appDriver.joinGroupByLink(payerId, shareToken);
 
             const expenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -358,8 +358,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(creatorId, {});
 
             const group = await appDriver.createGroup(adminId);
-            const { linkId } = await appDriver.generateShareableLink(adminId, group.id);
-            await appDriver.joinGroupByLink(creatorId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(adminId, group.id);
+            await appDriver.joinGroupByLink(creatorId, shareToken);
 
             const expenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -452,9 +452,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(user3, {});
 
             const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, shareToken);
+            await appDriver.joinGroupByLink(user3, shareToken);
 
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -487,9 +487,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(user3, {});
 
             const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, shareToken);
+            await appDriver.joinGroupByLink(user3, shareToken);
 
             await appDriver.createExpense(
                 user1,
@@ -528,8 +528,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(user2, {});
 
             const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, shareToken);
 
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -575,8 +575,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(user2, {});
 
             const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, shareToken);
 
             const createData = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -625,9 +625,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(member2, {});
 
             const group = await appDriver.createGroup(admin);
-            const { linkId } = await appDriver.generateShareableLink(admin, group.id);
-            await appDriver.joinGroupByLink(member1, linkId);
-            await appDriver.joinGroupByLink(member2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(admin, group.id);
+            await appDriver.joinGroupByLink(member1, shareToken);
+            await appDriver.joinGroupByLink(member2, shareToken);
 
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -680,8 +680,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(user3, {});
 
             const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, shareToken);
 
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -758,9 +758,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(user3, {});
 
             const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, shareToken);
+            await appDriver.joinGroupByLink(user3, shareToken);
 
             const expense = await appDriver.createExpense(
                 user1,
@@ -798,9 +798,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(user3, {});
 
             const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, shareToken);
+            await appDriver.joinGroupByLink(user3, shareToken);
 
             const complexExpense = await appDriver.createExpense(
                 user1,
@@ -836,8 +836,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
             const group = await appDriver.createGroup(user1);
 
             // Add user2 to the group (non-participant in expense, but still a group member)
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, shareToken);
 
             const expense = await appDriver.createExpense(
                 user1,
@@ -866,9 +866,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
             appDriver.seedUser(user3, {});
 
             const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(user1, group.id);
+            await appDriver.joinGroupByLink(user2, shareToken);
+            await appDriver.joinGroupByLink(user3, shareToken);
 
             // Create expense with all 3 participants (user1 pays, user2 and user3 owe money)
             const expense = await appDriver.createExpense(

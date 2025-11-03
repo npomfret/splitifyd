@@ -78,7 +78,7 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
                     .build(),
             );
             const shareLink = await appDriver.generateShareableLink(userIds[0], group.id);
-            await appDriver.joinGroupByLink(userIds[1], shareLink.linkId);
+            await appDriver.joinGroupByLink(userIds[1], shareLink.shareToken);
 
             // Add comments with slight delay to ensure ordering
             await appDriver.createGroupComment(userIds[0], group.id, 'First comment');
@@ -113,8 +113,8 @@ describe('Comment Real-time Subscriptions - Unit Tests', () => {
                     .build(),
             );
             const shareLink = await appDriver.generateShareableLink(userIds[0], group.id);
-            await appDriver.joinGroupByLink(userIds[1], shareLink.linkId);
-            await appDriver.joinGroupByLink(userIds[2], shareLink.linkId);
+            await appDriver.joinGroupByLink(userIds[1], shareLink.shareToken);
+            await appDriver.joinGroupByLink(userIds[2], shareLink.shareToken);
 
             let receivedComments: any[] = [];
 

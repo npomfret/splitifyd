@@ -1,4 +1,4 @@
-import { toISOString } from '@splitifyd/shared';
+import { toISOString, toShareLinkId, toShareLinkToken } from '@splitifyd/shared';
 import { z } from 'zod';
 
 /**
@@ -6,11 +6,14 @@ import { z } from 'zod';
  *
  * Note: ShareLinks are stored in subcollections under groups:
  * groups/{groupId}/shareLinks/{shareLinkId}
+ *
+ * The `id` field is the Firestore document ID (ShareLinkId), while `token` is the
+ * actual share token used in URLs (ShareLinkToken). These are separate concepts.
  */
 export const ShareLinkDocumentSchema = z
     .object({
-        id: z.string().min(1), // Document ID
-        token: z.string().min(16), // The actual share token used in URLs
+        id: z.string().min(1).transform(toShareLinkId), // Document ID (ShareLinkId)
+        token: z.string().min(16).transform(toShareLinkToken), // The actual share token used in URLs (ShareLinkToken)
         createdBy: z.string().min(1), // UID of the user who created this share link
         createdAt: z.string().datetime().transform(toISOString), // ISO timestamp string
         updatedAt: z.string().datetime().transform(toISOString), // ISO timestamp string

@@ -229,13 +229,13 @@ export class ApiDriver {
         return await this.apiRequest('/groups/share', 'POST', body, token);
     }
 
-    async joinGroupByLink(linkId: string, token: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
+    async joinGroupByLink(shareToken: string, token: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
         const displayName = groupDisplayName || `Test User ${Date.now()}`;
-        return await this.apiRequest('/groups/join', 'POST', { linkId, groupDisplayName: displayName }, token);
+        return await this.apiRequest('/groups/join', 'POST', { shareToken, groupDisplayName: displayName }, token);
     }
 
-    async previewGroupByLink(linkId: string, token: string): Promise<PreviewGroupResponse> {
-        return await this.apiRequest('/groups/preview', 'POST', { linkId }, token);
+    async previewGroupByLink(shareToken: string, token: string): Promise<PreviewGroupResponse> {
+        return await this.apiRequest('/groups/preview', 'POST', { shareToken }, token);
     }
 
     async createGroupWithMembers(name: string | GroupName, members: UserToken[], creatorToken: string): Promise<GroupDTO> {
@@ -259,11 +259,11 @@ export class ApiDriver {
 
     async addMembersViaShareLink(groupId: GroupId | string, toAdd: UserToken[], creatorToken: string) {
         if (toAdd.length > 0) {
-            const { linkId } = await this.generateShareableLink(groupId, creatorToken);
+            const { shareToken } = await this.generateShareableLink(groupId, creatorToken);
 
             // Step 3: Have other members join using the share link
             for (const member of toAdd) {
-                await this.joinGroupByLink(linkId, member.token);
+                await this.joinGroupByLink(shareToken, member.token);
             }
         }
     }

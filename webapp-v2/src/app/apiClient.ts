@@ -929,19 +929,19 @@ class ApiClient {
         return Array.isArray(response?.members) ? response.members : [];
     }
 
-    async previewGroupByLink(linkId: string): Promise<PreviewGroupResponse> {
+    async previewGroupByLink(shareToken: string): Promise<PreviewGroupResponse> {
         return this.request({
             endpoint: '/groups/preview',
             method: 'POST',
-            body: { linkId },
+            body: { shareToken },
         });
     }
 
-    async joinGroupByLink(linkId: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
+    async joinGroupByLink(shareToken: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
         return this.request<JoinGroupResponse>({
             endpoint: '/groups/join',
             method: 'POST',
-            body: { linkId, groupDisplayName },
+            body: { shareToken, groupDisplayName },
             skipRetry: false,
         });
     }

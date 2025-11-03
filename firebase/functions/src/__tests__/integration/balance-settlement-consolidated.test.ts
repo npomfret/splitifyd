@@ -38,8 +38,8 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 users[0].token,
             );
             const shareLink = await apiDriver.generateShareableLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupByLink(shareLink.linkId, users[1].token);
-            await apiDriver.joinGroupByLink(shareLink.linkId, users[2].token);
+            await apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token);
+            await apiDriver.joinGroupByLink(shareLink.shareToken, users[2].token);
 
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()

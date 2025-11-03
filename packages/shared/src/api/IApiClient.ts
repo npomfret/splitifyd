@@ -110,13 +110,13 @@ export interface IApiClient<
      * Preview group details via share link (before joining)
      * @see POST /groups/preview - handler: previewGroupByLink
      */
-    previewGroupByLink(linkId: string): Promise<PreviewGroupResponse>;
+    previewGroupByLink(shareToken: string): Promise<PreviewGroupResponse>;
 
     /**
      * Join a group via share link
      * @see POST /groups/join - handler: joinGroupByLink
      */
-    joinGroupByLink(linkId: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse>;
+    joinGroupByLink(shareToken: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse>;
 
     /**
      * Leave a group

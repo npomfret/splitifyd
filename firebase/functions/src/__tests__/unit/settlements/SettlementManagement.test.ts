@@ -33,9 +33,9 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
             const group = await appDriver.createGroup(creatorUserId);
-            const { linkId } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -75,9 +75,9 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(outsiderUserId, { displayName: 'Outsider' });
 
             const group = await appDriver.createGroup(creatorUserId);
-            const { linkId } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -124,9 +124,9 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
             const group = await appDriver.createGroup(creatorUserId);
-            const { linkId } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -167,10 +167,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(otherMemberUserId, { displayName: 'Other Member' });
 
             const group = await appDriver.createGroup(creatorUserId);
-            const { linkId } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
-            await appDriver.joinGroupByLink(otherMemberUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            await appDriver.joinGroupByLink(otherMemberUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -204,9 +204,9 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
             const group = await appDriver.createGroup(creatorUserId);
-            const { linkId } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -242,9 +242,9 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
             const group = await appDriver.createGroup(creatorUserId);
-            const { linkId } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -290,10 +290,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(otherMemberUserId, { displayName: 'Other Member' });
 
             const group = await appDriver.createGroup(creatorUserId);
-            const { linkId } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
-            await appDriver.joinGroupByLink(otherMemberUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            await appDriver.joinGroupByLink(otherMemberUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -340,9 +340,9 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(leavingMemberUserId, { displayName: 'Leaving Member' });
 
             const group = await appDriver.createGroup(adminUserId);
-            const { linkId } = await appDriver.generateShareableLink(adminUserId, group.id);
-            await appDriver.joinGroupByLink(memberUserId, linkId);
-            await appDriver.joinGroupByLink(leavingMemberUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(adminUserId, group.id);
+            await appDriver.joinGroupByLink(memberUserId, shareToken);
+            await appDriver.joinGroupByLink(leavingMemberUserId, shareToken);
 
             // Create an expense that leaves the departing member owing the admin
             const expenseRequest = new CreateExpenseRequestBuilder()
@@ -418,9 +418,9 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
             const group = await appDriver.createGroup(creatorUserId);
-            const { linkId } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -466,10 +466,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
             const group = await appDriver.createGroup(adminUserId); // Admin is the group creator
-            const { linkId } = await appDriver.generateShareableLink(adminUserId, group.id);
-            await appDriver.joinGroupByLink(creatorUserId, linkId);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(adminUserId, group.id);
+            await appDriver.joinGroupByLink(creatorUserId, shareToken);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
 
             // Create settlement by non-admin creator
             const settlementData = new CreateSettlementRequestBuilder()
@@ -515,11 +515,11 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(otherMemberUserId, { displayName: 'Other Member' });
 
             const group = await appDriver.createGroup(adminUserId);
-            const { linkId } = await appDriver.generateShareableLink(adminUserId, group.id);
-            await appDriver.joinGroupByLink(creatorUserId, linkId);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
-            await appDriver.joinGroupByLink(otherMemberUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(adminUserId, group.id);
+            await appDriver.joinGroupByLink(creatorUserId, shareToken);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            await appDriver.joinGroupByLink(otherMemberUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -549,9 +549,9 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
             const group = await appDriver.createGroup(creatorUserId);
-            const { linkId } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -584,9 +584,9 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
             const group = await appDriver.createGroup(creatorUserId);
-            const { linkId } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, linkId);
-            await appDriver.joinGroupByLink(payeeUserId, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
+            await appDriver.joinGroupByLink(payerUserId, shareToken);
+            await appDriver.joinGroupByLink(payeeUserId, shareToken);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()

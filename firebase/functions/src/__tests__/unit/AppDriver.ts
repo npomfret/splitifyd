@@ -394,15 +394,15 @@ export class AppDriver {
         return res.getJson() as ShareLinkResponse;
     }
 
-    async joinGroupByLink(userId1: UserId, linkId: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
+    async joinGroupByLink(userId1: UserId, shareToken: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
         const displayName = groupDisplayName || `User ${userId1}`;
-        const req = createStubRequest(userId1, { linkId, groupDisplayName: displayName });
+        const req = createStubRequest(userId1, { shareToken, groupDisplayName: displayName });
         const res = await this.dispatchByHandler('joinGroupByLink', req);
         return res.getJson() as JoinGroupResponse;
     }
 
-    async previewGroupByLink(userId: UserId, linkId: string): Promise<PreviewGroupResponse> {
-        const req = createStubRequest(userId, { linkId });
+    async previewGroupByLink(userId: UserId, shareToken: string): Promise<PreviewGroupResponse> {
+        const req = createStubRequest(userId, { shareToken });
         const res = await this.dispatchByHandler('previewGroupByLink', req);
         return res.getJson() as PreviewGroupResponse;
     }
@@ -815,7 +815,7 @@ export class AppDriver {
     async addMembersToGroup(groupId: GroupId | string, ownerUserId: string, memberUserIds: string[]) {
         const shareLink = await this.generateShareableLink(ownerUserId, groupId);
         for (const userId of memberUserIds) {
-            await this.joinGroupByLink(userId, shareLink.linkId);
+            await this.joinGroupByLink(userId, shareLink.shareToken);
         }
     }
 

@@ -519,8 +519,8 @@ simpleTest.describe('Share Link Access Management', () => {
 
             // After successful login, user should be redirected to the join group page
             // The redirect should preserve the share link token
-            await expect(unauthPage).toHaveURL(/\/join\?linkId=/);
-            expect(unauthPage.url()).toContain('/join?linkId=');
+            await expect(unauthPage).toHaveURL(/\/join\?shareToken=/);
+            expect(unauthPage.url()).toContain('/join?shareToken=');
 
             // Verify user can see the group details on the join page
             const displayedGroupName = await joinGroupPage.getGroupName();
@@ -573,8 +573,8 @@ simpleTest.describe('Share Link Access Management', () => {
 
             // After successful registration, user should be redirected to the join group page
             // The returnUrl should be preserved through the registration flow
-            await expect(unauthPage).toHaveURL(/\/join\?linkId=/);
-            expect(unauthPage.url()).toContain('/join?linkId=');
+            await expect(unauthPage).toHaveURL(/\/join\?shareToken=/);
+            expect(unauthPage.url()).toContain('/join?shareToken=');
 
             // User should now see the join group page and can join directly
             const joinPage = new JoinGroupPage(unauthPage);
@@ -618,13 +618,13 @@ simpleTest.describe('Share Link Access Management', () => {
             await expect(unauthPage).toHaveURL(/\/login/);
             const loginUrl = unauthPage.url();
             expect(loginUrl).toContain('returnUrl');
-            expect(loginUrl).toContain('linkId');
+            expect(loginUrl).toContain('shareToken');
 
             // Login as the second user
             await loginPage.login(secondUser.email, secondUser.password);
 
-            // After login, user should be redirected to the join page with linkId
-            await expect(unauthPage).toHaveURL(/\/join\?linkId=/);
+            // After login, user should be redirected to the join page with shareToken
+            await expect(unauthPage).toHaveURL(/\/join\?shareToken=/);
 
             // Complete the join process - we're already on the join page after login redirect
             const joinPage = new JoinGroupPage(unauthPage);
@@ -650,7 +650,7 @@ simpleTest.describe('Share Link Access Management', () => {
             // Get the base URL from the current page
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             const baseUrl = dashboardPage.getBaseUrl();
-            const invalidShareLink = `${baseUrl}/join?linkId=invalid-group-id-12345`;
+            const invalidShareLink = `${baseUrl}/join?shareToken=invalid-group-id-12345`;
 
             // Attempt to join with invalid share link - should show error
             const joinGroupPage = new JoinGroupPage(page);
@@ -674,8 +674,8 @@ simpleTest.describe('Share Link Access Management', () => {
             const baseUrl = dashboardPage.getBaseUrl();
 
             // Test various malformed links using page object navigation
-            // When linkId is missing or empty, app now shows an error page (not redirect)
-            const emptyLinkCases = [`${baseUrl}/join?linkId=`, `${baseUrl}/join`];
+            // When shareToken is missing or empty, app now shows an error page (not redirect)
+            const emptyLinkCases = [`${baseUrl}/join?shareToken=`, `${baseUrl}/join`];
 
             const joinGroupPage = new JoinGroupPage(page);
 
@@ -689,8 +689,8 @@ simpleTest.describe('Share Link Access Management', () => {
                 await expect(backButton).toBeVisible();
             }
 
-            // Test with malicious/invalid linkId - should show error
-            const invalidLink = `${baseUrl}/join?linkId=../../malicious`;
+            // Test with malicious/invalid shareToken - should show error
+            const invalidLink = `${baseUrl}/join?shareToken=../../malicious`;
 
             await joinGroupPage.navigateToShareLink(invalidLink);
             expect(page.url()).toContain('/join');
@@ -717,18 +717,18 @@ simpleTest.describe('Share Link Access Management', () => {
 
             // Get the initial share link
             const initialShareLink = await shareModalPage.getShareLink();
-            expect(initialShareLink).toMatch(/\/join\?linkId=/);
+            expect(initialShareLink).toMatch(/\/join\?shareToken=/);
 
             // Use the helper method that properly waits for the link to update
             const newShareLink = await shareModalPage.generateNewShareLink();
-            expect(newShareLink).toMatch(/\/join\?linkId=/);
+            expect(newShareLink).toMatch(/\/join\?shareToken=/);
 
             // Verify the link has actually changed
             expect(newShareLink).not.toBe(initialShareLink);
 
             // Verify both links follow the correct format but are different
-            const initialLinkId = new URL(initialShareLink).searchParams.get('linkId');
-            const newLinkId = new URL(newShareLink).searchParams.get('linkId');
+            const initialLinkId = new URL(initialShareLink).searchParams.get('shareToken');
+            const newLinkId = new URL(newShareLink).searchParams.get('shareToken');
 
             expect(initialLinkId).toBeTruthy();
             expect(newLinkId).toBeTruthy();

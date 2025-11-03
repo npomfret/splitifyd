@@ -1,5 +1,5 @@
 import type { GenerateShareLinkRequest } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import { toGroupId, toShareLinkToken } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
@@ -44,17 +44,17 @@ export class GroupShareHandlers {
     };
 
     previewGroupByLink = async (req: AuthenticatedRequest, res: Response) => {
-        const { linkId } = req.body;
+        const { shareToken } = req.body;
         const userId = req.user!.uid;
 
         try {
-            const result = await this.groupShareService.previewGroupByLink(userId, linkId);
+            const result = await this.groupShareService.previewGroupByLink(userId, toShareLinkToken(shareToken));
             res.status(HTTP_STATUS.OK).json(result);
         } catch (error) {
             if (error instanceof ApiError) throw error;
 
             logger.error('Error previewing group by link', error, {
-                linkId: linkId?.substring(0, 4) + '...',
+                shareToken: shareToken?.substring(0, 4) + '...',
                 userId,
             });
 
@@ -63,11 +63,11 @@ export class GroupShareHandlers {
     };
 
     joinGroupByLink = async (req: AuthenticatedRequest, res: Response) => {
-        const { linkId, groupDisplayName } = req.body;
+        const { shareToken, groupDisplayName } = req.body;
         const userId = req.user!.uid;
 
-        if (!linkId || typeof linkId !== 'string') {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Link ID is required');
+        if (!shareToken || typeof shareToken !== 'string') {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Share token is required');
         }
 
         if (!groupDisplayName || typeof groupDisplayName !== 'string' || groupDisplayName.trim().length === 0) {
@@ -75,13 +75,13 @@ export class GroupShareHandlers {
         }
 
         try {
-            const result = await this.groupShareService.joinGroupByLink(userId, linkId, groupDisplayName.trim());
+            const result = await this.groupShareService.joinGroupByLink(userId, toShareLinkToken(shareToken), groupDisplayName.trim());
             res.status(HTTP_STATUS.OK).json(result);
         } catch (error) {
             if (error instanceof ApiError) throw error;
 
             logger.error('Error joining group by link', error, {
-                linkId: linkId?.substring(0, 4) + '...',
+                shareToken: shareToken?.substring(0, 4) + '...',
                 userId,
             });
 

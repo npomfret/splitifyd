@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toGroupId, toISOString, USER_COLORS } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toGroupId, toISOString, toShareLinkToken, USER_COLORS } from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
@@ -153,11 +153,11 @@ describe('GroupShareService', () => {
 
     describe('previewGroupByLink', () => {
         it('should throw BAD_REQUEST when linkId is missing', async () => {
-            await expect(groupShareService.previewGroupByLink('user-id', '')).rejects.toThrow(ApiError);
+            await expect(groupShareService.previewGroupByLink('user-id', toShareLinkToken(''))).rejects.toThrow(ApiError);
 
             let caughtError: ApiError | undefined;
             try {
-                await groupShareService.previewGroupByLink('user-id', '');
+                await groupShareService.previewGroupByLink('user-id', toShareLinkToken(''));
             } catch (error) {
                 caughtError = error as ApiError;
             }
@@ -193,9 +193,9 @@ describe('GroupShareService', () => {
 
             const result = await groupShareService.generateShareableLink(userId, groupId);
 
-            expect(result.shareablePath).toMatch(/^\/join\?linkId=.+$/);
-            expect(result.linkId).toBeDefined();
-            expect(result.linkId.length).toBeGreaterThan(0);
+            expect(result.shareablePath).toMatch(/^\/join\?shareToken=.+$/);
+            expect(result.shareToken).toBeDefined();
+            expect(result.shareToken.length).toBeGreaterThan(0);
             expect(result.expiresAt).toBeDefined();
             const now = Date.now();
             const expiryMs = new Date(result.expiresAt).getTime();
@@ -266,8 +266,8 @@ describe('GroupShareService', () => {
     describe('share link expiration enforcement', () => {
         const groupId = toGroupId('expired-group');
         const ownerId = 'owner-expiration';
-        const expiredToken = `expired-token-1234567890`;
-        const previewToken = 'preview-expired-token';
+        const expiredToken = toShareLinkToken(`expired-token-1234567890`);
+        const previewToken = toShareLinkToken('preview-expired-token');
 
         beforeEach(() => {
             seedGroupWithOwner(groupId, ownerId);
@@ -318,7 +318,7 @@ describe('GroupShareService', () => {
 
     describe('group member cap enforcement', () => {
         const groupId = toGroupId('test-group');
-        const linkId = 'test-link-1234567890';
+        const linkId = toShareLinkToken('test-link-1234567890');
         const newUserId = 'new-user-id';
 
         beforeEach(() => {
@@ -420,7 +420,7 @@ describe('GroupShareService', () => {
 
     describe('display name conflict detection', () => {
         const groupId = toGroupId('test-group');
-        const linkId = 'test-link-1234567890';
+        const linkId = toShareLinkToken('test-link-1234567890');
         const newUserId = 'new-user-id';
 
         beforeEach(() => {
@@ -497,7 +497,7 @@ describe('GroupShareService', () => {
 
     describe('member approval workflow - admin required', () => {
         const groupId = toGroupId('managed-group');
-        const linkId = 'managed-link-1234567890';
+        const linkId = toShareLinkToken('managed-link-1234567890');
         const ownerId = 'owner-id';
         const pendingUserId = 'pending-user-id';
 
@@ -552,7 +552,7 @@ describe('GroupShareService', () => {
 
     describe('member approval workflow - automatic', () => {
         const groupId = toGroupId('open-group');
-        const linkId = 'open-link-1234567890';
+        const linkId = toShareLinkToken('open-link-1234567890');
         const ownerId = 'open-owner';
         const joiningUserId = 'joining-user';
 
@@ -600,7 +600,7 @@ describe('GroupShareService', () => {
     describe('activity feed integration', () => {
         it('emits MEMBER_JOINED activity for auto-approved joins', async () => {
             const groupId = toGroupId('activity-group');
-            const linkId = 'activity-link-1234567890';
+            const linkId = toShareLinkToken('activity-link-1234567890');
             const ownerId = 'owner-user';
             const joiningUserId = 'joining-user';
 
@@ -661,7 +661,7 @@ describe('GroupShareService', () => {
 
         it('notifies all existing active members when a new member joins (transaction-based recipient fetch)', async () => {
             const groupId = toGroupId('multi-member-group');
-            const linkId = 'multi-member-link-1234567890';
+            const linkId = toShareLinkToken('multi-member-link-1234567890');
             const ownerId = 'owner-user';
             const existingMemberId = 'existing-member';
             const joiningUserId = 'joining-user';
@@ -742,7 +742,7 @@ describe('GroupShareService', () => {
 
         it('excludes pending members from activity notifications when a new member joins', async () => {
             const groupId = toGroupId('pending-exclusion-group');
-            const linkId = 'pending-link-1234567890';
+            const linkId = toShareLinkToken('pending-link-1234567890');
             const ownerId = 'owner-user';
             const pendingMemberId = 'pending-member';
             const joiningUserId = 'joining-user';

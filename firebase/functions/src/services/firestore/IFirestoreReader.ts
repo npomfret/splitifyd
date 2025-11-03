@@ -72,8 +72,8 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 }
 
 // Import parsed types from schemas
-import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, SettlementDTO } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
+import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, SettlementDTO, ShareLinkToken } from '@splitifyd/shared';
+import { GroupId, ShareLinkId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import type { GroupBalanceDTO, ParsedShareLink, UserDocument } from '../../schemas';
@@ -253,10 +253,10 @@ export interface IFirestoreReader {
 
     /**
      * Find a share link by its token across all groups
-     * @param token - The share link token
+     * @param shareToken - The share link token
      * @returns Object with groupId and share link, or null if not found
      */
-    findShareLinkByToken(token: string): Promise<{ groupId: GroupId; shareLinkId: string; shareLink: ParsedShareLink | null; } | null>;
+    findShareLinkByToken(shareToken: ShareLinkToken): Promise<{ groupId: GroupId; shareLinkId: ShareLinkId; shareLink: ParsedShareLink | null; } | null>;
 
     /**
      * Get expired share link document references within a transaction

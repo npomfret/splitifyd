@@ -36,17 +36,17 @@ describe('Group sharing workflow (stub firestore)', () => {
 
         // Owner can generate a share link
         const ownerShare = await appDriver.generateShareableLink(owner, group.id);
-        expect(ownerShare.shareablePath).toBe(`/join?linkId=${ownerShare.linkId}`);
-        expect(ownerShare.linkId).toHaveLength(16);
+        expect(ownerShare.shareablePath).toBe(`/join?shareToken=${ownerShare.shareToken}`);
+        expect(ownerShare.shareToken).toHaveLength(16);
         expect(new Date(ownerShare.expiresAt).getTime()).toBeGreaterThan(Date.now());
 
         // Members can also generate a link once they join
-        const joinResult = await appDriver.joinGroupByLink(member, ownerShare.linkId);
+        const joinResult = await appDriver.joinGroupByLink(member, ownerShare.shareToken);
         expect(joinResult.groupId).toBe(group.id);
         expect(joinResult.success).toBe(true);
 
         const memberShare = await appDriver.generateShareableLink(member, group.id);
-        expect(memberShare.linkId).toHaveLength(16);
+        expect(memberShare.shareToken).toHaveLength(16);
         expect(new Date(memberShare.expiresAt).getTime()).toBeGreaterThan(Date.now());
 
         // Non-members cannot generate links
@@ -55,7 +55,7 @@ describe('Group sharing workflow (stub firestore)', () => {
         });
 
         // Additional users can join via the same link
-        const joinerResult = await appDriver.joinGroupByLink(joiner, ownerShare.linkId);
+        const joinerResult = await appDriver.joinGroupByLink(joiner, ownerShare.shareToken);
         expect(joinerResult.groupId).toBe(group.id);
         expect(joinerResult.success).toBe(true);
 
@@ -63,7 +63,7 @@ describe('Group sharing workflow (stub firestore)', () => {
         expect(detailsForJoiner.members.members.map((m) => m.uid)).toEqual(expect.arrayContaining([owner, member, joiner]));
 
         // Duplicate joins are rejected with a clear error
-        await expect(appDriver.joinGroupByLink(joiner, ownerShare.linkId)).rejects.toMatchObject({
+        await expect(appDriver.joinGroupByLink(joiner, ownerShare.shareToken)).rejects.toMatchObject({
             code: 'ALREADY_MEMBER',
         });
 
@@ -89,7 +89,7 @@ describe('Group sharing workflow (stub firestore)', () => {
         expect(new Date(shareLink.expiresAt).getTime()).toBeGreaterThan(Date.now());
 
         for (const userId of joiners) {
-            const response = await appDriver.joinGroupByLink(userId, shareLink.linkId);
+            const response = await appDriver.joinGroupByLink(userId, shareLink.shareToken);
             expect(response.groupId).toBe(group.id);
             expect(response.success).toBe(true);
         }

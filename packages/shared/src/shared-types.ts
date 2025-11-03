@@ -62,12 +62,17 @@ export const toCommentId = (value: string): CommentId => value as CommentId;
 export type GroupName = Brand<string, 'GroupName'>;
 export const toGroupName = (value: string): GroupName => value as GroupName;
 
+export type ShareLinkId = Brand<string, 'ShareLinkId'>;
+export const toShareLinkId = (value: string): ShareLinkId => value as ShareLinkId;
+
+export type ShareLinkToken = Brand<string, 'ShareLinkToken'>;
+export const toShareLinkToken = (value: string): ShareLinkToken => value as ShareLinkToken;
+
 export type UserId = string;
 export type DisplayName = string;
 export type Email = string;
 export type CurrencyISOCode = string;
 export type PolicyId = string;
-export type ShareLinkToken = string;
 export type VersionHash = string;
 export type ActivityFeedItemId = string;
 
@@ -600,8 +605,11 @@ interface ShareLink {
  * This is the wire format returned by API endpoints. All timestamps are ISO 8601 strings.
  * The canonical storage format is ShareLinkDocument in firebase/functions/src/schemas/sharelink.ts
  * which uses Firestore Timestamp objects.
+ *
+ * Note: The `id` field is the Firestore document ID (ShareLinkId), while `token` is the
+ * actual share token used in URLs (ShareLinkToken). These are separate concepts.
  */
-export interface ShareLinkDTO extends ShareLink, BaseDTO<ShareLinkToken> {}
+export interface ShareLinkDTO extends ShareLink, BaseDTO<ShareLinkId> {}
 
 /**
  * Group business fields (without metadata)
@@ -871,7 +879,7 @@ export interface MessageResponse {
 }
 
 export interface ShareLinkResponse {
-    linkId: string;
+    shareToken: ShareLinkToken;
     shareablePath: string;
     expiresAt: ISOString;
 }

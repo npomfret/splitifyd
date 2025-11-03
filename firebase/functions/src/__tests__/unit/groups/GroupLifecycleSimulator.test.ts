@@ -31,10 +31,10 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         );
 
         if (memberIds.length > 0) {
-            const { linkId } = await appDriver.generateShareableLink(ownerId, group.id);
+            const { shareToken } = await appDriver.generateShareableLink(ownerId, group.id);
             let counter = 1;
             for (const memberId of memberIds) {
-                await appDriver.joinGroupByLink(memberId, linkId, `Test Member ${counter++}`);
+                await appDriver.joinGroupByLink(memberId, shareToken, `Test Member ${counter++}`);
             }
         }
 
@@ -54,8 +54,8 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                 .build(),
         );
 
-        const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
-        await appDriver.joinGroupByLink(member.id, linkId, 'Test Member');
+        const { shareToken } = await appDriver.generateShareableLink(owner.id, group.id);
+        await appDriver.joinGroupByLink(member.id, shareToken, 'Test Member');
 
         const groupDetails = await appDriver.getGroupFullDetails(owner.id, group.id);
         expect(groupDetails.members.members).toHaveLength(2);
@@ -108,8 +108,8 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                 .withName('Protected Group')
                 .build(),
         );
-        const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
-        await appDriver.joinGroupByLink(member.id, linkId, 'Test Member');
+        const { shareToken } = await appDriver.generateShareableLink(owner.id, group.id);
+        await appDriver.joinGroupByLink(member.id, shareToken, 'Test Member');
 
         await expect(appDriver.deleteGroup(member.id, group.id)).rejects.toThrow();
 
@@ -130,8 +130,8 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                 .build(),
         );
 
-        const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
-        await appDriver.joinGroupByLink(member.id, linkId, 'Test Member');
+        const { shareToken } = await appDriver.generateShareableLink(owner.id, group.id);
+        await appDriver.joinGroupByLink(member.id, shareToken, 'Test Member');
 
         await expect(appDriver.getGroupFullDetails(outsider.id, group.id)).rejects.toThrow();
 
@@ -163,8 +163,8 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                 .build(),
         );
 
-        const { linkId } = await appDriver.generateShareableLink(owner.id, group.id);
-        await appDriver.joinGroupByLink(member.id, linkId, 'Test Member');
+        const { shareToken } = await appDriver.generateShareableLink(owner.id, group.id);
+        await appDriver.joinGroupByLink(member.id, shareToken, 'Test Member');
 
         const members = (await appDriver.getGroupFullDetails(owner.id, group.id)).members.members;
         expect(members).toHaveLength(2);
