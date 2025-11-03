@@ -11,6 +11,7 @@ import {
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     ExpenseId,
+    type GetGroupFullDetailsOptions,
     GroupBalances,
     GroupDTO,
     GroupFullDetailsDTO,
@@ -18,10 +19,11 @@ import {
     type GroupMembershipDTO,
     type GroupPermissions,
     JoinGroupResponse,
+    type ListCommentsOptions,
     ListCommentsResponse,
+    type ListGroupsOptions,
     ListGroupsResponse,
     type MemberRole,
-    type MemberStatus,
     MessageResponse,
     PolicyId,
     PooledTestUser,
@@ -47,6 +49,14 @@ const FIREBASE_API_KEY = config.firebaseApiKey;
 const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
 const API_BASE_URL = config.baseUrl;
 
+/**
+ * HTTP-based API driver for testing against the Firebase emulator.
+ *
+ * This class implements the operations defined in IApiClient with a token-based authentication model.
+ * It follows the pattern: method(data, token) where token is a Firebase auth token.
+ *
+ * @see IApiClient for the complete list of supported operations
+ */
 export class ApiDriver {
     private baseUrl: string;
     private readonly authPort: number;
@@ -263,12 +273,7 @@ export class ApiDriver {
     async getGroupFullDetails(
         groupId: GroupId | string,
         token: string,
-        options?: {
-            expenseLimit?: number;
-            expenseCursor?: string;
-            settlementLimit?: number;
-            settlementCursor?: string;
-        },
+        options?: GetGroupFullDetailsOptions,
     ): Promise<GroupFullDetailsDTO> {
         let url = `/groups/${groupId}/full-details`;
         const queryParams: string[] = [];
@@ -332,7 +337,7 @@ export class ApiDriver {
 
     async listGroups(
         token: string,
-        params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean; statusFilter?: MemberStatus | MemberStatus[]; },
+        params?: ListGroupsOptions,
     ): Promise<ListGroupsResponse> {
         const queryParams = new URLSearchParams();
         if (params?.limit) queryParams.append('limit', params.limit.toString());
@@ -417,19 +422,19 @@ export class ApiDriver {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
-    async listGroupComments(groupId: GroupId | string, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
+    async listGroupComments(groupId: GroupId | string, token: string, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
-        if (cursor) params.append('cursor', cursor);
-        if (limit) params.append('limit', limit.toString());
+        if (options?.cursor) params.append('cursor', options.cursor);
+        if (options?.limit) params.append('limit', options.limit.toString());
         const query = params.toString() ? `?${params.toString()}` : '';
 
         return await this.apiRequest(`/groups/${groupId}/comments${query}`, 'GET', null, token);
     }
 
-    async listExpenseComments(expenseId: ExpenseId | string, token: string, cursor?: string, limit?: number): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId | string, token: string, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
-        if (cursor) params.append('cursor', cursor);
-        if (limit) params.append('limit', limit.toString());
+        if (options?.cursor) params.append('cursor', options.cursor);
+        if (options?.limit) params.append('limit', options.limit.toString());
         const query = params.toString() ? `?${params.toString()}` : '';
 
         const response = await this.apiRequest(`/expenses/${expenseId}/comments${query}`, 'GET', null, token);

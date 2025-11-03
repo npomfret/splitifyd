@@ -2,9 +2,6 @@
 .idea/workspace.xml
 .idea/shelf
 
-# Claude stuff
-/directives
-
 # MCP cache
 .lsmcp/
 
@@ -65,4 +62,3 @@ tmp
 # AI agents stuff
 CLAUDE.md
 GEMINI.md
-directives

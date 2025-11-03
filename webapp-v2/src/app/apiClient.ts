@@ -19,12 +19,18 @@ import type {
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     GenerateShareLinkRequest,
+    GetActivityFeedOptions,
+    GetGroupFullDetailsOptions,
     GroupDTO,
     GroupFullDetailsDTO,
     GroupMembershipDTO,
     GroupPermissions,
     JoinGroupResponse,
+    ListAuthUsersOptions,
+    ListCommentsOptions,
     ListCommentsResponse,
+    ListFirestoreUsersOptions,
+    ListGroupsOptions,
     ListGroupsResponse,
     MemberRole,
     MemberStatus,
@@ -33,6 +39,7 @@ import type {
     PreviewGroupResponse,
     RegisterResponse,
     SettlementDTO,
+    SettlementWithMembers,
     ShareLinkResponse,
     UpdateDisplayNameRequest,
     UpdateGroupRequest,
@@ -228,7 +235,15 @@ function isAbortError(error: unknown, signal?: AbortSignal | null): boolean {
     return false;
 }
 
-// Main API client class
+/**
+ * Main API client class for frontend application.
+ *
+ * This class implements the operations defined in IApiClient with an internally managed token.
+ * It follows the pattern: method(data) where the auth token is managed via setAuthToken().
+ * Includes automatic token refresh, request/response interceptors, and retry logic.
+ *
+ * @see IApiClient for the complete list of supported operations
+ */
 class ApiClient {
     private authToken: string | null = null;
     private requestInterceptors: RequestInterceptor[] = [];
@@ -669,8 +684,8 @@ class ApiClient {
     }
 
     // Convenience methods for common endpoints (using enhanced RequestConfig internally)
-    async getGroups(
-        options?: { includeMetadata?: boolean; page?: number; limit?: number; order?: 'asc' | 'desc'; cursor?: string; statusFilter?: MemberStatus | MemberStatus[]; },
+    async listGroups(
+        options?: ListGroupsOptions & { page?: number; },
     ): Promise<ListGroupsResponse> {
         const query: Record<string, string> = {};
         if (options?.includeMetadata) query.includeMetadata = 'true';
@@ -693,7 +708,7 @@ class ApiClient {
         });
     }
 
-    async getActivityFeed(options: { cursor?: string; limit?: number; } = {}): Promise<ActivityFeedResponse> {
+    async getActivityFeed(options: GetActivityFeedOptions = {}): Promise<ActivityFeedResponse> {
         const query: Record<string, string> = {};
 
         if (options.limit !== undefined) {
@@ -714,16 +729,7 @@ class ApiClient {
 
     async getGroupFullDetails(
         id: string,
-        options?: {
-            expenseLimit?: number;
-            expenseCursor?: string;
-            includeDeletedExpenses?: boolean;
-            settlementLimit?: number;
-            settlementCursor?: string;
-            includeDeletedSettlements?: boolean;
-            commentLimit?: number;
-            commentCursor?: string;
-        },
+        options?: GetGroupFullDetailsOptions,
     ): Promise<GroupFullDetailsDTO> {
         const queryParams: Record<string, string> = {};
 
@@ -855,7 +861,7 @@ class ApiClient {
         });
     }
 
-    async updateSettlement(settlementId: SettlementId, data: UpdateSettlementRequest): Promise<SettlementDTO> {
+    async updateSettlement(settlementId: SettlementId, data: UpdateSettlementRequest): Promise<SettlementWithMembers> {
         return this.request({
             endpoint: '/settlements/:settlementId',
             method: 'PUT',
@@ -948,7 +954,7 @@ class ApiClient {
         });
     }
 
-    async listAuthUsers(params: { limit?: number; pageToken?: string; email?: string; uid?: string; } = {}) {
+    async listAuthUsers(params: ListAuthUsersOptions = {}) {
         const query: Record<string, string> = {};
         if (params.limit !== undefined) {
             query.limit = String(params.limit);
@@ -971,7 +977,7 @@ class ApiClient {
         });
     }
 
-    async listFirestoreUsers(params: { limit?: number; cursor?: string; email?: string; uid?: string; displayName?: string; } = {}) {
+    async listFirestoreUsers(params: ListFirestoreUsersOptions = {}) {
         const query: Record<string, string> = {};
         if (params.limit !== undefined) {
             query.limit = String(params.limit);
@@ -1094,9 +1100,10 @@ class ApiClient {
         });
     }
 
-    async getGroupComments(groupId: GroupId, cursor?: string): Promise<ListCommentsResponse> {
+    async listGroupComments(groupId: GroupId, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
         const query: Record<string, string> = {};
-        if (cursor) query.cursor = cursor;
+        if (options?.cursor) query.cursor = options.cursor;
+        if (options?.limit) query.limit = options.limit.toString();
 
         return this.request<ListCommentsResponse>({
             endpoint: '/groups/:groupId/comments',
@@ -1106,9 +1113,10 @@ class ApiClient {
         });
     }
 
-    async getExpenseComments(expenseId: ExpenseId, cursor?: string): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
         const query: Record<string, string> = {};
-        if (cursor) query.cursor = cursor;
+        if (options?.cursor) query.cursor = options.cursor;
+        if (options?.limit) query.limit = options.limit.toString();
 
         return this.request<ListCommentsResponse>({
             endpoint: '/expenses/:expenseId/comments',

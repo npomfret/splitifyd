@@ -11,13 +11,17 @@ import {
     DeletePolicyVersionResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
+    GetActivityFeedOptions,
+    GetGroupFullDetailsOptions,
     GroupDTO,
     GroupFullDetailsDTO,
     GroupId,
     GroupMembershipDTO,
     GroupPermissions,
     JoinGroupResponse,
+    ListCommentsOptions,
     ListCommentsResponse,
+    ListGroupsOptions,
     ListGroupsResponse,
     MemberRole,
     MemberStatus,
@@ -72,7 +76,12 @@ interface AuthenticatedRequest extends Request {
  * Tests call into this driver to hit the actual validation/permission logic
  * without needing to spin up the Firebase runtime.
  *
- * DO NOT use for load / concurrency testing - it will not accurately simulate firestore bahviour under load
+ * DO NOT use for load / concurrency testing - it will not accurately simulate firestore behaviour under load
+ *
+ * This class implements the operations defined in IApiClient with a UserId-based authentication model.
+ * It follows the pattern: method(userId, data) where userId is used for direct database access in tests.
+ *
+ * @see IApiClient for the complete list of supported operations
  */
 export class AppDriver {
     private db = new SplitifydFirestoreTestDatabase();
@@ -308,13 +317,7 @@ export class AppDriver {
 
     async listGroups(
         userId1: UserId,
-        options: {
-            limit?: number;
-            cursor?: string;
-            order?: 'asc' | 'desc';
-            includeMetadata?: boolean;
-            statusFilter?: MemberStatus | MemberStatus[];
-        } = {},
+        options: ListGroupsOptions = {},
     ) {
         const req = createStubRequest(userId1, {});
         const query: Record<string, string> = {};
@@ -344,14 +347,7 @@ export class AppDriver {
     async getGroupFullDetails(
         userId1: UserId,
         groupId: GroupId | string,
-        options: {
-            expenseLimit?: number;
-            expenseCursor?: string;
-            includeDeletedExpenses?: boolean;
-            settlementLimit?: number;
-            settlementCursor?: string;
-            includeDeletedSettlements?: boolean;
-        } = {},
+        options: GetGroupFullDetailsOptions = {},
     ) {
         const req = createStubRequest(userId1, {}, { id: groupId });
         const query: Record<string, string> = {};
@@ -592,7 +588,7 @@ export class AppDriver {
     async listGroupComments(
         userId: UserId,
         groupId: GroupId | string,
-        options: { cursor?: string; limit?: number; } = {},
+        options: ListCommentsOptions = {},
     ): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { groupId });
         const query: Record<string, string> = {};
@@ -616,7 +612,7 @@ export class AppDriver {
     async listExpenseComments(
         userId: UserId,
         expenseId: ExpenseId | string,
-        options: { cursor?: string; limit?: number; } = {},
+        options: ListCommentsOptions = {},
     ): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { expenseId });
         const query: Record<string, string> = {};
@@ -723,7 +719,7 @@ export class AppDriver {
 
     async getActivityFeed(
         userId: UserId,
-        options: { limit?: number; cursor?: string; } = {},
+        options: GetActivityFeedOptions = {},
     ): Promise<{ items: ActivityFeedItem[]; hasMore: boolean; nextCursor?: string; }> {
         const req = createStubRequest(userId, {});
         const query: Record<string, string> = {};

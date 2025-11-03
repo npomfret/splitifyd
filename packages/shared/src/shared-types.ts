@@ -1145,12 +1145,80 @@ export interface ExpenseDraft {
 }
 
 /**
+ * Options for listing groups
+ * Used by API clients for group list queries
+ */
+export interface ListGroupsOptions {
+    limit?: number;
+    cursor?: string;
+    order?: 'asc' | 'desc';
+    includeMetadata?: boolean;
+    statusFilter?: MemberStatus | MemberStatus[];
+}
+
+/**
+ * Options for getting group full details
+ * Used by API clients for fetching complete group information
+ */
+export interface GetGroupFullDetailsOptions {
+    expenseLimit?: number;
+    expenseCursor?: string;
+    includeDeletedExpenses?: boolean;
+    settlementLimit?: number;
+    settlementCursor?: string;
+    includeDeletedSettlements?: boolean;
+    commentLimit?: number;
+    commentCursor?: string;
+}
+
+/**
  * Query parameters for comment pagination
  * Used in comment listing endpoints
  */
 export interface CommentQuery {
     cursor?: string;
     limit?: string;
+}
+
+/**
+ * Options for listing comments
+ * Used by API clients for comment list queries
+ */
+export interface ListCommentsOptions {
+    cursor?: string;
+    limit?: number;
+}
+
+/**
+ * Options for getting activity feed
+ * Used by API clients for activity feed queries
+ */
+export interface GetActivityFeedOptions {
+    cursor?: string;
+    limit?: number;
+}
+
+/**
+ * Options for listing Firestore users (admin endpoint)
+ * Used by API clients for user management queries
+ */
+export interface ListFirestoreUsersOptions {
+    limit?: number;
+    cursor?: string;
+    email?: string;
+    uid?: string;
+    displayName?: string;
+}
+
+/**
+ * Options for listing Auth users (admin endpoint)
+ * Used by API clients for user management queries
+ */
+export interface ListAuthUsersOptions {
+    limit?: number;
+    pageToken?: string;
+    email?: string;
+    uid?: string;
 }
 
 /**

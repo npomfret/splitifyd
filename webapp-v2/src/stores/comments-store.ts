@@ -306,9 +306,9 @@ export class CommentsStoreImpl implements CommentsStore {
             let response: ListCommentsResponse;
 
             if (target.type === 'group') {
-                response = await apiClient.getGroupComments(target.groupId, this.#apiCursor || undefined);
+                response = await apiClient.listGroupComments(target.groupId, this.#apiCursor ? { cursor: this.#apiCursor } : undefined);
             } else {
-                response = await apiClient.getExpenseComments(target.expenseId, this.#apiCursor || undefined);
+                response = await apiClient.listExpenseComments(target.expenseId, this.#apiCursor ? { cursor: this.#apiCursor } : undefined);
             }
 
             this.#apiHasMore = response.hasMore;
@@ -394,9 +394,9 @@ export class CommentsStoreImpl implements CommentsStore {
             let response: ListCommentsResponse;
 
             if (target.type === 'group') {
-                response = await apiClient.getGroupComments(target.groupId, this.#apiCursor);
+                response = await apiClient.listGroupComments(target.groupId, this.#apiCursor ? { cursor: this.#apiCursor } : undefined);
             } else {
-                response = await apiClient.getExpenseComments(target.expenseId, this.#apiCursor);
+                response = await apiClient.listExpenseComments(target.expenseId, this.#apiCursor ? { cursor: this.#apiCursor } : undefined);
             }
 
             this.#apiHasMore = response.hasMore;
