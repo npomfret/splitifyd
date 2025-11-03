@@ -12,7 +12,10 @@ Read these first!
 Remember: 
 
  * failing tests, or compile errors are not permitted. You are not finished if you have left the project in a broken state.
- * do not run full test suites (they are too slow), instead: pick and choose isolated tests to run (assume the user will run the full suite)
+ * do not run full test suites (they are too slow), instead: pick and choose isolated test(s) to run (assume the user will run the full suite)
+ * you will run individual tests and wait until they pass or fail
+ * you will fix failing tests and after the fix you will re-run them and ensure they pass
+ * you will NEVER lie and say a test has passed if you have not run it to completion
 
 ## Available Tools
 
