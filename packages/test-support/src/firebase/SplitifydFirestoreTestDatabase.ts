@@ -83,6 +83,45 @@ export class SplitifydFirestoreTestDatabase extends StubFirestoreDatabase {
         this.seed(`policies/${policyId}`, firestoreData);
     }
 
+    seedTenantDocument(tenantId: string, tenantData: Record<string, any> = {}): void {
+        const now = Timestamp.now();
+        const defaultTenantData = {
+            id: tenantId,
+            branding: {
+                appName: 'Test Tenant',
+                logoUrl: '/logo.svg',
+                faviconUrl: '/favicon.ico',
+                primaryColor: '#1a73e8',
+                secondaryColor: '#34a853',
+                marketingFlags: {
+                    showLandingPage: true,
+                    showMarketingContent: true,
+                    showPricingPage: true,
+                    showBlogPage: false,
+                },
+            },
+            features: {
+                enableAdvancedReporting: false,
+                enableMultiCurrency: false,
+                enableCustomFields: false,
+                maxGroupsPerUser: 10,
+                maxUsersPerGroup: 20,
+            },
+            domains: {
+                primary: 'test.example.com',
+                aliases: [],
+                normalized: ['test.example.com'],
+            },
+            defaultTenant: false,
+            createdAt: now,
+            updatedAt: now,
+            ...tenantData,
+        };
+
+        const firestoreData = this.convertDatesToTimestamps(defaultTenantData);
+        this.seed(`tenants/${tenantId}`, firestoreData);
+    }
+
     initializeGroupBalance(groupId: GroupId): void {
         const initialBalance = {
             groupId,

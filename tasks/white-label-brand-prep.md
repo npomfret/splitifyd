@@ -12,7 +12,7 @@
 **Phase 6 - Tenant Admin Panel ✅ (Complete)**
 - ✅ Backend APIs under `/settings/tenant` prefix
   - `GET /settings/tenant` endpoint with types and validation
-  - `PUT /settings/tenant/branding` endpoint (returns 501 stub)
+  - `PUT /settings/tenant/branding` endpoint ✅ **FULLY IMPLEMENTED**
   - `GET /settings/tenant/domains` endpoint with types and validation
   - `POST /settings/tenant/domains` endpoint (returns 501 stub)
 - ✅ Branding Editor UI (`/settings/tenant/branding`)
@@ -144,6 +144,43 @@
 - Test status: All tests passing (229 unit + 335 integration = 564 total)
 - TypeScript compilation: ✅ No errors
 
+**Phase 6c - Branding Backend Implementation (Complete):**
+- Implemented `PUT /settings/tenant/branding` endpoint with full functionality:
+  - Validates request body using `UpdateTenantBrandingRequestSchema` (Zod)
+  - Supports partial updates for all branding fields
+  - Updates nested Firestore fields using dot notation (e.g., `branding.appName`)
+  - Handles partial marketing flags updates without overwriting other flags
+  - Automatically updates `updatedAt` timestamp on every change
+  - Clears tenant registry cache to force config reload after updates
+  - Returns appropriate HTTP status codes (200, 400, 500)
+- Added Firestore writer method:
+  - `IFirestoreWriter.updateTenantBranding()` interface method
+  - `FirestoreWriter.updateTenantBranding()` implementation
+  - Properly maps flat update object to nested Firestore paths
+  - Returns `WriteResult` with success/error status
+- Schema validation (`firebase/functions/src/schemas/tenant.ts`):
+  - `UpdateTenantBrandingRequestSchema` with partial field support
+  - All fields optional for incremental updates
+  - Strict mode prevents extra fields
+  - Branded type transformers applied to all fields
+- Comprehensive test coverage:
+  - **Unit tests (13 new)**: Schema validation tests in `tenant-schema.test.ts`
+    - Valid partial updates, validation errors, type transformations
+    - Marketing flags partial updates, empty object handling
+  - **Integration tests (7 new)**: Firestore integration tests in `tenant-firestore.test.ts`
+    - Single/multiple field updates, marketing flags, timestamp updates
+    - Non-existent tenant error handling
+    - Verifies data persistence in Firestore
+  - **App tests (7 new)**: End-to-end API tests in `app.test.ts`
+    - Tenant admin can update branding
+    - Partial field updates, marketing flags updates
+    - Validation error handling (empty strings, extra fields)
+    - Authorization checks (tenant_admin, system_admin, regular user)
+    - Verifies updates persist and are reflected in subsequent GET requests
+- Test status: All unit tests passing (37 in tenant-schema.test.ts)
+- TypeScript compilation: ✅ No errors
+- **End-to-end flow now working**: Frontend → API validation → Firestore write → Cache clear → Config reload
+
 ## Agent's Ideas (Based on App Analysis)
 
 *   **Extend `AppConfiguration` in `@splitifyd/shared`:**
@@ -234,5 +271,6 @@
 | Phase 3: Config Storage | ✅ Complete | Medium | Low |
 | Phase 4: Frontend Branding | ✅ Complete | Low | Low |
 | Phase 5: Feature Flags | ✅ Complete | Medium | Low |
-| Phase 6a: Branding Editor | ✅ Complete | Medium | Low |
-| Phase 6b: Domain Management | ✅ Complete | Medium | Low |
+| Phase 6a: Branding Editor UI | ✅ Complete | Medium | Low |
+| Phase 6b: Domain Management UI | ✅ Complete | Medium | Low |
+| Phase 6c: Branding Backend | ✅ Complete | Medium | Low |

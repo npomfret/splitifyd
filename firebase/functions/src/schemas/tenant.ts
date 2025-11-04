@@ -80,3 +80,19 @@ export const TenantDocumentSchema = z
     .strict();
 
 export type TenantDocument = z.infer<typeof TenantDocumentSchema>;
+
+/**
+ * Schema for updating tenant branding (partial update)
+ * Used for PUT /settings/tenant/branding endpoint
+ */
+export const UpdateTenantBrandingRequestSchema = z.object({
+    appName: z.string().min(1).transform(toTenantAppName).optional(),
+    logoUrl: z.string().min(1).transform(toTenantLogoUrl).optional(),
+    faviconUrl: z.string().min(1).transform(toTenantFaviconUrl).optional(),
+    primaryColor: z.string().min(1).transform(toTenantPrimaryColor).optional(),
+    secondaryColor: z.string().min(1).transform(toTenantSecondaryColor).optional(),
+    accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),
+    themePalette: z.string().min(1).transform(toTenantThemePaletteName).optional(),
+    customCSS: z.string().transform(toTenantCustomCss).optional(),
+    marketingFlags: BrandingMarketingFlagsSchema.partial().optional(),
+}).strict();

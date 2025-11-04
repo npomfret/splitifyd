@@ -2,6 +2,10 @@ import {
     toFeatureToggleAdvancedReporting,
     toFeatureToggleCustomFields,
     toFeatureToggleMultiCurrency,
+    toShowBlogPageFlag,
+    toShowLandingPageFlag,
+    toShowMarketingContentFlag,
+    toShowPricingPageFlag,
     toTenantAppName,
     toTenantDefaultFlag,
     toTenantDomainName,
@@ -19,12 +23,15 @@ import { FirestoreCollections } from '../../../constants';
 import { getFirestore } from '../../../firebase';
 import type { TenantDocument } from '../../../schemas/tenant';
 import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
+import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
 import type { TenantRegistryRecord } from '../../../services/firestore/IFirestoreReader';
 import { createFirestoreDatabase } from '../../../firestore-wrapper';
 
 describe('Tenant Firestore Integration', () => {
     const db = getFirestore();
-    const firestoreReader = new FirestoreReader(createFirestoreDatabase(db));
+    const wrappedDb = createFirestoreDatabase(db);
+    const firestoreReader = new FirestoreReader(wrappedDb);
+    const firestoreWriter = new FirestoreWriter(wrappedDb);
 
     const testTenantId = `test-tenant-${Date.now()}`;
     const defaultTenantId = `default-tenant-${Date.now()}`;
@@ -305,3 +312,145 @@ function assertTenantRegistryRecordStructure(record: TenantRegistryRecord): void
     expect(Array.isArray(record.domains)).toBe(true);
     expect(typeof record.isDefault).toBe('boolean');
 }
+
+describe('Tenant Branding Updates', () => {
+    const db = getFirestore();
+    const wrappedDb = createFirestoreDatabase(db);
+    const firestoreReader = new FirestoreReader(wrappedDb);
+    const firestoreWriter = new FirestoreWriter(wrappedDb);
+
+    const updateTestTenantId = `update-test-tenant-${Date.now()}`;
+
+    beforeAll(async () => {
+        // Create a test tenant for branding updates
+        const tenantDoc: Omit<TenantDocument, 'id'> = {
+            branding: {
+                appName: toTenantAppName('Original App Name'),
+                logoUrl: toTenantLogoUrl('https://original.example.com/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('https://original.example.com/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#000000'),
+                secondaryColor: toTenantSecondaryColor('#FFFFFF'),
+            },
+            features: {
+                enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
+                enableMultiCurrency: toFeatureToggleMultiCurrency(false),
+                enableCustomFields: toFeatureToggleCustomFields(false),
+                maxGroupsPerUser: toTenantMaxGroupsPerUser(10),
+                maxUsersPerGroup: toTenantMaxUsersPerGroup(20),
+            },
+            domains: {
+                primary: toTenantDomainName('update-test.example.com'),
+                aliases: [],
+                normalized: [toTenantDomainName('update-test.example.com')],
+            },
+            defaultTenant: toTenantDefaultFlag(false),
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+        };
+
+        await db.collection(FirestoreCollections.TENANTS).doc(updateTestTenantId).set(tenantDoc);
+    });
+
+    afterAll(async () => {
+        // Clean up test tenant
+        await db.collection(FirestoreCollections.TENANTS).doc(updateTestTenantId).delete();
+    });
+
+    it('should update single branding field', async () => {
+        const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
+            appName: toTenantAppName('Updated App Name'),
+        });
+
+        expect(result.success).toBe(true);
+
+        // Verify the update persisted
+        const tenant = await firestoreReader.getTenantById(toTenantId(updateTestTenantId));
+        expect(tenant?.tenant.branding.appName).toBe('Updated App Name');
+        expect(tenant?.tenant.branding.logoUrl).toBe('https://original.example.com/logo.svg'); // Unchanged
+    });
+
+    it('should update multiple branding fields', async () => {
+        const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
+            primaryColor: toTenantPrimaryColor('#FF0000'),
+            secondaryColor: toTenantSecondaryColor('#00FF00'),
+        });
+
+        expect(result.success).toBe(true);
+
+        // Verify the updates persisted
+        const tenant = await firestoreReader.getTenantById(toTenantId(updateTestTenantId));
+        expect(tenant?.tenant.branding.primaryColor).toBe('#FF0000');
+        expect(tenant?.tenant.branding.secondaryColor).toBe('#00FF00');
+    });
+
+    it('should update marketing flags', async () => {
+        const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
+            marketingFlags: {
+                showLandingPage: toShowLandingPageFlag(true),
+                showPricingPage: toShowPricingPageFlag(false),
+            },
+        });
+
+        expect(result.success).toBe(true);
+
+        // Verify the updates persisted
+        const tenant = await firestoreReader.getTenantById(toTenantId(updateTestTenantId));
+        expect(tenant?.tenant.branding.marketingFlags?.showLandingPage).toBe(true);
+        expect(tenant?.tenant.branding.marketingFlags?.showPricingPage).toBe(false);
+    });
+
+    it('should update partial marketing flags without affecting other flags', async () => {
+        // First set all flags
+        await firestoreWriter.updateTenantBranding(updateTestTenantId, {
+            marketingFlags: {
+                showLandingPage: toShowLandingPageFlag(true),
+                showMarketingContent: toShowMarketingContentFlag(true),
+                showPricingPage: toShowPricingPageFlag(true),
+                showBlogPage: toShowBlogPageFlag(true),
+            },
+        });
+
+        // Then update only one flag
+        const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
+            marketingFlags: {
+                showLandingPage: toShowLandingPageFlag(false),
+            },
+        });
+
+        expect(result.success).toBe(true);
+
+        // Verify only the specified flag changed
+        const tenant = await firestoreReader.getTenantById(toTenantId(updateTestTenantId));
+        expect(tenant?.tenant.branding.marketingFlags?.showLandingPage).toBe(false);
+        expect(tenant?.tenant.branding.marketingFlags?.showMarketingContent).toBe(true); // Unchanged
+        expect(tenant?.tenant.branding.marketingFlags?.showPricingPage).toBe(true); // Unchanged
+        expect(tenant?.tenant.branding.marketingFlags?.showBlogPage).toBe(true); // Unchanged
+    });
+
+    it('should update updatedAt timestamp', async () => {
+        const beforeUpdate = await firestoreReader.getTenantById(toTenantId(updateTestTenantId));
+        const beforeTimestamp = beforeUpdate?.tenant.updatedAt;
+
+        // Wait a bit to ensure timestamp difference
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        await firestoreWriter.updateTenantBranding(updateTestTenantId, {
+            appName: toTenantAppName('Timestamp Test'),
+        });
+
+        const afterUpdate = await firestoreReader.getTenantById(toTenantId(updateTestTenantId));
+        const afterTimestamp = afterUpdate?.tenant.updatedAt;
+
+        expect(afterTimestamp).not.toBe(beforeTimestamp);
+    });
+
+    it('should handle non-existent tenant gracefully', async () => {
+        const result = await firestoreWriter.updateTenantBranding('non-existent-tenant', {
+            appName: toTenantAppName('Should Fail'),
+        });
+
+        // updateTenantBranding will return success=false on error
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+    });
+});

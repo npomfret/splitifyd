@@ -1234,4 +1234,55 @@ export class FirestoreWriter implements IFirestoreWriter {
     getDocumentReferenceInTransaction(transaction: ITransaction, collection: string, documentId: string) {
         return this.db.collection(collection).doc(documentId);
     }
+
+    // ========================================================================
+    // Tenant Write Operations
+    // ========================================================================
+
+    /**
+     * Update tenant branding configuration
+     * Updates the branding fields within a tenant document
+     * @param tenantId - The tenant ID to update
+     * @param brandingUpdates - Partial branding updates (pre-validated by schema)
+     * @returns Write result with document ID and success status
+     */
+    async updateTenantBranding(tenantId: string, brandingUpdates: Record<string, any>): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updateTenantBranding', async () => {
+            try {
+                const tenantRef = this.db.collection(FirestoreCollections.TENANTS).doc(tenantId);
+
+                // Build update object with nested field updates for branding
+                const updates: Record<string, any> = {
+                    updatedAt: FieldValue.serverTimestamp(),
+                };
+
+                // Map each branding field to nested Firestore path
+                for (const [key, value] of Object.entries(brandingUpdates)) {
+                    if (key === 'marketingFlags' && typeof value === 'object') {
+                        // Handle nested marketingFlags updates
+                        for (const [flagKey, flagValue] of Object.entries(value)) {
+                            updates[`branding.marketingFlags.${flagKey}`] = flagValue;
+                        }
+                    } else {
+                        // Direct branding field update
+                        updates[`branding.${key}`] = value;
+                    }
+                }
+
+                await tenantRef.update(updates);
+
+                return {
+                    id: tenantId,
+                    success: true,
+                };
+            } catch (error) {
+                logger.error('Failed to update tenant branding', error, { tenantId, brandingUpdates });
+                return {
+                    id: tenantId,
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error',
+                };
+            }
+        });
+    }
 }

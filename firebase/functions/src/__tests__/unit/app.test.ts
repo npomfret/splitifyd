@@ -3485,6 +3485,8 @@ describe('app tests', () => {
         const regularUser = user2;
 
         beforeEach(() => {
+            // Seed tenant document for tenant settings tests
+            appDriver.seedTenantDocument('system-fallback-tenant');
             // Seed tenant admin user for tenant settings tests
             appDriver.seedTenantAdminUser(tenantAdmin, {});
         });
@@ -3557,7 +3559,7 @@ describe('app tests', () => {
         });
 
         describe('PUT /settings/tenant/branding', () => {
-            it('should return 501 not implemented for branding update', async () => {
+            it('should allow tenant admin to update branding', async () => {
                 const brandingData = {
                     appName: 'Custom Brand',
                     primaryColor: '#FF0000',
@@ -3566,9 +3568,71 @@ describe('app tests', () => {
                 const result = await appDriver.updateTenantBranding(tenantAdmin, brandingData);
 
                 expect(result).toMatchObject({
+                    message: 'Tenant branding updated successfully',
+                });
+
+                // Verify the update persisted
+                const settings = await appDriver.getTenantSettings(tenantAdmin);
+                expect(settings.config.branding.appName).toBe('Custom Brand');
+                expect(settings.config.branding.primaryColor).toBe('#FF0000');
+            });
+
+            it('should update partial branding fields', async () => {
+                const result = await appDriver.updateTenantBranding(tenantAdmin, {
+                    logoUrl: 'https://custom.com/logo.svg',
+                });
+
+                expect(result).toMatchObject({
+                    message: 'Tenant branding updated successfully',
+                });
+
+                const settings = await appDriver.getTenantSettings(tenantAdmin);
+                expect(settings.config.branding.logoUrl).toBe('https://custom.com/logo.svg');
+            });
+
+            it('should update marketing flags', async () => {
+                const result = await appDriver.updateTenantBranding(tenantAdmin, {
+                    marketingFlags: {
+                        showLandingPage: false,
+                        showPricingPage: true,
+                    },
+                });
+
+                expect(result).toMatchObject({
+                    message: 'Tenant branding updated successfully',
+                });
+
+                const settings = await appDriver.getTenantSettings(tenantAdmin);
+                expect(settings.config.branding.marketingFlags?.showLandingPage).toBe(false);
+                expect(settings.config.branding.marketingFlags?.showPricingPage).toBe(true);
+            });
+
+            it('should reject invalid branding data', async () => {
+                const invalidData = {
+                    appName: '', // Empty string not allowed
+                };
+
+                const result = await appDriver.updateTenantBranding(tenantAdmin, invalidData);
+
+                expect(result).toMatchObject({
                     error: {
-                        code: 'NOT_IMPLEMENTED',
-                        message: expect.stringContaining('not yet implemented'),
+                        code: 'VALIDATION_ERROR',
+                        message: expect.stringContaining('Invalid branding update request'),
+                    },
+                });
+            });
+
+            it('should reject extra fields', async () => {
+                const invalidData = {
+                    appName: 'Valid',
+                    unexpectedField: 'should fail',
+                };
+
+                const result = await appDriver.updateTenantBranding(tenantAdmin, invalidData);
+
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'VALIDATION_ERROR',
                     },
                 });
             });
@@ -3583,6 +3647,19 @@ describe('app tests', () => {
                     error: {
                         code: 'FORBIDDEN',
                     },
+                });
+            });
+
+            it('should allow system admin to update branding', async () => {
+                const systemAdmin = user3;
+                appDriver.seedAdminUser(systemAdmin, {});
+
+                const result = await appDriver.updateTenantBranding(systemAdmin, {
+                    appName: 'System Admin Updated',
+                });
+
+                expect(result).toMatchObject({
+                    message: 'Tenant branding updated successfully',
                 });
             });
         });

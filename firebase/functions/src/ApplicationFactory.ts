@@ -334,14 +334,66 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     };
 
     const updateTenantBranding: RequestHandler = async (req, res) => {
-        // TODO: Implement tenant branding update
-        // This will update the tenant configuration in Firestore
-        res.status(501).json({
-            error: {
-                code: 'NOT_IMPLEMENTED',
-                message: 'Tenant branding update not yet implemented'
+        try {
+            const tenantId = (req as any).tenantId;
+
+            if (!tenantId) {
+                res.status(400).json({
+                    error: {
+                        code: 'MISSING_TENANT_ID',
+                        message: 'Tenant ID not found in request context',
+                    },
+                });
+                return;
             }
-        });
+
+            // Import the validation schema
+            const { UpdateTenantBrandingRequestSchema } = await import('./schemas/tenant');
+
+            // Validate request body
+            const parseResult = UpdateTenantBrandingRequestSchema.safeParse(req.body);
+
+            if (!parseResult.success) {
+                res.status(400).json({
+                    error: {
+                        code: 'VALIDATION_ERROR',
+                        message: 'Invalid branding update request',
+                        details: parseResult.error.issues,
+                    },
+                });
+                return;
+            }
+
+            const brandingUpdates = parseResult.data;
+
+            // Update tenant branding in Firestore
+            const result = await firestoreWriter.updateTenantBranding(tenantId, brandingUpdates);
+
+            if (!result.success) {
+                res.status(500).json({
+                    error: {
+                        code: 'UPDATE_FAILED',
+                        message: result.error || 'Failed to update tenant branding',
+                    },
+                });
+                return;
+            }
+
+            // Clear tenant registry cache to force reload of updated configuration
+            tenantRegistryService.clearCache();
+
+            res.json({
+                message: 'Tenant branding updated successfully',
+            });
+        } catch (error) {
+            logger.error('Failed to update tenant branding', error);
+            res.status(500).json({
+                error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Failed to update tenant branding',
+                },
+            });
+        }
     };
 
     const listTenantDomains: RequestHandler = async (req, res) => {

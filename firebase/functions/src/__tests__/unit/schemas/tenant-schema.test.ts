@@ -1,7 +1,7 @@
 import { toTenantDefaultFlag, toTenantDomainName } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 import { describe, expect, it } from 'vitest';
-import { TenantDocumentSchema } from '../../../schemas/tenant';
+import { TenantDocumentSchema, UpdateTenantBrandingRequestSchema } from '../../../schemas/tenant';
 
 describe('TenantDocumentSchema', () => {
     const validTenantData = {
@@ -334,6 +334,169 @@ describe('TenantDocumentSchema', () => {
 
             expect(result.createdAt).toBeInstanceOf(Timestamp);
             expect(result.updatedAt).toBeInstanceOf(Timestamp);
+        });
+    });
+});
+
+describe('UpdateTenantBrandingRequestSchema', () => {
+    describe('valid updates', () => {
+        it('should validate complete branding update with all fields', () => {
+            const updateData = {
+                appName: 'Updated App',
+                logoUrl: 'https://updated.com/logo.svg',
+                faviconUrl: 'https://updated.com/favicon.ico',
+                primaryColor: '#112233',
+                secondaryColor: '#445566',
+                accentColor: '#778899',
+                themePalette: 'ocean',
+                customCSS: '.custom { color: red; }',
+                marketingFlags: {
+                    showLandingPage: false,
+                    showMarketingContent: true,
+                    showPricingPage: false,
+                    showBlogPage: true,
+                },
+            };
+
+            const result = UpdateTenantBrandingRequestSchema.parse(updateData);
+
+            expect(result.appName).toBe('Updated App');
+            expect(result.primaryColor).toBe('#112233');
+            expect(result.marketingFlags?.showLandingPage).toBe(false);
+        });
+
+        it('should validate partial branding update with single field', () => {
+            const updateData = {
+                appName: 'New Name',
+            };
+
+            const result = UpdateTenantBrandingRequestSchema.parse(updateData);
+
+            expect(result.appName).toBe('New Name');
+            expect(result.logoUrl).toBeUndefined();
+            expect(result.primaryColor).toBeUndefined();
+        });
+
+        it('should validate partial branding update with colors only', () => {
+            const updateData = {
+                primaryColor: '#FF0000',
+                secondaryColor: '#00FF00',
+            };
+
+            const result = UpdateTenantBrandingRequestSchema.parse(updateData);
+
+            expect(result.primaryColor).toBe('#FF0000');
+            expect(result.secondaryColor).toBe('#00FF00');
+            expect(result.appName).toBeUndefined();
+        });
+
+        it('should validate partial marketing flags update', () => {
+            const updateData = {
+                marketingFlags: {
+                    showLandingPage: true,
+                },
+            };
+
+            const result = UpdateTenantBrandingRequestSchema.parse(updateData);
+
+            expect(result.marketingFlags?.showLandingPage).toBe(true);
+            expect(result.marketingFlags?.showPricingPage).toBeUndefined();
+        });
+
+        it('should accept empty customCSS', () => {
+            const updateData = {
+                customCSS: '',
+            };
+
+            const result = UpdateTenantBrandingRequestSchema.parse(updateData);
+
+            expect(result.customCSS).toBe('');
+        });
+
+        it('should validate empty object (no updates)', () => {
+            const updateData = {};
+
+            const result = UpdateTenantBrandingRequestSchema.parse(updateData);
+
+            expect(Object.keys(result).length).toBe(0);
+        });
+    });
+
+    describe('validation errors', () => {
+        it('should reject empty string for required fields when provided', () => {
+            const updateData = {
+                appName: '',
+            };
+
+            expect(() => UpdateTenantBrandingRequestSchema.parse(updateData)).toThrow();
+        });
+
+        it('should reject empty string for URLs', () => {
+            const updateData = {
+                logoUrl: '',
+            };
+
+            expect(() => UpdateTenantBrandingRequestSchema.parse(updateData)).toThrow();
+        });
+
+        it('should reject empty string for colors', () => {
+            const updateData = {
+                primaryColor: '',
+            };
+
+            expect(() => UpdateTenantBrandingRequestSchema.parse(updateData)).toThrow();
+        });
+
+        it('should reject non-boolean marketing flags', () => {
+            const updateData = {
+                marketingFlags: {
+                    showLandingPage: 'yes',
+                },
+            };
+
+            expect(() => UpdateTenantBrandingRequestSchema.parse(updateData as any)).toThrow();
+        });
+
+        it('should reject extra fields in strict mode', () => {
+            const updateData = {
+                appName: 'Valid',
+                unexpectedField: 'should fail',
+            };
+
+            expect(() => UpdateTenantBrandingRequestSchema.parse(updateData)).toThrow();
+        });
+
+        it('should allow partial marketing flags (partial schema)', () => {
+            // Marketing flags use .partial() so all fields are optional
+            // This is intentional to allow incremental updates
+            const updateData = {
+                marketingFlags: {
+                    showLandingPage: true,
+                    // Other flags can be omitted
+                },
+            };
+
+            const result = UpdateTenantBrandingRequestSchema.parse(updateData);
+            expect(result.marketingFlags?.showLandingPage).toBe(true);
+        });
+    });
+
+    describe('type transformations', () => {
+        it('should apply branded type transformers to all fields', () => {
+            const updateData = {
+                appName: 'Branded App',
+                logoUrl: 'https://brand.com/logo.svg',
+                faviconUrl: 'https://brand.com/favicon.ico',
+                primaryColor: '#AABBCC',
+                secondaryColor: '#DDEEFF',
+            };
+
+            const result = UpdateTenantBrandingRequestSchema.parse(updateData);
+
+            // Branded types should be applied (validated by transformer functions)
+            expect(result.appName).toBe('Branded App');
+            expect(result.logoUrl).toBe('https://brand.com/logo.svg');
+            expect(result.primaryColor).toBe('#AABBCC');
         });
     });
 });

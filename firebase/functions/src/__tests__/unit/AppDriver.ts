@@ -369,6 +369,14 @@ export class AppDriver {
         });
     }
 
+    /**
+     * Seeds a tenant document in Firestore for testing tenant endpoints
+     * This creates the actual Firestore document that tenant update operations require
+     */
+    seedTenantDocument(tenantId: string, tenantData: Record<string, any> = {}) {
+        this.db.seedTenantDocument(tenantId, tenantData);
+    }
+
     dispose() {}
 
     async listGroups(options: ListGroupsOptions = {}, userId: UserId,) {
