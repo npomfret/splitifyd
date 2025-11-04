@@ -4,6 +4,7 @@ import {
     type ActivityFeedResponse,
     ApiSerializer,
     AuthenticatedFirebaseUser,
+    ChangeEmailRequest,
     CommentDTO,
     type CreateExpenseRequest,
     type CreateGroupRequest,
@@ -28,6 +29,7 @@ import {
     ListGroupsResponse,
     type MemberRole,
     MessageResponse,
+    PasswordChangeRequest,
     PolicyId,
     PooledTestUser,
     type PreviewGroupResponse,
@@ -39,7 +41,8 @@ import {
     toGroupName,
     type UpdateGroupRequest,
     type UpdateSettlementRequest,
-    type UpdateUserRequest,
+    UpdateUserProfileRequest,
+    UserPolicyStatusResponse,
     UserProfileResponse,
     UserRegistration,
     UserToken,
@@ -47,7 +50,6 @@ import {
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
-import {Password} from "@splitifyd/shared";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -222,7 +224,7 @@ export class ApiDriver {
         return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
     }
 
-    async generateShareableLink(groupId: GroupId | string, token: string, expiresAt: string | undefined = undefined): Promise<ShareLinkResponse> {
+    async generateShareableLink(groupId: GroupId | string, expiresAt: string | undefined = undefined, token: string): Promise<ShareLinkResponse> {
         const body: Record<string, unknown> = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;
@@ -261,7 +263,7 @@ export class ApiDriver {
 
     async addMembersViaShareLink(groupId: GroupId | string, toAdd: UserToken[], creatorToken: string) {
         if (toAdd.length > 0) {
-            const { shareToken } = await this.generateShareableLink(groupId, creatorToken);
+            const { shareToken } = await this.generateShareableLink(groupId, undefined, creatorToken);
 
             // Step 3: Have other members join using the share link
             for (const member of toAdd) {
@@ -405,20 +407,20 @@ export class ApiDriver {
         return await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
     }
 
-    async getUserPolicyStatus(token: string): Promise<any> {
+    async getUserPolicyStatus(token: string): Promise<UserPolicyStatusResponse> {
         return await this.apiRequest('/user/policies/status', 'GET', null, token);
     }
 
-    async changePassword(currentPassword: Password | string, newPassword: Password | string, token: string): Promise<MessageResponse> {
-        return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
+    async changePassword(passwordRequest: PasswordChangeRequest, token: string): Promise<MessageResponse> {
+        return await this.apiRequest('/user/change-password', 'POST', passwordRequest, token);
     }
 
-    async updateUserProfile(profileData: UpdateUserRequest, token: string): Promise<UserProfileResponse> {
+    async updateUserProfile(profileData: UpdateUserProfileRequest, token: string): Promise<UserProfileResponse> {
         return await this.apiRequest('/user/profile', 'PUT', profileData, token);
     }
 
-    async changeEmail(currentPassword: Password | string, newEmail: Email | string, token: string): Promise<UserProfileResponse> {
-        return await this.apiRequest('/user/change-email', 'POST', { currentPassword, newEmail }, token);
+    async changeEmail(changeEmailRequest: ChangeEmailRequest, token: string): Promise<UserProfileResponse> {
+        return await this.apiRequest('/user/change-email', 'POST', changeEmailRequest, token);
     }
 
     // Comment API methods

@@ -37,7 +37,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .build(),
                 users[0].token,
             );
-            const shareLink = await apiDriver.generateShareableLink(testGroup.id, users[0].token);
+            const shareLink = await apiDriver.generateShareableLink(testGroup.id, undefined, users[0].token);
             await apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token);
             await apiDriver.joinGroupByLink(shareLink.shareToken, users[2].token);
 

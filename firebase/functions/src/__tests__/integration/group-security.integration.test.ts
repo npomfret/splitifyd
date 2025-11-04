@@ -51,7 +51,7 @@ describe('Group Security Endpoints', () => {
                 settingsManagement: PermissionLevels.ADMIN_ONLY,
             });
 
-            const { shareToken } = await apiDriver.generateShareableLink(group.id, adminUser.token);
+            const { shareToken } = await apiDriver.generateShareableLink(group.id, undefined, adminUser.token);
 
             const joinResult = await apiDriver.joinGroupByLink(shareToken, memberUser.token);
             expect(joinResult.success).toBe(false);
