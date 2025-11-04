@@ -41,6 +41,7 @@ const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ 
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const UsersBrowserPage = lazy(() => import('./pages/browser/UsersBrowserPage').then((m) => ({ default: m.UsersBrowserPage })));
 const TenantBrandingPage = lazy(() => import('./pages/TenantBrandingPage').then((m) => ({ default: m.TenantBrandingPage })));
+const DomainManagementPage = lazy(() => import('./pages/DomainManagementPage').then((m) => ({ default: m.DomainManagementPage })));
 
 // Wrapper component to handle Suspense for lazy-loaded components
 function LazyRoute<T extends ComponentType<any>>({ component: Component, ...props }: LazyRouteProps<T>): VNode {
@@ -123,6 +124,7 @@ const JoinGroupRoute = createProtectedRoute(JoinGroupPage);
 const SettingsRoute = createProtectedRoute(SettingsPage);
 const UsersBrowserRoute = createProtectedRoute(UsersBrowserPage);
 const TenantBrandingRoute = createProtectedRoute(TenantBrandingPage);
+const DomainManagementRoute = createProtectedRoute(DomainManagementPage);
 
 export function App() {
     const authStore = useAuth();
@@ -172,6 +174,7 @@ export function App() {
                 {/* Settings Routes - Protected */}
                 <Route path='/settings' component={SettingsRoute} />
                 <Route path='/settings/tenant/branding' component={TenantBrandingRoute} />
+                <Route path='/settings/tenant/domains' component={DomainManagementRoute} />
 
                 {/* Browser Routes - Protected */}
                 {enableAdvancedReporting && <Route path='/browser/users' component={UsersBrowserRoute} />}

@@ -10,6 +10,7 @@ import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
     ActivityFeedResponse,
+    AddTenantDomainRequest,
     AppConfiguration,
     ChangeEmailRequest,
     CommentDTO,
@@ -1156,6 +1157,14 @@ class ApiClient {
             endpoint: '/settings/tenant/domains',
             method: 'GET',
             signal,
+        });
+    }
+
+    async addTenantDomain(data: AddTenantDomainRequest): Promise<MessageResponse> {
+        return this.request({
+            endpoint: '/settings/tenant/domains',
+            method: 'POST',
+            body: data,
         });
     }
 }

@@ -1437,3 +1437,11 @@ export interface TenantDomainsResponse {
     domains: TenantDomainName[];
     primaryDomain: TenantDomainName;
 }
+
+/**
+ * Add tenant domain request
+ * Used for POST /settings/tenant/domains endpoint
+ */
+export interface AddTenantDomainRequest {
+    domain: TenantDomainName;
+}

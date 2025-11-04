@@ -572,6 +572,7 @@ export const responseSchemas = {
     'GET /settings/tenant': TenantSettingsResponseSchema,
     'GET /settings/tenant/domains': TenantDomainsResponseSchema,
     'PUT /settings/tenant/branding': MessageResponseSchema,
+    'POST /settings/tenant/domains': MessageResponseSchema,
 } as const;
 
 // Schema for the currency-specific balance data used in GroupService.addComputedFields

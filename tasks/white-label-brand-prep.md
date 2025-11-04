@@ -9,21 +9,24 @@
 - Frontend dynamic branding (logos, colors, favicon)
 - Feature flags and conditional routing
 
-**Phase 6 - Tenant Admin Panel 🔄 (In Progress)**
+**Phase 6 - Tenant Admin Panel ✅ (Complete)**
 - ✅ Backend APIs under `/settings/tenant` prefix
   - `GET /settings/tenant` endpoint with types and validation
   - `PUT /settings/tenant/branding` endpoint (returns 501 stub)
   - `GET /settings/tenant/domains` endpoint with types and validation
+  - `POST /settings/tenant/domains` endpoint (returns 501 stub)
 - ✅ Branding Editor UI (`/settings/tenant/branding`)
   - Full-featured form with app name, logo URLs, favicon, color pickers
   - Marketing flags toggles (showLandingPage, showMarketingContent, showPricingPage)
   - Live preview panel with change detection
   - Role-based access control (tenant_admin/system_admin only)
   - Comprehensive test coverage: 18 Vitest unit tests + 11 Playwright E2E tests
-- 🔄 Domain Management UI (pending)
-  - List mapped domains with verification status
-  - DNS instruction widget for CNAME/SSL setup
-  - Add new domain form
+- ✅ Domain Management UI (`/settings/tenant/domains`)
+  - List mapped domains with primary domain badge
+  - DNS instruction widget with copy-to-clipboard functionality
+  - Add new domain form with real-time validation
+  - Role-based access control (tenant_admin/system_admin only)
+  - Comprehensive test coverage: 18 Vitest unit tests + 14 Playwright E2E tests
 
 ## Ideas
 - Centralize tenant branding (name, palette, logos, marketing flags) in a dedicated descriptor that both web and functions read, so swapping tenants is a config change rather than a code edit.
@@ -74,7 +77,7 @@
   - Pricing page conditional rendering (shows 404 when `showPricingPage: false`)
 - Test coverage now: 503 total tests (193 unit + 310 integration), all passing.
 
-**Phase 6 Branding Editor Implementation (In Progress):**
+**Phase 6a Branding Editor Implementation (Complete):**
 - Added tenant settings API types and schemas:
   - `TenantSettingsResponse`, `UpdateTenantBrandingRequest`, `TenantDomainsResponse` in `@splitifyd/shared`
   - Zod validation schemas: `TenantSettingsResponseSchema`, `TenantDomainsResponseSchema`
@@ -106,6 +109,39 @@
     - API request/response validation
     - Marketing flags display and toggling
 - Test status: All 532 tests passing (211 unit + 321 integration)
+- TypeScript compilation: ✅ No errors
+
+**Phase 6b Domain Management Implementation (Complete):**
+- Added domain management API type and schema:
+  - `AddTenantDomainRequest` interface in `@splitifyd/shared`
+  - Registered `POST /settings/tenant/domains` in `responseSchemas`
+- Enhanced API client with new method:
+  - `addTenantDomain()` - add new domain mapping (501 stub for now)
+- Implemented `DomainManagementPage` component (`/settings/tenant/domains`):
+  - Domain list displaying all configured domains with globe icons
+  - Primary domain badge to highlight the main domain
+  - Collapsible "Add Domain" form with input validation
+  - DNS configuration instructions with CNAME record details
+  - Copy-to-clipboard button for DNS instructions
+  - Role-based access control denies regular users (tenant_admin/system_admin only)
+  - Graceful error handling for 501 Not Implemented responses
+  - Loading states and error messages
+- Comprehensive test coverage (32 new tests):
+  - 18 Vitest unit tests covering:
+    - Access control for different user roles
+    - Loading states and error handling
+    - Domain list rendering and primary domain badge
+    - Add domain form visibility and interactions
+    - Form submission with API calls
+    - DNS instructions display
+  - 14 Playwright E2E tests with Page Object Model:
+    - Access control verification (3 tests)
+    - Domain list display with correct count (3 tests)
+    - Add domain form show/hide behavior (3 tests)
+    - Domain submission with API validation (3 tests)
+    - DNS instructions and copy button (2 tests)
+- Created `DomainManagementPage` Page Object Model in test-support package
+- Test status: All tests passing (229 unit + 335 integration = 564 total)
 - TypeScript compilation: ✅ No errors
 
 ## Agent's Ideas (Based on App Analysis)
@@ -199,4 +235,4 @@
 | Phase 4: Frontend Branding | ✅ Complete | Low | Low |
 | Phase 5: Feature Flags | ✅ Complete | Medium | Low |
 | Phase 6a: Branding Editor | ✅ Complete | Medium | Low |
-| Phase 6b: Domain Management | 🔄 Next | Medium | Low |
+| Phase 6b: Domain Management | ✅ Complete | Medium | Low |
