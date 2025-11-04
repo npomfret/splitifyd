@@ -2465,9 +2465,9 @@ describe('app tests', () => {
                     text: 'Terms of Service v1',
                 }, user1);
 
-                const result = await appDriver.acceptMultiplePolicies(user1, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                ]);
+                const result = await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                ], user1);
 
                 expect(result.success).toBe(true);
                 expect(result.acceptedPolicies).toHaveLength(1);
@@ -2492,11 +2492,11 @@ describe('app tests', () => {
                     text: 'Cookie Policy v1',
                 }, user1);
 
-                const result = await appDriver.acceptMultiplePolicies(user1, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                    { policyId: policy2.id, versionHash: policy2.versionHash },
-                    { policyId: policy3.id, versionHash: policy3.versionHash },
-                ]);
+                const result = await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    {policyId: policy2.id, versionHash: policy2.versionHash},
+                    {policyId: policy3.id, versionHash: policy3.versionHash},
+                ], user1);
 
                 expect(result.success).toBe(true);
                 expect(result.acceptedPolicies).toHaveLength(3);
@@ -2511,9 +2511,9 @@ describe('app tests', () => {
                     text: 'Terms of Service v1',
                 }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2525,16 +2525,16 @@ describe('app tests', () => {
 
         describe('acceptMultiplePolicies - validation and errors', () => {
             it('should reject empty acceptances array', async () => {
-                await expect(appDriver.acceptMultiplePolicies(user1, []))
+                await expect(appDriver.acceptMultiplePolicies([], user1))
                     .rejects
                     .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
             });
 
             it('should reject when policyId is missing', async () => {
                 await expect(
-                    appDriver.acceptMultiplePolicies(user1, [
-                        { policyId: '', versionHash: 'some-hash' },
-                    ]),
+                    appDriver.acceptMultiplePolicies([
+                        {policyId: '', versionHash: 'some-hash'},
+                    ], user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
@@ -2542,9 +2542,9 @@ describe('app tests', () => {
 
             it('should reject when versionHash is missing', async () => {
                 await expect(
-                    appDriver.acceptMultiplePolicies(user1, [
-                        { policyId: 'some-policy', versionHash: '' },
-                    ]),
+                    appDriver.acceptMultiplePolicies([
+                        {policyId: 'some-policy', versionHash: ''},
+                    ], user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
@@ -2552,9 +2552,9 @@ describe('app tests', () => {
 
             it('should reject when policy does not exist', async () => {
                 await expect(
-                    appDriver.acceptMultiplePolicies(user1, [
-                        { policyId: 'non-existent-policy', versionHash: 'some-hash' },
-                    ]),
+                    appDriver.acceptMultiplePolicies([
+                        {policyId: 'non-existent-policy', versionHash: 'some-hash'},
+                    ], user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'POLICY_NOT_FOUND' });
@@ -2567,9 +2567,9 @@ describe('app tests', () => {
                 }, user1);
 
                 await expect(
-                    appDriver.acceptMultiplePolicies(user1, [
-                        { policyId: policy1.id, versionHash: 'invalid-version-hash' },
-                    ]),
+                    appDriver.acceptMultiplePolicies([
+                        {policyId: policy1.id, versionHash: 'invalid-version-hash'},
+                    ], user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_VERSION_HASH' });
@@ -2582,10 +2582,10 @@ describe('app tests', () => {
                 }, user1);
 
                 await expect(
-                    appDriver.acceptMultiplePolicies(user1, [
-                        { policyId: policy1.id, versionHash: policy1.versionHash },
-                        { policyId: 'non-existent', versionHash: 'some-hash' },
-                    ]),
+                    appDriver.acceptMultiplePolicies([
+                        {policyId: policy1.id, versionHash: policy1.versionHash},
+                        {policyId: 'non-existent', versionHash: 'some-hash'},
+                    ], user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'POLICY_NOT_FOUND' });
@@ -2635,10 +2635,10 @@ describe('app tests', () => {
                     text: 'Privacy Policy v1',
                 }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                    { policyId: policy2.id, versionHash: policy2.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    {policyId: policy2.id, versionHash: policy2.versionHash},
+                ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2658,16 +2658,16 @@ describe('app tests', () => {
                     text: 'Terms of Service v1',
                 }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                ], user2);
 
                 const oldVersionHash = policy1.versionHash;
 
-                const updatedPolicy = await appDriver.updatePolicy(user1, policy1.id, {
+                const updatedPolicy = await appDriver.updatePolicy(policy1.id, {
                     text: 'Terms of Service v2 - updated',
                     publish: true,
-                });
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2699,15 +2699,15 @@ describe('app tests', () => {
                     text: 'Cookie Policy v1',
                 }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                    { policyId: policy2.id, versionHash: policy2.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    {policyId: policy2.id, versionHash: policy2.versionHash},
+                ], user2);
 
-                await appDriver.updatePolicy(user1, policy1.id, {
+                await appDriver.updatePolicy(policy1.id, {
                     text: 'Terms of Service v2',
                     publish: true,
-                });
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2749,9 +2749,9 @@ describe('app tests', () => {
                     text: 'Terms of Service v1',
                 }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2787,9 +2787,9 @@ describe('app tests', () => {
                     text: 'Cookie Policy v1',
                 }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -3408,10 +3408,10 @@ describe('app tests', () => {
                 versionHash: expect.any(String),
             });
 
-            const draftUpdate = await appDriver.updatePolicy(policyAdmin, created.id, {
+            const draftUpdate = await appDriver.updatePolicy(created.id, {
                 text: 'Updated draft policy text',
                 publish: false,
-            });
+            }, policyAdmin);
 
             expect(draftUpdate).toMatchObject({
                 success: true,
@@ -3419,10 +3419,10 @@ describe('app tests', () => {
                 versionHash: expect.any(String),
             });
 
-            const publishedUpdate = await appDriver.updatePolicy(policyAdmin, created.id, {
+            const publishedUpdate = await appDriver.updatePolicy(created.id, {
                 text: 'Final published policy text',
                 publish: true,
-            });
+            }, policyAdmin);
 
             expect(publishedUpdate).toMatchObject({
                 success: true,
@@ -3444,10 +3444,10 @@ describe('app tests', () => {
             const policyId = 'terms-of-service';
 
             await expect(
-                appDriver.updatePolicy(policyAdmin, policyId, {
+                appDriver.updatePolicy(policyId, {
                     text: 'Updated terms version 1',
                     publish: true,
-                }),
+                }, policyAdmin),
             )
                 .rejects
                 .toThrow(/Policy not found/);
@@ -3459,10 +3459,10 @@ describe('app tests', () => {
 
             expect(created.id).toBe(policyId);
 
-            const update = await appDriver.updatePolicy(policyAdmin, created.id, {
+            const update = await appDriver.updatePolicy(created.id, {
                 text: 'Updated terms version 2',
                 publish: true,
-            });
+            }, policyAdmin);
 
             expect(update).toMatchObject({
                 success: true,

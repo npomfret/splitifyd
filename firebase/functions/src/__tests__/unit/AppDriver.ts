@@ -1,5 +1,6 @@
 import {
     AcceptMultiplePoliciesResponse,
+    AcceptPolicyRequest,
     ActivityFeedEventType,
     ActivityFeedEventTypes,
     ActivityFeedItem,
@@ -7,6 +8,7 @@ import {
     CommentDTO,
     CommentText,
     CreateExpenseRequest,
+    CreatePolicyRequest,
     CreatePolicyResponse,
     CreateSettlementRequest,
     CurrentPolicyResponse,
@@ -15,6 +17,7 @@ import {
     ExpenseFullDetailsDTO,
     GetActivityFeedOptions,
     GetGroupFullDetailsOptions,
+    GetPendingMembersResponse,
     GroupDTO,
     GroupFullDetailsDTO,
     GroupId,
@@ -25,6 +28,7 @@ import {
     ListCommentsResponse,
     ListGroupsOptions,
     ListGroupsResponse,
+    ListPoliciesResponse,
     MemberRole,
     MemberStatus,
     MessageResponse,
@@ -39,6 +43,7 @@ import {
     ShareLinkResponse,
     UpdateExpenseRequest,
     UpdateGroupRequest,
+    UpdatePolicyRequest,
     UpdatePolicyResponse,
     UpdateSettlementRequest,
     UpdateUserProfileRequest,
@@ -471,11 +476,10 @@ export class AppDriver {
         return res.getJson() as MessageResponse;
     }
 
-    //todo
-    async getPendingMembers(groupId: GroupId | string, userId: UserId): Promise<{ members: GroupMembershipDTO[] }> {
+    async getPendingMembers(groupId: GroupId | string, userId: UserId): Promise<GetPendingMembersResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = await this.dispatchByHandler('getPendingMembers', req);
-        return res.getJson() as { members: GroupMembershipDTO[]; };
+        return res.getJson() as GetPendingMembersResponse;
     }
 
     async updateMemberRole(groupId: GroupId | string, memberId: UserId, role: MemberRole, userId: UserId): Promise<MessageResponse> {
@@ -581,7 +585,7 @@ export class AppDriver {
         return settlement;
     }
 
-    async createGroupComment(groupId: GroupId | string, text: CommentText | string, userId: UserId): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId | string, text: CommentText, userId: UserId): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { groupId });
         const res = await this.dispatchByHandler('createComment', req);
         return res.getJson() as CommentDTO;
@@ -601,7 +605,7 @@ export class AppDriver {
         return res.getJson() as ListCommentsResponse;
     }
 
-    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, userId: UserId): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText, userId: UserId): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { expenseId });
         const res = await this.dispatchByHandler('createCommentForExpense', req);
         return res.getJson() as CommentDTO;
@@ -651,18 +655,16 @@ export class AppDriver {
         return res.getJson() as RegisterUserResult;
     }
 
-    //todo
-    async createPolicy(policyData: { policyName: string; text: string }, userId: UserId): Promise<CreatePolicyResponse> {
+    async createPolicy(policyData: CreatePolicyRequest, userId: UserId): Promise<CreatePolicyResponse> {
         const req = createStubRequest(userId, policyData);
         const res = await this.dispatchByHandler('createPolicy', req);
         return res.getJson() as CreatePolicyResponse;
     }
 
-    //todo
-    async listPolicies(userId: UserId): Promise<{ policies: PolicyDTO[]; count: number; }> {
+    async listPolicies(userId: UserId): Promise<ListPoliciesResponse> {
         const req = createStubRequest(userId, {});
         const res = await this.dispatchByHandler('listPolicies', req);
-        return res.getJson() as { policies: PolicyDTO[]; count: number; };
+        return res.getJson() as ListPoliciesResponse;
     }
 
     async getPolicy(policyId: PolicyId, userId: UserId): Promise<PolicyDTO> {
@@ -677,8 +679,7 @@ export class AppDriver {
         return res.getJson() as PolicyVersion & { versionHash: VersionHash; };
     }
 
-    //todo
-    async updatePolicy(userId: UserId, policyId: PolicyId, updateData: { text: string; publish?: boolean; }): Promise<UpdatePolicyResponse> {
+    async updatePolicy(policyId: PolicyId, updateData: UpdatePolicyRequest, userId: UserId): Promise<UpdatePolicyResponse> {
         const req = createStubRequest(userId, updateData, { id: policyId });
         const res = await this.dispatchByHandler('updatePolicy', req);
         return res.getJson() as UpdatePolicyResponse;
@@ -696,8 +697,7 @@ export class AppDriver {
         return res.getJson() as DeletePolicyVersionResponse;
     }
 
-    //todo
-    async acceptMultiplePolicies(userId: UserId, acceptances: Array<{ policyId: PolicyId; versionHash: VersionHash; }>): Promise<AcceptMultiplePoliciesResponse> {
+    async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], userId: UserId): Promise<AcceptMultiplePoliciesResponse> {
         const req = createStubRequest(userId, { acceptances });
         const res = await this.dispatchByHandler('acceptMultiplePolicies', req);
         return res.getJson() as AcceptMultiplePoliciesResponse;

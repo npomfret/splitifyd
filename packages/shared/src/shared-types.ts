@@ -1068,6 +1068,29 @@ export interface DeletePolicyVersionResponse {
 }
 
 // ========================================================================
+// Policy Admin Request Types
+// ========================================================================
+
+export interface CreatePolicyRequest {
+    policyName: string;
+    text: string;
+}
+
+export interface UpdatePolicyRequest {
+    text: string;
+    publish?: boolean;
+}
+
+export interface ListPoliciesResponse {
+    policies: PolicyDTO[];
+    count: number;
+}
+
+export interface GetPendingMembersResponse {
+    members: GroupMembershipDTO[];
+}
+
+// ========================================================================
 // Test Pool Response Types
 // ========================================================================
 
