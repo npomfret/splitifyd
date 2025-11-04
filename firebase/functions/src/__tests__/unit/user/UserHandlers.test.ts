@@ -31,7 +31,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withDisplayName('New Name')
                 .build();
 
-            const result = await appDriver.updateUserProfile(userId, updateRequest);
+            const result = await appDriver.updateUserProfile(updateRequest, userId);
 
             expect(result).toMatchObject({
                 displayName: 'New Name',
@@ -53,7 +53,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withPreferredLanguage('en')
                 .build();
 
-            await appDriver.updateUserProfile(userId, updateRequest);
+            await appDriver.updateUserProfile(updateRequest, userId);
         });
 
         it('should update multiple fields at once', async () => {
@@ -72,7 +72,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withPreferredLanguage('en')
                 .build();
 
-            const result = await appDriver.updateUserProfile(userId, updateRequest);
+            const result = await appDriver.updateUserProfile(updateRequest, userId);
 
             expect(result).toMatchObject({
                 displayName: 'New Name',
@@ -83,7 +83,7 @@ describe('UserHandlers - Unit Tests', () => {
             const userId = 'test-user-123';
             const updateRequest = {};
 
-            await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateUserProfile(updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -98,7 +98,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withDisplayName(longName)
                 .build();
 
-            await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateUserProfile(updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -112,7 +112,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withDisplayName('')
                 .build();
 
-            await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateUserProfile(updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -126,7 +126,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withPreferredLanguage('invalid-lang')
                 .build();
 
-            await expect(appDriver.updateUserProfile(userId, updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateUserProfile(updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -151,7 +151,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword('NewValidPass456!')
                 .build();
 
-            const result = await appDriver.changePassword(userId, passwordRequest);
+            const result = await appDriver.changePassword(passwordRequest, userId);
 
             expect(result).toMatchObject({
                 message: 'Password changed successfully',
@@ -172,7 +172,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword('lowercaseonlypass')
                 .build();
 
-            await expect(appDriver.changePassword(userId, passwordRequest)).resolves.toMatchObject({
+            await expect(appDriver.changePassword(passwordRequest, userId)).resolves.toMatchObject({
                 message: 'Password changed successfully',
             });
         });
@@ -191,7 +191,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword('OnlyLettersHere')
                 .build();
 
-            await expect(appDriver.changePassword(userId, passwordRequest)).resolves.toMatchObject({
+            await expect(appDriver.changePassword(passwordRequest, userId)).resolves.toMatchObject({
                 message: 'Password changed successfully',
             });
         });
@@ -203,7 +203,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword('Pass1!')
                 .build();
 
-            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
+            await expect(appDriver.changePassword(passwordRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -219,7 +219,7 @@ describe('UserHandlers - Unit Tests', () => {
                 .withNewPassword(samePassword)
                 .build();
 
-            await expect(appDriver.changePassword(userId, passwordRequest)).rejects.toThrow(
+            await expect(appDriver.changePassword(passwordRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',

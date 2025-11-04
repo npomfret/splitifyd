@@ -25,7 +25,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withDescription('A test group description')
                 .build();
 
-            const result = await appDriver.createGroup(userId, groupRequest);
+            const result = await appDriver.createGroup(groupRequest, userId);
 
             expect(result).toMatchObject({
                 id: expect.any(String),
@@ -45,7 +45,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .build();
             delete (groupRequest as any).description;
 
-            const result = await appDriver.createGroup(userId, groupRequest);
+            const result = await appDriver.createGroup(groupRequest, userId);
 
             expect(result).toMatchObject({
                 name: 'Simple Group',
@@ -57,7 +57,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withName('')
                 .build();
 
-            await expect(appDriver.createGroup('test-user', groupRequest)).rejects.toThrow(
+            await expect(appDriver.createGroup(groupRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -71,7 +71,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withName(longName)
                 .build();
 
-            await expect(appDriver.createGroup('test-user', groupRequest)).rejects.toThrow(
+            await expect(appDriver.createGroup(groupRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -84,7 +84,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withGroupDisplayName('')
                 .build();
 
-            await expect(appDriver.createGroup('test-user', groupRequest)).rejects.toThrow(
+            await expect(appDriver.createGroup(groupRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -97,7 +97,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withGroupDisplayName('Name<script>')
                 .build();
 
-            await expect(appDriver.createGroup('test-user', groupRequest)).rejects.toThrow(
+            await expect(appDriver.createGroup(groupRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -112,7 +112,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withDescription(longDescription)
                 .build();
 
-            await expect(appDriver.createGroup('test-user', groupRequest)).rejects.toThrow(
+            await expect(appDriver.createGroup(groupRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -123,7 +123,7 @@ describe('GroupHandlers - Unit Tests', () => {
         it('should reject group creation with missing name field', async () => {
             const invalidRequest = {};
 
-            await expect(appDriver.createGroup('test-user', invalidRequest as any)).rejects.toThrow(
+            await expect(appDriver.createGroup(invalidRequest as any, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -137,18 +137,15 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const group = await appDriver.createGroup(
-                userId,
-                new CreateGroupRequestBuilder()
-                    .withName('Old Name')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
+                .withName('Old Name')
+                .build(), userId);
 
             const updateRequest = new GroupUpdateBuilder()
                 .withName('New Name')
                 .build();
 
-            const result = await appDriver.updateGroup(userId, group.id, updateRequest);
+            const result = await appDriver.updateGroup(group.id, updateRequest, userId);
 
             expect(result).toMatchObject({
                 message: 'Group updated successfully',
@@ -159,19 +156,16 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const group = await appDriver.createGroup(
-                userId,
-                new CreateGroupRequestBuilder()
-                    .withName('Test Group')
-                    .withDescription('Old description')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
+                .withName('Test Group')
+                .withDescription('Old description')
+                .build(), userId);
 
             const updateRequest = new GroupUpdateBuilder()
                 .withDescription('New description')
                 .build();
 
-            const result = await appDriver.updateGroup(userId, group.id, updateRequest);
+            const result = await appDriver.updateGroup(group.id, updateRequest, userId);
 
             expect(result).toMatchObject({
                 message: 'Group updated successfully',
@@ -182,20 +176,17 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const group = await appDriver.createGroup(
-                userId,
-                new CreateGroupRequestBuilder()
-                    .withName('Old Name')
-                    .withDescription('Old description')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
+                .withName('Old Name')
+                .withDescription('Old description')
+                .build(), userId);
 
             const updateRequest = new GroupUpdateBuilder()
                 .withName('New Name')
                 .withDescription('New description')
                 .build();
 
-            const result = await appDriver.updateGroup(userId, group.id, updateRequest);
+            const result = await appDriver.updateGroup(group.id, updateRequest, userId);
 
             expect(result).toMatchObject({
                 message: 'Group updated successfully',
@@ -205,7 +196,7 @@ describe('GroupHandlers - Unit Tests', () => {
         it('should reject update with no fields provided', async () => {
             const updateRequest = {};
 
-            await expect(appDriver.updateGroup('test-user', 'test-group', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateGroup('test-group', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -218,7 +209,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withName('New Name')
                 .build();
 
-            await expect(appDriver.updateGroup('test-user', '', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateGroup('', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -232,7 +223,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withName(longName)
                 .build();
 
-            await expect(appDriver.updateGroup('test-user', 'test-group', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateGroup('test-group', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -246,7 +237,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withDescription(longDescription)
                 .build();
 
-            await expect(appDriver.updateGroup('test-user', 'test-group', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateGroup('test-group', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -260,9 +251,9 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const group = await appDriver.createGroup(userId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const result = await appDriver.deleteGroup(userId, group.id);
+            const result = await appDriver.deleteGroup(group.id, userId);
 
             expect(result).toMatchObject({
                 message: 'Group deleted successfully',
@@ -270,7 +261,7 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should reject delete with empty group ID', async () => {
-            await expect(appDriver.deleteGroup('test-user', '')).rejects.toThrow(
+            await expect(appDriver.deleteGroup('', 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -282,7 +273,7 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            await expect(appDriver.deleteGroup(userId, 'non-existent-group')).rejects.toThrow(
+            await expect(appDriver.deleteGroup('non-existent-group', userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                 }),
@@ -295,20 +286,14 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            await appDriver.createGroup(
-                userId,
-                new CreateGroupRequestBuilder()
-                    .withName('Group 1')
-                    .build(),
-            );
-            await appDriver.createGroup(
-                userId,
-                new CreateGroupRequestBuilder()
-                    .withName('Group 2')
-                    .build(),
-            );
+            await appDriver.createGroup(new CreateGroupRequestBuilder()
+                .withName('Group 1')
+                .build(), userId);
+            await appDriver.createGroup(new CreateGroupRequestBuilder()
+                .withName('Group 2')
+                .build(), userId);
 
-            const result = await appDriver.listGroups(userId);
+            const result = await appDriver.listGroups({}, userId);
 
             expect(result).toMatchObject({
                 groups: expect.any(Array),
@@ -320,7 +305,7 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const result = await appDriver.listGroups(userId);
+            const result = await appDriver.listGroups({}, userId);
 
             expect(result).toHaveProperty('groups');
         });
@@ -331,9 +316,9 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Original Name' });
 
-            const group = await appDriver.createGroup(userId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const result = await appDriver.updateGroupMemberDisplayName(userId, group.id, 'New Display Name');
+            const result = await appDriver.updateGroupMemberDisplayName(group.id, 'New Display Name', userId);
 
             expect(result).toMatchObject({
                 message: 'Display name updated successfully',
@@ -344,18 +329,18 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Original Name' });
 
-            const group = await appDriver.createGroup(userId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            await appDriver.updateGroupMemberDisplayName(userId, group.id, 'Captain<script>alert(1)</script>');
+            await appDriver.updateGroupMemberDisplayName(group.id, 'Captain<script>alert(1)</script>', userId);
 
-            const groupDetails = await appDriver.getGroupFullDetails(userId, group.id);
+            const groupDetails = await appDriver.getGroupFullDetails(group.id, {}, userId);
             const member = groupDetails.members.members.find((m) => m.uid === userId);
 
             expect(member?.groupDisplayName).toBe('Captain');
         });
 
         it('should reject update with empty display name', async () => {
-            await expect(appDriver.updateGroupMemberDisplayName('test-user', 'test-group', '')).rejects.toThrow(
+            await expect(appDriver.updateGroupMemberDisplayName('test-group', '', 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -366,7 +351,7 @@ describe('GroupHandlers - Unit Tests', () => {
         it('should reject update with display name exceeding 50 characters', async () => {
             const longName = 'a'.repeat(51);
 
-            await expect(appDriver.updateGroupMemberDisplayName('test-user', 'test-group', longName)).rejects.toThrow(
+            await expect(appDriver.updateGroupMemberDisplayName('test-group', longName, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -375,7 +360,7 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should reject update with missing display name field', async () => {
-            await expect(appDriver.updateGroupMemberDisplayName('test-user', 'test-group', undefined as any)).rejects.toThrow(
+            await expect(appDriver.updateGroupMemberDisplayName('test-group', undefined as any, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_INPUT',
@@ -389,13 +374,10 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'details-owner';
             appDriver.seedUser(userId, { displayName: 'Owner User', email: 'owner@example.com' });
 
-            const group = await appDriver.createGroup(
-                userId,
-                new CreateGroupRequestBuilder()
-                    .withName('Adventure Squad')
-                    .withGroupDisplayName('Owner User')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
+                .withName('Adventure Squad')
+                .withGroupDisplayName('Owner User')
+                .build(), userId);
 
             const expenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -406,9 +388,9 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withParticipants([userId])
                 .build();
 
-            await appDriver.createExpense(userId, expenseRequest);
+            await appDriver.createExpense(expenseRequest, userId);
 
-            const result = await appDriver.getGroupFullDetails(userId, group.id);
+            const result = await appDriver.getGroupFullDetails(group.id, {}, userId);
 
             expect(result.group.id).toBe(group.id);
             expect(result.members.members[0]).toMatchObject({
@@ -428,9 +410,9 @@ describe('GroupHandlers - Unit Tests', () => {
             appDriver.seedUser(userId, { displayName: 'Owner User' });
             appDriver.seedUser(memberId, { displayName: 'Member User' });
 
-            const group = await appDriver.createGroup(userId);
-            const { linkId } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(memberId, linkId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
+            await appDriver.joinGroupByLink(shareToken, undefined, memberId);
 
             const expenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -440,9 +422,9 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withParticipants([userId, memberId])
                 .build();
 
-            await appDriver.createExpense(userId, expenseRequest);
+            await appDriver.createExpense(expenseRequest, userId);
 
-            const result = await appDriver.getGroupFullDetails(userId, group.id);
+            const result = await appDriver.getGroupFullDetails(group.id, {}, userId);
 
             expect(result.group.id).toBe(group.id);
             expect(result.members.members).toHaveLength(2);
@@ -454,12 +436,9 @@ describe('GroupHandlers - Unit Tests', () => {
             const ownerId = 'include-deleted-owner';
             appDriver.seedUser(ownerId, { displayName: 'Owner User' });
 
-            const group = await appDriver.createGroup(
-                ownerId,
-                new CreateGroupRequestBuilder()
-                    .withName('Include Deleted Expenses Group')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
+                .withName('Include Deleted Expenses Group')
+                .build(), ownerId);
 
             const activeExpenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -469,7 +448,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withAmount(75, 'USD')
                 .withDescription('Active dinner expense')
                 .build();
-            await appDriver.createExpense(ownerId, activeExpenseRequest);
+            await appDriver.createExpense(activeExpenseRequest, ownerId);
 
             const deletedExpenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -479,18 +458,18 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withAmount(120, 'USD')
                 .withDescription('Soft-deleted tour deposit')
                 .build();
-            const deletedExpense = await appDriver.createExpense(ownerId, deletedExpenseRequest);
-            await appDriver.deleteExpense(ownerId, deletedExpense.id);
+            const deletedExpense = await appDriver.createExpense(deletedExpenseRequest, ownerId);
+            await appDriver.deleteExpense(deletedExpense.id, ownerId);
 
-            const defaultDetails = await appDriver.getGroupFullDetails(ownerId, group.id);
+            const defaultDetails = await appDriver.getGroupFullDetails(group.id, {}, ownerId);
             const defaultDescriptions = defaultDetails.expenses.expenses.map((expense) => expense.description);
             expect(defaultDescriptions).toContain('Active dinner expense');
             expect(defaultDescriptions).not.toContain('Soft-deleted tour deposit');
             expect(defaultDetails.expenses.expenses.every((expense) => expense.deletedAt === null)).toBe(true);
 
-            const detailsWithDeleted = await appDriver.getGroupFullDetails(ownerId, group.id, {
+            const detailsWithDeleted = await appDriver.getGroupFullDetails(group.id, {
                 includeDeletedExpenses: true,
-            });
+            }, ownerId);
             const withDeletedDescriptions = detailsWithDeleted.expenses.expenses.map((expense) => expense.description);
             expect(withDeletedDescriptions).toContain('Active dinner expense');
             expect(withDeletedDescriptions).toContain('Soft-deleted tour deposit');

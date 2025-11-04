@@ -60,47 +60,40 @@ describe('app tests', () => {
 
     describe('happy path tests', async () => {
         it('should revert balance change after expese deletion', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
 
-            const createdExpense = await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(100, 'EUR')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'EUR', participants))
-                    .build(),
-            );
+            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(100, 'EUR')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(100, 'EUR', participants))
+                .build(), user1);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owedBy[user2]).toBe('50.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('50.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('50.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-50.00');
 
-            await appDriver.updateExpense(
-                user1,
-                createdExpense.id,
-                ExpenseUpdateBuilder
-                    .minimal()
-                    .withAmount(150.5, 'EUR')
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
-                    .build(),
-            );
+            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
+                .minimal()
+                .withAmount(150.5, 'EUR')
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
+                .build(), user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.balances.balancesByCurrency?.EUR).toBeDefined();
             expect((groupDetails.balances.balancesByCurrency!.EUR)![user1]).toBeDefined();
@@ -109,26 +102,23 @@ describe('app tests', () => {
             expect((groupDetails.balances.balancesByCurrency!.EUR)![user2].owes[user1]).toBe('75.25');
             expect((groupDetails.balances.balancesByCurrency!.EUR)![user2].netBalance).toBe('-75.25');
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(50.25, 'EUR')
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(50.25, 'EUR')
+                .build(), user2);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owedBy[user2]).toBe('25.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('25.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('25.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-25.00');
 
-            await appDriver.deleteExpense(user1, createdExpense.id);
+            await appDriver.deleteExpense(createdExpense.id, user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owes[user2]).toBe('50.25');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('-50.25');
@@ -137,28 +127,25 @@ describe('app tests', () => {
         });
 
         it('should paginate expenses and settlements via group full details', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
 
             const createdExpenseIds: string[] = [];
             for (let index = 0; index < 5; index += 1) {
                 const amount = 50 + index;
-                const expense = await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withDescription(`Paginated expense ${index}`)
-                        .withAmount(amount, 'USD')
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(amount, 'USD', participants))
-                        .build(),
-                );
+                const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription(`Paginated expense ${index}`)
+                    .withAmount(amount, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(amount, 'USD', participants))
+                    .build(), user1);
 
                 createdExpenseIds.push(expense.id);
             }
@@ -166,25 +153,22 @@ describe('app tests', () => {
             const settlementAmounts = [40, 30, 20, 10];
             const createdSettlementIds: string[] = [];
             for (const amount of settlementAmounts) {
-                const settlement = await appDriver.createSettlement(
-                    user2,
-                    new CreateSettlementRequestBuilder()
-                        .withGroupId(groupId)
-                        .withPayerId(user2)
-                        .withPayeeId(user1)
-                        .withAmount(amount, 'USD')
-                        .build(),
-                );
+                const settlement = await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(amount, 'USD')
+                    .build(), user2);
 
                 createdSettlementIds.push(settlement.id);
             }
 
             expect(createdSettlementIds).toHaveLength(settlementAmounts.length);
 
-            const firstPage = await appDriver.getGroupFullDetails(user1, groupId, {
+            const firstPage = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: 2,
                 settlementLimit: 2,
-            });
+            }, user1);
 
             expect(firstPage.expenses.expenses).toHaveLength(2);
             expect(firstPage.expenses.hasMore).toBe(true);
@@ -194,12 +178,12 @@ describe('app tests', () => {
             expect(firstPage.settlements.hasMore).toBe(true);
             expect(firstPage.settlements.nextCursor).toBeDefined();
 
-            const secondPage = await appDriver.getGroupFullDetails(user1, groupId, {
+            const secondPage = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: 2,
                 expenseCursor: firstPage.expenses.nextCursor,
                 settlementLimit: 2,
                 settlementCursor: firstPage.settlements.nextCursor,
-            });
+            }, user1);
 
             expect(secondPage.expenses.expenses.length).toBeGreaterThanOrEqual(1);
 
@@ -210,19 +194,19 @@ describe('app tests', () => {
             let settlementCursor = secondPage.settlements.nextCursor;
 
             while (settlementCursor) {
-                const nextPage = await appDriver.getGroupFullDetails(user1, groupId, {
+                const nextPage = await appDriver.getGroupFullDetails(groupId, {
                     settlementLimit: 2,
                     settlementCursor,
-                });
+                }, user1);
 
                 seenSettlementIds.push(...nextPage.settlements.settlements.map((settlement) => settlement.id));
                 settlementCursor = nextPage.settlements.nextCursor;
             }
 
-            const thirdPage = await appDriver.getGroupFullDetails(user1, groupId, {
+            const thirdPage = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: 2,
                 expenseCursor: secondPage.expenses.nextCursor,
-            });
+            }, user1);
 
             expect(secondPage.expenses.expenses).toHaveLength(2);
             expect(secondPage.expenses.hasMore).toBe(true);
@@ -244,29 +228,26 @@ describe('app tests', () => {
         });
 
         it('should track balances separately for multi-currency expenses', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
 
             const kwdSplits = calculateEqualSplits(12.345, 'KWD', participants);
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(12.345, 'KWD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(kwdSplits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(12.345, 'KWD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(kwdSplits)
+                .build(), user1);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             const kwdBalances = groupDetails.balances.balancesByCurrency?.KWD;
             expect(kwdBalances).toBeDefined();
@@ -279,19 +260,16 @@ describe('app tests', () => {
             expect(kwdBalances![user3].netBalance).toBe(`-${amountFor(kwdSplits, user3)}`);
 
             const jpySplits = calculateEqualSplits(303, 'JPY', participants);
-            await appDriver.createExpense(
-                user2,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(303, 'JPY')
-                    .withPaidBy(user2)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(jpySplits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(303, 'JPY')
+                .withPaidBy(user2)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(jpySplits)
+                .build(), user2);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             const jpyBalances = groupDetails.balances.balancesByCurrency?.JPY;
             expect(jpyBalances).toBeDefined();
@@ -304,19 +282,16 @@ describe('app tests', () => {
             expect(jpyBalances![user3].netBalance).toBe(`-${amountFor(jpySplits, user3)}`);
 
             const gbpSplits = calculateEqualSplits(45.67, 'GBP', participants);
-            await appDriver.createExpense(
-                user3,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(45.67, 'GBP')
-                    .withPaidBy(user3)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(gbpSplits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(45.67, 'GBP')
+                .withPaidBy(user3)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(gbpSplits)
+                .build(), user3);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             const gbpBalances = groupDetails.balances.balancesByCurrency?.GBP;
             expect(gbpBalances).toBeDefined();
@@ -333,12 +308,12 @@ describe('app tests', () => {
         });
 
         it('should support exact split expenses with manual allocations', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
 
@@ -348,19 +323,16 @@ describe('app tests', () => {
                 { uid: user3, amount: '75.10' },
             ];
 
-            const createdExpense = await appDriver.createExpense(
-                user2,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(275.25, 'USD')
-                    .withPaidBy(user2)
-                    .withParticipants(participants)
-                    .withSplitType('exact')
-                    .withSplits(exactSplits)
-                    .build(),
-            );
+            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(275.25, 'USD')
+                .withPaidBy(user2)
+                .withParticipants(participants)
+                .withSplitType('exact')
+                .withSplits(exactSplits)
+                .build(), user2);
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
             expect(usdBalances).toBeDefined();
@@ -382,31 +354,28 @@ describe('app tests', () => {
         });
 
         it('should allow percentage split expenses to be updated with new participants, currency, and payer', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
 
             const percentageSplits = calculatePercentageSplits(200, 'EUR', participants);
-            const createdExpense = await appDriver.createExpense(
-                user3,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withDescription('Team Outing EUR')
-                    .withAmount(200, 'EUR')
-                    .withPaidBy(user3)
-                    .withParticipants(participants)
-                    .withSplitType('percentage')
-                    .withSplits(percentageSplits)
-                    .build(),
-            );
+            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Team Outing EUR')
+                .withAmount(200, 'EUR')
+                .withPaidBy(user3)
+                .withParticipants(participants)
+                .withSplitType('percentage')
+                .withSplits(percentageSplits)
+                .build(), user3);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user3, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user3);
 
             const eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
             expect(eurBalances).toBeDefined();
@@ -427,21 +396,17 @@ describe('app tests', () => {
 
             const updatedParticipants = [user1, user2];
             const updatedSplits = calculateEqualSplits(303, 'JPY', updatedParticipants);
-            await appDriver.updateExpense(
-                user1,
-                createdExpense.id,
-                ExpenseUpdateBuilder
-                    .minimal()
-                    .withDescription('Team Outing JPY')
-                    .withAmount(303, 'JPY')
-                    .withPaidBy(user1)
-                    .withParticipants(updatedParticipants)
-                    .withSplitType('equal')
-                    .withSplits(updatedSplits)
-                    .build(),
-            );
+            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
+                .minimal()
+                .withDescription('Team Outing JPY')
+                .withAmount(303, 'JPY')
+                .withPaidBy(user1)
+                .withParticipants(updatedParticipants)
+                .withSplitType('equal')
+                .withSplits(updatedSplits)
+                .build(), user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             const jpyBalances = groupDetails.balances.balancesByCurrency?.JPY;
             expect(jpyBalances).toBeDefined();
@@ -474,65 +439,62 @@ describe('app tests', () => {
         });
 
         it('should generate different share links on consecutive calls', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const groupId = group.id;
 
             // Generate first share link
-            const { shareablePath: path1, linkId: linkId1, expiresAt: expiresAt1 } = await appDriver.generateShareableLink(user1, groupId);
-            expect(path1).toBe(`/join?linkId=${linkId1}`);
-            expect(linkId1).toHaveLength(16);
+            const { shareablePath: path1, shareToken: shareToken1, expiresAt: expiresAt1 } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            expect(path1).toBe(`/join?shareToken=${shareToken1}`);
+            expect(shareToken1).toHaveLength(16);
             expect(expiresAt1).toBeTruthy();
 
             // Generate second share link (simulating "Generate New" button)
-            const { shareablePath: path2, linkId: linkId2, expiresAt: expiresAt2 } = await appDriver.generateShareableLink(user1, groupId);
-            expect(path2).toBe(`/join?linkId=${linkId2}`);
-            expect(linkId2).toHaveLength(16);
+            const { shareablePath: path2, shareToken: shareToken2, expiresAt: expiresAt2 } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            expect(path2).toBe(`/join?shareToken=${shareToken2}`);
+            expect(shareToken2).toHaveLength(16);
             expect(expiresAt2).toBeTruthy();
 
             // Verify links are different
-            expect(linkId2).not.toBe(linkId1);
+            expect(shareToken2).not.toBe(shareToken1);
             expect(path2).not.toBe(path1);
 
             // Verify both links are valid and functional by joining with them
-            await appDriver.joinGroupByLink(user2, linkId1);
-            await appDriver.joinGroupByLink(user3, linkId2);
+            await appDriver.joinGroupByLink(shareToken1, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken2, undefined, user3);
 
             // Verify both users successfully joined by checking group listing
-            const { groups: groupsUser2 } = await appDriver.listGroups(user2);
-            const { groups: groupsUser3 } = await appDriver.listGroups(user3);
+            const { groups: groupsUser2 } = await appDriver.listGroups({}, user2);
+            const { groups: groupsUser3 } = await appDriver.listGroups({}, user3);
 
             expect(groupsUser2.find((g) => g.id === groupId)).toBeTruthy();
             expect(groupsUser3.find((g) => g.id === groupId)).toBeTruthy();
         });
 
         it('should allow sharing a group and list membership balances for all users', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
 
-            const { shareablePath, linkId } = await appDriver.generateShareableLink(user1, groupId);
-            expect(shareablePath).toBe(`/join?linkId=${linkId}`);
-            expect(linkId).toHaveLength(16);
+            const { shareablePath, shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            expect(shareablePath).toBe(`/join?shareToken=${shareToken}`);
+            expect(shareToken).toHaveLength(16);
 
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
             const usdSplits = calculateEqualSplits(90, 'USD', participants);
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withDescription('Beach house deposit')
-                    .withAmount(90, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(usdSplits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Beach house deposit')
+                .withAmount(90, 'USD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(usdSplits)
+                .build(), user1);
 
-            const listResponseUser1 = await appDriver.listGroups(user1);
+            const listResponseUser1 = await appDriver.listGroups({}, user1);
             expect(listResponseUser1.count).toBe(1);
             expect(listResponseUser1.hasMore).toBe(false);
             expect(listResponseUser1.pagination.limit).toBeGreaterThan(0);
@@ -543,7 +505,7 @@ describe('app tests', () => {
             expect(summaryForUser1!.balance?.balancesByCurrency?.USD?.totalOwed).toBe('60.00');
             expect(summaryForUser1!.balance?.balancesByCurrency?.USD?.totalOwing).toBe('0.00');
 
-            const listResponseUser2 = await appDriver.listGroups(user2);
+            const listResponseUser2 = await appDriver.listGroups({}, user2);
             expect(listResponseUser2.count).toBe(1);
             expect(listResponseUser2.hasMore).toBe(false);
 
@@ -553,7 +515,7 @@ describe('app tests', () => {
             expect(summaryForUser2!.balance?.balancesByCurrency?.USD?.totalOwed).toBe('0.00');
             expect(summaryForUser2!.balance?.balancesByCurrency?.USD?.totalOwing).toBe('30.00');
 
-            const listResponseUser3 = await appDriver.listGroups(user3);
+            const listResponseUser3 = await appDriver.listGroups({}, user3);
             expect(listResponseUser3.count).toBe(1);
             expect(listResponseUser3.hasMore).toBe(false);
 
@@ -565,47 +527,41 @@ describe('app tests', () => {
         });
 
         it('should allow sequential settlements to clear shared expense balances', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
 
             const firstExpenseSplits = calculateEqualSplits(120, 'USD', participants);
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(120, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(firstExpenseSplits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(120, 'USD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(firstExpenseSplits)
+                .build(), user1);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBe('60.00');
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].netBalance).toBe('60.00');
             expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBe('60.00');
             expect(groupDetails.balances.balancesByCurrency!.USD![user2].netBalance).toBe('-60.00');
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(10, 'USD')
-                    .withCurrency('USD')
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(10, 'USD')
+                .withCurrency('USD')
+                .build(), user2);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBe('50.00');
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].netBalance).toBe('50.00');
@@ -614,17 +570,14 @@ describe('app tests', () => {
             expect(groupDetails.settlements.settlements).toHaveLength(1);
             expect(groupDetails.settlements.settlements[0].amount).toBe('10');
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(50, 'USD')
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(50, 'USD')
+                .build(), user2);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBeUndefined();
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].owes[user2]).toBeUndefined();
@@ -642,47 +595,41 @@ describe('app tests', () => {
         });
 
         it('should preserve expense metadata and remove it cleanly on deletion', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
             const metadataSplits = calculateEqualSplits(80, 'USD', participants);
 
-            const metadataExpense = await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withDescription('Hotel booking with receipt')
-                    .withAmount(80, 'USD')
-                    .withPaidBy(user1)
-                    .withCategory('Travel')
-                    .withDate('2024-06-15T12:30:00.000Z')
-                    .withReceiptUrl('https://example.com/receipts/hotel.jpg')
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(metadataSplits)
-                    .build(),
-            );
+            const metadataExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Hotel booking with receipt')
+                .withAmount(80, 'USD')
+                .withPaidBy(user1)
+                .withCategory('Travel')
+                .withDate('2024-06-15T12:30:00.000Z')
+                .withReceiptUrl('https://example.com/receipts/hotel.jpg')
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(metadataSplits)
+                .build(), user1);
 
             const secondarySplits = calculateEqualSplits(50, 'USD', participants);
-            await appDriver.createExpense(
-                user2,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withDescription('Fuel stop')
-                    .withAmount(50, 'USD')
-                    .withPaidBy(user2)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(secondarySplits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Fuel stop')
+                .withAmount(50, 'USD')
+                .withPaidBy(user2)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(secondarySplits)
+                .build(), user2);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.expenses.expenses).toHaveLength(2);
             const recordedMetadataExpense = groupDetails.expenses.expenses.find((expense) => expense.id === metadataExpense.id);
@@ -693,9 +640,9 @@ describe('app tests', () => {
             expect(recordedMetadataExpense!.receiptUrl).toBe('https://example.com/receipts/hotel.jpg');
             expect(recordedMetadataExpense!.splits).toEqual(metadataSplits);
 
-            await appDriver.deleteExpense(user1, metadataExpense.id);
+            await appDriver.deleteExpense(metadataExpense.id, user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.expenses.expenses).toHaveLength(1);
             expect(groupDetails.expenses.expenses[0].description).toBe('Fuel stop');
@@ -707,187 +654,175 @@ describe('app tests', () => {
         });
 
         it('should allow members to leave and rejoin via share link', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            let preview = await appDriver.previewGroupByLink(user2, linkId);
+            let preview = await appDriver.previewGroupByLink(shareToken, user2);
             expect(preview.isAlreadyMember).toBe(true);
             expect(preview.memberCount).toBe(2);
 
-            await appDriver.leaveGroup(user2, groupId);
+            await appDriver.leaveGroup(groupId, user2);
 
-            preview = await appDriver.previewGroupByLink(user2, linkId);
+            preview = await appDriver.previewGroupByLink(shareToken, user2);
             expect(preview.isAlreadyMember).toBe(false);
             expect(preview.memberCount).toBe(1);
 
-            await appDriver.joinGroupByLink(user2, linkId);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            const user2Groups = await appDriver.listGroups(user2);
+            const user2Groups = await appDriver.listGroups({}, user2);
             expect(user2Groups.count).toBe(1);
             expect(user2Groups.groups[0].id).toBe(groupId);
         });
 
         it('should respect custom share link expiration timestamps', async () => {
-            const group = await appDriver.createGroup(user1, new CreateGroupRequestBuilder().withName('Custom Expiry Group').build());
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().withName('Custom Expiry Group').build(), user1);
             const groupId = group.id;
 
             const customExpiration = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
 
-            const shareLink = await appDriver.generateShareableLink(user1, groupId, customExpiration);
+            const shareLink = await appDriver.generateShareableLink(groupId, customExpiration, user1);
 
             expect(shareLink.expiresAt).toBe(customExpiration);
 
-            const preview = await appDriver.previewGroupByLink(user2, shareLink.linkId);
+            const preview = await appDriver.previewGroupByLink(shareLink.shareToken, user2);
             expect(preview.groupId).toBe(groupId);
             expect(preview.isAlreadyMember).toBe(false);
 
-            const joinResult = await appDriver.joinGroupByLink(user2, shareLink.linkId);
+            const joinResult = await appDriver.joinGroupByLink(shareLink.shareToken, undefined, user2);
             expect(joinResult.success).toBe(true);
 
-            const members = (await appDriver.getGroupFullDetails(user1, groupId)).members.members;
+            const members = (await appDriver.getGroupFullDetails(groupId, {}, user1)).members.members;
             expect(members.some(({ uid }) => uid === user2)).toBe(true);
         });
 
         it('should reject preview and join operations once a share link has expired', async () => {
-            const group = await appDriver.createGroup(user1, new CreateGroupRequestBuilder().withName('Expiring Group').build());
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().withName('Expiring Group').build(), user1);
             const groupId = group.id;
 
             const nearFutureExpiration = new Date(Date.now() + 1000).toISOString();
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId, nearFutureExpiration);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, nearFutureExpiration, user1);
 
             await new Promise((resolve) => setTimeout(resolve, 1200));
 
-            await expect(appDriver.previewGroupByLink(user2, linkId)).rejects.toMatchObject({ code: 'LINK_EXPIRED' });
-            await expect(appDriver.joinGroupByLink(user2, linkId)).rejects.toMatchObject({ code: 'INVALID_LINK' });
+            await expect(appDriver.previewGroupByLink(shareToken, user2)).rejects.toMatchObject({ code: 'LINK_EXPIRED' });
+            await expect(appDriver.joinGroupByLink(shareToken, undefined, user2)).rejects.toMatchObject({ code: 'INVALID_LINK' });
         });
 
         it('should let members update their own group display name', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Design Team')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
+                .withName('Design Team')
+                .build(), user1);
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await appDriver.updateGroupMemberDisplayName(user2, groupId, 'UI Specialist');
+            await appDriver.updateGroupMemberDisplayName(groupId, 'UI Specialist', user2);
 
-            const detailsForOwner = await appDriver.getGroupFullDetails(user1, groupId);
+            const detailsForOwner = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const updatedMember = detailsForOwner.members.members.find((member) => member.uid === user2);
             expect(updatedMember?.groupDisplayName).toBe('UI Specialist');
 
-            const detailsForMember = await appDriver.getGroupFullDetails(user2, groupId);
+            const detailsForMember = await appDriver.getGroupFullDetails(groupId, {}, user2);
             expect(detailsForMember.group.name).toBe('Design Team');
             const selfViewMember = detailsForMember.members.members.find((member) => member.uid === user2);
             expect(selfViewMember?.groupDisplayName).toBe('UI Specialist');
         });
 
         it('should handle group previews, updates, member management, and deletion', async () => {
-            const group = await appDriver.createGroup(
-                user1,
-                new CreateGroupRequestBuilder()
-                    .withName('Adventure Squad')
-                    .build(),
-            );
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
+                .withName('Adventure Squad')
+                .build(), user1);
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
 
-            const previewBeforeJoin = await appDriver.previewGroupByLink(user2, linkId);
+            const previewBeforeJoin = await appDriver.previewGroupByLink(shareToken, user2);
             expect(previewBeforeJoin.groupId).toBe(groupId);
             expect(previewBeforeJoin.groupName).toBe('Adventure Squad');
             expect(previewBeforeJoin.memberCount).toBe(1);
             expect(previewBeforeJoin.isAlreadyMember).toBe(false);
 
-            await appDriver.joinGroupByLink(user2, linkId);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            const previewAfterJoin = await appDriver.previewGroupByLink(user2, linkId);
+            const previewAfterJoin = await appDriver.previewGroupByLink(shareToken, user2);
             expect(previewAfterJoin.isAlreadyMember).toBe(true);
             expect(previewAfterJoin.memberCount).toBe(2);
 
-            await appDriver.updateGroup(user1, groupId, {
+            await appDriver.updateGroup(groupId, {
                 name: toGroupName('Adventure Squad+'),
                 description: 'Updated itinerary for the squad',
-            });
-            await appDriver.updateGroupMemberDisplayName(user1, groupId, 'Squad Leader');
+            }, user1);
+            await appDriver.updateGroupMemberDisplayName(groupId, 'Squad Leader', user1);
 
-            await appDriver.joinGroupByLink(user3, linkId);
-            await appDriver.removeGroupMember(user1, groupId, user3);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
+            await appDriver.removeGroupMember(groupId, user3, user1);
 
-            await appDriver.leaveGroup(user2, groupId);
+            await appDriver.leaveGroup(groupId, user2);
 
-            const updatedGroupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const updatedGroupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(updatedGroupDetails.group.name).toBe('Adventure Squad+');
             expect(updatedGroupDetails.group.description).toBe('Updated itinerary for the squad');
             expect(updatedGroupDetails.members.members).toHaveLength(1);
             expect(updatedGroupDetails.members.members[0].uid).toBe(user1);
             expect(updatedGroupDetails.members.members[0].groupDisplayName).toBe('Squad Leader');
 
-            const user1Groups = await appDriver.listGroups(user1);
+            const user1Groups = await appDriver.listGroups({}, user1);
             const updatedSummary = user1Groups.groups.find((item) => item.id === groupId);
             expect(updatedSummary?.name).toBe('Adventure Squad+');
 
-            const user2Groups = await appDriver.listGroups(user2);
+            const user2Groups = await appDriver.listGroups({}, user2);
             expect(user2Groups.count).toBe(0);
 
-            await appDriver.deleteGroup(user1, groupId);
+            await appDriver.deleteGroup(groupId, user1);
 
-            const user1GroupsAfterDelete = await appDriver.listGroups(user1);
+            const user1GroupsAfterDelete = await appDriver.listGroups({}, user1);
             expect(user1GroupsAfterDelete.count).toBe(0);
         });
 
         it('should update settlements and reflect the new balances', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(100, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', participants))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(100, 'USD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(100, 'USD', participants))
+                .build(), user1);
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(30.00, 'USD')
-                    .withNote('Initial payment')
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(30.00, 'USD')
+                .withNote('Initial payment')
+                .build(), user2);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = groupDetails.settlements.settlements[0].id;
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBe('20.00');
             expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBe('20.00');
 
-            await appDriver.updateSettlement(user2, settlementId, {
+            await appDriver.updateSettlement(settlementId, {
                 amount: '50.00',
                 note: 'Adjusted amount',
-            });
+            }, user2);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBeUndefined();
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].netBalance).toBe('0.00');
             expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBeUndefined();
@@ -897,52 +832,49 @@ describe('app tests', () => {
         });
 
         it('should create and list group/expense comments and fetch expense details', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            const createdExpense = await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withDescription('Lunch at cafe')
-                    .withAmount(60, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(60, 'USD', participants))
-                    .build(),
-            );
+            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Lunch at cafe')
+                .withAmount(60, 'USD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(60, 'USD', participants))
+                .build(), user1);
 
-            const groupCommentResponse = await appDriver.createGroupComment(user1, groupId, 'Welcome to the group!');
+            const groupCommentResponse = await appDriver.createGroupComment(groupId, 'Welcome to the group!', user1);
             expect(groupCommentResponse.text).toBe('Welcome to the group!');
 
-            const secondGroupCommentResponse = await appDriver.createGroupComment(user2, groupId, 'Happy to be here');
+            const secondGroupCommentResponse = await appDriver.createGroupComment(groupId, 'Happy to be here', user2);
             expect(secondGroupCommentResponse.authorId).toBe(user2);
             expect(secondGroupCommentResponse.text).toBe('Happy to be here');
 
-            const groupComments = await appDriver.listGroupComments(user1, groupId);
+            const groupComments = await appDriver.listGroupComments(groupId, {}, user1);
             expect(groupComments.hasMore).toBe(false);
             expect(groupComments.comments).toHaveLength(2);
             const groupCommentTexts = groupComments.comments.map((comment) => comment.text);
             expect(groupCommentTexts).toEqual(expect.arrayContaining(['Welcome to the group!', 'Happy to be here']));
 
-            const expenseCommentResponse = await appDriver.createExpenseComment(user2, createdExpense.id, 'Thanks for covering this');
+            const expenseCommentResponse = await appDriver.createExpenseComment(createdExpense.id, 'Thanks for covering this', user2);
             expect(expenseCommentResponse.authorId).toBe(user2);
 
-            const secondExpenseComment = await appDriver.createExpenseComment(user1, createdExpense.id, 'Let us split next time');
+            const secondExpenseComment = await appDriver.createExpenseComment(createdExpense.id, 'Let us split next time', user1);
 
-            const expenseComments = await appDriver.listExpenseComments(user1, createdExpense.id);
+            const expenseComments = await appDriver.listExpenseComments(createdExpense.id, {}, user1);
             expect(expenseComments.hasMore).toBe(false);
             expect(expenseComments.comments).toHaveLength(2);
             const expenseCommentTexts = expenseComments.comments.map((comment) => comment.text);
             expect(expenseCommentTexts).toEqual(expect.arrayContaining(['Thanks for covering this', 'Let us split next time']));
 
-            const expenseFullDetails = await appDriver.getExpenseFullDetails(user1, createdExpense.id);
+            const expenseFullDetails = await appDriver.getExpenseFullDetails(createdExpense.id, user1);
             expect(expenseFullDetails.expense.id).toBe(createdExpense.id);
             expect(expenseFullDetails.expense.description).toBe('Lunch at cafe');
             expect(expenseFullDetails.group.id).toBe(groupId);
@@ -950,47 +882,40 @@ describe('app tests', () => {
         });
 
         it('should revert balance change after settlement deletion', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
 
-            const createdExpense = await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(100, 'EUR')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'EUR', participants))
-                    .build(),
-            );
+            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(100, 'EUR')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(100, 'EUR', participants))
+                .build(), user1);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owedBy[user2]).toBe('50.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('50.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('50.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-50.00');
 
-            await appDriver.updateExpense(
-                user1,
-                createdExpense.id,
-                ExpenseUpdateBuilder
-                    .minimal()
-                    .withAmount(150.5, 'EUR')
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
-                    .build(),
-            );
+            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
+                .minimal()
+                .withAmount(150.5, 'EUR')
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
+                .build(), user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             const eurBalancesAfterUpdate = groupDetails.balances.balancesByCurrency?.EUR;
             expect(eurBalancesAfterUpdate).toBeDefined();
@@ -1000,17 +925,14 @@ describe('app tests', () => {
             expect(eurBalancesAfterUpdate![user2].owes[user1]).toBe('75.25');
             expect(eurBalancesAfterUpdate![user2].netBalance).toBe('-75.25');
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(50.25, 'EUR')
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(50.25, 'EUR')
+                .build(), user2);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = groupDetails.settlements.settlements[0].id;
 
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owedBy[user2]).toBe('25.00');
@@ -1018,9 +940,9 @@ describe('app tests', () => {
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('25.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-25.00');
 
-            await appDriver.deleteSettlement(user1, settlementId);
+            await appDriver.deleteSettlement(settlementId, user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owedBy[user2]).toBe('75.25');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('75.25');
@@ -1031,11 +953,11 @@ describe('app tests', () => {
 
     describe('edge cases', () => {
         it('should reject expense creation when splits total does not match amount', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
             const baseExpense = new CreateExpenseRequestBuilder()
@@ -1055,17 +977,17 @@ describe('app tests', () => {
                 ],
             };
 
-            await expect(appDriver.createExpense(user1, invalidExpense))
+            await expect(appDriver.createExpense(invalidExpense, user1))
                 .rejects
                 .toMatchObject({ code: 'INVALID_SPLIT_TOTAL' });
         });
 
         it('should reject expense creation with invalid currency precision', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
             const baseExpense = new CreateExpenseRequestBuilder()
@@ -1086,75 +1008,72 @@ describe('app tests', () => {
                 })),
             };
 
-            await expect(appDriver.createExpense(user1, invalidExpense))
+            await expect(appDriver.createExpense(invalidExpense, user1))
                 .rejects
                 .toMatchObject({ code: 'INVALID_AMOUNT_PRECISION' });
         });
 
         it('should prevent non-owners from deleting a group', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await expect(appDriver.deleteGroup(user2, groupId))
+            await expect(appDriver.deleteGroup(groupId, user2))
                 .rejects
                 .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject group comment creation with empty text', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await expect(appDriver.createGroupComment(user1, groupId, ''))
+            await expect(appDriver.createGroupComment(groupId, '', user1))
                 .rejects
                 .toMatchObject({ code: 'INVALID_COMMENT_TEXT' });
         });
 
         it('should allow expense full details access for non-participants', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user4, linkId); // user4 is group member but not expense participant
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user4); // user4 is group member but not expense participant
 
             const participants = [user1, user2];
-            const expense = await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withDescription('Confidential dinner')
-                    .withAmount(50, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(50, 'USD', participants))
-                    .build(),
-            );
+            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Confidential dinner')
+                .withAmount(50, 'USD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(50, 'USD', participants))
+                .build(), user1);
 
             // user4 is a group member but NOT an expense participant - should still access
-            const fullDetails = await appDriver.getExpenseFullDetails(user4, expense.id);
+            const fullDetails = await appDriver.getExpenseFullDetails(expense.id, user4);
             expect(fullDetails.expense.id).toBe(expense.id);
             expect(fullDetails.expense.participants).toEqual(participants);
         });
 
         it('should reject share link previews with invalid tokens', async () => {
-            await expect(appDriver.previewGroupByLink(user1, 'invalid-token-123'))
+            await expect(appDriver.previewGroupByLink('invalid-token-123', user1))
                 .rejects
                 .toMatchObject({ code: 'INVALID_LINK' });
         });
 
         it('should forbid expense creation by non-group members', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
             const expenseRequest = new CreateExpenseRequestBuilder()
@@ -1166,118 +1085,109 @@ describe('app tests', () => {
                 .withSplits(calculateEqualSplits(40, 'USD', participants))
                 .build();
 
-            await expect(appDriver.createExpense(user3, expenseRequest))
+            await expect(appDriver.createExpense(expenseRequest, user3))
                 .rejects
                 .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject group updates without any fields', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
-            await expect(appDriver.updateGroup(user1, group.id, {} as any))
+            await expect(appDriver.updateGroup(group.id, {} as any, user1))
                 .rejects
                 .toMatchObject({ code: 'INVALID_INPUT' });
         });
 
         it('should reject settlement updates with invalid amount precision', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(120, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(120, 'USD', participants))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(120, 'USD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(120, 'USD', participants))
+                .build(), user1);
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(60.00, 'USD')
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(60.00, 'USD')
+                .build(), user2);
 
-            const details = await appDriver.getGroupFullDetails(user1, groupId);
+            const details = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = details.settlements.settlements[0].id;
 
-            await expect(appDriver.updateSettlement(user2, settlementId, {
+            await expect(appDriver.updateSettlement(settlementId, {
                 amount: '20.123',
                 currency: 'USD',
-            }))
+            }, user2))
                 .rejects
                 .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         it('should reject removing a member by a non-owner', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
-            await expect(appDriver.removeGroupMember(user2, groupId, user3))
+            await expect(appDriver.removeGroupMember(groupId, user3, user2))
                 .rejects
                 .toMatchObject({ code: 'FORBIDDEN' });
         });
 
         it('should reject expense comment creation with empty text', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            const expense = await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(30, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(30, 'USD', participants))
-                    .build(),
-            );
+            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(30, 'USD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(30, 'USD', participants))
+                .build(), user1);
 
-            await expect(appDriver.createExpenseComment(user1, expense.id, ''))
+            await expect(appDriver.createExpenseComment(expense.id, '', user1))
                 .rejects
                 .toMatchObject({ code: 'INVALID_COMMENT_TEXT' });
         });
 
         it('should sanitize comment text containing scripts', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            const response = await appDriver.createGroupComment(user1, groupId, '<script>alert(1)</script>Hello');
+            const response = await appDriver.createGroupComment(groupId, '<script>alert(1)</script>Hello', user1);
             expect(response.text).toBe('Hello');
 
-            const comments = await appDriver.listGroupComments(user1, groupId);
+            const comments = await appDriver.listGroupComments(groupId, {}, user1);
             expect(comments.comments[0].text).toBe('Hello');
         });
 
         it('should reject expense creation with invalid receipt URL', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
             const expense = new CreateExpenseRequestBuilder()
@@ -1291,122 +1201,109 @@ describe('app tests', () => {
                 .withSplits(calculateEqualSplits(40, 'USD', participants))
                 .build();
 
-            await expect(appDriver.createExpense(user1, expense))
+            await expect(appDriver.createExpense(expense, user1))
                 .rejects
                 .toMatchObject({ code: 'INVALID_INPUT' });
         });
 
         it('should reject expense updates when participants include non-members', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            const baseExpense = await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withDescription('Original expense')
-                    .withAmount(60, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants([user1, user2])
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(60, 'USD', [user1, user2]))
-                    .build(),
-            );
+            const baseExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription('Original expense')
+                .withAmount(60, 'USD')
+                .withPaidBy(user1)
+                .withParticipants([user1, user2])
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(60, 'USD', [user1, user2]))
+                .build(), user1);
 
             const updatedParticipants = [user1, user2, user4];
             const updatedSplits = calculateEqualSplits(90, 'USD', updatedParticipants);
 
-            await expect(appDriver.updateExpense(
-                user1,
-                baseExpense.id,
-                ExpenseUpdateBuilder
-                    .minimal()
-                    .withAmount(90, 'USD')
-                    .withParticipants(updatedParticipants)
-                    .withSplits(updatedSplits)
-                    .withSplitType('equal')
-                    .build(),
-            ))
+            await expect(appDriver.updateExpense(baseExpense.id, ExpenseUpdateBuilder
+                .minimal()
+                .withAmount(90, 'USD')
+                .withParticipants(updatedParticipants)
+                .withSplits(updatedSplits)
+                .withSplitType('equal')
+                .build(), user1))
                 .rejects
                 .toMatchObject({ code: 'INVALID_PARTICIPANT' });
         });
 
         it('should reject settlement updates by non-creators', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(80, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(80, 'USD', participants))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(80, 'USD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(80, 'USD', participants))
+                .build(), user1);
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(40.00, 'USD')
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(40.00, 'USD')
+                .build(), user2);
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = groupDetails.settlements.settlements[0].id;
 
-            await expect(appDriver.updateSettlement(user1, settlementId, {
+            await expect(appDriver.updateSettlement(settlementId, {
                 amount: '45.00',
-            }))
+            }, user1))
                 .rejects
                 .toMatchObject({ code: 'NOT_SETTLEMENT_CREATOR' });
         });
 
         it('should reject group member display name updates with empty value', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await expect(appDriver.updateGroupMemberDisplayName(user2, groupId, ''))
+            await expect(appDriver.updateGroupMemberDisplayName(groupId, '', user2))
                 .rejects
                 .toMatchObject({ code: 'INVALID_INPUT' });
         });
 
         it('should reject group member display name updates when the name collides with another member (base58 normalization)', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             // Owner picks a display name that should conflict with visually similar variants.
-            await appDriver.updateGroupMemberDisplayName(user1, groupId, 'Alice');
+            await appDriver.updateGroupMemberDisplayName(groupId, 'Alice', user1);
 
-            await expect(appDriver.updateGroupMemberDisplayName(user2, groupId, 'ALICE'))
+            await expect(appDriver.updateGroupMemberDisplayName(groupId, 'ALICE', user2))
                 .rejects
                 .toMatchObject({ code: 'DISPLAY_NAME_TAKEN' });
         });
 
         it('should reject settlements involving non-members', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const settlement = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
@@ -1415,85 +1312,76 @@ describe('app tests', () => {
                 .withAmount(20.00, 'USD')
                 .build();
 
-            await expect(appDriver.createSettlement(user1, settlement))
+            await expect(appDriver.createSettlement(settlement, user1))
                 .rejects
                 .toMatchObject({ code: 'MEMBER_NOT_IN_GROUP' });
         });
 
         it('should sanitize expense comment text containing scripts', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            const expense = await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(50, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(50, 'USD', participants))
-                    .build(),
-            );
+            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(50, 'USD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(50, 'USD', participants))
+                .build(), user1);
 
-            const response = await appDriver.createExpenseComment(user1, expense.id, '<script>alert(1)</script>Thanks');
+            const response = await appDriver.createExpenseComment(expense.id, '<script>alert(1)</script>Thanks', user1);
             expect(response.text).toBe('Thanks');
 
-            const comments = await appDriver.listExpenseComments(user1, expense.id);
+            const comments = await appDriver.listExpenseComments(expense.id, {}, user1);
             expect(comments.comments[0].text).toBe('Thanks');
         });
 
         it('should reject share link generation by non-members', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
 
-            await expect(appDriver.generateShareableLink(user2, groupId))
+            await expect(appDriver.generateShareableLink(groupId, undefined, user2))
                 .rejects
                 .toMatchObject({ code: 'UNAUTHORIZED' });
         });
 
         it('should handle JavaScript floating point precision bugs (0.1 + 0.2 != 0.3)', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
             const CURRENCY = 'USD';
 
             const testCase1Splits = calculateEqualSplits('0.10', CURRENCY, participants);
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(0.10, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(testCase1Splits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(0.10, CURRENCY)
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(testCase1Splits)
+                .build(), user1);
 
             const testCase2Splits = calculateEqualSplits('0.20', CURRENCY, participants);
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(0.20, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(testCase2Splits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(0.20, CURRENCY)
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(testCase2Splits)
+                .build(), user1);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             let usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances).toBeDefined();
@@ -1504,19 +1392,16 @@ describe('app tests', () => {
             expect(actualUser1NetAfterTwo, 'After 0.10 + 0.20, user1 net should be exactly 15 cents (not 15.000000000000002)').toBe(expectedAfterTwoExpenses / 2);
 
             const testCase3Splits = calculateEqualSplits('0.70', CURRENCY, participants);
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(0.70, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(testCase3Splits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(0.70, CURRENCY)
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(testCase3Splits)
+                .build(), user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances).toBeDefined();
@@ -1528,20 +1413,17 @@ describe('app tests', () => {
 
             for (let i = 0; i < 100; i++) {
                 const splits = calculateEqualSplits('0.10', CURRENCY, participants);
-                await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(0.10, CURRENCY)
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(splits)
-                        .build(),
-                );
+                await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(0.10, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(), user1);
             }
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances).toBeDefined();
@@ -1558,33 +1440,30 @@ describe('app tests', () => {
             const NUM_OPERATIONS = 100;
             const CURRENCY = 'USD';
 
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
 
             for (let i = 0; i < NUM_OPERATIONS; i++) {
                 const splits = calculateEqualSplits(SMALL_AMOUNT, CURRENCY, participants);
-                await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(SMALL_AMOUNT, CURRENCY)
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(splits)
-                        .build(),
-                );
+                await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(SMALL_AMOUNT, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(), user1);
             }
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId, {
+            const groupDetails = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: NUM_OPERATIONS,
-            });
+            }, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances, 'USD balances should exist after many small operations').toBeDefined();
@@ -1603,28 +1482,25 @@ describe('app tests', () => {
             const LARGE_AMOUNT = 1234567.88;
             const CURRENCY = 'USD';
 
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
             const splits = calculateEqualSplits(LARGE_AMOUNT, CURRENCY, participants);
 
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(LARGE_AMOUNT, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(splits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(LARGE_AMOUNT, CURRENCY)
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(splits)
+                .build(), user1);
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances).toBeDefined();
@@ -1643,79 +1519,64 @@ describe('app tests', () => {
             const FOURTH_SETTLEMENT = '12.50';
             const CURRENCY = 'EUR';
 
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(EXPENSE_AMOUNT, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(EXPENSE_AMOUNT, CURRENCY, participants))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(EXPENSE_AMOUNT, CURRENCY)
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(EXPENSE_AMOUNT, CURRENCY, participants))
+                .build(), user1);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('50.00');
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(FIRST_SETTLEMENT, CURRENCY)
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(FIRST_SETTLEMENT, CURRENCY)
+                .build(), user2);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('40.00');
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(SECOND_SETTLEMENT, CURRENCY)
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(SECOND_SETTLEMENT, CURRENCY)
+                .build(), user2);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('25.00');
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(THIRD_SETTLEMENT, CURRENCY)
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(THIRD_SETTLEMENT, CURRENCY)
+                .build(), user2);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             let eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
             expect(eurBalances![user2].owes[user1]).toBe('12.50');
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(FOURTH_SETTLEMENT, CURRENCY)
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(FOURTH_SETTLEMENT, CURRENCY)
+                .build(), user2);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
 
             expect(eurBalances).toBeDefined();
@@ -1731,50 +1592,41 @@ describe('app tests', () => {
             const CIRCULAR_AMOUNT = 90;
             const CURRENCY = 'USD';
 
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(CIRCULAR_AMOUNT, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants([user1, user2])
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user1, user2]))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(CIRCULAR_AMOUNT, CURRENCY)
+                .withPaidBy(user1)
+                .withParticipants([user1, user2])
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user1, user2]))
+                .build(), user1);
 
-            await appDriver.createExpense(
-                user2,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(CIRCULAR_AMOUNT, CURRENCY)
-                    .withPaidBy(user2)
-                    .withParticipants([user2, user3])
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user2, user3]))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(CIRCULAR_AMOUNT, CURRENCY)
+                .withPaidBy(user2)
+                .withParticipants([user2, user3])
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user2, user3]))
+                .build(), user2);
 
-            await appDriver.createExpense(
-                user3,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(CIRCULAR_AMOUNT, CURRENCY)
-                    .withPaidBy(user3)
-                    .withParticipants([user3, user1])
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user3, user1]))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(CIRCULAR_AMOUNT, CURRENCY)
+                .withPaidBy(user3)
+                .withParticipants([user3, user1])
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user3, user1]))
+                .build(), user3);
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances).toBeDefined();
@@ -1787,75 +1639,60 @@ describe('app tests', () => {
         });
 
         it('should maintain balance consistency through complex multi-currency operations', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
 
             const usdExpense1Splits = calculateEqualSplits(150, 'USD', participants);
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(150, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(usdExpense1Splits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(150, 'USD')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(usdExpense1Splits)
+                .build(), user1);
 
             const eurExpense1Splits = calculateEqualSplits(200, 'EUR', participants);
-            await appDriver.createExpense(
-                user2,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(200, 'EUR')
-                    .withPaidBy(user2)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(eurExpense1Splits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(200, 'EUR')
+                .withPaidBy(user2)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(eurExpense1Splits)
+                .build(), user2);
 
             const gbpExpense1Splits = calculateEqualSplits(75.50, 'GBP', participants);
-            await appDriver.createExpense(
-                user3,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(75.50, 'GBP')
-                    .withPaidBy(user3)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(gbpExpense1Splits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(75.50, 'GBP')
+                .withPaidBy(user3)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(gbpExpense1Splits)
+                .build(), user3);
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(50.00, 'USD')
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(50.00, 'USD')
+                .build(), user2);
 
-            await appDriver.createSettlement(
-                user3,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user3)
-                    .withPayeeId(user2)
-                    .withAmount(66.67, 'EUR')
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(groupId)
+                .withPayerId(user3)
+                .withPayeeId(user2)
+                .withAmount(66.67, 'EUR')
+                .build(), user3);
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
             const eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
@@ -1876,12 +1713,12 @@ describe('app tests', () => {
         it('should maintain balance consistency through many expense operations', async () => {
             const OPERATIONS_COUNT = 20;
 
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
             const payers = [user1, user2, user3];
@@ -1891,22 +1728,19 @@ describe('app tests', () => {
                 const payer = payers[i % payers.length];
                 const splits = calculateEqualSplits(amount, 'USD', participants);
 
-                await appDriver.createExpense(
-                    payer,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(amount, 'USD')
-                        .withPaidBy(payer)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(splits)
-                        .build(),
-                );
+                await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(amount, 'USD')
+                    .withPaidBy(payer)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(), payer);
             }
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId, {
+            const groupDetails = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: OPERATIONS_COUNT,
-            });
+            }, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances).toBeDefined();
@@ -1917,11 +1751,11 @@ describe('app tests', () => {
 
         it('should maintain zero-sum balance with indivisible JPY amounts', async () => {
             // 100 JPY ÷ 3 = 33 + 33 + 34 (1 yen remainder)
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
             const splits = calculateEqualSplits(100, 'JPY', participants, 2);
@@ -1930,19 +1764,16 @@ describe('app tests', () => {
             expect(splits[1].amount).toBe('33');
             expect(splits[2].amount).toBe('34'); // Gets 1 yen remainder
 
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withAmount(100, 'JPY')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(splits)
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withAmount(100, 'JPY')
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(splits)
+                .build(), user1);
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, group.id);
+            const groupDetails = await appDriver.getGroupFullDetails(group.id, {}, user1);
             const jpyBalances = groupDetails.balances.balancesByCurrency?.JPY;
 
             expect(jpyBalances, 'JPY balances should exist').toBeDefined();
@@ -1960,29 +1791,26 @@ describe('app tests', () => {
             const AMOUNT = 100;
             const CURRENCY = 'EUR';
 
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
 
             const equalSplits = calculateEqualSplits(AMOUNT, CURRENCY, participants, 0);
-            const createdExpense = await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(AMOUNT, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(equalSplits)
-                    .build(),
-            );
+            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(AMOUNT, CURRENCY)
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(equalSplits)
+                .build(), user1);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             let eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
 
             expect(eurBalances).toBeDefined();
@@ -1991,19 +1819,15 @@ describe('app tests', () => {
             const balanceAfterEqual = amountToSmallestUnit(eurBalances![user1].netBalance, CURRENCY);
 
             const percentageSplits = calculatePercentageSplits(AMOUNT, CURRENCY, participants, 0);
-            await appDriver.updateExpense(
-                user1,
-                createdExpense.id,
-                ExpenseUpdateBuilder
-                    .minimal()
-                    .withAmount(AMOUNT, CURRENCY)
-                    .withParticipants(participants)
-                    .withSplitType('percentage')
-                    .withSplits(percentageSplits)
-                    .build(),
-            );
+            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
+                .minimal()
+                .withAmount(AMOUNT, CURRENCY)
+                .withParticipants(participants)
+                .withSplitType('percentage')
+                .withSplits(percentageSplits)
+                .build(), user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
 
             expect(eurBalances).toBeDefined();
@@ -2016,19 +1840,15 @@ describe('app tests', () => {
                 uid: split.uid,
                 amount: split.amount,
             }));
-            await appDriver.updateExpense(
-                user1,
-                createdExpense.id,
-                ExpenseUpdateBuilder
-                    .minimal()
-                    .withAmount(AMOUNT, CURRENCY)
-                    .withParticipants(participants)
-                    .withSplitType('exact')
-                    .withSplits(exactSplits)
-                    .build(),
-            );
+            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
+                .minimal()
+                .withAmount(AMOUNT, CURRENCY)
+                .withParticipants(participants)
+                .withSplitType('exact')
+                .withSplits(exactSplits)
+                .build(), user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
 
             expect(eurBalances).toBeDefined();
@@ -2038,19 +1858,15 @@ describe('app tests', () => {
             expect(balanceAfterExact, 'Balance after percentage → exact conversion should be exactly the same (zero-tolerance)').toBe(balanceAfterPercentage);
 
             const finalEqualSplits = calculateEqualSplits(AMOUNT, CURRENCY, participants, 0);
-            await appDriver.updateExpense(
-                user1,
-                createdExpense.id,
-                ExpenseUpdateBuilder
-                    .minimal()
-                    .withAmount(AMOUNT, CURRENCY)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(finalEqualSplits)
-                    .build(),
-            );
+            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
+                .minimal()
+                .withAmount(AMOUNT, CURRENCY)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(finalEqualSplits)
+                .build(), user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
 
             expect(eurBalances).toBeDefined();
@@ -2063,34 +1879,31 @@ describe('app tests', () => {
         it('should prevent removal of member with outstanding balance', async () => {
             const CURRENCY = 'USD';
 
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
 
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(150, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(150, CURRENCY, participants))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(150, CURRENCY)
+                .withPaidBy(user1)
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(150, CURRENCY, participants))
+                .build(), user1);
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances).toBeDefined();
             expect(usdBalances![user3].netBalance).not.toBe('0.00');
 
-            await expect(appDriver.removeGroupMember(user1, groupId, user3))
+            await expect(appDriver.removeGroupMember(groupId, user3, user1))
                 .rejects
                 .toMatchObject({
                     code: 'INVALID_INPUT',
@@ -2101,34 +1914,31 @@ describe('app tests', () => {
         it('should allow removal of member with zero balance', async () => {
             const CURRENCY = 'EUR';
 
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const groupId = group.id;
 
-            const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(100, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants([user1, user2])
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, CURRENCY, [user1, user2]))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withAmount(100, CURRENCY)
+                .withPaidBy(user1)
+                .withParticipants([user1, user2])
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(100, CURRENCY, [user1, user2]))
+                .build(), user1);
 
-            let groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
 
             expect(eurBalances).toBeDefined();
             expect(eurBalances![user3].netBalance).toBe('0.00');
 
-            await appDriver.removeGroupMember(user1, groupId, user3);
+            await appDriver.removeGroupMember(groupId, user3, user1);
 
-            groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+            groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const members = groupDetails.members.members;
 
             expect(members).toHaveLength(2);
@@ -2137,136 +1947,136 @@ describe('app tests', () => {
 
         describe('archive group functionality', () => {
             it('should archive and unarchive a group membership', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 // Verify user2 can see the group initially
-                let groups = await appDriver.listGroups(user2);
+                let groups = await appDriver.listGroups({}, user2);
                 expect(groups.groups).toHaveLength(1);
                 expect(groups.groups[0].id).toBe(groupId);
 
                 // Archive the group
-                const archiveResult = await appDriver.archiveGroupForUser(user2, groupId);
+                const archiveResult = await appDriver.archiveGroupForUser(groupId, user2);
                 expect(archiveResult.message).toBe('Group archived successfully');
 
                 // Verify group no longer appears in default list
-                groups = await appDriver.listGroups(user2);
+                groups = await appDriver.listGroups({}, user2);
                 expect(groups.groups).toHaveLength(0);
 
                 // Archived filter should return the group
-                const archivedGroups = await appDriver.listGroups(user2, { statusFilter: 'archived' });
+                const archivedGroups = await appDriver.listGroups({statusFilter: 'archived'}, user2);
                 expect(archivedGroups.groups).toHaveLength(1);
                 expect(archivedGroups.groups[0].id).toBe(groupId);
 
                 // Unarchive the group
-                const unarchiveResult = await appDriver.unarchiveGroupForUser(user2, groupId);
+                const unarchiveResult = await appDriver.unarchiveGroupForUser(groupId, user2);
                 expect(unarchiveResult.message).toBe('Group unarchived successfully');
 
                 // Verify group appears again
-                groups = await appDriver.listGroups(user2);
+                groups = await appDriver.listGroups({}, user2);
                 expect(groups.groups).toHaveLength(1);
                 expect(groups.groups[0].id).toBe(groupId);
 
-                const archivedGroupsAfterUnarchive = await appDriver.listGroups(user2, { statusFilter: 'archived' });
+                const archivedGroupsAfterUnarchive = await appDriver.listGroups({statusFilter: 'archived'}, user2);
                 expect(archivedGroupsAfterUnarchive.groups).toHaveLength(0);
             });
 
             it('should reject archiving a non-existent membership', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
                 // user2 is not a member
-                await expect(appDriver.archiveGroupForUser(user2, groupId))
+                await expect(appDriver.archiveGroupForUser(groupId, user2))
                     .rejects
                     .toMatchObject({ code: 'NOT_FOUND' });
             });
 
             it('should reject archiving a non-active membership', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 // Archive first time
-                await appDriver.archiveGroupForUser(user2, groupId);
+                await appDriver.archiveGroupForUser(groupId, user2);
 
                 // Try to archive again - should fail
-                await expect(appDriver.archiveGroupForUser(user2, groupId))
+                await expect(appDriver.archiveGroupForUser(groupId, user2))
                     .rejects
                     .toMatchObject({ code: 'INVALID_INPUT' });
             });
 
             it('should reject unarchiving a non-archived membership', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 // Try to unarchive an active membership
-                await expect(appDriver.unarchiveGroupForUser(user2, groupId))
+                await expect(appDriver.unarchiveGroupForUser(groupId, user2))
                     .rejects
                     .toMatchObject({ code: 'INVALID_INPUT' });
             });
 
             it('should allow multiple archive/unarchive cycles', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 // Archive
-                await appDriver.archiveGroupForUser(user2, groupId);
-                let groups = await appDriver.listGroups(user2);
+                await appDriver.archiveGroupForUser(groupId, user2);
+                let groups = await appDriver.listGroups({}, user2);
                 expect(groups.groups).toHaveLength(0);
 
                 // Unarchive
-                await appDriver.unarchiveGroupForUser(user2, groupId);
-                groups = await appDriver.listGroups(user2);
+                await appDriver.unarchiveGroupForUser(groupId, user2);
+                groups = await appDriver.listGroups({}, user2);
                 expect(groups.groups).toHaveLength(1);
 
                 // Archive again
-                await appDriver.archiveGroupForUser(user2, groupId);
-                groups = await appDriver.listGroups(user2);
+                await appDriver.archiveGroupForUser(groupId, user2);
+                groups = await appDriver.listGroups({}, user2);
                 expect(groups.groups).toHaveLength(0);
             });
 
             it('should keep archived group accessible to other members', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
-                await appDriver.joinGroupByLink(user3, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
+                await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
                 // user2 archives the group
-                await appDriver.archiveGroupForUser(user2, groupId);
+                await appDriver.archiveGroupForUser(groupId, user2);
 
                 // user1 and user3 should still see the group
-                const user1Groups = await appDriver.listGroups(user1);
+                const user1Groups = await appDriver.listGroups({}, user1);
                 expect(user1Groups.groups).toHaveLength(1);
 
-                const user3Groups = await appDriver.listGroups(user3);
+                const user3Groups = await appDriver.listGroups({}, user3);
                 expect(user3Groups.groups).toHaveLength(1);
 
                 // user2 should not see it
-                const user2Groups = await appDriver.listGroups(user2);
+                const user2Groups = await appDriver.listGroups({}, user2);
                 expect(user2Groups.groups).toHaveLength(0);
             });
         });
 
         describe('split validation', () => {
             it('should reject percentage splits not totaling 100%', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
-                await appDriver.joinGroupByLink(user3, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
+                await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
                 const participants = [user1, user2, user3];
                 const invalidPercentageSplits = [
@@ -2284,16 +2094,16 @@ describe('app tests', () => {
                     .withSplits(invalidPercentageSplits)
                     .build();
 
-                await expect(appDriver.createExpense(user1, expenseRequest))
+                await expect(appDriver.createExpense(expenseRequest, user1))
                     .rejects
                     .toMatchObject({ code: 'INVALID_PERCENTAGE_TOTAL' });
             });
 
             it('should reject negative percentage in splits', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 const participants = [user1, user2];
                 const invalidPercentageSplits = [
@@ -2310,17 +2120,17 @@ describe('app tests', () => {
                     .withSplits(invalidPercentageSplits)
                     .build();
 
-                await expect(appDriver.createExpense(user1, expenseRequest))
+                await expect(appDriver.createExpense(expenseRequest, user1))
                     .rejects
                     .toMatchObject({ code: 'INVALID_INPUT' });
             });
 
             it('should reject expense where payer is not a participant', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
-                await appDriver.joinGroupByLink(user3, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
+                await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
                 const participants = [user1, user2];
                 const expenseRequest = new CreateExpenseRequestBuilder()
@@ -2332,33 +2142,30 @@ describe('app tests', () => {
                     .withSplits(calculateEqualSplits(100, 'USD', participants))
                     .build();
 
-                await expect(appDriver.createExpense(user1, expenseRequest))
+                await expect(appDriver.createExpense(expenseRequest, user1))
                     .rejects
                     .toMatchObject({ code: 'PAYER_NOT_PARTICIPANT' });
             });
 
             it('should handle equal split with single participant', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
                 const singleParticipant = [user1];
                 const splits = calculateEqualSplits(100, 'USD', singleParticipant);
 
-                const expense = await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(100, 'USD')
-                        .withPaidBy(user1)
-                        .withParticipants(singleParticipant)
-                        .withSplitType('equal')
-                        .withSplits(splits)
-                        .build(),
-                );
+                const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(singleParticipant)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(), user1);
 
                 expect(expense.id).toBeDefined();
 
-                const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+                const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
                 const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
                 expect(usdBalances).toBeDefined();
@@ -2373,29 +2180,26 @@ describe('app tests', () => {
                 const LARGE_AMOUNT = 9999999.99;
                 const CURRENCY = 'USD';
 
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 const participants = [user1, user2];
                 const splits = calculateEqualSplits(LARGE_AMOUNT, CURRENCY, participants);
 
-                const expense = await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(LARGE_AMOUNT, CURRENCY)
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(splits)
-                        .build(),
-                );
+                const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(LARGE_AMOUNT, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(), user1);
 
                 expect(expense.amount).toBe(String(LARGE_AMOUNT));
 
-                const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+                const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
                 const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
                 expect(usdBalances).toBeDefined();
@@ -2406,29 +2210,26 @@ describe('app tests', () => {
                 const MIN_AMOUNT = 0.02;
                 const CURRENCY = 'USD';
 
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 const participants = [user1, user2];
                 const splits = calculateEqualSplits(MIN_AMOUNT, CURRENCY, participants);
 
-                const expense = await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(MIN_AMOUNT, CURRENCY)
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(splits)
-                        .build(),
-                );
+                const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(MIN_AMOUNT, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(), user1);
 
                 expect(expense.amount).toBe(String(MIN_AMOUNT));
 
-                const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+                const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
                 const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
                 expect(usdBalances).toBeDefined();
@@ -2439,58 +2240,52 @@ describe('app tests', () => {
                 const longDescription = 'x'.repeat(10000);
 
                 await expect(
-                    appDriver.createGroup(
-                        user1,
-                        new CreateGroupRequestBuilder()
-                            .withName('Test Group')
-                            .withDescription(longDescription)
-                            .build(),
-                    ),
+                    appDriver.createGroup(new CreateGroupRequestBuilder()
+                        .withName('Test Group')
+                        .withDescription(longDescription)
+                        .build(), user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_INPUT' });
             });
 
             it('should enforce maximum length on expense description', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
                 const longDescription = 'x'.repeat(10000);
                 const participants = [user1];
 
                 await expect(
-                    appDriver.createExpense(
-                        user1,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(groupId)
-                            .withDescription(longDescription)
-                            .withAmount(100, 'USD')
-                            .withPaidBy(user1)
-                            .withParticipants(participants)
-                            .withSplitType('equal')
-                            .withSplits(calculateEqualSplits(100, 'USD', participants))
-                            .build(),
-                    ),
+                    appDriver.createExpense(new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withDescription(longDescription)
+                        .withAmount(100, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(100, 'USD', participants))
+                        .build(), user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_DESCRIPTION' });
             });
 
             it('should handle expense with many participants', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
 
                 // Join initial users to the group
-                await appDriver.joinGroupByLink(user2, linkId);
-                await appDriver.joinGroupByLink(user3, linkId);
-                await appDriver.joinGroupByLink(user4, linkId);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
+                await appDriver.joinGroupByLink(shareToken, undefined, user3);
+                await appDriver.joinGroupByLink(shareToken, undefined, user4);
 
                 const manyUsers = [user1, user2, user3, user4];
                 for (let i = 5; i <= 20; i++) {
                     const userId = `user-${i}`;
                     appDriver.seedUser(userId, { displayName: `User ${i}` });
-                    await appDriver.joinGroupByLink(userId, linkId);
+                    await appDriver.joinGroupByLink(shareToken, undefined, userId);
                     manyUsers.push(userId);
                 }
 
@@ -2498,21 +2293,18 @@ describe('app tests', () => {
                 const CURRENCY = 'USD';
                 const splits = calculateEqualSplits(AMOUNT, CURRENCY, manyUsers);
 
-                const expense = await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(AMOUNT, CURRENCY)
-                        .withPaidBy(user1)
-                        .withParticipants(manyUsers)
-                        .withSplitType('equal')
-                        .withSplits(splits)
-                        .build(),
-                );
+                const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(AMOUNT, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(manyUsers)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(), user1);
 
                 expect(expense.id).toBeDefined();
 
-                const groupDetails = await appDriver.getGroupFullDetails(user1, groupId);
+                const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
                 const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
                 expect(usdBalances).toBeDefined();
@@ -2523,158 +2315,137 @@ describe('app tests', () => {
 
         describe('data consistency and integrity', () => {
             it('should reject operations on deleted group', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
-                await appDriver.deleteGroup(user1, groupId);
+                await appDriver.deleteGroup(groupId, user1);
 
                 const participants = [user1];
                 await expect(
-                    appDriver.createExpense(
-                        user1,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(groupId)
-                            .withAmount(100, 'USD')
-                            .withPaidBy(user1)
-                            .withParticipants(participants)
-                            .withSplitType('equal')
-                            .withSplits(calculateEqualSplits(100, 'USD', participants))
-                            .build(),
-                    ),
+                    appDriver.createExpense(new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(100, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(100, 'USD', participants))
+                        .build(), user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'NOT_FOUND' });
             });
 
             it('should reject malformed group ID', async () => {
-                await expect(appDriver.getGroupFullDetails(user1, 'not-a-valid-id'))
+                await expect(appDriver.getGroupFullDetails('not-a-valid-id', {}, user1))
                     .rejects
                     .toMatchObject({ code: 'NOT_FOUND' });
             });
 
             it('should reject malformed expense ID', async () => {
-                await expect(appDriver.getExpenseFullDetails(user1, toExpenseId('not-a-valid-id')))
+                await expect(appDriver.getExpenseFullDetails(toExpenseId('not-a-valid-id'), user1))
                     .rejects
                     .toMatchObject({ code: 'NOT_FOUND' });
             });
 
             it('should reject operations on non-existent expense', async () => {
-                await appDriver.createGroup(user1);
+                await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
                 const nonExistentExpenseId = 'expense-does-not-exist';
 
-                await expect(appDriver.deleteExpense(user1, nonExistentExpenseId))
+                await expect(appDriver.deleteExpense(nonExistentExpenseId, user1))
                     .rejects
                     .toMatchObject({ code: 'NOT_FOUND' });
             });
 
             it('should reject creating expense with zero amount', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
                 const participants = [user1];
                 await expect(
-                    appDriver.createExpense(
-                        user1,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(groupId)
-                            .withAmount(0, 'USD')
-                            .withPaidBy(user1)
-                            .withParticipants(participants)
-                            .withSplitType('equal')
-                            .withSplits([{ uid: user1, amount: '0.00' }])
-                            .build(),
-                    ),
+                    appDriver.createExpense(new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(0, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits([{uid: user1, amount: '0.00'}])
+                        .build(), user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_AMOUNT' });
             });
 
             it('should reject creating expense with negative amount', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
 
                 const participants = [user1];
                 await expect(
-                    appDriver.createExpense(
-                        user1,
-                        new CreateExpenseRequestBuilder()
-                            .withGroupId(groupId)
-                            .withAmount(-100, 'USD')
-                            .withPaidBy(user1)
-                            .withParticipants(participants)
-                            .withSplitType('equal')
-                            .withSplits([{ uid: user1, amount: '-100.00' }])
-                            .build(),
-                    ),
+                    appDriver.createExpense(new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(-100, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits([{uid: user1, amount: '-100.00'}])
+                        .build(), user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_AMOUNT' });
             });
 
             it('should reject settlement with zero amount', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 const participants = [user1, user2];
-                await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(100, 'USD')
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(100, 'USD', participants))
-                        .build(),
-                );
+                await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'USD', participants))
+                    .build(), user1);
 
                 await expect(
-                    appDriver.createSettlement(
-                        user2,
-                        new CreateSettlementRequestBuilder()
-                            .withGroupId(groupId)
-                            .withPayerId(user2)
-                            .withPayeeId(user1)
-                            .withAmount(0.00, 'USD')
-                            .build(),
-                    ),
+                    appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                        .withGroupId(groupId)
+                        .withPayerId(user2)
+                        .withPayeeId(user1)
+                        .withAmount(0.00, 'USD')
+                        .build(), user2),
                 )
                     .rejects
                     .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
             it('should reject settlement with negative amount', async () => {
-                const group = await appDriver.createGroup(user1);
+                const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
-                const { linkId } = await appDriver.generateShareableLink(user1, groupId);
-                await appDriver.joinGroupByLink(user2, linkId);
+                const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+                await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 const participants = [user1, user2];
-                await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(100, 'USD')
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(100, 'USD', participants))
-                        .build(),
-                );
+                await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'USD', participants))
+                    .build(), user1);
 
                 await expect(
-                    appDriver.createSettlement(
-                        user2,
-                        new CreateSettlementRequestBuilder()
-                            .withGroupId(groupId)
-                            .withPayerId(user2)
-                            .withPayeeId(user1)
-                            .withAmount('-25.00', 'USD')
-                            .build(),
-                    ),
+                    appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                        .withGroupId(groupId)
+                        .withPayerId(user2)
+                        .withPayeeId(user1)
+                        .withAmount('-25.00', 'USD')
+                        .build(), user2),
                 )
                     .rejects
                     .toMatchObject({ code: 'VALIDATION_ERROR' });
@@ -2689,14 +2460,14 @@ describe('app tests', () => {
         });
         describe('acceptMultiplePolicies - happy path', () => {
             it('should accept a single policy', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const result = await appDriver.acceptMultiplePolicies(user1, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                ]);
+                const result = await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                ], user1);
 
                 expect(result.success).toBe(true);
                 expect(result.acceptedPolicies).toHaveLength(1);
@@ -2706,26 +2477,26 @@ describe('app tests', () => {
             });
 
             it('should accept multiple policies at once', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const policy2 = await appDriver.createPolicy(user1, {
+                const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
-                });
+                }, user1);
 
-                const policy3 = await appDriver.createPolicy(user1, {
+                const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
                     text: 'Cookie Policy v1',
-                });
+                }, user1);
 
-                const result = await appDriver.acceptMultiplePolicies(user1, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                    { policyId: policy2.id, versionHash: policy2.versionHash },
-                    { policyId: policy3.id, versionHash: policy3.versionHash },
-                ]);
+                const result = await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    {policyId: policy2.id, versionHash: policy2.versionHash},
+                    {policyId: policy3.id, versionHash: policy3.versionHash},
+                ], user1);
 
                 expect(result.success).toBe(true);
                 expect(result.acceptedPolicies).toHaveLength(3);
@@ -2735,14 +2506,14 @@ describe('app tests', () => {
             });
 
             it('should persist policy acceptance in user document', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2754,16 +2525,16 @@ describe('app tests', () => {
 
         describe('acceptMultiplePolicies - validation and errors', () => {
             it('should reject empty acceptances array', async () => {
-                await expect(appDriver.acceptMultiplePolicies(user1, []))
+                await expect(appDriver.acceptMultiplePolicies([], user1))
                     .rejects
                     .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
             });
 
             it('should reject when policyId is missing', async () => {
                 await expect(
-                    appDriver.acceptMultiplePolicies(user1, [
-                        { policyId: '', versionHash: 'some-hash' },
-                    ]),
+                    appDriver.acceptMultiplePolicies([
+                        {policyId: '', versionHash: 'some-hash'},
+                    ], user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
@@ -2771,9 +2542,9 @@ describe('app tests', () => {
 
             it('should reject when versionHash is missing', async () => {
                 await expect(
-                    appDriver.acceptMultiplePolicies(user1, [
-                        { policyId: 'some-policy', versionHash: '' },
-                    ]),
+                    appDriver.acceptMultiplePolicies([
+                        {policyId: 'some-policy', versionHash: ''},
+                    ], user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_ACCEPTANCES' });
@@ -2781,40 +2552,40 @@ describe('app tests', () => {
 
             it('should reject when policy does not exist', async () => {
                 await expect(
-                    appDriver.acceptMultiplePolicies(user1, [
-                        { policyId: 'non-existent-policy', versionHash: 'some-hash' },
-                    ]),
+                    appDriver.acceptMultiplePolicies([
+                        {policyId: 'non-existent-policy', versionHash: 'some-hash'},
+                    ], user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'POLICY_NOT_FOUND' });
             });
 
             it('should reject when version hash is invalid for existing policy', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
                 await expect(
-                    appDriver.acceptMultiplePolicies(user1, [
-                        { policyId: policy1.id, versionHash: 'invalid-version-hash' },
-                    ]),
+                    appDriver.acceptMultiplePolicies([
+                        {policyId: policy1.id, versionHash: 'invalid-version-hash'},
+                    ], user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_VERSION_HASH' });
             });
 
             it('should reject entire batch if any policy is invalid', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
                 await expect(
-                    appDriver.acceptMultiplePolicies(user1, [
-                        { policyId: policy1.id, versionHash: policy1.versionHash },
-                        { policyId: 'non-existent', versionHash: 'some-hash' },
-                    ]),
+                    appDriver.acceptMultiplePolicies([
+                        {policyId: policy1.id, versionHash: policy1.versionHash},
+                        {policyId: 'non-existent', versionHash: 'some-hash'},
+                    ], user1),
                 )
                     .rejects
                     .toMatchObject({ code: 'POLICY_NOT_FOUND' });
@@ -2826,15 +2597,15 @@ describe('app tests', () => {
 
         describe('getUserPolicyStatus - happy path', () => {
             it('should show all policies as pending when user has not accepted any', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const policy2 = await appDriver.createPolicy(user1, {
+                const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
-                });
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2854,20 +2625,20 @@ describe('app tests', () => {
             });
 
             it('should show no pending policies when user has accepted current versions', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const policy2 = await appDriver.createPolicy(user1, {
+                const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
-                });
+                }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                    { policyId: policy2.id, versionHash: policy2.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    {policyId: policy2.id, versionHash: policy2.versionHash},
+                ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2882,21 +2653,21 @@ describe('app tests', () => {
             });
 
             it('should show pending when user has accepted old versions', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                ], user2);
 
                 const oldVersionHash = policy1.versionHash;
 
-                const updatedPolicy = await appDriver.updatePolicy(user1, policy1.id, {
+                const updatedPolicy = await appDriver.updatePolicy(policy1.id, {
                     text: 'Terms of Service v2 - updated',
                     publish: true,
-                });
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2913,30 +2684,30 @@ describe('app tests', () => {
             });
 
             it('should show mixed acceptance state across multiple policies', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const policy2 = await appDriver.createPolicy(user1, {
+                const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
-                });
+                }, user1);
 
-                const policy3 = await appDriver.createPolicy(user1, {
+                const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
                     text: 'Cookie Policy v1',
-                });
+                }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                    { policyId: policy2.id, versionHash: policy2.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    {policyId: policy2.id, versionHash: policy2.versionHash},
+                ], user2);
 
-                await appDriver.updatePolicy(user1, policy1.id, {
+                await appDriver.updatePolicy(policy1.id, {
                     text: 'Terms of Service v2',
                     publish: true,
-                });
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2956,10 +2727,10 @@ describe('app tests', () => {
 
         describe('getUserPolicyStatus - data integrity', () => {
             it('should return correct response structure', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2973,14 +2744,14 @@ describe('app tests', () => {
             });
 
             it('should include all required fields in each policy', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -3001,24 +2772,24 @@ describe('app tests', () => {
             });
 
             it('should correctly count totalPending', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const policy2 = await appDriver.createPolicy(user1, {
+                const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
-                });
+                }, user1);
 
-                const policy3 = await appDriver.createPolicy(user1, {
+                const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
                     text: 'Cookie Policy v1',
-                });
+                }, user1);
 
-                await appDriver.acceptMultiplePolicies(user2, [
-                    { policyId: policy1.id, versionHash: policy1.versionHash },
-                ]);
+                await appDriver.acceptMultiplePolicies([
+                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -3040,21 +2811,18 @@ describe('app tests', () => {
 
     describe('notification system', () => {
         it('should update user notifications when expense is created', async () => {
-            const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withAmount(100, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants([user1, user2])
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withAmount(100, 'USD')
+                .withPaidBy(user1)
+                .withParticipants([user1, user2])
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                .build(), user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
                 transactionChangeCount: 1,
@@ -3066,19 +2834,16 @@ describe('app tests', () => {
         });
 
         it('should update notifications when settlement is created', async () => {
-            const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await appDriver.createSettlement(
-                user2,
-                new CreateSettlementRequestBuilder()
-                    .withGroupId(group.id)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(50, 'USD')
-                    .build(),
-            );
+            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(user2)
+                .withPayeeId(user1)
+                .withAmount(50, 'USD')
+                .build(), user2);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
                 balanceChangeCount: 1,
@@ -3090,11 +2855,11 @@ describe('app tests', () => {
         });
 
         it('should update notifications when group comment is added', async () => {
-            const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await appDriver.createGroupComment(user1, group.id, 'Test comment');
+            await appDriver.createGroupComment(group.id, 'Test comment', user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
                 commentChangeCount: 1,
@@ -3106,23 +2871,20 @@ describe('app tests', () => {
         });
 
         it('should update notifications when expense comment is added', async () => {
-            const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            const expense = await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withAmount(100, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants([user1, user2])
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
-                    .build(),
-            );
+            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withAmount(100, 'USD')
+                .withPaidBy(user1)
+                .withParticipants([user1, user2])
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                .build(), user1);
 
-            await appDriver.createExpenseComment(user1, expense.id, 'Expense comment');
+            await appDriver.createExpenseComment(expense.id, 'Expense comment', user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
                 commentChangeCount: 1,
@@ -3134,35 +2896,32 @@ describe('app tests', () => {
         });
 
         it('should increment changeVersion on multiple operations', async () => {
-            const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withAmount(100, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants([user1, user2])
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withAmount(100, 'USD')
+                .withPaidBy(user1)
+                .withParticipants([user1, user2])
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                .build(), user1);
 
             const feedAfterExpense = await appDriver.getActivityFeedItems(user1);
             expect(feedAfterExpense.length).toBeGreaterThan(0);
 
-            await appDriver.createGroupComment(user1, group.id, 'Comment');
+            await appDriver.createGroupComment(group.id, 'Comment', user1);
 
             const feedAfterComment = await appDriver.getActivityFeedItems(user1);
             expect(feedAfterComment.length).toBeGreaterThan(feedAfterExpense.length);
         });
 
         it('should handle group updates', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
-            await appDriver.updateGroup(user1, group.id, { name: toGroupName('Updated Name') });
+            await appDriver.updateGroup(group.id, {name: toGroupName('Updated Name')}, user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
                 groupDetailsChangeCount: 2,
@@ -3170,25 +2929,22 @@ describe('app tests', () => {
         });
 
         it('should prune activity feed entries beyond the latest 20 items via async cleanup', async () => {
-            const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
 
             for (let i = 0; i < 12; i += 1) {
-                await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(group.id)
-                        .withAmount(25, 'USD')
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(25, 'USD', participants))
-                        .withDescription(`Activity Feed Expense ${i}`)
-                        .build(),
-                );
+                await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(25, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(25, 'USD', participants))
+                    .withDescription(`Activity Feed Expense ${i}`)
+                    .build(), user1);
             }
 
             // Before cleanup - items are NOT pruned in transactions anymore
@@ -3220,28 +2976,25 @@ describe('app tests', () => {
         });
 
         it('should prune historical activity entries when a group is deleted (via async cleanup)', async () => {
-            const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
 
             for (let i = 0; i < 10; i += 1) {
-                await appDriver.createExpense(
-                    user1,
-                    new CreateExpenseRequestBuilder()
-                        .withGroupId(group.id)
-                        .withAmount(30, 'USD')
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(30, 'USD', participants))
-                        .withDescription(`Deletion Feed Expense ${i}`)
-                        .build(),
-                );
+                await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(30, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(30, 'USD', participants))
+                    .withDescription(`Deletion Feed Expense ${i}`)
+                    .build(), user1);
             }
 
-            await appDriver.deleteGroup(user1, group.id);
+            await appDriver.deleteGroup(group.id, user1);
 
             // Deleting group creates MEMBER_LEFT events, so items > 10 before cleanup
             const feedBeforeCleanup1 = await appDriver.getActivityFeedItems(user1);
@@ -3277,31 +3030,28 @@ describe('app tests', () => {
 
     describe('activity feed endpoint', () => {
         it('should fetch activity feed items via the HTTP handler', async () => {
-            const group = await appDriver.createGroup(user1);
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
 
-            await appDriver.createExpense(
-                user1,
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withAmount(42.5, 'USD')
-                    .withPaidBy(user1)
-                    .withDescription('Activity Feed Expense')
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(42.5, 'USD', participants))
-                    .build(),
-            );
+            await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withAmount(42.5, 'USD')
+                .withPaidBy(user1)
+                .withDescription('Activity Feed Expense')
+                .withParticipants(participants)
+                .withSplitType('equal')
+                .withSplits(calculateEqualSplits(42.5, 'USD', participants))
+                .build(), user1);
 
-            await appDriver.createGroupComment(user1, group.id, 'Activity feed comment');
+            await appDriver.createGroupComment(group.id, 'Activity feed comment', user1);
 
-            const fullFeed = await appDriver.getActivityFeed(user1);
+            const fullFeed = await appDriver.getActivityFeed({}, user1);
             expect(fullFeed.items.length).toBeGreaterThanOrEqual(2);
 
-            const limitedFeed = await appDriver.getActivityFeed(user1, { limit: 1 });
+            const limitedFeed = await appDriver.getActivityFeed({limit: 1}, user1);
             expect(limitedFeed.items).toHaveLength(1);
             expect(limitedFeed.hasMore).toBe(fullFeed.items.length > 1);
 
@@ -3314,31 +3064,31 @@ describe('app tests', () => {
 
     describe('group security endpoints', () => {
         it('should manage permissions and pending members through security handlers', async () => {
-            const group = await appDriver.createGroup(user1);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
-            const permissionsUpdate = await appDriver.updateGroupPermissions(user1, group.id, {
+            const permissionsUpdate = await appDriver.updateGroupPermissions(group.id, {
                 memberApproval: 'admin-required',
-            });
+            }, user1);
 
             expect(permissionsUpdate.message).toBe('Permissions updated successfully');
 
-            const { linkId } = await appDriver.generateShareableLink(user1, group.id);
-            await appDriver.joinGroupByLink(user2, linkId);
-            await appDriver.joinGroupByLink(user3, linkId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
-            const pendingMembers = await appDriver.getPendingMembers(user1, group.id);
+            const pendingMembers = await appDriver.getPendingMembers(group.id, user1);
             const pendingIds = pendingMembers.members.map((member) => member.uid);
 
             expect(pendingIds.sort()).toEqual([user2, user3].sort());
             expect(pendingMembers.members.every((member) => member.memberStatus === MemberStatuses.PENDING)).toBe(true);
 
-            await appDriver.approveMember(user1, group.id, user2);
-            await appDriver.updateMemberRole(user1, group.id, user2, MemberRoles.ADMIN);
+            await appDriver.approveMember(group.id, user2, user1);
+            await appDriver.updateMemberRole(group.id, user2, MemberRoles.ADMIN, user1);
 
-            const rejection = await appDriver.rejectMember(user1, group.id, user3);
+            const rejection = await appDriver.rejectMember(group.id, user3, user1);
             expect(rejection.message).toBe('Member rejected successfully');
 
-            const groupDetails = await appDriver.getGroupFullDetails(user1, group.id);
+            const groupDetails = await appDriver.getGroupFullDetails(group.id, {}, user1);
             const approvedMember = groupDetails.members.members.find((member) => member.uid === user2);
             const rejectedMember = groupDetails.members.members.find((member) => member.uid === user3);
 
@@ -3346,7 +3096,7 @@ describe('app tests', () => {
             expect(approvedMember?.memberRole).toBe(MemberRoles.ADMIN);
             expect(rejectedMember).toBeUndefined();
 
-            const pendingAfterActions = await appDriver.getPendingMembers(user1, group.id);
+            const pendingAfterActions = await appDriver.getPendingMembers(group.id, user1);
             expect(pendingAfterActions.members).toHaveLength(0);
         });
     });
@@ -3396,9 +3146,9 @@ describe('app tests', () => {
 
         describe('updateUserProfile', () => {
             it('should update display name successfully', async () => {
-                const updatedProfile = await appDriver.updateUserProfile(user1, {
+                const updatedProfile = await appDriver.updateUserProfile({
                     displayName: 'Updated Name',
-                });
+                }, user1);
 
                 expect(updatedProfile.displayName).toBe('Updated Name');
 
@@ -3407,9 +3157,9 @@ describe('app tests', () => {
             });
 
             it('should sanitize display name input', async () => {
-                const updatedProfile = await appDriver.updateUserProfile(user1, {
+                const updatedProfile = await appDriver.updateUserProfile({
                     displayName: '<script>alert("xss")</script>Clean Name',
-                });
+                }, user1);
 
                 expect(updatedProfile.displayName).not.toContain('<script>');
                 expect(updatedProfile.displayName).toContain('Clean Name');
@@ -3417,7 +3167,7 @@ describe('app tests', () => {
 
             it('should reject empty display name', async () => {
                 await expect(
-                    appDriver.updateUserProfile(user1, { displayName: '' }),
+                    appDriver.updateUserProfile({displayName: ''}, user1),
                 )
                     .rejects
                     .toThrow();
@@ -3426,7 +3176,7 @@ describe('app tests', () => {
             it('should reject display name that is too long', async () => {
                 const tooLongName = 'a'.repeat(256);
                 await expect(
-                    appDriver.updateUserProfile(user1, { displayName: tooLongName }),
+                    appDriver.updateUserProfile({displayName: tooLongName}, user1),
                 )
                     .rejects
                     .toThrow();
@@ -3438,20 +3188,20 @@ describe('app tests', () => {
             const VALID_NEW_PASSWORD = 'NewSecurePass123!';
 
             it('should successfully change password with valid credentials', async () => {
-                const result = await appDriver.changePassword(user1, {
+                const result = await appDriver.changePassword({
                     currentPassword: VALID_CURRENT_PASSWORD,
                     newPassword: VALID_NEW_PASSWORD,
-                });
+                }, user1);
 
                 expect(result.message).toBe('Password changed successfully');
             });
 
             it('should reject when current password is incorrect', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: 'WrongPassword123!',
                         newPassword: VALID_NEW_PASSWORD,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/password is incorrect/i);
@@ -3459,10 +3209,10 @@ describe('app tests', () => {
 
             it('should reject when new password is same as current', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
                         newPassword: VALID_CURRENT_PASSWORD,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3470,10 +3220,10 @@ describe('app tests', () => {
 
             it('should reject when new password is too short', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
                         newPassword: 'Short1!',
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3481,9 +3231,9 @@ describe('app tests', () => {
 
             it('should reject when currentPassword field is missing', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         newPassword: VALID_NEW_PASSWORD,
-                    }),
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3491,9 +3241,9 @@ describe('app tests', () => {
 
             it('should reject when newPassword field is missing', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
-                    }),
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3501,10 +3251,10 @@ describe('app tests', () => {
 
             it('should reject when currentPassword is empty string', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: '',
                         newPassword: VALID_NEW_PASSWORD,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3512,10 +3262,10 @@ describe('app tests', () => {
 
             it('should reject when newPassword is empty string', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
                         newPassword: '',
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3527,10 +3277,10 @@ describe('app tests', () => {
             const NEW_EMAIL = 'newemail@example.com';
 
             it('should successfully change email with valid credentials', async () => {
-                const profile = await appDriver.changeEmail(user1, {
+                const profile = await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
                     newEmail: NEW_EMAIL,
-                });
+                }, user1);
 
                 expect(profile.email).toBe(NEW_EMAIL);
                 expect(profile.emailVerified).toBe(false);
@@ -3538,10 +3288,10 @@ describe('app tests', () => {
 
             it('should reject when current password is incorrect', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: 'WrongPassword123!',
                         newEmail: NEW_EMAIL,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/password is incorrect/i);
@@ -3551,10 +3301,10 @@ describe('app tests', () => {
                 const currentProfile = await appDriver.getUserProfile(user1);
 
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: currentProfile.email!,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/must be different/i);
@@ -3562,10 +3312,10 @@ describe('app tests', () => {
 
             it('should reject when new email has invalid format', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: 'not-an-email',
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3573,9 +3323,9 @@ describe('app tests', () => {
 
             it('should reject when currentPassword field is missing', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         newEmail: NEW_EMAIL,
-                    }),
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3583,9 +3333,9 @@ describe('app tests', () => {
 
             it('should reject when newEmail field is missing', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                    }),
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3593,10 +3343,10 @@ describe('app tests', () => {
 
             it('should reject when currentPassword is empty string', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: '',
                         newEmail: NEW_EMAIL,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3604,20 +3354,20 @@ describe('app tests', () => {
 
             it('should reject when newEmail is empty string', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: '',
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
             });
 
             it('should lowercase email address', async () => {
-                const profile = await appDriver.changeEmail(user1, {
+                const profile = await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
                     newEmail: 'NewEmail@EXAMPLE.COM',
-                });
+                }, user1);
 
                 expect(profile.email).toBe('newemail@example.com');
             });
@@ -3626,10 +3376,10 @@ describe('app tests', () => {
                 const otherUserEmail = 'user2@example.com';
 
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: otherUserEmail,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/already exists/i);
@@ -3647,10 +3397,10 @@ describe('app tests', () => {
         it('should allow admin to create, update, and publish policies', async () => {
             const policyName = 'Privacy Policy';
 
-            const created = await appDriver.createPolicy(policyAdmin, {
+            const created = await appDriver.createPolicy({
                 policyName,
                 text: 'Initial policy text',
-            });
+            }, policyAdmin);
 
             expect(created).toMatchObject({
                 success: true,
@@ -3658,10 +3408,10 @@ describe('app tests', () => {
                 versionHash: expect.any(String),
             });
 
-            const draftUpdate = await appDriver.updatePolicy(policyAdmin, created.id, {
+            const draftUpdate = await appDriver.updatePolicy(created.id, {
                 text: 'Updated draft policy text',
                 publish: false,
-            });
+            }, policyAdmin);
 
             expect(draftUpdate).toMatchObject({
                 success: true,
@@ -3669,10 +3419,10 @@ describe('app tests', () => {
                 versionHash: expect.any(String),
             });
 
-            const publishedUpdate = await appDriver.updatePolicy(policyAdmin, created.id, {
+            const publishedUpdate = await appDriver.updatePolicy(created.id, {
                 text: 'Final published policy text',
                 publish: true,
-            });
+            }, policyAdmin);
 
             expect(publishedUpdate).toMatchObject({
                 success: true,
@@ -3680,7 +3430,7 @@ describe('app tests', () => {
                 currentVersionHash: expect.any(String),
             });
 
-            const policyDetails = await appDriver.getPolicy(policyAdmin, created.id);
+            const policyDetails = await appDriver.getPolicy(created.id, policyAdmin);
             const publishedVersionHash = publishedUpdate.currentVersionHash;
             expect(publishedVersionHash).toBeDefined();
             expect(policyDetails.currentVersionHash).toBe(publishedVersionHash);
@@ -3694,25 +3444,25 @@ describe('app tests', () => {
             const policyId = 'terms-of-service';
 
             await expect(
-                appDriver.updatePolicy(policyAdmin, policyId, {
+                appDriver.updatePolicy(policyId, {
                     text: 'Updated terms version 1',
                     publish: true,
-                }),
+                }, policyAdmin),
             )
                 .rejects
                 .toThrow(/Policy not found/);
 
-            const created = await appDriver.createPolicy(policyAdmin, {
+            const created = await appDriver.createPolicy({
                 policyName,
                 text: 'Initial terms content',
-            });
+            }, policyAdmin);
 
             expect(created.id).toBe(policyId);
 
-            const update = await appDriver.updatePolicy(policyAdmin, created.id, {
+            const update = await appDriver.updatePolicy(created.id, {
                 text: 'Updated terms version 2',
                 publish: true,
-            });
+            }, policyAdmin);
 
             expect(update).toMatchObject({
                 success: true,
@@ -3720,7 +3470,7 @@ describe('app tests', () => {
                 currentVersionHash: expect.any(String),
             });
 
-            const policyDetails = await appDriver.getPolicy(policyAdmin, policyId);
+            const policyDetails = await appDriver.getPolicy(policyId, policyAdmin);
             const publishedHash = update.currentVersionHash;
             expect(publishedHash).toBeDefined();
             expect(policyDetails.currentVersionHash).toBe(publishedHash);

@@ -177,12 +177,12 @@ test.describe('Group security pending members', () => {
 
         const [firstPending, secondPending] = pendingList;
 
-        await settingsModal.approvePendingMember(firstPending.uid);
+        await settingsModal.approveMember(firstPending.uid);
         await expect(settingsModal.getPendingApproveButton(firstPending.uid)).toHaveCount(0);
         await expect(settingsModal.getPendingRejectButton(firstPending.uid)).toHaveCount(0);
         await expect(settingsModal.getPendingApproveButton(secondPending.uid)).toBeVisible();
 
-        await settingsModal.rejectPendingMember(secondPending.uid);
+        await settingsModal.rejectMember(secondPending.uid);
         await expect(settingsModal.getPendingRejectButton(secondPending.uid)).toHaveCount(0);
         await expect(settingsModal.getModalContainer().getByText(secondPending.displayName)).toHaveCount(0);
         await expect(settingsModal.getModalContainer().getByText('No pending requests right now.')).toBeVisible();

@@ -473,7 +473,7 @@ simpleTest.describe('Group Settings & Management', () => {
         // Owner reviews pending list and approves the user
         settingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
         await settingsModal.waitForPendingMember(approverUser.uid);
-        await settingsModal.approvePendingMember(approverUser.uid); // This waits for button to disappear
+        await settingsModal.approveMember(approverUser.uid); // This waits for button to disappear
         await expect(settingsModal.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
         await settingsModal.clickFooterClose();
 
@@ -495,7 +495,7 @@ simpleTest.describe('Group Settings & Management', () => {
 
         settingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
         await settingsModal.waitForPendingMember(rejectUser.uid);
-        await settingsModal.rejectPendingMember(rejectUser.uid); // This waits for button to disappear
+        await settingsModal.rejectMember(rejectUser.uid); // This waits for button to disappear
         await expect(settingsModal.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
         await settingsModal.clickFooterClose();
 

@@ -1,5 +1,5 @@
 import type { DisplayName, GroupMembershipDTO, GroupName, ISOString, JoinGroupResponse, UserId } from '@splitifyd/shared';
-import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, GroupId, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, GroupId, MAX_GROUP_MEMBERS, MemberRoles, MemberStatuses, ShareLinkDTO, ShareLinkId, ShareLinkToken, toShareLinkId, toShareLinkToken, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import { toISOString } from '@splitifyd/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
@@ -133,19 +133,19 @@ export class GroupShareService {
         };
     }
 
-    private async findShareLinkByToken(token: string): Promise<
+    private async findShareLinkByToken(shareToken: ShareLinkToken): Promise<
         | { status: 'valid'; groupId: GroupId; shareLink: ShareLinkDTO; }
         | { status: 'expired'; }
         | { status: 'missing'; }
     > {
-        const lookup = await this.firestoreReader.findShareLinkByToken(token);
+        const lookup = await this.firestoreReader.findShareLinkByToken(shareToken);
 
         if (!lookup) {
             return { status: 'missing' };
         }
 
         if (!lookup.shareLink) {
-            await this.deleteShareLinkAndIndex(lookup.groupId, lookup.shareLinkId, token);
+            await this.deleteShareLinkAndIndex(lookup.groupId, lookup.shareLinkId, shareToken);
             return { status: 'missing' };
         }
 
@@ -159,7 +159,7 @@ export class GroupShareService {
         };
 
         if (new Date(shareLink.expiresAt).getTime() <= Date.now()) {
-            await this.deleteShareLinkAndIndex(lookup.groupId, shareLink.id, token);
+            await this.deleteShareLinkAndIndex(lookup.groupId, shareLink.id, shareLink.token);
             return { status: 'expired' };
         }
 
@@ -170,12 +170,12 @@ export class GroupShareService {
         };
     }
 
-    private async deleteShareLinkAndIndex(groupId: GroupId, shareLinkId: string, token: string): Promise<void> {
-        await this.firestoreWriter.deleteShareLink(groupId, shareLinkId, token).catch((error) => {
+    private async deleteShareLinkAndIndex(groupId: GroupId, shareLinkId: ShareLinkId, shareToken: ShareLinkToken): Promise<void> {
+        await this.firestoreWriter.deleteShareLink(groupId, shareLinkId, shareToken).catch((error) => {
             logger.error('Failed to delete expired share link', error, {
                 groupId,
                 shareLinkId,
-                token,
+                shareToken,
             });
         });
     }
@@ -186,7 +186,7 @@ export class GroupShareService {
         expiresAt?: string,
     ): Promise<{
         shareablePath: string;
-        linkId: string;
+        shareToken: ShareLinkToken;
         expiresAt: string;
     }> {
         return measure.measureDb('GroupShareService.generateShareableLink', async () => this._generateShareableLink(userId, groupId, expiresAt));
@@ -198,7 +198,7 @@ export class GroupShareService {
         expiresAt?: string,
     ): Promise<{
         shareablePath: string;
-        linkId: string;
+        shareToken: ShareLinkToken;
         expiresAt: string;
     }> {
         const timer = new PerformanceTimer();
@@ -223,7 +223,8 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
         }
 
-        const shareToken = generateShareToken();
+        const shareTokenString = generateShareToken();
+        const shareToken = toShareLinkToken(shareTokenString);
         timer.endPhase();
 
         timer.startPhase('transaction');
@@ -279,7 +280,7 @@ export class GroupShareService {
         });
         timer.endPhase();
 
-        const shareablePath = `/join?linkId=${shareToken}`;
+        const shareablePath = `/join?shareToken=${shareToken}`;
 
         LoggerContext.setBusinessContext({ groupId });
         logger.info('share-link-created', {
@@ -293,14 +294,14 @@ export class GroupShareService {
 
         return {
             shareablePath,
-            linkId: shareToken,
+            shareToken,
             expiresAt: resolvedExpiresAt,
         };
     }
 
     async previewGroupByLink(
         userId: UserId,
-        linkId: string,
+        shareToken: ShareLinkToken,
     ): Promise<{
         groupId: GroupId;
         groupName: GroupName;
@@ -308,11 +309,11 @@ export class GroupShareService {
         memberCount: number;
         isAlreadyMember: boolean;
     }> {
-        if (!linkId) {
+        if (!shareToken) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Link ID is required');
         }
 
-        const shareLinkLookup = await this.findShareLinkByToken(linkId);
+        const shareLinkLookup = await this.findShareLinkByToken(shareToken);
 
         if (shareLinkLookup.status === 'missing') {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
@@ -342,20 +343,20 @@ export class GroupShareService {
         };
     }
 
-    async joinGroupByLink(userId: UserId, linkId: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
-        return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, linkId, groupDisplayName));
+    async joinGroupByLink(userId: UserId, shareToken: ShareLinkToken, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
+        return measure.measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, shareToken, groupDisplayName));
     }
 
-    private async _joinGroupByLink(userId: UserId, linkId: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
+    private async _joinGroupByLink(userId: UserId, shareToken: ShareLinkToken, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
         const timer = new PerformanceTimer();
 
-        if (!linkId) {
+        if (!shareToken) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_LINK_ID', 'Link ID is required');
         }
 
         // Performance optimization: Find shareLink outside transaction
         timer.startPhase('query');
-        const shareLinkLookup = await this.findShareLinkByToken(linkId);
+        const shareLinkLookup = await this.findShareLinkByToken(shareToken);
 
         if (shareLinkLookup.status === 'missing') {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
@@ -531,7 +532,7 @@ export class GroupShareService {
         logger.info('User joined group via share link', {
             groupId,
             userId,
-            linkId: linkId.substring(0, 4) + '...',
+            linkId: shareToken.substring(0, 4) + '...',
             invitedBy: result.invitedBy,
             memberStatus: memberDoc.memberStatus,
             timings: timer.getTimings(),

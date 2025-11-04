@@ -17,10 +17,10 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const result = await appDriver.createPolicy(userId, {
+            const result = await appDriver.createPolicy({
                 policyName: 'Terms of Service',
                 text: 'These are the terms...',
-            });
+            }, userId);
 
             expect(result).toMatchObject({
                 success: true,
@@ -34,30 +34,30 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            await expect(appDriver.createPolicy(userId, { policyName: '', text: 'Some policy text' } as any)).rejects.toThrow();
+            await expect(appDriver.createPolicy({policyName: '', text: 'Some policy text'} as any, userId)).rejects.toThrow();
         });
 
         it('should reject creation with missing text', async () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            await expect(appDriver.createPolicy(userId, { policyName: 'Privacy Policy', text: '' } as any)).rejects.toThrow();
+            await expect(appDriver.createPolicy({policyName: 'Privacy Policy', text: ''} as any, userId)).rejects.toThrow();
         });
 
         it('should reject creation when policy already exists', async () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            await appDriver.createPolicy(userId, {
+            await appDriver.createPolicy({
                 policyName: 'Terms of Service',
                 text: 'Original terms...',
-            });
+            }, userId);
 
             await expect(
-                appDriver.createPolicy(userId, {
+                appDriver.createPolicy({
                     policyName: 'Terms of Service',
                     text: 'Updated terms...',
-                }),
+                }, userId),
             )
                 .rejects
                 .toThrow('Policy already exists');
@@ -81,15 +81,15 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const policy1 = await appDriver.createPolicy(userId, {
+            const policy1 = await appDriver.createPolicy({
                 policyName: 'Terms Of Service', // Maps to 'terms-of-service'
                 text: 'First policy text',
-            });
+            }, userId);
 
-            const policy2 = await appDriver.createPolicy(userId, {
+            const policy2 = await appDriver.createPolicy({
                 policyName: 'Privacy Policy', // Maps to 'privacy-policy'
                 text: 'Second policy text',
-            });
+            }, userId);
 
             const result = await appDriver.listPolicies(userId);
 
@@ -108,12 +108,12 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Privacy Policy',
                 text: 'This is the privacy policy',
-            });
+            }, userId);
 
-            const result = await appDriver.getPolicy(userId, created.id);
+            const result = await appDriver.getPolicy(created.id, userId);
 
             expect(result).toMatchObject({
                 id: created.id,
@@ -129,7 +129,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
             appDriver.seedAdminUser(userId, {});
 
-            await expect(appDriver.getPolicy(userId, policyId)).rejects.toThrow('Policy not found');
+            await expect(appDriver.getPolicy(policyId, userId)).rejects.toThrow('Policy not found');
         });
     });
 
@@ -138,12 +138,12 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Terms of Service',
                 text: 'Version 1 text',
-            });
+            }, userId);
 
-            const result = await appDriver.getPolicyVersion(userId, created.id, created.versionHash);
+            const result = await appDriver.getPolicyVersion(created.id, created.versionHash, userId);
 
             expect(result).toMatchObject({
                 versionHash: created.versionHash,
@@ -159,19 +159,19 @@ describe('PolicyHandlers - Unit Tests', () => {
 
             appDriver.seedAdminUser(userId, {});
 
-            await expect(appDriver.getPolicyVersion(userId, policyId, versionHash)).rejects.toThrow('Policy not found');
+            await expect(appDriver.getPolicyVersion(policyId, versionHash, userId)).rejects.toThrow('Policy not found');
         });
 
         it('should reject request for non-existent version', async () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Terms of Service',
                 text: 'Original text',
-            });
+            }, userId);
 
-            await expect(appDriver.getPolicyVersion(userId, created.id, 'non-existent-hash')).rejects.toThrow(
+            await expect(appDriver.getPolicyVersion(created.id, 'non-existent-hash', userId)).rejects.toThrow(
                 'Policy version not found',
             );
         });
@@ -182,15 +182,15 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Privacy Policy',
                 text: 'Original text',
-            });
+            }, userId);
 
-            const result = await appDriver.updatePolicy(userId, created.id, {
+            const result = await appDriver.updatePolicy(created.id, {
                 text: 'Updated policy text',
                 publish: false,
-            });
+            }, userId);
 
             expect(result).toMatchObject({
                 success: true,
@@ -204,15 +204,15 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Privacy Policy',
                 text: 'Original text',
-            });
+            }, userId);
 
-            const result = await appDriver.updatePolicy(userId, created.id, {
+            const result = await appDriver.updatePolicy(created.id, {
                 text: 'Updated and published text',
                 publish: true,
-            });
+            }, userId);
 
             expect(result).toMatchObject({
                 success: true,
@@ -227,16 +227,16 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Privacy Policy',
                 text: 'Original text',
-            });
+            }, userId);
 
             await expect(
-                appDriver.updatePolicy(userId, created.id, {
+                appDriver.updatePolicy(created.id, {
                     text: '',
                     publish: false,
-                } as any),
+                } as any, userId),
             )
                 .rejects
                 .toThrow();
@@ -249,9 +249,9 @@ describe('PolicyHandlers - Unit Tests', () => {
             appDriver.seedAdminUser(userId, {});
 
             await expect(
-                appDriver.updatePolicy(userId, policyId, {
+                appDriver.updatePolicy(policyId, {
                     text: 'Some updated text',
-                }),
+                }, userId),
             )
                 .rejects
                 .toThrow('Policy not found');
@@ -263,15 +263,15 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Cookie Policy',
                 text: 'Original version',
-            });
+            }, userId);
 
-            const updated = await appDriver.updatePolicy(userId, created.id, {
+            const updated = await appDriver.updatePolicy(created.id, {
                 text: 'Draft version',
                 publish: false,
-            });
+            }, userId);
 
             const result = await appDriver.publishPolicy(userId, created.id, updated.versionHash);
 
@@ -286,10 +286,10 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Cookie Policy',
                 text: 'Original text',
-            });
+            }, userId);
 
             await expect(appDriver.publishPolicy(userId, created.id, '' as any)).rejects.toThrow();
         });
@@ -307,10 +307,10 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Cookie Policy',
                 text: 'Original text',
-            });
+            }, userId);
 
             await expect(appDriver.publishPolicy(userId, created.id, 'non-existent-hash')).rejects.toThrow(
                 'Policy version not found',
@@ -323,17 +323,17 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Terms of Service',
                 text: 'Current version',
-            });
+            }, userId);
 
-            const draft = await appDriver.updatePolicy(userId, created.id, {
+            const draft = await appDriver.updatePolicy(created.id, {
                 text: 'Old version',
                 publish: false,
-            });
+            }, userId);
 
-            const result = await appDriver.deletePolicyVersion(userId, created.id, draft.versionHash);
+            const result = await appDriver.deletePolicyVersion(created.id, draft.versionHash, userId);
 
             expect(result).toMatchObject({
                 success: true,
@@ -345,12 +345,12 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Terms of Service',
                 text: 'Current version',
-            });
+            }, userId);
 
-            await expect(appDriver.deletePolicyVersion(userId, created.id, created.versionHash)).rejects.toThrow(
+            await expect(appDriver.deletePolicyVersion(created.id, created.versionHash, userId)).rejects.toThrow(
                 'Cannot delete the current published version',
             );
         });
@@ -359,17 +359,17 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Terms of Service',
                 text: 'Current version',
-            });
+            }, userId);
 
-            const draft = await appDriver.updatePolicy(userId, created.id, {
+            const draft = await appDriver.updatePolicy(created.id, {
                 text: 'Draft version',
                 publish: false,
-            });
+            }, userId);
 
-            const result = await appDriver.deletePolicyVersion(userId, created.id, draft.versionHash);
+            const result = await appDriver.deletePolicyVersion(created.id, draft.versionHash, userId);
 
             expect(result).toMatchObject({
                 success: true,
@@ -384,24 +384,24 @@ describe('PolicyHandlers - Unit Tests', () => {
 
             appDriver.seedAdminUser(userId, {});
 
-            await expect(appDriver.deletePolicyVersion(userId, policyId, versionHash)).rejects.toThrow('Policy not found');
+            await expect(appDriver.deletePolicyVersion(policyId, versionHash, userId)).rejects.toThrow('Policy not found');
         });
 
         it('should reject deletion for non-existent version', async () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            const created = await appDriver.createPolicy(userId, {
+            const created = await appDriver.createPolicy({
                 policyName: 'Terms of Service',
                 text: 'Current version',
-            });
+            }, userId);
 
-            await appDriver.updatePolicy(userId, created.id, {
+            await appDriver.updatePolicy(created.id, {
                 text: 'Old version',
                 publish: false,
-            });
+            }, userId);
 
-            await expect(appDriver.deletePolicyVersion(userId, created.id, 'non-existent-hash')).rejects.toThrow(
+            await expect(appDriver.deletePolicyVersion(created.id, 'non-existent-hash', userId)).rejects.toThrow(
                 'Version not found',
             );
         });

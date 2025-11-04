@@ -14,7 +14,7 @@ test.describe('Join Group Page - Preview Loading', () => {
             .build();
         await mockGroupPreviewApi(page, previewResponse);
 
-        await page.goto('/join?linkId=test-link-123');
+        await page.goto('/join?shareToken=test-link-123');
 
         await joinGroupPage.verifyJoinGroupHeadingVisible(TEST_TIMEOUTS.LOADING_COMPLETE);
         await joinGroupPage.verifyGroupNameHeadingContains('Weekend Trip Fund');
@@ -24,7 +24,7 @@ test.describe('Join Group Page - Preview Loading', () => {
 });
 
 test.describe('Join Group Page - Error States', () => {
-    test('should show error when no linkId parameter is provided', async ({ authenticatedPage }) => {
+    test('should show error when no shareToken parameter is provided', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
 
         await setupSuccessfulApiMocks(page);
@@ -46,7 +46,7 @@ test.describe('Join Group Page - Error States', () => {
             error: 'Share link not found or has expired',
         });
 
-        await page.goto('/join?linkId=invalid-link');
+        await page.goto('/join?shareToken=invalid-link');
 
         const joinGroupPage = new JoinGroupPage(page);
         await joinGroupPage.verifyUnableToJoinWarningVisible();
@@ -66,7 +66,7 @@ test.describe('Join Group Page - Already a Member', () => {
             .build();
         await mockGroupPreviewApi(page, previewResponse);
 
-        await page.goto('/join?linkId=test-link-123');
+        await page.goto('/join?shareToken=test-link-123');
 
         await joinGroupPage.verifyGroupNameHeadingContains('Existing Group', TEST_TIMEOUTS.ELEMENT_VISIBLE);
         await joinGroupPage.verifyAlreadyMemberMessageVisible();
@@ -91,7 +91,7 @@ test.describe('Join Group Page - Successful Join', () => {
         const joinResponse = JoinGroupResponseBuilder.success('New Group').build();
         await mockJoinGroupApi(page, joinResponse);
 
-        await page.goto('/join?linkId=test-link-123');
+        await page.goto('/join?shareToken=test-link-123');
 
         await joinGroupPage.verifyJoinGroupHeadingVisible();
         await joinGroupPage.verifyJoinButtonEnabled();
@@ -130,7 +130,7 @@ test.describe('Join Group Page - Successful Join', () => {
             .build();
         await mockJoinGroupApi(page, pendingJoinResponse);
 
-        await page.goto('/join?linkId=managed-link');
+        await page.goto('/join?shareToken=managed-link');
 
         await joinGroupPage.verifyJoinGroupHeadingVisible();
         await joinGroupPage.clickJoinGroupButton();
@@ -156,7 +156,7 @@ test.describe('Join Group Page - Successful Join', () => {
             error: 'You do not have permission to join this group',
         });
 
-        await page.goto('/join?linkId=test-link-123');
+        await page.goto('/join?shareToken=test-link-123');
 
         await joinGroupPage.verifyJoinGroupHeadingVisible();
         await joinGroupPage.clickJoinGroupButton();
@@ -179,7 +179,7 @@ test.describe('Join Group Page - Navigation', () => {
         const previewResponse = PreviewGroupResponseBuilder.newMember().build();
         await mockGroupPreviewApi(page, previewResponse);
 
-        await page.goto('/join?linkId=test-link-123');
+        await page.goto('/join?shareToken=test-link-123');
 
         await joinGroupPage.verifyJoinGroupHeadingVisible();
         await joinGroupPage.clickCancelButton();

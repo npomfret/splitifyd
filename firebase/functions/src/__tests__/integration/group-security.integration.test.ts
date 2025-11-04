@@ -42,7 +42,7 @@ describe('Group Security Endpoints', () => {
                 adminUser.token,
             );
 
-            const detailsAfterPreset = await apiDriver.getGroupFullDetails(group.id, adminUser.token);
+            const detailsAfterPreset = await apiDriver.getGroupFullDetails(group.id, undefined, adminUser.token);
             expect(detailsAfterPreset.group.permissions).toMatchObject({
                 expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
                 expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
@@ -51,9 +51,9 @@ describe('Group Security Endpoints', () => {
                 settingsManagement: PermissionLevels.ADMIN_ONLY,
             });
 
-            const { linkId } = await apiDriver.generateShareLink(group.id, adminUser.token);
+            const { shareToken } = await apiDriver.generateShareableLink(group.id, undefined, adminUser.token);
 
-            const joinResult = await apiDriver.joinGroupViaShareLink(linkId, memberUser.token);
+            const joinResult = await apiDriver.joinGroupByLink(shareToken, memberUser.token);
             expect(joinResult.success).toBe(false);
             expect(joinResult.memberStatus).toBe(MemberStatuses.PENDING);
 
@@ -65,22 +65,22 @@ describe('Group Security Endpoints', () => {
             pendingMembers = await apiDriver.getPendingMembers(group.id, adminUser.token);
             expect(findMember(pendingMembers, memberUser.uid)).toBeUndefined();
 
-            const detailsAfterApproval = await apiDriver.getGroupFullDetails(group.id, adminUser.token);
+            const detailsAfterApproval = await apiDriver.getGroupFullDetails(group.id, undefined, adminUser.token);
             const approvedMember = detailsAfterApproval.members.members.find((m) => m.uid === memberUser.uid);
             expect(approvedMember?.memberStatus).toBe(MemberStatuses.ACTIVE);
 
             await apiDriver.updateMemberRole(group.id, memberUser.uid, MemberRoles.ADMIN, adminUser.token);
 
-            const detailsAfterRoleChange = await apiDriver.getGroupFullDetails(group.id, adminUser.token);
+            const detailsAfterRoleChange = await apiDriver.getGroupFullDetails(group.id, undefined, adminUser.token);
             const promotedMember = detailsAfterRoleChange.members.members.find((m) => m.uid === memberUser.uid);
             expect(promotedMember?.memberRole).toBe(MemberRoles.ADMIN);
 
             await apiDriver.updateGroupPermissions(group.id, { expenseEditing: PermissionLevels.ADMIN_ONLY }, adminUser.token);
 
-            const detailsAfterCustomPermissions = await apiDriver.getGroupFullDetails(group.id, adminUser.token);
+            const detailsAfterCustomPermissions = await apiDriver.getGroupFullDetails(group.id, undefined, adminUser.token);
             expect(detailsAfterCustomPermissions.group.permissions.expenseEditing).toBe(PermissionLevels.ADMIN_ONLY);
 
-            const joinResultExtra = await apiDriver.joinGroupViaShareLink(linkId, extraUser.token);
+            const joinResultExtra = await apiDriver.joinGroupByLink(shareToken, extraUser.token);
             expect(joinResultExtra.success).toBe(false);
             expect(joinResultExtra.memberStatus).toBe(MemberStatuses.PENDING);
 
@@ -92,7 +92,7 @@ describe('Group Security Endpoints', () => {
             pendingMembers = await apiDriver.getPendingMembers(group.id, adminUser.token);
             expect(findMember(pendingMembers, extraUser.uid)).toBeUndefined();
 
-            const finalDetails = await apiDriver.getGroupFullDetails(group.id, adminUser.token);
+            const finalDetails = await apiDriver.getGroupFullDetails(group.id, undefined, adminUser.token);
             const rejectedMember = finalDetails.members.members.find((m) => m.uid === extraUser.uid);
             expect(rejectedMember).toBeUndefined();
         },

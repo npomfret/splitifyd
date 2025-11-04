@@ -5,7 +5,7 @@ import type { Mock } from 'vitest';
 
 vi.mock('@/app/apiClient.ts', () => ({
     apiClient: {
-        generateShareLink: vi.fn(),
+        generateShareableLink: vi.fn(),
     },
 }));
 
@@ -35,7 +35,7 @@ import { apiClient } from '@/app/apiClient';
 import { toGroupId } from '@splitifyd/shared';
 
 const mockedApiClient = apiClient as unknown as {
-    generateShareLink: Mock;
+    generateShareableLink: Mock;
 };
 
 // Test constants to avoid magic numbers
@@ -44,7 +44,7 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
 
 describe('ShareGroupModal', () => {
     beforeEach(() => {
-        mockedApiClient.generateShareLink.mockReset();
+        mockedApiClient.generateShareableLink.mockReset();
 
         // Mock clipboard API
         Object.assign(navigator, {
@@ -56,7 +56,7 @@ describe('ShareGroupModal', () => {
 
     it('fetches a link when opened and displays the current group name', async () => {
         const defaultExpiresAt = new Date(Date.now() + ONE_DAY_MS).toISOString();
-        mockedApiClient.generateShareLink.mockResolvedValue({ shareablePath: '/share/group-1', expiresAt: defaultExpiresAt });
+        mockedApiClient.generateShareableLink.mockResolvedValue({ shareablePath: '/share/group-1', expiresAt: defaultExpiresAt });
 
         render(
             <ShareGroupModal
@@ -67,8 +67,8 @@ describe('ShareGroupModal', () => {
             />,
         );
 
-        await waitFor(() => expect(mockedApiClient.generateShareLink).toHaveBeenCalled());
-        const [calledGroupId, calledExpiresAt] = mockedApiClient.generateShareLink.mock.calls[0];
+        await waitFor(() => expect(mockedApiClient.generateShareableLink).toHaveBeenCalled());
+        const [calledGroupId, calledExpiresAt] = mockedApiClient.generateShareableLink.mock.calls[0];
         expect(calledGroupId).toBe('group-1');
 
         // Verify expiration is approximately 1 day from now (default)
@@ -87,7 +87,7 @@ describe('ShareGroupModal', () => {
 
     it('regenerates the share link when the group changes while open', async () => {
         mockedApiClient
-            .generateShareLink
+            .generateShareableLink
             .mockResolvedValueOnce({ shareablePath: '/share/group-1', expiresAt: new Date(Date.now() + ONE_DAY_MS).toISOString() })
             .mockResolvedValueOnce({ shareablePath: '/share/group-2', expiresAt: new Date(Date.now() + ONE_DAY_MS).toISOString() });
 
@@ -114,7 +114,7 @@ describe('ShareGroupModal', () => {
         );
 
         await waitFor(() => {
-            const calls = mockedApiClient.generateShareLink.mock.calls;
+            const calls = mockedApiClient.generateShareableLink.mock.calls;
             const lastCall = calls[calls.length - 1];
             expect(lastCall?.[0]).toBe('group-2');
             expect(new Date(lastCall?.[1] as string).getTime()).toBeGreaterThan(Date.now());
@@ -130,7 +130,7 @@ describe('ShareGroupModal', () => {
         const secondExpiresAt = new Date(Date.now() + ONE_HOUR_MS).toISOString();
 
         mockedApiClient
-            .generateShareLink
+            .generateShareableLink
             .mockResolvedValueOnce({ shareablePath: '/share/group-1', expiresAt: firstExpiresAt })
             .mockResolvedValueOnce({ shareablePath: '/share/group-1-refresh', expiresAt: secondExpiresAt });
 
@@ -145,7 +145,7 @@ describe('ShareGroupModal', () => {
 
         // Wait for first link to be generated
         await screen.findByTestId('share-link-input');
-        const firstCallCount = mockedApiClient.generateShareLink.mock.calls.length;
+        const firstCallCount = mockedApiClient.generateShareableLink.mock.calls.length;
 
         // Verify expiration buttons are rendered with expected defaults
         const buttons = ['15m', '1h', '1d', '5d'].map((id) => screen.getByTestId(`share-link-expiration-${id}`));
@@ -153,7 +153,7 @@ describe('ShareGroupModal', () => {
         expect(screen.getByTestId('share-link-expiration-1d')).toHaveAttribute('aria-pressed', 'true');
 
         // Verify first call requested ~1 day expiration (default)
-        const firstCall = mockedApiClient.generateShareLink.mock.calls[0];
+        const firstCall = mockedApiClient.generateShareableLink.mock.calls[0];
         const firstCallExpiryMs = new Date(firstCall[1]).getTime();
         const expectedFirstMs = Date.now() + ONE_DAY_MS;
         expect(firstCallExpiryMs).toBeGreaterThan(expectedFirstMs - 5000);
@@ -165,8 +165,8 @@ describe('ShareGroupModal', () => {
             fireEvent.click(oneHourButton);
         });
 
-        await waitFor(() => expect(mockedApiClient.generateShareLink).toHaveBeenCalledTimes(firstCallCount + 1));
-        const secondCall = mockedApiClient.generateShareLink.mock.calls[firstCallCount];
+        await waitFor(() => expect(mockedApiClient.generateShareableLink).toHaveBeenCalledTimes(firstCallCount + 1));
+        const secondCall = mockedApiClient.generateShareableLink.mock.calls[firstCallCount];
         const secondCallExpiryMs = new Date(secondCall[1]).getTime();
         const expectedSecondMs = Date.now() + ONE_HOUR_MS;
         expect(secondCallExpiryMs).toBeGreaterThan(expectedSecondMs - 5000);
@@ -179,7 +179,7 @@ describe('ShareGroupModal', () => {
         const promise = new Promise((resolve) => {
             resolvePromise = resolve;
         });
-        mockedApiClient.generateShareLink.mockReturnValue(promise);
+        mockedApiClient.generateShareableLink.mockReturnValue(promise);
 
         render(
             <ShareGroupModal
@@ -211,7 +211,7 @@ describe('ShareGroupModal', () => {
     });
 
     it('displays error message when link generation fails', async () => {
-        mockedApiClient.generateShareLink.mockRejectedValue(new Error('Network error'));
+        mockedApiClient.generateShareableLink.mockRejectedValue(new Error('Network error'));
 
         render(
             <ShareGroupModal
@@ -236,7 +236,7 @@ describe('ShareGroupModal', () => {
             clipboard: { writeText: writeTextMock },
         });
 
-        mockedApiClient.generateShareLink.mockResolvedValue({
+        mockedApiClient.generateShareableLink.mockResolvedValue({
             shareablePath: '/share/group-1',
             expiresAt: new Date(Date.now() + ONE_DAY_MS).toISOString(),
         });
@@ -264,7 +264,7 @@ describe('ShareGroupModal', () => {
 
     it('calls onClose when escape key is pressed', async () => {
         const onClose = vi.fn();
-        mockedApiClient.generateShareLink.mockResolvedValue({
+        mockedApiClient.generateShareableLink.mockResolvedValue({
             shareablePath: '/share/group-1',
             expiresAt: new Date(Date.now() + ONE_DAY_MS).toISOString(),
         });
@@ -287,7 +287,7 @@ describe('ShareGroupModal', () => {
 
     it('calls onClose when close button is clicked', async () => {
         const onClose = vi.fn();
-        mockedApiClient.generateShareLink.mockResolvedValue({
+        mockedApiClient.generateShareableLink.mockResolvedValue({
             shareablePath: '/share/group-1',
             expiresAt: new Date(Date.now() + ONE_DAY_MS).toISOString(),
         });
@@ -308,7 +308,7 @@ describe('ShareGroupModal', () => {
     });
 
     it('displays QR code when link is generated', async () => {
-        mockedApiClient.generateShareLink.mockResolvedValue({
+        mockedApiClient.generateShareableLink.mockResolvedValue({
             shareablePath: '/share/group-1',
             expiresAt: new Date(Date.now() + ONE_DAY_MS).toISOString(),
         });
@@ -331,7 +331,7 @@ describe('ShareGroupModal', () => {
         const promise = new Promise((resolve) => {
             resolvePromise = resolve;
         });
-        mockedApiClient.generateShareLink.mockReturnValue(promise);
+        mockedApiClient.generateShareableLink.mockReturnValue(promise);
 
         render(
             <ShareGroupModal
@@ -357,7 +357,7 @@ describe('ShareGroupModal', () => {
     });
 
     it('resets state when modal is closed and reopened', async () => {
-        mockedApiClient.generateShareLink.mockResolvedValue({
+        mockedApiClient.generateShareableLink.mockResolvedValue({
             shareablePath: '/share/group-1',
             expiresAt: new Date(Date.now() + ONE_DAY_MS).toISOString(),
         });
@@ -372,7 +372,7 @@ describe('ShareGroupModal', () => {
         );
 
         await screen.findByTestId('share-link-input');
-        expect(mockedApiClient.generateShareLink).toHaveBeenCalledTimes(1);
+        expect(mockedApiClient.generateShareableLink).toHaveBeenCalledTimes(1);
 
         // Close the modal
         rerender(
@@ -399,7 +399,7 @@ describe('ShareGroupModal', () => {
 
         // Should generate a fresh link
         await waitFor(() => {
-            expect(mockedApiClient.generateShareLink).toHaveBeenCalledTimes(2);
+            expect(mockedApiClient.generateShareableLink).toHaveBeenCalledTimes(2);
         });
     });
 });

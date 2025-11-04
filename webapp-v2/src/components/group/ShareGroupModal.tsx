@@ -125,7 +125,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
         (async () => {
             try {
-                const response = await apiClient.generateShareLink(groupId, requestedExpiresAt);
+                const response = await apiClient.generateShareableLink(groupId, requestedExpiresAt);
                 if (requestIdRef.current !== requestId) {
                     return;
                 }

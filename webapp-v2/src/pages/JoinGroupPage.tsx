@@ -34,15 +34,18 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     const memberStatus = joinGroupStore.memberStatus;
     const pendingApproval = memberStatus === 'pending';
 
-    // Get linkId from URL query parameters if not provided as prop
-    const actualLinkId = linkId ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('linkId') : null);
+    // Get shareToken from URL query parameters if not provided as prop
+    // Support both 'shareToken' (new) and 'linkId' (legacy) query parameters for backwards compatibility
+    const actualLinkId = linkId ?? (typeof window !== 'undefined' ?
+        (new URLSearchParams(window.location.search).get('shareToken') ?? new URLSearchParams(window.location.search).get('linkId'))
+        : null);
 
     useEffect(() => {
         // Reset store on component mount
         joinGroupStore.reset();
 
         if (!actualLinkId) {
-            // No link ID provided - don't load preview
+            // No share token provided - don't load preview
             return;
         }
 
@@ -107,7 +110,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
         setNameError(null);
     };
 
-    // Show error if no link ID provided
+    // Show error if no share token provided
     if (!actualLinkId) {
         return (
             <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>

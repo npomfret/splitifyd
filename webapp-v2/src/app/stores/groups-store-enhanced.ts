@@ -316,11 +316,11 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     async archiveGroup(groupId: GroupId): Promise<void> {
-        await this.updateMembershipStatus(groupId, () => apiClient.archiveGroup(groupId));
+        await this.updateMembershipStatus(groupId, () => apiClient.archiveGroupForUser(groupId));
     }
 
     async unarchiveGroup(groupId: GroupId): Promise<void> {
-        await this.updateMembershipStatus(groupId, () => apiClient.unarchiveGroup(groupId));
+        await this.updateMembershipStatus(groupId, () => apiClient.unarchiveGroupForUser(groupId));
     }
 
     async setShowArchived(showArchived: boolean): Promise<void> {

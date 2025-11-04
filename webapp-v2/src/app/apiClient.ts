@@ -11,6 +11,7 @@ import type {
     AcceptPolicyRequest,
     ActivityFeedResponse,
     AppConfiguration,
+    ChangeEmailRequest,
     CommentDTO,
     CreateExpenseRequest,
     CreateGroupRequest,
@@ -33,8 +34,8 @@ import type {
     ListGroupsOptions,
     ListGroupsResponse,
     MemberRole,
-    MemberStatus,
     MessageResponse,
+    PasswordChangeRequest,
     PolicyAcceptanceStatusDTO,
     PreviewGroupResponse,
     RegisterResponse,
@@ -42,9 +43,12 @@ import type {
     SettlementWithMembers,
     ShareLinkResponse,
     UpdateDisplayNameRequest,
+    UpdateExpenseRequest,
     UpdateGroupRequest,
+    UpdateUserProfileRequest,
     UserPolicyStatusResponse,
     UserProfileResponse,
+    UserRegistration,
 } from '@splitifyd/shared';
 import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
@@ -55,6 +59,7 @@ import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
+import type {CommentText} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 
@@ -774,7 +779,7 @@ class ApiClient {
         });
     }
 
-    async archiveGroup(groupId: GroupId): Promise<MessageResponse> {
+    async archiveGroupForUser(groupId: GroupId): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/archive',
             method: 'POST',
@@ -782,7 +787,7 @@ class ApiClient {
         });
     }
 
-    async unarchiveGroup(groupId: GroupId): Promise<MessageResponse> {
+    async unarchiveGroupForUser(groupId: GroupId): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/unarchive',
             method: 'POST',
@@ -829,7 +834,7 @@ class ApiClient {
         });
     }
 
-    async updateExpense(expenseId: ExpenseId, data: CreateExpenseRequest): Promise<ExpenseDTO> {
+    async updateExpense(expenseId: ExpenseId, data: UpdateExpenseRequest): Promise<ExpenseDTO> {
         return this.request({
             endpoint: '/expenses',
             method: 'PUT',
@@ -878,7 +883,7 @@ class ApiClient {
         });
     }
 
-    async generateShareLink(groupId: GroupId, expiresAt?: ISOString): Promise<ShareLinkResponse> {
+    async generateShareableLink(groupId: GroupId, expiresAt?: ISOString): Promise<ShareLinkResponse> {
         const body: GenerateShareLinkRequest = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;
@@ -907,14 +912,14 @@ class ApiClient {
         });
     }
 
-    async approvePendingMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
+    async approveMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${groupId}/members/${memberId}/approve`,
             method: 'POST',
         });
     }
 
-    async rejectPendingMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
+    async rejectMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${groupId}/members/${memberId}/reject`,
             method: 'POST',
@@ -929,28 +934,28 @@ class ApiClient {
         return Array.isArray(response?.members) ? response.members : [];
     }
 
-    async previewGroupByLink(linkId: string): Promise<PreviewGroupResponse> {
+    async previewGroupByLink(shareToken: string): Promise<PreviewGroupResponse> {
         return this.request({
             endpoint: '/groups/preview',
             method: 'POST',
-            body: { linkId },
+            body: { shareToken },
         });
     }
 
-    async joinGroupByLink(linkId: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
+    async joinGroupByLink(shareToken: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
         return this.request<JoinGroupResponse>({
             endpoint: '/groups/join',
             method: 'POST',
-            body: { linkId, groupDisplayName },
+            body: { shareToken, groupDisplayName },
             skipRetry: false,
         });
     }
 
-    async register(email: Email, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean, privacyPolicyAccepted: boolean): Promise<RegisterResponse> {
+    async register(userData: UserRegistration): Promise<RegisterResponse> {
         return this.request({
             endpoint: '/register',
             method: 'POST',
-            body: { email, password, displayName, termsAccepted, cookiePolicyAccepted, privacyPolicyAccepted },
+            body: userData,
         });
     }
 
@@ -1057,7 +1062,7 @@ class ApiClient {
         });
     }
 
-    async updateUserProfile(data: { displayName?: string; }): Promise<UserProfileResponse> {
+    async updateUserProfile(data: UpdateUserProfileRequest): Promise<UserProfileResponse> {
         return this.request({
             endpoint: '/user/profile',
             method: 'PUT',
@@ -1065,7 +1070,7 @@ class ApiClient {
         });
     }
 
-    async changePassword(data: { currentPassword: string; newPassword: string; }): Promise<MessageResponse> {
+    async changePassword(data: PasswordChangeRequest): Promise<MessageResponse> {
         return this.request({
             endpoint: '/user/change-password',
             method: 'POST',
@@ -1073,7 +1078,7 @@ class ApiClient {
         });
     }
 
-    async changeEmail(data: { currentPassword: string; newEmail: string; }): Promise<UserProfileResponse> {
+    async changeEmail(data: ChangeEmailRequest): Promise<UserProfileResponse> {
         return this.request({
             endpoint: '/user/change-email',
             method: 'POST',
@@ -1082,7 +1087,7 @@ class ApiClient {
     }
 
     // Comment methods
-    async createGroupComment(groupId: GroupId, text: string): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId, text: CommentText): Promise<CommentDTO> {
         return this.request<CommentDTO>({
             endpoint: '/groups/:groupId/comments',
             method: 'POST',
@@ -1091,7 +1096,7 @@ class ApiClient {
         });
     }
 
-    async createExpenseComment(expenseId: ExpenseId, text: string): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId, text: CommentText): Promise<CommentDTO> {
         return this.request<CommentDTO>({
             endpoint: '/expenses/:expenseId/comments',
             method: 'POST',

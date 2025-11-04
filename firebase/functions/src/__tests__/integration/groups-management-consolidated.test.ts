@@ -46,10 +46,13 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             );
 
             // Generate share link
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
+            const shareLink = await apiDriver.generateShareableLink(testGroup.id, undefined, users[0].token);
 
             // Both users try to join simultaneously
-            const joinPromises = [apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token), apiDriver.joinGroupViaShareLink(shareLink.linkId, users[2].token)];
+            const joinPromises = [
+                apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token),
+                apiDriver.joinGroupByLink(shareLink.shareToken, users[2].token)
+            ];
 
             const results = await Promise.allSettled(joinPromises);
 
@@ -70,7 +73,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
 
             // Verify final state - both users should be members
-            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, users[0].token);
             expect(members.members.length).toBe(3);
             expect(members.members.find((m) => m.uid === users[1].uid)).toBeDefined();
             expect(members.members.find((m) => m.uid === users[2].uid)).toBeDefined();
@@ -86,8 +89,8 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             );
 
             // Add second user as member
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareableLink(testGroup.id, undefined, users[0].token);
+            await apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token);
 
             // Same user tries multiple concurrent updates
             const updatePromises = [
@@ -132,7 +135,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
 
             // Verify final state integrity - at least one update should have applied
-            const { group: finalGroup } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            const { group: finalGroup } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, users[0].token);
             expect(finalGroup.name === 'First Update' || finalGroup.name === 'Second Update' || finalGroup.description === 'Updated description').toBeTruthy();
         });
 
@@ -314,11 +317,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
                 users[0].token,
             );
 
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
+            const shareLink = await apiDriver.generateShareableLink(testGroup.id, undefined, users[0].token);
 
             // User joins while expense is being created simultaneously
             const promises = [
-                apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token),
+                apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token),
                 apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
@@ -340,7 +343,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
 
             // Verify final state
-            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, users[0].token);
             const expenses = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
 
             expect(members.members.find((m) => m.uid === users[1].uid)).toBeDefined();
@@ -360,11 +363,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const group = await apiDriver.createGroup(groupData, users[0].token);
 
             // Add second user to the group
-            const shareLink = await apiDriver.generateShareLink(group.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareableLink(group.id, undefined, users[0].token);
+            await apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token);
 
             // Verify 2 members before deletion
-            const { members } = await apiDriver.getGroupFullDetails(group.id, users[0].token);
+            const { members } = await apiDriver.getGroupFullDetails(group.id, undefined, users[0].token);
             expect(members.members.length).toBe(2);
 
             // Delete the group
@@ -375,10 +378,10 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is deleted from the backend
-            await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(group.id, undefined, users[0].token)).rejects.toThrow(/404|not found/i);
 
             // Verify second user also cannot access deleted group
-            await expect(apiDriver.getGroupFullDetails(group.id, users[1].token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(group.id, undefined, users[1].token)).rejects.toThrow(/404|not found/i);
         });
     });
 
@@ -396,8 +399,8 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const testGroup = await apiDriver.createGroup(groupData, user1.token);
 
             // Add second user to the group
-            const shareResponse = await apiDriver.generateShareLink(testGroup.id, user1.token);
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
+            const shareResponse = await apiDriver.generateShareableLink(testGroup.id, undefined, user1.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
 
             // Create an expense
             const expenseData = new CreateExpenseRequestBuilder()
@@ -428,10 +431,10 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is actually deleted
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, user1.token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, user1.token)).rejects.toThrow(/404|not found/i);
 
             // Also verify that user2 can't access it
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, user2.token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, user2.token)).rejects.toThrow(/404|not found/i);
         });
 
         test('should soft delete group with multiple soft-deleted expenses', async () => {
@@ -447,9 +450,9 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const testGroup = await apiDriver.createGroup(groupData, user1.token);
 
             // Add other users to the group
-            const shareResponse = await apiDriver.generateShareLink(testGroup.id, user1.token);
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user3.token);
+            const shareResponse = await apiDriver.generateShareableLink(testGroup.id, undefined, user1.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, user3.token);
 
             // Create multiple expenses and soft-delete them all
             const expenseIds: string[] = [];
@@ -483,7 +486,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Verify the group is deleted for all users
             for (const user of groupUsers) {
-                await expect(apiDriver.getGroupFullDetails(testGroup.id, user.token)).rejects.toThrow(/404|not found/i);
+                await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, user.token)).rejects.toThrow(/404|not found/i);
             }
         });
 
@@ -500,13 +503,13 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const testGroup = await apiDriver.createGroup(groupData, owner.token);
 
             // Add multiple members to create subcollection documents
-            const shareResponse = await apiDriver.generateShareLink(testGroup.id, owner.token);
+            const shareResponse = await apiDriver.generateShareableLink(testGroup.id, undefined, owner.token);
             for (const member of members) {
-                await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member.token);
+                await apiDriver.joinGroupByLink(shareResponse.shareToken, member.token);
             }
 
             // Verify all members are in the group
-            const { members: groupMembers } = await apiDriver.getGroupFullDetails(testGroup.id, owner.token);
+            const { members: groupMembers } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, owner.token);
             expect(groupMembers.members).toHaveLength(4); // owner + 3 members
 
             // Delete the group
@@ -520,11 +523,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is completely gone
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, owner.token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, owner.token)).rejects.toThrow(/404|not found/i);
 
             // Verify members can't access it either (confirms proper cleanup)
             for (const member of members) {
-                await expect(apiDriver.getGroupFullDetails(testGroup.id, member.token)).rejects.toThrow(/404|not found/i);
+                await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, member.token)).rejects.toThrow(/404|not found/i);
             }
         });
 
@@ -541,8 +544,8 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const testGroup = await apiDriver.createGroup(groupData, user1.token);
 
             // Add second user
-            const shareResponse = await apiDriver.generateShareLink(testGroup.id, user1.token);
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
+            const shareResponse = await apiDriver.generateShareableLink(testGroup.id, undefined, user1.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
 
             // Create an active expense (don't delete it)
             const expenseData = new CreateExpenseRequestBuilder()
@@ -567,10 +570,10 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is completely deleted
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, user1.token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, user1.token)).rejects.toThrow(/404|not found/i);
 
             // Verify user2 also can't access it
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, user2.token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, user2.token)).rejects.toThrow(/404|not found/i);
 
             // Verify the expense is also inaccessible via API after soft delete
             await expect(apiDriver.getExpense(createdExpense.id, user1.token)).rejects.toThrow(/404|not found/i);
@@ -590,10 +593,10 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const groupId = testGroup.id;
 
             // Add multiple members to create member documents
-            const shareResponse = await apiDriver.generateShareLink(groupId, owner.token);
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member1.token);
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member2.token);
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member3.token);
+            const shareResponse = await apiDriver.generateShareableLink(groupId, undefined, owner.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, member1.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, member2.token);
+            await apiDriver.joinGroupByLink(shareResponse.shareToken, member3.token);
 
             // Create multiple expenses (both active and soft-deleted) to populate various collections
             const expenses = [];
@@ -623,8 +626,8 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             await apiDriver.createSettlement(settlementData, member1.token);
 
             // Create multiple share links to populate shareLinks subcollection
-            await apiDriver.generateShareLink(groupId, owner.token);
-            await apiDriver.generateShareLink(groupId, owner.token);
+            await apiDriver.generateShareableLink(groupId, undefined, owner.token);
+            await apiDriver.generateShareableLink(groupId, undefined, owner.token);
 
             // Add comments on group to populate group comments subcollection
             await apiDriver.createGroupComment(groupId, 'Group comment 1', owner.token);
@@ -671,7 +674,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // 10. API calls should return 404 for all users
             for (const user of groupUsers) {
-                await expect(apiDriver.getGroupFullDetails(groupId, user.token)).rejects.toThrow(/404|not found/i);
+                await expect(apiDriver.getGroupFullDetails(groupId, undefined, user.token)).rejects.toThrow(/404|not found/i);
             }
 
             // 11. Individual expenses should return 404

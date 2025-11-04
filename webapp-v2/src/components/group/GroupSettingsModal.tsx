@@ -585,9 +585,9 @@ export function GroupSettingsModal({
         setActionError(null);
         try {
             if (action === 'approve') {
-                await apiClient.approvePendingMember(group.id, memberId);
+                await apiClient.approveMember(group.id, memberId);
             } else {
-                await apiClient.rejectPendingMember(group.id, memberId);
+                await apiClient.rejectMember(group.id, memberId);
             }
             await loadPendingMembers();
             await onGroupUpdated?.();

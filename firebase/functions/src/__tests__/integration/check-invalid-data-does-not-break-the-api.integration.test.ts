@@ -121,7 +121,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
 
         test('GET /groups should return successfully despite invalid permission values', async () => {
             // Call the API endpoint that would normally fail with invalid data
-            const response = await apiDriver.listGroups(testUser.token);
+            const response = await apiDriver.listGroups(undefined, testUser.token);
 
             // API should return successfully
             expect(response).toBeDefined();

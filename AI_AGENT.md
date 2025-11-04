@@ -1,15 +1,22 @@
 Read these first!
 
-- [README.md](README.md)
-- [Building](docs/guides/building.md)
-- [Code Guidelines](docs/guides/code.md)
-- [Firebase Guide](docs/guides/firebase.md)
-- [General Development](docs/guides/general.md)
-- [Testing](docs/guides/testing.md)
-- [Type Guidelines](docs/guides/types.md)
-- [Webapp & Style Guide](docs/guides/webapp-and-style-guide.md)
+- @README.md
+- @docs/guides/ask.md
+- @docs/guides/building.md
+- @docs/guides/code.md
+- @docs/guides/firebase.md
+- @docs/guides/general.md
+- @docs/guides/testing.md
+- @docs/guides/types.md
+- @docs/guides/webapp-and-style-guide.md
 
-Remember: failing tests, or compile errors are not permitted. You are not finished if you have left the project in a broken state.
+Remember: 
+
+ * failing tests, or compile errors are not permitted. You are not finished if you have left the project in a broken state.
+ * do not run full test suites (they are too slow), instead: pick and choose isolated test(s) to run (assume the user will run the full suite)
+ * you will run individual tests and wait until they pass or fail
+ * claude stuff will fix failing tests and after the fix you will re-run them and ensure they pass
+ * you will NEVER lie and say a test has passed if you have not run it to completion
 
 ## Available Tools
 

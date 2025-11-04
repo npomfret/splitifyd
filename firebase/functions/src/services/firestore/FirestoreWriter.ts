@@ -10,10 +10,10 @@
  */
 
 // Import types
-import type { CommentDTO, DisplayName, Email, ISOString, ShareLinkDTO, UserId } from '@splitifyd/shared';
+import type { CommentDTO, DisplayName, Email, ISOString, ShareLinkDTO, ShareLinkToken, UserId } from '@splitifyd/shared';
 import { normalizeDisplayNameForComparison } from '@splitifyd/shared';
 // Import schemas for validation
-import { ExpenseId, GroupId, PolicyId } from '@splitifyd/shared';
+import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { ALLOWED_POLICY_IDS, FirestoreCollections, HTTP_STATUS } from '../../constants';
 import { FieldValue, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
@@ -36,6 +36,7 @@ import {
 } from '../../schemas';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
 import type { BatchWriteResult, FirestoreUserCreateData, FirestoreUserUpdateData, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
+import {SystemUserRoles} from "@splitifyd/shared";
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -634,6 +635,12 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
+    async promoteUserToAdmin(userId: UserId): Promise<void> {
+        await this.db.collection(FirestoreCollections.USERS).doc(userId).update({
+            role: SystemUserRoles.SYSTEM_ADMIN,
+        });
+    }
+
     async updateUser(userId: UserId, updates: FirestoreUserUpdateData): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateUser', async () => {
             try {
@@ -987,7 +994,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         return shareLinkRef;
     }
 
-    async deleteShareLink(groupId: GroupId, shareLinkId: string, token: string): Promise<void> {
+    async deleteShareLink(groupId: GroupId, shareLinkId: ShareLinkId, shareToken: ShareLinkToken): Promise<void> {
         await this.db.runTransaction(async (transaction) => {
             const shareLinkRef = this
                 .db
@@ -998,12 +1005,12 @@ export class FirestoreWriter implements IFirestoreWriter {
 
             transaction.delete(shareLinkRef);
 
-            const tokenRef = this
+            const shareTokenIndexRef = this
                 .db
                 .collection(FirestoreCollections.SHARE_LINK_TOKENS)
-                .doc(token);
+                .doc(shareToken);
 
-            transaction.delete(tokenRef);
+            transaction.delete(shareTokenIndexRef);
         });
     }
 

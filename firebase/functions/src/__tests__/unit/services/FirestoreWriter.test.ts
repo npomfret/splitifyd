@@ -1,31 +1,23 @@
-import { toGroupId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
-import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { HTTP_STATUS } from '../../../constants';
-import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import { FirestoreReader } from '../../../services/firestore';
-import type { IFirestoreWriter } from '../../../services/firestore';
-import { ApiError } from '../../../utils/errors';
-import { StubAuthService } from '../mocks/StubAuthService';
+import {toGroupId} from '@splitifyd/shared';
+import {GroupDTOBuilder, GroupMemberDocumentBuilder, SplitifydFirestoreTestDatabase} from '@splitifyd/test-support';
+import {beforeEach, describe, expect, it} from 'vitest';
+import {HTTP_STATUS} from '../../../constants';
+import {ComponentBuilder} from '../../../services/ComponentBuilder';
+import type {IFirestoreReader, IFirestoreWriter} from '../../../services/firestore';
+import {ApiError} from '../../../utils/errors';
+import {StubAuthService} from '../mocks/StubAuthService';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let db: SplitifydFirestoreTestDatabase;
-    let firestoreReader: FirestoreReader;
+    let firestoreReader: IFirestoreReader;
     let firestoreWriter: IFirestoreWriter;
-    let stubAuth: StubAuthService;
 
     beforeEach(() => {
-        // Create stub database
         db = new SplitifydFirestoreTestDatabase();
 
-        // Create reader and writer instances that wrap the database
-        firestoreReader = new FirestoreReader(db);
-        stubAuth = new StubAuthService();
-
-        // Create ApplicationBuilder and build FirestoreWriter
-        const applicationBuilder = new ComponentBuilder(stubAuth, db);
+        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db);
         firestoreWriter = applicationBuilder.buildFirestoreWriter();
+        firestoreReader = applicationBuilder.buildFirestoreReader();
     });
 
     describe('updateGroupMemberDisplayName', () => {

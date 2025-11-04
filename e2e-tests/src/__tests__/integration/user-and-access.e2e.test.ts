@@ -327,54 +327,36 @@ simpleTest.describe('Policy Acceptance', () => {
         simpleTest('should update each policy and accept them sequentially', async ({ browser }) => {
             const apiDriver = new ApiDriver();
 
-            // Borrow a test user from the pool and promote to admin
+            // Borrow a test user from the pool
             const user = await apiDriver.borrowTestUser();
 
-            // Promote user to admin for policy management operations
-            await apiDriver.promoteUserToAdmin(user.token);
-
-            // Clean up test environment to remove any non-standard policies
-            await apiDriver.cleanupTestEnvironment(user.token);
-
-            // Ensure base policies exist before testing
-            await apiDriver.ensurePoliciesExist();
-
-            // Clear any existing policy acceptances to ensure clean state
-            await apiDriver.clearUserPolicyAcceptances(user.token);
-
-            // Accept base policies for this user (simulating a user who registered earlier)
-            await apiDriver.acceptCurrentPublishedPolicies(user.token);
-
-            // Now update all policies to newer versions that user hasn't seen
-            const policies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
-
-            for (const policyId of policies) {
-                await apiDriver.updateSpecificPolicy(policyId, user.token);
-            }
-
-            // Now login the user manually
+            // Login the user normally
             const context = await browser.newContext({
                 storageState: undefined, // Start with clean storage (no cookies, localStorage, IndexedDB)
             });
             const page = await context.newPage();
 
-            // Use the LoginPage to handle the login process
             const loginPage = new LoginPage(page);
             await loginPage.navigate();
             await loginPage.login(user.email, user.password);
 
-            // Should be redirected to policy modal or dashboard
+            // Wait for dashboard to load
+            await page.waitForLoadState('domcontentloaded');
+            const dashboardPage = new DashboardPage(page);
+            await dashboardPage.waitForDashboard();
+
+            // Now hack: clear their policy acceptances to simulate unaccepted policies
+            await apiDriver.clearUserPolicyAcceptances(user.token);
+
+            // Refresh the page - policy modal should appear
+            await page.reload();
             await page.waitForLoadState('domcontentloaded');
 
-            const dashboardPage = new DashboardPage(page);
-
-            // The policy modal should appear because user hasn't accepted updated policies
+            // The policy modal should appear because user hasn't accepted policies
             const policyModal = new PolicyAcceptanceModalPage(page);
-
-            // Wait for modal to appear - it should appear automatically since user hasn't accepted updated policies
             await policyModal.waitForModalToAppear();
 
-            // Test accepting all policies at once (simulating multiple policy updates)
+            // Test accepting all policies at once
             await policyModal.acceptMultiplePoliciesSequentially();
 
             // Verify we're back to dashboard after accepting all policies
@@ -391,21 +373,10 @@ simpleTest.describe('Policy Acceptance', () => {
         simpleTest('should validate policy modal structure and content', async ({ browser }) => {
             const apiDriver = new ApiDriver();
 
-            // Get a test user and promote to admin for policy management
+            // Borrow a test user from the pool
             const user = await apiDriver.borrowTestUser();
-            await apiDriver.promoteUserToAdmin(user.token);
 
-            // Clean up test environment to remove any non-standard policies
-            await apiDriver.cleanupTestEnvironment(user.token);
-
-            // Ensure base policies exist before testing
-            await apiDriver.ensurePoliciesExist();
-
-            // Clear and accept base policies first
-            await apiDriver.clearUserPolicyAcceptances(user.token);
-            await apiDriver.acceptCurrentPublishedPolicies(user.token);
-
-            // Manually log in the user (not using fixture that auto-accepts policies)
+            // Login the user normally
             const context = await browser.newContext({
                 storageState: undefined, // Start with clean storage (no cookies, localStorage, IndexedDB)
             });
@@ -415,10 +386,15 @@ simpleTest.describe('Policy Acceptance', () => {
             await loginPage.navigate();
             await loginPage.login(user.email, user.password);
 
-            // Update a policy to trigger modal (user has already accepted base policies)
-            await apiDriver.updateSpecificPolicy('terms-of-service', user.token);
+            // Wait for dashboard to load
+            await page.waitForLoadState('domcontentloaded');
+            const dashboardPage = new DashboardPage(page);
+            await dashboardPage.waitForDashboard();
 
-            // Trigger policy check
+            // Now hack: clear their policy acceptances to simulate unaccepted policies
+            await apiDriver.clearUserPolicyAcceptances(user.token);
+
+            // Refresh the page - policy modal should appear
             await page.reload();
             await page.waitForLoadState('domcontentloaded');
 
@@ -519,8 +495,8 @@ simpleTest.describe('Share Link Access Management', () => {
 
             // After successful login, user should be redirected to the join group page
             // The redirect should preserve the share link token
-            await expect(unauthPage).toHaveURL(/\/join\?linkId=/);
-            expect(unauthPage.url()).toContain('/join?linkId=');
+            await expect(unauthPage).toHaveURL(/\/join\?shareToken=/);
+            expect(unauthPage.url()).toContain('/join?shareToken=');
 
             // Verify user can see the group details on the join page
             const displayedGroupName = await joinGroupPage.getGroupName();
@@ -573,8 +549,8 @@ simpleTest.describe('Share Link Access Management', () => {
 
             // After successful registration, user should be redirected to the join group page
             // The returnUrl should be preserved through the registration flow
-            await expect(unauthPage).toHaveURL(/\/join\?linkId=/);
-            expect(unauthPage.url()).toContain('/join?linkId=');
+            await expect(unauthPage).toHaveURL(/\/join\?shareToken=/);
+            expect(unauthPage.url()).toContain('/join?shareToken=');
 
             // User should now see the join group page and can join directly
             const joinPage = new JoinGroupPage(unauthPage);
@@ -618,13 +594,13 @@ simpleTest.describe('Share Link Access Management', () => {
             await expect(unauthPage).toHaveURL(/\/login/);
             const loginUrl = unauthPage.url();
             expect(loginUrl).toContain('returnUrl');
-            expect(loginUrl).toContain('linkId');
+            expect(loginUrl).toContain('shareToken');
 
             // Login as the second user
             await loginPage.login(secondUser.email, secondUser.password);
 
-            // After login, user should be redirected to the join page with linkId
-            await expect(unauthPage).toHaveURL(/\/join\?linkId=/);
+            // After login, user should be redirected to the join page with shareToken
+            await expect(unauthPage).toHaveURL(/\/join\?shareToken=/);
 
             // Complete the join process - we're already on the join page after login redirect
             const joinPage = new JoinGroupPage(unauthPage);
@@ -650,7 +626,7 @@ simpleTest.describe('Share Link Access Management', () => {
             // Get the base URL from the current page
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             const baseUrl = dashboardPage.getBaseUrl();
-            const invalidShareLink = `${baseUrl}/join?linkId=invalid-group-id-12345`;
+            const invalidShareLink = `${baseUrl}/join?shareToken=invalid-group-id-12345`;
 
             // Attempt to join with invalid share link - should show error
             const joinGroupPage = new JoinGroupPage(page);
@@ -674,8 +650,8 @@ simpleTest.describe('Share Link Access Management', () => {
             const baseUrl = dashboardPage.getBaseUrl();
 
             // Test various malformed links using page object navigation
-            // When linkId is missing or empty, app now shows an error page (not redirect)
-            const emptyLinkCases = [`${baseUrl}/join?linkId=`, `${baseUrl}/join`];
+            // When shareToken is missing or empty, app now shows an error page (not redirect)
+            const emptyLinkCases = [`${baseUrl}/join?shareToken=`, `${baseUrl}/join`];
 
             const joinGroupPage = new JoinGroupPage(page);
 
@@ -689,8 +665,8 @@ simpleTest.describe('Share Link Access Management', () => {
                 await expect(backButton).toBeVisible();
             }
 
-            // Test with malicious/invalid linkId - should show error
-            const invalidLink = `${baseUrl}/join?linkId=../../malicious`;
+            // Test with malicious/invalid shareToken - should show error
+            const invalidLink = `${baseUrl}/join?shareToken=../../malicious`;
 
             await joinGroupPage.navigateToShareLink(invalidLink);
             expect(page.url()).toContain('/join');
@@ -717,18 +693,18 @@ simpleTest.describe('Share Link Access Management', () => {
 
             // Get the initial share link
             const initialShareLink = await shareModalPage.getShareLink();
-            expect(initialShareLink).toMatch(/\/join\?linkId=/);
+            expect(initialShareLink).toMatch(/\/join\?shareToken=/);
 
             // Use the helper method that properly waits for the link to update
             const newShareLink = await shareModalPage.generateNewShareLink();
-            expect(newShareLink).toMatch(/\/join\?linkId=/);
+            expect(newShareLink).toMatch(/\/join\?shareToken=/);
 
             // Verify the link has actually changed
             expect(newShareLink).not.toBe(initialShareLink);
 
             // Verify both links follow the correct format but are different
-            const initialLinkId = new URL(initialShareLink).searchParams.get('linkId');
-            const newLinkId = new URL(newShareLink).searchParams.get('linkId');
+            const initialLinkId = new URL(initialShareLink).searchParams.get('shareToken');
+            const newLinkId = new URL(newShareLink).searchParams.get('shareToken');
 
             expect(initialLinkId).toBeTruthy();
             expect(newLinkId).toBeTruthy();

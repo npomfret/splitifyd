@@ -474,14 +474,14 @@ export class GroupSettingsModalPage extends BasePage {
             .toPass({ timeout: 8000 });
     }
 
-    async approvePendingMember(memberId: string): Promise<void> {
+    async approveMember(memberId: string): Promise<void> {
         await this.ensureSecurityTab();
         await this.getPendingApproveButton(memberId).click();
         // Wait for the pending members list to update after approval
         await expect(this.getPendingApproveButton(memberId)).toHaveCount(0, { timeout: 5000 });
     }
 
-    async rejectPendingMember(memberId: string): Promise<void> {
+    async rejectMember(memberId: string): Promise<void> {
         await this.ensureSecurityTab();
         await this.getPendingRejectButton(memberId).click();
         // Wait for the pending members list to update after rejection

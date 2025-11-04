@@ -297,7 +297,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         if (!this.currentGroupId) return;
         this.#errorSignal.value = null;
         try {
-            await apiClient.archiveGroup(this.currentGroupId);
+            await apiClient.archiveGroupForUser(this.currentGroupId);
             await this.refreshAll('mutation');
         } catch (error: any) {
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to archive group';
@@ -309,7 +309,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         if (!this.currentGroupId) return;
         this.#errorSignal.value = null;
         try {
-            await apiClient.unarchiveGroup(this.currentGroupId);
+            await apiClient.unarchiveGroupForUser(this.currentGroupId);
             await this.refreshAll('mutation');
         } catch (error: any) {
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to unarchive group';

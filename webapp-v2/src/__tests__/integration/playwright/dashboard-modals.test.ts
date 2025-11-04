@@ -373,7 +373,7 @@ test.describe('Dashboard Share Group Modal', () => {
 
         // Verify link contains expected token
         const shareLink = await shareModal.getShareLink();
-        expect(shareLink).toContain('/join/test-token-abc');
+        expect(shareLink).toContain('/join?shareToken=test-token-abc');
     });
 
     test('should close share modal via close button', async ({ authenticatedPage }) => {
@@ -501,14 +501,14 @@ test.describe('Dashboard Share Group Modal', () => {
 
         // Copy link - returns the copied link
         const copiedLink = await shareModal.copyShareLinkToClipboard();
-        expect(copiedLink).toContain('/join/');
+        expect(copiedLink).toContain('/join?shareToken=');
 
         // Verify toast appears
         await shareModal.verifyCopySuccess();
 
         // Verify clipboard contains link
         const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-        expect(clipboardText).toContain('/join/');
+        expect(clipboardText).toContain('/join?shareToken=');
     });
 
     test('should generate new share link when requested', async ({ authenticatedPage }) => {

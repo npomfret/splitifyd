@@ -1,7 +1,11 @@
-import type { Email, GroupName, VersionHash } from '@splitifyd/shared';
+import type {CommentText, Email, GroupName, UserId} from '@splitifyd/shared';
 import {
+    AcceptMultiplePoliciesResponse,
+    AcceptPolicyRequest,
+    type ActivityFeedResponse,
     ApiSerializer,
     AuthenticatedFirebaseUser,
+    ChangeEmailRequest,
     CommentDTO,
     type CreateExpenseRequest,
     type CreateGroupRequest,
@@ -11,6 +15,7 @@ import {
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     ExpenseId,
+    type GetActivityFeedOptions,
     type GetGroupFullDetailsOptions,
     GroupBalances,
     GroupDTO,
@@ -25,17 +30,21 @@ import {
     ListGroupsResponse,
     type MemberRole,
     MessageResponse,
+    PasswordChangeRequest,
     PolicyId,
     PooledTestUser,
+    type PreviewGroupResponse,
     RegisterResponse,
     type SettlementDTO,
     SettlementId,
     SettlementWithMembers,
     ShareLinkResponse,
     toGroupName,
+    type UpdateExpenseRequest,
     type UpdateGroupRequest,
     type UpdateSettlementRequest,
-    type UpdateUserRequest,
+    UpdateUserProfileRequest,
+    UserPolicyStatusResponse,
     UserProfileResponse,
     UserRegistration,
     UserToken,
@@ -177,13 +186,13 @@ export class ApiDriver {
         await this.apiRequest('/test-pool/return', 'POST', { email });
     }
 
-    async createExpense(expenseData: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseDTO> {
+    async createExpense(expenseData: CreateExpenseRequest, token: string): Promise<ExpenseDTO> {
         const response = await this.apiRequest('/expenses', 'POST', expenseData, token);
         return response as ExpenseDTO;
     }
 
-    async updateExpense(expenseId: ExpenseId | string, updateData: Partial<ExpenseDTO>, token: string): Promise<ExpenseDTO> {
-        return await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', updateData, token);
+    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, token: string): Promise<ExpenseDTO> {
+        return await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', data, token);
     }
 
     async deleteExpense(expenseId: ExpenseId | string, token: string): Promise<MessageResponse> {
@@ -213,11 +222,11 @@ export class ApiDriver {
         return pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
     }
 
-    async waitForBalanceUpdate(groupId: GroupId | string, token: string, timeoutMs: number = 1000): Promise<GroupBalances> {
-        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
+    async waitForBalanceUpdate(groupId: GroupId | string, token: string): Promise<GroupBalances> {
+        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: 2000 });
     }
 
-    async generateShareLink(groupId: GroupId | string, token: string, expiresAt?: string): Promise<ShareLinkResponse> {
+    async generateShareableLink(groupId: GroupId | string, expiresAt: string | undefined = undefined, token: string): Promise<ShareLinkResponse> {
         const body: Record<string, unknown> = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;
@@ -226,16 +235,20 @@ export class ApiDriver {
         return await this.apiRequest('/groups/share', 'POST', body, token);
     }
 
-    async joinGroupViaShareLink(linkId: string, token: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
-        const displayName = groupDisplayName || `Test User ${Date.now()}`;
-        return await this.apiRequest('/groups/join', 'POST', { linkId, groupDisplayName: displayName }, token);
+    async joinGroupByLink(shareToken: string, token: string): Promise<JoinGroupResponse> {
+        const displayName = `Test User ${Date.now()}`;
+        return await this.apiRequest('/groups/join', 'POST', { shareToken, groupDisplayName: displayName }, token);
+    }
+
+    async previewGroupByLink(shareToken: string, token: string): Promise<PreviewGroupResponse> {
+        return await this.apiRequest('/groups/preview', 'POST', { shareToken }, token);
     }
 
     async createGroupWithMembers(name: string | GroupName, members: UserToken[], creatorToken: string): Promise<GroupDTO> {
         // Step 1: Create group with just the creator
         const creatorDisplayName = `Owner ${Math.random().toString(36).slice(2, 8)}`;
 
-        const groupData = {
+        const groupData: CreateGroupRequest = {
             name: typeof name === 'string' ? toGroupName(name) : name,
             groupDisplayName: creatorDisplayName,
             description: `Test group created at ${new Date().toISOString()}`,
@@ -246,17 +259,17 @@ export class ApiDriver {
         // Step 2: If there are other members, generate a share link and have them join
         const otherMembers = members.filter((m) => m.token !== creatorToken);
         await this.addMembersViaShareLink(group.id, otherMembers, creatorToken);
-        const { group: updatedGroup } = await this.getGroupFullDetails(group.id, creatorToken);
+        const { group: updatedGroup } = await this.getGroupFullDetails(group.id, undefined, creatorToken);
         return updatedGroup;
     }
 
     async addMembersViaShareLink(groupId: GroupId | string, toAdd: UserToken[], creatorToken: string) {
         if (toAdd.length > 0) {
-            const { linkId } = await this.generateShareLink(groupId, creatorToken);
+            const { shareToken } = await this.generateShareableLink(groupId, undefined, creatorToken);
 
             // Step 3: Have other members join using the share link
             for (const member of toAdd) {
-                await this.joinGroupViaShareLink(linkId, member.token);
+                await this.joinGroupByLink(shareToken, member.token);
             }
         }
     }
@@ -266,15 +279,11 @@ export class ApiDriver {
     }
 
     async getGroup(groupId: GroupId | string, token: string): Promise<GroupDTO> {
-        const res = await this.getGroupFullDetails(groupId, token);
+        const res = await this.getGroupFullDetails(groupId, undefined, token);
         return res.group;
     }
 
-    async getGroupFullDetails(
-        groupId: GroupId | string,
-        token: string,
-        options?: GetGroupFullDetailsOptions,
-    ): Promise<GroupFullDetailsDTO> {
+    async getGroupFullDetails(groupId: GroupId | string, options: GetGroupFullDetailsOptions | undefined = undefined, token: string,): Promise<GroupFullDetailsDTO> {
         let url = `/groups/${groupId}/full-details`;
         const queryParams: string[] = [];
 
@@ -314,19 +323,19 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/security/permissions`, 'PATCH', permissions, token);
     }
 
-    async updateMemberRole(groupId: GroupId | string, memberId: string, role: MemberRole, token: string): Promise<MessageResponse> {
+    async updateMemberRole(groupId: GroupId | string, memberId: UserId | string, role: MemberRole, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/role`, 'PATCH', { role }, token);
     }
 
-    async updateGroupMemberDisplayName(groupId: GroupId | string, newDisplayName: DisplayName, token: string): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/display-name`, 'PUT', { displayName: newDisplayName }, token);
+    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName | string, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/members/display-name`, 'PUT', { displayName }, token);
     }
 
-    async approveMember(groupId: GroupId | string, memberId: string, token: string): Promise<MessageResponse> {
+    async approveMember(groupId: GroupId | string, memberId: UserId | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/approve`, 'POST', {}, token);
     }
 
-    async rejectMember(groupId: GroupId | string, memberId: string, token: string): Promise<MessageResponse> {
+    async rejectMember(groupId: GroupId | string, memberId: UserId | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/reject`, 'POST', {}, token);
     }
 
@@ -335,10 +344,7 @@ export class ApiDriver {
         return Array.isArray(response?.members) ? (response.members as GroupMembershipDTO[]) : [];
     }
 
-    async listGroups(
-        token: string,
-        params?: ListGroupsOptions,
-    ): Promise<ListGroupsResponse> {
+    async listGroups(params: ListGroupsOptions | undefined = undefined, token: string): Promise<ListGroupsResponse> {
         const queryParams = new URLSearchParams();
         if (params?.limit) queryParams.append('limit', params.limit.toString());
         if (params?.cursor) queryParams.append('cursor', params.cursor);
@@ -352,28 +358,31 @@ export class ApiDriver {
         return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async register(
-        userData: { email: Email; password: string; displayName: DisplayName; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; privacyPolicyAccepted?: boolean; },
-    ): Promise<RegisterResponse> {
-        // Ensure required policy acceptance fields are provided with defaults
-        const registrationData = {
-            ...userData,
-            termsAccepted: userData.termsAccepted ?? true,
-            cookiePolicyAccepted: userData.cookiePolicyAccepted ?? true,
-            privacyPolicyAccepted: userData.privacyPolicyAccepted ?? true,
-        };
-        return await this.apiRequest('/register', 'POST', registrationData);
+    async getActivityFeed(token: string, options?: GetActivityFeedOptions): Promise<ActivityFeedResponse> {
+        const queryParams = new URLSearchParams();
+        if (options?.limit) queryParams.append('limit', options.limit.toString());
+        if (options?.cursor) queryParams.append('cursor', options.cursor);
+        const queryString = queryParams.toString();
+        return await this.apiRequest(`/activity-feed${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async makeInvalidApiCall(endpoint: string, method: string = 'GET', body: unknown = null, token: string | null = null): Promise<any> {
-        return await this.apiRequest(endpoint, method, body, token);
+    async register(userData: UserRegistration): Promise<RegisterResponse> {
+        return await this.apiRequest('/register', 'POST', userData);
     }
 
     async leaveGroup(groupId: GroupId | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/leave`, 'POST', null, token);
     }
 
-    async removeGroupMember(groupId: GroupId | string, memberId: string, token: string): Promise<MessageResponse> {
+    async archiveGroupForUser(groupId: GroupId | string, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/archive`, 'POST', null, token);
+    }
+
+    async unarchiveGroupForUser(groupId: GroupId | string, token: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/unarchive`, 'POST', null, token);
+    }
+
+    async removeGroupMember(groupId: GroupId | string, memberId: UserId | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
@@ -385,44 +394,40 @@ export class ApiDriver {
         return this.getPolicy(policyId);
     }
 
-    async acceptMultiplePolicies(acceptances: Array<{ policyId: PolicyId; versionHash: VersionHash; }>, token: string): Promise<any> {
+    async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], token: string): Promise<AcceptMultiplePoliciesResponse> {
         return await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
     }
 
-    async getUserPolicyStatus(token: string): Promise<any> {
+    async getUserPolicyStatus(token: string): Promise<UserPolicyStatusResponse> {
         return await this.apiRequest('/user/policies/status', 'GET', null, token);
     }
 
-    async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
-        return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
+    async changePassword(passwordRequest: PasswordChangeRequest, token: string): Promise<MessageResponse> {
+        return await this.apiRequest('/user/change-password', 'POST', passwordRequest, token);
     }
 
-    async updateUserProfile(profileData: UpdateUserRequest, token: string): Promise<UserProfileResponse> {
+    async updateUserProfile(profileData: UpdateUserProfileRequest, token: string): Promise<UserProfileResponse> {
         return await this.apiRequest('/user/profile', 'PUT', profileData, token);
     }
 
-    async changeEmail(token: string, currentPassword: string, newEmail: string): Promise<UserProfileResponse> {
-        return await this.apiRequest('/user/change-email', 'POST', { currentPassword, newEmail }, token);
+    async changeEmail(changeEmailRequest: ChangeEmailRequest, token: string): Promise<UserProfileResponse> {
+        return await this.apiRequest('/user/change-email', 'POST', changeEmailRequest, token);
     }
 
-    async createComment(id: string, type: 'group' | 'expense', text: string, token: string): Promise<CommentDTO> {
-        if (type === 'group') {
-            return this.createGroupComment(id, text, token);
-        } else {
-            return this.createExpenseComment(id, text, token);
-        }
+    async getUserProfile(token: string): Promise<UserProfileResponse> {
+        return await this.apiRequest('/user/profile', 'GET', null, token);
     }
 
     // Comment API methods
-    async createGroupComment(groupId: GroupId | string, text: string, token: string): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId | string, text: CommentText | string, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
     }
 
-    async createExpenseComment(expenseId: ExpenseId | string, text: string, token: string): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
-    async listGroupComments(groupId: GroupId | string, token: string, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
+    async listGroupComments(groupId: GroupId | string, options: ListCommentsOptions | undefined = undefined, token: string): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
         if (options?.cursor) params.append('cursor', options.cursor);
         if (options?.limit) params.append('limit', options.limit.toString());
@@ -431,7 +436,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/comments${query}`, 'GET', null, token);
     }
 
-    async listExpenseComments(expenseId: ExpenseId | string, token: string, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId | string, options: ListCommentsOptions | undefined = undefined, token: string): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
         if (options?.cursor) params.append('cursor', options.cursor);
         if (options?.limit) params.append('limit', options.limit.toString());
@@ -488,12 +493,12 @@ export class ApiDriver {
     }
 
     async getGroupBalances(groupId: GroupId | string, token: string) {
-        const res = await this.getGroupFullDetails(groupId, token);
+        const res = await this.getGroupFullDetails(groupId, undefined, token);
         return res.balances;
     }
 
     async getGroupExpenses(groupId: GroupId | string, token: string) {
-        const res = await this.getGroupFullDetails(groupId, token);
+        const res = await this.getGroupFullDetails(groupId, undefined, token);
         return res.expenses;
     }
 
@@ -501,7 +506,7 @@ export class ApiDriver {
         let res;
 
         try {
-            res = await this.getGroupFullDetails(groupId, token);
+            res = await this.getGroupFullDetails(groupId, undefined, token);
         } catch (error: any) {
             // If getGroupFullDetails fails, it means the user can't access the group
             // This should be treated as NOT_GROUP_MEMBER regardless of the specific error code
@@ -552,63 +557,7 @@ export class ApiDriver {
 
     async clearUserPolicyAcceptances(token: string): Promise<void> {
         // Clear all policy acceptances for the user to reset their state
-        // Use test endpoint which handles token verification server-side
-        await this.apiRequest('/test/user/clear-policy-acceptances', 'POST', {}, token);
-    }
-
-    async promoteUserToAdmin(token: string): Promise<void> {
-        // Promote the user to admin role for testing admin endpoints
-        await this.apiRequest('/test/user/promote-to-admin', 'POST', {}, token);
-    }
-
-    async resetPoliciesToBaseState(adminToken?: string): Promise<void> {
-        // Reset all policies to fresh base content with timestamp to avoid duplicates
-        const standardPolicies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
-        const timestamp = Date.now();
-
-        for (const policyId of standardPolicies) {
-            const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-            const baseContent = `${policyName} base version reset at ${timestamp}.`;
-
-            try {
-                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text: baseContent, publish: true }, adminToken);
-                console.log(`✓ Reset policy ${policyId} to base content`);
-            } catch (error) {
-                console.warn(`Failed to reset policy ${policyId}:`, error);
-            }
-        }
-    }
-
-    async cleanupTestEnvironment(adminToken?: string): Promise<void> {
-        // First, reset standard policies
-        await this.resetPoliciesToBaseState(adminToken);
-
-        // Then handle any non-standard policies by accepting them for test users
-        // This prevents non-standard policies from interfering with tests
-        try {
-            // Get a test user to check what policies exist
-            const testUser = await this.borrowTestUser();
-            const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, testUser.token);
-
-            // Check for and warn about non-standard policies
-            if (policyStatus.policies && Array.isArray(policyStatus.policies)) {
-                for (const policy of policyStatus.policies) {
-                    if (!['terms-of-service', 'privacy-policy', 'cookie-policy'].includes(policy.policyId)) {
-                        console.warn(`Found non-standard policy: ${policy.policyId} - accepting it to prevent test interference`);
-                    }
-                }
-
-                // Accept all policies (including non-standard ones) to ensure clean state
-                // This way non-standard policies won't appear in the acceptance modal during tests
-                await this.acceptCurrentPublishedPolicies(testUser.token);
-            }
-
-            // Return the test user
-            await this.returnTestUser(testUser.email);
-            console.log('✓ Test environment cleanup completed');
-        } catch (error) {
-            console.warn('Failed to complete full environment cleanup:', error);
-        }
+        await this.apiRequest('/user/clear-policy-acceptances', 'POST', {}, token);
     }
 
     // Policy administration methods for testing
@@ -628,43 +577,6 @@ export class ApiDriver {
             policyName,
             text,
         }, token);
-    }
-
-    // Internal policy methods that bypass HTTP validation (for testing)
-    async ensurePoliciesExist(): Promise<void> {
-        const standardPolicies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
-
-        for (const policyId of standardPolicies) {
-            const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-            const baseContent = `${policyName} base version.`;
-
-            try {
-                await this.apiRequest(`/policies/${policyId}/current`, 'GET');
-            } catch (error) {
-                await this.createPolicy(policyName, baseContent);
-            }
-        }
-    }
-
-    async updateSpecificPolicy(policyId: PolicyId, userToken?: string): Promise<void> {
-        const timestamp = Date.now();
-        const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-        const safeContent = `${policyName} version ${timestamp}. Updated policy content for testing.`;
-
-        try {
-            // Use the admin API for policy updates
-            await this.updatePolicy(policyId, safeContent, true, userToken);
-            console.log(`✓ Successfully updated policy ${policyId} via admin API`);
-        } catch (apiError) {
-            // If policy doesn't exist, create it
-            try {
-                await this.createPolicy(policyName, safeContent, userToken);
-                console.log(`✓ Created new policy ${policyId} via admin API`);
-            } catch (createError) {
-                console.warn(`Failed to update or create policy ${policyId}:`, createError);
-                throw createError;
-            }
-        }
     }
 
     private isRegistrationRecoverable(error: unknown): boolean {

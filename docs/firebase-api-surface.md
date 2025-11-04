@@ -14,7 +14,7 @@ _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS f
 - **Storage location**: Firestore collection `users/{userId}` with an optional `role?: string` field.
 - **Role values**: `'system_admin'` (grants admin access) or undefined (regular user with no admin privileges).
 - **Setting the role**:
-  - Dev/test: Any authenticated user can self-promote via `/test/user/promote-to-admin` endpoint.
+  - Dev/test: Use `firebase/scripts/promote-user-to-admin.ts` script or directly update Firestore via admin SDK.
   - Production: Use `firebase/scripts/promote-user-to-admin.ts` script or manually update the Firestore document.
 - **Authorization check**: The `authenticateAdmin` middleware reads this field from Firestore on every request and checks `role === 'system_admin'`.
 
@@ -34,8 +34,7 @@ _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS f
 | --- | --- | --- | --- | --- | --- |
 | POST | `/test-pool/borrow` | Borrow a pre-seeded test user from the pool. | Public (emulator only; `isEmulator()` guard). | None. | `200` JSON test user credentials; `403/500` JSON on failure. |
 | POST | `/test-pool/return` | Return a borrowed test user. | Public (emulator only). | Body `{ email: string }`. | `200` JSON `{ message, email }`; `400/500` on errors. |
-| POST | `/test/user/clear-policy-acceptances` | Clear current user’s policy acceptances. | Requires Bearer token in Authorization header; only non-prod. | Header `Authorization: Bearer <token>`. | `200` `{ success, message }`; `401/403` JSON on failure. |
-| POST | `/test/user/promote-to-admin` | Promote the caller to admin role. | Requires Bearer token; only non-prod. | Header `Authorization: Bearer <token>`. | `200` `{ success, message, userId }`; `401/403` JSON on failure. |
+| POST | `/test/user/clear-policy-acceptances` | Clear current user's policy acceptances. | Requires Bearer token in Authorization header; only non-prod. | Header `Authorization: Bearer <token>`. | `200` `{ success, message }`; `401/403` JSON on failure. |
 
 ## User & Authentication
 | Method | Path | Summary | Security | Request | Response |

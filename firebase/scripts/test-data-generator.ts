@@ -1,19 +1,11 @@
-import type { Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest } from '@splitifyd/shared';
-import {
-    AuthenticatedFirebaseUser,
-    compareAmounts,
-    isZeroAmount,
-    MemberRoles,
-    minAmount,
-    normalizeAmount,
-    PermissionLevels,
-    PREDEFINED_EXPENSE_CATEGORIES,
-    subtractAmounts,
-    toISOString,
-    UserRegistration,
-    zeroAmount,
-} from '@splitifyd/shared';
-import { ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import type {Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest, UserId} from '@splitifyd/shared';
+import {AuthenticatedFirebaseUser, compareAmounts, isZeroAmount, MemberRoles, minAmount, normalizeAmount, PermissionLevels, PREDEFINED_EXPENSE_CATEGORIES, subtractAmounts, toISOString, UserRegistration, zeroAmount,} from '@splitifyd/shared';
+import {ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig} from '@splitifyd/test-support';
+import {getFirestore} from 'firebase-admin/firestore';
+import {createFirestoreDatabase} from "@splitifyd/firebase-simulator/src";
+import {FirestoreWriter} from "../functions/src/services/firestore";
+
+const firestoreDb = createFirestoreDatabase(getFirestore())
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -301,9 +293,11 @@ export async function generateBillSplitterUser(): Promise<AuthenticatedFirebaseU
     console.log('👤 Ensuring Bill Splitter test user exists...');
 
     const existingUser = await signInExistingBillSplitter();
+    const firestoreWriter = new FirestoreWriter(firestoreDb);
+
     if (existingUser) {
         console.log('♻️ Bill Splitter user already exists, reusing account...');
-        await runQueued(() => driver.promoteUserToAdmin(existingUser.token));
+        await firestoreWriter.promoteUserToAdmin(existingUser.uid);
         console.log(`✓ Bill Splitter user ready as admin (${existingUser.displayName})`);
         return existingUser;
     }
@@ -311,7 +305,7 @@ export async function generateBillSplitterUser(): Promise<AuthenticatedFirebaseU
     console.log('🆕 Creating Bill Splitter user...');
     const user = await runQueued(() => driver.createUser({ ...BILL_SPLITTER_REGISTRATION }));
     console.log('👑 Promoting Bill Splitter to system admin...');
-    await runQueued(() => driver.promoteUserToAdmin(user.token));
+    await firestoreWriter.promoteUserToAdmin(user.uid);
     console.log(`✓ Bill Splitter user ready as admin (${user.displayName})`);
     return user;
 }
@@ -526,11 +520,11 @@ async function createGroupWithInvite(name: string, createdBy: AuthenticatedFireb
     const group = await runQueued(() => driver.createGroupWithMembers(name, [createdBy], createdBy.token));
 
     // Generate shareable link
-    const shareLink = await runQueued(() => driver.generateShareLink(group.id, createdBy.token));
+    const shareLink = await runQueued(() => driver.generateShareableLink(group.id, undefined, createdBy.token));
 
     return {
         ...group,
-        inviteLink: shareLink.linkId,
+        inviteLink: shareLink.shareToken,
         memberDetails: undefined,
     } as GroupWithInvite;
 }
@@ -643,7 +637,7 @@ async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: Gr
 
                 if (shouldJoin) {
                     joinPromises.push(
-                        runQueued(() => driver.joinGroupViaShareLink(group.inviteLink, user.token)).then(() => {
+                        runQueued(() => driver.joinGroupByLink(group.inviteLink, user.token)).then(() => {
                             joinedCount++;
                             // Track membership
                             const updatedMembers = groupMemberships.get(group.id) || [];
@@ -672,10 +666,10 @@ async function ensureBillSplitterInAllGroups(
         const hasBillSplitter = members.some((member) => member.uid === billSplitterUser.uid);
 
         if (!hasBillSplitter) {
-            await runQueued(() => driver.joinGroupViaShareLink(group.inviteLink, billSplitterUser.token));
+            await runQueued(() => driver.joinGroupByLink(group.inviteLink, billSplitterUser.token));
             console.log(`Ensured Bill Splitter is a member of group: ${group.name}`);
 
-            const refreshedDetails = await runQueued(() => driver.getGroupFullDetails(group.id, billSplitterUser.token));
+            const refreshedDetails = await runQueued(() => driver.getGroupFullDetails(group.id, undefined, billSplitterUser.token));
             group.memberDetails = refreshedDetails.members.members;
         }
 
@@ -773,7 +767,7 @@ async function configureLargeGroupAdvancedScenarios(
         const user = await runQueued(() => driver.createUser(applicant.registration));
         users.push(user);
         applicantUsers[applicant.key] = user;
-        await runQueued(() => driver.joinGroupViaShareLink(largeGroup.inviteLink, user.token));
+        await runQueued(() => driver.joinGroupByLink(largeGroup.inviteLink, user.token));
         console.log(`Received join request from ${user.displayName}; awaiting approval in "Large Group"`);
     }
 
@@ -807,7 +801,7 @@ async function configureLargeGroupAdvancedScenarios(
         }
     }
 
-    const { group: updatedGroup, members } = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, adminUser.token));
+    const { group: updatedGroup, members } = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, undefined, adminUser.token));
     largeGroup.description = updatedGroup.description;
     largeGroup.memberDetails = members.members;
 
@@ -1200,7 +1194,7 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
 
     console.log('Applying updates, deletions, and membership departures for "Large Group"...');
 
-    const fullDetails = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, adminUser.token));
+    const fullDetails = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, undefined, adminUser.token));
     largeGroup.memberDetails = fullDetails.members.members;
 
     const expensesList = fullDetails.expenses.expenses;
@@ -1298,7 +1292,7 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
         console.log('Skipped member removal action because no zero-balance member was eligible');
     }
 
-    const refreshedDetails = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, adminUser.token));
+    const refreshedDetails = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, undefined, adminUser.token));
     largeGroup.memberDetails = refreshedDetails.members.members;
     const pendingMembers = await runQueued(() => driver.getPendingMembers(largeGroup.id, adminUser.token));
     console.log(`"Large Group" now has ${largeGroup.memberDetails.length} active members and ${pendingMembers.length} pending members after finalize step`);
@@ -1534,7 +1528,7 @@ async function createCommentsForGroups(groups: GroupWithInvite[], groupMembershi
         for (let i = 0; i < groupCommentsToCreate; i++) {
             const commenter = groupMembers[Math.floor(Math.random() * groupMembers.length)];
             const commentText = commentTemplates[Math.floor(Math.random() * commentTemplates.length)];
-            commentPromises.push(runQueued(() => driver.createComment(group.id, 'group', commentText, commenter.token)));
+            commentPromises.push(runQueued(() => driver.createGroupComment(group.id, commentText, commenter.token)));
 
             // Process in batches to avoid overwhelming the API
             if (commentPromises.length >= 5) {
@@ -1548,7 +1542,7 @@ async function createCommentsForGroups(groups: GroupWithInvite[], groupMembershi
             for (const expenseId of expenseCommentTargets) {
                 const commenter = groupMembers[Math.floor(Math.random() * groupMembers.length)];
                 const commentText = commentTemplates[Math.floor(Math.random() * commentTemplates.length)];
-                commentPromises.push(runQueued(() => driver.createComment(expenseId, 'expense', commentText, commenter.token)));
+                commentPromises.push(runQueued(() => driver.createExpenseComment(expenseId, commentText, commenter.token)));
 
                 // Process in batches to avoid overwhelming the API
                 if (commentPromises.length >= 5) {
@@ -1651,7 +1645,7 @@ export async function generateFullTestData(): Promise<void> {
             const membersForGroup = groupMemberships.get(group.id) ?? [];
             const accessibleUser = membersForGroup.find((member) => member.uid === test1User.uid) ?? membersForGroup[0] ?? test1User;
 
-            const { group: groupData, members } = await runQueued(() => driver.getGroupFullDetails(group.id, accessibleUser.token));
+            const { group: groupData, members } = await runQueued(() => driver.getGroupFullDetails(group.id, undefined, accessibleUser.token));
             return {
                 ...groupData,
                 inviteLink: group.inviteLink,

@@ -189,8 +189,9 @@ const GroupMembersResponseSchema = z.object({
 
 // Share schemas
 const ShareableLinkResponseSchema = z.object({
-    linkId: z.string(),
+    shareToken: z.string(),
     shareablePath: z.string(),
+    expiresAt: z.string(),
 });
 
 const JoinGroupResponseSchema = z.object({

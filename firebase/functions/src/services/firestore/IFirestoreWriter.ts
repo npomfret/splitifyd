@@ -14,8 +14,8 @@
  * - Performance monitoring with sampling
  */
 
-import type { CommentDTO, ISOString, ShareLinkDTO, SystemUserRole, UserId } from '@splitifyd/shared';
-import { DisplayName, ExpenseId, GroupId } from '@splitifyd/shared';
+import type { CommentDTO, ISOString, ShareLinkDTO, ShareLinkToken, SystemUserRole, UserId } from '@splitifyd/shared';
+import { DisplayName, ExpenseId, GroupId, ShareLinkId } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, ITransaction, IWriteBatch } from '../../firestore-wrapper';
@@ -126,8 +126,11 @@ export interface IFirestoreWriter {
 
     /**
      * Hard delete a share link and its token index
+     * @param groupId - The group ID
+     * @param shareLinkId - The share link document ID
+     * @param shareToken - The share token value (used to delete the token index document)
      */
-    deleteShareLink(groupId: GroupId, shareLinkId: string, token: string): Promise<void>;
+    deleteShareLink(groupId: GroupId, shareLinkId: ShareLinkId, shareToken: ShareLinkToken): Promise<void>;
 
     // ========================================================================
     // Policy Operations

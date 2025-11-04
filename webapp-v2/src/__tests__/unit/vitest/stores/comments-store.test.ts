@@ -3,8 +3,8 @@ import type { Mock } from 'vitest';
 
 vi.mock('@/app/apiClient', () => ({
     apiClient: {
-        getGroupComments: vi.fn(),
-        getExpenseComments: vi.fn(),
+        listGroupComments: vi.fn(),
+        listExpenseComments: vi.fn(),
         createGroupComment: vi.fn(),
         createExpenseComment: vi.fn(),
     },
@@ -52,8 +52,8 @@ import { toCommentId, toGroupId } from '@splitifyd/shared';
 import { toISOString } from '@splitifyd/shared';
 
 const mockedApiClient = apiClient as unknown as {
-    getGroupComments: Mock;
-    getExpenseComments: Mock;
+    listGroupComments: Mock;
+    listExpenseComments: Mock;
 };
 
 function createComment(id: string, message: string): CommentDTO {
@@ -98,8 +98,8 @@ describe('CommentsStoreImpl', () => {
         } as unknown as ActivityFeedRealtimeService;
 
         store = new CommentsStoreImpl(activityFeedMock);
-        mockedApiClient.getGroupComments.mockReset();
-        mockedApiClient.getExpenseComments.mockReset();
+        mockedApiClient.listGroupComments.mockReset();
+        mockedApiClient.listExpenseComments.mockReset();
     });
 
     afterEach(() => {
@@ -111,13 +111,13 @@ describe('CommentsStoreImpl', () => {
         const second = createComment('2', 'Second comment');
 
         mockedApiClient
-            .getGroupComments
+            .listGroupComments
             .mockResolvedValueOnce(responseFor([first]))
             .mockResolvedValueOnce(responseFor([second]));
 
         store.registerComponent(groupTarget('group-1'));
 
-        await mockedApiClient.getGroupComments.mock.results[0]!.value;
+        await mockedApiClient.listGroupComments.mock.results[0]!.value;
 
         expect(store.comments).toEqual([first]);
         expect(store.groupId).toBe('group-1');
@@ -129,25 +129,25 @@ describe('CommentsStoreImpl', () => {
         expect(registerConsumerMock).toHaveBeenCalledTimes(1);
         expect(deregisterConsumerMock).not.toHaveBeenCalled();
 
-        await mockedApiClient.getGroupComments.mock.results[1]!.value;
+        await mockedApiClient.listGroupComments.mock.results[1]!.value;
 
         expect(store.comments).toEqual([second]);
         expect(store.groupId).toBe('group-2');
         expect(store.hasMore).toBe(false);
-        expect(mockedApiClient.getGroupComments).toHaveBeenNthCalledWith(1, 'group-1', undefined);
-        expect(mockedApiClient.getGroupComments).toHaveBeenNthCalledWith(2, 'group-2', undefined);
+        expect(mockedApiClient.listGroupComments).toHaveBeenNthCalledWith(1, 'group-1', undefined);
+        expect(mockedApiClient.listGroupComments).toHaveBeenNthCalledWith(2, 'group-2', undefined);
     });
 
     it('does not refetch when registering additional listener for same target', async () => {
         const first = createComment('1', 'Only comment');
-        mockedApiClient.getGroupComments.mockResolvedValue(responseFor([first]));
+        mockedApiClient.listGroupComments.mockResolvedValue(responseFor([first]));
 
         store.registerComponent(groupTarget('group-1'));
-        await mockedApiClient.getGroupComments.mock.results[0]!.value;
+        await mockedApiClient.listGroupComments.mock.results[0]!.value;
 
         store.registerComponent(groupTarget('group-1'));
 
-        expect(mockedApiClient.getGroupComments).toHaveBeenCalledTimes(1);
+        expect(mockedApiClient.listGroupComments).toHaveBeenCalledTimes(1);
         expect(registerConsumerMock).toHaveBeenCalledTimes(1);
         expect(store.comments).toEqual([first]);
     });
