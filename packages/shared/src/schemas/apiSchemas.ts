@@ -511,6 +511,19 @@ export const ActivityFeedResponseSchema = z.object({
     nextCursor: z.string().optional(),
 });
 
+// Tenant settings schemas
+export const TenantSettingsResponseSchema = z.object({
+    tenantId: z.string().min(1).transform(toTenantId),
+    config: TenantConfigSchema,
+    domains: z.array(z.string().min(1).transform((v: string) => v as any)),
+    primaryDomain: z.string().min(1).transform((v: string) => v as any),
+});
+
+export const TenantDomainsResponseSchema = z.object({
+    domains: z.array(z.string().min(1).transform((v: string) => v as any)),
+    primaryDomain: z.string().min(1).transform((v: string) => v as any),
+});
+
 export const responseSchemas = {
     '/config': AppConfigurationSchema,
     '/health': HealthCheckResponseSchema,
@@ -555,6 +568,10 @@ export const responseSchemas = {
     'GET /policies/:id/current': CurrentPolicyResponseSchema,
     'GET /user/policies/status': UserPolicyStatusResponseSchema,
     'POST /user/policies/accept-multiple': AcceptMultiplePoliciesResponseSchema,
+    // Tenant settings endpoints
+    'GET /settings/tenant': TenantSettingsResponseSchema,
+    'GET /settings/tenant/domains': TenantDomainsResponseSchema,
+    'PUT /settings/tenant/branding': MessageResponseSchema,
 } as const;
 
 // Schema for the currency-specific balance data used in GroupService.addComputedFields

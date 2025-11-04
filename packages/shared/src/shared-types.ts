@@ -1401,3 +1401,39 @@ export interface ChangeEmailRequest {
 export interface UpdateUserProfileRequest {
     displayName?: string;
 }
+
+/**
+ * Tenant settings response
+ * Returned by GET /settings/tenant endpoint
+ */
+export interface TenantSettingsResponse {
+    tenantId: TenantId;
+    config: TenantConfig;
+    domains: TenantDomainName[];
+    primaryDomain: TenantDomainName;
+}
+
+/**
+ * Tenant branding update request
+ * Used for PUT /settings/tenant/branding endpoint
+ */
+export interface UpdateTenantBrandingRequest {
+    appName?: TenantAppName;
+    logoUrl?: TenantLogoUrl;
+    faviconUrl?: TenantFaviconUrl;
+    primaryColor?: TenantPrimaryColor;
+    secondaryColor?: TenantSecondaryColor;
+    accentColor?: TenantAccentColor;
+    themePalette?: TenantThemePaletteName;
+    customCSS?: TenantCustomCss;
+    marketingFlags?: Partial<BrandingMarketingFlags>;
+}
+
+/**
+ * Tenant domains list response
+ * Returned by GET /settings/tenant/domains endpoint
+ */
+export interface TenantDomainsResponse {
+    domains: TenantDomainName[];
+    primaryDomain: TenantDomainName;
+}

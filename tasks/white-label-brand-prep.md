@@ -9,10 +9,21 @@
 - Frontend dynamic branding (logos, colors, favicon)
 - Feature flags and conditional routing
 
-**Next: Phase 6 - Tenant Admin Panel 🔄**
-- Build internal UI for managing tenant configuration
-- Branding editor, domain management
-- Backend APIs under `/settings/tenant` prefix
+**Phase 6 - Tenant Admin Panel 🔄 (In Progress)**
+- ✅ Backend APIs under `/settings/tenant` prefix
+  - `GET /settings/tenant` endpoint with types and validation
+  - `PUT /settings/tenant/branding` endpoint (returns 501 stub)
+  - `GET /settings/tenant/domains` endpoint with types and validation
+- ✅ Branding Editor UI (`/settings/tenant/branding`)
+  - Full-featured form with app name, logo URLs, favicon, color pickers
+  - Marketing flags toggles (showLandingPage, showMarketingContent, showPricingPage)
+  - Live preview panel with change detection
+  - Role-based access control (tenant_admin/system_admin only)
+  - Comprehensive test coverage: 18 Vitest unit tests + 11 Playwright E2E tests
+- 🔄 Domain Management UI (pending)
+  - List mapped domains with verification status
+  - DNS instruction widget for CNAME/SSL setup
+  - Add new domain form
 
 ## Ideas
 - Centralize tenant branding (name, palette, logos, marketing flags) in a dedicated descriptor that both web and functions read, so swapping tenants is a config change rather than a code edit.
@@ -62,6 +73,40 @@
   - Feature-gated routes (`/browser/users`) when `enableAdvancedReporting: true`
   - Pricing page conditional rendering (shows 404 when `showPricingPage: false`)
 - Test coverage now: 503 total tests (193 unit + 310 integration), all passing.
+
+**Phase 6 Branding Editor Implementation (In Progress):**
+- Added tenant settings API types and schemas:
+  - `TenantSettingsResponse`, `UpdateTenantBrandingRequest`, `TenantDomainsResponse` in `@splitifyd/shared`
+  - Zod validation schemas: `TenantSettingsResponseSchema`, `TenantDomainsResponseSchema`
+  - Registered in `responseSchemas` registry for type-safe API client
+- Enhanced API client with three new methods:
+  - `getTenantSettings()` - fetch tenant configuration
+  - `updateTenantBranding()` - update branding settings (501 stub for now)
+  - `getTenantDomains()` - fetch domain mappings
+- Implemented `TenantBrandingPage` component (`/settings/tenant/branding`):
+  - Form inputs for app name, logo URL, favicon URL, primary/secondary colors
+  - Color pickers with live preview panel
+  - Marketing flags toggles (showLandingPage, showMarketingContent, showPricingPage)
+  - Change detection logic enables save button only when form has modifications
+  - Role-based access control denies regular users (tenant_admin/system_admin only)
+  - Graceful error handling for 501 Not Implemented responses
+  - Loading states and error messages
+- Comprehensive test coverage (29 new tests):
+  - 18 Vitest unit tests covering:
+    - Access control for different user roles
+    - Loading states and error handling
+    - Form population from API data
+    - Form interactions (input changes, color picking, flag toggling)
+    - Form submission with API calls
+    - Live preview updates
+  - 11 Playwright E2E tests with Page Object Model:
+    - Access control verification
+    - Form interactions and validation
+    - Save button state management
+    - API request/response validation
+    - Marketing flags display and toggling
+- Test status: All 532 tests passing (211 unit + 321 integration)
+- TypeScript compilation: ✅ No errors
 
 ## Agent's Ideas (Based on App Analysis)
 
@@ -153,4 +198,5 @@
 | Phase 3: Config Storage | ✅ Complete | Medium | Low |
 | Phase 4: Frontend Branding | ✅ Complete | Low | Low |
 | Phase 5: Feature Flags | ✅ Complete | Medium | Low |
-| Phase 6: Admin Panel | 🔄 Next | Medium | Low |
+| Phase 6a: Branding Editor | ✅ Complete | Medium | Low |
+| Phase 6b: Domain Management | 🔄 Next | Medium | Low |
