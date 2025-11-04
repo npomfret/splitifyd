@@ -237,11 +237,12 @@ export class ApiDriver {
 
     async joinGroupByLink(shareToken: string, token: string): Promise<JoinGroupResponse> {
         const displayName = `Test User ${Date.now()}`;
-        return await this.apiRequest('/groups/join', 'POST', { shareToken, groupDisplayName: displayName }, token);
+        return await this.apiRequest('/groups/join', 'POST', { linkId: shareToken, groupDisplayName: displayName }, token);
     }
 
     async previewGroupByLink(shareToken: string, token: string): Promise<PreviewGroupResponse> {
-        return await this.apiRequest('/groups/preview', 'POST', { shareToken }, token);
+        // FIXME: API changed from 'shareToken' to 'linkId' - using linkId as that's what server expects
+        return await this.apiRequest('/groups/preview', 'POST', { linkId: shareToken }, token);
     }
 
     async createGroupWithMembers(name: string | GroupName, members: UserToken[], creatorToken: string): Promise<GroupDTO> {

@@ -1,26 +1,39 @@
 #!/usr/bin/env tsx
 
-import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { generateBillSplitterUser, generateFullTestData } from './test-data-generator';
+import {getProjectId} from '@splitifyd/test-support';
+import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
+import {requireInstanceMode} from '../functions/src/shared/instance-mode';
+import {getEnvironmentForModule, initializeFirebase} from './firebase-init';
+import {generateFullTestData} from './test-data-generator';
+
+// Load environment
+const envPath = path.join(__dirname, '../functions/.env');
+if (fs.existsSync(envPath)) {
+    dotenv.config({path: envPath});
+}
+
+requireInstanceMode();
+
+// Set GCLOUD_PROJECT if not already set
+if (!process.env.GCLOUD_PROJECT) {
+    try {
+        const projectId = getProjectId();
+        process.env.GCLOUD_PROJECT = projectId;
+        console.log(`📦 Set GCLOUD_PROJECT to ${projectId}`);
+    } catch (error) {
+        console.error('❌ Failed to get project ID from firebase.json');
+        process.exit(1);
+    }
+}
 
 async function main(): Promise<void> {
+    // Initialize Firebase
+    const env = getEnvironmentForModule();
+    initializeFirebase(env);
+
     await generateFullTestData();
 }
 
-const isDirectExecution = (() => {
-    const invokedScript = process.argv[1];
-    if (!invokedScript) return false;
-    const resolvedInvokedScript = resolve(invokedScript);
-    const currentModulePath = fileURLToPath(import.meta.url);
-    return resolvedInvokedScript === currentModulePath;
-})();
-
-if (isDirectExecution) {
-    main().catch((error) => {
-        console.error('❌ Failed to generate full test data', error);
-        process.exit(1);
-    });
-}
-
-export { generateBillSplitterUser, generateFullTestData };
+main()
