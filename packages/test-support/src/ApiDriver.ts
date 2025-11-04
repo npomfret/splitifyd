@@ -1,4 +1,4 @@
-import type {CommentText, Email, GroupName, UserId} from '@splitifyd/shared';
+import type {CommentText, Email, GroupName, ShareLinkToken, UserId} from '@splitifyd/shared';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -235,13 +235,12 @@ export class ApiDriver {
         return await this.apiRequest('/groups/share', 'POST', body, token);
     }
 
-    async joinGroupByLink(shareToken: string, token: string): Promise<JoinGroupResponse> {
+    async joinGroupByLink(shareToken: ShareLinkToken | string, token: string): Promise<JoinGroupResponse> {
         const displayName = `Test User ${Date.now()}`;
         return await this.apiRequest('/groups/join', 'POST', { linkId: shareToken, groupDisplayName: displayName }, token);
     }
 
-    async previewGroupByLink(shareToken: string, token: string): Promise<PreviewGroupResponse> {
-        // FIXME: API changed from 'shareToken' to 'linkId' - using linkId as that's what server expects
+    async previewGroupByLink(shareToken: ShareLinkToken | string, token: string): Promise<PreviewGroupResponse> {
         return await this.apiRequest('/groups/preview', 'POST', { linkId: shareToken }, token);
     }
 

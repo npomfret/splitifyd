@@ -41,6 +41,7 @@ import {
     SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
+    ShareLinkToken,
     UpdateExpenseRequest,
     UpdateGroupRequest,
     UpdatePolicyRequest,
@@ -451,14 +452,14 @@ export class AppDriver {
         return res.getJson() as ShareLinkResponse;
     }
 
-    async joinGroupByLink(shareToken: string, groupDisplayName: DisplayName | string | undefined = undefined, userId: UserId): Promise<JoinGroupResponse> {
+    async joinGroupByLink(shareToken: ShareLinkToken | string, groupDisplayName: DisplayName | string | undefined = undefined, userId: UserId): Promise<JoinGroupResponse> {
         const displayName = groupDisplayName || `User ${userId}`;
         const req = createStubRequest(userId, { shareToken, groupDisplayName: displayName });
         const res = await this.dispatchByHandler('joinGroupByLink', req);
         return res.getJson() as JoinGroupResponse;
     }
 
-    async previewGroupByLink(shareToken: string, userId: UserId): Promise<PreviewGroupResponse> {
+    async previewGroupByLink(shareToken: ShareLinkToken | string, userId: UserId): Promise<PreviewGroupResponse> {
         const req = createStubRequest(userId, { shareToken });
         const res = await this.dispatchByHandler('previewGroupByLink', req);
         return res.getJson() as PreviewGroupResponse;

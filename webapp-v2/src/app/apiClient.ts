@@ -43,6 +43,7 @@ import type {
     SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
+    ShareLinkToken,
     TenantDomainsResponse,
     TenantSettingsResponse,
     UpdateDisplayNameRequest,
@@ -53,6 +54,7 @@ import type {
     UserPolicyStatusResponse,
     UserProfileResponse,
     UserRegistration,
+    UserId,
 } from '@splitifyd/shared';
 import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
@@ -799,7 +801,7 @@ class ApiClient {
         });
     }
 
-    async removeGroupMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
+    async removeGroupMember(groupId: GroupId, memberId: UserId): Promise<MessageResponse> {
         return this.request({
             endpoint: '/groups/:id/members/:memberId',
             method: 'DELETE',
@@ -908,7 +910,7 @@ class ApiClient {
         });
     }
 
-    async updateMemberRole(groupId: GroupId, memberId: string, role: MemberRole): Promise<MessageResponse> {
+    async updateMemberRole(groupId: GroupId, memberId: UserId, role: MemberRole): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${groupId}/members/${memberId}/role`,
             method: 'PATCH',
@@ -916,14 +918,14 @@ class ApiClient {
         });
     }
 
-    async approveMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
+    async approveMember(groupId: GroupId, memberId: UserId): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${groupId}/members/${memberId}/approve`,
             method: 'POST',
         });
     }
 
-    async rejectMember(groupId: GroupId, memberId: string): Promise<MessageResponse> {
+    async rejectMember(groupId: GroupId, memberId: UserId): Promise<MessageResponse> {
         return this.request({
             endpoint: `/groups/${groupId}/members/${memberId}/reject`,
             method: 'POST',
@@ -938,7 +940,7 @@ class ApiClient {
         return Array.isArray(response?.members) ? response.members : [];
     }
 
-    async previewGroupByLink(shareToken: string): Promise<PreviewGroupResponse> {
+    async previewGroupByLink(shareToken: ShareLinkToken | string): Promise<PreviewGroupResponse> {
         return this.request({
             endpoint: '/groups/preview',
             method: 'POST',
@@ -946,7 +948,7 @@ class ApiClient {
         });
     }
 
-    async joinGroupByLink(shareToken: string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
+    async joinGroupByLink(shareToken: ShareLinkToken | string, groupDisplayName: DisplayName): Promise<JoinGroupResponse> {
         return this.request<JoinGroupResponse>({
             endpoint: '/groups/join',
             method: 'POST',
