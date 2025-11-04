@@ -940,7 +940,7 @@ describe('app tests', () => {
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('25.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-25.00');
 
-            await appDriver.deleteSettlement(user1, settlementId);
+            await appDriver.deleteSettlement(settlementId, user1);
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 

@@ -478,7 +478,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             const details = await appDriver.getGroupFullDetails(group.id, {}, owner.id);
             expect(details.group.id).toBe(group.id);
 
-            const expenses = await appDriver.getGroupExpenses(owner.id, group.id);
+            const expenses = await appDriver.getGroupExpenses(group.id, {}, owner.id);
             expect(expenses.expenses).toHaveLength(0);
 
             const balances = await appDriver.getGroupBalances(group.id, owner.id);
@@ -507,7 +507,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                     .build(), owner.id);
             }
 
-            const expenses = await appDriver.getGroupExpenses(owner.id, group.id);
+            const expenses = await appDriver.getGroupExpenses(group.id, {}, owner.id);
             expect(expenses.expenses).toHaveLength(3);
 
             const groupSummary = await appDriver.getGroup(group.id, owner.id);

@@ -256,7 +256,7 @@ describe('Settlement Management - Unit Tests', () => {
             const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act: Delete settlement
-            const result = await appDriver.deleteSettlement(creatorUserId, created.id);
+            const result = await appDriver.deleteSettlement(created.id, creatorUserId);
 
             // Assert
             expect(result.message).toMatch(/deleted successfully/i);
@@ -306,7 +306,7 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Act & Assert: Non-creator cannot delete
             await expect(
-                appDriver.deleteSettlement(otherMemberUserId, created.id),
+                appDriver.deleteSettlement(created.id, otherMemberUserId),
             )
                 .rejects
                 .toThrow(/Only the creator or group admin can delete this settlement/);
@@ -321,7 +321,7 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Act & Assert: Non-existent settlement deletion throws error
             await expect(
-                appDriver.deleteSettlement(userId, 'non-existent-id'),
+                appDriver.deleteSettlement('non-existent-id', userId),
             )
                 .rejects
                 .toThrow(/Settlement not found/);
@@ -434,7 +434,7 @@ describe('Settlement Management - Unit Tests', () => {
             const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act: Soft delete settlement
-            await appDriver.deleteSettlement(creatorUserId, created.id);
+            await appDriver.deleteSettlement(created.id, creatorUserId);
 
             // Assert: Deleted settlement is preserved with metadata
             const fullDetailsWithDeleted = await appDriver.getGroupFullDetails(group.id, {
@@ -481,7 +481,7 @@ describe('Settlement Management - Unit Tests', () => {
             const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act: Admin deletes settlement created by another user
-            const result = await appDriver.deleteSettlement(adminUserId, created.id);
+            const result = await appDriver.deleteSettlement(created.id, adminUserId);
 
             // Assert
             expect(result.message).toMatch(/deleted successfully/i);
@@ -532,7 +532,7 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Act & Assert: Other member (not creator, not admin) cannot delete
             await expect(
-                appDriver.deleteSettlement(otherMemberUserId, created.id),
+                appDriver.deleteSettlement(created.id, otherMemberUserId),
             )
                 .rejects
                 .toThrow(/Only the creator or group admin can delete this settlement/);
@@ -563,11 +563,11 @@ describe('Settlement Management - Unit Tests', () => {
             const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // First deletion
-            await appDriver.deleteSettlement(creatorUserId, created.id);
+            await appDriver.deleteSettlement(created.id, creatorUserId);
 
             // Act & Assert: Second deletion should fail
             await expect(
-                appDriver.deleteSettlement(creatorUserId, created.id),
+                appDriver.deleteSettlement(created.id, creatorUserId),
             )
                 .rejects
                 .toThrow(/Settlement not found/);
@@ -599,7 +599,7 @@ describe('Settlement Management - Unit Tests', () => {
             const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Delete settlement
-            await appDriver.deleteSettlement(creatorUserId, created.id);
+            await appDriver.deleteSettlement(created.id, creatorUserId);
 
             // Act & Assert: Update should fail on deleted settlement
             const updateData = new SettlementUpdateBuilder()

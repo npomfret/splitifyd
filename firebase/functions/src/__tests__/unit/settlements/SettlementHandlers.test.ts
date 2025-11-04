@@ -677,7 +677,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(settlementRequest, userId);
 
-            const result = await appDriver.deleteSettlement(userId, created.id);
+            const result = await appDriver.deleteSettlement(created.id, userId);
 
             expect(result).toMatchObject({
                 message: 'Settlement deleted successfully',
@@ -685,7 +685,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject delete with invalid settlement ID', async () => {
-            await expect(appDriver.deleteSettlement('test-user', '')).rejects.toThrow(
+            await expect(appDriver.deleteSettlement('', 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_SETTLEMENT_ID',
@@ -694,7 +694,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject delete of non-existent settlement', async () => {
-            await expect(appDriver.deleteSettlement('test-user', 'non-existent-settlement')).rejects.toThrow(
+            await expect(appDriver.deleteSettlement('non-existent-settlement', 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                 }),
@@ -727,7 +727,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
-            const result = await appDriver.deleteSettlement(adminId, created.id);
+            const result = await appDriver.deleteSettlement(created.id, adminId);
 
             expect(result).toMatchObject({
                 message: 'Settlement deleted successfully',
@@ -759,7 +759,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
-            await expect(appDriver.deleteSettlement(nonMemberId, created.id)).rejects.toThrow(
+            await expect(appDriver.deleteSettlement(created.id, nonMemberId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -792,7 +792,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
-            await expect(appDriver.deleteSettlement(otherMemberId, created.id)).rejects.toThrow(
+            await expect(appDriver.deleteSettlement(created.id, otherMemberId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -822,7 +822,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
-            const result = await appDriver.deleteSettlement(creatorId, created.id);
+            const result = await appDriver.deleteSettlement(created.id, creatorId);
 
             expect(result).toMatchObject({
                 message: 'Settlement deleted successfully',

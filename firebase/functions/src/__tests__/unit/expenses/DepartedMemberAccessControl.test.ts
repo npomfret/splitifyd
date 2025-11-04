@@ -117,7 +117,7 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // User 1 tries to list group expenses - should be denied
-            await expect(appDriver.getGroupExpenses(userIds[1], group.id)).rejects.toThrow(
+            await expect(appDriver.getGroupExpenses(group.id, {}, userIds[1])).rejects.toThrow(
                 /not.*found|not.*member|access.*denied|404|403/i,
             );
         });
@@ -370,7 +370,7 @@ describe('Departed Member Access Control - Unit Tests', () => {
             // Test ALL endpoints consistently deny access
             await expect(appDriver.getGroupFullDetails(group.id, {}, userIds[1])).rejects.toThrow();
             await expect(appDriver.getGroupBalances(group.id, userIds[1])).rejects.toThrow();
-            await expect(appDriver.getGroupExpenses(userIds[1], group.id)).rejects.toThrow();
+            await expect(appDriver.getGroupExpenses(group.id, {}, userIds[1])).rejects.toThrow();
             await expect(appDriver.getExpense(expense.id, userIds[1])).rejects.toThrow();
             await expect(appDriver.getExpenseFullDetails(expense.id, userIds[1])).rejects.toThrow();
         });

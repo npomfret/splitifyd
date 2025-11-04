@@ -126,7 +126,7 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // List expenses
-            const listResponse = await appDriver.getGroupExpenses(userIds[0], group.id);
+            const listResponse = await appDriver.getGroupExpenses(group.id, {}, userIds[0]);
 
             // Find our expenses in the list
             const lockedInList = listResponse.expenses.find((e) => e.id === lockedExpense.id);

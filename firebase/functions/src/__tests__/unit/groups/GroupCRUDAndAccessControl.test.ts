@@ -188,7 +188,7 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
                 /not.*found|user.*not.*exist|not.*member|access.*denied/i,
             );
 
-            await expect(appDriver.getGroupExpenses(nonExistentUser, testGroup.id)).rejects.toThrow(
+            await expect(appDriver.getGroupExpenses(testGroup.id, {}, nonExistentUser)).rejects.toThrow(
                 /not.*found|user.*not.*exist|not.*member|access.*denied/i,
             );
 

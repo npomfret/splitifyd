@@ -79,7 +79,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         expect(successes.length + failures.length).toBe(2);
 
         // Verify final state - expense should have one of the updated amounts
-        const { expenses } = await appDriver.getGroupExpenses(userId, group.id);
+        const { expenses } = await appDriver.getGroupExpenses(group.id, {}, userId);
         const updatedExpense = expenses.find((e) => e.id === expense.id);
         expect(updatedExpense).toBeDefined();
         expect(['200', '300']).toContain(updatedExpense?.amount);
@@ -130,7 +130,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         expect(successes.length + failures.length).toBe(2);
 
         // Verify final state has one of the updated amounts
-        const { expenses } = await appDriver.getGroupExpenses(userId, group.id);
+        const { expenses } = await appDriver.getGroupExpenses(group.id, {}, userId);
         const updatedExpense = expenses.find((e) => e.id === expense.id);
         expect(updatedExpense).toBeDefined();
         expect(['150', '200']).toContain(updatedExpense?.amount);

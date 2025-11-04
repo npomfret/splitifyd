@@ -505,7 +505,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 .withDescription('Second Test Expense')
                 .build(), user2);
 
-            const expenses = await appDriver.getGroupExpenses(user1, group.id);
+            const expenses = await appDriver.getGroupExpenses(group.id, {}, user1);
             expect(expenses.expenses.length).toBeGreaterThanOrEqual(2);
             const descriptions = expenses.expenses.map((e) => e.description);
             expect(descriptions).toContain('First Test Expense');
@@ -719,7 +719,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 .build(), user1);
 
             // Verify both expenses are visible before deletion
-            const beforeDeletion = await appDriver.getGroupExpenses(user1, group.id);
+            const beforeDeletion = await appDriver.getGroupExpenses(group.id, {}, user1);
             expect(beforeDeletion.expenses.find((e) => e.id === expense1.id)).toBeDefined();
             expect(beforeDeletion.expenses.find((e) => e.id === expense2.id)).toBeDefined();
             expect(beforeDeletion.expenses.length).toBeGreaterThanOrEqual(2);
@@ -728,7 +728,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await appDriver.deleteExpense(expense1.id, user1);
 
             // Should filter out deleted by default
-            const afterDeletion = await appDriver.getGroupExpenses(user1, group.id);
+            const afterDeletion = await appDriver.getGroupExpenses(group.id, {}, user1);
             expect(afterDeletion.expenses.find((e) => e.id === expense1.id)).toBeUndefined();
             expect(afterDeletion.expenses.find((e) => e.id === expense2.id)).toBeDefined();
             expect(afterDeletion.expenses.length).toBe(beforeDeletion.expenses.length - 1);

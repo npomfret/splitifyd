@@ -434,8 +434,7 @@ export class AppDriver {
         return details.balances;
     }
 
-    // todo
-    async getGroupExpenses(userId: UserId, groupId: GroupId | string, options?: { expenseLimit?: number; expenseCursor?: string; }) {
+    async getGroupExpenses(groupId: GroupId | string, options: GetGroupFullDetailsOptions = {}, userId: UserId) {
         const details = await this.getGroupFullDetails(groupId, options, userId);
         return details.expenses;
     }
@@ -543,7 +542,7 @@ export class AppDriver {
         return res.getJson() as SettlementWithMembers;
     }
 
-    async deleteSettlement(userId: UserId, settlementId: SettlementId | string): Promise<MessageResponse> {
+    async deleteSettlement(settlementId: SettlementId | string, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { settlementId });
         const res = await this.dispatchByHandler('deleteSettlement', req);
         return res.getJson() as MessageResponse;
