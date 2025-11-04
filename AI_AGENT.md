@@ -1,6 +1,7 @@
 Read these first!
 
 - @README.md
+- @docs/guides/ask.md
 - @docs/guides/building.md
 - @docs/guides/code.md
 - @docs/guides/firebase.md
