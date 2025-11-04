@@ -49,13 +49,13 @@ describe('Security and Permissions - Consolidated Tests', () => {
     describe('Authentication Security and Token Validation', () => {
         test('should reject requests with invalid authentication tokens', async () => {
             // No token
-            await expect(apiDriver.listGroups(null as any)).rejects.toThrow(/401|unauthorized|missing.*token/i);
+            await expect(apiDriver.listGroups(undefined, null as any)).rejects.toThrow(/401|unauthorized|missing.*token/i);
 
             // Malformed tokens
             const malformedTokens = ['not-a-jwt-token', 'Bearer invalid', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid', 'header.payload.invalid-signature', '', '   '];
 
             for (const token of malformedTokens) {
-                await expect(apiDriver.listGroups(token)).rejects.toThrow(/401|unauthorized|invalid.*token/i);
+                await expect(apiDriver.listGroups(undefined, token)).rejects.toThrow(/401|unauthorized|invalid.*token/i);
             }
         });
 
@@ -63,12 +63,12 @@ describe('Security and Permissions - Consolidated Tests', () => {
             // Expired token (from 2020)
             const expiredToken =
                 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vc3BsaXRpZnlkIiwiYXVkIjoic3BsaXRpZnlkIiwiYXV0aF90aW1lIjoxNjA5NDU5MjAwLCJ1c2VyX2lkIjoidGVzdC11c2VyIiwic3ViIjoidGVzdC11c2VyIiwiaWF0IjoxNjA5NDU5MjAwLCJleHAiOjE2MDk0NjI4MDB9.invalid-signature';
-            await expect(apiDriver.listGroups(expiredToken)).rejects.toThrow(/401|unauthorized|expired|invalid/i);
+            await expect(apiDriver.listGroups(undefined, expiredToken)).rejects.toThrow(/401|unauthorized|expired|invalid/i);
 
             // Wrong project token
             const wrongProjectToken =
                 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd3JvbmctcHJvamVjdCIsImF1ZCI6Indyb25nLXByb2plY3QiLCJhdXRoX3RpbWUiOjE2MDk0NTkyMDAsInVzZXJfaWQiOiJ0ZXN0LXVzZXIiLCJzdWIiOiJ0ZXN0LXVzZXIiLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6OTk5OTk5OTk5OX0.invalid-signature';
-            await expect(apiDriver.listGroups(wrongProjectToken)).rejects.toThrow(/401|unauthorized|invalid|audience/i);
+            await expect(apiDriver.listGroups(undefined, wrongProjectToken)).rejects.toThrow(/401|unauthorized|invalid|audience/i);
         });
     });
 
@@ -84,7 +84,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
             const privateGroup = await apiDriver.createGroupWithMembers(`Private Group ${uuidv4()}`, [users[0]], users[0].token);
 
             // User 1 should not be able to access (returns 404 for security)
-            await expect(apiDriver.getGroupFullDetails(privateGroup.id, users[1].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
+            await expect(apiDriver.getGroupFullDetails(privateGroup.id, undefined, users[1].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
 
             await expect(apiDriver.getGroupBalances(privateGroup.id, users[1].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
 
@@ -186,7 +186,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
                 adminUser.token,
             );
 
-            const { group: updatedGroup } = await apiDriver.getGroupFullDetails(roleTestGroup.id, adminUser.token);
+            const { group: updatedGroup } = await apiDriver.getGroupFullDetails(roleTestGroup.id, undefined, adminUser.token);
             expect(updatedGroup.name).toBe('Updated by Admin');
 
             // Member cannot update group settings (depends on group permissions)
@@ -209,8 +209,8 @@ describe('Security and Permissions - Consolidated Tests', () => {
 
             // Test multiple endpoints require authentication
             const endpoints = [
-                () => apiDriver.listGroups(''),
-                () => apiDriver.getGroupFullDetails(testGroup.id, ''),
+                () => apiDriver.listGroups(undefined, ''),
+                () => apiDriver.getGroupFullDetails(testGroup.id, undefined, ''),
                 () => apiDriver.getGroupBalances(testGroup.id, ''),
                 () => apiDriver.getGroupExpenses(testGroup.id, ''),
                 () =>
@@ -233,10 +233,10 @@ describe('Security and Permissions - Consolidated Tests', () => {
 
             // Concurrent access attempts by different users
             const concurrentRequests = [
-                apiDriver.getGroupFullDetails(testGroup.id, users[0].token), // Should succeed
-                apiDriver.getGroupFullDetails(testGroup.id, users[1].token), // Should succeed
-                apiDriver.getGroupFullDetails(testGroup.id, users[2].token).catch(() => 'FAILED'), // Should fail
-                apiDriver.getGroupFullDetails(testGroup.id, users[3].token).catch(() => 'FAILED'), // Should fail
+                apiDriver.getGroupFullDetails(testGroup.id, undefined, users[0].token), // Should succeed
+                apiDriver.getGroupFullDetails(testGroup.id, undefined, users[1].token), // Should succeed
+                apiDriver.getGroupFullDetails(testGroup.id, undefined, users[2].token).catch(() => 'FAILED'), // Should fail
+                apiDriver.getGroupFullDetails(testGroup.id, undefined, users[3].token).catch(() => 'FAILED'), // Should fail
             ];
 
             const results = await Promise.all(concurrentRequests);

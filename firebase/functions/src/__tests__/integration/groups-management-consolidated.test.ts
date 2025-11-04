@@ -70,7 +70,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
 
             // Verify final state - both users should be members
-            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, users[0].token);
             expect(members.members.length).toBe(3);
             expect(members.members.find((m) => m.uid === users[1].uid)).toBeDefined();
             expect(members.members.find((m) => m.uid === users[2].uid)).toBeDefined();
@@ -132,7 +132,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
 
             // Verify final state integrity - at least one update should have applied
-            const { group: finalGroup } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            const { group: finalGroup } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, users[0].token);
             expect(finalGroup.name === 'First Update' || finalGroup.name === 'Second Update' || finalGroup.description === 'Updated description').toBeTruthy();
         });
 
@@ -340,7 +340,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
 
             // Verify final state
-            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, users[0].token);
             const expenses = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
 
             expect(members.members.find((m) => m.uid === users[1].uid)).toBeDefined();
@@ -364,7 +364,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             await apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token);
 
             // Verify 2 members before deletion
-            const { members } = await apiDriver.getGroupFullDetails(group.id, users[0].token);
+            const { members } = await apiDriver.getGroupFullDetails(group.id, undefined, users[0].token);
             expect(members.members.length).toBe(2);
 
             // Delete the group
@@ -375,10 +375,10 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is deleted from the backend
-            await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(group.id, undefined, users[0].token)).rejects.toThrow(/404|not found/i);
 
             // Verify second user also cannot access deleted group
-            await expect(apiDriver.getGroupFullDetails(group.id, users[1].token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(group.id, undefined, users[1].token)).rejects.toThrow(/404|not found/i);
         });
     });
 
@@ -428,10 +428,10 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is actually deleted
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, user1.token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, user1.token)).rejects.toThrow(/404|not found/i);
 
             // Also verify that user2 can't access it
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, user2.token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, user2.token)).rejects.toThrow(/404|not found/i);
         });
 
         test('should soft delete group with multiple soft-deleted expenses', async () => {
@@ -483,7 +483,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Verify the group is deleted for all users
             for (const user of groupUsers) {
-                await expect(apiDriver.getGroupFullDetails(testGroup.id, user.token)).rejects.toThrow(/404|not found/i);
+                await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, user.token)).rejects.toThrow(/404|not found/i);
             }
         });
 
@@ -506,7 +506,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             }
 
             // Verify all members are in the group
-            const { members: groupMembers } = await apiDriver.getGroupFullDetails(testGroup.id, owner.token);
+            const { members: groupMembers } = await apiDriver.getGroupFullDetails(testGroup.id, undefined, owner.token);
             expect(groupMembers.members).toHaveLength(4); // owner + 3 members
 
             // Delete the group
@@ -520,11 +520,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is completely gone
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, owner.token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, owner.token)).rejects.toThrow(/404|not found/i);
 
             // Verify members can't access it either (confirms proper cleanup)
             for (const member of members) {
-                await expect(apiDriver.getGroupFullDetails(testGroup.id, member.token)).rejects.toThrow(/404|not found/i);
+                await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, member.token)).rejects.toThrow(/404|not found/i);
             }
         });
 
@@ -567,10 +567,10 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             expect(deletedGroup?.deletedAt).not.toBeNull();
 
             // Verify the group is completely deleted
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, user1.token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, user1.token)).rejects.toThrow(/404|not found/i);
 
             // Verify user2 also can't access it
-            await expect(apiDriver.getGroupFullDetails(testGroup.id, user2.token)).rejects.toThrow(/404|not found/i);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, undefined, user2.token)).rejects.toThrow(/404|not found/i);
 
             // Verify the expense is also inaccessible via API after soft delete
             await expect(apiDriver.getExpense(createdExpense.id, user1.token)).rejects.toThrow(/404|not found/i);
@@ -671,7 +671,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // 10. API calls should return 404 for all users
             for (const user of groupUsers) {
-                await expect(apiDriver.getGroupFullDetails(groupId, user.token)).rejects.toThrow(/404|not found/i);
+                await expect(apiDriver.getGroupFullDetails(groupId, undefined, user.token)).rejects.toThrow(/404|not found/i);
             }
 
             // 11. Individual expenses should return 404

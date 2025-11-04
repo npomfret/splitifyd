@@ -1,4 +1,4 @@
-import type { Email, GroupName, VersionHash } from '@splitifyd/shared';
+import type {Email, GroupName, UserId, VersionHash} from '@splitifyd/shared';
 import {
     type ActivityFeedResponse,
     ApiSerializer,
@@ -253,7 +253,7 @@ export class ApiDriver {
         // Step 2: If there are other members, generate a share link and have them join
         const otherMembers = members.filter((m) => m.token !== creatorToken);
         await this.addMembersViaShareLink(group.id, otherMembers, creatorToken);
-        const { group: updatedGroup } = await this.getGroupFullDetails(group.id, creatorToken);
+        const { group: updatedGroup } = await this.getGroupFullDetails(group.id, undefined, creatorToken);
         return updatedGroup;
     }
 
@@ -273,14 +273,14 @@ export class ApiDriver {
     }
 
     async getGroup(groupId: GroupId | string, token: string): Promise<GroupDTO> {
-        const res = await this.getGroupFullDetails(groupId, token);
+        const res = await this.getGroupFullDetails(groupId, undefined, token);
         return res.group;
     }
 
     async getGroupFullDetails(
         groupId: GroupId | string,
+        options: GetGroupFullDetailsOptions | undefined = undefined,
         token: string,
-        options?: GetGroupFullDetailsOptions,
     ): Promise<GroupFullDetailsDTO> {
         let url = `/groups/${groupId}/full-details`;
         const queryParams: string[] = [];
@@ -321,7 +321,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/security/permissions`, 'PATCH', permissions, token);
     }
 
-    async updateMemberRole(groupId: GroupId | string, memberId: string, role: MemberRole, token: string): Promise<MessageResponse> {
+    async updateMemberRole(groupId: GroupId | string, memberId: UserId | string, role: MemberRole, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/role`, 'PATCH', { role }, token);
     }
 
@@ -329,11 +329,11 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/members/display-name`, 'PUT', { displayName }, token);
     }
 
-    async approveMember(groupId: GroupId | string, memberId: string, token: string): Promise<MessageResponse> {
+    async approveMember(groupId: GroupId | string, memberId: UserId | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/approve`, 'POST', {}, token);
     }
 
-    async rejectMember(groupId: GroupId | string, memberId: string, token: string): Promise<MessageResponse> {
+    async rejectMember(groupId: GroupId | string, memberId: UserId | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/reject`, 'POST', {}, token);
     }
 
@@ -342,10 +342,7 @@ export class ApiDriver {
         return Array.isArray(response?.members) ? (response.members as GroupMembershipDTO[]) : [];
     }
 
-    async listGroups(
-        token: string,
-        params?: ListGroupsOptions,
-    ): Promise<ListGroupsResponse> {
+    async listGroups(params: ListGroupsOptions | undefined = undefined, token: string): Promise<ListGroupsResponse> {
         const queryParams = new URLSearchParams();
         if (params?.limit) queryParams.append('limit', params.limit.toString());
         if (params?.cursor) queryParams.append('cursor', params.cursor);
@@ -396,7 +393,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/unarchive`, 'POST', null, token);
     }
 
-    async removeGroupMember(groupId: GroupId | string, memberId: string, token: string): Promise<MessageResponse> {
+    async removeGroupMember(groupId: GroupId | string, memberId: UserId | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
@@ -445,7 +442,7 @@ export class ApiDriver {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
-    async listGroupComments(groupId: GroupId | string, token: string, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
+    async listGroupComments(groupId: GroupId | string, options: ListCommentsOptions | undefined = undefined, token: string): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
         if (options?.cursor) params.append('cursor', options.cursor);
         if (options?.limit) params.append('limit', options.limit.toString());
@@ -454,7 +451,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/comments${query}`, 'GET', null, token);
     }
 
-    async listExpenseComments(expenseId: ExpenseId | string, token: string, options?: ListCommentsOptions): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId | string, options: ListCommentsOptions | undefined = undefined, token: string): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
         if (options?.cursor) params.append('cursor', options.cursor);
         if (options?.limit) params.append('limit', options.limit.toString());
@@ -511,12 +508,12 @@ export class ApiDriver {
     }
 
     async getGroupBalances(groupId: GroupId | string, token: string) {
-        const res = await this.getGroupFullDetails(groupId, token);
+        const res = await this.getGroupFullDetails(groupId, undefined, token);
         return res.balances;
     }
 
     async getGroupExpenses(groupId: GroupId | string, token: string) {
-        const res = await this.getGroupFullDetails(groupId, token);
+        const res = await this.getGroupFullDetails(groupId, undefined, token);
         return res.expenses;
     }
 
@@ -524,7 +521,7 @@ export class ApiDriver {
         let res;
 
         try {
-            res = await this.getGroupFullDetails(groupId, token);
+            res = await this.getGroupFullDetails(groupId, undefined, token);
         } catch (error: any) {
             // If getGroupFullDetails fails, it means the user can't access the group
             // This should be treated as NOT_GROUP_MEMBER regardless of the specific error code
