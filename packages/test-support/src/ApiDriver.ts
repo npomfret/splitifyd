@@ -414,6 +414,10 @@ export class ApiDriver {
         return await this.apiRequest('/user/change-email', 'POST', changeEmailRequest, token);
     }
 
+    async getUserProfile(token: string): Promise<UserProfileResponse> {
+        return await this.apiRequest('/user/profile', 'GET', null, token);
+    }
+
     // Comment API methods
     async createGroupComment(groupId: GroupId | string, text: CommentText | string, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);

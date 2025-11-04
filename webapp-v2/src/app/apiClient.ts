@@ -48,6 +48,7 @@ import type {
     UpdateUserProfileRequest,
     UserPolicyStatusResponse,
     UserProfileResponse,
+    UserRegistration,
 } from '@splitifyd/shared';
 import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
@@ -950,11 +951,11 @@ class ApiClient {
         });
     }
 
-    async register(email: Email, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean, privacyPolicyAccepted: boolean): Promise<RegisterResponse> {
+    async register(userData: UserRegistration): Promise<RegisterResponse> {
         return this.request({
             endpoint: '/register',
             method: 'POST',
-            body: { email, password, displayName, termsAccepted, cookiePolicyAccepted, privacyPolicyAccepted },
+            body: userData,
         });
     }
 

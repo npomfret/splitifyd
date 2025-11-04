@@ -270,7 +270,14 @@ class AuthStoreImpl implements AuthStore {
 
         try {
             // Use server-side registration which creates both Firebase Auth user and Firestore document
-            const registrationResult = await apiClient.register(email, password, displayName, termsAccepted, cookiePolicyAccepted, privacyPolicyAccepted);
+            const registrationResult = await apiClient.register({
+                email,
+                password,
+                displayName,
+                termsAccepted,
+                cookiePolicyAccepted,
+                privacyPolicyAccepted,
+            });
 
             if (!registrationResult?.success) {
                 const message = registrationResult?.message ?? 'Registration failed. Please try again.';

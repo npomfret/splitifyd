@@ -520,11 +520,11 @@ async function createGroupWithInvite(name: string, createdBy: AuthenticatedFireb
     const group = await runQueued(() => driver.createGroupWithMembers(name, [createdBy], createdBy.token));
 
     // Generate shareable link
-    const shareLink = await runQueued(() => driver.generateShareableLink(group.id, createdBy.token));
+    const shareLink = await runQueued(() => driver.generateShareableLink(group.id, undefined, createdBy.token));
 
     return {
         ...group,
-        inviteLink: shareLink.linkId,
+        inviteLink: shareLink.shareToken,
         memberDetails: undefined,
     } as GroupWithInvite;
 }
@@ -669,7 +669,7 @@ async function ensureBillSplitterInAllGroups(
             await runQueued(() => driver.joinGroupByLink(group.inviteLink, billSplitterUser.token));
             console.log(`Ensured Bill Splitter is a member of group: ${group.name}`);
 
-            const refreshedDetails = await runQueued(() => driver.getGroupFullDetails(group.id, billSplitterUser.token));
+            const refreshedDetails = await runQueued(() => driver.getGroupFullDetails(group.id, undefined, billSplitterUser.token));
             group.memberDetails = refreshedDetails.members.members;
         }
 
@@ -801,7 +801,7 @@ async function configureLargeGroupAdvancedScenarios(
         }
     }
 
-    const { group: updatedGroup, members } = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, adminUser.token));
+    const { group: updatedGroup, members } = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, undefined, adminUser.token));
     largeGroup.description = updatedGroup.description;
     largeGroup.memberDetails = members.members;
 
@@ -1194,7 +1194,7 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
 
     console.log('Applying updates, deletions, and membership departures for "Large Group"...');
 
-    const fullDetails = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, adminUser.token));
+    const fullDetails = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, undefined, adminUser.token));
     largeGroup.memberDetails = fullDetails.members.members;
 
     const expensesList = fullDetails.expenses.expenses;
@@ -1292,7 +1292,7 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
         console.log('Skipped member removal action because no zero-balance member was eligible');
     }
 
-    const refreshedDetails = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, adminUser.token));
+    const refreshedDetails = await runQueued(() => driver.getGroupFullDetails(largeGroup.id, undefined, adminUser.token));
     largeGroup.memberDetails = refreshedDetails.members.members;
     const pendingMembers = await runQueued(() => driver.getPendingMembers(largeGroup.id, adminUser.token));
     console.log(`"Large Group" now has ${largeGroup.memberDetails.length} active members and ${pendingMembers.length} pending members after finalize step`);
@@ -1528,7 +1528,7 @@ async function createCommentsForGroups(groups: GroupWithInvite[], groupMembershi
         for (let i = 0; i < groupCommentsToCreate; i++) {
             const commenter = groupMembers[Math.floor(Math.random() * groupMembers.length)];
             const commentText = commentTemplates[Math.floor(Math.random() * commentTemplates.length)];
-            commentPromises.push(runQueued(() => driver.createComment(group.id, 'group', commentText, commenter.token)));
+            commentPromises.push(runQueued(() => driver.createGroupComment(group.id, commentText, commenter.token)));
 
             // Process in batches to avoid overwhelming the API
             if (commentPromises.length >= 5) {
@@ -1542,7 +1542,7 @@ async function createCommentsForGroups(groups: GroupWithInvite[], groupMembershi
             for (const expenseId of expenseCommentTargets) {
                 const commenter = groupMembers[Math.floor(Math.random() * groupMembers.length)];
                 const commentText = commentTemplates[Math.floor(Math.random() * commentTemplates.length)];
-                commentPromises.push(runQueued(() => driver.createComment(expenseId, 'expense', commentText, commenter.token)));
+                commentPromises.push(runQueued(() => driver.createExpenseComment(expenseId, commentText, commenter.token)));
 
                 // Process in batches to avoid overwhelming the API
                 if (commentPromises.length >= 5) {
@@ -1645,7 +1645,7 @@ export async function generateFullTestData(): Promise<void> {
             const membersForGroup = groupMemberships.get(group.id) ?? [];
             const accessibleUser = membersForGroup.find((member) => member.uid === test1User.uid) ?? membersForGroup[0] ?? test1User;
 
-            const { group: groupData, members } = await runQueued(() => driver.getGroupFullDetails(group.id, accessibleUser.token));
+            const { group: groupData, members } = await runQueued(() => driver.getGroupFullDetails(group.id, undefined, accessibleUser.token));
             return {
                 ...groupData,
                 inviteLink: group.inviteLink,
