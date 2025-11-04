@@ -52,7 +52,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                 users[0].token,
             );
 
-            const populatedBalances = await apiDriver.waitForBalanceUpdate(testGroup.id, users[0].token, 2000);
+            const populatedBalances = await apiDriver.waitForBalanceUpdate(testGroup.id, users[0].token);
             expect(populatedBalances.groupId).toBe(testGroup.id);
             expect(Object.keys(populatedBalances.balancesByCurrency.USD)).toContain(users[0].uid);
             expect(populatedBalances.balancesByCurrency.USD[users[0].uid]).toHaveProperty('netBalance');

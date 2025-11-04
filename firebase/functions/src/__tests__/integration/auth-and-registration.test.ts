@@ -29,7 +29,12 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
         test('should be able to register a new user in the emulator', async () => {
             const userData = new TestUserBuilder()
                 .build();
-            const registeredUser = await apiDriver.register(userData);
+            const registeredUser = await apiDriver.register({
+                ...userData,
+                termsAccepted: true,
+                cookiePolicyAccepted: true,
+                privacyPolicyAccepted: true,
+            });
 
             expect(registeredUser).toHaveProperty('user');
             expect(registeredUser.user).toHaveProperty('uid');

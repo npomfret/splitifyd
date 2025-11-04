@@ -43,6 +43,7 @@ import type {
     SettlementWithMembers,
     ShareLinkResponse,
     UpdateDisplayNameRequest,
+    UpdateExpenseRequest,
     UpdateGroupRequest,
     UpdateUserProfileRequest,
     UserPolicyStatusResponse,
@@ -832,7 +833,7 @@ class ApiClient {
         });
     }
 
-    async updateExpense(expenseId: ExpenseId, data: CreateExpenseRequest): Promise<ExpenseDTO> {
+    async updateExpense(expenseId: ExpenseId, data: UpdateExpenseRequest): Promise<ExpenseDTO> {
         return this.request({
             endpoint: '/expenses',
             method: 'PUT',

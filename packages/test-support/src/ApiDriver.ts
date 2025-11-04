@@ -1,6 +1,7 @@
-import type {CommentText, Email, GroupName, UserId, VersionHash} from '@splitifyd/shared';
+import type {CommentText, Email, GroupName, UserId} from '@splitifyd/shared';
 import {
     AcceptMultiplePoliciesResponse,
+    AcceptPolicyRequest,
     type ActivityFeedResponse,
     ApiSerializer,
     AuthenticatedFirebaseUser,
@@ -39,6 +40,7 @@ import {
     SettlementWithMembers,
     ShareLinkResponse,
     toGroupName,
+    type UpdateExpenseRequest,
     type UpdateGroupRequest,
     type UpdateSettlementRequest,
     UpdateUserProfileRequest,
@@ -184,12 +186,12 @@ export class ApiDriver {
         await this.apiRequest('/test-pool/return', 'POST', { email });
     }
 
-    async createExpense(expenseData: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseDTO> {
+    async createExpense(expenseData: CreateExpenseRequest, token: string): Promise<ExpenseDTO> {
         const response = await this.apiRequest('/expenses', 'POST', expenseData, token);
         return response as ExpenseDTO;
     }
 
-    async updateExpense(expenseId: ExpenseId | string, data: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseDTO> {
+    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, token: string): Promise<ExpenseDTO> {
         return await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', data, token);
     }
 
@@ -220,8 +222,8 @@ export class ApiDriver {
         return pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
     }
 
-    async waitForBalanceUpdate(groupId: GroupId | string, token: string, timeoutMs: number = 1000): Promise<GroupBalances> {
-        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
+    async waitForBalanceUpdate(groupId: GroupId | string, token: string): Promise<GroupBalances> {
+        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: 2000 });
     }
 
     async generateShareableLink(groupId: GroupId | string, expiresAt: string | undefined = undefined, token: string): Promise<ShareLinkResponse> {
@@ -233,8 +235,8 @@ export class ApiDriver {
         return await this.apiRequest('/groups/share', 'POST', body, token);
     }
 
-    async joinGroupByLink(shareToken: string, token: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
-        const displayName = groupDisplayName || `Test User ${Date.now()}`;
+    async joinGroupByLink(shareToken: string, token: string): Promise<JoinGroupResponse> {
+        const displayName = `Test User ${Date.now()}`;
         return await this.apiRequest('/groups/join', 'POST', { shareToken, groupDisplayName: displayName }, token);
     }
 
@@ -246,7 +248,7 @@ export class ApiDriver {
         // Step 1: Create group with just the creator
         const creatorDisplayName = `Owner ${Math.random().toString(36).slice(2, 8)}`;
 
-        const groupData = {
+        const groupData: CreateGroupRequest = {
             name: typeof name === 'string' ? toGroupName(name) : name,
             groupDisplayName: creatorDisplayName,
             description: `Test group created at ${new Date().toISOString()}`,
@@ -364,19 +366,8 @@ export class ApiDriver {
         return await this.apiRequest(`/activity-feed${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async register(userData: { email: Email; password: string; displayName: DisplayName; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; privacyPolicyAccepted?: boolean; },): Promise<RegisterResponse> {
-        // Ensure required policy acceptance fields are provided with defaults
-        const registrationData = {
-            ...userData,
-            termsAccepted: userData.termsAccepted ?? true,
-            cookiePolicyAccepted: userData.cookiePolicyAccepted ?? true,
-            privacyPolicyAccepted: userData.privacyPolicyAccepted ?? true,
-        };
-        return await this.apiRequest('/register', 'POST', registrationData);
-    }
-
-    async makeInvalidApiCall(endpoint: string, method: string = 'GET', body: unknown = null, token: string | null = null): Promise<any> {
-        return await this.apiRequest(endpoint, method, body, token);
+    async register(userData: UserRegistration): Promise<RegisterResponse> {
+        return await this.apiRequest('/register', 'POST', userData);
     }
 
     async leaveGroup(groupId: GroupId | string, token: string): Promise<MessageResponse> {
@@ -403,7 +394,7 @@ export class ApiDriver {
         return this.getPolicy(policyId);
     }
 
-    async acceptMultiplePolicies(acceptances: Array<{ policyId: PolicyId; versionHash: VersionHash; }>, token: string): Promise<AcceptMultiplePoliciesResponse> {
+    async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], token: string): Promise<AcceptMultiplePoliciesResponse> {
         return await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
     }
 
@@ -428,7 +419,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
     }
 
-    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText, token: string): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
@@ -565,56 +556,6 @@ export class ApiDriver {
         await this.apiRequest('/user/clear-policy-acceptances', 'POST', {}, token);
     }
 
-    async resetPoliciesToBaseState(adminToken?: string): Promise<void> {
-        // Reset all policies to fresh base content with timestamp to avoid duplicates
-        const standardPolicies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
-        const timestamp = Date.now();
-
-        for (const policyId of standardPolicies) {
-            const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-            const baseContent = `${policyName} base version reset at ${timestamp}.`;
-
-            try {
-                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text: baseContent, publish: true }, adminToken);
-                console.log(`✓ Reset policy ${policyId} to base content`);
-            } catch (error) {
-                console.warn(`Failed to reset policy ${policyId}:`, error);
-            }
-        }
-    }
-
-    async cleanupTestEnvironment(adminToken?: string): Promise<void> {
-        // First, reset standard policies
-        await this.resetPoliciesToBaseState(adminToken);
-
-        // Then handle any non-standard policies by accepting them for test users
-        // This prevents non-standard policies from interfering with tests
-        try {
-            // Get a test user to check what policies exist
-            const testUser = await this.borrowTestUser();
-            const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, testUser.token);
-
-            // Check for and warn about non-standard policies
-            if (policyStatus.policies && Array.isArray(policyStatus.policies)) {
-                for (const policy of policyStatus.policies) {
-                    if (!['terms-of-service', 'privacy-policy', 'cookie-policy'].includes(policy.policyId)) {
-                        console.warn(`Found non-standard policy: ${policy.policyId} - accepting it to prevent test interference`);
-                    }
-                }
-
-                // Accept all policies (including non-standard ones) to ensure clean state
-                // This way non-standard policies won't appear in the acceptance modal during tests
-                await this.acceptCurrentPublishedPolicies(testUser.token);
-            }
-
-            // Return the test user
-            await this.returnTestUser(testUser.email);
-            console.log('✓ Test environment cleanup completed');
-        } catch (error) {
-            console.warn('Failed to complete full environment cleanup:', error);
-        }
-    }
-
     // Policy administration methods for testing
     async updatePolicy(policyId: PolicyId, text: string, publish: boolean = true, adminToken?: string): Promise<any> {
         // Try with the adminToken first, then fall back to regular token
@@ -632,43 +573,6 @@ export class ApiDriver {
             policyName,
             text,
         }, token);
-    }
-
-    // Internal policy methods that bypass HTTP validation (for testing)
-    async ensurePoliciesExist(): Promise<void> {
-        const standardPolicies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
-
-        for (const policyId of standardPolicies) {
-            const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-            const baseContent = `${policyName} base version.`;
-
-            try {
-                await this.apiRequest(`/policies/${policyId}/current`, 'GET');
-            } catch (error) {
-                await this.createPolicy(policyName, baseContent);
-            }
-        }
-    }
-
-    async updateSpecificPolicy(policyId: PolicyId, userToken?: string): Promise<void> {
-        const timestamp = Date.now();
-        const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-        const safeContent = `${policyName} version ${timestamp}. Updated policy content for testing.`;
-
-        try {
-            // Use the admin API for policy updates
-            await this.updatePolicy(policyId, safeContent, true, userToken);
-            console.log(`✓ Successfully updated policy ${policyId} via admin API`);
-        } catch (apiError) {
-            // If policy doesn't exist, create it
-            try {
-                await this.createPolicy(policyName, safeContent, userToken);
-                console.log(`✓ Created new policy ${policyId} via admin API`);
-            } catch (createError) {
-                console.warn(`Failed to update or create policy ${policyId}:`, createError);
-                throw createError;
-            }
-        }
     }
 
     private isRegistrationRecoverable(error: unknown): boolean {
