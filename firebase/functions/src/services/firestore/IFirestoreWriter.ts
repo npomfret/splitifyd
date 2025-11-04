@@ -70,6 +70,13 @@ export interface IFirestoreWriter {
      */
     updateUser(userId: UserId, updates: FirestoreUserUpdateData): Promise<WriteResult>;
 
+    /**
+     * Promote a user to system admin role
+     * @param userId - The user ID
+     * @returns Promise that resolves when promotion is complete
+     */
+    promoteUserToAdmin(userId: UserId): Promise<void>;
+
     // ========================================================================
     // Group Write Operations
     // ========================================================================
