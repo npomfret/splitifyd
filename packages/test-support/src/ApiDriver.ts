@@ -47,6 +47,7 @@ import {
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
+import {Password} from "@splitifyd/shared";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -221,7 +222,7 @@ export class ApiDriver {
         return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
     }
 
-    async generateShareableLink(groupId: GroupId | string, token: string, expiresAt?: string): Promise<ShareLinkResponse> {
+    async generateShareableLink(groupId: GroupId | string, token: string, expiresAt: string | undefined = undefined): Promise<ShareLinkResponse> {
         const body: Record<string, unknown> = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;
@@ -278,11 +279,7 @@ export class ApiDriver {
         return res.group;
     }
 
-    async getGroupFullDetails(
-        groupId: GroupId | string,
-        options: GetGroupFullDetailsOptions | undefined = undefined,
-        token: string,
-    ): Promise<GroupFullDetailsDTO> {
+    async getGroupFullDetails(groupId: GroupId | string, options: GetGroupFullDetailsOptions | undefined = undefined, token: string,): Promise<GroupFullDetailsDTO> {
         let url = `/groups/${groupId}/full-details`;
         const queryParams: string[] = [];
 
@@ -326,7 +323,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/role`, 'PATCH', { role }, token);
     }
 
-    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName, token: string): Promise<MessageResponse> {
+    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/display-name`, 'PUT', { displayName }, token);
     }
 
@@ -365,9 +362,7 @@ export class ApiDriver {
         return await this.apiRequest(`/activity-feed${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async register(
-        userData: { email: Email; password: string; displayName: DisplayName; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; privacyPolicyAccepted?: boolean; },
-    ): Promise<RegisterResponse> {
+    async register(userData: { email: Email; password: string; displayName: DisplayName; termsAccepted?: boolean; cookiePolicyAccepted?: boolean; privacyPolicyAccepted?: boolean; },): Promise<RegisterResponse> {
         // Ensure required policy acceptance fields are provided with defaults
         const registrationData = {
             ...userData,
@@ -414,7 +409,7 @@ export class ApiDriver {
         return await this.apiRequest('/user/policies/status', 'GET', null, token);
     }
 
-    async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
+    async changePassword(currentPassword: Password | string, newPassword: Password | string, token: string): Promise<MessageResponse> {
         return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
     }
 
@@ -422,12 +417,12 @@ export class ApiDriver {
         return await this.apiRequest('/user/profile', 'PUT', profileData, token);
     }
 
-    async changeEmail(token: string, currentPassword: string, newEmail: string): Promise<UserProfileResponse> {
+    async changeEmail(currentPassword: Password | string, newEmail: Email | string, token: string): Promise<UserProfileResponse> {
         return await this.apiRequest('/user/change-email', 'POST', { currentPassword, newEmail }, token);
     }
 
     // Comment API methods
-    async createGroupComment(groupId: GroupId | string, text: CommentText, token: string): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId | string, text: CommentText | string, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
     }
 

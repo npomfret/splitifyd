@@ -72,6 +72,7 @@ export type CommentText = string;
 export type UserId = string;
 export type DisplayName = string;
 export type Email = string;
+export type Password = string;
 export type CurrencyISOCode = string;
 export type PolicyId = string;
 export type VersionHash = string;
@@ -1112,9 +1113,9 @@ export interface ExpenseFormData {
     description: string;
     amount: Amount;
     currency: CurrencyISOCode;
-    paidByDisplayName: string; // Display name (not the uid)
+    paidByDisplayName: DisplayName; // Display name (not the uid)
     splitType: 'equal' | 'exact' | 'percentage';
-    participants: string[]; // Participant names (not the uids)
+    participants: DisplayName[]; // Participant names (not the uids)
 }
 
 /**
@@ -1122,8 +1123,8 @@ export interface ExpenseFormData {
  * Used in E2E tests for settlement form submission payloads
  */
 export interface SettlementFormData {
-    payerName: string; // Display name of who paid
-    payeeName: string; // Display name of who received payment
+    payerName: DisplayName; // Display name of who paid
+    payeeName: DisplayName; // Display name of who received payment
     amount: string;
     currency: CurrencyISOCode;
     note: string;
@@ -1208,9 +1209,9 @@ export interface GetActivityFeedOptions {
 export interface ListFirestoreUsersOptions {
     limit?: number;
     cursor?: string;
-    email?: string;
-    uid?: string;
-    displayName?: string;
+    email?: Email;
+    uid?: UserId;
+    displayName?: DisplayName;
 }
 
 /**
@@ -1220,8 +1221,8 @@ export interface ListFirestoreUsersOptions {
 export interface ListAuthUsersOptions {
     limit?: number;
     pageToken?: string;
-    email?: string;
-    uid?: string;
+    email?: Email;
+    uid?: UserId;
 }
 
 /**
@@ -1229,11 +1230,11 @@ export interface ListAuthUsersOptions {
  * Used for updating user profile information
  */
 export interface UpdateUserRequest {
-    displayName?: string;
-    email?: string;
+    displayName?: DisplayName;
+    email?: Email;
     phoneNumber?: string | null;
     photoURL?: string | null;
-    password?: string;
+    password?: Password;
     emailVerified?: boolean;
     disabled?: boolean;
     preferredLanguage?: string;
@@ -1244,6 +1245,23 @@ export interface UpdateUserRequest {
  * Used for changing user passwords
  */
 export interface PasswordChangeRequest {
-    currentPassword?: string;
-    newPassword?: string;
+    currentPassword: Password;
+    newPassword: Password;
+}
+
+/**
+ * Email change request
+ * Used for changing user email addresses
+ */
+export interface ChangeEmailRequest {
+    currentPassword: Password;
+    newEmail: Email;
+}
+
+/**
+ * User profile update request
+ * Used for updating user profile information (display name, etc.)
+ */
+export interface UpdateUserProfileRequest {
+    displayName?: string;
 }

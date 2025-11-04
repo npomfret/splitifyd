@@ -11,6 +11,7 @@ import type {
     AcceptPolicyRequest,
     ActivityFeedResponse,
     AppConfiguration,
+    ChangeEmailRequest,
     CommentDTO,
     CreateExpenseRequest,
     CreateGroupRequest,
@@ -33,8 +34,8 @@ import type {
     ListGroupsOptions,
     ListGroupsResponse,
     MemberRole,
-    MemberStatus,
     MessageResponse,
+    PasswordChangeRequest,
     PolicyAcceptanceStatusDTO,
     PreviewGroupResponse,
     RegisterResponse,
@@ -43,6 +44,7 @@ import type {
     ShareLinkResponse,
     UpdateDisplayNameRequest,
     UpdateGroupRequest,
+    UpdateUserProfileRequest,
     UserPolicyStatusResponse,
     UserProfileResponse,
 } from '@splitifyd/shared';
@@ -1058,7 +1060,7 @@ class ApiClient {
         });
     }
 
-    async updateUserProfile(data: { displayName?: string; }): Promise<UserProfileResponse> {
+    async updateUserProfile(data: UpdateUserProfileRequest): Promise<UserProfileResponse> {
         return this.request({
             endpoint: '/user/profile',
             method: 'PUT',
@@ -1066,7 +1068,7 @@ class ApiClient {
         });
     }
 
-    async changePassword(data: { currentPassword: string; newPassword: string; }): Promise<MessageResponse> {
+    async changePassword(data: PasswordChangeRequest): Promise<MessageResponse> {
         return this.request({
             endpoint: '/user/change-password',
             method: 'POST',
@@ -1074,7 +1076,7 @@ class ApiClient {
         });
     }
 
-    async changeEmail(data: { currentPassword: string; newEmail: string; }): Promise<UserProfileResponse> {
+    async changeEmail(data: ChangeEmailRequest): Promise<UserProfileResponse> {
         return this.request({
             endpoint: '/user/change-email',
             method: 'POST',

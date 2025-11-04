@@ -17,7 +17,7 @@ export class PasswordChangeRequestBuilder {
         return this;
     }
 
-    build(): Partial<PasswordChangeRequest> {
-        return { ...this.changeData };
+    build(): PasswordChangeRequest {
+        return { ...this.changeData } as PasswordChangeRequest;
     }
 }

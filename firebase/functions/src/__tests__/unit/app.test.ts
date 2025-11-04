@@ -2689,10 +2689,10 @@ describe('app tests', () => {
         });
         describe('acceptMultiplePolicies - happy path', () => {
             it('should accept a single policy', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
                 const result = await appDriver.acceptMultiplePolicies(user1, [
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2706,20 +2706,20 @@ describe('app tests', () => {
             });
 
             it('should accept multiple policies at once', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const policy2 = await appDriver.createPolicy(user1, {
+                const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
-                });
+                }, user1);
 
-                const policy3 = await appDriver.createPolicy(user1, {
+                const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
                     text: 'Cookie Policy v1',
-                });
+                }, user1);
 
                 const result = await appDriver.acceptMultiplePolicies(user1, [
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2735,10 +2735,10 @@ describe('app tests', () => {
             });
 
             it('should persist policy acceptance in user document', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies(user2, [
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2790,10 +2790,10 @@ describe('app tests', () => {
             });
 
             it('should reject when version hash is invalid for existing policy', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
                 await expect(
                     appDriver.acceptMultiplePolicies(user1, [
@@ -2805,10 +2805,10 @@ describe('app tests', () => {
             });
 
             it('should reject entire batch if any policy is invalid', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
                 await expect(
                     appDriver.acceptMultiplePolicies(user1, [
@@ -2826,15 +2826,15 @@ describe('app tests', () => {
 
         describe('getUserPolicyStatus - happy path', () => {
             it('should show all policies as pending when user has not accepted any', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const policy2 = await appDriver.createPolicy(user1, {
+                const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
-                });
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2854,15 +2854,15 @@ describe('app tests', () => {
             });
 
             it('should show no pending policies when user has accepted current versions', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const policy2 = await appDriver.createPolicy(user1, {
+                const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
-                });
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies(user2, [
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2882,10 +2882,10 @@ describe('app tests', () => {
             });
 
             it('should show pending when user has accepted old versions', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies(user2, [
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2913,20 +2913,20 @@ describe('app tests', () => {
             });
 
             it('should show mixed acceptance state across multiple policies', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const policy2 = await appDriver.createPolicy(user1, {
+                const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
-                });
+                }, user1);
 
-                const policy3 = await appDriver.createPolicy(user1, {
+                const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
                     text: 'Cookie Policy v1',
-                });
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies(user2, [
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -2956,10 +2956,10 @@ describe('app tests', () => {
 
         describe('getUserPolicyStatus - data integrity', () => {
             it('should return correct response structure', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2973,10 +2973,10 @@ describe('app tests', () => {
             });
 
             it('should include all required fields in each policy', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies(user2, [
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -3001,20 +3001,20 @@ describe('app tests', () => {
             });
 
             it('should correctly count totalPending', async () => {
-                const policy1 = await appDriver.createPolicy(user1, {
+                const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
                     text: 'Terms of Service v1',
-                });
+                }, user1);
 
-                const policy2 = await appDriver.createPolicy(user1, {
+                const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
                     text: 'Privacy Policy v1',
-                });
+                }, user1);
 
-                const policy3 = await appDriver.createPolicy(user1, {
+                const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
                     text: 'Cookie Policy v1',
-                });
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies(user2, [
                     { policyId: policy1.id, versionHash: policy1.versionHash },
@@ -3396,9 +3396,9 @@ describe('app tests', () => {
 
         describe('updateUserProfile', () => {
             it('should update display name successfully', async () => {
-                const updatedProfile = await appDriver.updateUserProfile(user1, {
+                const updatedProfile = await appDriver.updateUserProfile({
                     displayName: 'Updated Name',
-                });
+                }, user1);
 
                 expect(updatedProfile.displayName).toBe('Updated Name');
 
@@ -3407,9 +3407,9 @@ describe('app tests', () => {
             });
 
             it('should sanitize display name input', async () => {
-                const updatedProfile = await appDriver.updateUserProfile(user1, {
+                const updatedProfile = await appDriver.updateUserProfile({
                     displayName: '<script>alert("xss")</script>Clean Name',
-                });
+                }, user1);
 
                 expect(updatedProfile.displayName).not.toContain('<script>');
                 expect(updatedProfile.displayName).toContain('Clean Name');
@@ -3417,7 +3417,7 @@ describe('app tests', () => {
 
             it('should reject empty display name', async () => {
                 await expect(
-                    appDriver.updateUserProfile(user1, { displayName: '' }),
+                    appDriver.updateUserProfile({displayName: ''}, user1),
                 )
                     .rejects
                     .toThrow();
@@ -3426,7 +3426,7 @@ describe('app tests', () => {
             it('should reject display name that is too long', async () => {
                 const tooLongName = 'a'.repeat(256);
                 await expect(
-                    appDriver.updateUserProfile(user1, { displayName: tooLongName }),
+                    appDriver.updateUserProfile({displayName: tooLongName}, user1),
                 )
                     .rejects
                     .toThrow();
@@ -3438,20 +3438,20 @@ describe('app tests', () => {
             const VALID_NEW_PASSWORD = 'NewSecurePass123!';
 
             it('should successfully change password with valid credentials', async () => {
-                const result = await appDriver.changePassword(user1, {
+                const result = await appDriver.changePassword({
                     currentPassword: VALID_CURRENT_PASSWORD,
                     newPassword: VALID_NEW_PASSWORD,
-                });
+                }, user1);
 
                 expect(result.message).toBe('Password changed successfully');
             });
 
             it('should reject when current password is incorrect', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: 'WrongPassword123!',
                         newPassword: VALID_NEW_PASSWORD,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/password is incorrect/i);
@@ -3459,10 +3459,10 @@ describe('app tests', () => {
 
             it('should reject when new password is same as current', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
                         newPassword: VALID_CURRENT_PASSWORD,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3470,10 +3470,10 @@ describe('app tests', () => {
 
             it('should reject when new password is too short', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
                         newPassword: 'Short1!',
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3481,9 +3481,9 @@ describe('app tests', () => {
 
             it('should reject when currentPassword field is missing', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         newPassword: VALID_NEW_PASSWORD,
-                    }),
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3491,9 +3491,9 @@ describe('app tests', () => {
 
             it('should reject when newPassword field is missing', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
-                    }),
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3501,10 +3501,10 @@ describe('app tests', () => {
 
             it('should reject when currentPassword is empty string', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: '',
                         newPassword: VALID_NEW_PASSWORD,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3512,10 +3512,10 @@ describe('app tests', () => {
 
             it('should reject when newPassword is empty string', async () => {
                 await expect(
-                    appDriver.changePassword(user1, {
+                    appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
                         newPassword: '',
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3527,10 +3527,10 @@ describe('app tests', () => {
             const NEW_EMAIL = 'newemail@example.com';
 
             it('should successfully change email with valid credentials', async () => {
-                const profile = await appDriver.changeEmail(user1, {
+                const profile = await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
                     newEmail: NEW_EMAIL,
-                });
+                }, user1);
 
                 expect(profile.email).toBe(NEW_EMAIL);
                 expect(profile.emailVerified).toBe(false);
@@ -3538,10 +3538,10 @@ describe('app tests', () => {
 
             it('should reject when current password is incorrect', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: 'WrongPassword123!',
                         newEmail: NEW_EMAIL,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/password is incorrect/i);
@@ -3551,10 +3551,10 @@ describe('app tests', () => {
                 const currentProfile = await appDriver.getUserProfile(user1);
 
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: currentProfile.email!,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/must be different/i);
@@ -3562,10 +3562,10 @@ describe('app tests', () => {
 
             it('should reject when new email has invalid format', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: 'not-an-email',
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3573,9 +3573,9 @@ describe('app tests', () => {
 
             it('should reject when currentPassword field is missing', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         newEmail: NEW_EMAIL,
-                    }),
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3583,9 +3583,9 @@ describe('app tests', () => {
 
             it('should reject when newEmail field is missing', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                    }),
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3593,10 +3593,10 @@ describe('app tests', () => {
 
             it('should reject when currentPassword is empty string', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: '',
                         newEmail: NEW_EMAIL,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3604,20 +3604,20 @@ describe('app tests', () => {
 
             it('should reject when newEmail is empty string', async () => {
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: '',
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
             });
 
             it('should lowercase email address', async () => {
-                const profile = await appDriver.changeEmail(user1, {
+                const profile = await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
                     newEmail: 'NewEmail@EXAMPLE.COM',
-                });
+                }, user1);
 
                 expect(profile.email).toBe('newemail@example.com');
             });
@@ -3626,10 +3626,10 @@ describe('app tests', () => {
                 const otherUserEmail = 'user2@example.com';
 
                 await expect(
-                    appDriver.changeEmail(user1, {
+                    appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
                         newEmail: otherUserEmail,
-                    }),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/already exists/i);
@@ -3647,10 +3647,10 @@ describe('app tests', () => {
         it('should allow admin to create, update, and publish policies', async () => {
             const policyName = 'Privacy Policy';
 
-            const created = await appDriver.createPolicy(policyAdmin, {
+            const created = await appDriver.createPolicy({
                 policyName,
                 text: 'Initial policy text',
-            });
+            }, policyAdmin);
 
             expect(created).toMatchObject({
                 success: true,
@@ -3680,7 +3680,7 @@ describe('app tests', () => {
                 currentVersionHash: expect.any(String),
             });
 
-            const policyDetails = await appDriver.getPolicy(policyAdmin, created.id);
+            const policyDetails = await appDriver.getPolicy(created.id, policyAdmin);
             const publishedVersionHash = publishedUpdate.currentVersionHash;
             expect(publishedVersionHash).toBeDefined();
             expect(policyDetails.currentVersionHash).toBe(publishedVersionHash);
@@ -3702,10 +3702,10 @@ describe('app tests', () => {
                 .rejects
                 .toThrow(/Policy not found/);
 
-            const created = await appDriver.createPolicy(policyAdmin, {
+            const created = await appDriver.createPolicy({
                 policyName,
                 text: 'Initial terms content',
-            });
+            }, policyAdmin);
 
             expect(created.id).toBe(policyId);
 
@@ -3720,7 +3720,7 @@ describe('app tests', () => {
                 currentVersionHash: expect.any(String),
             });
 
-            const policyDetails = await appDriver.getPolicy(policyAdmin, policyId);
+            const policyDetails = await appDriver.getPolicy(policyId, policyAdmin);
             const publishedHash = update.currentVersionHash;
             expect(publishedHash).toBeDefined();
             expect(policyDetails.currentVersionHash).toBe(publishedHash);

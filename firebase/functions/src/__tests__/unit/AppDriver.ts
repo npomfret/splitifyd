@@ -3,6 +3,7 @@ import {
     ActivityFeedEventType,
     ActivityFeedEventTypes,
     ActivityFeedItem,
+    ChangeEmailRequest,
     CommentDTO,
     CreateExpenseRequest,
     CreatePolicyResponse,
@@ -26,6 +27,7 @@ import {
     MemberRole,
     MemberStatus,
     MessageResponse,
+    PasswordChangeRequest,
     PolicyDTO,
     PolicyId,
     PolicyVersion,
@@ -34,9 +36,11 @@ import {
     SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
+    UpdateExpenseRequest,
     UpdateGroupRequest,
     UpdatePolicyResponse,
     UpdateSettlementRequest,
+    UpdateUserProfileRequest,
     UserId,
     UserPolicyStatusResponse,
     UserProfileResponse,
@@ -502,7 +506,7 @@ export class AppDriver {
         return res.getJson() as ExpenseDTO;
     }
 
-    async updateExpense(userId: UserId, expenseId: ExpenseId | string, updateBody: CreateExpenseRequest): Promise<ExpenseDTO> {
+    async updateExpense(userId: UserId, expenseId: ExpenseId | string, updateBody: UpdateExpenseRequest): Promise<ExpenseDTO> {
         const req = createStubRequest(userId, updateBody);
         req.query = { id: expenseId };
         const res = await this.dispatchByHandler('updateExpense', req);
@@ -635,19 +639,19 @@ export class AppDriver {
         return res.getJson() as UserProfileResponse;
     }
 
-    async updateUserProfile(userId: UserId, updateRequest: { displayName?: string; }): Promise<UserProfileResponse> {
+    async updateUserProfile(updateRequest: UpdateUserProfileRequest, userId: UserId): Promise<UserProfileResponse> {
         const req = createStubRequest(userId, updateRequest);
         const res = await this.dispatchByHandler('updateUserProfile', req);
         return res.getJson() as UserProfileResponse;
     }
 
-    async changePassword(userId: UserId, passwordRequest: { currentPassword: string; newPassword: string; }): Promise<MessageResponse> {
+    async changePassword(passwordRequest: PasswordChangeRequest, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, passwordRequest);
         const res = await this.dispatchByHandler('changePassword', req);
         return res.getJson() as MessageResponse;
     }
 
-    async changeEmail(userId: UserId, changeEmailRequest: { currentPassword: string; newEmail: string; }): Promise<UserProfileResponse> {
+    async changeEmail(changeEmailRequest: ChangeEmailRequest, userId: UserId): Promise<UserProfileResponse> {
         const req = createStubRequest(userId, changeEmailRequest);
         const res = await this.dispatchByHandler('changeEmail', req);
         return res.getJson() as UserProfileResponse;
@@ -659,7 +663,7 @@ export class AppDriver {
         return res.getJson() as RegisterUserResult;
     }
 
-    async createPolicy(userId: UserId, policyData: { policyName: string; text: string; }): Promise<CreatePolicyResponse> {
+    async createPolicy(policyData: { policyName: string; text: string }, userId: UserId): Promise<CreatePolicyResponse> {
         const req = createStubRequest(userId, policyData);
         const res = await this.dispatchByHandler('createPolicy', req);
         return res.getJson() as CreatePolicyResponse;
@@ -671,13 +675,13 @@ export class AppDriver {
         return res.getJson() as { policies: PolicyDTO[]; count: number; };
     }
 
-    async getPolicy(userId: UserId, policyId: PolicyId): Promise<PolicyDTO> {
+    async getPolicy(policyId: PolicyId, userId: UserId): Promise<PolicyDTO> {
         const req = createStubRequest(userId, {}, { id: policyId });
         const res = await this.dispatchByHandler('getPolicy', req);
         return res.getJson() as PolicyDTO;
     }
 
-    async getPolicyVersion(userId: UserId, policyId: PolicyId, versionHash: VersionHash): Promise<PolicyVersion & { versionHash: VersionHash; }> {
+    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, userId: UserId): Promise<PolicyVersion & { versionHash: VersionHash }> {
         const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
         const res = await this.dispatchByHandler('getPolicyVersion', req);
         return res.getJson() as PolicyVersion & { versionHash: VersionHash; };

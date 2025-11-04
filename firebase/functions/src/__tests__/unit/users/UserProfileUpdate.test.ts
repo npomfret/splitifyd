@@ -23,7 +23,7 @@ describe('User Profile Update - Unit Tests', () => {
         test('updates the display name', async () => {
             const newDisplayName = `Updated Name ${Date.now()}`;
 
-            const updatedProfile = await appDriver.updateUserProfile(userId, { displayName: newDisplayName });
+            const updatedProfile = await appDriver.updateUserProfile({displayName: newDisplayName}, userId);
 
             expect(updatedProfile.displayName).toBe(newDisplayName);
             expect(updatedProfile.email).toBe('user@test.local');
@@ -31,16 +31,16 @@ describe('User Profile Update - Unit Tests', () => {
         });
 
         test('rejects empty display name', async () => {
-            await expect(appDriver.updateUserProfile(userId, { displayName: '' })).rejects.toThrow();
+            await expect(appDriver.updateUserProfile({displayName: ''}, userId)).rejects.toThrow();
         });
 
         test('rejects overly long display name', async () => {
             const longName = 'a'.repeat(101);
-            await expect(appDriver.updateUserProfile(userId, { displayName: longName })).rejects.toThrow();
+            await expect(appDriver.updateUserProfile({displayName: longName}, userId)).rejects.toThrow();
         });
 
         test('requires authenticated user', async () => {
-            await expect(appDriver.updateUserProfile('non-existent-user', { displayName: 'New Name' })).rejects.toThrow(/not.*found|user.*not.*exist/i);
+            await expect(appDriver.updateUserProfile({displayName: 'New Name'}, 'non-existent-user')).rejects.toThrow(/not.*found|user.*not.*exist/i);
         });
     });
 
@@ -48,10 +48,10 @@ describe('User Profile Update - Unit Tests', () => {
         test('updates email when password is valid', async () => {
             const newEmail = `updated-${Date.now()}@test.local`;
 
-            const updatedProfile = await appDriver.changeEmail(userId, {
+            const updatedProfile = await appDriver.changeEmail({
                 currentPassword: 'ValidPass123!',
                 newEmail,
-            });
+            }, userId);
 
             expect(updatedProfile.email).toBe(newEmail.toLowerCase());
             expect(updatedProfile.emailVerified).toBe(false);
@@ -59,10 +59,10 @@ describe('User Profile Update - Unit Tests', () => {
 
         test('rejects invalid password', async () => {
             await expect(
-                appDriver.changeEmail(userId, {
+                appDriver.changeEmail({
                     currentPassword: 'WrongPassword123!',
                     newEmail: `another-${Date.now()}@test.local`,
-                }),
+                }, userId),
             )
                 .rejects
                 .toThrow(/password/i);
@@ -70,10 +70,10 @@ describe('User Profile Update - Unit Tests', () => {
 
         test('rejects unchanged email', async () => {
             await expect(
-                appDriver.changeEmail(userId, {
+                appDriver.changeEmail({
                     currentPassword: 'ValidPass123!',
                     newEmail: 'user@test.local',
-                }),
+                }, userId),
             )
                 .rejects
                 .toThrow(/different/i);
@@ -84,10 +84,10 @@ describe('User Profile Update - Unit Tests', () => {
             appDriver.seedUser('other-user', { email: takenEmail, displayName: 'Other User' });
 
             await expect(
-                appDriver.changeEmail(userId, {
+                appDriver.changeEmail({
                     currentPassword: 'ValidPass123!',
                     newEmail: takenEmail,
-                }),
+                }, userId),
             )
                 .rejects
                 .toThrow(/already exists/i);
