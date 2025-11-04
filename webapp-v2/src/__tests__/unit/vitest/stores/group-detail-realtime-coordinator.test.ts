@@ -1,8 +1,8 @@
-import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
+import { describe, expect, it, vi } from 'vitest';
+import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { GroupDetailRealtimeCoordinator } from '@/app/stores/helpers/group-detail-realtime-coordinator';
 import type { GroupId } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { describe, expect, it, vi } from 'vitest';
 
 interface TestContext {
     coordinator: GroupDetailRealtimeCoordinator;
@@ -52,35 +52,38 @@ const createContext = (): TestContext => {
 describe('GroupDetailRealtimeCoordinator', () => {
     it('registers the activity feed consumer for the first component', async () => {
         const ctx = createContext();
+        const groupId = toGroupId('group-1');
 
-        await ctx.coordinator.registerComponent(toGroupId(toGroupId('group-1')), 'user-1');
-        ctx.setActiveGroup(toGroupId(toGroupId('group-1')));
+        await ctx.coordinator.registerComponent(groupId, 'user-1');
+        ctx.setActiveGroup(groupId);
 
         expect(ctx.registerConsumer).toHaveBeenCalledTimes(1);
-        expect(ctx.coordinator.getSubscriberCount(toGroupId(toGroupId('group-1')))).toBe(1);
+        expect(ctx.coordinator.getSubscriberCount(groupId)).toBe(1);
     });
 
     it('increments and decrements subscriber counts per group', async () => {
         const ctx = createContext();
+        const groupId = toGroupId('group-1');
 
-        await ctx.coordinator.registerComponent(toGroupId('group-1'), 'user-1');
-        await ctx.coordinator.registerComponent(toGroupId('group-1'), 'user-1');
+        await ctx.coordinator.registerComponent(groupId, 'user-1');
+        await ctx.coordinator.registerComponent(groupId, 'user-1');
 
-        expect(ctx.coordinator.getSubscriberCount(toGroupId('group-1'))).toBe(2);
+        expect(ctx.coordinator.getSubscriberCount(groupId)).toBe(2);
 
-        const remaining = ctx.coordinator.deregisterComponent(toGroupId('group-1'));
+        const remaining = ctx.coordinator.deregisterComponent(groupId);
         expect(remaining).toBe(1);
 
-        ctx.coordinator.deregisterComponent(toGroupId('group-1'));
-        expect(ctx.coordinator.getSubscriberCount(toGroupId('group-1'))).toBe(0);
+        ctx.coordinator.deregisterComponent(groupId);
+        expect(ctx.coordinator.getSubscriberCount(groupId)).toBe(0);
         expect(ctx.deregisterConsumer).toHaveBeenCalledTimes(1);
     });
 
     it('invokes onSelfRemoval when the current user is removed from the active group', async () => {
         const ctx = createContext();
+        const groupId = toGroupId('group-1');
 
-        await ctx.coordinator.registerComponent(toGroupId('group-1'), 'user-1');
-        ctx.setActiveGroup(toGroupId('group-1'));
+        await ctx.coordinator.registerComponent(groupId, 'user-1');
+        ctx.setActiveGroup(groupId);
 
         const consumer = ctx.getConsumer();
         expect(consumer).toBeDefined();
@@ -91,7 +94,7 @@ describe('GroupDetailRealtimeCoordinator', () => {
                 {
                     id: 'event-1',
                     eventType: 'member-left',
-                    groupId: toGroupId('group-1'),
+                    groupId,
                     details: { targetUserId: 'user-1' },
                 } as any,
             ],
@@ -102,16 +105,17 @@ describe('GroupDetailRealtimeCoordinator', () => {
         consumer?.onUpdate(payload);
 
         expect(ctx.onSelfRemoval).toHaveBeenCalledWith({
-            groupId: toGroupId('group-1'),
+            groupId,
             eventId: 'event-1',
         });
     });
 
     it('routes other events to the refresh callback when viewing the group', async () => {
         const ctx = createContext();
+        const groupId = toGroupId('group-1');
 
-        await ctx.coordinator.registerComponent(toGroupId('group-1'), 'user-1');
-        ctx.setActiveGroup(toGroupId('group-1'));
+        await ctx.coordinator.registerComponent(groupId, 'user-1');
+        ctx.setActiveGroup(groupId);
 
         const consumer = ctx.getConsumer();
         const payload: ActivityFeedRealtimePayload = {
@@ -120,7 +124,7 @@ describe('GroupDetailRealtimeCoordinator', () => {
                 {
                     id: 'event-2',
                     eventType: 'expense-created',
-                    groupId: toGroupId('group-1'),
+                    groupId,
                     details: {},
                 } as any,
             ],
@@ -131,7 +135,7 @@ describe('GroupDetailRealtimeCoordinator', () => {
         consumer?.onUpdate(payload);
 
         expect(ctx.onActivityRefresh).toHaveBeenCalledWith({
-            groupId: toGroupId('group-1'),
+            groupId,
             eventType: 'expense-created',
             eventId: 'event-2',
         });
@@ -139,13 +143,14 @@ describe('GroupDetailRealtimeCoordinator', () => {
 
     it('ignores events for groups without subscribers', async () => {
         const ctx = createContext();
+        const groupId = toGroupId('group-1');
 
-        await ctx.coordinator.registerComponent(toGroupId('group-1'), 'user-1');
-        ctx.setActiveGroup(toGroupId('group-1'));
+        await ctx.coordinator.registerComponent(groupId, 'user-1');
+        ctx.setActiveGroup(groupId);
 
         const consumer = ctx.getConsumer();
-        ctx.coordinator.deregisterComponent(toGroupId('group-1'));
-        ctx.coordinator.deregisterComponent(toGroupId('group-1')); // remove remaining subscriber & deregister
+        ctx.coordinator.deregisterComponent(groupId);
+        ctx.coordinator.deregisterComponent(groupId); // remove remaining subscriber & deregister
 
         consumer?.onUpdate({
             items: [],
@@ -153,7 +158,7 @@ describe('GroupDetailRealtimeCoordinator', () => {
                 {
                     id: 'event-3',
                     eventType: 'expense-created',
-                    groupId: toGroupId('group-1'),
+                    groupId,
                     details: {},
                 } as any,
             ],

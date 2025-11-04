@@ -10,6 +10,7 @@ import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
     ActivityFeedResponse,
+    AddTenantDomainRequest,
     AppConfiguration,
     ChangeEmailRequest,
     CommentDTO,
@@ -42,10 +43,13 @@ import type {
     SettlementDTO,
     SettlementWithMembers,
     ShareLinkResponse,
+    TenantDomainsResponse,
+    TenantSettingsResponse,
     UpdateDisplayNameRequest,
     UpdateExpenseRequest,
     UpdateGroupRequest,
     UpdateUserProfileRequest,
+    UpdateTenantBrandingRequest,
     UserPolicyStatusResponse,
     UserProfileResponse,
     UserRegistration,
@@ -1128,6 +1132,39 @@ class ApiClient {
             method: 'GET',
             params: { expenseId },
             query: Object.keys(query).length > 0 ? query : undefined,
+        });
+    }
+
+    // Tenant settings methods (tenant-admin only)
+    async getTenantSettings(signal?: AbortSignal): Promise<TenantSettingsResponse> {
+        return this.request({
+            endpoint: '/settings/tenant',
+            method: 'GET',
+            signal,
+        });
+    }
+
+    async updateTenantBranding(data: UpdateTenantBrandingRequest): Promise<MessageResponse> {
+        return this.request({
+            endpoint: '/settings/tenant/branding',
+            method: 'PUT',
+            body: data,
+        });
+    }
+
+    async getTenantDomains(signal?: AbortSignal): Promise<TenantDomainsResponse> {
+        return this.request({
+            endpoint: '/settings/tenant/domains',
+            method: 'GET',
+            signal,
+        });
+    }
+
+    async addTenantDomain(data: AddTenantDomainRequest): Promise<MessageResponse> {
+        return this.request({
+            endpoint: '/settings/tenant/domains',
+            method: 'POST',
+            body: data,
         });
     }
 }

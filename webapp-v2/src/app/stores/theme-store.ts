@@ -111,7 +111,10 @@ class ThemeStoreImpl implements ThemeStore {
 
     private updateCSSVariables(): void {
         const currentTheme = this.currentUserTheme;
-        this.applyThemeToDOM(currentTheme, this.isDarkMode);
+        if (currentTheme) {
+            this.applyThemeToDOM(currentTheme, this.isDarkMode);
+        }
+
     }
 
     // Method to be called by auth store when user changes

@@ -9,7 +9,10 @@ import type { ColorPattern } from './user-colors';
 // ========================================================================
 
 // Utility to create branded primitive types for stronger nominal typing
-type Brand<K, T> = K & { __brand: T; };
+type Brand<K, T> = K & { __brand: T };
+type BrandedString<T extends string> = Brand<string, T>;
+type BrandedNumber<T extends string> = Brand<number, T>;
+type BrandedBoolean<T extends string> = Brand<boolean, T>;
 
 /**
  * Type alias for ISO 8601 datetime strings
@@ -58,6 +61,69 @@ export const toSettlementId = (value: string): SettlementId => value as Settleme
 
 export type CommentId = Brand<string, 'CommentId'>;
 export const toCommentId = (value: string): CommentId => value as CommentId;
+
+export type TenantId = Brand<string, 'TenantId'>;
+export const toTenantId = (value: string): TenantId => value as TenantId;
+
+export type OrganizationId = Brand<string, 'OrganizationId'>;
+export const toOrganizationId = (value: string): OrganizationId => value as OrganizationId;
+
+export type TenantAppName = BrandedString<'TenantAppName'>;
+export const toTenantAppName = (value: string): TenantAppName => value as TenantAppName;
+
+export type TenantLogoUrl = BrandedString<'TenantLogoUrl'>;
+export const toTenantLogoUrl = (value: string): TenantLogoUrl => value as TenantLogoUrl;
+
+export type TenantFaviconUrl = BrandedString<'TenantFaviconUrl'>;
+export const toTenantFaviconUrl = (value: string): TenantFaviconUrl => value as TenantFaviconUrl;
+
+export type TenantPrimaryColor = BrandedString<'TenantPrimaryColor'>;
+export const toTenantPrimaryColor = (value: string): TenantPrimaryColor => value as TenantPrimaryColor;
+
+export type TenantSecondaryColor = BrandedString<'TenantSecondaryColor'>;
+export const toTenantSecondaryColor = (value: string): TenantSecondaryColor => value as TenantSecondaryColor;
+
+export type TenantAccentColor = BrandedString<'TenantAccentColor'>;
+export const toTenantAccentColor = (value: string): TenantAccentColor => value as TenantAccentColor;
+
+export type TenantThemePaletteName = BrandedString<'TenantThemePaletteName'>;
+export const toTenantThemePaletteName = (value: string): TenantThemePaletteName => value as TenantThemePaletteName;
+
+export type TenantCustomCss = BrandedString<'TenantCustomCss'>;
+export const toTenantCustomCss = (value: string): TenantCustomCss => value as TenantCustomCss;
+
+export type TenantDomainName = BrandedString<'TenantDomainName'>;
+export const toTenantDomainName = (value: string): TenantDomainName => value as TenantDomainName;
+
+export type TenantDefaultFlag = BrandedBoolean<'TenantDefaultFlag'>;
+export const toTenantDefaultFlag = (value: boolean): TenantDefaultFlag => value as TenantDefaultFlag;
+
+export type ShowLandingPageFlag = BrandedBoolean<'ShowLandingPageFlag'>;
+export const toShowLandingPageFlag = (value: boolean): ShowLandingPageFlag => value as ShowLandingPageFlag;
+
+export type ShowPricingPageFlag = BrandedBoolean<'ShowPricingPageFlag'>;
+export const toShowPricingPageFlag = (value: boolean): ShowPricingPageFlag => value as ShowPricingPageFlag;
+
+export type ShowBlogPageFlag = BrandedBoolean<'ShowBlogPageFlag'>;
+export const toShowBlogPageFlag = (value: boolean): ShowBlogPageFlag => value as ShowBlogPageFlag;
+
+export type ShowMarketingContentFlag = BrandedBoolean<'ShowMarketingContentFlag'>;
+export const toShowMarketingContentFlag = (value: boolean): ShowMarketingContentFlag => value as ShowMarketingContentFlag;
+
+export type FeatureToggleAdvancedReporting = BrandedBoolean<'FeatureToggleAdvancedReporting'>;
+export const toFeatureToggleAdvancedReporting = (value: boolean): FeatureToggleAdvancedReporting => value as FeatureToggleAdvancedReporting;
+
+export type FeatureToggleMultiCurrency = BrandedBoolean<'FeatureToggleMultiCurrency'>;
+export const toFeatureToggleMultiCurrency = (value: boolean): FeatureToggleMultiCurrency => value as FeatureToggleMultiCurrency;
+
+export type FeatureToggleCustomFields = BrandedBoolean<'FeatureToggleCustomFields'>;
+export const toFeatureToggleCustomFields = (value: boolean): FeatureToggleCustomFields => value as FeatureToggleCustomFields;
+
+export type TenantMaxGroupsPerUser = BrandedNumber<'TenantMaxGroupsPerUser'>;
+export const toTenantMaxGroupsPerUser = (value: number): TenantMaxGroupsPerUser => value as TenantMaxGroupsPerUser;
+
+export type TenantMaxUsersPerGroup = BrandedNumber<'TenantMaxUsersPerGroup'>;
+export const toTenantMaxUsersPerGroup = (value: number): TenantMaxUsersPerGroup => value as TenantMaxUsersPerGroup;
 
 export type GroupName = Brand<string, 'GroupName'>;
 export const toGroupName = (value: string): GroupName => value as GroupName;
@@ -172,6 +238,51 @@ export interface ActivityFeedResponse {
 export const DELETED_AT_FIELD = 'deletedAt';
 
 // ========================================================================
+// Tenant & Branding Types
+// ========================================================================
+
+export interface BrandingMarketingFlags {
+    showLandingPage?: ShowLandingPageFlag;
+    showMarketingContent?: ShowMarketingContentFlag;
+    showPricingPage?: ShowPricingPageFlag;
+    showBlogPage?: ShowBlogPageFlag;
+}
+
+/**
+ * Runtime theming configuration provided per-tenant.
+ *
+ * Guardrails on colours and assets are intentionally light for MVP. Accessibility
+ * review happens out-of-band, so these values are represented as free-form strings.
+ */
+export interface BrandingConfig {
+    appName: TenantAppName;
+    logoUrl: TenantLogoUrl;
+    faviconUrl: TenantFaviconUrl;
+    primaryColor: TenantPrimaryColor;
+    secondaryColor: TenantSecondaryColor;
+    accentColor?: TenantAccentColor;
+    themePalette?: TenantThemePaletteName;
+    customCSS?: TenantCustomCss;
+    marketingFlags?: BrandingMarketingFlags;
+}
+
+export interface FeatureConfig {
+    enableAdvancedReporting: FeatureToggleAdvancedReporting;
+    enableMultiCurrency: FeatureToggleMultiCurrency;
+    enableCustomFields: FeatureToggleCustomFields;
+    maxGroupsPerUser: TenantMaxGroupsPerUser;
+    maxUsersPerGroup: TenantMaxUsersPerGroup;
+}
+
+export interface TenantConfig {
+    tenantId: TenantId;
+    branding: BrandingConfig;
+    features: FeatureConfig;
+    createdAt: ISOString;
+    updatedAt: ISOString;
+}
+
+// ========================================================================
 // Soft Delete Interface
 // ========================================================================
 
@@ -203,6 +314,7 @@ export interface SoftDeletable {
 // These control admin panel access and system-wide features
 export const SystemUserRoles = {
     SYSTEM_ADMIN: 'system_admin', // Can access admin panel, manage all users
+    TENANT_ADMIN: 'tenant_admin', // Can manage tenant configuration (branding, domains)
     SYSTEM_USER: 'system_user', // Regular user, no admin access
 } as const;
 
@@ -366,6 +478,7 @@ export interface AppConfiguration {
     firebase: FirebaseConfig;
     environment: EnvironmentConfig;
     formDefaults: FormDefaults;
+    tenant?: TenantConfig;
     /**
      * URL for Firebase Auth emulator - only populated in development.
      * Used by the client to connect to the local auth emulator instead of production Firebase Auth.
@@ -1287,4 +1400,48 @@ export interface ChangeEmailRequest {
  */
 export interface UpdateUserProfileRequest {
     displayName?: string;
+}
+
+/**
+ * Tenant settings response
+ * Returned by GET /settings/tenant endpoint
+ */
+export interface TenantSettingsResponse {
+    tenantId: TenantId;
+    config: TenantConfig;
+    domains: TenantDomainName[];
+    primaryDomain: TenantDomainName;
+}
+
+/**
+ * Tenant branding update request
+ * Used for PUT /settings/tenant/branding endpoint
+ */
+export interface UpdateTenantBrandingRequest {
+    appName?: TenantAppName;
+    logoUrl?: TenantLogoUrl;
+    faviconUrl?: TenantFaviconUrl;
+    primaryColor?: TenantPrimaryColor;
+    secondaryColor?: TenantSecondaryColor;
+    accentColor?: TenantAccentColor;
+    themePalette?: TenantThemePaletteName;
+    customCSS?: TenantCustomCss;
+    marketingFlags?: Partial<BrandingMarketingFlags>;
+}
+
+/**
+ * Tenant domains list response
+ * Returned by GET /settings/tenant/domains endpoint
+ */
+export interface TenantDomainsResponse {
+    domains: TenantDomainName[];
+    primaryDomain: TenantDomainName;
+}
+
+/**
+ * Add tenant domain request
+ * Used for POST /settings/tenant/domains endpoint
+ */
+export interface AddTenantDomainRequest {
+    domain: TenantDomainName;
 }

@@ -1,6 +1,17 @@
-import { ApiSerializer } from '@splitifyd/shared';
+import {
+    ApiSerializer,
+    toFeatureToggleAdvancedReporting,
+    toFeatureToggleCustomFields,
+    toFeatureToggleMultiCurrency,
+    toShowLandingPageFlag,
+    toShowMarketingContentFlag,
+    toShowPricingPageFlag,
+} from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
-import { afterEach, describe, expect, test } from 'vitest';
+import { Timestamp } from 'firebase-admin/firestore';
+import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
+import { FirestoreCollections } from '../../constants';
+import { getFirestore } from '../../firebase';
 
 const deserializeConfig = async <T>(response: Response): Promise<T> => {
     const raw = await response.text();
@@ -10,9 +21,76 @@ const deserializeConfig = async <T>(response: Response): Promise<T> => {
 describe('Config Endpoint Integration Tests', () => {
     const apiDriver = new ApiDriver();
     const configUrl = `${apiDriver.getBaseUrl()}/config`;
+    const fetchConfigForTenant = (tenantId: string) =>
+        fetch(configUrl, {
+            headers: {
+                'x-tenant-id': tenantId,
+            },
+        });
+
+    const db = getFirestore();
+    const marketingTenantId = `marketing-hidden-${Date.now()}`;
 
     afterEach(async () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    describe('Marketing Flags', () => {
+        beforeAll(async () => {
+            await db.collection(FirestoreCollections.TENANTS).doc(marketingTenantId).set({
+                branding: {
+                    appName: 'Hidden Marketing Tenant',
+                    logoUrl: 'https://hidden.example.com/logo.svg',
+                    faviconUrl: 'https://hidden.example.com/favicon.ico',
+                    primaryColor: '#112233',
+                    secondaryColor: '#334455',
+                    marketingFlags: {
+                        showLandingPage: toShowLandingPageFlag(false),
+                        showMarketingContent: toShowMarketingContentFlag(false),
+                        showPricingPage: toShowPricingPageFlag(false),
+                    },
+                },
+                features: {
+                    enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
+                    enableMultiCurrency: toFeatureToggleMultiCurrency(false),
+                    enableCustomFields: toFeatureToggleCustomFields(false),
+                    maxGroupsPerUser: 5,
+                    maxUsersPerGroup: 5,
+                },
+                domains: {
+                    primary: 'marketing-hidden.example.com',
+                    aliases: [],
+                    normalized: ['marketing-hidden.example.com'],
+                },
+                defaultTenant: false,
+                createdAt: Timestamp.now(),
+                updatedAt: Timestamp.now(),
+            });
+        });
+
+        afterAll(async () => {
+            await db.collection(FirestoreCollections.TENANTS).doc(marketingTenantId).delete();
+        });
+
+        test('should include marketing flags for default tenant', async () => {
+            const response = await fetch(configUrl);
+            const config = await deserializeConfig<any>(response);
+
+            expect(config.tenant).toBeDefined();
+            expect(config.tenant.branding).toBeDefined();
+            expect(config.tenant.branding.marketingFlags).toBeDefined();
+            expect(config.tenant.branding.marketingFlags.showMarketingContent).toBe(true);
+        });
+
+        test('should surface marketing flags overrides for alternate tenant', async () => {
+            const response = await fetchConfigForTenant(marketingTenantId);
+            const config = await deserializeConfig<any>(response);
+
+            expect(config.tenant).toBeDefined();
+            expect(config.tenant.branding).toBeDefined();
+            expect(config.tenant.branding.marketingFlags).toBeDefined();
+            expect(config.tenant.branding.marketingFlags.showMarketingContent).toBe(false);
+        });
     });
 
     describe('Basic Functionality', () => {

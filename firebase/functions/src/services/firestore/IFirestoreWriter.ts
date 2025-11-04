@@ -70,6 +70,13 @@ export interface IFirestoreWriter {
      */
     updateUser(userId: UserId, updates: FirestoreUserUpdateData): Promise<WriteResult>;
 
+    /**
+     * Promote a user to system admin role
+     * @param userId - The user ID
+     * @returns Promise that resolves when promotion is complete
+     */
+    promoteUserToAdmin(userId: UserId): Promise<void>;
+
     // ========================================================================
     // Group Write Operations
     // ========================================================================
@@ -293,4 +300,16 @@ export interface IFirestoreWriter {
      * @returns Document reference for transaction operations
      */
     getDocumentReferenceInTransaction(transaction: ITransaction, collection: string, documentId: string): IDocumentReference;
+
+    // ========================================================================
+    // Tenant Write Operations
+    // ========================================================================
+
+    /**
+     * Update tenant branding configuration
+     * @param tenantId - The tenant ID to update
+     * @param brandingUpdates - Partial branding updates (validated by UpdateTenantBrandingRequestSchema)
+     * @returns Write result
+     */
+    updateTenantBranding(tenantId: string, brandingUpdates: Record<string, any>): Promise<WriteResult>;
 }

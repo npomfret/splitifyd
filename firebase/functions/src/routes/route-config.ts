@@ -20,7 +20,7 @@ export interface RouteDefinition {
     handler?: RequestHandler;
 
     /** Middleware names to apply before the handler */
-    middleware?: Array<'authenticate' | 'authenticateAdmin' | 'authenticateSystemUser'>;
+    middleware?: Array<'authenticate' | 'authenticateAdmin' | 'authenticateSystemUser' | 'authenticateTenantAdmin'>;
 
     /** Optional tag for categorization/documentation */
     category?: 'diagnostic' | 'public' | 'test' | 'user' | 'auth' | 'resource' | 'admin';
@@ -449,6 +449,36 @@ const routeDefinitions: RouteDefinition[] = [
         handlerName: 'listFirestoreUsers',
         category: 'admin',
         middleware: ['authenticateSystemUser'],
+    },
+
+    // === Tenant Settings (Tenant Admin Only) ===
+    {
+        method: 'GET',
+        path: '/settings/tenant',
+        handlerName: 'getTenantSettings',
+        category: 'admin',
+        middleware: ['authenticateTenantAdmin'],
+    },
+    {
+        method: 'PUT',
+        path: '/settings/tenant/branding',
+        handlerName: 'updateTenantBranding',
+        category: 'admin',
+        middleware: ['authenticateTenantAdmin'],
+    },
+    {
+        method: 'GET',
+        path: '/settings/tenant/domains',
+        handlerName: 'listTenantDomains',
+        category: 'admin',
+        middleware: ['authenticateTenantAdmin'],
+    },
+    {
+        method: 'POST',
+        path: '/settings/tenant/domains',
+        handlerName: 'addTenantDomain',
+        category: 'admin',
+        middleware: ['authenticateTenantAdmin'],
     },
 ];
 

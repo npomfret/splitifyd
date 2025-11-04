@@ -1,6 +1,7 @@
 export { BasePage } from './BasePage';
 export { CreateGroupModalPage } from './CreateGroupModalPage';
 export { DashboardPage } from './DashboardPage';
+export { DomainManagementPage } from './DomainManagementPage';
 export { ExpenseDetailPage } from './ExpenseDetailPage';
 export { ExpenseFormPage } from './ExpenseFormPage';
 export { GroupDetailPage } from './GroupDetailPage';
@@ -15,3 +16,4 @@ export { RemoveMemberDialogPage } from './RemoveMemberDialogPage';
 export { SettingsPage } from './SettingsPage';
 export { SettlementFormPage } from './SettlementFormPage';
 export { ShareGroupModalPage } from './ShareGroupModalPage';
+export { TenantBrandingPage } from './TenantBrandingPage';

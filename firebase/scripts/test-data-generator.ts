@@ -1,11 +1,50 @@
 import type {Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest, UserId} from '@splitifyd/shared';
-import {AuthenticatedFirebaseUser, compareAmounts, isZeroAmount, MemberRoles, minAmount, normalizeAmount, PermissionLevels, PREDEFINED_EXPENSE_CATEGORIES, subtractAmounts, toISOString, UserRegistration, zeroAmount,} from '@splitifyd/shared';
+import {
+    AuthenticatedFirebaseUser,
+    compareAmounts,
+    isZeroAmount,
+    MemberRoles,
+    minAmount,
+    normalizeAmount,
+    PermissionLevels,
+    PREDEFINED_EXPENSE_CATEGORIES,
+    subtractAmounts,
+    toFeatureToggleAdvancedReporting,
+    toFeatureToggleCustomFields,
+    toFeatureToggleMultiCurrency,
+    toISOString,
+    toShowLandingPageFlag,
+    toShowMarketingContentFlag,
+    toShowPricingPageFlag,
+    toTenantAppName,
+    toTenantDefaultFlag,
+    toTenantDomainName,
+    toTenantFaviconUrl,
+    toTenantLogoUrl,
+    toTenantPrimaryColor,
+    toTenantSecondaryColor,
+    toTenantMaxGroupsPerUser,
+    toTenantMaxUsersPerGroup,
+    UserRegistration,
+    zeroAmount,
+} from '@splitifyd/shared';
 import {ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig} from '@splitifyd/test-support';
-import {getFirestore} from 'firebase-admin/firestore';
-import {createFirestoreDatabase} from "@splitifyd/firebase-simulator/src";
 import {FirestoreWriter} from "../functions/src/services/firestore";
+import { FirestoreCollections } from '../functions/src/constants';
+import { Timestamp } from 'firebase-admin/firestore';
+import { createFirestoreDatabase } from "../functions/src/firestore-wrapper";
 
-const firestoreDb = createFirestoreDatabase(getFirestore())
+// Lazy initialization - will be set when Firebase is initialized
+let firestoreDb: ReturnType<typeof createFirestoreDatabase>;
+
+function getFirestoreDb() {
+    if (!firestoreDb) {
+        // Import getFirestore lazily to avoid module-level execution before GCLOUD_PROJECT is set
+        const { getFirestore } = require('../functions/src/firebase');
+        firestoreDb = createFirestoreDatabase(getFirestore());
+    }
+    return firestoreDb;
+}
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -495,6 +534,140 @@ const generateRandomExpense = (): TestExpenseTemplate => {
     return { description, amount, category };
 };
 
+async function createDefaultTenant(): Promise<void> {
+    console.log('🏢 Creating demo tenants for emulator...');
+
+    const db = getFirestoreDb();
+
+    // Tenant 1: localhost - Splitifyd Demo (full marketing)
+    const localhostTenantId = 'localhost-tenant';
+    const localhostExists = await db.collection(FirestoreCollections.TENANTS).doc(localhostTenantId).get();
+
+    if (!localhostExists.exists) {
+        const localhostTenantDoc = {
+            branding: {
+                appName: toTenantAppName('Splitifyd Demo'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#3B82F6'),
+                secondaryColor: toTenantSecondaryColor('#8B5CF6'),
+                marketingFlags: {
+                    showLandingPage: toShowLandingPageFlag(true),
+                    showMarketingContent: toShowMarketingContentFlag(true),
+                    showPricingPage: toShowPricingPageFlag(true),
+                },
+            },
+            features: {
+                enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
+                enableMultiCurrency: toFeatureToggleMultiCurrency(true),
+                enableCustomFields: toFeatureToggleCustomFields(true),
+                maxGroupsPerUser: toTenantMaxGroupsPerUser(100),
+                maxUsersPerGroup: toTenantMaxUsersPerGroup(200),
+            },
+            domains: {
+                primary: toTenantDomainName('localhost'),
+                aliases: [],
+                normalized: [toTenantDomainName('localhost')],
+            },
+            defaultTenant: toTenantDefaultFlag(false),
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+        };
+
+        await db.collection(FirestoreCollections.TENANTS).doc(localhostTenantId).set(localhostTenantDoc);
+        console.log('✅ Localhost tenant created (Splitifyd Demo - full marketing)');
+    } else {
+        console.log('♻️  Localhost tenant already exists, skipping');
+    }
+
+    // Tenant 2: 127.0.0.1 - White-Label Partner (no marketing)
+    const partnerTenantId = 'partner-tenant';
+    const partnerExists = await db.collection(FirestoreCollections.TENANTS).doc(partnerTenantId).get();
+
+    if (!partnerExists.exists) {
+        const partnerTenantDoc = {
+            branding: {
+                appName: toTenantAppName('Partner Expenses'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#10B981'),
+                secondaryColor: toTenantSecondaryColor('#059669'),
+                marketingFlags: {
+                    showLandingPage: toShowLandingPageFlag(false),
+                    showMarketingContent: toShowMarketingContentFlag(false),
+                    showPricingPage: toShowPricingPageFlag(false),
+                },
+            },
+            features: {
+                enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
+                enableMultiCurrency: toFeatureToggleMultiCurrency(true),
+                enableCustomFields: toFeatureToggleCustomFields(false),
+                maxGroupsPerUser: toTenantMaxGroupsPerUser(50),
+                maxUsersPerGroup: toTenantMaxUsersPerGroup(100),
+            },
+            domains: {
+                primary: toTenantDomainName('127.0.0.1'),
+                aliases: [],
+                normalized: [toTenantDomainName('127.0.0.1')],
+            },
+            defaultTenant: toTenantDefaultFlag(false),
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+        };
+
+        await db.collection(FirestoreCollections.TENANTS).doc(partnerTenantId).set(partnerTenantDoc);
+        console.log('✅ Partner tenant created (Partner Expenses - white-label, no marketing)');
+    } else {
+        console.log('♻️  Partner tenant already exists, skipping');
+    }
+
+    // Create fallback default tenant
+    const defaultTenantId = 'default-dev-tenant';
+    const defaultExists = await db.collection(FirestoreCollections.TENANTS).doc(defaultTenantId).get();
+
+    if (!defaultExists.exists) {
+        const defaultTenantDoc = {
+            branding: {
+                appName: toTenantAppName('Splitifyd'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#1a73e8'),
+                secondaryColor: toTenantSecondaryColor('#34a853'),
+                marketingFlags: {
+                    showLandingPage: toShowLandingPageFlag(true),
+                    showMarketingContent: toShowMarketingContentFlag(true),
+                    showPricingPage: toShowPricingPageFlag(true),
+                },
+            },
+            features: {
+                enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
+                enableMultiCurrency: toFeatureToggleMultiCurrency(true),
+                enableCustomFields: toFeatureToggleCustomFields(true),
+                maxGroupsPerUser: toTenantMaxGroupsPerUser(100),
+                maxUsersPerGroup: toTenantMaxUsersPerGroup(200),
+            },
+            domains: {
+                primary: toTenantDomainName('default'),
+                aliases: [],
+                normalized: [toTenantDomainName('default')],
+            },
+            defaultTenant: toTenantDefaultFlag(true),
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
+        };
+
+        await db.collection(FirestoreCollections.TENANTS).doc(defaultTenantId).set(defaultTenantDoc);
+        console.log('✅ Default fallback tenant created');
+    } else {
+        console.log('♻️  Default fallback tenant already exists, skipping');
+    }
+
+    console.log('\n📊 Tenant Summary:');
+    console.log('  • localhost      → Splitifyd Demo (blue, full marketing)');
+    console.log('  • 127.0.0.1      → Partner Expenses (green, white-label)');
+    console.log('  • default        → Splitifyd (fallback for unknown domains)\n');
+}
+
 async function createTestPoolUsers(): Promise<void> {
     console.log('🏊 Initializing test pool users...');
 
@@ -522,9 +695,13 @@ async function createGroupWithInvite(name: string, createdBy: AuthenticatedFireb
     // Generate shareable link
     const shareLink = await runQueued(() => driver.generateShareableLink(group.id, undefined, createdBy.token));
 
+    // FIXME: API returns 'linkId' but type definition says 'shareToken'
+    // Using 'linkId' as that's what the actual API returns
+    const linkId = (shareLink as any).linkId || shareLink.shareToken;
+
     return {
         ...group,
-        inviteLink: shareLink.shareToken,
+        inviteLink: linkId,
         memberDetails: undefined,
     } as GroupWithInvite;
 }
@@ -1578,6 +1755,12 @@ export async function generateFullTestData(): Promise<void> {
     };
 
     console.log(`🚀 Starting test data generation in ${testConfig.mode} mode`);
+
+    // Create default tenant first (required for API routes to work)
+    console.log('Creating default tenant...');
+    const tenantCreationStart = Date.now();
+    await createDefaultTenant();
+    logTiming('Default tenant creation', tenantCreationStart);
 
     // Initialize test pool users first (before regular test data)
     console.log('Initializing test user pool...');

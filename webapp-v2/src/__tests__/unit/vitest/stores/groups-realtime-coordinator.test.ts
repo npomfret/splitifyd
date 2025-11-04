@@ -1,7 +1,8 @@
-import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
-import { GroupsRealtimeCoordinator } from '@/app/stores/helpers/groups-realtime-coordinator';
 import { signal } from '@preact/signals';
+import { toGroupId, type GroupId } from '@splitifyd/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
+import { GroupsRealtimeCoordinator } from '@/app/stores/helpers/groups-realtime-coordinator';
 
 interface TestContext {
     coordinator: GroupsRealtimeCoordinator;
@@ -21,6 +22,11 @@ const createContext = (): TestContext => {
     const deregisterConsumer = vi.fn();
     const onRefresh = vi.fn().mockResolvedValue(undefined);
     const onGroupRemoval = vi.fn();
+
+    const activityFeed = {
+        registerConsumer,
+        deregisterConsumer,
+    } as unknown as ActivityFeedRealtimeService;
 
     const coordinator = new GroupsRealtimeCoordinator({
         activityFeed: {
@@ -93,6 +99,7 @@ describe('GroupsRealtimeCoordinator', () => {
 
     it('invokes onGroupRemoval when the current user leaves a group', async () => {
         const ctx = createContext();
+        const groupId: GroupId = toGroupId('group-1');
 
         ctx.coordinator.registerComponent('component-1', 'user-1');
         await Promise.resolve();
@@ -106,7 +113,7 @@ describe('GroupsRealtimeCoordinator', () => {
                 {
                     id: 'event-1',
                     eventType: 'member-left',
-                    groupId: 'group-1',
+                    groupId,
                     details: { targetUserId: 'user-1', targetUserName: 'User One' },
                 } as any,
             ],
@@ -116,7 +123,7 @@ describe('GroupsRealtimeCoordinator', () => {
 
         consumer?.onUpdate(payload);
 
-        expect(ctx.onGroupRemoval).toHaveBeenCalledWith('group-1', 'User One');
+        expect(ctx.onGroupRemoval).toHaveBeenCalledWith(groupId, 'User One');
     });
 
     it('triggers a refresh when other activity events arrive', async () => {
@@ -134,7 +141,7 @@ describe('GroupsRealtimeCoordinator', () => {
                 {
                     id: 'event-2',
                     eventType: 'expense-created',
-                    groupId: 'group-1',
+                    groupId: toGroupId('group-1'),
                     details: {},
                 } as any,
             ],

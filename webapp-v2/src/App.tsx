@@ -4,6 +4,7 @@ import { lazy, Suspense } from 'preact/compat';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './app/hooks/useAuth';
+import { useConfig } from './hooks/useConfig.ts';
 import { TokenRefreshIndicator } from './components/auth/TokenRefreshIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
@@ -39,6 +40,8 @@ const CookiePolicyPage = lazy(() => import('./pages/static/CookiePolicyPage').th
 const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ default: m.JoinGroupPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const UsersBrowserPage = lazy(() => import('./pages/browser/UsersBrowserPage').then((m) => ({ default: m.UsersBrowserPage })));
+const TenantBrandingPage = lazy(() => import('./pages/TenantBrandingPage').then((m) => ({ default: m.TenantBrandingPage })));
+const DomainManagementPage = lazy(() => import('./pages/DomainManagementPage').then((m) => ({ default: m.DomainManagementPage })));
 
 // Wrapper component to handle Suspense for lazy-loaded components
 function LazyRoute<T extends ComponentType<any>>({ component: Component, ...props }: LazyRouteProps<T>): VNode {
@@ -120,12 +123,20 @@ const CookieRoute = createLazyRoute(CookiePolicyPage);
 const JoinGroupRoute = createProtectedRoute(JoinGroupPage);
 const SettingsRoute = createProtectedRoute(SettingsPage);
 const UsersBrowserRoute = createProtectedRoute(UsersBrowserPage);
+const TenantBrandingRoute = createProtectedRoute(TenantBrandingPage);
+const DomainManagementRoute = createProtectedRoute(DomainManagementPage);
 
 export function App() {
     const authStore = useAuth();
     const { needsAcceptance, pendingPolicies, refreshPolicyStatus } = usePolicyAcceptance();
+    const config = useConfig();
 
     const user = authStore?.user;
+    const marketingFlags = config?.tenant?.branding?.marketingFlags;
+    const showLandingPage = marketingFlags?.showLandingPage ?? false;
+    const showPricingPage = marketingFlags?.showPricingPage ?? false;
+    const showBlogPage = marketingFlags?.showBlogPage ?? false;
+    const enableAdvancedReporting = config?.tenant?.features?.enableAdvancedReporting ?? false;
 
     const handlePolicyAcceptance = async () => {
         // Refresh policy status after acceptance to hide the modal
@@ -135,12 +146,22 @@ export function App() {
     // Only show policy modal for authenticated users who need acceptance
     const shouldShowPolicyModal = user && needsAcceptance && pendingPolicies.length > 0;
 
+    // Determine root route component based on tenant marketing flags and auth state
+    // If landing page is enabled, show it to everyone
+    // Otherwise, redirect authenticated users to dashboard or unauthenticated users to login
+    const getRootRouteComponent = () => {
+        if (showLandingPage) {
+            return LandingRoute;
+        }
+        return user ? DashboardRoute : LoginRoute;
+    };
+
     return (
         <ErrorBoundary>
             <WarningBanner />
             <TokenRefreshIndicator />
             <Router>
-                <Route path='/' component={LandingRoute} />
+                <Route path='/' component={getRootRouteComponent()} />
 
                 {/* Auth Routes */}
                 <Route path='/login' component={LoginRoute} />
@@ -152,9 +173,11 @@ export function App() {
 
                 {/* Settings Routes - Protected */}
                 <Route path='/settings' component={SettingsRoute} />
+                <Route path='/settings/tenant/branding' component={TenantBrandingRoute} />
+                <Route path='/settings/tenant/domains' component={DomainManagementRoute} />
 
                 {/* Browser Routes - Protected */}
-                <Route path='/browser/users' component={UsersBrowserRoute} />
+                {enableAdvancedReporting && <Route path='/browser/users' component={UsersBrowserRoute} />}
 
                 {/* Group Routes - Protected */}
                 <Route path='/groups/:id' component={GroupDetailRoute} />
@@ -168,8 +191,11 @@ export function App() {
                 {/* Join Group Route - Protected */}
                 <Route path='/join' component={JoinGroupRoute} />
 
-                {/* Static Pages */}
-                <Route path='/pricing' component={PricingRoute} />
+                {/* Marketing Pages - Conditionally rendered based on tenant branding flags */}
+                {showPricingPage && <Route path='/pricing' component={PricingRoute} />}
+                {/* showBlogPage flag exists but no BlogPage component implemented yet */}
+
+                {/* Legal Pages - Always available */}
                 <Route path='/terms-of-service' component={TermsRoute} />
                 <Route path='/terms' component={TermsRoute} />
                 <Route path='/privacy-policy' component={PrivacyRoute} />

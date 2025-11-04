@@ -17,6 +17,7 @@ import { SettlementService } from './SettlementService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import { UserPolicyService } from './UserPolicyService';
 import { UserService } from './UserService2';
+import { TenantRegistryService } from './tenant/TenantRegistryService';
 
 export class ComponentBuilder {
     // Base infrastructure - created once
@@ -33,6 +34,7 @@ export class ComponentBuilder {
     private groupTransactionManager?: GroupTransactionManager;
     private incrementalBalanceService?: IncrementalBalanceService;
     private activityFeedService?: ActivityFeedService;
+    private tenantRegistryService?: TenantRegistryService;
     private firestoreReader: IFirestoreReader;
     private firestoreWriter: IFirestoreWriter;
 
@@ -182,6 +184,13 @@ export class ComponentBuilder {
             this.activityFeedService = new ActivityFeedService(this.buildFirestoreReader(), this.buildFirestoreWriter());
         }
         return this.activityFeedService;
+    }
+
+    buildTenantRegistryService(): TenantRegistryService {
+        if (!this.tenantRegistryService) {
+            this.tenantRegistryService = new TenantRegistryService(this.buildFirestoreReader());
+        }
+        return this.tenantRegistryService;
     }
 
     buildFirestoreReader(): IFirestoreReader {

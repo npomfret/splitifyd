@@ -17,6 +17,9 @@ export function createStubRequest(userId: UserId, body: any = {}, params: any = 
         },
         body,
         params,
+        // Tenant ID set by tenant identification middleware in production
+        // For tests, use the default fallback tenant
+        tenantId: 'system-fallback-tenant',
     };
 }
 

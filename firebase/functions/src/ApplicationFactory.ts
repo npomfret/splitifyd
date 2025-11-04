@@ -63,6 +63,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const userService = componentBuilder.buildUserService();
     const policyService = componentBuilder.buildPolicyService();
     const firestoreWriter = componentBuilder.buildFirestoreWriter();
+    const tenantRegistryService = componentBuilder.buildTenantRegistryService();
 
     // Inline diagnostic handlers
     const getMetrics: RequestHandler = (req, res) => {
@@ -88,7 +89,11 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     };
 
     const getConfig: RequestHandler = (req, res) => {
-        const config = getEnhancedConfigResponse();
+        // Get tenant configuration from request context (set by tenant identification middleware)
+        const tenantContext = (req as any).tenant;
+        const tenantConfig = tenantContext?.config;
+
+        const config = getEnhancedConfigResponse(tenantConfig);
         res.json(config);
     };
 
@@ -226,6 +231,219 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         }
     };
 
+    const testPromoteToAdmin: RequestHandler = async (req, res) => {
+        if (config.isProduction) {
+            const response: TestErrorResponse = {
+                error: {
+                    code: 'FORBIDDEN',
+                    message: 'Test endpoints not available in production',
+                },
+            };
+            res.status(403).json(response);
+            return;
+        }
+
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            const response: TestErrorResponse = {
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'Authorization token required',
+                },
+            };
+            res.status(401).json(response);
+            return;
+        }
+
+        const token = authHeader.substring(7);
+        let decodedToken;
+
+        try {
+            decodedToken = await authService.verifyIdToken(token);
+        } catch (error) {
+            const response: TestErrorResponse = {
+                error: {
+                    code: 'UNAUTHORIZED',
+                    message: 'Invalid token',
+                },
+            };
+            res.status(401).json(response);
+            return;
+        }
+
+        try {
+            await firestoreWriter.promoteUserToAdmin(decodedToken.uid);
+
+            logger.info('User promoted to admin', {
+                userId: decodedToken.uid,
+            });
+
+            const response: TestSuccessResponse = {
+                success: true,
+                message: 'User promoted to system admin',
+            };
+            res.json(response);
+        } catch (error) {
+            logger.error('Failed to promote user to admin', error as Error, {
+                userId: decodedToken.uid,
+            });
+            throw error;
+        }
+    };
+
+    // Tenant settings handlers (admin-only)
+    const getTenantSettings: RequestHandler = async (req, res) => {
+        try {
+            // Get the tenant ID from the request (set by tenant identification middleware)
+            const tenantId = (req as any).tenantId;
+
+            if (!tenantId) {
+                res.status(400).json({
+                    error: {
+                        code: 'MISSING_TENANT_ID',
+                        message: 'Tenant ID not found in request context'
+                    }
+                });
+                return;
+            }
+
+            // Fetch tenant configuration from registry
+            // Allow default fallback for tests where tenant may not exist in database
+            const tenantRecord = await tenantRegistryService.resolveTenant({
+                host: null,
+                overrideTenantId: tenantId,
+                allowOverride: true,
+                allowDefaultFallback: true,
+            });
+
+            res.json({
+                tenantId: tenantRecord.tenantId,
+                config: tenantRecord.config,
+                domains: tenantRecord.domains,
+                primaryDomain: tenantRecord.primaryDomain,
+            });
+        } catch (error) {
+            logger.error('Failed to get tenant settings', error);
+            res.status(500).json({
+                error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Failed to retrieve tenant settings'
+                }
+            });
+        }
+    };
+
+    const updateTenantBranding: RequestHandler = async (req, res) => {
+        try {
+            const tenantId = (req as any).tenantId;
+
+            if (!tenantId) {
+                res.status(400).json({
+                    error: {
+                        code: 'MISSING_TENANT_ID',
+                        message: 'Tenant ID not found in request context',
+                    },
+                });
+                return;
+            }
+
+            // Import the validation schema
+            const { UpdateTenantBrandingRequestSchema } = await import('./schemas/tenant');
+
+            // Validate request body
+            const parseResult = UpdateTenantBrandingRequestSchema.safeParse(req.body);
+
+            if (!parseResult.success) {
+                res.status(400).json({
+                    error: {
+                        code: 'VALIDATION_ERROR',
+                        message: 'Invalid branding update request',
+                        details: parseResult.error.issues,
+                    },
+                });
+                return;
+            }
+
+            const brandingUpdates = parseResult.data;
+
+            // Update tenant branding in Firestore
+            const result = await firestoreWriter.updateTenantBranding(tenantId, brandingUpdates);
+
+            if (!result.success) {
+                res.status(500).json({
+                    error: {
+                        code: 'UPDATE_FAILED',
+                        message: result.error || 'Failed to update tenant branding',
+                    },
+                });
+                return;
+            }
+
+            // Clear tenant registry cache to force reload of updated configuration
+            tenantRegistryService.clearCache();
+
+            res.json({
+                message: 'Tenant branding updated successfully',
+            });
+        } catch (error) {
+            logger.error('Failed to update tenant branding', error);
+            res.status(500).json({
+                error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Failed to update tenant branding',
+                },
+            });
+        }
+    };
+
+    const listTenantDomains: RequestHandler = async (req, res) => {
+        try {
+            const tenantId = (req as any).tenantId;
+
+            if (!tenantId) {
+                res.status(400).json({
+                    error: {
+                        code: 'MISSING_TENANT_ID',
+                        message: 'Tenant ID not found in request context'
+                    }
+                });
+                return;
+            }
+
+            // Allow default fallback for tests where tenant may not exist in database
+            const tenantRecord = await tenantRegistryService.resolveTenant({
+                host: null,
+                overrideTenantId: tenantId,
+                allowOverride: true,
+                allowDefaultFallback: true,
+            });
+
+            res.json({
+                domains: tenantRecord.domains,
+                primaryDomain: tenantRecord.primaryDomain,
+            });
+        } catch (error) {
+            logger.error('Failed to list tenant domains', error);
+            res.status(500).json({
+                error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Failed to list tenant domains'
+                }
+            });
+        }
+    };
+
+    const addTenantDomain: RequestHandler = async (req, res) => {
+        // TODO: Implement tenant domain addition
+        // This will add a new domain to the tenant configuration in Firestore
+        res.status(501).json({
+            error: {
+                code: 'NOT_IMPLEMENTED',
+                message: 'Tenant domain addition not yet implemented'
+            }
+        });
+    };
+
     // Build handler registry
     const registry: Record<string, RequestHandler> = {
         // Group handlers
@@ -320,6 +538,13 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         borrowTestUser,
         returnTestUser,
         clearUserPolicyAcceptances,
+        testPromoteToAdmin,
+
+        // Tenant settings handlers
+        getTenantSettings,
+        updateTenantBranding,
+        listTenantDomains,
+        addTenantDomain,
     };
 
     return registry;

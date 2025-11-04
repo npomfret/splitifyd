@@ -10,7 +10,7 @@
  * for migration guidance.
  */
 
-import type { CommentId } from '@splitifyd/shared';
+import type { CommentId, TenantConfig, TenantDomainName, TenantId, TenantDefaultFlag } from '@splitifyd/shared';
 // Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
 // FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
 import {
@@ -43,7 +43,7 @@ import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelper
 import { ApiError } from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
-import { toCommentId, toExpenseId, toGroupId, toGroupName, toSettlementId, toShareLinkId, ShareLinkId } from '@splitifyd/shared';
+import { toCommentId, toExpenseId, toGroupId, toGroupName, toSettlementId, toShareLinkId, ShareLinkId, toTenantDefaultFlag, toISOString } from '@splitifyd/shared';
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,
@@ -59,10 +59,20 @@ import {
     TopLevelGroupMemberSchema,
     type UserDocument,
     UserDocumentSchema,
+    TenantDocumentSchema,
 } from '../../schemas';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
-import type { BatchGroupFetchOptions, FirestoreOrderField, GetGroupsForUserOptions, GroupsPaginationCursor, IFirestoreReader, PaginatedResult, QueryOptions } from './IFirestoreReader';
+import type {
+    BatchGroupFetchOptions,
+    FirestoreOrderField,
+    GetGroupsForUserOptions,
+    GroupsPaginationCursor,
+    IFirestoreReader,
+    PaginatedResult,
+    QueryOptions,
+    TenantRegistryRecord,
+} from './IFirestoreReader';
 
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,
@@ -148,6 +158,52 @@ export class FirestoreReader implements IFirestoreReader {
 
     private getExpenseCommentCollectionPath(expenseId: string): string {
         return `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}`;
+    }
+
+    private parseTenantDocument(snapshot: IDocumentSnapshot): TenantRegistryRecord {
+        const rawData = snapshot.data();
+
+        if (!rawData) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'TENANT_DATA_MISSING', 'Tenant document data is missing');
+        }
+
+        const parsed = TenantDocumentSchema.parse({
+            id: snapshot.id,
+            ...rawData,
+        });
+
+        const createdAtIso = toISOString(this.timestampToISO(parsed.createdAt));
+        const updatedAtIso = toISOString(this.timestampToISO(parsed.updatedAt));
+
+        const tenant: TenantConfig = {
+            tenantId: parsed.id,
+            branding: parsed.branding,
+            features: parsed.features,
+            createdAt: createdAtIso,
+            updatedAt: updatedAtIso,
+        };
+
+        const domainSet = new Map<string, TenantDomainName>();
+        const addDomain = (value?: TenantDomainName) => {
+            if (value) {
+                domainSet.set(value, value);
+            }
+        };
+
+        addDomain(parsed.domains.primary);
+        parsed.domains.aliases.forEach(addDomain);
+        parsed.domains.normalized.forEach(addDomain);
+
+        const domains = Array.from(domainSet.values());
+        const primaryDomain = parsed.domains.primary ?? null;
+        const isDefault: TenantDefaultFlag = parsed.defaultTenant ?? toTenantDefaultFlag(false);
+
+        return {
+            tenant,
+            primaryDomain,
+            domains,
+            isDefault,
+        };
     }
 
     private normalizeStatusFilter(statusFilter?: MemberStatus | MemberStatus[]): MemberStatus | MemberStatus[] | undefined {
@@ -1475,6 +1531,63 @@ export class FirestoreReader implements IFirestoreReader {
             return await transaction.get(query);
         } catch (error) {
             logger.error('Failed to get group memberships in transaction', error, { groupId });
+            throw error;
+        }
+    }
+
+    // ========================================================================
+    // Tenant Registry Operations
+    // ========================================================================
+
+    async getTenantById(tenantId: TenantId): Promise<TenantRegistryRecord | null> {
+        try {
+            const doc = await this.db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();
+
+            if (!doc.exists) {
+                return null;
+            }
+
+            return this.parseTenantDocument(doc);
+        } catch (error) {
+            logger.error('Failed to get tenant by ID', error, { tenantId });
+            throw error;
+        }
+    }
+
+    async getTenantByDomain(domain: TenantDomainName): Promise<TenantRegistryRecord | null> {
+        try {
+            const query = await this.db
+                .collection(FirestoreCollections.TENANTS)
+                .where('domains.normalized', 'array-contains', domain)
+                .limit(1)
+                .get();
+
+            if (query.empty) {
+                return null;
+            }
+
+            return this.parseTenantDocument(query.docs[0]);
+        } catch (error) {
+            logger.error('Failed to get tenant by domain', error, { domain });
+            throw error;
+        }
+    }
+
+    async getDefaultTenant(): Promise<TenantRegistryRecord | null> {
+        try {
+            const query = await this.db
+                .collection(FirestoreCollections.TENANTS)
+                .where('defaultTenant', '==', true)
+                .limit(1)
+                .get();
+
+            if (query.empty) {
+                return null;
+            }
+
+            return this.parseTenantDocument(query.docs[0]);
+        } catch (error) {
+            logger.error('Failed to get default tenant', error);
             throw error;
         }
     }
