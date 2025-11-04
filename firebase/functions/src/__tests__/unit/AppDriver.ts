@@ -26,7 +26,9 @@ import {
     MemberRole,
     MemberStatus,
     MessageResponse,
+    PolicyDTO,
     PolicyId,
+    PolicyVersion,
     PreviewGroupResponse,
     PublishPolicyResponse,
     SettlementDTO,
@@ -500,7 +502,7 @@ export class AppDriver {
         return res.getJson() as ExpenseDTO;
     }
 
-    async updateExpense(userId: UserId, expenseId: ExpenseId | string, updateBody: any): Promise<ExpenseDTO> {
+    async updateExpense(userId: UserId, expenseId: ExpenseId | string, updateBody: CreateExpenseRequest): Promise<ExpenseDTO> {
         const req = createStubRequest(userId, updateBody);
         req.query = { id: expenseId };
         const res = await this.dispatchByHandler('updateExpense', req);
@@ -633,19 +635,19 @@ export class AppDriver {
         return res.getJson() as UserProfileResponse;
     }
 
-    async updateUserProfile(userId: UserId, updateRequest: any): Promise<UserProfileResponse> {
+    async updateUserProfile(userId: UserId, updateRequest: { displayName?: string; }): Promise<UserProfileResponse> {
         const req = createStubRequest(userId, updateRequest);
         const res = await this.dispatchByHandler('updateUserProfile', req);
         return res.getJson() as UserProfileResponse;
     }
 
-    async changePassword(userId: UserId, passwordRequest: any): Promise<MessageResponse> {
+    async changePassword(userId: UserId, passwordRequest: { currentPassword: string; newPassword: string; }): Promise<MessageResponse> {
         const req = createStubRequest(userId, passwordRequest);
         const res = await this.dispatchByHandler('changePassword', req);
         return res.getJson() as MessageResponse;
     }
 
-    async changeEmail(userId: UserId, changeEmailRequest: any): Promise<UserProfileResponse> {
+    async changeEmail(userId: UserId, changeEmailRequest: { currentPassword: string; newEmail: string; }): Promise<UserProfileResponse> {
         const req = createStubRequest(userId, changeEmailRequest);
         const res = await this.dispatchByHandler('changeEmail', req);
         return res.getJson() as UserProfileResponse;
@@ -663,22 +665,22 @@ export class AppDriver {
         return res.getJson() as CreatePolicyResponse;
     }
 
-    async listPolicies(userId: UserId): Promise<{ policies: any[]; count: number; }> {
+    async listPolicies(userId: UserId): Promise<{ policies: PolicyDTO[]; count: number; }> {
         const req = createStubRequest(userId, {});
         const res = await this.dispatchByHandler('listPolicies', req);
-        return res.getJson() as { policies: any[]; count: number; };
+        return res.getJson() as { policies: PolicyDTO[]; count: number; };
     }
 
-    async getPolicy(userId: UserId, policyId: PolicyId): Promise<any> {
+    async getPolicy(userId: UserId, policyId: PolicyId): Promise<PolicyDTO> {
         const req = createStubRequest(userId, {}, { id: policyId });
         const res = await this.dispatchByHandler('getPolicy', req);
-        return res.getJson();
+        return res.getJson() as PolicyDTO;
     }
 
-    async getPolicyVersion(userId: UserId, policyId: PolicyId, versionHash: VersionHash): Promise<any> {
+    async getPolicyVersion(userId: UserId, policyId: PolicyId, versionHash: VersionHash): Promise<PolicyVersion & { versionHash: VersionHash; }> {
         const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
         const res = await this.dispatchByHandler('getPolicyVersion', req);
-        return res.getJson();
+        return res.getJson() as PolicyVersion & { versionHash: VersionHash; };
     }
 
     async updatePolicy(userId: UserId, policyId: PolicyId, updateData: { text: string; publish?: boolean; }): Promise<UpdatePolicyResponse> {

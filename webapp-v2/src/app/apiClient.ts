@@ -55,6 +55,7 @@ import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
+import type {CommentText} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 
@@ -1082,7 +1083,7 @@ class ApiClient {
     }
 
     // Comment methods
-    async createGroupComment(groupId: GroupId, text: string): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId, text: CommentText): Promise<CommentDTO> {
         return this.request<CommentDTO>({
             endpoint: '/groups/:groupId/comments',
             method: 'POST',
@@ -1091,7 +1092,7 @@ class ApiClient {
         });
     }
 
-    async createExpenseComment(expenseId: ExpenseId, text: string): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId, text: CommentText): Promise<CommentDTO> {
         return this.request<CommentDTO>({
             endpoint: '/expenses/:expenseId/comments',
             method: 'POST',

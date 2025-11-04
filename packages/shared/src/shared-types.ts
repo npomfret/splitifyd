@@ -68,6 +68,7 @@ export const toShareLinkId = (value: string): ShareLinkId => value as ShareLinkI
 export type ShareLinkToken = Brand<string, 'ShareLinkToken'>;
 export const toShareLinkToken = (value: string): ShareLinkToken => value as ShareLinkToken;
 
+export type CommentText = string;
 export type UserId = string;
 export type DisplayName = string;
 export type Email = string;
@@ -991,7 +992,7 @@ interface Comment {
     authorId: UserId;
     authorName: string;
     authorAvatar?: string;
-    text: string;
+    text: CommentText;
 }
 
 /**

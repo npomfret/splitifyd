@@ -1,5 +1,6 @@
-import type {Email, GroupName, UserId, VersionHash} from '@splitifyd/shared';
+import type {CommentText, Email, GroupName, UserId, VersionHash} from '@splitifyd/shared';
 import {
+    AcceptMultiplePoliciesResponse,
     type ActivityFeedResponse,
     ApiSerializer,
     AuthenticatedFirebaseUser,
@@ -405,7 +406,7 @@ export class ApiDriver {
         return this.getPolicy(policyId);
     }
 
-    async acceptMultiplePolicies(acceptances: Array<{ policyId: PolicyId; versionHash: VersionHash; }>, token: string): Promise<any> {
+    async acceptMultiplePolicies(acceptances: Array<{ policyId: PolicyId; versionHash: VersionHash; }>, token: string): Promise<AcceptMultiplePoliciesResponse> {
         return await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
     }
 
@@ -425,20 +426,12 @@ export class ApiDriver {
         return await this.apiRequest('/user/change-email', 'POST', { currentPassword, newEmail }, token);
     }
 
-    async createComment(id: string, type: 'group' | 'expense', text: string, token: string): Promise<CommentDTO> {
-        if (type === 'group') {
-            return this.createGroupComment(id, text, token);
-        } else {
-            return this.createExpenseComment(id, text, token);
-        }
-    }
-
     // Comment API methods
-    async createGroupComment(groupId: GroupId | string, text: string, token: string): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId | string, text: CommentText, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
     }
 
-    async createExpenseComment(expenseId: ExpenseId | string, text: string, token: string): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText, token: string): Promise<CommentDTO> {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
