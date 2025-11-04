@@ -1,4 +1,4 @@
-import { CreateSettlementRequestBuilder, SettlementUpdateBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import {CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -23,10 +23,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(userId);
-            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -36,7 +36,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote('Test settlement')
                 .build();
 
-            const result = await appDriver.createSettlement(userId, settlementRequest);
+            const result = await appDriver.createSettlement(settlementRequest, userId);
 
             expect(result).toMatchObject({
                 id: expect.any(String),
@@ -58,10 +58,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(userId);
-            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -71,7 +71,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote('Paid<script>alert(1)</script>')
                 .build();
 
-            const result = await appDriver.createSettlement(userId, settlementRequest);
+            const result = await appDriver.createSettlement(settlementRequest, userId);
 
             expect(result.note).toBe('Paid');
         });
@@ -85,10 +85,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(userId);
-            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -98,7 +98,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withoutNote()
                 .build();
 
-            const result = await appDriver.createSettlement(userId, settlementRequest);
+            const result = await appDriver.createSettlement(settlementRequest, userId);
 
             expect(result).toMatchObject({
                 amount: '50',
@@ -114,7 +114,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(0, 'USD')
                 .build();
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -130,7 +130,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(-50, 'USD')
                 .build();
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -146,7 +146,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -163,7 +163,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             (invalidRequest as any).currency = 'US';
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -179,7 +179,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100.50, 'JPY')
                 .build();
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -197,7 +197,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote(longNote)
                 .build();
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -214,7 +214,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             delete (invalidRequest as any).groupId;
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -231,7 +231,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             delete (invalidRequest as any).payerId;
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -248,7 +248,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             delete (invalidRequest as any).payeeId;
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -265,7 +265,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             delete (invalidRequest as any).amount;
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -282,7 +282,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             delete (invalidRequest as any).currency;
 
-            await expect(appDriver.createSettlement('test-user', invalidRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(invalidRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -301,7 +301,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            await expect(appDriver.createSettlement(userId, settlementRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(settlementRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                 }),
@@ -319,10 +319,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId);
             appDriver.seedUser(payeeId);
 
-            const group = await appDriver.createGroup(creatorId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -331,7 +331,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            await expect(appDriver.createSettlement(nonMemberId, settlementRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(settlementRequest, nonMemberId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -346,9 +346,9 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser('non-member-payer');
             appDriver.seedUser(payeeId);
 
-            const group = await appDriver.createGroup(userId);
-            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -357,7 +357,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            await expect(appDriver.createSettlement(userId, settlementRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(settlementRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                 }),
@@ -372,9 +372,9 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId);
             appDriver.seedUser('non-member-payee');
 
-            const group = await appDriver.createGroup(userId);
-            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -383,7 +383,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            await expect(appDriver.createSettlement(userId, settlementRequest)).rejects.toThrow(
+            await expect(appDriver.createSettlement(settlementRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                 }),
@@ -401,10 +401,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(userId);
-            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -413,13 +413,13 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            const created = await appDriver.createSettlement(userId, settlementRequest);
+            const created = await appDriver.createSettlement(settlementRequest, userId);
 
             const updateRequest = new SettlementUpdateBuilder()
                 .withAmount(150.75, 'USD')
                 .build();
 
-            const result = await appDriver.updateSettlement(userId, created.id, updateRequest);
+            const result = await appDriver.updateSettlement(created.id, updateRequest, userId);
 
             expect(result).toMatchObject({
                 id: created.id,
@@ -436,10 +436,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(userId);
-            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -449,13 +449,13 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote('Old note')
                 .build();
 
-            const created = await appDriver.createSettlement(userId, settlementRequest);
+            const created = await appDriver.createSettlement(settlementRequest, userId);
 
             const updateRequest = new SettlementUpdateBuilder()
                 .withNote('Updated note')
                 .build();
 
-            const result = await appDriver.updateSettlement(userId, created.id, updateRequest);
+            const result = await appDriver.updateSettlement(created.id, updateRequest, userId);
 
             expect(result).toMatchObject({
                 id: created.id,
@@ -472,10 +472,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(userId);
-            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -485,13 +485,13 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withNote('Initial note')
                 .build();
 
-            const created = await appDriver.createSettlement(userId, settlementRequest);
+            const created = await appDriver.createSettlement(settlementRequest, userId);
 
             const updateRequest = new SettlementUpdateBuilder()
                 .withNote('Updated<script>alert(1)</script>')
                 .build();
 
-            const result = await appDriver.updateSettlement(userId, created.id, updateRequest);
+            const result = await appDriver.updateSettlement(created.id, updateRequest, userId);
 
             expect(result.note).toBe('Updated');
         });
@@ -499,7 +499,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         it('should reject update with invalid settlement ID', async () => {
             const updateRequest = { amount: '150' };
 
-            await expect(appDriver.updateSettlement('test-user', '', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'INVALID_SETTLEMENT_ID',
@@ -510,7 +510,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         it('should reject update with no fields provided', async () => {
             const updateRequest = {};
 
-            await expect(appDriver.updateSettlement('test-user', 'test-settlement', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -524,7 +524,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 currency: 'JPY',
             };
 
-            await expect(appDriver.updateSettlement('test-user', 'test-settlement', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -538,7 +538,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
             const updateRequest = { amount: '150' };
 
-            await expect(appDriver.updateSettlement(userId, 'non-existent-settlement', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('non-existent-settlement', updateRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                 }),
@@ -556,10 +556,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId);
             appDriver.seedUser(payeeId);
 
-            const group = await appDriver.createGroup(creatorId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -568,13 +568,13 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            const created = await appDriver.createSettlement(creatorId, settlementRequest);
+            const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
             const updateRequest = new SettlementUpdateBuilder()
                 .withAmount(150, 'USD')
                 .build();
 
-            await expect(appDriver.updateSettlement(nonMemberId, created.id, updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateSettlement(created.id, updateRequest, nonMemberId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -592,11 +592,11 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(adminId);
-            const { shareToken } = await appDriver.generateShareableLink(adminId, group.id);
-            await appDriver.joinGroupByLink(creatorId, shareToken);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, adminId);
+            await appDriver.joinGroupByLink(shareToken, undefined, creatorId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -605,13 +605,13 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            const created = await appDriver.createSettlement(creatorId, settlementRequest);
+            const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
             const updateRequest = new SettlementUpdateBuilder()
                 .withAmount(200.50, 'USD')
                 .build();
 
-            await expect(appDriver.updateSettlement(adminId, created.id, updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateSettlement(created.id, updateRequest, adminId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -621,7 +621,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         it('should reject update with zero amount', async () => {
             const updateRequest = { amount: '0' };
 
-            await expect(appDriver.updateSettlement('test-user', 'test-settlement', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -632,7 +632,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         it('should reject update with negative amount', async () => {
             const updateRequest = { amount: '-50' };
 
-            await expect(appDriver.updateSettlement('test-user', 'test-settlement', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -644,7 +644,7 @@ describe('SettlementHandlers - Unit Tests', () => {
             const longNote = 'a'.repeat(501);
             const updateRequest = { note: longNote };
 
-            await expect(appDriver.updateSettlement('test-user', 'test-settlement', updateRequest)).rejects.toThrow(
+            await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'VALIDATION_ERROR',
@@ -663,10 +663,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(userId);
-            const { shareToken } = await appDriver.generateShareableLink(userId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -675,7 +675,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            const created = await appDriver.createSettlement(userId, settlementRequest);
+            const created = await appDriver.createSettlement(settlementRequest, userId);
 
             const result = await appDriver.deleteSettlement(userId, created.id);
 
@@ -712,11 +712,11 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(adminId);
-            const { shareToken } = await appDriver.generateShareableLink(adminId, group.id);
-            await appDriver.joinGroupByLink(creatorId, shareToken);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, adminId);
+            await appDriver.joinGroupByLink(shareToken, undefined, creatorId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -725,7 +725,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            const created = await appDriver.createSettlement(creatorId, settlementRequest);
+            const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
             const result = await appDriver.deleteSettlement(adminId, created.id);
 
@@ -745,10 +745,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(creatorId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -757,7 +757,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            const created = await appDriver.createSettlement(creatorId, settlementRequest);
+            const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
             await expect(appDriver.deleteSettlement(nonMemberId, created.id)).rejects.toThrow(
                 expect.objectContaining({
@@ -777,11 +777,11 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(creatorId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorId, group.id);
-            await appDriver.joinGroupByLink(otherMemberId, shareToken);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
+            await appDriver.joinGroupByLink(shareToken, undefined, otherMemberId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -790,7 +790,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            const created = await appDriver.createSettlement(creatorId, settlementRequest);
+            const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
             await expect(appDriver.deleteSettlement(otherMemberId, created.id)).rejects.toThrow(
                 expect.objectContaining({
@@ -808,10 +808,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             appDriver.seedUser(payerId, { displayName: 'Payer' });
             appDriver.seedUser(payeeId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(creatorId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorId, group.id);
-            await appDriver.joinGroupByLink(payerId, shareToken);
-            await appDriver.joinGroupByLink(payeeId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeId);
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId(group.id)
@@ -820,7 +820,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 .withAmount(100, 'USD')
                 .build();
 
-            const created = await appDriver.createSettlement(creatorId, settlementRequest);
+            const created = await appDriver.createSettlement(settlementRequest, creatorId);
 
             const result = await appDriver.deleteSettlement(creatorId, created.id);
 

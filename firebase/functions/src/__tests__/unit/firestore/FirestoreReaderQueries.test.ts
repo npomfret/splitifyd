@@ -28,14 +28,14 @@ describe('FirestoreReader Queries - Unit Tests', () => {
     describe('getGroupsForUser - Query Behavior', () => {
         test('should return groups for user using top-level collection architecture', async () => {
             // Create a group
-            const group = await appDriver.createGroup(userId, {
+            const group = await appDriver.createGroup({
                 name: toGroupName('Test Group V2'),
                 groupDisplayName: 'Owner Display',
                 description: 'Test group for query testing',
-            });
+            }, userId);
 
             // Query groups for user
-            const paginatedGroups = await appDriver.listGroups(userId);
+            const paginatedGroups = await appDriver.listGroups({}, userId);
 
             // Should find the created group
             expect(paginatedGroups.groups).toHaveLength(1);
@@ -46,7 +46,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
 
         test('should return empty array for user with no groups', async () => {
             // Query groups for user with no groups
-            const paginatedGroups = await appDriver.listGroups(userId);
+            const paginatedGroups = await appDriver.listGroups({}, userId);
 
             expect(paginatedGroups.groups).toHaveLength(0);
             expect(paginatedGroups.hasMore).toBe(false);
@@ -57,21 +57,21 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             const groupNames = ['Group A', 'Group B', 'Group C'];
 
             for (const name of groupNames) {
-                await appDriver.createGroup(userId, {
+                await appDriver.createGroup({
                     name: toGroupName(name),
                     groupDisplayName: `Owner ${name}`,
                     description: `Test group ${name}`,
-                });
+                }, userId);
             }
 
             // Test limit - should return paginated result with hasMore=true
-            const limitedGroups = await appDriver.listGroups(userId, { limit: 2 });
+            const limitedGroups = await appDriver.listGroups({limit: 2}, userId);
             expect(limitedGroups.groups).toHaveLength(2);
             expect(limitedGroups.hasMore).toBe(true);
             expect(limitedGroups.nextCursor).toBeDefined();
 
             // Test getting all groups
-            const allGroups = await appDriver.listGroups(userId, { limit: 10 });
+            const allGroups = await appDriver.listGroups({limit: 10}, userId);
             expect(allGroups.groups).toHaveLength(3);
             expect(allGroups.hasMore).toBe(false);
 
@@ -83,24 +83,24 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         test('should support cursor-based pagination', async () => {
             // Create 5 groups
             for (let i = 0; i < 5; i++) {
-                await appDriver.createGroup(userId, {
+                await appDriver.createGroup({
                     name: toGroupName(`Group ${i}`),
                     groupDisplayName: `Owner Alias ${i}`,
                     description: `Test group ${i}`,
-                });
+                }, userId);
             }
 
             // Get first page
-            const firstPage = await appDriver.listGroups(userId, { limit: 2 });
+            const firstPage = await appDriver.listGroups({limit: 2}, userId);
             expect(firstPage.groups).toHaveLength(2);
             expect(firstPage.hasMore).toBe(true);
             expect(firstPage.nextCursor).toBeDefined();
 
             // Get second page using cursor
-            const secondPage = await appDriver.listGroups(userId, {
+            const secondPage = await appDriver.listGroups({
                 limit: 2,
                 cursor: firstPage.nextCursor,
-            });
+            }, userId);
             expect(secondPage.groups).toHaveLength(2);
             expect(secondPage.hasMore).toBe(true);
 
@@ -109,42 +109,42 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             // For strict non-overlap testing, use the integration test with real Firebase
 
             // Get final page
-            const finalPage = await appDriver.listGroups(userId, {
+            const finalPage = await appDriver.listGroups({
                 limit: 2,
                 cursor: secondPage.nextCursor,
-            });
+            }, userId);
             // Final page should have at most 1 group (since 5 total, 2+2=4 already seen)
             expect(finalPage.groups.length).toBeLessThanOrEqual(2);
         });
 
         test('should handle ordering by updated timestamp', async () => {
             // Create groups with slight delays
-            const group1 = await appDriver.createGroup(userId, {
+            const group1 = await appDriver.createGroup({
                 name: toGroupName('First Group'),
                 groupDisplayName: 'Owner Display',
                 description: 'Created first',
-            });
+            }, userId);
 
             await new Promise((resolve) => setTimeout(resolve, 10));
 
-            const group2 = await appDriver.createGroup(userId, {
+            const group2 = await appDriver.createGroup({
                 name: toGroupName('Second Group'),
                 groupDisplayName: 'Owner Display',
                 description: 'Created second',
-            });
+            }, userId);
 
             await new Promise((resolve) => setTimeout(resolve, 10));
 
-            const group3 = await appDriver.createGroup(userId, {
+            const group3 = await appDriver.createGroup({
                 name: toGroupName('Third Group'),
                 groupDisplayName: 'Owner Display',
                 description: 'Created third',
-            });
+            }, userId);
 
             // Get groups ordered by updatedAt (descending - newest first)
-            const groups = await appDriver.listGroups(userId, {
+            const groups = await appDriver.listGroups({
                 order: 'desc',
-            });
+            }, userId);
 
             // Newest group should be first
             expect(groups.groups[0].id).toBe(group3.id);
@@ -155,13 +155,13 @@ describe('FirestoreReader Queries - Unit Tests', () => {
 
     describe('getGroup - Direct Retrieval', () => {
         test('should get group by id', async () => {
-            const group = await appDriver.createGroup(userId, {
+            const group = await appDriver.createGroup({
                 name: toGroupName('Group for getGroup test'),
                 groupDisplayName: 'Owner Display',
                 description: 'Direct retrieval test',
-            });
+            }, userId);
 
-            const retrieved = await appDriver.getGroup(userId, group.id);
+            const retrieved = await appDriver.getGroup(group.id, userId);
 
             expect(retrieved).toBeDefined();
             expect(retrieved.id).toBe(group.id);
@@ -170,7 +170,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         });
 
         test('should throw error for non-existent group', async () => {
-            await expect(appDriver.getGroup(userId, 'non-existent-id')).rejects.toThrow();
+            await expect(appDriver.getGroup('non-existent-id', userId)).rejects.toThrow();
         });
 
         test('should throw error when user is not a member', async () => {
@@ -180,39 +180,39 @@ describe('FirestoreReader Queries - Unit Tests', () => {
                 email: 'other@example.com',
             });
 
-            const group = await appDriver.createGroup(userId, {
+            const group = await appDriver.createGroup({
                 name: toGroupName('Private Group'),
                 groupDisplayName: 'Owner Display',
                 description: 'Only creator can access',
-            });
+            }, userId);
 
             // Other user should not be able to access
             // Note: The system returns "Group not found" for security (doesn't reveal group exists)
-            await expect(appDriver.getGroup(otherUserId, group.id)).rejects.toThrow(/not found|not.*member|forbidden|access.*denied/i);
+            await expect(appDriver.getGroup(group.id, otherUserId)).rejects.toThrow(/not found|not.*member|forbidden|access.*denied/i);
         });
     });
 
     describe('Query Edge Cases', () => {
         test('should handle empty results gracefully', async () => {
-            const groups = await appDriver.listGroups(userId);
+            const groups = await appDriver.listGroups({}, userId);
             expect(groups.groups).toEqual([]);
             expect(groups.hasMore).toBe(false);
             expect(groups.nextCursor).toBeUndefined();
         });
 
         test('should handle limit larger than total groups', async () => {
-            await appDriver.createGroup(userId, { name: toGroupName('Only Group'), groupDisplayName: 'Owner Display' });
+            await appDriver.createGroup({name: toGroupName('Only Group'), groupDisplayName: 'Owner Display'}, userId);
 
-            const groups = await appDriver.listGroups(userId, { limit: 100 });
+            const groups = await appDriver.listGroups({limit: 100}, userId);
             expect(groups.groups).toHaveLength(1);
             expect(groups.hasMore).toBe(false);
         });
 
         test('should handle limit of 1', async () => {
-            await appDriver.createGroup(userId, { name: toGroupName('Group 1'), groupDisplayName: 'Owner Display' });
-            await appDriver.createGroup(userId, { name: toGroupName('Group 2'), groupDisplayName: 'Owner Display' });
+            await appDriver.createGroup({name: toGroupName('Group 1'), groupDisplayName: 'Owner Display'}, userId);
+            await appDriver.createGroup({name: toGroupName('Group 2'), groupDisplayName: 'Owner Display'}, userId);
 
-            const groups = await appDriver.listGroups(userId, { limit: 1 });
+            const groups = await appDriver.listGroups({limit: 1}, userId);
             expect(groups.groups).toHaveLength(1);
             expect(groups.hasMore).toBe(true);
         });
@@ -221,10 +221,10 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             // Create 10 groups
             const createdGroups = [];
             for (let i = 0; i < 10; i++) {
-                const group = await appDriver.createGroup(userId, {
+                const group = await appDriver.createGroup({
                     name: toGroupName(`Group ${String(i).padStart(2, '0')}`),
                     groupDisplayName: `Owner Alias ${i}`,
-                });
+                }, userId);
                 createdGroups.push(group);
                 await new Promise((resolve) => setTimeout(resolve, 2));
             }
@@ -235,11 +235,11 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             let pageCount = 0;
 
             do {
-                const page = await appDriver.listGroups(userId, {
+                const page = await appDriver.listGroups({
                     limit: 3,
                     cursor,
                     order: 'desc',
-                });
+                }, userId);
                 allFetchedGroups = allFetchedGroups.concat(page.groups);
                 cursor = page.nextCursor;
                 pageCount++;

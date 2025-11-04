@@ -333,7 +333,7 @@ describe('PolicyHandlers - Unit Tests', () => {
                 publish: false,
             });
 
-            const result = await appDriver.deletePolicyVersion(userId, created.id, draft.versionHash);
+            const result = await appDriver.deletePolicyVersion(created.id, draft.versionHash, userId);
 
             expect(result).toMatchObject({
                 success: true,
@@ -350,7 +350,7 @@ describe('PolicyHandlers - Unit Tests', () => {
                 text: 'Current version',
             }, userId);
 
-            await expect(appDriver.deletePolicyVersion(userId, created.id, created.versionHash)).rejects.toThrow(
+            await expect(appDriver.deletePolicyVersion(created.id, created.versionHash, userId)).rejects.toThrow(
                 'Cannot delete the current published version',
             );
         });
@@ -369,7 +369,7 @@ describe('PolicyHandlers - Unit Tests', () => {
                 publish: false,
             });
 
-            const result = await appDriver.deletePolicyVersion(userId, created.id, draft.versionHash);
+            const result = await appDriver.deletePolicyVersion(created.id, draft.versionHash, userId);
 
             expect(result).toMatchObject({
                 success: true,
@@ -384,7 +384,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
             appDriver.seedAdminUser(userId, {});
 
-            await expect(appDriver.deletePolicyVersion(userId, policyId, versionHash)).rejects.toThrow('Policy not found');
+            await expect(appDriver.deletePolicyVersion(policyId, versionHash, userId)).rejects.toThrow('Policy not found');
         });
 
         it('should reject deletion for non-existent version', async () => {
@@ -401,7 +401,7 @@ describe('PolicyHandlers - Unit Tests', () => {
                 publish: false,
             });
 
-            await expect(appDriver.deletePolicyVersion(userId, created.id, 'non-existent-hash')).rejects.toThrow(
+            await expect(appDriver.deletePolicyVersion(created.id, 'non-existent-hash', userId)).rejects.toThrow(
                 'Version not found',
             );
         });

@@ -5,6 +5,7 @@ import {
     ActivityFeedItem,
     ChangeEmailRequest,
     CommentDTO,
+    CommentText,
     CreateExpenseRequest,
     CreatePolicyResponse,
     CreateSettlementRequest,
@@ -321,11 +322,8 @@ export class AppDriver {
 
     dispose() {}
 
-    async listGroups(
-        userId1: UserId,
-        options: ListGroupsOptions = {},
-    ) {
-        const req = createStubRequest(userId1, {});
+    async listGroups(options: ListGroupsOptions = {}, userId: UserId,) {
+        const req = createStubRequest(userId, {});
         const query: Record<string, string> = {};
 
         if (options.limit !== undefined) {
@@ -350,12 +348,8 @@ export class AppDriver {
         return res.getJson() as ListGroupsResponse;
     }
 
-    async getGroupFullDetails(
-        userId1: UserId,
-        groupId: GroupId | string,
-        options: GetGroupFullDetailsOptions = {},
-    ) {
-        const req = createStubRequest(userId1, {}, { id: groupId });
+    async getGroupFullDetails(groupId: GroupId | string, options: GetGroupFullDetailsOptions = {}, userId: UserId,) {
+        const req = createStubRequest(userId, {}, { id: groupId });
         const query: Record<string, string> = {};
 
         if (options.expenseLimit !== undefined) {
@@ -383,161 +377,163 @@ export class AppDriver {
         return res.getJson() as GroupFullDetailsDTO;
     }
 
-    async createGroup(userId1: UserId, groupRequest = new CreateGroupRequestBuilder().build()) {
-        const req = createStubRequest(userId1, groupRequest);
+    async createGroup(groupRequest = new CreateGroupRequestBuilder().build(), userId: UserId) {
+        const req = createStubRequest(userId, groupRequest);
         const res = await this.dispatchByHandler('createGroup', req);
         return res.getJson() as GroupDTO;
     }
 
-    async generateShareableLink(userId1: UserId, groupId: GroupId | string, expiresAt?: string): Promise<ShareLinkResponse> {
+    async generateShareableLink(groupId: GroupId | string, expiresAt: string | undefined = undefined, userId: UserId): Promise<ShareLinkResponse> {
         const body: Record<string, unknown> = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;
         }
 
-        const req = createStubRequest(userId1, body);
+        const req = createStubRequest(userId, body);
         const res = await this.dispatchByHandler('generateShareableLink', req);
         return res.getJson() as ShareLinkResponse;
     }
 
-    async joinGroupByLink(userId1: UserId, shareToken: string, groupDisplayName?: string): Promise<JoinGroupResponse> {
-        const displayName = groupDisplayName || `User ${userId1}`;
-        const req = createStubRequest(userId1, { shareToken, groupDisplayName: displayName });
+    async joinGroupByLink(shareToken: string, groupDisplayName: DisplayName | string | undefined = undefined, userId: UserId): Promise<JoinGroupResponse> {
+        const displayName = groupDisplayName || `User ${userId}`;
+        const req = createStubRequest(userId, { shareToken, groupDisplayName: displayName });
         const res = await this.dispatchByHandler('joinGroupByLink', req);
         return res.getJson() as JoinGroupResponse;
     }
 
-    async previewGroupByLink(userId: UserId, shareToken: string): Promise<PreviewGroupResponse> {
+    async previewGroupByLink(shareToken: string, userId: UserId): Promise<PreviewGroupResponse> {
         const req = createStubRequest(userId, { shareToken });
         const res = await this.dispatchByHandler('previewGroupByLink', req);
         return res.getJson() as PreviewGroupResponse;
     }
 
-    async updateGroup(userId: UserId, groupId: GroupId | string, updates: Partial<UpdateGroupRequest>) {
+    async updateGroup(groupId: GroupId | string, updates: Partial<UpdateGroupRequest>, userId: UserId) {
         const req = createStubRequest(userId, updates, { id: groupId });
         const res = await this.dispatchByHandler('updateGroup', req);
         return res.getJson() as GroupDTO;
     }
 
-    async deleteGroup(userId: UserId, groupId: GroupId | string) {
+    async deleteGroup(groupId: GroupId | string, userId: UserId) {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = await this.dispatchByHandler('deleteGroup', req);
         return res.getJson() as MessageResponse;
     }
 
-    async getGroup(userId: UserId, groupId: GroupId | string): Promise<GroupDTO> {
-        const details = await this.getGroupFullDetails(userId, groupId);
+    async getGroup(groupId: GroupId | string, userId: UserId): Promise<GroupDTO> {
+        const details = await this.getGroupFullDetails(groupId, {}, userId);
         return details.group;
     }
 
-    async getGroupBalances(userId: UserId, groupId: GroupId | string) {
-        const details = await this.getGroupFullDetails(userId, groupId);
+    async getGroupBalances(groupId: GroupId | string, userId: UserId) {
+        const details = await this.getGroupFullDetails(groupId, {}, userId);
         return details.balances;
     }
 
+    // todo
     async getGroupExpenses(userId: UserId, groupId: GroupId | string, options?: { expenseLimit?: number; expenseCursor?: string; }) {
-        const details = await this.getGroupFullDetails(userId, groupId, options);
+        const details = await this.getGroupFullDetails(groupId, options, userId);
         return details.expenses;
     }
 
-    async leaveGroup(userId: UserId, groupId: GroupId | string): Promise<MessageResponse> {
+    async leaveGroup(groupId: GroupId | string, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = await this.dispatchByHandler('leaveGroup', req);
         return res.getJson() as MessageResponse;
     }
 
-    async removeGroupMember(userId: UserId, groupId: GroupId | string, memberId: UserId): Promise<MessageResponse> {
+    async removeGroupMember(groupId: GroupId | string, memberId: UserId, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId, memberId });
         const res = await this.dispatchByHandler('removeGroupMember', req);
         return res.getJson() as MessageResponse;
     }
 
-    async archiveGroupForUser(userId: UserId, groupId: GroupId | string): Promise<MessageResponse> {
+    async archiveGroupForUser(groupId: GroupId | string, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = await this.dispatchByHandler('archiveGroupForUser', req);
         return res.getJson() as MessageResponse;
     }
 
-    async unarchiveGroupForUser(userId: UserId, groupId: GroupId | string): Promise<MessageResponse> {
+    async unarchiveGroupForUser(groupId: GroupId | string, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = await this.dispatchByHandler('unarchiveGroupForUser', req);
         return res.getJson() as MessageResponse;
     }
 
-    async updateGroupMemberDisplayName(userId: UserId, groupId: GroupId | string, displayName: DisplayName): Promise<MessageResponse> {
+    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, { displayName }, { id: groupId });
         const res = await this.dispatchByHandler('updateGroupMemberDisplayName', req);
         return res.getJson() as MessageResponse;
     }
 
-    async updateGroupPermissions(userId: UserId, groupId: GroupId | string, updates: Partial<GroupPermissions>): Promise<MessageResponse> {
+    async updateGroupPermissions(groupId: GroupId | string, updates: Partial<GroupPermissions>, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, updates, { id: groupId });
         const res = await this.dispatchByHandler('updateGroupPermissions', req);
         return res.getJson() as MessageResponse;
     }
 
-    async getPendingMembers(userId: UserId, groupId: GroupId | string): Promise<{ members: GroupMembershipDTO[]; }> {
+    //todo
+    async getPendingMembers(groupId: GroupId | string, userId: UserId): Promise<{ members: GroupMembershipDTO[] }> {
         const req = createStubRequest(userId, {}, { id: groupId });
         const res = await this.dispatchByHandler('getPendingMembers', req);
         return res.getJson() as { members: GroupMembershipDTO[]; };
     }
 
-    async updateMemberRole(userId: UserId, groupId: GroupId | string, memberId: UserId, role: MemberRole): Promise<MessageResponse> {
+    async updateMemberRole(groupId: GroupId | string, memberId: UserId, role: MemberRole, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, { role }, { id: groupId, memberId });
         const res = await this.dispatchByHandler('updateMemberRole', req);
         return res.getJson() as MessageResponse;
     }
 
-    async approveMember(userId: UserId, groupId: GroupId | string, memberId: UserId): Promise<MessageResponse> {
+    async approveMember(groupId: GroupId | string, memberId: UserId, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId, memberId });
         const res = await this.dispatchByHandler('approveMember', req);
         return res.getJson() as MessageResponse;
     }
 
-    async rejectMember(userId: UserId, groupId: GroupId | string, memberId: UserId): Promise<MessageResponse> {
+    async rejectMember(groupId: GroupId | string, memberId: UserId, userId: UserId): Promise<MessageResponse> {
         const req = createStubRequest(userId, {}, { id: groupId, memberId });
         const res = await this.dispatchByHandler('rejectMember', req);
         return res.getJson() as MessageResponse;
     }
 
-    async createExpense(userId1: UserId, expenseRequest: CreateExpenseRequest): Promise<ExpenseDTO> {
-        const req = createStubRequest(userId1, expenseRequest);
+    async createExpense(expenseRequest: CreateExpenseRequest, userId: UserId): Promise<ExpenseDTO> {
+        const req = createStubRequest(userId, expenseRequest);
         const res = await this.dispatchByHandler('createExpense', req);
         return res.getJson() as ExpenseDTO;
     }
 
-    async updateExpense(userId: UserId, expenseId: ExpenseId | string, updateBody: UpdateExpenseRequest): Promise<ExpenseDTO> {
+    async updateExpense(expenseId: ExpenseId | string, updateBody: UpdateExpenseRequest, userId: UserId): Promise<ExpenseDTO> {
         const req = createStubRequest(userId, updateBody);
         req.query = { id: expenseId };
         const res = await this.dispatchByHandler('updateExpense', req);
         return res.getJson() as ExpenseDTO;
     }
 
-    async deleteExpense(userId: UserId, expenseId: ExpenseId | string) {
+    async deleteExpense(expenseId: ExpenseId | string, userId: UserId) {
         const req = createStubRequest(userId, {});
         req.query = { id: expenseId };
         const res = await this.dispatchByHandler('deleteExpense', req);
         return res.getJson() as MessageResponse;
     }
 
-    async getExpense(userId: UserId, expenseId: ExpenseId | string): Promise<ExpenseDTO> {
-        const fullDetails = await this.getExpenseFullDetails(userId, expenseId);
+    async getExpense(expenseId: ExpenseId | string, userId: UserId): Promise<ExpenseDTO> {
+        const fullDetails = await this.getExpenseFullDetails(expenseId, userId);
         return fullDetails.expense;
     }
 
-    async getExpenseFullDetails(userId: UserId, expenseId: ExpenseId | string) {
+    async getExpenseFullDetails(expenseId: ExpenseId | string, userId: UserId) {
         const req = createStubRequest(userId, {}, { id: expenseId });
         const res = await this.dispatchByHandler('getExpenseFullDetails', req);
         return res.getJson() as ExpenseFullDetailsDTO;
     }
 
-    async createSettlement(userId: UserId, settlementRequest: CreateSettlementRequest): Promise<SettlementDTO> {
+    async createSettlement(settlementRequest: CreateSettlementRequest, userId: UserId): Promise<SettlementDTO> {
         const req = createStubRequest(userId, settlementRequest);
         const res = await this.dispatchByHandler('createSettlement', req);
         return res.getJson() as SettlementDTO;
     }
 
-    async updateSettlement(userId: UserId, settlementId: SettlementId | string, updateRequest: UpdateSettlementRequest): Promise<SettlementWithMembers> {
+    async updateSettlement(settlementId: SettlementId | string, updateRequest: UpdateSettlementRequest, userId: UserId): Promise<SettlementWithMembers> {
         const req = createStubRequest(userId, updateRequest, { settlementId });
         const res = await this.dispatchByHandler('updateSettlement', req);
         return res.getJson() as SettlementWithMembers;
@@ -549,11 +545,11 @@ export class AppDriver {
         return res.getJson() as MessageResponse;
     }
 
-    async getSettlement(userId: UserId, groupId: GroupId | string, settlementId: SettlementId | string): Promise<SettlementWithMembers> {
+    async getSettlement(groupId: GroupId | string, settlementId: SettlementId | string, userId: UserId): Promise<SettlementWithMembers> {
         let fullDetails;
 
         try {
-            fullDetails = await this.getGroupFullDetails(userId, groupId);
+            fullDetails = await this.getGroupFullDetails(groupId, {}, userId);
         } catch (error: any) {
             // If getGroupFullDetails fails, it means the user can't access the group
             // This should be treated as NOT_GROUP_MEMBER regardless of the specific error code
@@ -585,17 +581,13 @@ export class AppDriver {
         return settlement;
     }
 
-    async createGroupComment(userId: UserId, groupId: GroupId | string, text: string): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId | string, text: CommentText | string, userId: UserId): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { groupId });
         const res = await this.dispatchByHandler('createComment', req);
         return res.getJson() as CommentDTO;
     }
 
-    async listGroupComments(
-        userId: UserId,
-        groupId: GroupId | string,
-        options: ListCommentsOptions = {},
-    ): Promise<ListCommentsResponse> {
+    async listGroupComments(groupId: GroupId | string, options: ListCommentsOptions = {}, userId: UserId): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { groupId });
         const query: Record<string, string> = {};
         if (options.limit !== undefined) {
@@ -609,17 +601,13 @@ export class AppDriver {
         return res.getJson() as ListCommentsResponse;
     }
 
-    async createExpenseComment(userId: UserId, expenseId: ExpenseId | string, text: string): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, userId: UserId): Promise<CommentDTO> {
         const req = createStubRequest(userId, { text }, { expenseId });
         const res = await this.dispatchByHandler('createCommentForExpense', req);
         return res.getJson() as CommentDTO;
     }
 
-    async listExpenseComments(
-        userId: UserId,
-        expenseId: ExpenseId | string,
-        options: ListCommentsOptions = {},
-    ): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId | string, options: ListCommentsOptions = {}, userId: UserId): Promise<ListCommentsResponse> {
         const req = createStubRequest(userId, {}, { expenseId });
         const query: Record<string, string> = {};
         if (options.limit !== undefined) {
@@ -663,12 +651,14 @@ export class AppDriver {
         return res.getJson() as RegisterUserResult;
     }
 
+    //todo
     async createPolicy(policyData: { policyName: string; text: string }, userId: UserId): Promise<CreatePolicyResponse> {
         const req = createStubRequest(userId, policyData);
         const res = await this.dispatchByHandler('createPolicy', req);
         return res.getJson() as CreatePolicyResponse;
     }
 
+    //todo
     async listPolicies(userId: UserId): Promise<{ policies: PolicyDTO[]; count: number; }> {
         const req = createStubRequest(userId, {});
         const res = await this.dispatchByHandler('listPolicies', req);
@@ -687,6 +677,7 @@ export class AppDriver {
         return res.getJson() as PolicyVersion & { versionHash: VersionHash; };
     }
 
+    //todo
     async updatePolicy(userId: UserId, policyId: PolicyId, updateData: { text: string; publish?: boolean; }): Promise<UpdatePolicyResponse> {
         const req = createStubRequest(userId, updateData, { id: policyId });
         const res = await this.dispatchByHandler('updatePolicy', req);
@@ -699,12 +690,13 @@ export class AppDriver {
         return res.getJson() as PublishPolicyResponse;
     }
 
-    async deletePolicyVersion(userId: UserId, policyId: PolicyId, versionHash: VersionHash): Promise<DeletePolicyVersionResponse> {
+    async deletePolicyVersion(policyId: PolicyId, versionHash: VersionHash, userId: UserId): Promise<DeletePolicyVersionResponse> {
         const req = createStubRequest(userId, {}, { id: policyId, hash: versionHash });
         const res = await this.dispatchByHandler('deletePolicyVersion', req);
         return res.getJson() as DeletePolicyVersionResponse;
     }
 
+    //todo
     async acceptMultiplePolicies(userId: UserId, acceptances: Array<{ policyId: PolicyId; versionHash: VersionHash; }>): Promise<AcceptMultiplePoliciesResponse> {
         const req = createStubRequest(userId, { acceptances });
         const res = await this.dispatchByHandler('acceptMultiplePolicies', req);
@@ -723,10 +715,7 @@ export class AppDriver {
         return res.getJson() as CurrentPolicyResponse;
     }
 
-    async getActivityFeed(
-        userId: UserId,
-        options: GetActivityFeedOptions = {},
-    ): Promise<{ items: ActivityFeedItem[]; hasMore: boolean; nextCursor?: string; }> {
+    async getActivityFeed(options: GetActivityFeedOptions = {}, userId: UserId): Promise<{ items: ActivityFeedItem[]; hasMore: boolean; nextCursor?: string }> {
         const req = createStubRequest(userId, {});
         const query: Record<string, string> = {};
 
@@ -818,10 +807,10 @@ export class AppDriver {
     /**
      * Test helper - convenience function for adding multiple members to a group
      */
-    async addMembersToGroup(groupId: GroupId | string, ownerUserId: string, memberUserIds: string[]) {
-        const shareLink = await this.generateShareableLink(ownerUserId, groupId);
+    async addMembersToGroup(groupId: GroupId | string, ownerUserId: UserId | string, memberUserIds: string[] | UserId[]) {
+        const shareLink = await this.generateShareableLink(groupId, undefined, ownerUserId);
         for (const userId of memberUserIds) {
-            await this.joinGroupByLink(userId, shareLink.shareToken);
+            await this.joinGroupByLink(shareLink.shareToken, undefined, userId);
         }
     }
 

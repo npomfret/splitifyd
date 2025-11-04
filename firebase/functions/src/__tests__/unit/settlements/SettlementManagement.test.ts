@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -32,10 +32,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payerUserId, { displayName: 'Payer' });
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(creatorUserId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -46,10 +46,10 @@ describe('Settlement Management - Unit Tests', () => {
                 .withNote('Retrieve test')
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act: Retrieve settlement
-            const retrieved = await appDriver.getSettlement(creatorUserId, group.id, created.id);
+            const retrieved = await appDriver.getSettlement(group.id, created.id, creatorUserId);
 
             // Assert
             expect(retrieved.id).toBe(created.id);
@@ -74,10 +74,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
             appDriver.seedUser(outsiderUserId, { displayName: 'Outsider' });
 
-            const group = await appDriver.createGroup(creatorUserId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -86,11 +86,11 @@ describe('Settlement Management - Unit Tests', () => {
                 .withPayeeId(payeeUserId)
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act & Assert: Outsider cannot retrieve settlement
             await expect(
-                appDriver.getSettlement(outsiderUserId, group.id, created.id),
+                appDriver.getSettlement(group.id, created.id, outsiderUserId),
             )
                 .rejects
                 .toThrow(/status 403.*NOT_GROUP_MEMBER/);
@@ -101,11 +101,11 @@ describe('Settlement Management - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const group = await appDriver.createGroup(userId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
             // Act & Assert: Non-existent settlement throws error
             await expect(
-                appDriver.getSettlement(userId, group.id, 'non-existent-id'),
+                appDriver.getSettlement(group.id, 'non-existent-id', userId),
             )
                 .rejects
                 .toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
@@ -123,10 +123,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payerUserId, { displayName: 'Payer' });
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(creatorUserId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -137,7 +137,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .withNote('Original note')
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act: Update settlement
             const updateData = new SettlementUpdateBuilder()
@@ -145,7 +145,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .withNote('Updated note')
                 .build();
 
-            const updated = await appDriver.updateSettlement(creatorUserId, created.id, updateData);
+            const updated = await appDriver.updateSettlement(created.id, updateData, creatorUserId);
 
             // Assert
             expect(updated.id).toBe(created.id);
@@ -166,11 +166,11 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
             appDriver.seedUser(otherMemberUserId, { displayName: 'Other Member' });
 
-            const group = await appDriver.createGroup(creatorUserId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
-            await appDriver.joinGroupByLink(otherMemberUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, otherMemberUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -179,7 +179,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .withPayeeId(payeeUserId)
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act & Assert: Non-creator cannot update
             const updateData = new SettlementUpdateBuilder()
@@ -187,7 +187,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .build();
 
             await expect(
-                appDriver.updateSettlement(otherMemberUserId, created.id, updateData),
+                appDriver.updateSettlement(created.id, updateData, otherMemberUserId),
             )
                 .rejects
                 .toThrow(/Only the creator can update this settlement/);
@@ -203,10 +203,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payerUserId, { displayName: 'Payer' });
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(creatorUserId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -215,7 +215,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .withPayeeId(payeeUserId)
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act & Assert: Invalid amount (negative) should fail
             const invalidUpdateData = new SettlementUpdateBuilder()
@@ -223,7 +223,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .build();
 
             await expect(
-                appDriver.updateSettlement(creatorUserId, created.id, invalidUpdateData),
+                appDriver.updateSettlement(created.id, invalidUpdateData, creatorUserId),
             )
                 .rejects
                 .toThrow(/Amount must be a valid decimal number/);
@@ -241,10 +241,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payerUserId, { displayName: 'Payer' });
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(creatorUserId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -253,7 +253,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .withPayeeId(payeeUserId)
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act: Delete settlement
             const result = await appDriver.deleteSettlement(creatorUserId, created.id);
@@ -264,15 +264,15 @@ describe('Settlement Management - Unit Tests', () => {
             // Verify settlement is soft-deleted
             // Note: After soft delete, the settlement should not appear in normal getGroupFullDetails
             // but should be retrievable with includeDeletedSettlements flag
-            const fullDetailsWithDeleted = await appDriver.getGroupFullDetails(creatorUserId, group.id, {
+            const fullDetailsWithDeleted = await appDriver.getGroupFullDetails(group.id, {
                 includeDeletedSettlements: true,
-            });
+            }, creatorUserId);
 
             const deletedSettlement = fullDetailsWithDeleted.settlements.settlements.find(s => s.id === created.id);
             expect(deletedSettlement).toBeDefined();
 
             // Verify settlement is NOT in normal list (without includeDeletedSettlements)
-            const fullDetailsNormal = await appDriver.getGroupFullDetails(creatorUserId, group.id);
+            const fullDetailsNormal = await appDriver.getGroupFullDetails(group.id, {}, creatorUserId);
             const normalSettlement = fullDetailsNormal.settlements.settlements.find(s => s.id === created.id);
             expect(normalSettlement).toBeUndefined();
         });
@@ -289,11 +289,11 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
             appDriver.seedUser(otherMemberUserId, { displayName: 'Other Member' });
 
-            const group = await appDriver.createGroup(creatorUserId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
-            await appDriver.joinGroupByLink(otherMemberUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, otherMemberUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -302,7 +302,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .withPayeeId(payeeUserId)
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act & Assert: Non-creator cannot delete
             await expect(
@@ -317,7 +317,7 @@ describe('Settlement Management - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            await appDriver.createGroup(userId);
+            await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
             // Act & Assert: Non-existent settlement deletion throws error
             await expect(
@@ -339,10 +339,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(memberUserId, { displayName: 'Member' });
             appDriver.seedUser(leavingMemberUserId, { displayName: 'Leaving Member' });
 
-            const group = await appDriver.createGroup(adminUserId);
-            const { shareToken } = await appDriver.generateShareableLink(adminUserId, group.id);
-            await appDriver.joinGroupByLink(memberUserId, shareToken);
-            await appDriver.joinGroupByLink(leavingMemberUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, adminUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, memberUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, leavingMemberUserId);
 
             // Create an expense that leaves the departing member owing the admin
             const expenseRequest = new CreateExpenseRequestBuilder()
@@ -354,9 +354,9 @@ describe('Settlement Management - Unit Tests', () => {
                 .withDescription('Pre-departure expense')
                 .build();
 
-            await appDriver.createExpense(adminUserId, expenseRequest);
+            await appDriver.createExpense(expenseRequest, adminUserId);
 
-            const balances = await appDriver.getGroupBalances(adminUserId, group.id);
+            const balances = await appDriver.getGroupBalances(group.id, adminUserId);
             const [currencyBalances] = Object.values(balances.balancesByCurrency);
             expect(currencyBalances).toBeDefined();
 
@@ -377,9 +377,9 @@ describe('Settlement Management - Unit Tests', () => {
                 .withNote('Settlement before departure')
                 .build();
 
-            const settlement = await appDriver.createSettlement(adminUserId, settlementData);
+            const settlement = await appDriver.createSettlement(settlementData, adminUserId);
 
-            const postSettlementBalances = await appDriver.getGroupBalances(adminUserId, group.id);
+            const postSettlementBalances = await appDriver.getGroupBalances(group.id, adminUserId);
             const [postCurrencyBalances] = Object.values(postSettlementBalances.balancesByCurrency);
             expect(postCurrencyBalances).toBeDefined();
             const leavingBalanceAfterSettlement = postCurrencyBalances![leavingMemberUserId];
@@ -387,10 +387,10 @@ describe('Settlement Management - Unit Tests', () => {
             expect(Number(leavingBalanceAfterSettlement!.netBalance)).toBeCloseTo(0);
 
             // Act: Member leaves group
-            await appDriver.leaveGroup(leavingMemberUserId, group.id);
+            await appDriver.leaveGroup(group.id, leavingMemberUserId);
 
             // Assert: Remaining members can still view settlement
-            const fullDetails = await appDriver.getGroupFullDetails(adminUserId, group.id);
+            const fullDetails = await appDriver.getGroupFullDetails(group.id, {}, adminUserId);
             const foundSettlement = fullDetails.settlements.settlements.find(s => s.id === settlement.id);
 
             expect(foundSettlement).toBeDefined();
@@ -399,7 +399,7 @@ describe('Settlement Management - Unit Tests', () => {
 
             // Verify member who left cannot access the group or settlements
             await expect(
-                appDriver.getGroupFullDetails(leavingMemberUserId, group.id),
+                appDriver.getGroupFullDetails(group.id, {}, leavingMemberUserId),
             )
                 .rejects
                 .toThrow(/status 404.*NOT_FOUND|status 403.*NOT_GROUP_MEMBER|Group not found/);
@@ -417,10 +417,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payerUserId, { displayName: 'Payer' });
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(creatorUserId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -431,15 +431,15 @@ describe('Settlement Management - Unit Tests', () => {
                 .withNote('Soft delete test')
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act: Soft delete settlement
             await appDriver.deleteSettlement(creatorUserId, created.id);
 
             // Assert: Deleted settlement is preserved with metadata
-            const fullDetailsWithDeleted = await appDriver.getGroupFullDetails(creatorUserId, group.id, {
+            const fullDetailsWithDeleted = await appDriver.getGroupFullDetails(group.id, {
                 includeDeletedSettlements: true,
-            });
+            }, creatorUserId);
 
             const deletedSettlement = fullDetailsWithDeleted.settlements.settlements.find(s => s.id === created.id);
             expect(deletedSettlement).toBeDefined();
@@ -448,7 +448,7 @@ describe('Settlement Management - Unit Tests', () => {
             expect(deletedSettlement?.note).toBe('Soft delete test');
 
             // Verify it doesn't appear in normal list
-            const fullDetailsNormal = await appDriver.getGroupFullDetails(creatorUserId, group.id);
+            const fullDetailsNormal = await appDriver.getGroupFullDetails(group.id, {}, creatorUserId);
             const normalSettlement = fullDetailsNormal.settlements.settlements.find(s => s.id === created.id);
             expect(normalSettlement).toBeUndefined();
         });
@@ -465,11 +465,11 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payerUserId, { displayName: 'Payer' });
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(adminUserId); // Admin is the group creator
-            const { shareToken } = await appDriver.generateShareableLink(adminUserId, group.id);
-            await appDriver.joinGroupByLink(creatorUserId, shareToken);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminUserId); // Admin is the group creator
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, adminUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
 
             // Create settlement by non-admin creator
             const settlementData = new CreateSettlementRequestBuilder()
@@ -478,7 +478,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .withPayeeId(payeeUserId)
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act: Admin deletes settlement created by another user
             const result = await appDriver.deleteSettlement(adminUserId, created.id);
@@ -487,15 +487,15 @@ describe('Settlement Management - Unit Tests', () => {
             expect(result.message).toMatch(/deleted successfully/i);
 
             // Verify soft delete - settlement should be in includeDeletedSettlements but not in normal list
-            const fullDetailsWithDeleted = await appDriver.getGroupFullDetails(adminUserId, group.id, {
+            const fullDetailsWithDeleted = await appDriver.getGroupFullDetails(group.id, {
                 includeDeletedSettlements: true,
-            });
+            }, adminUserId);
 
             const deletedSettlement = fullDetailsWithDeleted.settlements.settlements.find(s => s.id === created.id);
             expect(deletedSettlement).toBeDefined();
 
             // Verify it's not in normal list
-            const fullDetailsNormal = await appDriver.getGroupFullDetails(adminUserId, group.id);
+            const fullDetailsNormal = await appDriver.getGroupFullDetails(group.id, {}, adminUserId);
             const normalSettlement = fullDetailsNormal.settlements.settlements.find(s => s.id === created.id);
             expect(normalSettlement).toBeUndefined();
         });
@@ -514,12 +514,12 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
             appDriver.seedUser(otherMemberUserId, { displayName: 'Other Member' });
 
-            const group = await appDriver.createGroup(adminUserId);
-            const { shareToken } = await appDriver.generateShareableLink(adminUserId, group.id);
-            await appDriver.joinGroupByLink(creatorUserId, shareToken);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
-            await appDriver.joinGroupByLink(otherMemberUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, adminUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, otherMemberUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -528,7 +528,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .withPayeeId(payeeUserId)
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Act & Assert: Other member (not creator, not admin) cannot delete
             await expect(
@@ -548,10 +548,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payerUserId, { displayName: 'Payer' });
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(creatorUserId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -560,7 +560,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .withPayeeId(payeeUserId)
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // First deletion
             await appDriver.deleteSettlement(creatorUserId, created.id);
@@ -583,10 +583,10 @@ describe('Settlement Management - Unit Tests', () => {
             appDriver.seedUser(payerUserId, { displayName: 'Payer' });
             appDriver.seedUser(payeeUserId, { displayName: 'Payee' });
 
-            const group = await appDriver.createGroup(creatorUserId);
-            const { shareToken } = await appDriver.generateShareableLink(creatorUserId, group.id);
-            await appDriver.joinGroupByLink(payerUserId, shareToken);
-            await appDriver.joinGroupByLink(payeeUserId, shareToken);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorUserId);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payerUserId);
+            await appDriver.joinGroupByLink(shareToken, undefined, payeeUserId);
 
             // Create settlement
             const settlementData = new CreateSettlementRequestBuilder()
@@ -596,7 +596,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .withAmount(100.0, 'USD')
                 .build();
 
-            const created = await appDriver.createSettlement(creatorUserId, settlementData);
+            const created = await appDriver.createSettlement(settlementData, creatorUserId);
 
             // Delete settlement
             await appDriver.deleteSettlement(creatorUserId, created.id);
@@ -607,7 +607,7 @@ describe('Settlement Management - Unit Tests', () => {
                 .build();
 
             await expect(
-                appDriver.updateSettlement(creatorUserId, created.id, updateData),
+                appDriver.updateSettlement(created.id, updateData, creatorUserId),
             )
                 .rejects
                 .toThrow(/Settlement not found/);
