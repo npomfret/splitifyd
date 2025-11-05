@@ -273,7 +273,7 @@ describe('PolicyHandlers - Unit Tests', () => {
                 publish: false,
             }, userId);
 
-            const result = await appDriver.publishPolicy(userId, created.id, updated.versionHash);
+            const result = await appDriver.publishPolicy(created.id, updated.versionHash, userId);
 
             expect(result).toMatchObject({
                 success: true,
@@ -291,7 +291,7 @@ describe('PolicyHandlers - Unit Tests', () => {
                 text: 'Original text',
             }, userId);
 
-            await expect(appDriver.publishPolicy(userId, created.id, '' as any)).rejects.toThrow();
+            await expect(appDriver.publishPolicy(created.id, '' as any, userId)).rejects.toThrow();
         });
 
         it('should reject publish for non-existent policy', async () => {
@@ -300,7 +300,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
             appDriver.seedAdminUser(userId, {});
 
-            await expect(appDriver.publishPolicy(userId, policyId, 'some-hash')).rejects.toThrow('Policy not found');
+            await expect(appDriver.publishPolicy(policyId, 'some-hash', userId)).rejects.toThrow('Policy not found');
         });
 
         it('should reject publish for non-existent version', async () => {
@@ -312,7 +312,7 @@ describe('PolicyHandlers - Unit Tests', () => {
                 text: 'Original text',
             }, userId);
 
-            await expect(appDriver.publishPolicy(userId, created.id, 'non-existent-hash')).rejects.toThrow(
+            await expect(appDriver.publishPolicy(created.id, 'non-existent-hash', userId)).rejects.toThrow(
                 'Policy version not found',
             );
         });

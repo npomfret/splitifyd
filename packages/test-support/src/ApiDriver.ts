@@ -1,4 +1,4 @@
-import type {CommentText, Email, GroupName, ShareLinkToken, UserId} from '@splitifyd/shared';
+import type {CommentText, Email, GroupName, ISOString, ShareLinkToken, UserId} from '@splitifyd/shared';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -49,14 +49,16 @@ import {
     UserRegistration,
     UserToken,
 } from '@splitifyd/shared';
-import { UserRegistrationBuilder } from './builders';
-import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
-import { Matcher, PollOptions, pollUntil } from './Polling';
+import {UserRegistrationBuilder} from './builders';
+import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
+import {Matcher, PollOptions, pollUntil} from './Polling';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
 const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
 const API_BASE_URL = config.baseUrl;
+
+export type AuthToken = string;
 
 /**
  * HTTP-based API driver for testing against the Firebase emulator.
@@ -89,9 +91,7 @@ export class ApiDriver {
         this.baseUrl = baseUrl;
     }
 
-    async createUser(userRegistration: UserRegistration = new UserRegistrationBuilder()
-        .build()): Promise<AuthenticatedFirebaseUser>
-    {
+    async createUser(userRegistration: UserRegistration = new UserRegistrationBuilder().build()): Promise<AuthenticatedFirebaseUser> {
         let registrationError: unknown = null;
 
         try {
@@ -186,35 +186,35 @@ export class ApiDriver {
         await this.apiRequest('/test-pool/return', 'POST', { email });
     }
 
-    async createExpense(expenseData: CreateExpenseRequest, token: string): Promise<ExpenseDTO> {
-        const response = await this.apiRequest('/expenses', 'POST', expenseData, token);
+    async createExpense(data: CreateExpenseRequest, token: AuthToken): Promise<ExpenseDTO> {
+        const response = await this.apiRequest('/expenses', 'POST', data, token);
         return response as ExpenseDTO;
     }
 
-    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, token: string): Promise<ExpenseDTO> {
+    async updateExpense(expenseId: ExpenseId | string, data: UpdateExpenseRequest, token: AuthToken): Promise<ExpenseDTO> {
         return await this.apiRequest(`/expenses?id=${expenseId}`, 'PUT', data, token);
     }
 
-    async deleteExpense(expenseId: ExpenseId | string, token: string): Promise<MessageResponse> {
+    async deleteExpense(expenseId: ExpenseId | string, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/expenses?id=${expenseId}`, 'DELETE', null, token);
     }
 
-    async getExpense(expenseId: ExpenseId | string, token: string): Promise<ExpenseDTO> {
+    async getExpense(expenseId: ExpenseId | string, token: AuthToken): Promise<ExpenseDTO> {
         const response = await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
         return response.expense;
     }
 
-    async createSettlement(settlementData: CreateSettlementRequest, token: string): Promise<SettlementDTO> {
-        const response = await this.apiRequest('/settlements', 'POST', settlementData, token);
+    async createSettlement(data: CreateSettlementRequest, token: AuthToken): Promise<SettlementDTO> {
+        const response = await this.apiRequest('/settlements', 'POST', data, token);
         return response as SettlementDTO;
     }
 
-    async updateSettlement(settlementId: SettlementId | string, updateData: UpdateSettlementRequest, token: string): Promise<SettlementWithMembers> {
-        const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', updateData, token);
+    async updateSettlement(settlementId: SettlementId | string, data: UpdateSettlementRequest, token: AuthToken): Promise<SettlementWithMembers> {
+        const response = await this.apiRequest(`/settlements/${settlementId}`, 'PUT', data, token);
         return response;
     }
 
-    async deleteSettlement(settlementId: SettlementId | string, token: string): Promise<MessageResponse> {
+    async deleteSettlement(settlementId: SettlementId | string, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/settlements/${settlementId}`, 'DELETE', null, token);
     }
 
@@ -222,11 +222,11 @@ export class ApiDriver {
         return pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
     }
 
-    async waitForBalanceUpdate(groupId: GroupId | string, token: string): Promise<GroupBalances> {
+    async waitForBalanceUpdate(groupId: GroupId | string, token: AuthToken): Promise<GroupBalances> {
         return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: 2000 });
     }
 
-    async generateShareableLink(groupId: GroupId | string, expiresAt: string | undefined = undefined, token: string): Promise<ShareLinkResponse> {
+    async generateShareableLink(groupId: GroupId | string, expiresAt: ISOString | string | undefined = undefined, token: AuthToken): Promise<ShareLinkResponse> {
         const body: Record<string, unknown> = { groupId };
         if (expiresAt) {
             body.expiresAt = expiresAt;
@@ -235,16 +235,16 @@ export class ApiDriver {
         return await this.apiRequest('/groups/share', 'POST', body, token);
     }
 
-    async joinGroupByLink(shareToken: ShareLinkToken | string, token: string): Promise<JoinGroupResponse> {
+    async joinGroupByLink(shareToken: ShareLinkToken | string, token: AuthToken): Promise<JoinGroupResponse> {
         const displayName = `Test User ${Date.now()}`;
-        return await this.apiRequest('/groups/join', 'POST', { linkId: shareToken, groupDisplayName: displayName }, token);
+        return await this.apiRequest('/groups/join', 'POST', { shareToken, groupDisplayName: displayName }, token);
     }
 
-    async previewGroupByLink(shareToken: ShareLinkToken | string, token: string): Promise<PreviewGroupResponse> {
-        return await this.apiRequest('/groups/preview', 'POST', { linkId: shareToken }, token);
+    async previewGroupByLink(shareToken: ShareLinkToken | string, token: AuthToken): Promise<PreviewGroupResponse> {
+        return await this.apiRequest('/groups/preview', 'POST', { shareToken }, token);
     }
 
-    async createGroupWithMembers(name: string | GroupName, members: UserToken[], creatorToken: string): Promise<GroupDTO> {
+    async createGroupWithMembers(name: string | GroupName, members: UserToken[], creatorToken: AuthToken): Promise<GroupDTO> {
         // Step 1: Create group with just the creator
         const creatorDisplayName = `Owner ${Math.random().toString(36).slice(2, 8)}`;
 
@@ -263,7 +263,7 @@ export class ApiDriver {
         return updatedGroup;
     }
 
-    async addMembersViaShareLink(groupId: GroupId | string, toAdd: UserToken[], creatorToken: string) {
+    async addMembersViaShareLink(groupId: GroupId | string, toAdd: UserToken[], creatorToken: AuthToken) {
         if (toAdd.length > 0) {
             const { shareToken } = await this.generateShareableLink(groupId, undefined, creatorToken);
 
@@ -274,16 +274,16 @@ export class ApiDriver {
         }
     }
 
-    async createGroup(groupData: CreateGroupRequest, token: string): Promise<GroupDTO> {
+    async createGroup(groupData: CreateGroupRequest, token: AuthToken): Promise<GroupDTO> {
         return (await this.apiRequest('/groups', 'POST', groupData, token)) as GroupDTO;
     }
 
-    async getGroup(groupId: GroupId | string, token: string): Promise<GroupDTO> {
+    async getGroup(groupId: GroupId | string, token: AuthToken): Promise<GroupDTO> {
         const res = await this.getGroupFullDetails(groupId, undefined, token);
         return res.group;
     }
 
-    async getGroupFullDetails(groupId: GroupId | string, options: GetGroupFullDetailsOptions | undefined = undefined, token: string,): Promise<GroupFullDetailsDTO> {
+    async getGroupFullDetails(groupId: GroupId | string, options: GetGroupFullDetailsOptions | undefined = undefined, token: AuthToken): Promise<GroupFullDetailsDTO> {
         let url = `/groups/${groupId}/full-details`;
         const queryParams: string[] = [];
 
@@ -307,44 +307,44 @@ export class ApiDriver {
         return await this.apiRequest(url, 'GET', null, token);
     }
 
-    async getExpenseFullDetails(expenseId: ExpenseId | string, token: string): Promise<ExpenseFullDetailsDTO> {
+    async getExpenseFullDetails(expenseId: ExpenseId | string, token: AuthToken): Promise<ExpenseFullDetailsDTO> {
         return await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
     }
 
-    async updateGroup(groupId: GroupId | string, data: UpdateGroupRequest, token: string): Promise<MessageResponse> {
+    async updateGroup(groupId: GroupId | string, data: UpdateGroupRequest, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}`, 'PUT', data, token);
     }
 
-    async deleteGroup(groupId: GroupId | string, token: string): Promise<MessageResponse> {
+    async deleteGroup(groupId: GroupId | string, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
     }
 
-    async updateGroupPermissions(groupId: GroupId | string, permissions: Partial<GroupPermissions>, token: string): Promise<MessageResponse> {
+    async updateGroupPermissions(groupId: GroupId | string, permissions: Partial<GroupPermissions>, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/security/permissions`, 'PATCH', permissions, token);
     }
 
-    async updateMemberRole(groupId: GroupId | string, memberId: UserId | string, role: MemberRole, token: string): Promise<MessageResponse> {
+    async updateMemberRole(groupId: GroupId | string, memberId: UserId | string, role: MemberRole, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/role`, 'PATCH', { role }, token);
     }
 
-    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName | string, token: string): Promise<MessageResponse> {
+    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName | string, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/display-name`, 'PUT', { displayName }, token);
     }
 
-    async approveMember(groupId: GroupId | string, memberId: UserId | string, token: string): Promise<MessageResponse> {
+    async approveMember(groupId: GroupId | string, memberId: UserId | string, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/approve`, 'POST', {}, token);
     }
 
-    async rejectMember(groupId: GroupId | string, memberId: UserId | string, token: string): Promise<MessageResponse> {
+    async rejectMember(groupId: GroupId | string, memberId: UserId | string, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}/reject`, 'POST', {}, token);
     }
 
-    async getPendingMembers(groupId: GroupId | string, token: string): Promise<GroupMembershipDTO[]> {
+    async getPendingMembers(groupId: GroupId | string, token: AuthToken): Promise<GroupMembershipDTO[]> {
         const response = await this.apiRequest(`/groups/${groupId}/members/pending`, 'GET', null, token);
         return Array.isArray(response?.members) ? (response.members as GroupMembershipDTO[]) : [];
     }
 
-    async listGroups(params: ListGroupsOptions | undefined = undefined, token: string): Promise<ListGroupsResponse> {
+    async listGroups(params: ListGroupsOptions | undefined = undefined, token: AuthToken): Promise<ListGroupsResponse> {
         const queryParams = new URLSearchParams();
         if (params?.limit) queryParams.append('limit', params.limit.toString());
         if (params?.cursor) queryParams.append('cursor', params.cursor);
@@ -358,7 +358,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async getActivityFeed(token: string, options?: GetActivityFeedOptions): Promise<ActivityFeedResponse> {
+    async getActivityFeed(options: GetActivityFeedOptions | undefined = undefined, token: AuthToken): Promise<ActivityFeedResponse> {
         const queryParams = new URLSearchParams();
         if (options?.limit) queryParams.append('limit', options.limit.toString());
         if (options?.cursor) queryParams.append('cursor', options.cursor);
@@ -370,19 +370,19 @@ export class ApiDriver {
         return await this.apiRequest('/register', 'POST', userData);
     }
 
-    async leaveGroup(groupId: GroupId | string, token: string): Promise<MessageResponse> {
+    async leaveGroup(groupId: GroupId | string, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/leave`, 'POST', null, token);
     }
 
-    async archiveGroupForUser(groupId: GroupId | string, token: string): Promise<MessageResponse> {
+    async archiveGroupForUser(groupId: GroupId | string, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/archive`, 'POST', null, token);
     }
 
-    async unarchiveGroupForUser(groupId: GroupId | string, token: string): Promise<MessageResponse> {
+    async unarchiveGroupForUser(groupId: GroupId | string, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/unarchive`, 'POST', null, token);
     }
 
-    async removeGroupMember(groupId: GroupId | string, memberId: UserId | string, token: string): Promise<MessageResponse> {
+    async removeGroupMember(groupId: GroupId | string, memberId: UserId | string, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
@@ -394,40 +394,40 @@ export class ApiDriver {
         return this.getPolicy(policyId);
     }
 
-    async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], token: string): Promise<AcceptMultiplePoliciesResponse> {
+    async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], token: AuthToken): Promise<AcceptMultiplePoliciesResponse> {
         return await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
     }
 
-    async getUserPolicyStatus(token: string): Promise<UserPolicyStatusResponse> {
+    async getUserPolicyStatus(token: AuthToken): Promise<UserPolicyStatusResponse> {
         return await this.apiRequest('/user/policies/status', 'GET', null, token);
     }
 
-    async changePassword(passwordRequest: PasswordChangeRequest, token: string): Promise<MessageResponse> {
+    async changePassword(passwordRequest: PasswordChangeRequest, token: AuthToken): Promise<MessageResponse> {
         return await this.apiRequest('/user/change-password', 'POST', passwordRequest, token);
     }
 
-    async updateUserProfile(profileData: UpdateUserProfileRequest, token: string): Promise<UserProfileResponse> {
+    async updateUserProfile(profileData: UpdateUserProfileRequest, token: AuthToken): Promise<UserProfileResponse> {
         return await this.apiRequest('/user/profile', 'PUT', profileData, token);
     }
 
-    async changeEmail(changeEmailRequest: ChangeEmailRequest, token: string): Promise<UserProfileResponse> {
+    async changeEmail(changeEmailRequest: ChangeEmailRequest, token: AuthToken): Promise<UserProfileResponse> {
         return await this.apiRequest('/user/change-email', 'POST', changeEmailRequest, token);
     }
 
-    async getUserProfile(token: string): Promise<UserProfileResponse> {
+    async getUserProfile(token: AuthToken): Promise<UserProfileResponse> {
         return await this.apiRequest('/user/profile', 'GET', null, token);
     }
 
     // Comment API methods
-    async createGroupComment(groupId: GroupId | string, text: CommentText | string, token: string): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId | string, text: CommentText | string, token: AuthToken): Promise<CommentDTO> {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
     }
 
-    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, token: string): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, token: AuthToken): Promise<CommentDTO> {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
-    async listGroupComments(groupId: GroupId | string, options: ListCommentsOptions | undefined = undefined, token: string): Promise<ListCommentsResponse> {
+    async listGroupComments(groupId: GroupId | string, options: ListCommentsOptions | undefined = undefined, token: AuthToken): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
         if (options?.cursor) params.append('cursor', options.cursor);
         if (options?.limit) params.append('limit', options.limit.toString());
@@ -436,7 +436,7 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/comments${query}`, 'GET', null, token);
     }
 
-    async listExpenseComments(expenseId: ExpenseId | string, options: ListCommentsOptions | undefined = undefined, token: string): Promise<ListCommentsResponse> {
+    async listExpenseComments(expenseId: ExpenseId | string, options: ListCommentsOptions | undefined = undefined, token: AuthToken): Promise<ListCommentsResponse> {
         const params = new URLSearchParams();
         if (options?.cursor) params.append('cursor', options.cursor);
         if (options?.limit) params.append('limit', options.limit.toString());
@@ -493,17 +493,17 @@ export class ApiDriver {
         }
     }
 
-    async getGroupBalances(groupId: GroupId | string, token: string) {
+    async getGroupBalances(groupId: GroupId | string, token: AuthToken) {
         const res = await this.getGroupFullDetails(groupId, undefined, token);
         return res.balances;
     }
 
-    async getGroupExpenses(groupId: GroupId | string, token: string) {
+    async getGroupExpenses(groupId: GroupId | string, token: AuthToken) {
         const res = await this.getGroupFullDetails(groupId, undefined, token);
         return res.expenses;
     }
 
-    async getSettlement(groupId: GroupId | string, settlementId: SettlementId | string, token: string) {
+    async getSettlement(groupId: GroupId | string, settlementId: SettlementId | string, token: AuthToken) {
         let res;
 
         try {
@@ -536,7 +536,7 @@ export class ApiDriver {
         return settlement;
     }
 
-    async acceptCurrentPublishedPolicies(token: string): Promise<void> {
+    async acceptCurrentPublishedPolicies(token: AuthToken): Promise<void> {
         // Get user's policy status which includes all existing policies
         const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, token);
 
@@ -556,28 +556,26 @@ export class ApiDriver {
         await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
     }
 
-    async clearUserPolicyAcceptances(token: string): Promise<void> {
+    async clearUserPolicyAcceptances(token: AuthToken): Promise<void> {
         // Clear all policy acceptances for the user to reset their state
         await this.apiRequest('/user/clear-policy-acceptances', 'POST', {}, token);
     }
 
     // Policy administration methods for testing
-    async updatePolicy(policyId: PolicyId, text: string, publish: boolean = true, adminToken?: string): Promise<any> {
+    async updatePolicy(policyId: PolicyId, text: string, publish: boolean = true, adminToken?: AuthToken): Promise<any> {
         // Try with the adminToken first, then fall back to regular token
-        const token = adminToken;
         return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', {
             text,
             publish,
-        }, token);
+        }, adminToken);
     }
 
-    async createPolicy(policyName: string, text: string, adminToken?: string): Promise<any> {
+    async createPolicy(policyName: string, text: string, adminToken?: AuthToken): Promise<any> {
         // Try with the adminToken first, then fall back to regular token
-        const token = adminToken;
         return await this.apiRequest('/admin/policies', 'POST', {
             policyName,
             text,
-        }, token);
+        }, adminToken);
     }
 
     private isRegistrationRecoverable(error: unknown): boolean {
