@@ -1169,6 +1169,15 @@ class ApiClient {
             body: data,
         });
     }
+
+    // Admin methods (system-admin only)
+    async listAllTenants<T = any>(signal?: AbortSignal): Promise<T> {
+        return this.request({
+            endpoint: '/admin/browser/tenants',
+            method: 'GET',
+            signal,
+        });
+    }
 }
 
 // Export types for external use

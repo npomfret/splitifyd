@@ -1,6 +1,6 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { navigationService } from '@/services/navigation.service';
-import { type SystemUserRole } from '@splitifyd/shared';
+import { SystemUserRoles, type SystemUserRole } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
@@ -36,6 +36,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
     const userInitial = user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
     const userName = user.displayName || user.email.split('@')[0];
+    const isSystemAdmin = user.role === SystemUserRoles.SYSTEM_ADMIN || user.role === SystemUserRoles.SYSTEM_USER;
 
     return (
         <div class='relative' ref={menuRef}>
@@ -99,6 +100,28 @@ export function UserMenu({ user }: UserMenuProps) {
                     >
                         {t('userMenu.settings')}
                     </button>
+
+                    {isSystemAdmin && (
+                        <>
+                            <hr class='my-1 border-gray-100' />
+
+                            <div class='px-4 py-2'>
+                                <p class='text-xs font-semibold text-gray-500 uppercase tracking-wider'>System Admin</p>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    navigationService.goToAdminTenants();
+                                }}
+                                class='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                                data-testid='user-menu-admin-tenants-link'
+                                role='menuitem'
+                            >
+                                Tenants
+                            </button>
+                        </>
+                    )}
 
                     <hr class='my-1 border-gray-100' />
 

@@ -161,6 +161,11 @@ export interface IFirestoreReader {
      */
     getDefaultTenant(): Promise<TenantRegistryRecord | null>;
 
+    /**
+     * List all tenant configurations (system admin only)
+     */
+    listAllTenants(): Promise<TenantRegistryRecord[]>;
+
     // ========================================================================
     // Collection Read Operations - User-related
     // ========================================================================

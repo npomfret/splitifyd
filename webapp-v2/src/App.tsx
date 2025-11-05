@@ -39,6 +39,7 @@ const PrivacyPolicyPage = lazy(() => import('./pages/static/PrivacyPolicyPage').
 const CookiePolicyPage = lazy(() => import('./pages/static/CookiePolicyPage').then((m) => ({ default: m.CookiePolicyPage })));
 const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ default: m.JoinGroupPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const AdminTenantsPage = lazy(() => import('./pages/AdminTenantsPage').then((m) => ({ default: m.AdminTenantsPage })));
 const UsersBrowserPage = lazy(() => import('./pages/browser/UsersBrowserPage').then((m) => ({ default: m.UsersBrowserPage })));
 const TenantBrandingPage = lazy(() => import('./pages/TenantBrandingPage').then((m) => ({ default: m.TenantBrandingPage })));
 const DomainManagementPage = lazy(() => import('./pages/DomainManagementPage').then((m) => ({ default: m.DomainManagementPage })));
@@ -122,6 +123,7 @@ const PrivacyRoute = createLazyRoute(PrivacyPolicyPage);
 const CookieRoute = createLazyRoute(CookiePolicyPage);
 const JoinGroupRoute = createProtectedRoute(JoinGroupPage);
 const SettingsRoute = createProtectedRoute(SettingsPage);
+const AdminTenantsRoute = createProtectedRoute(AdminTenantsPage);
 const UsersBrowserRoute = createProtectedRoute(UsersBrowserPage);
 const TenantBrandingRoute = createProtectedRoute(TenantBrandingPage);
 const DomainManagementRoute = createProtectedRoute(DomainManagementPage);
@@ -175,6 +177,9 @@ export function App() {
                 <Route path='/settings' component={SettingsRoute} />
                 <Route path='/settings/tenant/branding' component={TenantBrandingRoute} />
                 <Route path='/settings/tenant/domains' component={DomainManagementRoute} />
+
+                {/* Admin Routes - Protected (System Admin only) */}
+                <Route path='/admin/tenants' component={AdminTenantsRoute} />
 
                 {/* Browser Routes - Protected */}
                 {enableAdvancedReporting && <Route path='/browser/users' component={UsersBrowserRoute} />}

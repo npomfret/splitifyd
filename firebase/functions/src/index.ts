@@ -167,7 +167,7 @@ export const api = onRequest(
         invoker: 'public',
         maxInstances: 1,
         concurrency: 5,
-        timeoutSeconds: 10,
+        timeoutSeconds: 15,
         region: 'us-central1',
         memory: '512MiB',
     },

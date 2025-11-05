@@ -636,9 +636,9 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     async promoteUserToAdmin(userId: UserId): Promise<void> {
-        await this.db.collection(FirestoreCollections.USERS).doc(userId).update({
+        await this.db.collection(FirestoreCollections.USERS).doc(userId).set({
             role: SystemUserRoles.SYSTEM_ADMIN,
-        });
+        }, { merge: true });
     }
 
     async updateUser(userId: UserId, updates: FirestoreUserUpdateData): Promise<WriteResult> {

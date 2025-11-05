@@ -1591,4 +1591,19 @@ export class FirestoreReader implements IFirestoreReader {
             throw error;
         }
     }
+
+    async listAllTenants(): Promise<TenantRegistryRecord[]> {
+        try {
+            const query = await this.db.collection(FirestoreCollections.TENANTS).orderBy('createdAt', 'desc').get();
+
+            if (query.empty) {
+                return [];
+            }
+
+            return query.docs.map((doc) => this.parseTenantDocument(doc));
+        } catch (error) {
+            logger.error('Failed to list all tenants', error);
+            throw error;
+        }
+    }
 }

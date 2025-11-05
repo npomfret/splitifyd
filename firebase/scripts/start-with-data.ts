@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
 import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
-import { generateBillSplitterUser } from './generate-test-data';
+import { generateBillSplitterUser } from './test-data-generator';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
@@ -105,7 +105,12 @@ const main = async () => {
         logger.info('═══════════════════════════════════════════════════════');
         logger.info('');
     } catch (error) {
-        logger.error('❌ An unexpected error occurred during startup', { error });
+        logger.error('❌ An unexpected error occurred during startup', {
+            error,
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            name: error instanceof Error ? error.name : undefined,
+        });
         process.exit(1);
     }
 };

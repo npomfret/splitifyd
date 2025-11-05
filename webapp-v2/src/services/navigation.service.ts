@@ -144,6 +144,13 @@ class NavigationService {
     }
 
     /**
+     * Navigate to admin tenants page (System Admin only)
+     */
+    goToAdminTenants(): Promise<void> {
+        return this.navigateTo(ROUTES.ADMIN_TENANTS);
+    }
+
+    /**
      * Navigate to group detail page
      */
     goToGroup(groupId: GroupId): Promise<void> {

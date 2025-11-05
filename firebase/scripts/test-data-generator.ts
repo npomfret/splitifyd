@@ -332,20 +332,30 @@ export async function generateBillSplitterUser(): Promise<AuthenticatedFirebaseU
     console.log('👤 Ensuring Bill Splitter test user exists...');
 
     const existingUser = await signInExistingBillSplitter();
-    const firestoreWriter = new FirestoreWriter(firestoreDb);
+    const firestoreWriter = new FirestoreWriter(getFirestoreDb());
 
     if (existingUser) {
         console.log('♻️ Bill Splitter user already exists, reusing account...');
-        await firestoreWriter.promoteUserToAdmin(existingUser.uid);
-        console.log(`✓ Bill Splitter user ready as admin (${existingUser.displayName})`);
+        try {
+            await firestoreWriter.promoteUserToAdmin(existingUser.uid);
+            console.log(`✓ Bill Splitter user ready as admin (${existingUser.displayName})`);
+        } catch (error) {
+            console.error('❌ Failed to promote existing Bill Splitter user:', error);
+            throw error;
+        }
         return existingUser;
     }
 
     console.log('🆕 Creating Bill Splitter user...');
     const user = await runQueued(() => driver.createUser({ ...BILL_SPLITTER_REGISTRATION }));
     console.log('👑 Promoting Bill Splitter to system admin...');
-    await firestoreWriter.promoteUserToAdmin(user.uid);
-    console.log(`✓ Bill Splitter user ready as admin (${user.displayName})`);
+    try {
+        await firestoreWriter.promoteUserToAdmin(user.uid);
+        console.log(`✓ Bill Splitter user ready as admin (${user.displayName})`);
+    } catch (error) {
+        console.error('❌ Failed to promote new Bill Splitter user:', error);
+        throw error;
+    }
     return user;
 }
 

@@ -14,6 +14,7 @@ import { getEnhancedConfigResponse } from './utils/config-response';
 
 // Handler imports
 import { ActivityFeedHandlers } from './activity/ActivityHandlers';
+import { TenantBrowserHandlers } from './browser/TenantBrowserHandlers';
 import { UserBrowserHandlers } from './browser/UserBrowserHandlers';
 import { CommentHandlers } from './comments/CommentHandlers';
 import { ExpenseHandlers } from './expenses/ExpenseHandlers';
@@ -57,6 +58,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const userBrowserHandlers = new UserBrowserHandlers(
         authService,
         db,
+    );
+    const tenantBrowserHandlers = new TenantBrowserHandlers(
+        componentBuilder.buildFirestoreReader(),
     );
 
     // Services for inline handlers
@@ -512,6 +516,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         // User browser (admin)
         listAuthUsers: userBrowserHandlers.listAuthUsers,
         listFirestoreUsers: userBrowserHandlers.listFirestoreUsers,
+
+        // Tenant browser (system admin)
+        listAllTenants: tenantBrowserHandlers.listAllTenants,
 
         // Auth handlers (inline)
         register: async (req, res) => {

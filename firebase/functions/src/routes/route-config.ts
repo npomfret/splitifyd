@@ -450,6 +450,13 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'admin',
         middleware: ['authenticateSystemUser'],
     },
+    {
+        method: 'GET',
+        path: '/admin/browser/tenants',
+        handlerName: 'listAllTenants',
+        category: 'admin',
+        middleware: ['authenticateSystemUser'],
+    },
 
     // === Tenant Settings (Tenant Admin Only) ===
     {

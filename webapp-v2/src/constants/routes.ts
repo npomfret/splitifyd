@@ -20,6 +20,9 @@ export const ROUTES = {
 
     // User Pages
     SETTINGS: '/settings',
+
+    // Admin Pages (System Admin only)
+    ADMIN_TENANTS: '/admin/tenants',
     USERS_BROWSER: '/browser/users',
 
     // Static Pages
