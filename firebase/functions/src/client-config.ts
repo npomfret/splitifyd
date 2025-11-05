@@ -15,6 +15,8 @@ let cachedEnv: z.infer<typeof envSchema> | null = null;
 // Define environment variable schema
 const instanceModeSchema = z
     .string()
+    .optional()
+    .default('prod')
     .superRefine((value, ctx) => {
         try {
             assertValidInstanceMode(value);

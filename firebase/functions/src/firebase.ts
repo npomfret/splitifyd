@@ -3,15 +3,11 @@ import * as admin from 'firebase-admin';
 import assert from 'node:assert';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { isDevInstanceMode, requireInstanceMode } from './shared/instance-mode';
+import { getInstanceMode, isDevInstanceMode } from './shared/instance-mode';
 
 const envPath = join(__dirname, '../.env');
 if (!process.env.INSTANCE_MODE && existsSync(envPath)) {
     loadEnv({ path: envPath });
-}
-
-function getInstanceMode() {
-    return requireInstanceMode();
 }
 
 export function isEmulator() {

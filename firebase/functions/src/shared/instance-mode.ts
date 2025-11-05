@@ -22,6 +22,19 @@ export function requireInstanceMode(): InstanceMode {
     return mode;
 }
 
+/**
+ * Get instance mode, defaulting to 'prod' if not set.
+ * This is useful for Cloud Functions where INSTANCE_MODE may not be explicitly set.
+ */
+export function getInstanceMode(): InstanceMode {
+    const mode = process.env.INSTANCE_MODE;
+    if (!mode) {
+        return 'prod';
+    }
+    assertValidInstanceMode(mode);
+    return mode;
+}
+
 export function isDevInstanceMode(mode: InstanceMode): mode is DevInstanceMode {
     return mode.startsWith('dev');
 }
