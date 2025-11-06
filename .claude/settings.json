@@ -44,6 +44,7 @@
       "Bash(npm:*)",
       "Bash(npx:*)",
       "Bash(playwright:*)",
+      "Bash(pnpm:*)",
       "Bash(rg:*)",
       "Bash(rm:*)",
       "Bash(sed:*)",
