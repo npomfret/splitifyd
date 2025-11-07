@@ -19,12 +19,14 @@ export function Card({ title, subtitle, children, onClick, className = '', paddi
     };
 
     const baseClasses = `
-    bg-white rounded-lg shadow-sm border border-gray-200
+    rounded-lg shadow-sm border border-primary-100
     ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}
     ${paddingClasses[padding]}
     ${className}
   `
         .trim();
+
+    const cardStyle = 'background-color: var(--brand-card-background, white);';
 
     const content = (
         <>
@@ -42,6 +44,7 @@ export function Card({ title, subtitle, children, onClick, className = '', paddi
         return (
             <div
                 className={baseClasses}
+                style={cardStyle}
                 onClick={onClick}
                 role='button'
                 tabIndex={0}
@@ -59,7 +62,7 @@ export function Card({ title, subtitle, children, onClick, className = '', paddi
     }
 
     return (
-        <div className={baseClasses} data-testid={dataTestId}>
+        <div className={baseClasses} style={cardStyle} data-testid={dataTestId}>
             {content}
         </div>
     );

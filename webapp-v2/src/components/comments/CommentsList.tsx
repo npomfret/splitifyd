@@ -18,7 +18,7 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
         return (
             <div className='flex items-center justify-center py-8'>
                 <div className='text-center'>
-                    <div className='w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2' />
+                    <div className='w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2' />
                     <p className='text-sm text-gray-500 dark:text-gray-400'>{t('comments.commentsList.loading')}</p>
                 </div>
             </div>
@@ -50,7 +50,7 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
                         onClick={onLoadMore}
                         disabled={loading}
                         data-testid='load-more-comments-button'
-                        className='px-4 py-2 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                        className='px-4 py-2 text-sm text-primary hover:text-primary-dark dark:text-blue-400 dark:hover:text-blue-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
                     >
                         {loading
                             ? (

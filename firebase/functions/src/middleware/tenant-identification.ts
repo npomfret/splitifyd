@@ -13,7 +13,6 @@ const EXEMPT_ROUTES = [
     '/health',
     '/metrics',
     '/env',
-    '/config',
     '/csp-violation-report',
 ];
 

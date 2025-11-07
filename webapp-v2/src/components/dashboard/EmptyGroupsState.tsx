@@ -22,7 +22,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
             <h4 class='text-lg font-medium text-gray-900 mb-2'>{t('emptyGroupsState.title')}</h4>
             <p class='text-gray-600 mb-6 max-w-md mx-auto'>{t('emptyGroupsState.description')}</p>
 
-            <button onClick={onCreateGroup} class='bg-purple-600 text-white px-6 py-3 rounded-md hover:bg-purple-700 transition-colors font-medium'>
+            <button onClick={onCreateGroup} class='bg-primary text-white px-6 py-3 rounded-md hover:bg-primary-dark transition-colors font-medium'>
                 {t('emptyGroupsState.createFirstGroup')}
             </button>
 
@@ -30,8 +30,8 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
             <div class='mt-8 text-left max-w-2xl mx-auto'>
                 <h5 class='text-sm font-medium text-gray-900 mb-3'>{t('emptyGroupsState.gettingStartedTitle')}</h5>
                 <div class='grid md:grid-cols-3 gap-4'>
-                    <div class='bg-purple-50 p-4 rounded-lg'>
-                        <div class='text-purple-600 mb-2'>
+                    <div class='bg-primary/10 p-4 rounded-lg'>
+                        <div class='text-primary mb-2'>
                             <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                 <path
                                     stroke-linecap='round'

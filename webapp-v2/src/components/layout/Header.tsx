@@ -48,20 +48,21 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         return (
             <div class='flex items-center gap-4'>
-                <button onClick={() => navigation.goToLogin()} class='text-gray-700 hover:text-purple-600 transition-colors' data-testid='header-login-link'>
+                <button onClick={() => navigation.goToLogin()} class='text-gray-700 hover:text-primary transition-colors' data-testid='header-login-link'>
                     {t('header.login')}
                 </button>
-                <button onClick={() => navigation.goToRegister()} class='bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors' data-testid='header-signup-link'>
+                <button onClick={() => navigation.goToRegister()} class='bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors' data-testid='header-signup-link'>
                     {t('header.signUp')}
                 </button>
             </div>
         );
     };
 
-    const headerClasses = variant === 'dashboard' ? 'bg-white shadow-sm border-b border-gray-200' : 'bg-white shadow-sm border-b border-gray-200';
+    const headerClasses = 'shadow-sm border-b border-primary-100';
+    const headerStyle = 'background-color: var(--brand-header-background, white);';
 
     return (
-        <header class={headerClasses}>
+        <header class={headerClasses} style={headerStyle}>
             <div class='max-w-7xl mx-auto px-4'>
                 <nav class='flex items-center justify-between h-16'>
                     <div class='flex items-center space-x-8'>

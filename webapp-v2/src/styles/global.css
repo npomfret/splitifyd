@@ -20,8 +20,14 @@
 
 /* Base styles */
 @layer base {
+    html,
     body {
         @apply antialiased;
+        min-height: 100vh;
+    }
+
+    #app {
+        min-height: 100vh;
     }
 
     /* Ensure theme color meta is updated */

@@ -262,7 +262,7 @@ export function SettingsPage() {
             <div class='mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8'>
                 <div class='space-y-8'>
                     <div class='flex flex-col gap-2'>
-                        <span class='text-xs font-medium uppercase tracking-wide text-indigo-600'>
+                        <span class='text-xs font-medium uppercase tracking-wide text-primary'>
                             {t('settingsPage.heroLabel')}
                         </span>
                         <div class='flex flex-col gap-2'>
@@ -295,7 +295,7 @@ export function SettingsPage() {
                                             />
                                         )
                                         : (
-                                            <div class='flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-indigo-600 text-lg font-semibold uppercase text-white shadow-inner'>
+                                            <div class='flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 text-lg font-semibold uppercase text-white shadow-inner'>
                                                 {profileInitials}
                                             </div>
                                         )}
@@ -470,19 +470,19 @@ export function SettingsPage() {
                                         <p class='text-sm text-slate-600'>{t('settingsPage.passwordIntro')}</p>
                                     </div>
 
-                                    <div class='rounded-xl border border-indigo-100 bg-indigo-50/70 px-4 py-4 text-sm text-indigo-800'>
+                                    <div class='rounded-xl border border-primary/10 bg-primary/10/70 px-4 py-4 text-sm text-primary-dark'>
                                         <div class='font-semibold'>{t('settingsPage.passwordRequirementsHeading')}</div>
                                         <ul class='mt-2 space-y-2'>
                                             <li class='flex gap-2'>
-                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500' aria-hidden='true' />
+                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-primary/100' aria-hidden='true' />
                                                 <span>{t('settingsPage.passwordRequirements.length')}</span>
                                             </li>
                                             <li class='flex gap-2'>
-                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500' aria-hidden='true' />
+                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-primary/100' aria-hidden='true' />
                                                 <span>{t('settingsPage.passwordRequirements.mix')}</span>
                                             </li>
                                             <li class='flex gap-2'>
-                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-indigo-500' aria-hidden='true' />
+                                                <span class='mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-primary/100' aria-hidden='true' />
                                                 <span>{t('settingsPage.passwordRequirements.reuse')}</span>
                                             </li>
                                         </ul>

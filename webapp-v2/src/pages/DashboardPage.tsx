@@ -99,12 +99,12 @@ export function DashboardPage() {
                         )}
 
                         {/* Groups Section */}
-                        <div class='bg-white rounded-lg shadow-sm border border-gray-200 p-6' data-testid='groups-container'>
+                        <div class='bg-primary-50 border-primary-100 rounded-lg shadow-sm border border-primary-100 p-6' data-testid='groups-container'>
                             <div class='flex flex-col gap-3 mb-6 lg:flex-row lg:items-center lg:justify-between'>
                                 <h3 class='text-lg font-semibold text-gray-900'>{t('dashboard.yourGroups')}</h3>
                                 <div class='flex flex-wrap items-center gap-3 justify-between lg:justify-end'>
                                     <div
-                                        class='inline-flex rounded-md border border-gray-200 overflow-hidden'
+                                        class='inline-flex rounded-md border border-primary-100 overflow-hidden'
                                         role='group'
                                         aria-label={t('dashboard.groupsFilter.label')}
                                     >
@@ -114,7 +114,7 @@ export function DashboardPage() {
                                             disabled={filterLoading}
                                             onClick={() => changeGroupFilter(false)}
                                             class={`px-4 py-2 text-sm font-medium transition-colors focus:outline-none ${
-                                                !showArchived ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-white text-gray-600 hover:bg-gray-50'
+                                                !showArchived ? 'bg-primary text-white hover:bg-primary-dark' : 'bg-white text-gray-600 hover:bg-gray-50'
                                             }`}
                                         >
                                             {t('dashboard.groupsFilter.active')}
@@ -124,15 +124,15 @@ export function DashboardPage() {
                                             aria-pressed={showArchived}
                                             disabled={filterLoading}
                                             onClick={() => changeGroupFilter(true)}
-                                            class={`px-4 py-2 text-sm font-medium transition-colors focus:outline-none border-l border-gray-200 ${
-                                                showArchived ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-white text-gray-600 hover:bg-gray-50'
+                                            class={`px-4 py-2 text-sm font-medium transition-colors focus:outline-none border-l border-primary-100 ${
+                                                showArchived ? 'bg-primary text-white hover:bg-primary-dark' : 'bg-white text-gray-600 hover:bg-gray-50'
                                             }`}
                                         >
                                             {t('dashboard.groupsFilter.archived')}
                                         </button>
                                     </div>
                                     <button
-                                        class='bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors text-sm font-medium hidden lg:block'
+                                        class='bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors text-sm font-medium hidden lg:block'
                                         onClick={() => setIsCreateModalOpen(true)}
                                     >
                                         {t('dashboard.createGroup')}

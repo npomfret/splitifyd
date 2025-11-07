@@ -103,7 +103,7 @@ export function CurrencyAmountInput({
                 w-full text-left px-3 py-2 text-sm
                 flex items-center gap-3
                 transition-colors duration-100
-                ${isHighlighted ? 'bg-indigo-600 text-white' : 'hover:bg-gray-100 text-gray-900'}
+                ${isHighlighted ? 'bg-primary text-white' : 'hover:bg-gray-100 text-gray-900'}
               `}
                         >
                             <span className={`font-medium text-base ${isHighlighted ? 'text-white' : 'text-gray-700'}`}>{curr.symbol}</span>
@@ -194,7 +194,7 @@ export function CurrencyAmountInput({
                         className={`
               flex-1 px-3 py-2
               border rounded-r-md
-              focus:outline-none focus:ring-2 focus:ring-indigo-600
+              focus:outline-none focus:ring-2 focus:ring-primary
               transition-colors duration-200
               ${disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-900'}
               ${error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'}
@@ -208,7 +208,7 @@ export function CurrencyAmountInput({
                 {isOpen && (
                     <div ref={dropdownRef} role='listbox' className='absolute z-20 mt-1 w-full max-w-md bg-white shadow-lg max-h-80 rounded-md overflow-hidden ring-1 ring-black ring-opacity-5'>
                         {/* Search input */}
-                        <div className='sticky top-0 bg-white border-b border-gray-200 p-2'>
+                        <div className='sticky top-0 bg-white border-b border-primary-100 p-2'>
                             <input
                                 ref={searchInputRef}
                                 type='text'
@@ -216,7 +216,7 @@ export function CurrencyAmountInput({
                                 onInput={handleSearchChange}
                                 onKeyDown={handleKeyDown}
                                 placeholder={t('uiComponents.currencyAmountInput.searchPlaceholder')}
-                                className='w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600'
+                                className='w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary'
                                 aria-label={t('uiComponents.currencyAmountInput.searchAriaLabel')}
                             />
                         </div>

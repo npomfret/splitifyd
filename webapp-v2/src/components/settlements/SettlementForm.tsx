@@ -385,7 +385,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             <div
                 ref={modalRef}
                 data-testid='settlement-form-modal'
-                class='bg-white rounded-lg max-w-md w-full p-6 shadow-xl'
+                class='bg-primary-50 border-primary-100 rounded-lg max-w-md w-full p-6 shadow-xl'
                 onClick={(e: Event) => e.stopPropagation()}
                 role='dialog'
                 aria-modal='true'
@@ -413,7 +413,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                     if (userDebts.length === 0) return null;
 
                     return (
-                        <div class='mb-4 pb-4 border-b border-gray-200'>
+                        <div class='mb-4 pb-4 border-b border-primary-100'>
                             <label class='block text-sm font-medium text-gray-700 mb-2 text-center'>
                                 Quick settle:
                             </label>
@@ -435,7 +435,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                                 setNote('');
                                                 recalculatePrecisionError(debt.amount, debt.currency);
                                             }}
-                                            class='inline-flex items-center justify-start gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-[280px]'
+                                            class='inline-flex items-center justify-start gap-2 px-4 py-2 bg-primary-50 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-indigo-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary w-full sm:w-[280px]'
                                             title={`${formatCurrency(debt.amount, debt.currency)} → ${getGroupDisplayName(payeeMember)}`}
                                         >
                                             {/* Avatar */}

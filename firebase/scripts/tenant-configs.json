@@ -1,0 +1,83 @@
+[
+  {
+    "id": "localhost-tenant",
+    "domains": ["localhost"],
+    "branding": {
+      "appName": "Splitifyd Demo",
+      "logoUrl": "/logo.svg",
+      "faviconUrl": "/favicon.ico",
+      "primaryColor": "#3B82F6",
+      "secondaryColor": "#8B5CF6",
+      "backgroundColor": "#EFF6FF",
+      "headerBackgroundColor": "#DBEAFE",
+      "marketingFlags": {
+        "showLandingPage": true,
+        "showMarketingContent": true,
+        "showPricingPage": true,
+        "showBlogPage": false
+      }
+    },
+    "features": {
+      "enableAdvancedReporting": true,
+      "enableMultiCurrency": true,
+      "enableCustomFields": true,
+      "maxGroupsPerUser": 100,
+      "maxUsersPerGroup": 50
+    },
+    "isDefault": false
+  },
+  {
+    "id": "partner-tenant",
+    "domains": ["127.0.0.1"],
+    "branding": {
+      "appName": "Partner Expenses",
+      "logoUrl": "/logo.svg",
+      "faviconUrl": "/favicon.ico",
+      "primaryColor": "#F97316",
+      "secondaryColor": "#EA580C",
+      "backgroundColor": "#FFF7ED",
+      "headerBackgroundColor": "#FDBA74",
+      "marketingFlags": {
+        "showLandingPage": false,
+        "showMarketingContent": false,
+        "showPricingPage": false,
+        "showBlogPage": false
+      }
+    },
+    "features": {
+      "enableAdvancedReporting": false,
+      "enableMultiCurrency": true,
+      "enableCustomFields": false,
+      "maxGroupsPerUser": 50,
+      "maxUsersPerGroup": 30
+    },
+    "isDefault": false
+  },
+  {
+    "id": "default-fallback-tenant",
+    "domains": [],
+    "branding": {
+      "appName": "Splitifyd",
+      "logoUrl": "/logo.svg",
+      "faviconUrl": "/favicon.ico",
+      "primaryColor": "#10B981",
+      "secondaryColor": "#059669",
+      "backgroundColor": "#F0FDF4",
+      "headerBackgroundColor": "#D1FAE5",
+      "marketingFlags": {
+        "showLandingPage": true,
+        "showMarketingContent": true,
+        "showPricingPage": true,
+        "showBlogPage": false
+      }
+    },
+    "features": {
+      "enableAdvancedReporting": true,
+      "enableMultiCurrency": true,
+      "enableCustomFields": true,
+      "maxGroupsPerUser": 100,
+      "maxUsersPerGroup": 200
+    },
+    "isDefault": true
+  }
+]

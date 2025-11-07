@@ -240,7 +240,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         <Card>
                             <Stack spacing='lg'>
                                 {/* Top Section - Amount & Description */}
-                                <div className='text-center pb-4 border-b border-gray-200 dark:border-gray-700'>
+                                <div className='text-center pb-4 border-b border-primary-100 dark:border-gray-700'>
                                     <h2 className='text-3xl font-bold text-gray-900 dark:text-white' data-testid='expense-amount'>
                                         <CurrencyAmount amount={expense.value.amount} currency={expense.value.currency} />
                                     </h2>
@@ -278,7 +278,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                 </div>
 
                                 {/* Actions Section */}
-                                <div className='pt-4 border-t border-gray-200 dark:border-gray-700'>
+                                <div className='pt-4 border-t border-primary-100 dark:border-gray-700'>
                                     <ExpenseActions expense={expense.value} onEdit={handleEdit} onDelete={handleDelete} onShare={handleShare} onCopy={handleCopy} disabled={expense.value.isLocked} />
                                 </div>
                             </Stack>

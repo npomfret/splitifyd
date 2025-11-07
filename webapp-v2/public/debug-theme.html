@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Theme Debug</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .box { 
+            width: 100px; 
+            height: 100px; 
+            margin: 10px; 
+            display: inline-block;
+            border: 2px solid #000;
+        }
+        .primary { background: var(--brand-primary, red); }
+        .secondary { background: var(--brand-secondary, red); }
+        .primary-rgb { background: rgb(var(--brand-primary-rgb, 255 0 0)); }
+    </style>
+</head>
+<body>
+    <h1>Theme Debug</h1>
+    <div class="box primary">Primary (hex)</div>
+    <div class="box secondary">Secondary (hex)</div>
+    <div class="box primary-rgb">Primary (RGB)</div>
+    
+    <h2>CSS Variables:</h2>
+    <pre id="vars"></pre>
+    
+    <script>
+        const root = document.documentElement;
+        const styles = getComputedStyle(root);
+        const vars = {
+            '--brand-primary': styles.getPropertyValue('--brand-primary'),
+            '--brand-secondary': styles.getPropertyValue('--brand-secondary'),
+            '--brand-primary-rgb': styles.getPropertyValue('--brand-primary-rgb'),
+            '--brand-secondary-rgb': styles.getPropertyValue('--brand-secondary-rgb'),
+        };
+        document.getElementById('vars').textContent = JSON.stringify(vars, null, 2);
+    </script>
+</body>
+</html>

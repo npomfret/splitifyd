@@ -5,6 +5,7 @@ import { BaseLayout } from '../components/layout/BaseLayout';
 import { Alert, Button, Card } from '@/components/ui';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { navigationService } from '@/services/navigation.service';
+import { configStore } from '../stores/config-store';
 
 interface TenantBranding {
     appName: string;
@@ -57,6 +58,9 @@ export function AdminTenantsPage() {
     const user = authStore.user;
     const isSystemAdmin = user?.role === SystemUserRoles.SYSTEM_ADMIN || user?.role === SystemUserRoles.SYSTEM_USER;
 
+    // Get current tenant ID from config
+    const currentTenantId = configStore.config?.tenant?.tenantId;
+
     useEffect(() => {
         // Redirect if not system admin
         if (!isSystemAdmin) {
@@ -82,6 +86,17 @@ export function AdminTenantsPage() {
         }
     };
 
+    const handleSwitchTenant = (domain: string) => {
+        // Navigate to the tenant's domain
+        window.location.href = `${window.location.protocol}//${domain}`;
+    };
+
+    const handleEditTenant = (tenantId: string) => {
+        // TODO: Implement tenant editing
+        console.log('Edit tenant:', tenantId);
+        alert(`Tenant editing not yet implemented for: ${tenantId}`);
+    };
+
     if (!isSystemAdmin) {
         return null; // Will redirect in useEffect
     }
@@ -100,7 +115,7 @@ export function AdminTenantsPage() {
 
                 {isLoading ? (
                     <div class="flex items-center justify-center py-12">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
                     </div>
                 ) : (
                     <>
@@ -114,78 +129,115 @@ export function AdminTenantsPage() {
                         </div>
 
                         <div class="space-y-4">
-                            {tenants.map((tenant) => (
-                                <Card key={tenant.tenant.tenantId} className="p-6">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex-1">
-                                            <div class="flex items-center gap-3 mb-2">
-                                                <h3 class="text-lg font-semibold text-gray-900">
-                                                    {tenant.tenant.branding.appName}
-                                                </h3>
-                                                {tenant.isDefault && (
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                                        Default
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            <div class="space-y-2 text-sm">
-                                                <div>
-                                                    <span class="text-gray-500">Tenant ID:</span>{' '}
-                                                    <span class="font-mono text-gray-900">{tenant.tenant.tenantId}</span>
-                                                </div>
-
-                                                {tenant.primaryDomain && (
-                                                    <div>
-                                                        <span class="text-gray-500">Primary Domain:</span>{' '}
-                                                        <span class="font-mono text-gray-900">{tenant.primaryDomain}</span>
-                                                    </div>
-                                                )}
-
-                                                {tenant.domains.length > 0 && (
-                                                    <div>
-                                                        <span class="text-gray-500">All Domains:</span>{' '}
-                                                        <span class="font-mono text-gray-900">
-                                                            {tenant.domains.join(', ')}
+                            {tenants.map((tenant) => {
+                                const isCurrentTenant = tenant.tenant.tenantId === currentTenantId;
+                                return (
+                                    <Card
+                                        key={tenant.tenant.tenantId}
+                                        className={`p-6 ${isCurrentTenant ? 'ring-2 ring-purple-500 bg-primary/10' : ''}`}
+                                    >
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <h3 class="text-lg font-semibold text-gray-900">
+                                                        {tenant.tenant.branding.appName}
+                                                    </h3>
+                                                    {isCurrentTenant && (
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                            Current
                                                         </span>
-                                                    </div>
-                                                )}
-
-                                                <div class="pt-2 border-t border-gray-200 mt-3">
-                                                    <p class="text-gray-500 mb-2">Features:</p>
-                                                    <div class="grid grid-cols-2 gap-2">
-                                                        <div>
-                                                            <span class="text-gray-600">Multi-Currency:</span>{' '}
-                                                            <span class={tenant.tenant.features.enableMultiCurrency ? 'text-green-600' : 'text-gray-400'}>
-                                                                {tenant.tenant.features.enableMultiCurrency ? 'Enabled' : 'Disabled'}
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <span class="text-gray-600">Advanced Reporting:</span>{' '}
-                                                            <span class={tenant.tenant.features.enableAdvancedReporting ? 'text-green-600' : 'text-gray-400'}>
-                                                                {tenant.tenant.features.enableAdvancedReporting ? 'Enabled' : 'Disabled'}
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <span class="text-gray-600">Max Groups:</span>{' '}
-                                                            <span class="text-gray-900">{tenant.tenant.features.maxGroupsPerUser || 'N/A'}</span>
-                                                        </div>
-                                                        <div>
-                                                            <span class="text-gray-600">Max Users per Group:</span>{' '}
-                                                            <span class="text-gray-900">{tenant.tenant.features.maxUsersPerGroup || 'N/A'}</span>
-                                                        </div>
-                                                    </div>
+                                                    )}
+                                                    {tenant.isDefault && (
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-primary-dark">
+                                                            Default
+                                                        </span>
+                                                    )}
                                                 </div>
 
-                                                <div class="pt-2 text-xs text-gray-500">
-                                                    <div>Created: {new Date(tenant.tenant.createdAt).toLocaleDateString()}</div>
-                                                    <div>Updated: {new Date(tenant.tenant.updatedAt).toLocaleDateString()}</div>
+                                                <div class="space-y-2 text-sm">
+                                                    <div>
+                                                        <span class="text-gray-500">Tenant ID:</span>{' '}
+                                                        <span class="font-mono text-gray-900">{tenant.tenant.tenantId}</span>
+                                                    </div>
+
+                                                    {tenant.primaryDomain && (
+                                                        <div>
+                                                            <span class="text-gray-500">Primary Domain:</span>{' '}
+                                                            <button
+                                                                onClick={() => handleSwitchTenant(tenant.primaryDomain!)}
+                                                                class="font-mono text-primary hover:text-primary-dark hover:underline cursor-pointer"
+                                                                title="Click to switch to this tenant"
+                                                            >
+                                                                {tenant.primaryDomain}
+                                                            </button>
+                                                        </div>
+                                                    )}
+
+                                                    {tenant.domains.length > 0 && (
+                                                        <div>
+                                                            <span class="text-gray-500">All Domains:</span>{' '}
+                                                            <span class="font-mono text-gray-900">
+                                                                {tenant.domains.map((domain, idx) => (
+                                                                    <>
+                                                                        {idx > 0 && ', '}
+                                                                        <button
+                                                                            onClick={() => handleSwitchTenant(domain)}
+                                                                            class="text-primary hover:text-primary-dark hover:underline cursor-pointer"
+                                                                            title="Click to switch to this tenant"
+                                                                        >
+                                                                            {domain}
+                                                                        </button>
+                                                                    </>
+                                                                ))}
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    <div class="pt-2 border-t border-primary-100 mt-3">
+                                                        <p class="text-gray-500 mb-2">Features:</p>
+                                                        <div class="grid grid-cols-2 gap-2">
+                                                            <div>
+                                                                <span class="text-gray-600">Multi-Currency:</span>{' '}
+                                                                <span class={tenant.tenant.features.enableMultiCurrency ? 'text-green-600' : 'text-gray-400'}>
+                                                                    {tenant.tenant.features.enableMultiCurrency ? 'Enabled' : 'Disabled'}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-gray-600">Advanced Reporting:</span>{' '}
+                                                                <span class={tenant.tenant.features.enableAdvancedReporting ? 'text-green-600' : 'text-gray-400'}>
+                                                                    {tenant.tenant.features.enableAdvancedReporting ? 'Enabled' : 'Disabled'}
+                                                                </span>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-gray-600">Max Groups:</span>{' '}
+                                                                <span class="text-gray-900">{tenant.tenant.features.maxGroupsPerUser || 'N/A'}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span class="text-gray-600">Max Users per Group:</span>{' '}
+                                                                <span class="text-gray-900">{tenant.tenant.features.maxUsersPerGroup || 'N/A'}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="pt-2 text-xs text-gray-500">
+                                                        <div>Created: {new Date(tenant.tenant.createdAt).toLocaleDateString()}</div>
+                                                        <div>Updated: {new Date(tenant.tenant.updatedAt).toLocaleDateString()}</div>
+                                                    </div>
                                                 </div>
+                                            </div>
+                                            <div class="ml-4">
+                                                <Button
+                                                    onClick={() => handleEditTenant(tenant.tenant.tenantId)}
+                                                    variant="secondary"
+                                                    size="sm"
+                                                >
+                                                    Edit
+                                                </Button>
                                             </div>
                                         </div>
-                                    </div>
-                                </Card>
-                            ))}
+                                    </Card>
+                                );
+                            })}
                         </div>
 
                         {tenants.length === 0 && (

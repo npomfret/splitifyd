@@ -4,11 +4,21 @@ export default {
     theme: {
         extend: {
             colors: {
-                // Port colors from existing webapp
+                // Dynamically use tenant branding colors via CSS variables
                 primary: {
-                    DEFAULT: '#7c3aed', // Purple from screenshots
-                    dark: '#6d28d9',
-                    light: '#8b5cf6',
+                    DEFAULT: 'rgb(var(--brand-primary-rgb, 124 58 237))', // Fallback to purple
+                    dark: 'rgb(var(--brand-secondary-rgb, 109 40 217))',
+                    light: 'rgb(var(--brand-primary-rgb, 139 92 246))',
+                    50: 'color-mix(in srgb, rgb(var(--brand-primary-rgb)) 10%, white)',
+                    100: 'color-mix(in srgb, rgb(var(--brand-primary-rgb)) 20%, white)',
+                    200: 'color-mix(in srgb, rgb(var(--brand-primary-rgb)) 40%, white)',
+                    300: 'color-mix(in srgb, rgb(var(--brand-primary-rgb)) 60%, white)',
+                    400: 'color-mix(in srgb, rgb(var(--brand-primary-rgb)) 80%, white)',
+                    500: 'rgb(var(--brand-primary-rgb))',
+                    600: 'rgb(var(--brand-primary-rgb))',
+                    700: 'rgb(var(--brand-secondary-rgb))',
+                    800: 'color-mix(in srgb, rgb(var(--brand-secondary-rgb)) 80%, black)',
+                    900: 'color-mix(in srgb, rgb(var(--brand-secondary-rgb)) 60%, black)',
                 },
             },
             keyframes: {

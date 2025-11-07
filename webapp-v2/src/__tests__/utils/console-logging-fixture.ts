@@ -4,7 +4,7 @@ import type { Request as PlaywrightRequest, Route } from '@playwright/test';
 import { ApiSerializer, ClientUser } from '@splitifyd/shared';
 import { ClientUserBuilder } from '@splitifyd/test-support';
 import * as fs from 'fs';
-import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi } from './mock-firebase-service';
+import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi, setupSuccessfulApiMocks } from './mock-firebase-service';
 import { createConsoleLogPath, createScreenshotPath, createTestDirectory, logTestArtifactPaths } from './test-utils';
 
 /**
@@ -381,6 +381,7 @@ export const test = base.extend<ConsoleLoggingFixtures>({
             .build();
         const mockFirebase = await createMockFirebase(pageWithLogging, testUser);
         await mockFullyAcceptedPoliciesApi(pageWithLogging);
+        await setupSuccessfulApiMocks(pageWithLogging, testUser);
 
         await use({
             page: pageWithLogging,

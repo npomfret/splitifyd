@@ -161,7 +161,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                                 <button
                                                     type='button'
                                                     onClick={() => onSettleUp(debt)}
-                                                    className='p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors flex-shrink-0 flex items-center gap-1'
+                                                    className='p-1.5 text-primary hover:text-primary-dark hover:bg-blue-50 rounded transition-colors flex-shrink-0 flex items-center gap-1'
                                                     aria-label={t('balanceSummary.settleUpButton')}
                                                 >
                                                     <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
@@ -210,7 +210,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                 collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: t('balanceSummary.title') })}
             >
                 {/* Filter toggle */}
-                <div className='pb-2 border-b border-gray-200 mb-2'>
+                <div className='pb-2 border-b border-primary-100 mb-2'>
                     <label className='flex items-center space-x-2 text-sm cursor-pointer'>
                         <input
                             type='checkbox'

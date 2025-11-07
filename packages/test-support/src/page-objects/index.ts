@@ -1,3 +1,4 @@
+export { AdminTenantsPage } from './AdminTenantsPage';
 export { BasePage } from './BasePage';
 export { CreateGroupModalPage } from './CreateGroupModalPage';
 export { DashboardPage } from './DashboardPage';

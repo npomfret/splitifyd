@@ -50,11 +50,11 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
     };
 
     return (
-        <div className='bg-white rounded-lg shadow-sm border border-gray-200' data-testid='activity-feed-card'>
+        <div className='bg-white border-primary-100 rounded-lg shadow-sm border border-primary-100' data-testid='activity-feed-card'>
             <div className='p-6'>
                 <div className='flex items-center justify-between mb-4'>
                     <h3 className='text-lg font-semibold text-gray-900'>{t('activityFeed.title')}</h3>
-                    {loading.value && !initialized.value ? <span className='text-xs font-medium text-purple-600 animate-pulse'>{t('activityFeed.loading')}</span> : null}
+                    {loading.value && !initialized.value ? <span className='text-xs font-medium text-primary animate-pulse'>{t('activityFeed.loading')}</span> : null}
                 </div>
 
                 {error.value
@@ -65,7 +65,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                             </p>
                             <button
                                 type='button'
-                                className='text-sm font-medium text-purple-700 hover:text-purple-800'
+                                className='text-sm font-medium text-primary hover:text-primary-dark'
                                 onClick={handleRetry}
                             >
                                 {t('activityFeed.actions.retry')}
@@ -105,21 +105,21 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
 
                                 return (
                                     <li key={item.id} className='flex items-start gap-3' data-testid='activity-feed-item' data-event-type={item.eventType}>
-                                        <div className='h-2 w-2 rounded-full mt-2 bg-purple-500 flex-shrink-0' aria-hidden='true' />
+                                        <div className='h-2 w-2 rounded-full mt-2 bg-primary flex-shrink-0' aria-hidden='true' />
                                         <div className='flex-1'>
                                             {handleNavigate
                                                 ? (
                                                     <button
                                                         type='button'
                                                         onClick={handleNavigate}
-                                                        className='group flex w-full items-start justify-between gap-3 rounded-md border border-transparent px-3 py-2 text-left transition-colors duration-150 hover:border-purple-200 hover:bg-purple-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2'
+                                                        className='group flex w-full items-start justify-between gap-3 rounded-md border border-transparent px-3 py-2 text-left transition-colors duration-150 hover:border-primary/20 hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
                                                         aria-label={description}
                                                     >
                                                         <div className='flex-1'>
                                                             {content}
                                                         </div>
                                                         <span
-                                                            className='flex h-5 w-5 items-center justify-center flex-shrink-0 text-purple-500 font-medium opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100'
+                                                            className='flex h-5 w-5 items-center justify-center flex-shrink-0 text-primary font-medium opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100'
                                                             aria-hidden='true'
                                                         >
                                                             →
@@ -140,7 +140,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                         <div className='mt-6'>
                             <button
                                 type='button'
-                                className='w-full text-sm font-medium text-purple-700 border border-purple-200 rounded-md px-4 py-2 hover:bg-purple-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed'
+                                className='w-full text-sm font-medium text-primary border border-primary/20 rounded-md px-4 py-2 hover:bg-primary/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed'
                                 onClick={handleLoadMore}
                                 disabled={loadingMore.value}
                             >

@@ -14,7 +14,7 @@ export function LandingPage() {
 
     return (
         <BaseLayout title={t('pages.landingPage.title')} description={t('pages.landingPage.description')}>
-            <div class='bg-white'>
+            <div class='bg-primary-50'>
                 <main class='pt-16'>
                     <HeroSection />
                     {showMarketingContent && (

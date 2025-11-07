@@ -142,7 +142,7 @@ export function TenantBrandingPage() {
                     <Card padding='lg'>
                         <div class='flex items-center justify-center py-12'>
                             <div class='text-center'>
-                                <div class='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600' />
+                                <div class='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-indigo-600' />
                                 <p class='mt-4 text-sm text-slate-600'>Loading tenant settings...</p>
                             </div>
                         </div>
@@ -169,7 +169,7 @@ export function TenantBrandingPage() {
                 <div class='space-y-8'>
                     {/* Header */}
                     <div class='flex flex-col gap-2'>
-                        <span class='text-xs font-medium uppercase tracking-wide text-indigo-600'>
+                        <span class='text-xs font-medium uppercase tracking-wide text-primary'>
                             Tenant Settings
                         </span>
                         <div class='flex flex-col gap-2'>
@@ -192,16 +192,16 @@ export function TenantBrandingPage() {
 
                     {/* Info Card */}
                     {tenantSettings && (
-                        <Card padding='sm' className='bg-indigo-50 border-indigo-200'>
+                        <Card padding='sm' className='bg-primary/10 border-primary/20'>
                             <div class='flex items-start gap-3'>
                                 <div class='flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100'>
-                                    <svg class='h-5 w-5 text-indigo-600' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                                    <svg class='h-5 w-5 text-primary' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                                         <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                                     </svg>
                                 </div>
                                 <div class='flex-1'>
                                     <p class='text-sm font-medium text-indigo-900'>Tenant ID: {tenantSettings.tenantId}</p>
-                                    <p class='mt-1 text-xs text-indigo-700'>
+                                    <p class='mt-1 text-xs text-primary'>
                                         Changes will affect all users accessing this tenant's domain
                                     </p>
                                 </div>
@@ -293,7 +293,7 @@ export function TenantBrandingPage() {
                                     <p class='text-sm text-slate-600'>See how your branding will look</p>
                                 </div>
 
-                                <div class='space-y-4 rounded-lg border border-slate-200 bg-white p-6'>
+                                <div class='space-y-4 rounded-lg border border-slate-200 bg-primary-50 p-6'>
                                     <div class='flex items-center gap-3'>
                                         <div
                                             class='h-12 w-12 rounded-lg flex items-center justify-center text-white font-bold text-lg'
@@ -342,7 +342,7 @@ export function TenantBrandingPage() {
                                             checked={showLandingPage}
                                             onChange={(e) => setShowLandingPage((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600'
+                                            class='h-4 w-4 rounded border-gray-300 text-primary focus:ring-indigo-600'
                                             data-testid='show-landing-page-checkbox'
                                         />
                                         <div class='flex-1'>
@@ -357,7 +357,7 @@ export function TenantBrandingPage() {
                                             checked={showMarketingContent}
                                             onChange={(e) => setShowMarketingContent((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600'
+                                            class='h-4 w-4 rounded border-gray-300 text-primary focus:ring-indigo-600'
                                             data-testid='show-marketing-content-checkbox'
                                         />
                                         <div class='flex-1'>
@@ -372,7 +372,7 @@ export function TenantBrandingPage() {
                                             checked={showPricingPage}
                                             onChange={(e) => setShowPricingPage((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600'
+                                            class='h-4 w-4 rounded border-gray-300 text-primary focus:ring-indigo-600'
                                             data-testid='show-pricing-page-checkbox'
                                         />
                                         <div class='flex-1'>

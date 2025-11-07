@@ -83,6 +83,12 @@ export const toTenantPrimaryColor = (value: string): TenantPrimaryColor => value
 export type TenantSecondaryColor = BrandedString<'TenantSecondaryColor'>;
 export const toTenantSecondaryColor = (value: string): TenantSecondaryColor => value as TenantSecondaryColor;
 
+export type TenantBackgroundColor = BrandedString<'TenantBackgroundColor'>;
+export const toTenantBackgroundColor = (value: string): TenantBackgroundColor => value as TenantBackgroundColor;
+
+export type TenantHeaderBackgroundColor = BrandedString<'TenantHeaderBackgroundColor'>;
+export const toTenantHeaderBackgroundColor = (value: string): TenantHeaderBackgroundColor => value as TenantHeaderBackgroundColor;
+
 export type TenantAccentColor = BrandedString<'TenantAccentColor'>;
 export const toTenantAccentColor = (value: string): TenantAccentColor => value as TenantAccentColor;
 
@@ -260,6 +266,8 @@ export interface BrandingConfig {
     faviconUrl: TenantFaviconUrl;
     primaryColor: TenantPrimaryColor;
     secondaryColor: TenantSecondaryColor;
+    backgroundColor?: TenantBackgroundColor;
+    headerBackgroundColor?: TenantHeaderBackgroundColor;
     accentColor?: TenantAccentColor;
     themePalette?: TenantThemePaletteName;
     customCSS?: TenantCustomCss;

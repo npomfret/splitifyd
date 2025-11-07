@@ -83,8 +83,8 @@ export function Button({
     };
 
     const variantClasses = {
-        primary: ['bg-indigo-600', 'text-white', 'hover:bg-indigo-700', 'focus:ring-indigo-500', isDisabled ? 'opacity-50 cursor-not-allowed' : ''],
-        secondary: ['bg-white', 'text-gray-700', 'border', 'border-gray-300', 'hover:bg-gray-50', 'focus:ring-indigo-500', isDisabled ? 'opacity-50 cursor-not-allowed' : ''],
+        primary: ['bg-primary', 'text-white', 'hover:bg-primary-dark', 'focus:ring-primary', isDisabled ? 'opacity-50 cursor-not-allowed' : ''],
+        secondary: ['bg-white', 'text-gray-700', 'border', 'border-gray-300', 'hover:bg-gray-50', 'focus:ring-primary', isDisabled ? 'opacity-50 cursor-not-allowed' : ''],
         ghost: ['bg-transparent', 'text-gray-700', 'hover:bg-gray-100', 'focus:ring-gray-500', isDisabled ? 'opacity-50 cursor-not-allowed' : ''],
         danger: ['bg-red-600', 'text-white', 'hover:bg-red-700', 'focus:ring-red-500', isDisabled ? 'opacity-50 cursor-not-allowed' : ''],
     };

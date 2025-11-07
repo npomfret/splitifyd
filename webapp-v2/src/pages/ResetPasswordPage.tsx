@@ -82,7 +82,7 @@ export function ResetPasswordPage() {
                     <div class='space-y-3'>
                         <button
                             onClick={handleTryAgain}
-                            class='w-full px-4 py-2 text-sm font-medium text-blue-600 bg-white border border-blue-300 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors'
+                            class='w-full px-4 py-2 text-sm font-medium text-blue-600 bg-primary-50 border border-blue-300 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors'
                         >
                             {t('pages.resetPasswordPage.sendToDifferentEmail')}
                         </button>

@@ -98,6 +98,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         const tenantConfig = tenantContext?.config;
 
         const config = getEnhancedConfigResponse(tenantConfig);
+
+        // Cache config for 60 seconds to allow quick updates during development
+        res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
         res.json(config);
     };
 

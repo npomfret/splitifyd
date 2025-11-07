@@ -41,7 +41,7 @@ export function PricingPage() {
                 {/* Pricing Cards */}
                 <div class='grid grid-cols-1 md:grid-cols-3 gap-8'>
                     {/* Just Getting Started Plan */}
-                    <div class='border border-gray-200 rounded-lg p-6'>
+                    <div class='border border-primary-100 rounded-lg p-6'>
                         <div class='text-center'>
                             <h3 class='text-xl font-bold text-gray-900 mb-2'>{t('pricing.plans.starter.title')}</h3>
                             <div class='mb-4'>
@@ -72,7 +72,7 @@ export function PricingPage() {
                     </div>
 
                     {/* I'm Basically a Pro Plan */}
-                    <div class='border-2 border-blue-500 rounded-lg p-6 relative'>
+                    <div class='border-2 border-primary rounded-lg p-6 relative'>
                         <div class='absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-3 py-1 rounded text-sm'>{t('pricing.plans.pro.badge')}</div>
                         <div class='text-center'>
                             <h3 class='text-xl font-bold text-gray-900 mb-2'>{t('pricing.plans.pro.title')}</h3>
@@ -104,7 +104,7 @@ export function PricingPage() {
                     </div>
 
                     {/* I'm a Philanthropist Plan */}
-                    <div class='border border-gray-200 rounded-lg p-6'>
+                    <div class='border border-primary-100 rounded-lg p-6'>
                         <div class='text-center'>
                             <h3 class='text-xl font-bold text-gray-900 mb-2'>{t('pricing.plans.philanthropist.title')}</h3>
                             <div class='mb-4'>

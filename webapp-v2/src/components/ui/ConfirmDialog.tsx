@@ -69,7 +69,7 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
 
     return (
         <div className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} data-testid={dataTestId}>
-            <div className='relative top-20 mx-auto p-6 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800' ref={modalRef} data-testid='confirmation-dialog'>
+            <div className='relative top-20 mx-auto p-6 border w-96 shadow-lg rounded-md bg-white border-primary-100 dark:bg-gray-800' ref={modalRef} data-testid='confirmation-dialog'>
                 {/* Icon */}
                 <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full ${styles.iconBg} mb-4`}>
                     {variant === 'danger'

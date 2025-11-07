@@ -11,7 +11,7 @@ export function Footer() {
     const gridColumnsClass = showPricingPage ? 'md:grid-cols-3' : 'md:grid-cols-2';
 
     return (
-        <footer class='bg-gray-100 border-t border-gray-200'>
+        <footer class='bg-gray-100 border-t border-primary-100'>
             <div class='max-w-7xl mx-auto px-4 py-8'>
                 <div class={`grid grid-cols-1 ${gridColumnsClass} gap-8`}>
                     {/* Company Info */}
@@ -28,7 +28,7 @@ export function Footer() {
                                 <li>
                                     <button
                                         onClick={() => navigation.goToPricing()}
-                                        class='text-sm text-gray-600 hover:text-purple-600 transition-colors'
+                                        class='text-sm text-gray-600 hover:text-primary transition-colors'
                                         data-testid='footer-pricing-link'
                                     >
                                         {t('footer.pricing')}
@@ -43,17 +43,17 @@ export function Footer() {
                         <h3 class='font-semibold text-gray-900 mb-3'>{t('footer.legalSection')}</h3>
                         <ul class='space-y-2'>
                             <li>
-                                <button onClick={() => navigation.goToTerms()} class='text-sm text-gray-600 hover:text-purple-600 transition-colors' data-testid='footer-terms-link'>
+                                <button onClick={() => navigation.goToTerms()} class='text-sm text-gray-600 hover:text-primary transition-colors' data-testid='footer-terms-link'>
                                     {t('footer.termsOfService')}
                                 </button>
                             </li>
                             <li>
-                                <button onClick={() => navigation.goToPrivacyPolicy()} class='text-sm text-gray-600 hover:text-purple-600 transition-colors' data-testid='footer-privacy-link'>
+                                <button onClick={() => navigation.goToPrivacyPolicy()} class='text-sm text-gray-600 hover:text-primary transition-colors' data-testid='footer-privacy-link'>
                                     {t('footer.privacyPolicy')}
                                 </button>
                             </li>
                             <li>
-                                <button onClick={() => navigation.goToCookiePolicy()} class='text-sm text-gray-600 hover:text-purple-600 transition-colors' data-testid='footer-cookies-link'>
+                                <button onClick={() => navigation.goToCookiePolicy()} class='text-sm text-gray-600 hover:text-primary transition-colors' data-testid='footer-cookies-link'>
                                     {t('footer.cookiePolicy')}
                                 </button>
                             </li>
@@ -61,7 +61,7 @@ export function Footer() {
                     </div>
                 </div>
 
-                <div class='mt-8 pt-8 border-t border-gray-200'>
+                <div class='mt-8 pt-8 border-t border-primary-100'>
                     <p class='text-center text-sm text-gray-500'>{t('footer.copyright')}</p>
                 </div>
             </div>

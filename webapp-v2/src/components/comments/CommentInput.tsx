@@ -127,7 +127,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                         transition-colors
                         ${
                             text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
-                                ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
+                                ? 'text-primary hover:bg-primary/10 dark:text-blue-400 dark:hover:bg-blue-900/20'
                                 : 'text-gray-400 cursor-not-allowed'
                         }
                     `}

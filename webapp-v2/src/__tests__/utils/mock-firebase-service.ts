@@ -803,10 +803,109 @@ export async function mockActivityFeedApi(
 }
 
 /**
+ * Mocks the user profile API
+ * Used for testing user profile display and updates
+ *
+ * @param page - Playwright page instance
+ * @param user - User data to return from the API
+ * @param delayMs - Optional delay in milliseconds before responding
+ */
+export async function mockUserProfileApi(
+    page: Page,
+    user: ClientUser,
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler(
+            'GET',
+            '/api/user/profile',
+            {
+                displayName: user.displayName,
+                email: user.email,
+                emailVerified: user.emailVerified ?? true,
+                photoURL: user.photoURL,
+                role: user.role,
+            },
+            {
+                delayMs: delay,
+            },
+        ),
+    );
+}
+
+/**
+ * Mocks the admin tenants listing API
+ * Used for testing the admin tenants page
+ *
+ * @param page - Playwright page instance
+ * @param tenants - Optional array of tenant data (defaults to sample tenant)
+ * @param delayMs - Optional delay in milliseconds before responding
+ */
+export async function mockAdminTenantsApi(
+    page: Page,
+    tenants: any[] = [
+        {
+            tenant: {
+                tenantId: 'test-tenant',
+                branding: {
+                    appName: 'Test Tenant',
+                    logoUrl: '/logo.svg',
+                    faviconUrl: '/favicon.ico',
+                    primaryColor: '#3B82F6',
+                    secondaryColor: '#8B5CF6',
+                    marketingFlags: {
+                        showLandingPage: true,
+                        showMarketingContent: true,
+                        showPricingPage: true,
+                        showBlogPage: false,
+                    },
+                },
+                features: {
+                    enableAdvancedReporting: true,
+                    enableMultiCurrency: true,
+                    enableCustomFields: true,
+                    maxGroupsPerUser: 100,
+                    maxUsersPerGroup: 200,
+                },
+                createdAt: '2025-01-01T00:00:00.000Z',
+                updatedAt: '2025-01-01T00:00:00.000Z',
+            },
+            primaryDomain: 'localhost',
+            domains: ['localhost'],
+            isDefault: true,
+        },
+    ],
+    options: { delayMs?: number; } = {},
+): Promise<void> {
+    const delay = getApiDelay(options.delayMs);
+
+    await registerMswHandlers(
+        page,
+        createJsonHandler(
+            'GET',
+            '/api/admin/browser/tenants',
+            {
+                tenants,
+                count: tenants.length,
+            },
+            {
+                delayMs: delay,
+            },
+        ),
+    );
+}
+
+/**
  * Creates successful API mocks for authenticated user flows
  * Commonly used pattern for tests that need authenticated users with accepted policies
+ *
+ * @param page - Playwright page instance
+ * @param user - Optional user to mock profile API with
  */
-export async function setupSuccessfulApiMocks(page: Page): Promise<void> {
+export async function setupSuccessfulApiMocks(page: Page, user?: ClientUser): Promise<void> {
     // Mock policies API: /api/user/policies/status -> all policies accepted
     await mockFullyAcceptedPoliciesApi(page);
 
@@ -825,4 +924,12 @@ export async function setupSuccessfulApiMocks(page: Page): Promise<void> {
 
     // Mock activity feed API: /api/activity-feed -> empty activity feed
     await mockActivityFeedApi(page, []);
+
+    // Mock admin tenants API: /api/admin/browser/tenants -> default tenant
+    await mockAdminTenantsApi(page);
+
+    // Mock user profile API if user provided
+    if (user) {
+        await mockUserProfileApi(page, user);
+    }
 }

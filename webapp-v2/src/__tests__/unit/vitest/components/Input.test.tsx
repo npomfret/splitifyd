@@ -158,7 +158,7 @@ describe('Input Component', () => {
             render(<Input label='Email' />);
 
             const input = screen.getByRole('textbox');
-            expect(input).toHaveClass('border-gray-300', 'focus:ring-indigo-600', 'focus:border-indigo-600');
+            expect(input).toHaveClass('border-gray-300', 'focus:ring-primary', 'focus:border-primary');
             expect(input).toHaveAttribute('aria-invalid', 'false');
         });
 

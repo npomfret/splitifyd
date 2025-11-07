@@ -32,12 +32,12 @@ export function FeatureCard({ icon, title, description, iconColor = 'default', d
     return (
         <div
             ref={cardRef}
-            class={`feature-item bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${
+            class={`feature-item bg-white border-primary-100 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
             data-icon-color={iconColor}
         >
-            <div class={`w-16 h-16 mb-4 rounded-full flex items-center justify-center ${iconColor === 'green' ? 'bg-green-100' : 'bg-purple-100'}`}>
+            <div class={`w-16 h-16 mb-4 rounded-full flex items-center justify-center ${iconColor === 'green' ? 'bg-green-100' : 'bg-orange-100'}`}>
                 <img src={icon} alt='' class='w-8 h-8' />
             </div>
 

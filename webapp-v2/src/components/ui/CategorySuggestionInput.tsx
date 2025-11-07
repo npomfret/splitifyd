@@ -123,7 +123,7 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
         'duration-200',
     ];
 
-    const stateClasses = error ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-600 focus:border-indigo-600';
+    const stateClasses = error ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-primary focus:border-primary';
 
     const inputClasses = [...baseInputClasses, stateClasses, className].filter(Boolean).join(' ');
 
@@ -170,7 +170,7 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
                                 key={suggestion.name}
                                 onClick={() => handleSuggestionClick(suggestion)}
                                 className={`cursor-pointer select-none relative py-2 pl-3 pr-9 flex items-center space-x-3 ${
-                                    index === highlightedIndex ? 'bg-indigo-600 text-white' : 'text-gray-900 hover:bg-gray-100'
+                                    index === highlightedIndex ? 'bg-primary text-white' : 'text-gray-900 hover:bg-gray-100'
                                 }`}
                                 role='option'
                                 aria-selected={index === highlightedIndex}

@@ -17,6 +17,8 @@ import {
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAppName,
+    toTenantBackgroundColor,
+    toTenantHeaderBackgroundColor,
     toTenantDefaultFlag,
     toTenantDomainName,
     toTenantFaviconUrl,
@@ -545,137 +547,10 @@ const generateRandomExpense = (): TestExpenseTemplate => {
 };
 
 async function createDefaultTenant(): Promise<void> {
-    console.log('🏢 Creating demo tenants for emulator...');
+    console.log('🏢 Syncing demo tenants from JSON configuration...');
 
-    const db = getFirestoreDb();
-
-    // Tenant 1: localhost - Splitifyd Demo (full marketing)
-    const localhostTenantId = 'localhost-tenant';
-    const localhostExists = await db.collection(FirestoreCollections.TENANTS).doc(localhostTenantId).get();
-
-    if (!localhostExists.exists) {
-        const localhostTenantDoc = {
-            branding: {
-                appName: toTenantAppName('Splitifyd Demo'),
-                logoUrl: toTenantLogoUrl('/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                primaryColor: toTenantPrimaryColor('#3B82F6'),
-                secondaryColor: toTenantSecondaryColor('#8B5CF6'),
-                marketingFlags: {
-                    showLandingPage: toShowLandingPageFlag(true),
-                    showMarketingContent: toShowMarketingContentFlag(true),
-                    showPricingPage: toShowPricingPageFlag(true),
-                },
-            },
-            features: {
-                enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
-                enableMultiCurrency: toFeatureToggleMultiCurrency(true),
-                enableCustomFields: toFeatureToggleCustomFields(true),
-                maxGroupsPerUser: toTenantMaxGroupsPerUser(100),
-                maxUsersPerGroup: toTenantMaxUsersPerGroup(200),
-            },
-            domains: {
-                primary: toTenantDomainName('localhost'),
-                aliases: [],
-                normalized: [toTenantDomainName('localhost')],
-            },
-            defaultTenant: toTenantDefaultFlag(false),
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-        };
-
-        await db.collection(FirestoreCollections.TENANTS).doc(localhostTenantId).set(localhostTenantDoc);
-        console.log('✅ Localhost tenant created (Splitifyd Demo - full marketing)');
-    } else {
-        console.log('♻️  Localhost tenant already exists, skipping');
-    }
-
-    // Tenant 2: 127.0.0.1 - White-Label Partner (no marketing)
-    const partnerTenantId = 'partner-tenant';
-    const partnerExists = await db.collection(FirestoreCollections.TENANTS).doc(partnerTenantId).get();
-
-    if (!partnerExists.exists) {
-        const partnerTenantDoc = {
-            branding: {
-                appName: toTenantAppName('Partner Expenses'),
-                logoUrl: toTenantLogoUrl('/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                primaryColor: toTenantPrimaryColor('#10B981'),
-                secondaryColor: toTenantSecondaryColor('#059669'),
-                marketingFlags: {
-                    showLandingPage: toShowLandingPageFlag(false),
-                    showMarketingContent: toShowMarketingContentFlag(false),
-                    showPricingPage: toShowPricingPageFlag(false),
-                },
-            },
-            features: {
-                enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
-                enableMultiCurrency: toFeatureToggleMultiCurrency(true),
-                enableCustomFields: toFeatureToggleCustomFields(false),
-                maxGroupsPerUser: toTenantMaxGroupsPerUser(50),
-                maxUsersPerGroup: toTenantMaxUsersPerGroup(100),
-            },
-            domains: {
-                primary: toTenantDomainName('127.0.0.1'),
-                aliases: [],
-                normalized: [toTenantDomainName('127.0.0.1')],
-            },
-            defaultTenant: toTenantDefaultFlag(false),
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-        };
-
-        await db.collection(FirestoreCollections.TENANTS).doc(partnerTenantId).set(partnerTenantDoc);
-        console.log('✅ Partner tenant created (Partner Expenses - white-label, no marketing)');
-    } else {
-        console.log('♻️  Partner tenant already exists, skipping');
-    }
-
-    // Create fallback default tenant
-    const defaultTenantId = 'default-dev-tenant';
-    const defaultExists = await db.collection(FirestoreCollections.TENANTS).doc(defaultTenantId).get();
-
-    if (!defaultExists.exists) {
-        const defaultTenantDoc = {
-            branding: {
-                appName: toTenantAppName('Splitifyd'),
-                logoUrl: toTenantLogoUrl('/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-                primaryColor: toTenantPrimaryColor('#1a73e8'),
-                secondaryColor: toTenantSecondaryColor('#34a853'),
-                marketingFlags: {
-                    showLandingPage: toShowLandingPageFlag(true),
-                    showMarketingContent: toShowMarketingContentFlag(true),
-                    showPricingPage: toShowPricingPageFlag(true),
-                },
-            },
-            features: {
-                enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
-                enableMultiCurrency: toFeatureToggleMultiCurrency(true),
-                enableCustomFields: toFeatureToggleCustomFields(true),
-                maxGroupsPerUser: toTenantMaxGroupsPerUser(100),
-                maxUsersPerGroup: toTenantMaxUsersPerGroup(200),
-            },
-            domains: {
-                primary: toTenantDomainName('default'),
-                aliases: [],
-                normalized: [toTenantDomainName('default')],
-            },
-            defaultTenant: toTenantDefaultFlag(true),
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-        };
-
-        await db.collection(FirestoreCollections.TENANTS).doc(defaultTenantId).set(defaultTenantDoc);
-        console.log('✅ Default fallback tenant created');
-    } else {
-        console.log('♻️  Default fallback tenant already exists, skipping');
-    }
-
-    console.log('\n📊 Tenant Summary:');
-    console.log('  • localhost      → Splitifyd Demo (blue, full marketing)');
-    console.log('  • 127.0.0.1      → Partner Expenses (green, white-label)');
-    console.log('  • default        → Splitifyd (fallback for unknown domains)\n');
+    const { syncTenantConfigs } = await import('./sync-tenant-configs');
+    await syncTenantConfigs();
 }
 
 async function createTestPoolUsers(): Promise<void> {
@@ -1922,5 +1797,13 @@ export async function generateFullTestData(): Promise<void> {
         timings,
         testCredentials: TEST_USERS.map((u) => ({ email: u.email, password: u.password })),
         inviteLinks: refreshedGroups.map((g) => ({ name: g.name, inviteLink: g.inviteLink })),
+    });
+}
+
+// Run the generator if this script is executed directly
+if (require.main === module) {
+    generateFullTestData().catch((error) => {
+        console.error('❌ Test data generation failed:', error);
+        process.exit(1);
     });
 }

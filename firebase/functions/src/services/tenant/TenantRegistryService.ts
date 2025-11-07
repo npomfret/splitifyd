@@ -10,6 +10,7 @@ import {
     toTenantFaviconUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
+    toTenantBackgroundColor,
     toFeatureToggleAdvancedReporting,
     toFeatureToggleMultiCurrency,
     toFeatureToggleCustomFields,
@@ -41,7 +42,7 @@ interface CacheEntry {
     expiresAt: number;
 }
 
-const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000;
+const DEFAULT_CACHE_TTL_MS = 1 * 1000; // 1 second for quick updates during development
 const DEFAULT_CACHE_KEY = '__default__';
 
 /**
@@ -56,8 +57,9 @@ export const HARDCODED_FALLBACK_TENANT: TenantRegistryRecord = {
             appName: toTenantAppName('Splitifyd'),
             logoUrl: toTenantLogoUrl('/logo.svg'),
             faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-            primaryColor: toTenantPrimaryColor('#1a73e8'),
-            secondaryColor: toTenantSecondaryColor('#34a853'),
+            primaryColor: toTenantPrimaryColor('#6B7280'), // Bland grey
+            secondaryColor: toTenantSecondaryColor('#4B5563'), // Bland grey
+            backgroundColor: toTenantBackgroundColor('#F9FAFB'), // Very light grey background
             marketingFlags: {
                 showLandingPage: toShowLandingPageFlag(true),
                 showMarketingContent: toShowMarketingContentFlag(true),
@@ -75,8 +77,8 @@ export const HARDCODED_FALLBACK_TENANT: TenantRegistryRecord = {
         createdAt: toISOString('2025-01-01T00:00:00.000Z'),
         updatedAt: toISOString('2025-01-01T00:00:00.000Z'),
     },
-    primaryDomain: toTenantDomainName('localhost'),
-    domains: [toTenantDomainName('localhost'), toTenantDomainName('127.0.0.1')],
+    primaryDomain: null,
+    domains: [], // Remove hardcoded domains so database tenants can match
     isDefault: toTenantDefaultFlag(true),
 };
 
@@ -89,6 +91,8 @@ export class TenantRegistryService {
     async resolveTenant(options: TenantResolutionOptions): Promise<TenantRequestContext> {
         const { host, overrideTenantId, allowOverride, allowDefaultFallback } = options;
 
+        logger.info('TenantRegistryService.resolveTenant', { host, overrideTenantId, allowOverride, allowDefaultFallback });
+
         if (overrideTenantId) {
             if (!allowOverride) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'TENANT_OVERRIDE_NOT_ALLOWED', 'Tenant override header is not permitted in this environment');
@@ -96,6 +100,7 @@ export class TenantRegistryService {
             const tenantId = toTenantId(overrideTenantId);
             const record = await this.getByTenantId(tenantId);
             if (record) {
+                logger.info('Resolved tenant by override', { tenantId: record.tenant.tenantId });
                 return this.toResolution(record, 'override');
             }
             // If override tenant doesn't exist and fallback is not allowed, throw error
@@ -107,15 +112,20 @@ export class TenantRegistryService {
 
         if (host) {
             const normalizedHost = this.normalizeHost(host);
+            logger.info('Normalized host', { host, normalizedHost });
             const record = await this.getByDomain(normalizedHost);
             if (record) {
+                logger.info('Resolved tenant by domain', { tenantId: record.tenant.tenantId, domain: normalizedHost });
                 return this.toResolution(record, 'domain');
             }
+            logger.info('No tenant found for domain', { domain: normalizedHost });
         }
 
         if (allowDefaultFallback) {
+            logger.info('Attempting to get default tenant');
             const record = await this.getDefaultTenant();
             if (record) {
+                logger.info('Resolved to default tenant', { tenantId: record.tenant.tenantId });
                 return this.toResolution(record, 'default');
             }
         }
@@ -163,10 +173,13 @@ export class TenantRegistryService {
 
     private async loadTenantByDomain(cacheKey: string, domain: TenantDomainName): Promise<TenantRegistryRecord | null> {
         try {
+            logger.info('Loading tenant by domain from Firestore', { domain });
             const record = await this.firestoreReader.getTenantByDomain(domain);
             if (!record) {
+                logger.info('No tenant found in Firestore for domain', { domain });
                 return null;
             }
+            logger.info('Found tenant in Firestore', { domain, tenantId: record.tenant.tenantId, domains: record.domains });
             this.storeRecord(record.tenant.tenantId as unknown as string, record);
             this.indexDomains(record);
             return record;
