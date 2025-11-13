@@ -2,7 +2,7 @@ import type { ExpenseDraft, UserId } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
-import { generateShortId, randomCategory, randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import { generateShortId, randomChoice, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class ExpenseDraftBuilder {
     private draft: ExpenseDraft;
@@ -19,7 +19,7 @@ export class ExpenseDraftBuilder {
             date: new Date(now).toISOString().split('T')[0], // YYYY-MM-DD format
             time: new Date(now).toTimeString().slice(0, 5), // HH:MM format
             paidBy: userId,
-            category: randomCategory(),
+            label: randomLabel(),
             splitType: randomChoice([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
             participants: [userId],
             splits: [{ userId, amount }],
@@ -57,8 +57,8 @@ export class ExpenseDraftBuilder {
         return this;
     }
 
-    withCategory(category: string): this {
-        this.draft.category = category;
+    withLabel(label: string): this {
+        this.draft.label = label;
         return this;
     }
 
@@ -90,7 +90,7 @@ export class ExpenseDraftBuilder {
             date: this.draft.date,
             time: this.draft.time,
             paidBy: this.draft.paidBy,
-            category: this.draft.category,
+            label: this.draft.label,
             splitType: this.draft.splitType,
             participants: [...this.draft.participants],
             splits: [...this.draft.splits],

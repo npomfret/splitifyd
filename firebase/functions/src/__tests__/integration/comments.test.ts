@@ -29,7 +29,7 @@ describe('Comments Integration Tests (Firebase Security Rules Only)', () => {
             .withAmount(50.0, 'USD')
             .withPaidBy(members[0].uid)
             .withParticipants(members.map((u) => u.uid))
-            .withCategory('test')
+            .withLabel('test')
             .withSplitType('equal')
             .build();
 

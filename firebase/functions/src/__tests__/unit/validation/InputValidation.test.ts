@@ -385,16 +385,16 @@ describe('Input Validation Unit Tests', () => {
         });
     });
 
-    describe('Category Validation', () => {
-        it('should accept valid category', () => {
+    describe('Label Validation', () => {
+        it('should accept valid label', () => {
             const expenseData = new CreateExpenseRequestBuilder()
                 .withAmount(100, 'USD')
-                .withCategory('food')
+                .withLabel('food')
                 .build();
 
             const result = validateCreateExpense(expenseData);
             expect(result.groupId).toBeDefined();
-            expect(result.category).toBe('food');
+            expect(result.label).toBe('food');
         });
     });
 });

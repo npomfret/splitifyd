@@ -1323,7 +1323,7 @@ export class FirestoreReader implements IFirestoreReader {
                         'amount',
                         'currency',
                         'description',
-                        'category',
+                        'label',
                         'date',
                         'splitType',
                         'participants',

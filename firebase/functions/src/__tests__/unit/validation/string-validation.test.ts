@@ -112,10 +112,10 @@ describe('String Length Validation - Focused Tests', () => {
             // Should accept valid update
             const result = validateUpdateExpense({
                 description: 'Updated description',
-                category: 'Updated category',
+                label: 'Updated label',
             });
             expect(result.description).toBe('Updated description');
-            expect(result.category).toBe('Updated category');
+            expect(result.label).toBe('Updated label');
         });
     });
 });

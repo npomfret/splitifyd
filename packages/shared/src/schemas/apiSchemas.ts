@@ -190,7 +190,7 @@ const ExpenseDataSchema = z.object({
     currency: z.string().length(3),
     paidBy: z.string().min(1),
     paidByName: z.string().min(1).optional(),
-    category: z.string().min(1),
+    label: z.string().min(1),
     date: z.string(),
     splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
     participants: z.array(z.string().min(1)),

@@ -173,7 +173,7 @@ describe('PermissionEngineAsync', () => {
                 .withDescription('Test expense')
                 .withAmount(100, 'USD')
                 .withDate('2023-01-01')
-                .withCategory('food')
+                .withLabel('food')
                 .withSplitType('equal')
                 .withPaidBy(testUserId)
                 .withParticipants([testUserId])

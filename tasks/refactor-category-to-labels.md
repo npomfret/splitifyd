@@ -2,6 +2,14 @@
 
 This document outlines all the necessary changes to refactor the concept of "category" to "labels" throughout the codebase.
 
+## Current Status (updated November 13, 2025)
+
+- ✅ Mapping confirmed: every domain/API/UI reference to “category/categories” has been migrated to “label/labels”.
+- ✅ Shared contracts, schemas, builders, and test-support utilities now expose `ExpenseLabel`, `PREDEFINED_EXPENSE_LABELS`, and `label` fields exclusively.
+- ✅ Firebase schemas, services, validation utilities, locales, scripts, and the entire affected unit/integration suite have been updated to use `label` plus the new `INVALID_LABEL` error code.
+- ✅ Webapp stores, hooks, pages, UI components (now `LabelSuggestionInput`), and locale strings present “Label” everywhere; the e2e suite targets the renamed input (`typeLabelText`).
+- ✅ `npm run build` passes across all workspaces after the refactor.
+
 **Note on nomenclature:** The request was to refactor "category" (singular) to "labels" (plural). This is ambiguous. This document assumes the following mapping:
 - "category" (singular) becomes "label" (singular)
 - "categories" (plural) becomes "labels" (plural)

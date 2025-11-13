@@ -1,9 +1,9 @@
 import { CurrencyService } from '@/app/services/currencyService.ts';
 import { getLastNight, getThisMorning, getToday, getYesterday } from '@/utils/dateUtils.ts';
 import { ClockIcon } from '@heroicons/react/24/outline';
-import { Amount, ExpenseCategory } from '@splitifyd/shared';
+import { Amount, ExpenseLabel } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, CategorySuggestionInput, CurrencyAmount, CurrencyAmountInput, TimeInput, Tooltip } from '../ui';
+import { Button, Card, CurrencyAmount, CurrencyAmountInput, LabelSuggestionInput, TimeInput, Tooltip } from '../ui';
 import { Stack } from '../ui/Stack';
 
 interface ExpenseBasicFieldsProps {
@@ -12,16 +12,16 @@ interface ExpenseBasicFieldsProps {
     currency: string;
     date: string;
     time: string;
-    category: string;
+    label: string;
     validationErrors: Record<string, string>;
     updateField: (field: string, value: any) => void;
     validateOnBlur: (field: string) => void;
     getRecentAmounts: () => Amount[];
-    PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[];
+    PREDEFINED_EXPENSE_LABELS: ExpenseLabel[];
 }
 
 export function ExpenseBasicFields(
-    { description, amount, currency, date, time, category, validationErrors, updateField, validateOnBlur, getRecentAmounts, PREDEFINED_EXPENSE_CATEGORIES }: ExpenseBasicFieldsProps,
+    { description, amount, currency, date, time, label, validationErrors, updateField, validateOnBlur, getRecentAmounts, PREDEFINED_EXPENSE_LABELS }: ExpenseBasicFieldsProps,
 ) {
     const { t } = useTranslation();
     const recentAmounts = getRecentAmounts();
@@ -60,7 +60,7 @@ export function ExpenseBasicFields(
                     )}
                 </div>
 
-                {/* Amount with Currency and Category */}
+                {/* Amount with Currency and Label */}
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {/* Combined Amount and Currency */}
                     <div>
@@ -103,14 +103,16 @@ export function ExpenseBasicFields(
                         )}
                     </div>
 
-                    {/* Category */}
+                    {/* Label */}
                     <div>
-                        <CategorySuggestionInput
-                            value={category}
-                            onChange={(value) => updateField('category', value)}
-                            suggestions={PREDEFINED_EXPENSE_CATEGORIES}
-                            label={t('expenseBasicFields.categoryLabel')}
-                            placeholder={t('expenseBasicFields.categoryPlaceholder')}
+                        <LabelSuggestionInput
+                            value={label}
+                            onChange={(value) => updateField('label', value)}
+                            suggestions={PREDEFINED_EXPENSE_LABELS}
+                            label={t('expenseBasicFields.labelLabel')}
+                            placeholder={t('expenseBasicFields.labelPlaceholder')}
+                            required
+                            error={validationErrors.label}
                             className='dark:bg-gray-700 dark:text-white dark:border-gray-600'
                         />
                     </div>

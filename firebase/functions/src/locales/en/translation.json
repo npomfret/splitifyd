@@ -28,7 +28,7 @@
       "amountTooLarge": "Expense amount cannot exceed 999,999.99.",
       "dateRequired": "Expense date is required.",
       "dateInvalid": "Expense date must be a valid date.",
-      "categoryTooLong": "Category name cannot exceed 50 characters.",
+      "labelTooLong": "Label name cannot exceed 50 characters.",
       "paidByRequired": "Paid by user is required.",
       "splitInvalid": "Invalid expense split configuration."
     },

@@ -140,12 +140,12 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 currency={formState.currency}
                                 date={formState.date}
                                 time={formState.time}
-                                category={formState.category}
+                                label={formState.label}
                                 validationErrors={formState.validationErrors}
                                 updateField={formState.updateField}
                                 validateOnBlur={formState.validateOnBlur}
                                 getRecentAmounts={formState.getRecentAmounts}
-                                PREDEFINED_EXPENSE_CATEGORIES={formState.PREDEFINED_EXPENSE_CATEGORIES}
+                                PREDEFINED_EXPENSE_LABELS={formState.PREDEFINED_EXPENSE_LABELS}
                             />
 
                             {/* Payer selection */}

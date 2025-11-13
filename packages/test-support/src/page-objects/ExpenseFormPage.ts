@@ -99,7 +99,7 @@ export class ExpenseFormPage extends BasePage {
     // ============================================================================
 
     /**
-     * Expense Details section - contains description, amount, currency, date, time, category
+     * Expense Details section - contains description, amount, currency, date, time, label
      * Uses semantic test ID for reliable targeting
      */
     private getExpenseDetailsSection(): Locator {
@@ -307,9 +307,9 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Category input field (combobox).
+     * Label input field (combobox).
      */
-    getCategoryInput(): Locator {
+    getLabelInput(): Locator {
         return this.getExpenseDetailsSection().locator('input[aria-haspopup="listbox"]').first();
     }
 
@@ -670,9 +670,9 @@ export class ExpenseFormPage extends BasePage {
         await this.selectAllParticipants();
     }
 
-    async typeCategoryText(text: string): Promise<void> {
-        const categoryInput = this.getCategoryInput();
-        await this.fillPreactInput(categoryInput, text);
+    async typeLabelText(text: string): Promise<void> {
+        const labelInput = this.getLabelInput();
+        await this.fillPreactInput(labelInput, text);
     }
 
     async isUserInSplitOptions(userName: string): Promise<boolean> {
@@ -820,7 +820,7 @@ export class ExpenseFormPage extends BasePage {
         await expect(headerTitle).toBeVisible({ timeout: 3000 });
     }
 
-    async verifyPreFilledValues(expectedValues: { description?: string; amount?: string; category?: string; }): Promise<void> {
+    async verifyPreFilledValues(expectedValues: { description?: string; amount?: string; label?: string; }): Promise<void> {
         if (expectedValues.description) {
             await expect(this.getDescriptionInput()).toHaveValue(expectedValues.description);
         }
@@ -829,8 +829,8 @@ export class ExpenseFormPage extends BasePage {
             await expect(this.getAmountInput()).toHaveValue(expectedValues.amount);
         }
 
-        if (expectedValues.category) {
-            await expect(this.getCategoryInput()).toHaveValue(expectedValues.category);
+        if (expectedValues.label) {
+            await expect(this.getLabelInput()).toHaveValue(expectedValues.label);
         }
     }
 

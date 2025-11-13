@@ -125,7 +125,7 @@ describe('Expense Validation', () => {
         it('should validate complete expense data including optional fields', () => {
             const validExpenseData = new CreateExpenseRequestBuilder()
                 .withDescription('Dinner at restaurant')
-                .withCategory('food')
+                .withLabel('food')
                 .withAmount(100.5, 'USD')
                 .withSplitType('equal')
                 .withReceiptUrl('https://example.com/receipt.jpg')
@@ -134,7 +134,7 @@ describe('Expense Validation', () => {
             const result = validateCreateExpense(validExpenseData);
 
             expect(result.description).toBe('Dinner at restaurant');
-            expect(result.category).toBe('food');
+            expect(result.label).toBe('food');
             expect(result.receiptUrl).toBe('https://example.com/receipt.jpg');
             expect(result.amount).toBe('100.5');
             expect(result.splitType).toBe('equal');

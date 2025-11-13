@@ -1,4 +1,4 @@
-import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
+import { PREDEFINED_EXPENSE_LABELS } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
 import { ExpenseId } from '@splitifyd/shared';
@@ -54,7 +54,7 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
         date: formState.date,
         time: formState.time,
         paidBy: formState.paidBy,
-        category: formState.category,
+        label: formState.label,
         splitType: formState.splitType,
         participants: formState.participants,
         splits: formState.splits,
@@ -79,6 +79,6 @@ export function useExpenseForm({ groupId, expenseId, isEditMode, isCopyMode, sou
 
         // Helpers
         getRecentAmounts,
-        PREDEFINED_EXPENSE_CATEGORIES,
+        PREDEFINED_EXPENSE_LABELS,
     };
 }

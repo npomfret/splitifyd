@@ -403,16 +403,16 @@ export interface InviteLink {
 }
 
 // ========================================================================
-// Expense Category Types and Constants
+// Expense Label Types and Constants
 // ========================================================================
 
-export interface ExpenseCategory {
+export interface ExpenseLabel {
     name: string;
     displayName: DisplayName;
     icon: string;
 }
 
-export const PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[] = [
+export const PREDEFINED_EXPENSE_LABELS: ExpenseLabel[] = [
     { name: 'food', displayName: 'Food & Dining', icon: '🍽️' },
     { name: 'transport', displayName: 'Transportation', icon: '🚗' },
     { name: 'utilities', displayName: 'Bills & Utilities', icon: '⚡' },
@@ -865,7 +865,7 @@ interface Expense extends SoftDeletable {
     amount: Amount;
     currency: CurrencyISOCode;
     description: string;
-    category: string;
+    label: string;
     date: ISOString;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: UserId[];
@@ -890,7 +890,7 @@ export interface CreateExpenseRequest {
     amount: Amount;
     currency: CurrencyISOCode;
     paidBy: UserId;
-    category: string;
+    label: string;
     date: ISOString;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: UserId[];
@@ -1285,7 +1285,7 @@ export interface ExpenseDraft {
     date: string; // YYYY-MM-DD format
     time: string; // HH:MM format
     paidBy: UserId;
-    category: string;
+    label: string;
     splitType: string;
     participants: UserId[];
     splits: Array<{ userId: UserId; amount: Amount; percentage?: number; }>;

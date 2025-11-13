@@ -125,15 +125,15 @@ describe('ExpenseHandlers - Unit Tests', () => {
             );
         });
 
-        it('should reject expense with invalid category', async () => {
+        it('should reject expense with invalid label', async () => {
             const userId = 'test-user';
             const expenseRequest = new CreateExpenseRequestBuilder().build();
-            (expenseRequest as any).category = 'a'.repeat(51);
+            (expenseRequest as any).label = 'a'.repeat(51);
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_CATEGORY',
+                    code: 'INVALID_LABEL',
                 }),
             );
         });
@@ -223,7 +223,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             expect(result.description).toBe('Updated description');
         });
 
-        it('should update expense category successfully', async () => {
+        it('should update expense label successfully', async () => {
             const userId = 'test-user';
 
             appDriver.seedUser(userId, {});
@@ -239,12 +239,12 @@ describe('ExpenseHandlers - Unit Tests', () => {
             const expense = await appDriver.createExpense(expenseRequest, userId);
 
             const updateRequest: UpdateExpenseRequest = {
-                category: 'Transport',
+                label: 'Transport',
             };
 
             const result = await appDriver.updateExpense(expense.id, updateRequest, userId);
 
-            expect(result.category).toBe('Transport');
+            expect(result.label).toBe('Transport');
         });
 
         it('should reject update with invalid expense ID', async () => {
@@ -296,15 +296,15 @@ describe('ExpenseHandlers - Unit Tests', () => {
             );
         });
 
-        it('should reject update with invalid category length', async () => {
+        it('should reject update with invalid label length', async () => {
             const updateRequest: UpdateExpenseRequest = {
-                category: 'a'.repeat(51),
+                label: 'a'.repeat(51),
             };
 
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
-                    code: 'INVALID_CATEGORY',
+                    code: 'INVALID_LABEL',
                 }),
             );
         });
@@ -539,7 +539,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 description: 'Updated Test Expense',
                 amount: '150.50',
                 currency: 'USD',
-                category: 'food',
+                label: 'food',
                 participants: [user1, user2],
                 splitType: 'equal' as const,
                 splits: [
@@ -556,7 +556,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             const updated = await appDriver.getExpense(created.id, user1);
             expect(updated.description).toBe('Updated Test Expense');
             expect(updated.amount).toBe('150.50');
-            expect(updated.category).toBe('food');
+            expect(updated.label).toBe('food');
             expect(updated.updatedAt).toBeDefined();
             expect(new Date(updated.updatedAt!).getTime()).toBeGreaterThan(new Date(updated.createdAt).getTime());
         });

@@ -190,7 +190,7 @@ export class ExpenseService {
             amount: validatedExpenseData.amount,
             currency: validatedExpenseData.currency,
             description: validatedExpenseData.description,
-            category: validatedExpenseData.category,
+            label: validatedExpenseData.label,
             date: validatedExpenseData.date, // Already ISO string from request
             splitType: validatedExpenseData.splitType,
             participants: validatedExpenseData.participants,

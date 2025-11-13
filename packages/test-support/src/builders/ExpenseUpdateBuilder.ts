@@ -2,7 +2,7 @@ import type { UpdateExpenseRequest, UserId } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import type { ISOString } from '@splitifyd/shared';
-import { convertToISOString, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import { convertToISOString, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class ExpenseUpdateBuilder {
     private update: Partial<UpdateExpenseRequest>;
@@ -15,7 +15,7 @@ export class ExpenseUpdateBuilder {
                 description: `Updated ${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
                 amount,
                 currency,
-                category: randomCategory(),
+                label: randomLabel(),
                 date: convertToISOString(randomDate()),
             };
         } else {
@@ -52,8 +52,8 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    withCategory(category: string): this {
-        this.update.category = category;
+    withLabel(label: string): this {
+        this.update.label = label;
         return this;
     }
 
@@ -88,7 +88,7 @@ export class ExpenseUpdateBuilder {
             ...(this.update.currency !== undefined && { currency: this.update.currency }),
             ...(this.update.paidBy !== undefined && { paidBy: this.update.paidBy }),
             ...(this.update.description !== undefined && { description: this.update.description }),
-            ...(this.update.category !== undefined && { category: this.update.category }),
+            ...(this.update.label !== undefined && { label: this.update.label }),
             ...(this.update.date !== undefined && { date: this.update.date }),
             ...(this.update.participants !== undefined && { participants: [...this.update.participants] }),
             ...(this.update.splitType !== undefined && { splitType: this.update.splitType }),

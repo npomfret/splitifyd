@@ -45,7 +45,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withPaidBy('payer-id')
                 .withAmount(100.5, 'USD')
                 .withDescription('Test expense')
-                .withCategory('Food')
+                .withLabel('Food')
                 .withSplitType('equal')
                 .withParticipants([userId, 'other-user'])
                 .withSplits([
@@ -76,7 +76,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 amount: '100.5',
                 currency: 'USD',
                 description: 'Test expense',
-                category: 'Food',
+                label: 'Food',
                 date: expect.any(String), // ISO string
                 splitType: 'equal',
                 participants: [userId, 'other-user'],
@@ -257,7 +257,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withGroupId('test-group')
                 .withDescription('Negative amount test')
                 .withAmount(-50, 'USD') // Invalid negative amount                .withCurrency('USD')
-                .withCategory('Food')
+                .withLabel('Food')
                 .withPaidBy('user1')
                 .withParticipants(['user1'])
                 .withSplitType('equal')
@@ -279,7 +279,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withGroupId('test-group')
                 .withDescription('Invalid currency test')
                 .withAmount(100, 'INVALID_CURRENCY') // Invalid currency code
-                .withCategory('Food')
+                .withLabel('Food')
                 .withPaidBy('user1')
                 .withParticipants(['user1'])
                 .withSplitType('equal')
@@ -296,15 +296,15 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         });
     });
 
-    describe('Category and Metadata Handling', () => {
-        it('should handle expense categories correctly', async () => {
+    describe('Label and Metadata Handling', () => {
+        it('should handle expense labels correctly', async () => {
             // Arrange
             const expenseId = toExpenseId('categorized-expense');
             const userId = 'test-user-id';
 
             const mockExpense = new ExpenseDTOBuilder()
                 .withExpenseId(expenseId)
-                .withCategory('Food & Dining')
+                .withLabel('Food & Dining')
                 .withParticipants([userId])
                 .withCreatedAt(convertToISOString(new Date()))
                 .withUpdatedAt(convertToISOString(new Date()))
@@ -320,7 +320,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             const result = await expenseService.getExpense(expenseId, userId);
 
             // Assert
-            expect(result.category).toBe('Food & Dining');
+            expect(result.label).toBe('Food & Dining');
         });
 
         it('should preserve receipt URLs correctly', async () => {
@@ -458,7 +458,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withPaidBy(userId)
                 .withAmount(100.5, 'USD')
                 .withDescription('Test expense')
-                .withCategory('Food')
+                .withLabel('Food')
                 .withSplitType('equal')
                 .withParticipants([userId])
                 .withSplits([{ uid: userId, amount: '100.5' }])
@@ -485,7 +485,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 amount: '100.5',
                 currency: 'USD',
                 description: 'Test expense',
-                category: 'Food',
+                label: 'Food',
                 date: expect.any(String), // ISO string
                 splitType: 'equal',
                 participants: [userId],

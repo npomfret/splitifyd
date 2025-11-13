@@ -16,7 +16,7 @@ const BaseExpenseSchema = z
         amount: PositiveAmountStringSchema,
         currency: CurrencyCodeSchema,
         description: z.string().min(1).max(200, 'Description must be 1-200 characters'),
-        category: z.string().min(1).max(50, 'Category must be 1-50 characters'),
+        label: z.string().min(1).max(50, 'Label must be 1-50 characters'),
         date: FirestoreTimestampSchema,
         splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
         participants: z.array(UserIdSchema).min(1, 'At least one participant required'),

@@ -44,7 +44,7 @@ describe('Expense Locking - Firebase Transaction Behavior', () => {
                 .withDescription('Test Expense')
                 .withAmount(100, 'EUR')
                 .withPaidBy(user1.uid)
-                .withCategory('food')
+                .withLabel('food')
                 .withDate(new Date().toISOString())
                 .withSplitType('equal')
                 .withParticipants([user1.uid])

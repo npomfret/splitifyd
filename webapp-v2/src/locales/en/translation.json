@@ -516,8 +516,8 @@
       "label": "Time",
       "placeholder": "Select time"
     },
-    "categorySuggestionInput": {
-      "placeholder": "Category (optional)"
+    "labelSuggestionInput": {
+      "placeholder": "Label (optional)"
     },
     "button": {
       "default": "Button"
@@ -794,8 +794,8 @@
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "What was this expense for?",
     "amountLabel": "Amount",
-    "categoryLabel": "Category",
-    "categoryPlaceholder": "Enter or select a category...",
+    "labelLabel": "Label",
+    "labelPlaceholder": "Enter or select a label...",
     "dateLabel": "Date",
     "timeLabel": "Time",
     "recentAmounts": "Recent amounts:",
@@ -1341,9 +1341,9 @@
     "button": {
       "default": "Button"
     },
-    "categorySuggestionInput": {
+    "labelSuggestionInput": {
       "requiredIndicator": "*",
-      "placeholder": "Enter category..."
+      "placeholder": "Enter label..."
     },
     "confirmDialog": {
       "confirm": "Confirm",
@@ -1422,7 +1422,7 @@
       "backButton": "← Back",
       "date": "Date",
       "ago": " ago",
-      "category": "Category",
+      "label": "Label",
       "paidBy": "Paid by",
       "unknown": "Unknown",
       "discussion": "Discussion",

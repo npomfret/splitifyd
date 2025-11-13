@@ -325,11 +325,11 @@ export const CreateExpenseRequestSchema = z.object({
         .trim()
         .min(1, 'Description is required')
         .max(200, 'Description cannot exceed 200 characters'),
-    category: z
+    label: z
         .string()
         .trim()
-        .min(1, 'Category is required')
-        .max(50, 'Category must be between 1 and 50 characters'),
+        .min(1, 'Label is required')
+        .max(50, 'Label must be between 1 and 50 characters'),
     date: createUtcDateSchema(),
     splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
     participants: z
@@ -359,11 +359,11 @@ export const UpdateExpenseRequestSchema = z
             .min(1, 'Description cannot be empty')
             .max(200, 'Description cannot exceed 200 characters')
             .optional(),
-        category: z
+        label: z
             .string()
             .trim()
-            .min(1, 'Category must be between 1 and 50 characters')
-            .max(50, 'Category must be between 1 and 50 characters')
+            .min(1, 'Label must be between 1 and 50 characters')
+            .max(50, 'Label must be between 1 and 50 characters')
             .optional(),
         date: createUtcDateSchema().optional(),
         paidBy: z.string().trim().min(1, 'Payer is required').optional(),
@@ -385,7 +385,7 @@ export const UpdateExpenseRequestSchema = z
             value.amount === undefined
             && value.currency === undefined
             && value.description === undefined
-            && value.category === undefined
+            && value.label === undefined
             && value.date === undefined
             && value.paidBy === undefined
             && value.splitType === undefined

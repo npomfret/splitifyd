@@ -340,7 +340,7 @@ test.describe('Form Validation & UI Error Handling', () => {
         const submitButton = expenseFormPage.getSaveButtonForValidation();
         await expect(submitButton).toBeEnabled({ timeout: 2000 });
 
-        await expenseFormPage.typeCategoryText(''); // Clear category to trigger server error
+        await expenseFormPage.typeLabelText(''); // Clear label to trigger server error
         await submitButton.click();
 
         await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);

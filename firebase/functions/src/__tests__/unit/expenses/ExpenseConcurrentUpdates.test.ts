@@ -43,7 +43,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
             .withDescription('Test Expense')
             .withAmount(100, 'EUR')
             .withPaidBy(userId)
-            .withCategory('food')
+            .withLabel('food')
             .withDate(new Date().toISOString())
             .withSplitType('equal')
             .withParticipants([userId])
@@ -98,7 +98,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
             .withDescription('Test Expense')
             .withAmount(100, 'USD')
             .withPaidBy(userId)
-            .withCategory('food')
+            .withLabel('food')
             .withSplitType('equal')
             .withParticipants([userId])
             .build(), userId);

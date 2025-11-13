@@ -107,7 +107,7 @@ function getDefaultErrorCode(fieldPath: string, zodCode: string): string {
     if (fieldPath.includes('groupId')) return 'MISSING_GROUP_ID';
     if (fieldPath.includes('paidBy')) return 'MISSING_PAYER';
     if (fieldPath.includes('description')) return 'INVALID_DESCRIPTION';
-    if (fieldPath.includes('category')) return 'INVALID_CATEGORY';
+    if (fieldPath.includes('label')) return 'INVALID_LABEL';
     if (fieldPath.includes('splitType')) return 'INVALID_SPLIT_TYPE';
     if (fieldPath.includes('participants')) return 'INVALID_PARTICIPANTS';
     if (fieldPath.includes('splits')) return 'INVALID_SPLITS';

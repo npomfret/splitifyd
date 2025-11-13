@@ -29,9 +29,9 @@ const createExpenseErrorMapper = createZodErrorMapper(
                 return issue.message;
             },
         },
-        category: {
-            code: 'INVALID_CATEGORY',
-            message: () => 'Category must be between 1 and 50 characters',
+        label: {
+            code: 'INVALID_LABEL',
+            message: () => 'Label must be between 1 and 50 characters',
         },
         date: {
             code: 'INVALID_DATE',
@@ -72,7 +72,7 @@ const baseCreateExpenseValidator = createRequestValidator({
             amount: value.amount,
             currency: value.currency,
             description: sanitizeInputString(value.description),
-            category: sanitizeInputString(value.category),
+            label: sanitizeInputString(value.label),
             date: toISOString(value.date),
             splitType: value.splitType,
             participants: value.participants.map((participant) => participant.trim()),
@@ -102,9 +102,9 @@ const updateExpenseErrorMapperBase = createZodErrorMapper(
                 return issue.message;
             },
         },
-        category: {
-            code: 'INVALID_CATEGORY',
-            message: () => 'Category must be between 1 and 50 characters',
+        label: {
+            code: 'INVALID_LABEL',
+            message: () => 'Label must be between 1 and 50 characters',
         },
         date: {
             code: 'INVALID_DATE',
@@ -159,8 +159,8 @@ const baseUpdateExpenseValidator = createRequestValidator({
             update.description = sanitizeInputString(value.description);
         }
 
-        if (value.category !== undefined) {
-            update.category = sanitizeInputString(value.category);
+        if (value.label !== undefined) {
+            update.label = sanitizeInputString(value.label);
         }
 
         if (value.date !== undefined) {

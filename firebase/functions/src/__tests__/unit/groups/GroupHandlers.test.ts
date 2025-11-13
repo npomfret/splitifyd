@@ -384,7 +384,7 @@ describe('GroupHandlers - Unit Tests', () => {
                 .withPaidBy(userId)
                 .withAmount(120.50, 'GBP')
                 .withDescription('Team dinner')
-                .withCategory('food')
+                .withLabel('food')
                 .withParticipants([userId])
                 .build();
 

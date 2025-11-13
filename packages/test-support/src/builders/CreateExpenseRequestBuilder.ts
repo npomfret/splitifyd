@@ -4,7 +4,7 @@ import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
 import type { ISOString } from '@splitifyd/shared';
-import { convertToISOString, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;
@@ -36,7 +36,7 @@ export class CreateExpenseRequestBuilder {
             participants,
             splits,
             date: convertToISOString(randomDate()),
-            category: randomCategory(),
+            label: randomLabel(),
         };
     }
 
@@ -82,8 +82,8 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withCategory(category: string): this {
-        this.expense.category = category;
+    withLabel(label: string): this {
+        this.expense.label = label;
         return this;
     }
 
@@ -121,7 +121,7 @@ export class CreateExpenseRequestBuilder {
             participants: [...this.expense.participants],
             splits: [...splits],
             date: this.expense.date,
-            category: this.expense.category,
+            label: this.expense.label,
             ...(this.expense.receiptUrl && { receiptUrl: this.expense.receiptUrl }),
         };
     }

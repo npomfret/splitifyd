@@ -119,7 +119,7 @@ export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500
     return { currency, amount };
 }
 
-export function randomCategory(): string {
+export function randomLabel(): string {
     return randomChoice(['food', 'transport', 'entertainment', 'utilities', 'shopping', 'other']);
 }
 

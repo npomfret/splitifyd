@@ -80,7 +80,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                         <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`} data-testid='expense-amount'>
                             <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                         </p>
-                        <p className='text-xs text-gray-500'>{expense.category}</p>
+                        <p className='text-xs text-gray-500'>{expense.label}</p>
                     </div>
 
                     {/* Copy button - only show if not deleted and onCopy is provided */}

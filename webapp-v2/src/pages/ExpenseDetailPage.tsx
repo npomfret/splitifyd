@@ -259,10 +259,10 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                         </p>
                                     </div>
 
-                                    {/* Category */}
+                                    {/* Label */}
                                     <div>
-                                        <p className='text-sm text-gray-500 dark:text-gray-400'>{t('pages.expenseDetailPage.category')}</p>
-                                        <p className='font-medium text-gray-900 dark:text-white'>{expense.value.category}</p>
+                                        <p className='text-sm text-gray-500 dark:text-gray-400'>{t('pages.expenseDetailPage.label')}</p>
+                                        <p className='font-medium text-gray-900 dark:text-white'>{expense.value.label}</p>
                                     </div>
 
                                     {/* Paid By */}

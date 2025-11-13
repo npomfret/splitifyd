@@ -5,7 +5,7 @@ import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
 import { ExpenseId, toExpenseId } from '@splitifyd/shared';
 import type { ISOString } from '@splitifyd/shared';
-import { convertToISOString, generateShortId, randomCategory, randomChoice, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
+import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 /**
  * Builder for creating ExpenseDTO objects for tests
@@ -35,7 +35,7 @@ export class ExpenseDTOBuilder {
             participants: [userId],
             splits: [{ uid: userId, amount }],
             date: convertToISOString(randomDate()),
-            category: randomCategory(),
+            label: randomLabel(),
             deletedAt: null,
             deletedBy: null,
             isLocked: false, // Default to unlocked
@@ -144,8 +144,8 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withCategory(category: string): this {
-        this.expense.category = category;
+    withLabel(label: string): this {
+        this.expense.label = label;
         return this;
     }
 

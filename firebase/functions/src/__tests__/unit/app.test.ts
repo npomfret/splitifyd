@@ -610,7 +610,7 @@ describe('app tests', () => {
                 .withDescription('Hotel booking with receipt')
                 .withAmount(80, 'USD')
                 .withPaidBy(user1)
-                .withCategory('Travel')
+                .withLabel('Travel')
                 .withDate('2024-06-15T12:30:00.000Z')
                 .withReceiptUrl('https://example.com/receipts/hotel.jpg')
                 .withParticipants(participants)
@@ -635,7 +635,7 @@ describe('app tests', () => {
             const recordedMetadataExpense = groupDetails.expenses.expenses.find((expense) => expense.id === metadataExpense.id);
             expect(recordedMetadataExpense).toBeDefined();
             expect(recordedMetadataExpense!.description).toBe('Hotel booking with receipt');
-            expect(recordedMetadataExpense!.category).toBe('Travel');
+            expect(recordedMetadataExpense!.label).toBe('Travel');
             expect(recordedMetadataExpense!.date).toBe('2024-06-15T12:30:00.000Z');
             expect(recordedMetadataExpense!.receiptUrl).toBe('https://example.com/receipts/hotel.jpg');
             expect(recordedMetadataExpense!.splits).toEqual(metadataSplits);

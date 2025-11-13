@@ -29,7 +29,7 @@ interface ExpenseFormStore {
     date: string;
     time: string; // Time in HH:mm format (24-hour)
     paidBy: UserId;
-    category: string;
+    label: string;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: string[];
     splits: ExpenseSplit[];
@@ -47,7 +47,7 @@ interface ExpenseFormStore {
     readonly dateSignal: ReadonlySignal<string>;
     readonly timeSignal: ReadonlySignal<string>;
     readonly paidBySignal: ReadonlySignal<string>;
-    readonly categorySignal: ReadonlySignal<string>;
+    readonly labelSignal: ReadonlySignal<string>;
     readonly splitTypeSignal: ReadonlySignal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>;
     readonly participantsSignal: ReadonlySignal<string[]>;
     readonly splitsSignal: ReadonlySignal<ExpenseSplit[]>;
@@ -87,7 +87,7 @@ interface ExpenseFormData {
     date: string;
     time: string; // Time in HH:mm format (24-hour)
     paidBy: UserId;
-    category: string;
+    label: string;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
 }
 
@@ -102,14 +102,14 @@ const getTodayDate = (): string => {
 
 // Note: Signals are now encapsulated within the ExpenseFormStoreImpl class below
 
-// Categories are now imported from shared types
+// Labels are now imported from shared types
 
 // Storage management for user-scoped data
 class ExpenseStorageManager {
     private storage: UserScopedStorage | null = null;
-    private static readonly RECENT_CATEGORIES_KEY = 'recent-expense-categories';
+    private static readonly RECENT_LABELS_KEY = 'recent-expense-labels';
     private static readonly RECENT_AMOUNTS_KEY = 'recent-expense-amounts';
-    private static readonly MAX_RECENT_CATEGORIES = 3;
+    private static readonly MAX_RECENT_LABELS = 3;
     private static readonly MAX_RECENT_AMOUNTS = 5;
 
     setStorage(storage: UserScopedStorage): void {
@@ -120,25 +120,25 @@ class ExpenseStorageManager {
         this.storage = null;
     }
 
-    getRecentCategories(): string[] {
+    getRecentLabels(): string[] {
         if (!this.storage) return [];
 
         try {
-            const recent = this.storage.getItem(ExpenseStorageManager.RECENT_CATEGORIES_KEY);
+            const recent = this.storage.getItem(ExpenseStorageManager.RECENT_LABELS_KEY);
             return recent ? JSON.parse(recent) : [];
         } catch {
             return [];
         }
     }
 
-    addRecentCategory(category: string): void {
+    addRecentLabel(label: string): void {
         if (!this.storage) return;
 
         try {
-            const recent = this.getRecentCategories();
-            const filtered = recent.filter((cat) => cat !== category);
-            const updated = [category, ...filtered].slice(0, ExpenseStorageManager.MAX_RECENT_CATEGORIES);
-            this.storage.setItem(ExpenseStorageManager.RECENT_CATEGORIES_KEY, JSON.stringify(updated));
+            const recent = this.getRecentLabels();
+            const filtered = recent.filter((cat) => cat !== label);
+            const updated = [label, ...filtered].slice(0, ExpenseStorageManager.MAX_RECENT_LABELS);
+            this.storage.setItem(ExpenseStorageManager.RECENT_LABELS_KEY, JSON.stringify(updated));
         } catch {
             // Ignore storage errors
         }
@@ -227,7 +227,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     readonly #dateSignal = signal<string>(getTodayDate());
     readonly #timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
     readonly #paidBySignal = signal<string>('');
-    readonly #categorySignal = signal<string>('food');
+    readonly #labelSignal = signal<string>('food');
     readonly #splitTypeSignal = signal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>(SplitTypes.EQUAL);
     readonly #participantsSignal = signal<string[]>([]);
     readonly #splitsSignal = signal<ExpenseSplit[]>([]);
@@ -293,8 +293,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     get paidBy() {
         return this.#paidBySignal.value;
     }
-    get category() {
-        return this.#categorySignal.value;
+    get label() {
+        return this.#labelSignal.value;
     }
     get splitType() {
         return this.#splitTypeSignal.value;
@@ -337,8 +337,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     get paidBySignal(): ReadonlySignal<string> {
         return this.#paidBySignal;
     }
-    get categorySignal(): ReadonlySignal<string> {
-        return this.#categorySignal;
+    get labelSignal(): ReadonlySignal<string> {
+        return this.#labelSignal;
     }
     get splitTypeSignal(): ReadonlySignal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE> {
         return this.#splitTypeSignal;
@@ -527,8 +527,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                     this.handleSplitTypeChange(this.#splitTypeSignal.value);
                 }
                 break;
-            case 'category':
-                this.#categorySignal.value = value as string;
+            case 'label':
+                this.#labelSignal.value = value as string;
                 break;
             case 'splitType':
                 this.#splitTypeSignal.value = value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
@@ -903,7 +903,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 amount: amount,
                 currency: this.#currencySignal.value,
                 paidBy: this.#paidBySignal.value,
-                category: this.#categorySignal.value,
+                label: this.#labelSignal.value,
                 date: utcDateTime,
                 splitType: this.#splitTypeSignal.value,
                 participants: this.#participantsSignal.value,
@@ -912,8 +912,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             const expense = await apiClient.createExpense(request);
 
-            // Track recent category and amount
-            storageManager.addRecentCategory(this.#categorySignal.value);
+            // Track recent label and amount
+            storageManager.addRecentLabel(this.#labelSignal.value);
             storageManager.addRecentAmount(amount);
 
             // Clear draft and reset form immediately after successful creation
@@ -955,7 +955,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 description: this.#descriptionSignal.value.trim(),
                 amount: amount,
                 currency: this.#currencySignal.value,
-                category: this.#categorySignal.value,
+                label: this.#labelSignal.value,
                 date: utcDateTime,
                 splitType: this.#splitTypeSignal.value,
                 participants: this.#participantsSignal.value,
@@ -964,8 +964,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             const expense = await apiClient.updateExpense(expenseId, updateRequest as CreateExpenseRequest);
 
-            // Track recent category and amount
-            storageManager.addRecentCategory(this.#categorySignal.value);
+            // Track recent label and amount
+            storageManager.addRecentLabel(this.#labelSignal.value);
             storageManager.addRecentAmount(amount);
 
             // Clear draft immediately after successful update
@@ -998,7 +998,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#dateSignal.value = getTodayDate();
         this.#timeSignal.value = '12:00'; // Default to noon
         this.#paidBySignal.value = '';
-        this.#categorySignal.value = 'food';
+        this.#labelSignal.value = 'food';
         this.#splitTypeSignal.value = SplitTypes.EQUAL;
         this.#participantsSignal.value = [];
         this.#splitsSignal.value = [];
@@ -1015,7 +1015,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             || this.#currencySignal.value !== ''
             || this.#dateSignal.value !== getTodayDate()
             || this.#paidBySignal.value !== ''
-            || this.#categorySignal.value !== 'food'
+            || this.#labelSignal.value !== 'food'
             || this.#splitTypeSignal.value !== SplitTypes.EQUAL
             || this.#participantsSignal.value.length > 0
             || this.#splitsSignal.value.length > 0
@@ -1038,7 +1038,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             date: this.#dateSignal.value,
             time: this.#timeSignal.value,
             paidBy: this.#paidBySignal.value,
-            category: this.#categorySignal.value,
+            label: this.#labelSignal.value,
             splitType: this.#splitTypeSignal.value,
             participants: this.#participantsSignal.value,
             splits: this.#splitsSignal.value,
@@ -1070,7 +1070,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             this.#dateSignal.value = draftData.date || getTodayDate();
             this.#timeSignal.value = draftData.time || '12:00'; // Default to noon
             this.#paidBySignal.value = draftData.paidBy || '';
-            this.#categorySignal.value = draftData.category || 'food';
+            this.#labelSignal.value = draftData.label || 'food';
             this.#splitTypeSignal.value = draftData.splitType || SplitTypes.EQUAL;
             this.#participantsSignal.value = draftData.participants || [];
             this.#splitsSignal.value = draftData.splits || [];

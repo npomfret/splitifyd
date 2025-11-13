@@ -1,11 +1,11 @@
-import type { ExpenseCategory } from '@splitifyd/shared';
+import type { ExpenseLabel } from '@splitifyd/shared';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
-interface CategorySuggestionInputProps {
+interface LabelSuggestionInputProps {
     value: string;
     onChange: (value: string) => void;
-    suggestions: ExpenseCategory[];
+    suggestions: ExpenseLabel[];
     className?: string;
     error?: string;
     label?: string;
@@ -13,14 +13,14 @@ interface CategorySuggestionInputProps {
     required?: boolean;
 }
 
-export function CategorySuggestionInput({ value, onChange, suggestions, className = '', error, label, placeholder, required = false }: CategorySuggestionInputProps) {
+export function LabelSuggestionInput({ value, onChange, suggestions, className = '', error, label, placeholder, required = false }: LabelSuggestionInputProps) {
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
-    const [filteredSuggestions, setFilteredSuggestions] = useState<ExpenseCategory[]>(suggestions);
+    const [filteredSuggestions, setFilteredSuggestions] = useState<ExpenseLabel[]>(suggestions);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const inputRef = useRef<HTMLInputElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const inputId = `category-input-${Math.random().toString(36).substr(2, 9)}`;
+    const inputId = `label-input-${Math.random().toString(36).substr(2, 9)}`;
 
     // Filter suggestions based on input value
     useEffect(() => {
@@ -58,7 +58,7 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
     }, []);
 
     const handleSuggestionClick = useCallback(
-        (suggestion: ExpenseCategory) => {
+        (suggestion: ExpenseLabel) => {
             onChange(suggestion.name);
             setIsOpen(false);
             inputRef.current?.focus();
@@ -134,7 +134,7 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
                     {label}
                     {required && (
                         <span className='text-red-500 ml-1' data-testid='required-indicator'>
-                            {t('uiComponents.categorySuggestionInput.requiredIndicator')}
+                            {t('uiComponents.labelSuggestionInput.requiredIndicator')}
                         </span>
                     )}
                 </label>
@@ -148,7 +148,7 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
                     onInput={handleInputChange}
                     onFocus={handleInputFocus}
                     onKeyDown={handleKeyDown}
-                    placeholder={placeholder || t('uiComponents.categorySuggestionInput.placeholder')}
+                    placeholder={placeholder || t('uiComponents.labelSuggestionInput.placeholder')}
                     className={inputClasses}
                     aria-invalid={!!error}
                     aria-describedby={error ? `${inputId}-error` : undefined}
@@ -183,7 +183,7 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
                 )}
             </div>
             {error && (
-                <p id={`${inputId}-error`} className='mt-2 text-sm text-red-600' role='alert' data-testid='category-input-error-message'>
+                <p id={`${inputId}-error`} className='mt-2 text-sm text-red-600' role='alert' data-testid='label-input-error-message'>
                     {error}
                 </p>
             )}
