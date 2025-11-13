@@ -5,6 +5,62 @@
         <link rel="icon" type="image/svg+xml" href="/src/assets/logo.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Splitifyd</title>
+        <style id="tenant-theme-inline-base">
+            :root {
+                --surface-base: #ffffff;
+                --surface-muted: #f5f7fb;
+                --text-primary: #0f172a;
+                --text-muted: #475569;
+                --interactive-primary: #2563eb;
+                --interactive-primary-text: #ffffff;
+                --border-default: #e2e8f0;
+            }
+
+            body {
+                background-color: var(--surface-base);
+                color: var(--text-primary);
+                font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                min-height: 100vh;
+                margin: 0;
+            }
+
+            a {
+                color: var(--interactive-primary);
+            }
+        </style>
+        <script id="tenant-theme-bootstrap">
+            (function () {
+                var storageKey = 'splitifyd:theme-hash';
+                var storedHash = '';
+                try {
+                    storedHash = window.localStorage.getItem(storageKey) || '';
+                } catch (err) {
+                    storedHash = '';
+                }
+
+                window.__splitifydTheme = {
+                    storageKey: storageKey,
+                    hash: storedHash,
+                };
+
+                var head = document.head || document.getElementsByTagName('head')[0];
+                var link = document.createElement('link');
+                link.id = 'tenant-theme-stylesheet';
+                link.rel = 'stylesheet';
+                link.href = storedHash ? '/api/theme.css?v=' + encodeURIComponent(storedHash) : '/api/theme.css';
+                link.addEventListener(
+                    'load',
+                    function () {
+                        var fallback = document.getElementById('tenant-theme-inline-base');
+                        if (fallback && fallback.parentNode) {
+                            fallback.parentNode.removeChild(fallback);
+                        }
+                    },
+                    { once: true },
+                );
+                head.appendChild(link);
+            })();
+        </script>
     </head>
     <body>
         <div id="app"></div>

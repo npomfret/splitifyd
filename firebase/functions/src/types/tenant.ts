@@ -1,4 +1,4 @@
-import type { TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId } from '@splitifyd/shared';
+import type { BrandingArtifactMetadata, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId } from '@splitifyd/shared';
 
 export type TenantResolutionSource = 'domain' | 'override' | 'default';
 
@@ -9,6 +9,7 @@ export interface TenantRequestContext {
     primaryDomain: TenantDomainName | null;
     isDefault: TenantDefaultFlag;
     source: TenantResolutionSource;
+    themeArtifact?: BrandingArtifactMetadata | null;
 }
 
 declare global {

@@ -251,6 +251,7 @@ export class TenantRegistryService {
             primaryDomain: record.primaryDomain,
             isDefault: record.isDefault,
             source,
+            themeArtifact: record.brandingTokens?.artifact ?? null,
         };
     }
 }

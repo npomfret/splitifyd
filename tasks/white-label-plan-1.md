@@ -64,6 +64,7 @@ flowchart LR
 - Added `ThemeArtifactService` with deterministic token → CSS/JSON generation, SHA-256 hashing, and local storage persistence (emulator-ready abstraction).
 - `/api/admin/publishTenantTheme` now exists: authenticates admins, loads tenant branding tokens, generates artifacts, saves them, and records metadata (`brandingTokens.artifact`) on the tenant document.
 - `/api/theme.css` endpoint streams the published CSS via the existing tenant resolver, complete with immutable caching headers and a targeted integration test (`theme-css.test.ts`).
+- The frontend now boots with an inline base stylesheet + render-blocking theme link, registers a tiny service worker cache, and syncs the artifact hash from `/api/config` so localhost + loopback testing never FOUCs while still honoring per-tenant CSS.
 - Tooling guardrails shipped: ESLint `no-inline-styles`, Stylelint config, and lint scripts.
 - Documentation bundle created (admin guide, dev guide, debug runbook, metrics guide) + Mermaid architecture diagram.
 
@@ -215,6 +216,7 @@ scripts/
 
 ## 5. Frontend Consumption & UI Refactor
 - **Bootstrap:** Inline base CSS + render-blocking link + service worker caching eliminate FOUC while guaranteeing offline resilience.
+- **Config handshake:** `/api/config` now returns `theme.hash`, and the webapp persists it in `localStorage` + a global bootstrap script so every reload requests `/api/theme.css?v={hash}` and busts caches automatically.
 - **Tailwind config:** `webapp-v2/tailwind.config.ts` defines semantic color/spacing/font scales that reference CSS vars only; design tokens never leak into components directly.
 - **UI primitives:** Rebuild `Button`, `Card`, `Modal`, `Input`, `Typography`, `Stack`, `Surface` primitives so pages assemble layouts from a consistent kit. All legacy inline styles/hex codes are removed via codemod + lint rules.
 - **Diagnostics:** A `ThemeDiagnosticsPanel` (dev/admin only) shows current tenant, hash, token JSON, and computed CSS vars; includes “Copy CSS link” + “force reload” buttons for debugging.

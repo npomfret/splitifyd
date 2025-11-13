@@ -26,8 +26,14 @@ vi.mock('@/utils/branding', () => ({
     applyBrandingPalette: vi.fn(),
 }));
 
+vi.mock('@/utils/theme-bootstrap', () => ({
+    syncThemeHash: vi.fn(),
+    registerThemeServiceWorker: vi.fn(),
+}));
+
 const { firebaseConfigManager } = await import('@/app/firebase-config');
 const { applyBrandingPalette } = await import('@/utils/branding');
+const { syncThemeHash } = await import('@/utils/theme-bootstrap');
 
 describe('configStore', () => {
     const baseConfig = (branding?: BrandingConfig): AppConfiguration => ({
@@ -76,11 +82,14 @@ describe('configStore', () => {
             secondaryColor: toTenantSecondaryColor('#445566'),
         };
 
-        vi.mocked(firebaseConfigManager.getConfig).mockResolvedValue(baseConfig(branding));
+        const config = baseConfig(branding);
+        config.theme = { hash: 'abc123' } as AppConfiguration['theme'];
+        vi.mocked(firebaseConfigManager.getConfig).mockResolvedValue(config);
 
         await configStore.loadConfig();
 
         expect(applyBrandingPalette).toHaveBeenCalledWith(branding);
+        expect(syncThemeHash).toHaveBeenCalledWith('abc123');
     });
 
     it('clears branding palette when reset is called', async () => {
@@ -88,5 +97,11 @@ describe('configStore', () => {
         configStore.reset();
 
         expect(applyBrandingPalette).toHaveBeenCalledWith(null);
+        expect(syncThemeHash).toHaveBeenCalled();
+    });
+
+    it('syncs theme hash even when branding is absent', async () => {
+        await configStore.loadConfig();
+        expect(syncThemeHash).toHaveBeenCalledWith(null);
     });
 });

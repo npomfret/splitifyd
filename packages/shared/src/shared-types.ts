@@ -482,11 +482,17 @@ export interface FormDefaults {
     password?: string;
 }
 
+export interface ThemeConfig {
+    hash: string;
+    generatedAtEpochMs?: number;
+}
+
 export interface AppConfiguration {
     firebase: FirebaseConfig;
     environment: EnvironmentConfig;
     formDefaults: FormDefaults;
     tenant?: TenantConfig;
+    theme?: ThemeConfig | null;
     /**
      * URL for Firebase Auth emulator - only populated in development.
      * Used by the client to connect to the local auth emulator instead of production Firebase Auth.

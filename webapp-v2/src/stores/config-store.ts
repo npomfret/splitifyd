@@ -2,6 +2,7 @@ import { ReadonlySignal, signal } from '@preact/signals';
 import type { AppConfiguration, BrandingConfig } from '@splitifyd/shared';
 import { firebaseConfigManager } from '../app/firebase-config';
 import { applyBrandingPalette } from '../utils/branding';
+import { syncThemeHash } from '../utils/theme-bootstrap';
 
 interface ConfigStore {
     // State getters - readonly values for external consumers
@@ -65,6 +66,7 @@ class ConfigStoreImpl implements ConfigStore {
             const config = await firebaseConfigManager.getConfig();
 
             this.#configSignal.value = config;
+            syncThemeHash(config.theme?.hash ?? null);
             this.applyBranding(config.tenant?.branding ?? null);
             this.#errorSignal.value = null;
             configLoaded = true;

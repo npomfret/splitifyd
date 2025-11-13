@@ -109,9 +109,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const getConfig: RequestHandler = (req, res) => {
         // Get tenant configuration from request context (set by tenant identification middleware)
         const tenantContext = (req as any).tenant;
-        const tenantConfig = tenantContext?.config;
-
-        const config = getEnhancedConfigResponse(tenantConfig);
+        const config = getEnhancedConfigResponse(tenantContext);
 
         // Cache config: 60s in dev for quick tenant branding updates, 5min in prod for efficiency
         const serverConfig = getServerConfig();

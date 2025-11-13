@@ -12,12 +12,14 @@ import {
     toTenantMaxUsersPerGroup,
     toISOString,
     toShowLandingPageFlag,
+    toTenantDefaultFlag,
 } from '@splitifyd/shared';
 import type { AppConfiguration, TenantConfig } from '@splitifyd/shared';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import * as clientConfig from '../../client-config';
 import { HARDCODED_FALLBACK_TENANT } from '../../services/tenant/TenantRegistryService';
 import { getEnhancedConfigResponse } from '../../utils/config-response';
+import type { TenantRequestContext } from '../../types/tenant';
 
 describe('getEnhancedConfigResponse', () => {
     const mockAppConfig = { firebase: {}, environment: {}, formDefaults: {} } as unknown as AppConfiguration;
@@ -54,7 +56,16 @@ describe('getEnhancedConfigResponse', () => {
             updatedAt: toISOString('2025-02-02T12:00:00.000Z'),
         };
 
-        const result = getEnhancedConfigResponse(sourceTenant);
+        const context: TenantRequestContext = {
+            tenantId: sourceTenant.tenantId,
+            config: sourceTenant,
+            domains: [],
+            primaryDomain: null,
+            isDefault: toTenantDefaultFlag(false),
+            source: 'override',
+        };
+
+        const result = getEnhancedConfigResponse(context);
 
         expect(result).toBe(mockAppConfig);
 
@@ -77,5 +88,30 @@ describe('getEnhancedConfigResponse', () => {
         expect(forwarded).toBeDefined();
         expect(forwarded?.tenantId).toBe(HARDCODED_FALLBACK_TENANT.tenant.tenantId);
         expect(forwarded).not.toBe(HARDCODED_FALLBACK_TENANT.tenant);
+    });
+
+    it('augments config with theme hash when artifact is present', () => {
+        const context: TenantRequestContext = {
+            tenantId: toTenantId('tenant-with-theme'),
+            config: HARDCODED_FALLBACK_TENANT.tenant,
+            domains: [],
+            primaryDomain: null,
+            isDefault: toTenantDefaultFlag(false),
+            source: 'domain',
+            themeArtifact: {
+                hash: 'abc123',
+                cssUrl: 'file:///tmp/theme.css',
+                tokensUrl: 'file:///tmp/tokens.json',
+                version: 1,
+                generatedAtEpochMs: 123456789, 
+                generatedBy: 'tester',
+            },
+        };
+
+        const result = getEnhancedConfigResponse(context);
+
+        expect(result).not.toBe(mockAppConfig);
+        expect(result.theme?.hash).toBe('abc123');
+        expect(result.theme?.generatedAtEpochMs).toBe(123456789);
     });
 });

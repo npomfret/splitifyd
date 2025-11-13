@@ -1,6 +1,7 @@
 import { AppConfiguration, TenantConfig } from '@splitifyd/shared';
 import { getTenantAwareAppConfig } from '../client-config';
 import { HARDCODED_FALLBACK_TENANT } from '../services/tenant/TenantRegistryService';
+import type { TenantRequestContext } from '../types/tenant';
 
 const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => ({
     tenantId: tenant.tenantId,
@@ -13,7 +14,20 @@ const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => ({
     updatedAt: tenant.updatedAt,
 });
 
-export const getEnhancedConfigResponse = (tenant?: TenantConfig): AppConfiguration => {
-    const effectiveTenant = tenant ? cloneTenantConfig(tenant) : cloneTenantConfig(HARDCODED_FALLBACK_TENANT.tenant);
-    return getTenantAwareAppConfig(effectiveTenant);
+export const getEnhancedConfigResponse = (context?: TenantRequestContext): AppConfiguration => {
+    const tenant = context?.config ?? HARDCODED_FALLBACK_TENANT.tenant;
+    const effectiveTenant = cloneTenantConfig(tenant);
+    const baseConfig = getTenantAwareAppConfig(effectiveTenant);
+
+    if (context?.themeArtifact) {
+        return {
+            ...baseConfig,
+            theme: {
+                hash: context.themeArtifact.hash,
+                generatedAtEpochMs: context.themeArtifact.generatedAtEpochMs,
+            },
+        };
+    }
+
+    return baseConfig;
 };

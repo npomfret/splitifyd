@@ -4,6 +4,9 @@ import { AuthProvider } from './app/providers/AuthProvider';
 import i18n from './i18n';
 import { logButtonClick, logUserAction } from './utils/browser-logger';
 import './styles/global.css';
+import { registerThemeServiceWorker } from './utils/theme-bootstrap';
+
+registerThemeServiceWorker();
 
 // Global click interceptor for audit trail
 document.addEventListener(
