@@ -73,6 +73,7 @@ flowchart LR
 - [ ] **Delete skipped duplicate tests** — Remove the 323 lines of `describe.skip` content in `firebase/functions/src/__tests__/unit/admin/*` so CI stops carrying dead weight. Replace them with either active coverage or nothing; do **not** leave TODO blocks. Acceptance criteria: `rg "describe\.skip" firebase/functions/src/__tests__/unit/admin` returns zero matches.
 - [ ] **Track new tests** — Git add the new admin publish/unit fixtures so `git status --short` is clean. Acceptance criteria: no untracked files under `firebase/functions/src/__tests__` or `packages/test-support`.
 - [ ] **Health gate** — Re-run `npm run build --workspace firebase/functions` and `npm run test:unit --workspace firebase/functions -- admin-tenant-publish.test.ts` to prove the fixes hold before touching `/api/theme.css` or Cloud Storage work.
+- **Sequencing rule:** Freeze `/api/theme.css`, Cloud Storage swaps, and UI bootstrap merges until every checkbox above is complete. Engineers may prototype contracts or TypeScript interfaces in parallel, but no feature branch lands until the build/test gate is green.
 
 
 ## Expert Check-in – 2025-11-13
@@ -149,6 +150,12 @@ shared/src/
     ├── branding.loopback.json            # 127.0.0.1 theme
     └── branding.default.json             # Fallback theme
 ```
+
+## 2.6. Local Theme Seeding Workflow (APIs Only)
+- **Scripted publish:** Add `firebase/scripts/publish-local-themes.ts` (surfaced via `npm run theme:publish-local`) that authenticates as an admin and POSTs `/api/admin/publishTenantTheme` for `tenant_localhost`, `tenant_loopback`, and `tenant_default`. No direct Firestore writes or emulator imports allowed.
+- **Fixtures as input:** The script loads the shared fixtures above and sends them through the exact payload the Admin UI would emit so every environment (dev, CI, staging) seeds themes identically.
+- **Failure visibility:** Command exits non-zero on any HTTP error; CI/local dev shells fail fast if auth headers or API contracts regress.
+- **Manual testing loop:** After running the script, verify `curl -H "Host: localhost" http://localhost:5001/<project>/<region>/api/theme.css` (swap host header for `120.0.0.1`) returns themed CSS before launching `webapp-v2`.
 
 ### Frontend (webapp-v2/src/)
 ```
@@ -481,3 +488,4 @@ const branding = tenantDoc.data()?.branding || DEFAULT_BRANDING;
   3. Share migration guides for UI primitives so both squads refactor buttons/cards once instead of diverging.
 - **Shared acceptance tests:** Modern UI work must run the same manual host checks (`localhost`, `120.0.0.1`, default) to ensure stylistic changes respect tenant branding. Playwright visual regression baselines will include both the classic and modernized skins until the switch is complete.
 - **Governance:** A joint weekly review (Theme Platform + Modern UI) confirms that component changes never bypass the semantic layer (no inline colors, no custom CSS per tenant). Any new design pattern must declare which semantic tokens it depends on before code review.
+- **API contract doc:** Create `docs/white-labelling/theme-endpoint.md` during Week 2 describing `/api/theme.css` (request headers, caching, error cases). Treat it as the interface spec the Modern UI stream codes against so they stay unblocked even if the backend endpoint is still in flight.
