@@ -1,6 +1,6 @@
-import { ExpenseFormDataBuilder, generateShortId, GroupDetailPage, SettlementFormDataBuilder } from '@splitifyd/test-support';
+import { Page } from '@playwright/test';
+import { ExpenseFormDataBuilder, ExpenseFormPage, generateShortId, GroupDetailPage, SettlementFormDataBuilder } from '@splitifyd/test-support';
 import { expect, simpleTest } from '../../fixtures';
-import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
 
 /**
  * Consolidated Expense and Balance Lifecycle E2E Tests
@@ -36,7 +36,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const expenseDescription = `Lifecycle Test ${generateShortId()}`;
         const expenseFormPage = await groupDetailPage1.clickAddExpenseAndOpenForm(
             await groupDetailPage1.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
@@ -58,7 +58,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const expenseDetailPage = await groupDetailPage1.clickExpenseToView(expenseDescription);
         const editFormPage = await expenseDetailPage.clickEditExpenseAndReturnForm(
             [user1DisplayName, user2DisplayName],
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         const updatedDescription = `Updated ${generateShortId()}`;
 
@@ -111,7 +111,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 1: Test (0 decimals) - amount divides evenly
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseAndOpenForm(
             await groupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage2.submitExpense(
             new ExpenseFormDataBuilder()
@@ -127,7 +127,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 2: Test BHD (3 decimals) - add to same group
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseAndOpenForm(
             await groupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage1.submitExpense(
             new ExpenseFormDataBuilder()
@@ -145,7 +145,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // PHASE 3: Test KWD (3 decimals) - comprehensive currency test
         const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
             await groupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
@@ -191,7 +191,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Create expense with custom date/time and currency
         const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
             await groupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage.waitForExpenseFormSections();
 
@@ -250,7 +250,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // User1 pays €300 (each owes €150)
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseAndOpenForm(
             await groupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage2.submitExpense(
             new ExpenseFormDataBuilder()
@@ -269,7 +269,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // User2 pays €100 (each owes €50, net: User2 owes €100)
         const expenseFormPage1 = await groupDetailPage2.clickAddExpenseAndOpenForm(
             await groupDetailPage2.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage1.submitExpense(
             new ExpenseFormDataBuilder()
@@ -302,7 +302,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         // Add one more expense to test continued calculation
         const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
             await groupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
@@ -341,7 +341,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
         const expenseDescription = 'Group dinner expense';
         const expenseFormPage = await groupDetailPage1.clickAddExpenseAndOpenForm(
             await groupDetailPage1.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
@@ -441,7 +441,7 @@ simpleTest.describe('Date and Time Selection', () => {
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup();
         const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
             await groupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
 
         // Test date convenience buttons
@@ -506,7 +506,7 @@ simpleTest.describe('Real-time Comments', () => {
         // Create expense
         const expenseFormPage = await user1GroupDetailPage.clickAddExpenseAndOpenForm(
             await user1GroupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         const expenseDescription = 'Test Expense for Comments';
         await expenseFormPage.submitExpense(
@@ -719,7 +719,7 @@ simpleTest.describe('Copy Expense Feature', () => {
         // Create original expense with specific details
         const originalExpenseFormPage = await groupDetailPage1.clickAddExpenseAndOpenForm(
             await groupDetailPage1.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         const originalDescription = `Original Expense ${generateShortId()}`;
         await originalExpenseFormPage.submitExpense(
@@ -739,7 +739,7 @@ simpleTest.describe('Copy Expense Feature', () => {
         // Step 3: Click "Copy expense" button
         const copyExpenseFormPage = await expenseDetailPage.clickCopyExpenseAndReturnForm(
             [user1DisplayName, user2DisplayName],
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
 
         // Step 4: Verify copy mode UI
@@ -794,7 +794,7 @@ simpleTest.describe('Copy Expense Feature', () => {
         // Create original expense with complex split
         const originalExpenseFormPage = await groupDetailPage1.clickAddExpenseAndOpenForm(
             await groupDetailPage1.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         const originalDescription = `Multi-user Original ${generateShortId()}`;
         await originalExpenseFormPage.submitExpense(
@@ -816,7 +816,7 @@ simpleTest.describe('Copy Expense Feature', () => {
         const expenseDetailPage = await groupDetailPage3.clickExpenseToView(originalDescription);
         const copyExpenseFormPage = await expenseDetailPage.clickCopyExpenseAndReturnForm(
             [user1DisplayName, user2DisplayName, user3DisplayName],
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
 
         // Modify the copied expense (different payer and amount)

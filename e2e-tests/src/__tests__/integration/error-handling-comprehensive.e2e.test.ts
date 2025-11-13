@@ -1,10 +1,7 @@
-import { generateTestGroupName } from '@splitifyd/test-support';
+import { Page } from '@playwright/test';
+import { CreateGroupModalPage, DashboardPage, ExpenseFormPage, generateTestGroupName, GroupDetailPage, LoginPage } from '@splitifyd/test-support';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
-import { SELECTORS } from '../../constants/selectors';
 import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
-import { CreateGroupModalPage, DashboardPage, LoginPage } from '../../pages';
-import type { GroupDetailPage } from '../../pages';
-import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
 
 async function navigateToDashboardFromGroupPage(groupDetailPage: GroupDetailPage): Promise<DashboardPage> {
     await groupDetailPage.header.navigateToDashboard();
@@ -179,7 +176,7 @@ test.describe('Network & Server Error Handling', () => {
                 const button = document.querySelector(`${selector}:not([disabled])`);
                 return button && button.textContent?.includes('Create Group');
             },
-            SELECTORS.SUBMIT_BUTTON,
+            'button[type="submit"]',
             { timeout: TIMEOUTS.LONG },
         );
 
@@ -289,7 +286,7 @@ test.describe('Form Validation & UI Error Handling', () => {
         const memberNames = await groupDetailPage.getMemberNames();
         const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
             memberNames,
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         const submitButton = expenseFormPage.getSaveButtonForValidation();
 
@@ -321,7 +318,7 @@ test.describe('Form Validation & UI Error Handling', () => {
         const memberNames = await groupDetailPage.getMemberNames();
         const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
             memberNames,
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
 
         // Create invalid form state that passes client validation but fails server validation

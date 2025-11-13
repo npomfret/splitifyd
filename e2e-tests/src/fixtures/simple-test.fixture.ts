@@ -1,8 +1,7 @@
 import { BrowserContext, Page } from '@playwright/test';
 import { PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver } from '@splitifyd/test-support';
+import { ApiDriver, DashboardPage, LoginPage } from '@splitifyd/test-support';
 import { ApiInterceptor, attachApiInterceptor, attachConsoleHandler, attachScreenshotHandler, ScreenshotHandler, UnifiedConsoleHandler } from '../helpers';
-import { DashboardPage, LoginPage } from '../pages';
 import { AuthenticationWorkflow } from '../workflows';
 import { baseTest } from './base-test';
 import { getUserPool } from './user-pool.fixture';

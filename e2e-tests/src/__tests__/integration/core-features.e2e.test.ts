@@ -1,11 +1,10 @@
-import { ExpenseFormDataBuilder, generateShortId, GroupDetailPage, JoinGroupPage } from '@splitifyd/test-support';
+import { Page } from '@playwright/test';
+import { DashboardPage, ExpenseFormDataBuilder, ExpenseFormPage, generateShortId, GroupDetailPage, JoinGroupPage } from '@splitifyd/test-support';
 import { expect, simpleTest } from '../../fixtures';
-import { DashboardPage as E2EDashboardPage } from '../../pages/dashboard.page';
-import { ExpenseFormPage as E2EExpenseFormPage } from '../../pages/expense-form.page';
 
-async function navigateToDashboardFromGroup(groupDetailPage: GroupDetailPage): Promise<E2EDashboardPage> {
+async function navigateToDashboardFromGroup(groupDetailPage: GroupDetailPage): Promise<DashboardPage> {
     await groupDetailPage.header.navigateToDashboard();
-    const dashboardPage = new E2EDashboardPage(groupDetailPage.page);
+    const dashboardPage = new DashboardPage(groupDetailPage.page);
     await dashboardPage.waitForDashboard();
     return dashboardPage;
 }
@@ -45,7 +44,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         // Test member visibility in expense split options
         const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
             await groupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage.verifySplitBetweenHeadingVisible();
 
@@ -72,7 +71,7 @@ simpleTest.describe('Member Management - Core Operations', () => {
         const leaveModal = await memberGroupDetailPage.clickLeaveGroupButton();
 
         // Confirm in the dialog
-        const memberDashboardPage = await leaveModal.confirmLeaveGroup((page) => new E2EDashboardPage(page));
+        const memberDashboardPage = await leaveModal.confirmLeaveGroup((page: Page) => new DashboardPage(page));
         await expect(memberDashboardPage.page).toHaveURL(/\/dashboard/);
 
         // Owner should see updated member count (only 1 member now)
@@ -149,7 +148,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         // Owner adds an expense that creates a balance
         const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
             await groupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         const expenseDescription = 'Test expense for balance';
         await expenseFormPage.submitExpense(
@@ -198,7 +197,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         // Create expense that creates a balance
         const expenseFormPage = await groupDetailPage.clickAddExpenseAndOpenForm(
             await groupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
@@ -301,7 +300,7 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
         // Creator creates expense after user has left
         const expenseFormPage = await creatorGroupDetailPage.clickAddExpenseAndOpenForm(
             await creatorGroupDetailPage.getMemberNames(),
-            (page) => new E2EExpenseFormPage(page),
+            (page: Page) => new ExpenseFormPage(page),
         );
         const expenseDescription = `Edge Leave Test ${generateShortId()}`;
 
@@ -543,7 +542,7 @@ simpleTest.describe('Group Deletion', () => {
         // Delete the group
         const editModal1 = await ownerGroupDetailPage.clickEditGroupAndOpenModal();
         await editModal1.clickDeleteGroup();
-        ownerDashboardPage = await editModal1.handleDeleteConfirmDialog(groupName1, (page) => new E2EDashboardPage(page));
+        ownerDashboardPage = await editModal1.handleDeleteConfirmDialog(groupName1, (page: Page) => new DashboardPage(page));
 
         // CRITICAL TEST: Both dashboards should update in real-time WITHOUT reload
         await ownerDashboardPage.waitForGroupToDisappear(groupName1);
@@ -566,7 +565,7 @@ simpleTest.describe('Group Deletion', () => {
         // Owner deletes the group while member is still viewing it
         const editModal2 = await ownerGroupDetailPage2.clickEditGroupAndOpenModal();
         await editModal2.clickDeleteGroup();
-        ownerDashboardPage = await editModal2.handleDeleteConfirmDialog(groupName2, (page) => new E2EDashboardPage(page));
+        ownerDashboardPage = await editModal2.handleDeleteConfirmDialog(groupName2, (page) => new DashboardPage(page));
 
         // CRITICAL TEST: Member should be redirected away when group is deleted
         await member2GroupDetailPage.waitForRedirectAwayFromGroup(groupId2);
