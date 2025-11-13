@@ -69,6 +69,7 @@ try {
             functions: process.env.EMULATOR_FUNCTIONS_PORT,
             firestore: process.env.EMULATOR_FIRESTORE_PORT,
             hosting: process.env.EMULATOR_HOSTING_PORT,
+            storage: process.env.EMULATOR_STORAGE_PORT,
             nextStep: 'npm run dev:with-data',
         });
     } else {

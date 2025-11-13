@@ -26,14 +26,21 @@
     "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\"",
     "prepare": "npm run build:packages || true",
     "format": "dprint fmt",
+    "lint:webapp": "eslint \"webapp-v2/src/**/*.{ts,tsx,js,jsx}\"",
+    "lint:styles": "stylelint \"webapp-v2/src/**/*.{css,pcss}\"",
     "check:unused:report": "npx knip > knip-analysis-updated.txt",
     "check:unused-methods": "npx tsx scripts/find-unused-methods.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.14",
+    "@typescript-eslint/parser": "^8.46.4",
     "concurrently": "^9.2.0",
     "dprint": "^0.50.2",
+    "eslint": "^9.39.1",
+    "eslint-plugin-no-inline-styles": "^1.0.5",
     "knip": "^5.64.1",
+    "stylelint": "^16.25.0",
+    "stylelint-config-standard": "^39.0.1",
     "ts-morph": "^27.0.0",
     "typescript": "^5.8.3"
   },

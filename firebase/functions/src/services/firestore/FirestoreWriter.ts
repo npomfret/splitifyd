@@ -33,9 +33,17 @@ import {
     TopLevelGroupMemberSchema,
     UserDocumentSchema,
     validateUpdate,
+    TenantDocumentSchema,
 } from '../../schemas';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
-import type { BatchWriteResult, FirestoreUserCreateData, FirestoreUserUpdateData, IFirestoreWriter, WriteResult } from './IFirestoreWriter';
+import type {
+    BatchWriteResult,
+    FirestoreUserCreateData,
+    FirestoreUserUpdateData,
+    IFirestoreWriter,
+    TenantDocumentUpsertData,
+    WriteResult,
+} from './IFirestoreWriter';
 import {SystemUserRoles} from "@splitifyd/shared";
 
 /**
@@ -1282,6 +1290,45 @@ export class FirestoreWriter implements IFirestoreWriter {
                     success: false,
                     error: error instanceof Error ? error.message : 'Unknown error',
                 };
+            }
+        });
+    }
+
+    async upsertTenant(tenantId: string, data: TenantDocumentUpsertData): Promise<WriteResult & { created: boolean }> {
+        return measureDb('FirestoreWriter.upsertTenant', async () => {
+            try {
+                const tenantRef = this.db.collection(FirestoreCollections.TENANTS).doc(tenantId);
+                const snapshot = await tenantRef.get();
+                const created = !snapshot.exists;
+
+                const now = FieldValue.serverTimestamp();
+
+                // When updating, preserve the existing createdAt timestamp
+                // When creating, the schema will handle the timestamp
+                const tenantDocument = TenantDocumentSchema.parse({
+                    id: tenantId,
+                    ...data,
+                    createdAt: now,
+                    updatedAt: now,
+                });
+
+                const sanitized = this.removeUndefinedValues(tenantDocument);
+
+                // If updating, preserve the original createdAt
+                if (!created && snapshot.data()?.createdAt) {
+                    sanitized.createdAt = snapshot.data()!.createdAt;
+                }
+
+                await tenantRef.set(sanitized, { merge: false });
+
+                return {
+                    id: tenantId,
+                    success: true,
+                    created,
+                };
+            } catch (error) {
+                logger.error('Failed to upsert tenant', error, { tenantId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'TENANT_UPSERT_FAILED', 'Unable to upsert tenant');
             }
         });
     }

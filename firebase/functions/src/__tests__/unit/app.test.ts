@@ -3721,4 +3721,346 @@ describe('app tests', () => {
             });
         });
     });
+
+    describe('Admin Tenant Management', () => {
+        const adminUser = 'admin-user';
+
+        beforeEach(() => {
+            appDriver.seedAdminUser(adminUser, {});
+        });
+
+        describe('POST /api/admin/tenants - upsertTenant', () => {
+            const createValidTenantPayload = (tenantId: string) => ({
+                tenantId,
+                branding: {
+                    appName: 'Test Tenant App',
+                    logoUrl: 'https://static.splitifyd.dev/branding/test/logo.svg',
+                    faviconUrl: 'https://static.splitifyd.dev/branding/test/favicon.png',
+                    primaryColor: '#2563eb',
+                    secondaryColor: '#7c3aed',
+                    accentColor: '#f97316',
+                    themePalette: 'default',
+                    
+                },
+                brandingTokens: {
+                    tokens: {
+                        version: 1,
+                        palette: {
+                            primary: '#2563eb',
+                            primaryVariant: '#1d4ed8',
+                            secondary: '#7c3aed',
+                            secondaryVariant: '#6d28d9',
+                            accent: '#f97316',
+                            neutral: '#f8fafc',
+                            neutralVariant: '#e2e8f0',
+                            success: '#22c55e',
+                            warning: '#eab308',
+                            danger: '#ef4444',
+                            info: '#38bdf8',
+                        },
+                        typography: {
+                            fontFamily: {
+                                sans: 'Space Grotesk, Inter, system-ui, -apple-system, BlinkMacSystemFont',
+                                serif: 'Fraunces, Georgia, serif',
+                                mono: 'JetBrains Mono, SFMono-Regular, Menlo, monospace',
+                            },
+                            sizes: {
+                                xs: '0.75rem',
+                                sm: '0.875rem',
+                                md: '1rem',
+                                lg: '1.125rem',
+                                xl: '1.25rem',
+                                '2xl': '1.5rem',
+                                '3xl': '1.875rem',
+                                '4xl': '2.25rem',
+                                '5xl': '3rem',
+                            },
+                            weights: {
+                                regular: 400,
+                                medium: 500,
+                                semibold: 600,
+                                bold: 700,
+                            },
+                            lineHeights: {
+                                compact: '1.25rem',
+                                standard: '1.5rem',
+                                spacious: '1.75rem',
+                            },
+                            letterSpacing: {
+                                tight: '-0.02rem',
+                                normal: '0rem',
+                                wide: '0.04rem',
+                            },
+                            semantics: {
+                                body: 'md',
+                                bodyStrong: 'md',
+                                caption: 'sm',
+                                button: 'sm',
+                                eyebrow: 'xs',
+                                heading: '2xl',
+                                display: '4xl',
+                            },
+                        },
+                        spacing: {
+                            '2xs': '0.125rem',
+                            xs: '0.25rem',
+                            sm: '0.5rem',
+                            md: '0.75rem',
+                            lg: '1rem',
+                            xl: '1.5rem',
+                            '2xl': '2rem',
+                        },
+                        radii: {
+                            none: '0px',
+                            sm: '4px',
+                            md: '8px',
+                            lg: '16px',
+                            pill: '999px',
+                            full: '9999px',
+                        },
+                        shadows: {
+                            sm: '0 1px 2px rgba(15, 23, 42, 0.08)',
+                            md: '0 4px 12px rgba(15, 23, 42, 0.12)',
+                            lg: '0 20px 60px rgba(15, 23, 42, 0.18)',
+                        },
+                        assets: {
+                            logoUrl: 'https://static.splitifyd.dev/branding/test/logo.svg',
+                            faviconUrl: 'https://static.splitifyd.dev/branding/test/favicon.png',
+                        },
+                        legal: {
+                            companyName: 'Test Company',
+                            supportEmail: 'support@test.com',
+                            privacyPolicyUrl: 'https://test.com/privacy',
+                            termsOfServiceUrl: 'https://test.com/terms',
+                        },
+                        semantics: {
+                            colors: {
+                                surface: {
+                                    base: '#f8fafc',
+                                    raised: '#fafbfc',
+                                    sunken: '#eff1f3',
+                                    overlay: '#0f172a',
+                                },
+                                text: {
+                                    primary: '#0f172a',
+                                    secondary: '#475569',
+                                    muted: '#94a3b8',
+                                    inverted: '#ffffff',
+                                    accent: '#f97316',
+                                },
+                                interactive: {
+                                    primary: '#2563eb',
+                                    primaryHover: '#224dc7',
+                                    primaryActive: '#1f45b3',
+                                    primaryForeground: '#ffffff',
+                                    secondary: '#7c3aed',
+                                    secondaryHover: '#7235d9',
+                                    secondaryActive: '#6730c5',
+                                    secondaryForeground: '#ffffff',
+                                    destructive: '#ef4444',
+                                    destructiveHover: '#dc3e3e',
+                                    destructiveActive: '#c93838',
+                                    destructiveForeground: '#ffffff',
+                                },
+                                border: {
+                                    subtle: '#e2e8f0',
+                                    default: '#cbd5f5',
+                                    strong: '#94a3b8',
+                                    focus: '#f97316',
+                                },
+                                status: {
+                                    success: '#22c55e',
+                                    warning: '#eab308',
+                                    danger: '#ef4444',
+                                    info: '#38bdf8',
+                                },
+                            },
+                            spacing: {
+                                pagePadding: '1.5rem',
+                                sectionGap: '2rem',
+                                cardPadding: '1rem',
+                                componentGap: '0.75rem',
+                            },
+                            typography: {
+                                body: 'md',
+                                bodyStrong: 'md',
+                                caption: 'sm',
+                                button: 'sm',
+                                eyebrow: 'xs',
+                                heading: '2xl',
+                                display: '4xl',
+                            },
+                        },
+                    },
+                },
+                features: {
+                    enableAdvancedReporting: true,
+                    enableMultiCurrency: true,
+                    enableCustomFields: false,
+                    maxGroupsPerUser: 50,
+                    maxUsersPerGroup: 100,
+                },
+                domains: {
+                    primary: 'test.splitifyd.dev',
+                    aliases: ['test.splitifyd.com'],
+                    normalized: ['test.splitifyd.dev', 'test.splitifyd.com'],
+                },
+                defaultTenant: false,
+            });
+
+            it('should create a new tenant when it does not exist', async () => {
+                const payload = createValidTenantPayload('tenant_new_test');
+
+                const result = await appDriver.upsertTenant(adminUser, payload);
+
+                expect(result).toMatchObject({
+                    tenantId: 'tenant_new_test',
+                    created: true,
+                });
+            });
+
+            it('should update an existing tenant when it already exists', async () => {
+                const payload = createValidTenantPayload('tenant_existing_test');
+
+                // Create tenant first
+                const createResult = await appDriver.upsertTenant(adminUser, payload);
+                expect(createResult.created).toBe(true);
+
+                // Update the same tenant
+                const updatedPayload = {
+                    ...payload,
+                    branding: {
+                        ...payload.branding,
+                        appName: 'Updated Tenant App',
+                    },
+                };
+
+                const updateResult = await appDriver.upsertTenant(adminUser, updatedPayload);
+
+                expect(updateResult).toMatchObject({
+                    tenantId: 'tenant_existing_test',
+                    created: false,
+                });
+            });
+
+            it('should reject invalid branding tokens schema', async () => {
+                const invalidPayload = {
+                    ...createValidTenantPayload('tenant_invalid'),
+                    brandingTokens: {
+                        tokens: {
+                            version: 1,
+                            palette: {
+                                primary: 'not-a-hex-color', // Invalid hex color
+                            },
+                        },
+                    },
+                };
+
+                await expect(appDriver.upsertTenant(adminUser, invalidPayload)).rejects.toThrow();
+            });
+
+            it('should reject missing required fields', async () => {
+                const invalidPayload = {
+                    tenantId: 'tenant_missing_fields',
+                    branding: {
+                        appName: 'Test App',
+                        // Missing required fields
+                    },
+                };
+
+                await expect(appDriver.upsertTenant(adminUser, invalidPayload)).rejects.toThrow();
+            });
+
+            it('should reject non-admin user', async () => {
+                const regularUser = 'regular-user';
+                appDriver.seedUser(regularUser, { displayName: 'Regular User', email: 'regular@test.com' });
+
+                const payload = createValidTenantPayload('tenant_unauthorized');
+
+                const result = await appDriver.upsertTenant(regularUser, payload);
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'FORBIDDEN',
+                    },
+                });
+            });
+
+            it('should allow system admin to upsert tenant', async () => {
+                const systemAdmin = 'system-admin';
+                appDriver.seedAdminUser(systemAdmin, {});
+
+                const payload = createValidTenantPayload('tenant_system_admin');
+
+                const result = await appDriver.upsertTenant(systemAdmin, payload);
+
+                expect(result).toMatchObject({
+                    tenantId: 'tenant_system_admin',
+                    created: true,
+                });
+            });
+
+            it('should preserve brandingTokens with negative CSS values', async () => {
+                const payload = createValidTenantPayload('tenant_negative_css');
+
+                // Ensure negative letter-spacing is preserved
+                payload.brandingTokens.tokens.typography.letterSpacing.tight = '-0.02rem';
+
+                const result = await appDriver.upsertTenant(adminUser, payload);
+
+                expect(result).toMatchObject({
+                    tenantId: 'tenant_negative_css',
+                    created: true,
+                });
+
+                // Verify the data was stored correctly by reading back
+                const tenantDoc = await appDriver.database.collection('tenants').doc('tenant_negative_css').get();
+                const data = tenantDoc.data();
+
+                expect(data?.brandingTokens?.tokens?.typography?.letterSpacing?.tight).toBe('-0.02rem');
+            });
+
+            it('should handle default tenant flag correctly', async () => {
+                const payloadWithDefault = {
+                    ...createValidTenantPayload('tenant_default_flag'),
+                    defaultTenant: true,
+                };
+
+                const result = await appDriver.upsertTenant(adminUser, payloadWithDefault);
+
+                expect(result).toMatchObject({
+                    tenantId: 'tenant_default_flag',
+                    created: true,
+                });
+
+                // Verify the default flag was stored
+                const tenantDoc = await appDriver.database.collection('tenants').doc('tenant_default_flag').get();
+                const data = tenantDoc.data();
+
+                expect(data?.defaultTenant).toBe(true);
+            });
+
+            it('should validate domain normalization', async () => {
+                const payload = createValidTenantPayload('tenant_domains');
+                payload.domains = {
+                    primary: 'example.splitifyd.dev',
+                    aliases: ['www.example.splitifyd.dev', 'example.splitifyd.com'],
+                    normalized: ['example.splitifyd.dev', 'www.example.splitifyd.dev', 'example.splitifyd.com'],
+                };
+
+                const result = await appDriver.upsertTenant(adminUser, payload);
+
+                expect(result.tenantId).toBe('tenant_domains');
+
+                // Verify domains were stored
+                const tenantDoc = await appDriver.database.collection('tenants').doc('tenant_domains').get();
+                const data = tenantDoc.data();
+
+                expect(data?.domains?.normalized).toEqual([
+                    'example.splitifyd.dev',
+                    'www.example.splitifyd.dev',
+                    'example.splitifyd.com',
+                ]);
+            });
+        });
+    });
 });

@@ -21,6 +21,7 @@ import {
     toTenantThemePaletteName,
     toTenantMaxGroupsPerUser,
     toTenantMaxUsersPerGroup,
+    TenantBrandingSchema,
 } from '@splitifyd/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema } from './common';
@@ -44,7 +45,7 @@ const BrandingMarketingFlagsSchema = z.object({
     showBlogPage: z.boolean().transform(toShowBlogPageFlag).optional(),
 });
 
-const BrandingSchema = z.object({
+export const BrandingSchema = z.object({
     appName: z.string().min(1).transform(toTenantAppName),
     logoUrl: z.string().min(1).transform(toTenantLogoUrl),
     faviconUrl: z.string().min(1).transform(toTenantFaviconUrl),
@@ -58,7 +59,7 @@ const BrandingSchema = z.object({
     marketingFlags: BrandingMarketingFlagsSchema.optional(),
 });
 
-const FeatureSchema = z.object({
+export const FeatureSchema = z.object({
     enableAdvancedReporting: z.boolean().transform(toFeatureToggleAdvancedReporting),
     enableMultiCurrency: z.boolean().transform(toFeatureToggleMultiCurrency),
     enableCustomFields: z.boolean().transform(toFeatureToggleCustomFields),
@@ -66,7 +67,7 @@ const FeatureSchema = z.object({
     maxUsersPerGroup: z.number().int().min(0).transform(toTenantMaxUsersPerGroup),
 });
 
-const DomainSchema = z.object({
+export const DomainSchema = z.object({
     primary: DomainStringSchema,
     aliases: z.array(DomainStringSchema).default([]),
     normalized: z.array(DomainStringSchema).default([]),
@@ -76,6 +77,7 @@ export const TenantDocumentSchema = z
     .object({
         id: z.string().min(1).transform(toTenantId),
         branding: BrandingSchema,
+        brandingTokens: TenantBrandingSchema.optional(),
         features: FeatureSchema,
         domains: DomainSchema,
         defaultTenant: z.boolean().transform(toTenantDefaultFlag).optional(),
@@ -84,6 +86,17 @@ export const TenantDocumentSchema = z
     .strict();
 
 export type TenantDocument = z.infer<typeof TenantDocumentSchema>;
+
+export const AdminUpsertTenantRequestSchema = z.object({
+    tenantId: z.string().min(1).transform(toTenantId),
+    branding: BrandingSchema,
+    brandingTokens: TenantBrandingSchema,
+    features: FeatureSchema,
+    domains: DomainSchema,
+    defaultTenant: z.boolean().transform(toTenantDefaultFlag).optional(),
+});
+
+export type AdminUpsertTenantRequest = z.infer<typeof AdminUpsertTenantRequestSchema>;
 
 /**
  * Schema for updating tenant branding (partial update)

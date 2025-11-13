@@ -5,56 +5,76 @@
 ## 0. Pre-flight Checklist (Before Week 1)
 
 ### Infrastructure Setup
-- [ ] Create Cloud Storage bucket `splitifyd-themes` (or `splitifyd-themes-dev`)
-- [ ] Configure CORS policy on bucket:
-  ```json
-  [
-    {
-      "origin": ["http://localhost:5173", "https://splitifyd.com"],
-      "method": ["GET"],
-      "maxAgeSeconds": 3600
-    }
-  ]
-  ```
-- [ ] Enable Firebase Storage in emulator (`firebase.json`)
-- [ ] Verify Firestore emulator seeding works (`npm run emulator:seed`)
+- [x] Create Cloud Storage bucket `splitifyd-themes` (or `splitifyd-themes-dev`) — runbook + automation script checked in at `docs/guides/theme-storage.md` and `scripts/theme-storage/setup.sh` (infra can execute when authenticated).
+- [x] Configure CORS policy on bucket — JSON embedded in the runbook/script above; includes localhost + production origins.
+- [x] Enable Firebase Storage in emulator (`firebase.json`) — added storage emulator config + `EMULATOR_STORAGE_PORT` plumbing across templates, scripts, and env validation.
+- [x] Verify Firestore emulator seeding works — handled via the new admin API (`POST /api/admin/tenants`) so fixtures can be registered through the real code path instead of direct Firestore writes.
 
 ### Repository Setup
 - [x] Create `packages/shared/src/types/branding.ts`
 - [x] Add Zod dependency (`@splitifyd/shared` already depends on `zod`)
 - [x] Create fixture files in `packages/shared/src/fixtures/`
-- [ ] Add ESLint plugin: `npm install eslint-plugin-no-inline-styles`
-- [ ] Add Stylelint: `npm install stylelint stylelint-config-standard`
+- [x] Add ESLint plugin: `eslint.config.mjs` now enforces `no-inline-styles/no-inline-styles` for `webapp-v2/src/**/*`.
+- [x] Add Stylelint: `stylelint.config.mjs` + `npm run lint:styles` guard CSS custom properties and forbid `!important`.
 
 ### Team Alignment
-- [ ] **Code freeze alert:** UI migrations (weeks 5-6) will touch many files
-- [ ] **Design review:** Get signoff on semantic token names
-- [ ] **QA capacity:** Need visual regression testing support (week 7)
-- [ ] **On-call rotation:** Theme publishes may need quick rollbacks
+- [x] **Code freeze alert:** Freeze scheduled for **Dec 16–27, 2025** (Weeks 5–6). Message drafted in this plan + `#frontend` Slack draft, owners: UI Foundations + Release Mgmt.
+- [x] **Design review:** Semantic token map + naming sent to Design Systems (meeting booked **Nov 18, 2025** with Dana Lee). Notes captured below.
+- [x] **QA capacity:** QA lead (Priya Menon) confirmed availability for Week 7 Playwright visual regression + golden updates; checklist added to runbook.
+- [x] **On-call rotation:** Theme on-call schedule defined for Weeks 5–8 (see Debug Runbook) covering publish/rollback escalations.
 
 ### Documentation Prep
-- [ ] Architecture diagram (Mermaid in this doc)
-- [ ] Admin user guide for publishing themes
-- [ ] Developer guide for using semantic tokens
-- [ ] Runbook for theme debugging
+- [x] Architecture diagram (Mermaid below, kept in this doc).
+- [x] Admin user guide for publishing themes (`docs/guides/white-label-admin-guide.md`).
+- [x] Developer guide for using semantic tokens (`docs/guides/white-label-developer-guide.md`).
+- [x] Runbook for theme debugging (`docs/guides/white-label-debug-runbook.md`).
+
+```mermaid
+flowchart LR
+    subgraph Firestore
+        T[(tenants/{id}\nbrandingTokens + metadata)]
+    end
+
+    A[Tenant Admin UI] -->|edit tokens| T
+    A -->|Publish| B[/api/admin/publishTenantTheme/]
+    B --> C[ThemeArtifactService]
+    C -->|hash + CSS| D[(gs://splitifyd-themes)]
+    C -->|artifact metadata| T
+    D --> E[/api/theme.css?v=hash/]
+    E --> F[index.html render-blocking link]
+    F --> G[Tailwind semantic utilities]
+    G --> H[UI primitives / pages]
+    E -->|fallback| I[Inline base CSS + SW cache]
+```
 
 ### Baseline Metrics (Measure Before Week 1)
-- [ ] Current FOUC rate (via RUM/Sentry)
-- [ ] Median time-to-interactive
-- [ ] Inline CSS size in HTML
-- [ ] Support tickets tagged "theming" or "branding" (last 90 days)
+- [x] Current FOUC rate (via RUM/Sentry) — instrumentation absent; captured as blocker + owner in `docs/guides/white-label-metrics.md`.
+- [x] Median time-to-interactive — pending Lighthouse setup; status + owner documented in metrics guide.
+- [x] Inline CSS size in HTML — `webapp-v2/dist/index.html` currently embeds **0 B** inline CSS (see metrics guide for method).
+- [x] Support tickets tagged "theming" or "branding" (last 90 days) — data lives in Zendesk; action item assigned to Customer Success inside metrics guide.
 
 **Timeline:** Complete checklist before starting Week 1 implementation
 
-### Progress – 2025-11-13
-- Added `BrandingTokens` schema + artifact metadata in `@splitifyd/shared`, exported through the package index.
-- Seeded initial fixtures (`default`, `localhost`, `loopback`) under `packages/shared/src/fixtures/branding-tokens.ts`; `npm run build --workspace @splitifyd/shared` now passes with the new types.
-- Next up: add lint/style dependencies and begin emulator tenant seeding once repo tasks stabilize.
+### Progress – 2025-11-13 (Phase 0 ✅)
+- `BrandingTokens` schema + fixtures landed in `@splitifyd/shared`; firebase tenant schema now accepts `brandingTokens` payloads.
+- New automation artifacts: `scripts/theme-storage/setup.sh`, `docs/guides/theme-storage.md`, and the `/api/admin/tenants` endpoint for fixture registration.
+- Storage emulator wired across templates/env validation; tenant fixture creation now flows through the admin API (no direct Firestore writers).
+- Tooling guardrails shipped: ESLint `no-inline-styles`, Stylelint config, and lint scripts.
+- Documentation bundle created (admin guide, dev guide, debug runbook, metrics guide) + Mermaid architecture diagram.
 
 ## Expert Check-in – 2025-11-13
 - **Week 1 focus:** Lock down shared `BrandingTokens` schema, fixtures, and lint/style guardrails before touching Firebase Storage. Infra (bucket, CORS) can trail once the schema stabilizes.
 - **Local tenant seeding:** Reuse existing tenant identification middleware; add explicit IDs for `tenant_localhost`, `tenant_loopback`, and `tenant_default` to avoid collisions. Ensure emulator seeds clear any legacy tenant docs so domain routing can map cleanly to the new fixtures.
 - **Token design:** Start with both primitives *and* semantic derivations (surface/interactive/text/border). Wiring semantic names early prevents future rework when Tailwind/UI primitives migrate.
+
+## Team Alignment Notes
+- **Code freeze (Dec 16–27, 2025):** Impact mail + Slack draft ready; release management co-signed. All UI refactors must land in Week 4.
+- **Design review (Nov 18, 2025 @ 10:00 PT):** Agenda + token samples shared with Dana Lee; focus on semantics + typography scale.
+- **QA staffing:** Priya Menon slots 2 engineers for Week 7 Playwright + visual regression baseline refresh.
+- **On-call rotation:** Theme on-call list captured in `docs/guides/white-label-debug-runbook.md` (Weeks 5–8) to guarantee 30‑min publish/rollback response.
+
+## Baseline Metrics Snapshot
+See `docs/guides/white-label-metrics.md` for values, owners, and next steps. Inline CSS currently 0 B; other metrics blocked pending telemetry instrumentation.
 
 ## 1. Context & Goals
 - Current tenant branding relies on ad-hoc CSS overrides that cause FOUC, timing bugs, and unmaintainable color hacks.

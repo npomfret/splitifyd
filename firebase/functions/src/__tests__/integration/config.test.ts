@@ -290,8 +290,10 @@ describe('Config Endpoint Integration Tests', () => {
 
             if (maxAgeMatch) {
                 const maxAge = parseInt(maxAgeMatch[1], 10);
-                // Config should be cacheable for at least 5 minutes
-                expect(maxAge).toBeGreaterThanOrEqual(300);
+                // Config cache: 60s in dev (for quick tenant branding updates), 300s in prod (for efficiency)
+                // Integration tests run against emulator in dev mode, so expect 60s
+                expect(maxAge).toBeGreaterThanOrEqual(60);
+                expect(maxAge).toBeLessThanOrEqual(300);
             }
         });
     });

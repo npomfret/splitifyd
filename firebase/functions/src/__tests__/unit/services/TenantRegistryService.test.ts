@@ -247,7 +247,8 @@ describe('TenantRegistryService', () => {
             expect(result.source).toBe('default');
             expect(result.tenantId).toBe('system-fallback-tenant');
             expect(result.config.branding.appName).toBe('Splitifyd');
-            expect(result.domains).toContain('localhost');
+            // Hardcoded fallback has empty domains to avoid conflicts with database tenants
+            expect(result.domains).toEqual([]);
         });
     });
 

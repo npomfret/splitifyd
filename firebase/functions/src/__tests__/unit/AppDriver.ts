@@ -112,6 +112,13 @@ export class AppDriver {
     }
 
     /**
+     * Exposes the test database for direct assertions in tests
+     */
+    get database() {
+        return this.db;
+    }
+
+    /**
      * Test-specific middleware that works with stub requests.
      * Unlike production middleware, this doesn't verify tokens - it trusts the user already attached by createStubRequest.
      */
@@ -941,6 +948,13 @@ export class AppDriver {
     async addTenantDomain(authToken: AuthToken, domainData: any): Promise<any> {
         const req = createStubRequest(authToken, domainData);
         const res = await this.dispatchByHandler('addTenantDomain', req);
+        return res.getJson();
+    }
+
+    // Tenant Admin API methods
+    async upsertTenant(authToken: AuthToken, tenantData: any): Promise<{ tenantId: string; created: boolean }> {
+        const req = createStubRequest(authToken, tenantData);
+        const res = await this.dispatchByHandler('adminUpsertTenant', req);
         return res.getJson();
     }
 }

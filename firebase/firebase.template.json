@@ -156,13 +156,17 @@
       "host": "0.0.0.0"
     },
     "hosting": {
-      "port": {{EMULATOR_HOSTING_PORT}},
-      "host": "0.0.0.0"
+        "port": {{EMULATOR_HOSTING_PORT}},
+        "host": "0.0.0.0"
+    },
+    "storage": {
+        "port": {{EMULATOR_STORAGE_PORT}},
+        "host": "0.0.0.0"
     },
     "ui": {
-      "enabled": true,
-      "port": {{EMULATOR_UI_PORT}},
-      "host": "0.0.0.0"
+        "enabled": true,
+        "port": {{EMULATOR_UI_PORT}},
+        "host": "0.0.0.0"
     },
     "singleProjectMode": true
   }

@@ -1,6 +1,6 @@
 import { ReturnTestUserResponse, SystemUserRoles, TestErrorResponse, TestSuccessResponse } from '@splitifyd/shared';
 import type { RequestHandler } from 'express';
-import { getConfig as getClientConfig } from './client-config';
+import { getConfig as getClientConfig, getConfig as getServerConfig } from './client-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
 import { isEmulator } from './firebase';
 import type { IFirestoreDatabase } from './firestore-wrapper';
@@ -26,6 +26,8 @@ import { PolicyHandlers } from './policies/PolicyHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
 import { SettlementHandlers } from './settlements/SettlementHandlers';
 import { UserHandlers } from './user/UserHandlers';
+import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
+import { TenantAdminService } from './services/tenant/TenantAdminService';
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.
@@ -68,6 +70,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const policyService = componentBuilder.buildPolicyService();
     const firestoreWriter = componentBuilder.buildFirestoreWriter();
     const tenantRegistryService = componentBuilder.buildTenantRegistryService();
+    const tenantAdminHandlers = new TenantAdminHandlers(new TenantAdminService(componentBuilder.buildFirestoreWriter()));
 
     // Inline diagnostic handlers
     const getMetrics: RequestHandler = (req, res) => {
@@ -99,8 +102,10 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         const config = getEnhancedConfigResponse(tenantConfig);
 
-        // Cache config for 60 seconds to allow quick updates during development
-        res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
+        // Cache config: 60s in dev for quick tenant branding updates, 5min in prod for efficiency
+        const serverConfig = getServerConfig();
+        const cacheMaxAge = serverConfig.isProduction ? 300 : 60;
+        res.setHeader('Cache-Control', `public, max-age=${cacheMaxAge}, must-revalidate`);
         res.json(config);
     };
 
@@ -555,6 +560,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         updateTenantBranding,
         listTenantDomains,
         addTenantDomain,
+
+        // Tenant admin handlers
+        adminUpsertTenant: tenantAdminHandlers.upsertTenant,
     };
 
     return registry;

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
-const CSS_LENGTH_PATTERN = /^\d*\.?\d+(px|rem)$/i;
+const CSS_LENGTH_PATTERN = /^-?\d*\.?\d+(px|rem)$/i;
 
 export type HexColor = `#${string}`;
 export type CssLength = `${number}${'px' | 'rem'}`;

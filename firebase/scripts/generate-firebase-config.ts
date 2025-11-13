@@ -21,7 +21,9 @@ let configContent: string = fs.readFileSync(templatePath, 'utf8');
 const instanceMode = requireInstanceMode();
 const isProduction = instanceMode === 'prod';
 
-const requiredVars: readonly string[] = isProduction ? [] : (['EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT', 'EMULATOR_UI_PORT'] as const);
+const requiredVars: readonly string[] = isProduction
+    ? []
+    : (['EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT', 'EMULATOR_STORAGE_PORT', 'EMULATOR_UI_PORT'] as const);
 
 // Optional staging variables with defaults
 const optionalVars: Record<string, string> = {
@@ -57,6 +59,7 @@ if (!isProduction) {
         EMULATOR_FUNCTIONS_PORT: '6003',
         EMULATOR_FIRESTORE_PORT: '6004',
         EMULATOR_HOSTING_PORT: '6005',
+        EMULATOR_STORAGE_PORT: '6006',
         EMULATOR_UI_PORT: '6001',
     };
     Object.entries(defaultPorts).forEach(([varName, defaultValue]) => {
@@ -87,6 +90,7 @@ if (isProduction) {
             functions: process.env.EMULATOR_FUNCTIONS_PORT!,
             firestore: process.env.EMULATOR_FIRESTORE_PORT!,
             hosting: process.env.EMULATOR_HOSTING_PORT!,
+            storage: process.env.EMULATOR_STORAGE_PORT!,
         },
     });
 }

@@ -39,7 +39,16 @@ describe('Environment Configuration Validation', () => {
         });
 
         it('should contain all expected core environment variables', () => {
-            const expectedVars = ['INSTANCE_MODE', 'LOG_LEVEL', 'EMULATOR_UI_PORT', 'EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT'];
+            const expectedVars = [
+                'INSTANCE_MODE',
+                'LOG_LEVEL',
+                'EMULATOR_UI_PORT',
+                'EMULATOR_AUTH_PORT',
+                'EMULATOR_FUNCTIONS_PORT',
+                'EMULATOR_FIRESTORE_PORT',
+                'EMULATOR_HOSTING_PORT',
+                'EMULATOR_STORAGE_PORT',
+            ];
 
             expectedVars.forEach((varName) => {
                 expect(templateConfig.variables.has(varName)).toBe(true);
@@ -121,7 +130,14 @@ describe('Environment Configuration Validation', () => {
             });
 
             it('should have numeric values for port variables', () => {
-                const portVars = ['EMULATOR_UI_PORT', 'EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT'];
+                const portVars = [
+                    'EMULATOR_UI_PORT',
+                    'EMULATOR_AUTH_PORT',
+                    'EMULATOR_FUNCTIONS_PORT',
+                    'EMULATOR_FIRESTORE_PORT',
+                    'EMULATOR_HOSTING_PORT',
+                    'EMULATOR_STORAGE_PORT',
+                ];
                 const invalidPorts: string[] = [];
 
                 portVars.forEach((varName) => {
@@ -142,7 +158,14 @@ describe('Environment Configuration Validation', () => {
     describe('Cross-Environment Validation', () => {
         it('should have unique emulator ports across all instances', () => {
             const portMapping = new Map<string, string[]>();
-            const portVars = ['EMULATOR_UI_PORT', 'EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT'];
+            const portVars = [
+                'EMULATOR_UI_PORT',
+                'EMULATOR_AUTH_PORT',
+                'EMULATOR_FUNCTIONS_PORT',
+                'EMULATOR_FIRESTORE_PORT',
+                'EMULATOR_HOSTING_PORT',
+                'EMULATOR_STORAGE_PORT',
+            ];
 
             // Only check actual instance files, not the template
             const instanceFiles = envFiles.filter((file) => !file.includes('.env.example'));

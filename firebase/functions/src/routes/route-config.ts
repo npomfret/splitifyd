@@ -158,6 +158,15 @@ const routeDefinitions: RouteDefinition[] = [
         middleware: ['authenticate'],
     },
 
+    // === Tenant Admin ===
+    {
+        method: 'POST',
+        path: '/admin/tenants',
+        handlerName: 'adminUpsertTenant',
+        category: 'admin',
+        middleware: ['authenticateAdmin'],
+    },
+
     // === Registration ===
     {
         method: 'POST',

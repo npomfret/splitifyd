@@ -45,6 +45,10 @@ export interface FirebaseConfig {
             port: number;
             host: string;
         };
+        storage?: {
+            port: number;
+            host: string;
+        };
         ui: {
             enabled: boolean;
             port: number;
@@ -60,6 +64,7 @@ export interface FirebaseEmulatorConfig {
     authPort: number;
     firestorePort: number;
     hostingPort: number;
+    storagePort: number;
     baseUrl: string;
     firebaseApiKey: string;
     identityToolkit: {
@@ -166,6 +171,7 @@ export function getPorts(): {
     firestore: number;
     auth: number;
     hosting: number;
+    storage: number;
     ui: number;
 } {
     const config = loadFirebaseConfig();
@@ -174,6 +180,7 @@ export function getPorts(): {
         firestore: config.emulators.firestore.port,
         auth: config.emulators.auth.port,
         hosting: config.emulators.hosting.port,
+        storage: config.emulators.storage?.port ?? 9199,
         ui: config.emulators.ui.port,
     };
 }
@@ -217,6 +224,7 @@ export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
     const authHost = firebaseConfig.emulators.auth.host;
     const firestorePort = firebaseConfig.emulators.firestore.port;
     const hostingPort = firebaseConfig.emulators.hosting.port;
+    const storagePort = firebaseConfig.emulators.storage?.port ?? 9199;
 
     const firebaseApiKey = 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg'; // Default API key for emulator
 
@@ -226,6 +234,7 @@ export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
         authPort,
         firestorePort,
         hostingPort,
+        storagePort,
         baseUrl: `http://localhost:${functionsPort}/${projectId}/us-central1/api`,
         firebaseApiKey: firebaseApiKey,
         identityToolkit: {

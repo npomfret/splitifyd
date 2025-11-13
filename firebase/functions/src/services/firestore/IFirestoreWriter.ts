@@ -20,6 +20,7 @@ import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
+import type { TenantDocument } from '../../schemas/tenant';
 
 export interface WriteResult {
     id: string;
@@ -48,6 +49,8 @@ interface FirestoreUserDocumentFields {
 export type FirestoreUserCreateData = FirestoreUserDocumentFields;
 
 export type FirestoreUserUpdateData = Partial<FirestoreUserDocumentFields>;
+
+export type TenantDocumentUpsertData = Omit<TenantDocument, 'id' | 'createdAt' | 'updatedAt'>;
 
 export interface IFirestoreWriter {
     // ========================================================================
@@ -158,6 +161,11 @@ export interface IFirestoreWriter {
      * @returns Write result
      */
     updatePolicy(policyId: PolicyId, updates: any): Promise<WriteResult>;
+
+    /**
+     * Create or update a tenant document (admin use only)
+     */
+    upsertTenant(tenantId: string, data: TenantDocumentUpsertData): Promise<WriteResult & { created: boolean }>;
 
     // ========================================================================
     // Transaction Operations
