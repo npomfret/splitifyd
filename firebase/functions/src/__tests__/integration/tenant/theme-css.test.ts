@@ -1,0 +1,74 @@
+import { describe, it, expect, beforeAll } from 'vitest';
+import { ApiDriver } from '@splitifyd/test-support';
+import type { PooledTestUser } from '@splitifyd/shared';
+import { brandingTokenFixtures } from '@splitifyd/shared';
+import { getFirestore } from '../../../firebase';
+import { FirestoreCollections } from '../../../constants';
+
+const buildTenantPayload = (tenantId: string) => {
+    const tokens = brandingTokenFixtures.localhost;
+    return {
+        tenantId,
+        branding: {
+            appName: 'Theming Fixture Tenant',
+            logoUrl: tokens.assets.logoUrl,
+            faviconUrl: tokens.assets.faviconUrl,
+            primaryColor: tokens.palette.primary,
+            secondaryColor: tokens.palette.secondary,
+            accentColor: tokens.palette.accent,
+            themePalette: 'default',
+        },
+        brandingTokens: {
+            tokens,
+        },
+        domains: {
+            primary: `${tenantId}.local.test`,
+            aliases: [],
+            normalized: [`${tenantId}.local.test`],
+        },
+        features: {
+            enableAdvancedReporting: false,
+            enableMultiCurrency: true,
+            enableCustomFields: false,
+            maxGroupsPerUser: 25,
+            maxUsersPerGroup: 25,
+        },
+        defaultTenant: false,
+    };
+};
+
+describe('Theme CSS delivery', () => {
+    const apiDriver = new ApiDriver();
+    let adminUser: PooledTestUser;
+
+    beforeAll(async () => {
+        adminUser = await apiDriver.getDefaultAdminUser();
+    });
+
+    it('serves published CSS for a tenant', async () => {
+        const tenantId = `tenant_theme_${Date.now()}`;
+        const payload = buildTenantPayload(tenantId);
+
+        await apiDriver.adminUpsertTenant(adminUser.token, payload);
+        const publishResult = await apiDriver.publishTenantTheme(adminUser.token, { tenantId });
+
+        const tenantDoc = await getFirestore().collection(FirestoreCollections.TENANTS).doc(tenantId).get();
+        expect(tenantDoc.data()?.brandingTokens?.artifact?.hash).toBe(publishResult.artifact.hash);
+
+        let response;
+        try {
+            response = await apiDriver.fetchThemeCss({
+                tenantId,
+                version: publishResult.artifact.hash,
+            });
+        } catch (error: any) {
+            console.error('theme-css-response-body', error.body);
+            throw error;
+        }
+
+        expect(response.status).toBe(200);
+        expect(response.css).toContain('--palette-primary');
+        expect(response.headers.get('cache-control')).toContain('max-age=31536000');
+        expect(response.headers.get('etag')).toContain(publishResult.artifact.hash);
+    });
+});

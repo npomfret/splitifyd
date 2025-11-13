@@ -63,6 +63,7 @@ flowchart LR
 ### Progress – Phase 1 Kickoff
 - Added `ThemeArtifactService` with deterministic token → CSS/JSON generation, SHA-256 hashing, and local storage persistence (emulator-ready abstraction).
 - `/api/admin/publishTenantTheme` now exists: authenticates admins, loads tenant branding tokens, generates artifacts, saves them, and records metadata (`brandingTokens.artifact`) on the tenant document.
+- `/api/theme.css` endpoint streams the published CSS via the existing tenant resolver, complete with immutable caching headers and a targeted integration test (`theme-css.test.ts`).
 - Tooling guardrails shipped: ESLint `no-inline-styles`, Stylelint config, and lint scripts.
 - Documentation bundle created (admin guide, dev guide, debug runbook, metrics guide) + Mermaid architecture diagram.
 

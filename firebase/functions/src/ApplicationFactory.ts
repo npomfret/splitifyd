@@ -31,6 +31,7 @@ import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { TenantAdminService } from './services/tenant/TenantAdminService';
 import { ThemeArtifactService } from './services/tenant/ThemeArtifactService';
 import { createThemeArtifactStorage } from './services/storage/ThemeArtifactStorage';
+import { ThemeHandlers } from './theme/ThemeHandlers';
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.
@@ -80,6 +81,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         new ThemeArtifactService(createThemeArtifactStorage()),
     );
     const tenantAdminHandlers = new TenantAdminHandlers(tenantAdminService);
+    const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader());
 
     // Inline diagnostic handlers
     const getMetrics: RequestHandler = (req, res) => {
@@ -576,6 +578,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         // Tenant admin handlers
         adminUpsertTenant: tenantAdminHandlers.upsertTenant,
         publishTenantTheme: tenantAdminHandlers.publishTenantTheme,
+
+        // Theme delivery
+        serveThemeCss: themeHandlers.serveThemeCss,
     };
 
     return registry;

@@ -595,6 +595,43 @@ export class ApiDriver {
         return this.apiRequest('/admin/tenants/publish', 'POST', payload, token);
     }
 
+    async fetchThemeCss(options?: { tenantId?: string; version?: string; }): Promise<{ status: number; css: string; headers: Headers; }> {
+        const searchParams = new URLSearchParams();
+        if (options?.version) {
+            searchParams.set('v', options.version);
+        }
+
+        const url = `${this.baseUrl}/theme.css${searchParams.size ? `?${searchParams.toString()}` : ''}`;
+
+        const headers: Record<string, string> = {
+            Accept: 'text/css',
+        };
+
+        if (options?.tenantId) {
+            headers['x-tenant-id'] = options.tenantId;
+        }
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers,
+        });
+
+        const css = await response.text();
+
+        if (!response.ok) {
+            const error = new Error(`Theme CSS request failed with status ${response.status}`);
+            (error as any).status = response.status;
+            (error as any).body = css;
+            throw error;
+        }
+
+        return {
+            status: response.status,
+            css,
+            headers: response.headers,
+        };
+    }
+
     async getDefaultAdminUser(): Promise<PooledTestUser> {
         try {
             const credentials = await this.firebaseSignIn({

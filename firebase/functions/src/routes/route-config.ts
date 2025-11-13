@@ -38,6 +38,14 @@ export interface RouteDefinition {
  * This serves as the single source of truth for all routes in both production and testing.
  */
 const routeDefinitions: RouteDefinition[] = [
+    // === Theme Delivery ===
+    {
+        method: 'GET',
+        path: '/theme.css',
+        handlerName: 'serveThemeCss',
+        category: 'public',
+    },
+
     // === Diagnostics & Infrastructure ===
     {
         method: 'GET',
