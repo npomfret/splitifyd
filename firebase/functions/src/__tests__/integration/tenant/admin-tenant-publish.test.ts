@@ -160,19 +160,7 @@ describe('Admin Tenant Theme Publishing', () => {
     };
 
     beforeAll(async () => {
-        // Get a test user and promote to admin
-        const users = await borrowTestUsers(1);
-        adminUser = users[0];
-
-        // Promote user to system admin in Firestore
-        await db.collection(FirestoreCollections.USERS).doc(adminUser.uid).set({
-            email: adminUser.email,
-            displayName: `Admin ${adminUser.uid}`,
-            photoURL: null,
-            role: 'system_admin', // Must be 'system_admin' string, not array
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        });
+        adminUser = await apiDriver.getDefaultAdminUser();
     });
 
     const createTenantWithTokens = async (tenantId: string) => {
@@ -303,13 +291,6 @@ describe('Admin Tenant Theme Publishing', () => {
         // Get a NEW regular user (not from pool to avoid contamination)
         const regularUsers = await borrowTestUsers(1);
         const regularUser = regularUsers[0];
-
-        // Explicitly ensure user exists in Firestore WITHOUT admin role
-        await db.collection(FirestoreCollections.USERS).doc(regularUser.uid).set({
-            email: regularUser.email,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-        });
 
         // Verify user does not have admin role
         const userCheck = await db.collection(FirestoreCollections.USERS).doc(regularUser.uid).get();

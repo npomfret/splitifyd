@@ -57,6 +57,8 @@ const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
 const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
 const API_BASE_URL = config.baseUrl;
+const DEFAULT_ADMIN_EMAIL = (process.env.TEST_ADMIN_EMAIL || 'test1@test.com') as Email;
+const DEFAULT_ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD || 'passwordpass';
 
 export type AuthToken = string;
 
@@ -585,25 +587,34 @@ export class ApiDriver {
         }, adminToken);
     }
 
-    async seedAdminUser(userId: string): Promise<void> {
-        // Register user as system admin in Firestore
-        const db = await import('../../../firebase/functions/src/firebase').then((m) => m.getFirestore());
-        await db.collection('users').doc(userId).set({
-            email: `${userId}@test.com`,
-            displayName: `Admin ${userId}`,
-            photoURL: null,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            systemRoles: ['system_admin'],
-        });
-    }
-
     async adminUpsertTenant(token: AuthToken, tenantData: any): Promise<any> {
         return this.apiRequest('/admin/tenants', 'POST', tenantData, token);
     }
 
     async publishTenantTheme(token: AuthToken, payload: { tenantId: string }): Promise<any> {
         return this.apiRequest('/admin/tenants/publish', 'POST', payload, token);
+    }
+
+    async getDefaultAdminUser(): Promise<PooledTestUser> {
+        try {
+            const credentials = await this.firebaseSignIn({
+                email: DEFAULT_ADMIN_EMAIL,
+                password: DEFAULT_ADMIN_PASSWORD,
+            });
+
+            return {
+                ...credentials,
+                email: DEFAULT_ADMIN_EMAIL,
+                password: DEFAULT_ADMIN_PASSWORD,
+            };
+        } catch (error) {
+            const hint = `Default admin (${DEFAULT_ADMIN_EMAIL}) unavailable. Ensure the Bill Splitter test account exists (run firebase/scripts/start-with-data.ts).`;
+            if (error instanceof Error) {
+                error.message = `${hint} Original error: ${error.message}`;
+                throw error;
+            }
+            throw new Error(hint);
+        }
     }
 
     private isRegistrationRecoverable(error: unknown): boolean {
