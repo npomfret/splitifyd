@@ -38,51 +38,6 @@ export class ExpenseFormPage extends BasePage {
         await expect(this.getHowToSplitSection()).toBeVisible({ timeout: 3000 });
     }
 
-    /**
-     * Wait for all expected members to appear in both payer and participant sections.
-     */
-    private async waitForMembersInExpenseForm(expectedMemberNames: string[], timeout: number = 5000): Promise<void> {
-        await expect(async () => {
-            const missingMembers: string[] = [];
-            for (const memberName of expectedMemberNames) {
-                const memberRadio = this.page.getByRole('radio', { name: memberName });
-                const isVisible = await memberRadio.isVisible().catch(() => false);
-                if (!isVisible) {
-                    missingMembers.push(memberName);
-                }
-            }
-            if (missingMembers.length > 0) {
-                throw new Error(
-                    `Members not loaded in "Who paid?" section: ${missingMembers.join(', ')} - waiting for members data`,
-                );
-            }
-        })
-            .toPass({
-                timeout,
-                intervals: [100, 250, 500, 2000],
-            });
-
-        await expect(async () => {
-            const missingMembers: string[] = [];
-            for (const memberName of expectedMemberNames) {
-                const memberCheckbox = this.page.getByRole('checkbox', { name: memberName });
-                const isVisible = await memberCheckbox.isVisible().catch(() => false);
-                if (!isVisible) {
-                    missingMembers.push(memberName);
-                }
-            }
-            if (missingMembers.length > 0) {
-                throw new Error(
-                    `Members not loaded in "Split between" section: ${missingMembers.join(', ')} - waiting for members data`,
-                );
-            }
-        })
-            .toPass({
-                timeout,
-                intervals: [100, 250, 500, 2000],
-            });
-    }
-
     // ============================================================================
     // HEADING SELECTORS
     // ============================================================================

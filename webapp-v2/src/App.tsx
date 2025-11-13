@@ -137,7 +137,6 @@ export function App() {
     const marketingFlags = config?.tenant?.branding?.marketingFlags;
     const showLandingPage = marketingFlags?.showLandingPage ?? false;
     const showPricingPage = marketingFlags?.showPricingPage ?? false;
-    const showBlogPage = marketingFlags?.showBlogPage ?? false;
     const enableAdvancedReporting = config?.tenant?.features?.enableAdvancedReporting ?? false;
 
     const handlePolicyAcceptance = async () => {

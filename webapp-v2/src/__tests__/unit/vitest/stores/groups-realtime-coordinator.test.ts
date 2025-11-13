@@ -23,11 +23,6 @@ const createContext = (): TestContext => {
     const onRefresh = vi.fn().mockResolvedValue(undefined);
     const onGroupRemoval = vi.fn();
 
-    const activityFeed = {
-        registerConsumer,
-        deregisterConsumer,
-    } as unknown as ActivityFeedRealtimeService;
-
     const coordinator = new GroupsRealtimeCoordinator({
         activityFeed: {
             registerConsumer,

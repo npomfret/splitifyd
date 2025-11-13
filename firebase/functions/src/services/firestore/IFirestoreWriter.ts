@@ -20,7 +20,7 @@ import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
-import type { TenantDocument } from '../../schemas';
+import type { TenantDocument } from '../../schemas/tenant';
 
 export interface WriteResult {
     id: string;

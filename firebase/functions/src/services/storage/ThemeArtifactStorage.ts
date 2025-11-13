@@ -11,7 +11,7 @@ export interface ThemeArtifactPayload {
     tokensJson: string;
 }
 
-export interface ThemeArtifactLocation {
+interface ThemeArtifactLocation {
     cssUrl: string;
     tokensUrl: string;
 }

@@ -2,7 +2,7 @@ import { configStore } from '@/stores/config-store.ts';
 import type { ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 
-export type FeatureFlagName = 'enableAdvancedReporting' | 'enableMultiCurrency' | 'enableCustomFields';
+type FeatureFlagName = 'enableAdvancedReporting' | 'enableMultiCurrency' | 'enableCustomFields';
 
 export function readFeatureFlag(flag: FeatureFlagName, defaultValue = false): boolean {
     const config = configStore.configSignal.value;

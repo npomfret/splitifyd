@@ -45,7 +45,7 @@ const BrandingMarketingFlagsSchema = z.object({
     showBlogPage: z.boolean().transform(toShowBlogPageFlag).optional(),
 });
 
-export const BrandingSchema = z.object({
+const BrandingSchema = z.object({
     appName: z.string().min(1).transform(toTenantAppName),
     logoUrl: z.string().min(1).transform(toTenantLogoUrl),
     faviconUrl: z.string().min(1).transform(toTenantFaviconUrl),
@@ -59,7 +59,7 @@ export const BrandingSchema = z.object({
     marketingFlags: BrandingMarketingFlagsSchema.optional(),
 });
 
-export const FeatureSchema = z.object({
+const FeatureSchema = z.object({
     enableAdvancedReporting: z.boolean().transform(toFeatureToggleAdvancedReporting),
     enableMultiCurrency: z.boolean().transform(toFeatureToggleMultiCurrency),
     enableCustomFields: z.boolean().transform(toFeatureToggleCustomFields),
@@ -67,7 +67,7 @@ export const FeatureSchema = z.object({
     maxUsersPerGroup: z.number().int().min(0).transform(toTenantMaxUsersPerGroup),
 });
 
-export const DomainSchema = z.object({
+const DomainSchema = z.object({
     primary: DomainStringSchema,
     aliases: z.array(DomainStringSchema).default([]),
     normalized: z.array(DomainStringSchema).default([]),
@@ -101,8 +101,6 @@ export type AdminUpsertTenantRequest = z.infer<typeof AdminUpsertTenantRequestSc
 export const PublishTenantThemeRequestSchema = z.object({
     tenantId: z.string().min(1).transform(toTenantId),
 });
-
-export type PublishTenantThemeRequest = z.infer<typeof PublishTenantThemeRequestSchema>;
 
 /**
  * Schema for updating tenant branding (partial update)

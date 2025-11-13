@@ -265,8 +265,8 @@ export function getIdentityToolkitConfig(): { apiKey: string; baseUrl: string; }
     };
 }
 
-// Export lazy getter for APP_CONFIG
-export function getAppConfig(): AppConfiguration {
+// Lazy getter for APP_CONFIG (used internally)
+function getAppConfig(): AppConfiguration {
     if (!cachedAppConfig) {
         try {
             const builtConfig = buildAppConfiguration();

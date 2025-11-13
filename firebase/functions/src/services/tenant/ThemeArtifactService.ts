@@ -1,7 +1,7 @@
 import type { BrandingTokens } from '@splitifyd/shared';
 import { computeSha256, ThemeArtifactStorage } from '../storage/ThemeArtifactStorage';
 
-export interface ThemeArtifactResult {
+interface ThemeArtifactResult {
     hash: string;
     cssContent: string;
     tokensJson: string;
