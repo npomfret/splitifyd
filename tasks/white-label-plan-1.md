@@ -1,103 +1,413 @@
-# White-Label Plan 1
-**Date:** 2025-11-13  
-**Inputs:** `white-label-proposed-solutions-1.md`, `white label - Proposed Solutions 2.md`, Expert guidance (`.claude/ask-the-expert.sh`)  
-**Principles:** No quick fixes, embrace large-scale refactor, single source of truth, deterministic delivery, tenant self-service, test-first validation.
+# White-Label Theming Plan (Unified)
+**Date:** 2025-11-13
+**Sources:** `white-label-plan-2.md`, archived `white-label-proposed-solutions-1.md`, Expert feedback (`.claude/ask-the-expert.sh` on 2025-11-13)
 
----
+## 0. Pre-flight Checklist (Before Week 1)
 
-## 1. What We Learned From the Two Proposals
-| Topic | Proposal 1 Takeaways | Proposal 2 Takeaways | Expert Emphasis |
-| --- | --- | --- | --- |
-| Theme delivery | Option 1 (signals) only masks timing; Option 2 introduces server-generated CSS plus ESLint/UI cleanup; Option 3 outlines a phased UI rebuild. | Locks in Firestore design tokens → backend artifact generator → `/api/theme.css` bootstrap. | Double down on content-hashed artifacts + render-blocking `<link>` to eliminate FOUC and fall back only to minimal inlined defaults. |
-| Token source of truth | Mentions design tokens but not canonical schema. | Explicit branding object per tenant with defaults. | Define DTO + Zod schema in `@splitifyd/shared`; no component reads Firestore directly. |
-| Caching & hosting | Mentions CDN/ETag loosely. | Hash artifacts, store in Storage, 302 redirect via Functions. | Add immutable cache headers + service-worker caching; ensure dev/emulator parity and offline resiliency. |
-| Developer ergonomics | Proposes lint rules, component showcase, typography system. | Tailwind variable mapping, cleanup sprints. | Provide local generator script + Storybook decorator so changes don’t require deploys. |
-| Governance & guardrails | Suggests ESLint + phased cleanup. | Calls out audit, UI primitive rebuild, diagnostics endpoint. | Add admin branding UI with validation, automated contrast checks, visual-regression gate before publish. |
+### Infrastructure Setup
+- [ ] Create Cloud Storage bucket `splitifyd-themes` (or `splitifyd-themes-dev`)
+- [ ] Configure CORS policy on bucket:
+  ```json
+  [
+    {
+      "origin": ["http://localhost:5173", "https://splitifyd.com"],
+      "method": ["GET"],
+      "maxAgeSeconds": 3600
+    }
+  ]
+  ```
+- [ ] Enable Firebase Storage in emulator (`firebase.json`)
+- [ ] Verify Firestore emulator seeding works (`npm run emulator:seed`)
 
-**Decision:** Use Proposal 2 as the architectural spine, enrich it with Proposal 1’s UI/system refactors, and integrate the Expert’s risk mitigations (performance profiling, caching, local tooling, guardrails).
+### Repository Setup
+- [ ] Create `packages/shared/src/types/branding.ts`
+- [ ] Add Zod dependency: `npm install zod` (shared package)
+- [ ] Create fixture files in `packages/shared/src/fixtures/`
+- [ ] Add ESLint plugin: `npm install eslint-plugin-no-inline-styles`
+- [ ] Add Stylelint: `npm install stylelint stylelint-config-standard`
 
----
+### Team Alignment
+- [ ] **Code freeze alert:** UI migrations (weeks 5-6) will touch many files
+- [ ] **Design review:** Get signoff on semantic token names
+- [ ] **QA capacity:** Need visual regression testing support (week 7)
+- [ ] **On-call rotation:** Theme publishes may need quick rollbacks
 
-## 2. Final Architecture & Guardrails
-### 2.1 Shared Branding Schema
-- Define `BrandingTokens` DTO and Zod schema inside `packages/shared/src/branding/` with sections for palette, semantic roles, typography, spacing scale, radii, shadows, assets, legal copy.
-- Firestore `tenant` document embeds `branding: BrandingTokens` plus `themeArtifactHash`.
-- Builder utilities (`@splitifyd/test-support`) generate deterministic sample themes for tests and previews.
+### Documentation Prep
+- [ ] Architecture diagram (Mermaid in this doc)
+- [ ] Admin user guide for publishing themes
+- [ ] Developer guide for using semantic tokens
+- [ ] Runbook for theme debugging
 
-### 2.2 Theme Artifact Generator
-- Implementation: Dedicated Firebase Function (or Cloud Run job if perf requires) `generateTenantThemeArtifacts`.
-- Inputs: validated tokens + template metadata (version, tenant slug).
-- Outputs:
-  1. `theme.css` — concrete values + CSS variables + Tailwind semantic class overrides.
-  2. `theme.tokens.json` — stored for diagnostics.
-- Content hash (SHA-256) acts as artifact ID, persisted on tenant doc.
-- Instrument using `firebase/functions/src/monitoring/PerformanceTimer` to ensure generation <100ms typical, alarm at 500ms.
+### Baseline Metrics (Measure Before Week 1)
+- [ ] Current FOUC rate (via RUM/Sentry)
+- [ ] Median time-to-interactive
+- [ ] Inline CSS size in HTML
+- [ ] Support tickets tagged "theming" or "branding" (last 90 days)
 
-### 2.3 Delivery & Caching
-- **Endpoint:** `/api/theme.css` resolves tenant via domain middleware, looks up `{hash}`, sets `Cache-Control: public, max-age=31536000, immutable`, and streams Storage asset (direct 200 in prod, signed URL in dev if needed).
-- **Client bootstrap:** `webapp-v2/index.html` includes `<link rel="preload stylesheet" href="/api/theme.css?v={hash}">` as the first blocking resource. Service worker precaches the last good CSS and tokens for offline reloads.
-- **Fallback:** Inline a 1KB “safety” stylesheet (neutral neutral palette, system font) to avoid blank screens if `/api/theme.css` fails; show toast with retry CTA via `themeStore`.
-- **Versioning:** Keep `/api/theme/v1.css` namespaced so schema changes can coexist.
+**Timeline:** Complete checklist before starting Week 1 implementation
 
-### 2.4 Frontend Consumption & UI Refactor
-- Tailwind config maps semantic tokens (`colors.brand.primary = 'var(--color-brand-primary)'`, etc.); remove inline styles and DOM hacks.
-- Refresh `components/ui` primitives (Button, Card, Modal, Input, Alert, Text, Stack/HStack/Grid) to consume semantic classes only.
-- Add `ThemeDiagnosticsPanel` toggled in dev/admin to display current hash, token snapshot, and computed CSS variable map.
-- Enforce no raw color/font usage via ESLint + Stylelint rules (`no-hex-literals`, `no-inline-style`) plus custom codemod checks in CI.
-- Build a component showcase route backed by generated tokens to validate themes quickly.
+## 1. Context & Goals
+- Current tenant branding relies on ad-hoc CSS overrides that cause FOUC, timing bugs, and unmaintainable color hacks.
+- We now have **two prior plans**: Plan 2 provides deep technical detail (tokens + hashed CSS artifacts), while Plan 1 stresses governance, diagnostics, and UI cleanup. The Expert validated the architecture but urged stricter publish controls and local ergonomics.
+- **Non-negotiables:** no Firestore triggers; publishing happens via an explicit admin action; tenants must get on-brand UI with zero quick fixes; developers accept large refactors if needed.
+- **Local test requirement:** when running locally we must ship exactly two curated themes bound to the hostnames `localhost` and `120.0.0.1`, plus a designated **default theme** that serves any unknown domain.
 
-### 2.5 Tenant Self-Service & Guardrails
-- **Branding Console:** `TenantBrandingPage` with form-driven editor, live preview iframe powered by locally generated CSS, and publish workflow.
-- **Validation:** Server-side Zod enforcement + accessibility (contrast ratio) checks; reject invalid combinations with actionable errors.
-- **Publishing flow:** Draft → preview snapshot → “publish” triggers generator, stores artifacts, runs automated visual regression suite for critical pages. Failures revert to previous hash and notify tenant/admin.
-- **Documentation:** Extend `docs/guides/branding.md` (new) to explain tokens, constraints, and recommended asset specs.
+## 2. Target Architecture at a Glance
+1. **Design Tokens in Firestore** – Each tenant document stores a strongly typed `BrandingTokens` object (palette, typography, spacing, radii, shadows, illustrations, legal copy) plus artifact metadata.
+2. **Admin Console** – `TenantBrandingPage` lets privileged users edit tokens, preview changes, run contrast checks, and trigger publish.
+3. **Manual Publish Endpoint** – `POST /api/admin/publishTenantTheme` (authenticated) reads the stored tokens, validates them, and calls the generator. No automatic triggers.
+4. **ThemeArtifactService** – Deterministically converts tokens → CSS variables + derived semantic scales, computes a SHA-256 hash, stores `{hash}.css` and `{hash}.tokens.json` in Cloud Storage, and updates Firestore with `{latestHash, version, lastGenerated}`.
+5. **Theme Delivery** – `/api/theme.css` resolves the tenant by hostname, fetches `latestHash`, and issues a 200 stream in prod (with `Cache-Control: public, max-age=31536000, immutable`) or a 302 redirect to Storage. It injects a default hash if the tenant lacks one.
+6. **Frontend Bootstrap** – `webapp-v2/index.html` includes a render-blocking `<link rel="stylesheet" href="/api/theme.css?v={hash}">`. A 1 KB inline base stylesheet prevents blank pages if the request fails; the service worker caches the most recent CSS+tokens.
+7. **Tailwind & UI Kit Revamp** – Tailwind config maps semantic utilities (`bg-surface-elevated`, `text-accent`, etc.) to CSS variables; all UI primitives consume these utilities only. Diagnostic panels expose the active hash, token snapshot, and computed CSS variables.
+8. **Local + Default Themes** – Emulator middleware short-circuits the lookup table: `localhost` → `tenant_localhost`, `120.0.0.1` → `tenant_loopback`, everything else → `tenant_default`. CLI helpers generate and cache these sample artifacts automatically.
+9. **Observability & Governance** – Lint/Stylelint rules ban raw hex and inline styles, logs capture generation latency + cache hit rates, and the admin console surfaces artifact history with one-click rollback.
 
-### 2.6 Local & Emulator Tooling
-- CLI `npm run theme:generate -- --tenant demo` invokes the same generator locally and writes to `tmp/themes/{tenantId}.css` for rapid iteration.
-- Emulator middleware serves local artifacts if present, falling back to real generator otherwise.
-- Storybook/Playground decorator that swaps between JSON token fixtures without restarts to preview components in isolation.
+```
+Tenant doc (Firestore) ──► Publish API ──► ThemeArtifactService ──► Storage (hash.css)
+         ▲                       │                               │
+         │                       ▼                               │
+ Admin console            Hash + metadata ◄──────────────────────┘
+         │                                                        
+         └─────────────► /api/theme.css ──► HTML <link> ──► Tailwind/UI kit
+```
 
----
+## 2.5. Code Organization & File Structure
 
-## 3. Implementation Roadmap (No Quick Fixes)
-1. **Foundation (Week 1)**
-   - Add shared token schema + builders.
-   - Extend Firestore tenant schema + backfill defaults.
-   - Land lint/Stylelint rules banning inline/hex usage.
-2. **Generator & Endpoint (Week 2)**
-   - Implement generator function + hashing + Storage persistence.
-   - Ship `/api/theme.css` v1 with caching + diagnostics logging.
-   - Create local CLI + emulator shim.
-3. **Frontend Bootstrap & UI Kit (Weeks 3-4)**
-   - Wire render-blocking link + fallback inline CSS + service-worker caching.
-   - Update Tailwind config and rebuild UI primitives + layout components.
-   - Add component showcase + ThemeDiagnostics panel; migrate high-traffic screens (auth, dashboard, group detail).
-4. **Tenant Console & Guardrails (Weeks 5-6)**
-   - Build branding admin UI with live preview + validation.
-   - Add automated contrast + asset checks, publish workflow, and CI visual regression gate.
-   - Document process + provide sample token packs for tenants.
-5. **Cleanup & Rollout (Weeks 7-8)**
-   - Remove legacy `applyBrandingPalette` paths, deprecated CSS variables, and DRY up residues.
-   - Monitor PERF metrics (generation latency, cache hit ratio, theming load errors) and iterate.
+### Backend (firebase/functions/src/)
+```
+functions/src/
+├── services/
+│   └── theme/
+│       ├── ThemeArtifactService.ts       # CSS generation + Storage upload
+│       ├── ThemeValidator.ts             # WCAG + schema validation
+│       └── ThemeCache.ts                 # Optional: in-memory cache
+├── endpoints/
+│   ├── theme.ts                          # GET /api/theme.css
+│   └── admin/
+│       └── publishTenantTheme.ts         # POST /api/admin/publishTenantTheme
+├── middleware/
+│   └── tenantResolver.ts                 # Hostname → tenant mapping
+└── types/
+    └── branding.ts                       # Re-export from @splitifyd/shared
+```
 
----
+### Shared (packages/shared/src/)
+```
+shared/src/
+├── types/
+│   └── branding.ts                       # BrandingTokens DTO + Zod schema
+├── utils/
+│   ├── theme-generator.ts                # generateTenantCSS()
+│   ├── color-utils.ts                    # hexToRgb, contrast checks
+│   └── hash.ts                           # SHA-256 hashing
+└── fixtures/
+    ├── branding.localhost.json           # Localhost theme
+    ├── branding.loopback.json            # 127.0.0.1 theme
+    └── branding.default.json             # Fallback theme
+```
 
-## 4. Testing & Verification Strategy
-- **Unit:** Snapshot tests for generator (CSS + token JSON) across baseline + edge-case themes; builders ensure deterministic fixtures.
-- **Integration:** Playwright suite spins up emulator tenant, loads app, and asserts computed styles (buttons, cards, typography, spacing). Include contrast/accessibility assertions.
-- **Visual Regression:** On publish, capture golden screenshots per page per key theme; block deploy if diffs exceed tolerance.
-- **Linting:** ESLint + Stylelint rules in CI to block inline styles/hex values; custom script ensures every component imports tokens/Tailwind classes only.
-- **Performance:** Monitor generation latency + `/api/theme.css` response times; alert if >300ms P95 or cache hit rate <95%.
+### Frontend (webapp-v2/src/)
+```
+webapp-v2/src/
+├── components/
+│   └── ui/
+│       ├── Button.tsx                    # Semantic variants
+│       ├── Card.tsx                      # Compound component
+│       ├── Text.tsx                      # Typography
+│       ├── Stack.tsx                     # Layout primitives
+│       └── types.ts                      # BaseUIProps, Size, Variant
+├── pages/
+│   ├── admin/
+│   │   └── TenantBrandingPage.tsx        # Theme editor
+│   └── dev/
+│       ├── ComponentShowcase.tsx         # Storybook alternative
+│       └── ThemeDiagnostics.tsx          # Debug panel
+├── stores/
+│   ├── config-store.ts                   # Tenant config (no CSS vars)
+│   └── theme-store.ts                    # NEW: Theme metadata + errors
+├── utils/
+│   └── theme-debug.ts                    # window.debugTheme()
+└── styles/
+    ├── base.css                          # Inline fallback CSS
+    └── tailwind.css                      # Tailwind imports
+```
 
----
+### Scripts
+```
+scripts/
+├── generate-theme.ts                     # npm run theme:generate
+├── seed-local-themes.ts                  # npm run theme:seed-local
+└── cleanup-orphaned-artifacts.ts         # Nightly job
+```
 
-## 5. Risks & Mitigations
-- **Generator cold starts or heavy load:** Mitigate via Cloud Run option, warmup pings, and perf instrumentation.
-- **Theme drift via hardcoded values:** Enforced by lint rules, codemods, and component audits during cleanup sprints.
-- **FOUC/offline failures:** Render-blocking link + inline base CSS + service-worker caching + retry UX.
-- **Tenant misconfiguration:** Strong validation, contrast checks, preview-before-publish, automated regression gating.
-- **Developer friction:** Local generator, Storybook decorator, diagnostics UI, and comprehensive docs ensure fast iteration.
+## 3. Manual Publish Flow (No Firestore Triggers)
+1. **Draft & Validate** – Admin edits tokens in the console; client performs local validation (schema, contrast, asset sizes) before enabling “Publish”.
+2. **POST /api/admin/publishTenantTheme** – Request carries `tenantId` (and optionally a draft token payload for optimistic preview); backend always re-reads the canonical tokens from Firestore to avoid stale data.
+3. **Server-side Validation** – Zod schema + accessibility checks ensure every token is safe (e.g., WCAG 2.1 contrast). Rejects respond with actionable errors that the UI surfaces inline.
+4. **Generation** – ThemeArtifactService outputs CSS + tokens, uploads them with immutable cache headers, and records provenance (hash, version, timestamp, operator UID).
+5. **Tenant Update** – Firestore `tenants/{id}` stores the new `{latestHash, cssUrl, tokensUrl}` and appends a history entry (max 10) for rollback.
+6. **Post-publish hooks** –
+   - Async job kicks off Playwright visual regression against smoke pages for the affected tenant.
+   - Optional Slack/webhook notification summarises hash and contrast metrics.
+7. **Rollback** – Admin console lists artifact history; selecting an older hash simply updates `latestHash` and reuses the immutable CSS already in Storage.
 
----
+## 4. Tenant Resolution & Local Testing
+- **Hostname routing:** `tenantRegistry.resolve(req.hostname)` handles:
+  - `localhost` → `tenant_localhost`
+  - `120.0.0.1` → `tenant_loopback`
+  - Known custom domains → matching tenant
+  - Unknown hostnames → `tenant_default` (defined in config)
+- **Sample themes:** Repository stores two curated JSON fixtures plus a default theme (e.g., `branding.fixtures.localhost.json`); CI seeds them into Firestore/emulator and pre-generates artifacts via `npm run theme:seed-local`.
+- **CLI ergonomics:** `npm run theme:generate -- --tenant tenant_localhost` runs the same generator locally, writing CSS to `tmp/themes/{tenant}.css`. Developers can point Vite to these files for instant iteration.
+- **Acceptance criteria:** When testing manually, visiting `http://localhost:5173` shows the localhost theme; `http://120.0.0.1:5173` shows the loopback variant; curling any other host from the emulator returns the default theme stylesheet.
 
-**Outcome:** A clean, fully deterministic white-label system where every tenant’s look-and-feel is defined once (tokens), generated reliably (artifacts), delivered efficiently (hashed CSS + caching), consumed consistently (Tailwind + UI kit), and guarded by tooling, validation, and tests. This unlocks scalable branding without hacks or repeated CSS experiments.
+## 5. Frontend Consumption & UI Refactor
+- **Bootstrap:** Inline base CSS + render-blocking link + service worker caching eliminate FOUC while guaranteeing offline resilience.
+- **Tailwind config:** `webapp-v2/tailwind.config.ts` defines semantic color/spacing/font scales that reference CSS vars only; design tokens never leak into components directly.
+- **UI primitives:** Rebuild `Button`, `Card`, `Modal`, `Input`, `Typography`, `Stack`, `Surface` primitives so pages assemble layouts from a consistent kit. All legacy inline styles/hex codes are removed via codemod + lint rules.
+- **Diagnostics:** A `ThemeDiagnosticsPanel` (dev/admin only) shows current tenant, hash, token JSON, and computed CSS vars; includes “Copy CSS link” + “force reload” buttons for debugging.
+- **Error handling:** If `/api/theme.css` fails, `themeStore` surfaces a toast with retry + fallback to cached artifact; telemetry logs the failure.
+
+## 5.5. Migration Strategy: Old → New Theming
+
+### Phase 1: Parallel Systems (Weeks 3-4)
+- Keep existing `applyBrandingPalette()` code running
+- Add new `<link rel="stylesheet" href="/api/theme.css">` to HTML
+- Both CSS variable systems coexist (old: `--brand-*`, new: `--surface-*`)
+- Components still use old classes, but new CSS is loaded and measured
+
+**Validation:**
+- Compare computed styles: `getComputedStyle(button).backgroundColor` for old vs new
+- Log discrepancies to analytics
+- Performance: measure theme CSS load time P50/P95/P99
+
+### Phase 2: Component Migration (Weeks 5-6)
+**Order of migration (lowest to highest risk):**
+
+1. **Admin-only pages** (week 5.0)
+   - `/admin/tenant/branding` editor
+   - `/admin/diagnostics`
+   - Low traffic, easy to rollback
+
+2. **Marketing pages** (week 5.5)
+   - Landing page (`/`)
+   - Pricing page (`/pricing`)
+   - Higher traffic but not critical path
+
+3. **Authenticated app** (week 6.0)
+   - Dashboard
+   - Group list
+   - Expense forms
+
+4. **Critical paths** (week 6.5)
+   - Auth flows (signup/login)
+   - Checkout/payment
+   - Highest risk, migrate last
+
+**Per-module checklist:**
+- [ ] Replace `bg-primary` → `bg-interactive-primary`
+- [ ] Remove inline `style={{...}}` props
+- [ ] Add data-testid for E2E tests
+- [ ] Run visual regression
+- [ ] Deploy to staging, test 24h
+- [ ] Feature flag rollout (10% → 50% → 100%)
+
+### Phase 3: Cleanup (Week 7)
+- Remove `applyBrandingPalette()` function
+- Delete old CSS variable injection code
+- Remove old Tailwind color mappings
+- Archive `branding.ts` utilities (keep in git history)
+
+**Rollback plan:**
+- If new theming breaks: revert feature flag (instant)
+- If catastrophic: git revert + redeploy (15 min)
+
+## 5.6. Error Handling & Fallback Behavior
+
+### Scenario 1: /api/theme.css returns 500
+**Fallback chain:**
+1. Service worker serves cached CSS (if available)
+2. Inline base CSS keeps layout functional
+3. Toast notification: "Theme temporarily unavailable, using cached version"
+4. Retry after 30s (exponential backoff)
+5. Log error to Sentry with tenant ID + hostname
+
+**User impact:** Minimal - app loads with cached/base theme
+
+### Scenario 2: Storage artifact missing (404)
+**Root cause:** Hash exists in Firestore but CSS deleted from Storage
+
+**Backend handling:**
+1. `/api/theme.css` catches 404 from Storage
+2. Triggers emergency regeneration (async)
+3. Serves fallback `tenant_default.css` (always present)
+4. Alert on-call engineer (PagerDuty)
+5. Next request serves correct theme (regeneration complete)
+
+**Prevention:** Cleanup job never deletes artifacts referenced in Firestore
+
+### Scenario 3: Theme CSS exceeds size budget (>50KB)
+**Validation:** `publishTenantTheme` rejects payload
+
+**Response:**
+```json
+{
+  "error": "THEME_TOO_LARGE",
+  "message": "Generated CSS is 78KB, limit is 50KB",
+  "suggestions": [
+    "Reduce custom CSS length",
+    "Remove unused font families",
+    "Compress base64 assets"
+  ]
+}
+```
+
+### Scenario 4: Tenant has no branding configured
+**Resolution:** Use `tenant_default` theme
+
+**Backend:**
+```typescript
+const branding = tenantDoc.data()?.branding || DEFAULT_BRANDING;
+```
+
+### Scenario 5: WCAG contrast check fails
+**Validation:** `publishTenantTheme` rejects
+
+**Response:**
+```json
+{
+  "error": "CONTRAST_FAILURE",
+  "failures": [
+    {
+      "foreground": "#ffff00",
+      "background": "#ffffff",
+      "ratio": 1.07,
+      "required": 4.5,
+      "element": "Primary button text"
+    }
+  ]
+}
+```
+
+**Admin UI:** Highlights failing combinations with suggested fixes
+
+## 6. Tooling, Guardrails & Governance
+- **Linting:** Custom ESLint rule bans `style={{ color: '#...' }}` and non-semantic Tailwind utilities; Stylelint enforces variables inside plain CSS. CI fails on violations.
+- **Token builders:** `@splitifyd/test-support` ships builders for tenant themes so unit tests stay deterministic.
+- **Storybook/Playground:** Component showcase route consumes JSON fixtures and lets designers hot-swap tokens without emulator restarts.
+- **Theme history & analytics:** Admin console displays publish history (hash, author, diffs) plus key metrics (contrast, generation time).
+- **Observability:** Structured logs capture publish latency, artifact size, `/api/theme.css` cache hits, and hostnames served. Expose `/api/theme/diagnostics` for support teams.
+- **Cleanup script:** Nightly job prunes orphaned artifacts (hashes not referenced by any tenant) after N days to control storage costs.
+
+## 7. Implementation Roadmap (8 Weeks)
+1. **Week 1 – Shared Foundations**
+   - Ship `BrandingTokens` DTO + Zod schema in `@splitifyd/shared`.
+   - Extend Firestore tenant schema + emulator seed with `tenant_localhost`, `tenant_loopback`, `tenant_default`.
+   - Add lint/Stylelint rules banning inline colors and hex literals.
+2. **Week 2 – Generator & Seed Themes**
+   - Implement ThemeArtifactService + hashing + Storage upload + provenance logging.
+   - Build `npm run theme:generate` CLI + `npm run theme:seed-local` to provision the three required local themes.
+3. **Weeks 3–4 – HTTP Endpoints & Bootstrap**
+   - Add `POST /api/admin/publishTenantTheme` with auth, validation, history, and notifications.
+   - Implement `/api/theme.css` with tenant resolution, default fallback, and caching headers.
+   - Update `webapp-v2/index.html`, service worker, and Tailwind config; land inline base CSS + diagnostics panel.
+4. **Weeks 5–6 – UI Kit & Admin Console**
+   - Rebuild core UI primitives + migrate top-tier pages (landing, auth, dashboard, group detail) to semantic utilities.
+   - Implement TenantBrandingPage (editor, preview iframe, publish button, history list, rollback, diff view).
+5. **Weeks 7–8 – Guardrails & Cleanup**
+   - Add visual regression suite + smoke assertions for per-tenant styles.
+   - Remove legacy theming code paths, wire observability dashboards, enforce artifact pruning, and finalize documentation.
+
+## 8. Testing & Verification Strategy
+- **Unit tests:**
+  - ThemeArtifactService snapshot tests (CSS + tokens) across baseline, high-contrast, and failure cases.
+  - Tenant resolution logic ensuring `localhost`, `120.0.0.1`, and fallback behave correctly.
+- **Integration tests:**
+  - Playwright flows that hit the app as each local tenant and verify key components inherit the correct CSS vars (e.g., CTA button colors, typography scale).
+  - API tests for `/api/theme.css` validating caching headers, redirects, and fallback behavior.
+- **Visual regression:** Triggered post-publish; compares hero pages per tenant against golden baselines. Failures block rollout.
+- **Performance checks:** Monitor generation latency (<100 ms target), `/api/theme.css` P95 (<150 ms), and theme payload size (<15 KB gzipped).
+- **Manual verification:** Use emulator-hosted sample tenants (localhost + loopback) to sign off on visual parity before merging large UI refactors.
+
+## 9. Risks & Mitigations
+- **Publish endpoint abuse** – Strict auth/roles + rate limiting + audit logging.
+- **Theme drift via hardcoded styles** – Linting, codemods, and UI kit migrations enforced early in the roadmap.
+- **Cache staleness** – Versioned query param (`?v=hash`) + immutable headers + SW cache invalidation keep clients synchronized.
+- **Local mismatch** – CLI seeds + automated tests ensure local fixtures match production schema; docs spell out the two required themes.
+- **Accessibility regressions** – Built-in contrast validator + Playwright axe checks before publish.
+- **Storage bloat** – Scheduled cleanup + retention policy on orphaned hashes.
+
+**Outcome:** A single, opinionated theming pipeline that combines Plan 2’s technical rigor with Plan 1’s governance and cleanup philosophy, removes unwanted Firestore triggers, supports deterministic local testing (localhost, 120.0.0.1, default), and guarantees every tenant sees a polished, brand-accurate UI delivered through clean, scalable, and testable code.
+
+### 9.5. Detailed Rollback Procedures
+
+#### Rollback 1: Bad Theme Publish (Single Tenant)
+**Scenario:** Admin publishes theme with broken CSS
+
+**Detection:**
+- Visual regression tests fail
+- Support ticket from tenant
+- Monitoring alert (high error rate)
+
+**Steps:**
+1. **Identify:** Get tenant ID from ticket/alert
+2. **Access:** Navigate to `/admin/tenant/{id}/branding`
+3. **Review:** Click "Artifact History" tab
+4. **Select:** Click previous working hash
+5. **Rollback:** Click "Use This Version" button
+6. **Verify:** Open tenant domain, confirm theme looks correct
+7. **Notify:** Update support ticket, notify tenant
+
+**Time:** <5 minutes  
+**Risk:** Zero (just updating hash pointer)
+
+#### Rollback 2: Broken /api/theme.css Endpoint
+**Scenario:** Deploy breaks theme delivery endpoint
+
+**Detection:**
+- 500 errors in logs
+- All tenants affected
+- Site unusable
+
+**Steps:**
+1. **Revert deploy:** `git revert HEAD && git push`
+2. **Trigger CI:** Wait for build (~5 min)
+3. **Deploy:** Firebase deploy (~2 min)
+4. **Verify:** Test 3 tenant domains
+5. **Post-mortem:** Schedule review
+
+**Time:** ~10 minutes  
+**Impact:** All tenants use cached/fallback CSS during rollback
+
+#### Rollback 3: UI Migration Breaks Critical Path
+**Scenario:** Week 6 migration breaks checkout flow
+
+**Detection:**
+- Drop in conversions
+- Playwright tests failing
+- Customer complaints
+
+**Steps:**
+1. **Feature flag:** Set `NEW_THEMING_ENABLED=false` in Firebase Config
+2. **Wait:** ~30s for config propagation
+3. **Verify:** Test checkout flow
+4. **Fix offline:** Debug in dev environment
+5. **Re-enable:** When fix deployed + tested
+
+**Time:** <1 minute  
+**Risk:** Low (instant rollback via feature flag)
+
+#### Rollback 4: Complete System Failure
+**Scenario:** Everything is broken (nuclear option)
+
+**Steps:**
+1. **Remove `<link>`:** Revert commit that added theme CSS link to HTML
+2. **Re-enable old code:** Uncomment `applyBrandingPalette()`
+3. **Deploy:** Emergency deploy
+4. **Investigate:** Why new system failed completely
+
+**Time:** ~15 minutes  
+**Risk:** High (back to old broken system)
+
+**Prevention:** This should never happen if shadow mode (weeks 3-4) validates properly
