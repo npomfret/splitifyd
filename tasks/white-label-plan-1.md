@@ -152,10 +152,10 @@ shared/src/
 ```
 
 ## 2.6. Local Theme Seeding Workflow (APIs Only)
-- **Scripted publish:** Add `firebase/scripts/publish-local-themes.ts` (surfaced via `npm run theme:publish-local`) that authenticates as an admin and POSTs `/api/admin/publishTenantTheme` for `tenant_localhost`, `tenant_loopback`, and `tenant_default`. No direct Firestore writes or emulator imports allowed.
-- **Fixtures as input:** The script loads the shared fixtures above and sends them through the exact payload the Admin UI would emit so every environment (dev, CI, staging) seeds themes identically.
-- **Failure visibility:** Command exits non-zero on any HTTP error; CI/local dev shells fail fast if auth headers or API contracts regress.
-- **Manual testing loop:** After running the script, verify `curl -H "Host: localhost" http://localhost:5001/<project>/<region>/api/theme.css` (swap host header for `120.0.0.1`) returns themed CSS before launching `webapp-v2`.
+- **Scripted publish:** `firebase/scripts/publish-local-themes.ts` (run with `npm run --workspace firebase theme:publish-local`) signs in as the Bill Splitter admin (`test1@test.com`) and walks the `/api/admin/tenants` + `/api/admin/publishTenantTheme` flow for `tenant_localhost`, `tenant_loopback`, and `tenant_default`. Still zero direct Firestore writes.
+- **Fixtures as input:** Uses `brandingTokenFixtures` from `@splitifyd/shared` so every environment replays the same token payloads the Admin UI will manage.
+- **Failure visibility:** Command exits non-zero with a helpful hint (usually “Bill Splitter missing — run start-with-data”). CI/local dev shells see the failure immediately if auth or the admin APIs regress.
+- **Manual testing loop:** After running the script, verify `curl -H "Host: localhost" http://localhost:5001/<project>/<region>/api/theme.css` (swap the Host header for `120.0.0.1`) before opening `webapp-v2`. Any other domain should fall back to the seeded default tenant CSS.
 
 ### Frontend (webapp-v2/src/)
 ```
