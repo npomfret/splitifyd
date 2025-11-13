@@ -20,9 +20,9 @@
 - [ ] Verify Firestore emulator seeding works (`npm run emulator:seed`)
 
 ### Repository Setup
-- [ ] Create `packages/shared/src/types/branding.ts`
-- [ ] Add Zod dependency: `npm install zod` (shared package)
-- [ ] Create fixture files in `packages/shared/src/fixtures/`
+- [x] Create `packages/shared/src/types/branding.ts`
+- [x] Add Zod dependency (`@splitifyd/shared` already depends on `zod`)
+- [x] Create fixture files in `packages/shared/src/fixtures/`
 - [ ] Add ESLint plugin: `npm install eslint-plugin-no-inline-styles`
 - [ ] Add Stylelint: `npm install stylelint stylelint-config-standard`
 
@@ -45,6 +45,16 @@
 - [ ] Support tickets tagged "theming" or "branding" (last 90 days)
 
 **Timeline:** Complete checklist before starting Week 1 implementation
+
+### Progress – 2025-11-13
+- Added `BrandingTokens` schema + artifact metadata in `@splitifyd/shared`, exported through the package index.
+- Seeded initial fixtures (`default`, `localhost`, `loopback`) under `packages/shared/src/fixtures/branding-tokens.ts`; `npm run build --workspace @splitifyd/shared` now passes with the new types.
+- Next up: add lint/style dependencies and begin emulator tenant seeding once repo tasks stabilize.
+
+## Expert Check-in – 2025-11-13
+- **Week 1 focus:** Lock down shared `BrandingTokens` schema, fixtures, and lint/style guardrails before touching Firebase Storage. Infra (bucket, CORS) can trail once the schema stabilizes.
+- **Local tenant seeding:** Reuse existing tenant identification middleware; add explicit IDs for `tenant_localhost`, `tenant_loopback`, and `tenant_default` to avoid collisions. Ensure emulator seeds clear any legacy tenant docs so domain routing can map cleanly to the new fixtures.
+- **Token design:** Start with both primitives *and* semantic derivations (surface/interactive/text/border). Wiring semantic names early prevents future rework when Tailwind/UI primitives migrate.
 
 ## 1. Context & Goals
 - Current tenant branding relies on ad-hoc CSS overrides that cause FOUC, timing bugs, and unmaintainable color hacks.
