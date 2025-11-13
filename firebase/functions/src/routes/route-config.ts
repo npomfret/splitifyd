@@ -474,6 +474,15 @@ const routeDefinitions: RouteDefinition[] = [
         middleware: ['authenticateSystemUser'],
     },
 
+    // === Admin User Management ===
+    {
+        method: 'PUT',
+        path: '/admin/users/:uid',
+        handlerName: 'updateUserAdmin',
+        category: 'admin',
+        middleware: ['authenticateAdmin'],
+    },
+
     // === Tenant Settings (Tenant Admin Only) ===
     {
         method: 'GET',

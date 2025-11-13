@@ -1547,7 +1547,16 @@
     "copyJsonAuth": "Copy Auth JSON",
     "copyJsonFirestore": "Copy Firestore JSON",
     "copiedJsonAuth": "Auth JSON copied",
-    "copiedJsonFirestore": "Firestore JSON copied"
+    "copiedJsonFirestore": "Firestore JSON copied",
+    "disableUser": "Disable",
+    "enableUser": "Enable",
+    "disableUserConfirm": "Are you sure you want to disable this account? The user will be immediately signed out and unable to sign in until re-enabled.",
+    "enableUserConfirm": "Are you sure you want to enable this account? The user will be able to sign in again.",
+    "disableSuccess": "User disabled successfully",
+    "enableSuccess": "User enabled successfully",
+    "cannotDisableSelf": "You cannot disable your own account",
+    "disableError": "Failed to disable user",
+    "enableError": "Failed to enable user"
   },
   "userIndicator": {
     "unknown": "Unknown",

@@ -446,6 +446,13 @@ export class ApiDriver {
         return response;
     }
 
+    /**
+     * Update user account status (admin-only)
+     */
+    async updateUser(uid: string, updates: { disabled: boolean }, token: AuthToken): Promise<any> {
+        return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token);
+    }
+
     private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
         const url = `${this.baseUrl}${endpoint}`;
         const options: RequestInit = {

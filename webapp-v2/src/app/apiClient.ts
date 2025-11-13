@@ -1014,6 +1014,20 @@ class ApiClient {
         });
     }
 
+    /**
+     * Update user account status (enable/disable)
+     * Admin-only endpoint
+     */
+    async updateUser(uid: string, updates: { disabled: boolean }) {
+        return this.request({
+            endpoint: '/admin/users/:uid',
+            method: 'PUT',
+            params: { uid },
+            body: updates,
+            schema: AuthUserSchema,
+        });
+    }
+
     // User policy acceptance methods
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[]): Promise<AcceptMultiplePoliciesResponse> {
         return this.request({

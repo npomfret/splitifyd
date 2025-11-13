@@ -340,6 +340,46 @@ export function UsersBrowserPage() {
 
     const selectedUserData = useSignal<{ auth: Record<string, unknown> | null; firestore: Record<string, unknown> | null; } | null>(null);
     const jsonViewLoading = useSignal(false);
+    const disablingUserUid = useSignal<string | null>(null);
+
+    const handleDisableUser = async (uid: string, currentlyDisabled: boolean) => {
+        // Prevent self-disable
+        if (uid === user.uid) {
+            window.alert(t('usersBrowser.cannotDisableSelf'));
+            return;
+        }
+
+        // Confirm action
+        const confirmMessage = currentlyDisabled
+            ? t('usersBrowser.enableUserConfirm')
+            : t('usersBrowser.disableUserConfirm');
+
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        disablingUserUid.value = uid;
+        try {
+            await apiClient.updateUser(uid, { disabled: !currentlyDisabled });
+
+            // Show success message
+            const successMessage = currentlyDisabled
+                ? t('usersBrowser.enableSuccess')
+                : t('usersBrowser.disableSuccess');
+            window.alert(successMessage);
+
+            // Reload the user list
+            await loadAuthUsers(authHasSearchApplied.value ? undefined : authPageHistory.value[authPageHistory.value.length - 1]);
+        } catch (error) {
+            logError('Failed to update user status', error);
+            const errorMessage = currentlyDisabled
+                ? t('usersBrowser.enableError')
+                : t('usersBrowser.disableError');
+            window.alert(errorMessage);
+        } finally {
+            disablingUserUid.value = null;
+        }
+    };
 
     const handleViewJson = async (uid: string) => {
         jsonViewLoading.value = true;
@@ -520,6 +560,17 @@ export function UsersBrowserPage() {
                                                         <td class='px-4 py-3 text-sm text-gray-700'>{getMetadataField(metadata, 'lastSignInTime')}</td>
                                                         <td class='px-4 py-3 text-right text-sm'>
                                                             <div class='flex items-center justify-end gap-2'>
+                                                                <Button
+                                                                    variant={authUser.disabled ? 'secondary' : 'danger'}
+                                                                    onClick={() => void handleDisableUser(String(authUser.uid), Boolean(authUser.disabled))}
+                                                                    disabled={disablingUserUid.value === String(authUser.uid)}
+                                                                >
+                                                                    {disablingUserUid.value === String(authUser.uid)
+                                                                        ? t('app.loading')
+                                                                        : authUser.disabled
+                                                                            ? t('usersBrowser.enableUser')
+                                                                            : t('usersBrowser.disableUser')}
+                                                                </Button>
                                                                 <Button variant='secondary' onClick={() => void handleViewJson(String(authUser.uid))}>
                                                                     {t('usersBrowser.viewJson')}
                                                                 </Button>
