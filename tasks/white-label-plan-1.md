@@ -1,6 +1,6 @@
 # White-Label Theming Plan (Unified)
 **Date:** 2025-11-13
-**Sources:** `white-label-plan-2.md`, archived `white-label-proposed-solutions-1.md`, Expert feedback (`.claude/ask-the-expert.sh` on 2025-11-13)
+**Sources:** `white-label-plan-2.md`, archived `white-label-proposed-solutions-1.md`, Expert feedback (`.claude/ask-the-expert.sh` on 2025-11-13 + addendum same day)
 
 ## 0. Pre-flight Checklist (Before Week 1)
 
@@ -65,6 +65,15 @@ flowchart LR
 - `/api/admin/publishTenantTheme` now exists: authenticates admins, loads tenant branding tokens, generates artifacts, saves them, and records metadata (`brandingTokens.artifact`) on the tenant document.
 - Tooling guardrails shipped: ESLint `no-inline-styles`, Stylelint config, and lint scripts.
 - Documentation bundle created (admin guide, dev guide, debug runbook, metrics guide) + Mermaid architecture diagram.
+
+### Phase 1.1 – Build & Test Blockers (Added 2025-11-13)
+> Expert addendum: "Ship nothing new until the build is green and duplicate tests are gone."
+
+- [ ] **ApiDriver boundary fix** — `packages/test-support/src/ApiDriver.ts` currently imports from `firebase/functions`, violating its `tsconfig` `rootDir`. Extract the shared helpers (`seedAdminUser`, data builders, auth headers) into `@splitifyd/test-support` or `@splitifyd/shared` so the driver only references permitted entry points. Acceptance criteria: `npm run build --workspace packages/test-support` and `npm run build --workspace firebase/functions` succeed without path errors.
+- [ ] **Delete skipped duplicate tests** — Remove the 323 lines of `describe.skip` content in `firebase/functions/src/__tests__/unit/admin/*` so CI stops carrying dead weight. Replace them with either active coverage or nothing; do **not** leave TODO blocks. Acceptance criteria: `rg "describe\.skip" firebase/functions/src/__tests__/unit/admin` returns zero matches.
+- [ ] **Track new tests** — Git add the new admin publish/unit fixtures so `git status --short` is clean. Acceptance criteria: no untracked files under `firebase/functions/src/__tests__` or `packages/test-support`.
+- [ ] **Health gate** — Re-run `npm run build --workspace firebase/functions` and `npm run test:unit --workspace firebase/functions -- admin-tenant-publish.test.ts` to prove the fixes hold before touching `/api/theme.css` or Cloud Storage work.
+
 
 ## Expert Check-in – 2025-11-13
 - **Week 1 focus:** Lock down shared `BrandingTokens` schema, fixtures, and lint/style guardrails before touching Firebase Storage. Infra (bucket, CORS) can trail once the schema stabilizes.
@@ -326,7 +335,20 @@ const branding = tenantDoc.data()?.branding || DEFAULT_BRANDING;
 
 **Admin UI:** Highlights failing combinations with suggested fixes
 
+## 5.7. Storage Strategy Clarification
+1. **Phase 1 (Weeks 1–2) – Local artifacts on purpose**
+   - Implementation: `LocalThemeArtifactStorage` writes `{hash}.css` + `{hash}.tokens.json` under `tmp/theme-artifacts/{tenant}/{hash}` and never exposes `file://` URLs.
+   - Scope: Emulator, developer builds, and early staging. Goal is to unblock API work and guarantee we can diff artifacts locally while verifying the pipeline with the two mandated sample tenants (`localhost`, `120.0.0.1`) plus the default fallback.
+   - Guardrails: Same interface as the future Cloud Storage client, env flag (`THEME_STORAGE_IMPL=local|cloud`), and shared contract tests so the swap is mechanical.
+2. **Phase 2 (Week 3+) – Cloud Storage cutover**
+   - Swap in `CloudThemeArtifactStorage` built on the pre-provisioned `splitifyd-themes` bucket + CORS config. `/api/theme.css` streams or 302s to Storage, never leaking implementation details to callers.
+   - Migration toggles on a per-env basis; once prod reads from Cloud Storage, delete local artifact folders from CI and rely on the CLI to fetch artifacts when debugging.
+3. **Verification hooks**
+   - Manual: `curl -H "Host: localhost" http://localhost:5001/.../api/theme.css` must return the localhost CSS; same command with `120.0.0.1` host header returns the loopback CSS; any other host returns the default CSS.
+   - Automated: Contract tests assert both storage implementations produce identical filenames, metadata, and error semantics (e.g., missing artifact → regenerate fallback path).
+
 ## 6. Tooling, Guardrails & Governance
+- **Phase 1 storage guardrail:** Documented above so nobody confuses the temporary local storage with a production shortcut; `/api/theme.css` is the *only* delivery surface even during Phase 1.
 - **Linting:** Custom ESLint rule bans `style={{ color: '#...' }}` and non-semantic Tailwind utilities; Stylelint enforces variables inside plain CSS. CI fails on violations.
 - **Token builders:** `@splitifyd/test-support` ships builders for tenant themes so unit tests stay deterministic.
 - **Storybook/Playground:** Component showcase route consumes JSON fixtures and lets designers hot-swap tokens without emulator restarts.
@@ -335,6 +357,11 @@ const branding = tenantDoc.data()?.branding || DEFAULT_BRANDING;
 - **Cleanup script:** Nightly job prunes orphaned artifacts (hashes not referenced by any tenant) after N days to control storage costs.
 
 ## 7. Implementation Roadmap (8 Weeks)
+0. **Week 0.5 – Build/Test Hygiene (blocking before new work)**
+   - Detangle `packages/test-support/src/ApiDriver.ts` from `firebase/functions` internals (move helpers into `@splitifyd/test-support` or `@splitifyd/shared`).
+   - Delete the skipped duplicate admin tests and ensure coverage lives only once.
+   - Track all new test files; `git status` must be clean before coding new features.
+   - Validation: `npm run build --workspace firebase/functions` + `npm run test:unit --workspace firebase/functions -- admin-tenant-publish.test.ts`.
 1. **Week 1 – Shared Foundations**
    - Ship `BrandingTokens` DTO + Zod schema in `@splitifyd/shared`.
    - Extend Firestore tenant schema + emulator seed with `tenant_localhost`, `tenant_loopback`, `tenant_default`.
@@ -445,3 +472,12 @@ const branding = tenantDoc.data()?.branding || DEFAULT_BRANDING;
 **Risk:** High (back to old broken system)
 
 **Prevention:** This should never happen if shadow mode (weeks 3-4) validates properly
+
+## 10. Modern UI Overhaul Alignment
+- **Parallel stream, shared contract:** The wholesale UI refresh described in `docs/modern_ui_ux_guide.md` runs alongside this theming program but depends on the same semantic tokens + `/api/theme.css` contract. Keep the programs loosely coupled: white-label owns the platform (tokens, artifacts, delivery); the modernization squad owns component/page redesigns.
+- **Hand-offs & checkpoints:**
+  1. Finalize the semantic token dictionary + CSS variable naming (Week 2) so modernization can design directly against it.
+  2. Provide Storybook/Playground scenes that load the localhost + loopback themes via the new API, mirroring how real tenants will look.
+  3. Share migration guides for UI primitives so both squads refactor buttons/cards once instead of diverging.
+- **Shared acceptance tests:** Modern UI work must run the same manual host checks (`localhost`, `120.0.0.1`, default) to ensure stylistic changes respect tenant branding. Playwright visual regression baselines will include both the classic and modernized skins until the switch is complete.
+- **Governance:** A joint weekly review (Theme Platform + Modern UI) confirms that component changes never bypass the semantic layer (no inline colors, no custom CSS per tenant). Any new design pattern must declare which semantic tokens it depends on before code review.
