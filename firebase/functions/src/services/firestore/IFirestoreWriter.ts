@@ -14,7 +14,7 @@
  * - Performance monitoring with sampling
  */
 
-import type { CommentDTO, ISOString, ShareLinkDTO, ShareLinkToken, SystemUserRole, UserId } from '@splitifyd/shared';
+import type { BrandingArtifactMetadata, CommentDTO, ISOString, ShareLinkDTO, ShareLinkToken, SystemUserRole, UserId } from '@splitifyd/shared';
 import { DisplayName, ExpenseId, GroupId, ShareLinkId } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
@@ -166,6 +166,8 @@ export interface IFirestoreWriter {
      * Create or update a tenant document (admin use only)
      */
     upsertTenant(tenantId: string, data: TenantDocumentUpsertData): Promise<WriteResult & { created: boolean }>;
+
+    updateTenantThemeArtifact(tenantId: string, artifact: BrandingArtifactMetadata): Promise<WriteResult>;
 
     // ========================================================================
     // Transaction Operations

@@ -578,6 +578,27 @@ export class ApiDriver {
         }, adminToken);
     }
 
+    async seedAdminUser(userId: string): Promise<void> {
+        // Register user as system admin in Firestore
+        const db = await import('../../../firebase/functions/src/firebase').then((m) => m.getFirestore());
+        await db.collection('users').doc(userId).set({
+            email: `${userId}@test.com`,
+            displayName: `Admin ${userId}`,
+            photoURL: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            systemRoles: ['system_admin'],
+        });
+    }
+
+    async adminUpsertTenant(token: AuthToken, tenantData: any): Promise<any> {
+        return this.apiRequest('/admin/tenants', 'POST', tenantData, token);
+    }
+
+    async publishTenantTheme(token: AuthToken, payload: { tenantId: string }): Promise<any> {
+        return this.apiRequest('/admin/tenants/publish', 'POST', payload, token);
+    }
+
     private isRegistrationRecoverable(error: unknown): boolean {
         if (!(error instanceof Error)) {
             return false;

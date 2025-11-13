@@ -166,6 +166,13 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'admin',
         middleware: ['authenticateAdmin'],
     },
+    {
+        method: 'POST',
+        path: '/admin/tenants/publish',
+        handlerName: 'publishTenantTheme',
+        category: 'admin',
+        middleware: ['authenticateAdmin'],
+    },
 
     // === Registration ===
     {

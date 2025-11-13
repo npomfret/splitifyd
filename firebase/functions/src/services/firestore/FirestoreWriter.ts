@@ -44,6 +44,7 @@ import type {
     TenantDocumentUpsertData,
     WriteResult,
 } from './IFirestoreWriter';
+import type { BrandingArtifactMetadata } from '@splitifyd/shared';
 import {SystemUserRoles} from "@splitifyd/shared";
 
 /**
@@ -1301,25 +1302,24 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const snapshot = await tenantRef.get();
                 const created = !snapshot.exists;
 
-                const now = FieldValue.serverTimestamp();
-
-                // When updating, preserve the existing createdAt timestamp
-                // When creating, the schema will handle the timestamp
+                // Validate data before adding timestamps (follow pattern from createUser)
                 const tenantDocument = TenantDocumentSchema.parse({
                     id: tenantId,
                     ...data,
-                    createdAt: now,
-                    updatedAt: now,
+                    createdAt: created ? Timestamp.now() : snapshot.data()!.createdAt,
+                    updatedAt: Timestamp.now(),
                 });
 
                 const sanitized = this.removeUndefinedValues(tenantDocument);
 
-                // If updating, preserve the original createdAt
-                if (!created && snapshot.data()?.createdAt) {
-                    sanitized.createdAt = snapshot.data()!.createdAt;
-                }
+                // Replace validation timestamps with FieldValue.serverTimestamp() for the actual write
+                const finalData = {
+                    ...sanitized,
+                    createdAt: created ? FieldValue.serverTimestamp() : snapshot.data()!.createdAt,
+                    updatedAt: FieldValue.serverTimestamp(),
+                };
 
-                await tenantRef.set(sanitized, { merge: false });
+                await tenantRef.set(finalData, { merge: false });
 
                 return {
                     id: tenantId,
@@ -1329,6 +1329,26 @@ export class FirestoreWriter implements IFirestoreWriter {
             } catch (error) {
                 logger.error('Failed to upsert tenant', error, { tenantId });
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'TENANT_UPSERT_FAILED', 'Unable to upsert tenant');
+            }
+        });
+    }
+
+    async updateTenantThemeArtifact(tenantId: string, artifact: BrandingArtifactMetadata): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updateTenantThemeArtifact', async () => {
+            try {
+                const tenantRef = this.db.collection(FirestoreCollections.TENANTS).doc(tenantId);
+                await tenantRef.update({
+                    'brandingTokens.artifact': artifact,
+                    updatedAt: FieldValue.serverTimestamp(),
+                });
+
+                return {
+                    id: tenantId,
+                    success: true,
+                };
+            } catch (error) {
+                logger.error('Failed to update tenant theme artifact', error, { tenantId });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'TENANT_ARTIFACT_UPDATE_FAILED', 'Unable to record theme artifact metadata');
             }
         });
     }

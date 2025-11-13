@@ -83,7 +83,7 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 }
 
 // Import parsed types from schemas
-import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, SettlementDTO, ShareLinkToken } from '@splitifyd/shared';
+import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, SettlementDTO, ShareLinkToken, TenantBranding } from '@splitifyd/shared';
 import { GroupId, ShareLinkId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
@@ -94,6 +94,7 @@ export interface TenantRegistryRecord {
     primaryDomain: TenantDomainName | null;
     domains: TenantDomainName[];
     isDefault: TenantDefaultFlag;
+    brandingTokens?: TenantBranding;
 }
 
 export interface IFirestoreReader {

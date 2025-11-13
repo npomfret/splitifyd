@@ -957,4 +957,10 @@ export class AppDriver {
         const res = await this.dispatchByHandler('adminUpsertTenant', req);
         return res.getJson();
     }
+
+    async publishTenantTheme(authToken: AuthToken, payload: { tenantId: string }): Promise<any> {
+        const req = createStubRequest(authToken, payload);
+        const res = await this.dispatchByHandler('publishTenantTheme', req);
+        return res.getJson();
+    }
 }

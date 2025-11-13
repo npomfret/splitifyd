@@ -59,6 +59,10 @@ flowchart LR
 - `BrandingTokens` schema + fixtures landed in `@splitifyd/shared`; firebase tenant schema now accepts `brandingTokens` payloads.
 - New automation artifacts: `scripts/theme-storage/setup.sh`, `docs/guides/theme-storage.md`, and the `/api/admin/tenants` endpoint for fixture registration.
 - Storage emulator wired across templates/env validation; tenant fixture creation now flows through the admin API (no direct Firestore writers).
+
+### Progress – Phase 1 Kickoff
+- Added `ThemeArtifactService` with deterministic token → CSS/JSON generation, SHA-256 hashing, and local storage persistence (emulator-ready abstraction).
+- `/api/admin/publishTenantTheme` now exists: authenticates admins, loads tenant branding tokens, generates artifacts, saves them, and records metadata (`brandingTokens.artifact`) on the tenant document.
 - Tooling guardrails shipped: ESLint `no-inline-styles`, Stylelint config, and lint scripts.
 - Documentation bundle created (admin guide, dev guide, debug runbook, metrics guide) + Mermaid architecture diagram.
 

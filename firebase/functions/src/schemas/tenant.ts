@@ -98,6 +98,12 @@ export const AdminUpsertTenantRequestSchema = z.object({
 
 export type AdminUpsertTenantRequest = z.infer<typeof AdminUpsertTenantRequestSchema>;
 
+export const PublishTenantThemeRequestSchema = z.object({
+    tenantId: z.string().min(1).transform(toTenantId),
+});
+
+export type PublishTenantThemeRequest = z.infer<typeof PublishTenantThemeRequestSchema>;
+
 /**
  * Schema for updating tenant branding (partial update)
  * Used for PUT /settings/tenant/branding endpoint

@@ -217,3 +217,9 @@ export type BrandingSemantics = z.infer<typeof BrandingSemanticSchema>;
 export type BrandingTokens = z.infer<typeof BrandingTokensSchema>;
 export type BrandingArtifactMetadata = z.infer<typeof BrandingArtifactMetadataSchema>;
 export type TenantBranding = z.infer<typeof TenantBrandingSchema>;
+
+export interface PublishTenantThemeResult {
+    artifact: BrandingArtifactMetadata;
+    cssUrl: string;
+    tokensUrl: string;
+}

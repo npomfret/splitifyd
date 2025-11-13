@@ -28,6 +28,8 @@ import { SettlementHandlers } from './settlements/SettlementHandlers';
 import { UserHandlers } from './user/UserHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { TenantAdminService } from './services/tenant/TenantAdminService';
+import { ThemeArtifactService } from './services/tenant/ThemeArtifactService';
+import { createThemeArtifactStorage } from './services/storage/ThemeArtifactStorage';
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.
@@ -70,7 +72,12 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const policyService = componentBuilder.buildPolicyService();
     const firestoreWriter = componentBuilder.buildFirestoreWriter();
     const tenantRegistryService = componentBuilder.buildTenantRegistryService();
-    const tenantAdminHandlers = new TenantAdminHandlers(new TenantAdminService(componentBuilder.buildFirestoreWriter()));
+    const tenantAdminService = new TenantAdminService(
+        componentBuilder.buildFirestoreWriter(),
+        componentBuilder.buildFirestoreReader(),
+        new ThemeArtifactService(createThemeArtifactStorage()),
+    );
+    const tenantAdminHandlers = new TenantAdminHandlers(tenantAdminService);
 
     // Inline diagnostic handlers
     const getMetrics: RequestHandler = (req, res) => {
@@ -563,6 +570,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         // Tenant admin handlers
         adminUpsertTenant: tenantAdminHandlers.upsertTenant,
+        publishTenantTheme: tenantAdminHandlers.publishTenantTheme,
     };
 
     return registry;

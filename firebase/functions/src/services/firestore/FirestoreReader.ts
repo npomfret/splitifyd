@@ -203,6 +203,7 @@ export class FirestoreReader implements IFirestoreReader {
             primaryDomain,
             domains,
             isDefault,
+            brandingTokens: parsed.brandingTokens,
         };
     }
 
