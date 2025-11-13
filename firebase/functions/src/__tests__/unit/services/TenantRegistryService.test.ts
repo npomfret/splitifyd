@@ -18,7 +18,7 @@ import {
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import type { TenantRegistryRecord } from '../../../services/firestore';
-import type { IFirestoreReader } from '../../../services/firestore/IFirestoreReader';
+import type { IFirestoreReader } from '../../../services/firestore';
 import { TenantRegistryService, type TenantResolutionOptions } from '../../../services/tenant/TenantRegistryService';
 import { ApiError } from '../../../utils/errors';
 

@@ -1,4 +1,4 @@
-import type {Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest, UserId} from '@splitifyd/shared';
+import type {Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest} from '@splitifyd/shared';
 import {
     AuthenticatedFirebaseUser,
     compareAmounts,
@@ -9,32 +9,13 @@ import {
     PermissionLevels,
     PREDEFINED_EXPENSE_LABELS,
     subtractAmounts,
-    toFeatureToggleAdvancedReporting,
-    toFeatureToggleCustomFields,
-    toFeatureToggleMultiCurrency,
     toISOString,
-    toShowLandingPageFlag,
-    toShowMarketingContentFlag,
-    toShowPricingPageFlag,
-    toTenantAppName,
-    toTenantBackgroundColor,
-    toTenantHeaderBackgroundColor,
-    toTenantDefaultFlag,
-    toTenantDomainName,
-    toTenantFaviconUrl,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-    toTenantMaxGroupsPerUser,
-    toTenantMaxUsersPerGroup,
     UserRegistration,
     zeroAmount,
 } from '@splitifyd/shared';
 import {ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig} from '@splitifyd/test-support';
 import {FirestoreWriter} from "../functions/src/services/firestore";
-import { FirestoreCollections } from '../functions/src/constants';
-import { Timestamp } from 'firebase-admin/firestore';
-import { createFirestoreDatabase } from "../functions/src/firestore-wrapper";
+import { createFirestoreDatabase } from "@splitifyd/firebase-simulator/src";
 
 // Lazy initialization - will be set when Firebase is initialized
 let firestoreDb: ReturnType<typeof createFirestoreDatabase>;

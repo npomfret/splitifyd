@@ -1,8 +1,6 @@
 import {
-    TenantConfig,
     TenantDomainName,
     TenantId,
-    TenantDefaultFlag,
     toTenantDomainName,
     toTenantId,
     toTenantAppName,

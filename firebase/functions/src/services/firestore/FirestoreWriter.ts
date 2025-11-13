@@ -10,7 +10,7 @@
  */
 
 // Import types
-import type { CommentDTO, DisplayName, Email, ISOString, ShareLinkDTO, ShareLinkToken, UserId } from '@splitifyd/shared';
+import type { CommentDTO, DisplayName, Email, ShareLinkDTO, ShareLinkToken, UserId } from '@splitifyd/shared';
 import { normalizeDisplayNameForComparison } from '@splitifyd/shared';
 // Import schemas for validation
 import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@splitifyd/shared';
@@ -35,9 +35,7 @@ import {
     validateUpdate,
     TenantDocumentSchema,
 } from '../../schemas';
-import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
 import type {
-    BatchWriteResult,
     FirestoreUserCreateData,
     FirestoreUserUpdateData,
     IFirestoreWriter,

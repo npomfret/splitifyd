@@ -21,10 +21,10 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { getFirestore } from '../../../firebase';
-import type { TenantDocument } from '../../../schemas/tenant';
-import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
-import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
-import type { TenantRegistryRecord } from '../../../services/firestore/IFirestoreReader';
+import type { TenantDocument } from '../../../schemas';
+import { FirestoreReader } from '../../../services/firestore';
+import { FirestoreWriter } from '../../../services/firestore';
+import type { TenantRegistryRecord } from '../../../services/firestore';
 import { createFirestoreDatabase } from '../../../firestore-wrapper';
 
 describe('Tenant Firestore Integration', () => {

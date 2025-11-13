@@ -1,4 +1,3 @@
-import { generateShortId } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { createFirestoreDatabase } from '../../firestore-wrapper';

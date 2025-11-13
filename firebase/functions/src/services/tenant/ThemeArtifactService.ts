@@ -1,5 +1,5 @@
 import type { BrandingTokens } from '@splitifyd/shared';
-import { createThemeArtifactStorage, computeSha256, ThemeArtifactStorage } from '../storage/ThemeArtifactStorage';
+import { computeSha256, ThemeArtifactStorage } from '../storage/ThemeArtifactStorage';
 
 export interface ThemeArtifactResult {
     hash: string;

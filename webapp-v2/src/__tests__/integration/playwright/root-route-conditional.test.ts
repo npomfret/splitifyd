@@ -1,4 +1,4 @@
-import { GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 

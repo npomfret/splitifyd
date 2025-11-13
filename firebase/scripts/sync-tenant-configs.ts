@@ -5,7 +5,6 @@ import {
     toFeatureToggleAdvancedReporting,
     toFeatureToggleCustomFields,
     toFeatureToggleMultiCurrency,
-    toISOString,
     toShowBlogPageFlag,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
@@ -22,7 +21,7 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@splitifyd/shared';
-import { createFirestoreDatabase } from '../functions/src/firestore-wrapper';
+import { createFirestoreDatabase } from '@splitifyd/firebase-simulator/src';
 import { FirestoreCollections } from '../functions/src/constants';
 
 interface TenantConfig {

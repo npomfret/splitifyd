@@ -1,4 +1,4 @@
-import { ReturnTestUserResponse, SystemUserRoles, TestErrorResponse, TestSuccessResponse } from '@splitifyd/shared';
+import { ReturnTestUserResponse, TestErrorResponse, TestSuccessResponse } from '@splitifyd/shared';
 import type { RequestHandler } from 'express';
 import { getConfig as getClientConfig, getConfig as getServerConfig } from './client-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';

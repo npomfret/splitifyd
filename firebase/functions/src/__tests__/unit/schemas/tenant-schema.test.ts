@@ -1,4 +1,3 @@
-import { toTenantDefaultFlag, toTenantDomainName } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 import { describe, expect, it } from 'vitest';
 import { TenantDocumentSchema, UpdateTenantBrandingRequestSchema } from '../../../schemas/tenant';

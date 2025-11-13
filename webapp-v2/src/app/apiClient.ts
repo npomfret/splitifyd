@@ -61,7 +61,6 @@ import type { UpdateSettlementRequest } from '@splitifyd/shared';
 import { ExpenseId, GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';

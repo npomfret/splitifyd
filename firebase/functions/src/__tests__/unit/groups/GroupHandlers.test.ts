@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
-import { FirestoreWriter } from '../../../services/firestore';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 

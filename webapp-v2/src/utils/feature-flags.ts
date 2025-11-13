@@ -1,5 +1,4 @@
 import { configStore } from '@/stores/config-store.ts';
-import type { FeatureConfig } from '@splitifyd/shared';
 import type { ComponentChildren } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 

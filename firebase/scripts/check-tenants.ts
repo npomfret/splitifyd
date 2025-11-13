@@ -1,4 +1,4 @@
-import { createFirestoreDatabase } from '../functions/src/firestore-wrapper';
+import { createFirestoreDatabase } from '@splitifyd/firebase-simulator/src';
 
 let firestoreDb: ReturnType<typeof createFirestoreDatabase>;
 

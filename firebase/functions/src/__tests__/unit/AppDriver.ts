@@ -30,7 +30,6 @@ import {
     ListGroupsResponse,
     ListPoliciesResponse,
     MemberRole,
-    MemberStatus,
     MessageResponse,
     PasswordChangeRequest,
     PolicyDTO,

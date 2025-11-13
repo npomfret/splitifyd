@@ -1,4 +1,4 @@
-import { configStore } from '../../stores/config-store';
+import { configStore } from '@/stores/config-store.ts';
 import { useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 
