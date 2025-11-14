@@ -125,20 +125,24 @@ export function LoginPage() {
                 <PasswordInput value={password} onInput={setPassword} disabled={loadingValue} autoComplete='off' />
 
                 <div class='flex items-center justify-between'>
-                    <label class='flex items-center'>
+                    <label class='flex items-center gap-2 text-text-primary'>
                         <input
                             type='checkbox'
                             data-testid='remember-me-checkbox'
-                            class='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
+                            class='h-4 w-4 rounded border border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base transition-colors'
                             disabled={loadingValue}
                             checked={rememberMe}
                             onChange={(event) => setRememberMe((event.currentTarget as HTMLInputElement).checked)}
                             autoComplete='off'
                         />
-                        <span class='ml-2 block text-sm text-gray-700'>{t('loginPage.rememberMe')}</span>
+                        <span class='text-sm text-text-primary'>{t('loginPage.rememberMe')}</span>
                     </label>
 
-                    <button type='button' onClick={() => navigationService.goToResetPassword()} class='text-sm text-blue-600 hover:text-blue-500 transition-colors'>
+                    <button
+                        type='button'
+                        onClick={() => navigationService.goToResetPassword()}
+                        class='text-sm font-medium text-interactive-primary hover:opacity-80 transition-opacity'
+                    >
                         {t('loginPage.forgotPassword')}
                     </button>
                 </div>
@@ -150,7 +154,7 @@ export function LoginPage() {
                 <DefaultLoginButton onFillForm={handleFillForm} onSubmit={() => handleSubmit(new Event('submit'))} disabled={loadingValue} />
 
                 <div class='text-center'>
-                    <p class='text-sm text-gray-600'>
+                    <p class='text-sm text-text-muted'>
                         {t('loginPage.noAccount')}{' '}
                         <button
                             type='button'
@@ -166,7 +170,7 @@ export function LoginPage() {
                                     navigationService.goToRegister();
                                 }
                             }}
-                            class='font-medium text-blue-600 hover:text-blue-500 transition-colors'
+                            class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'
                         >
                             {t('loginPage.signUp')}
                         </button>

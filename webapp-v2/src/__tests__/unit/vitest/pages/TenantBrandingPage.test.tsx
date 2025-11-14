@@ -19,12 +19,16 @@ vi.mock('@/app/hooks/useAuthRequired', () => ({
     useAuthRequired: vi.fn(),
 }));
 
-vi.mock('@/app/apiClient', () => ({
-    apiClient: {
-        getTenantSettings: vi.fn(),
-        updateTenantBranding: vi.fn(),
-    },
-}));
+vi.mock('@/app/apiClient', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@/app/apiClient')>();
+    return {
+        ...actual,
+        apiClient: {
+            getTenantSettings: vi.fn(),
+            updateTenantBranding: vi.fn(),
+        },
+    };
+});
 
 const { useAuthRequired } = await import('@/app/hooks/useAuthRequired');
 const { apiClient } = await import('@/app/apiClient');

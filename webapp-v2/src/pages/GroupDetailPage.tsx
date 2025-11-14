@@ -191,7 +191,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 <div className='container mx-auto px-4 py-8' data-testid='error-container'>
                     <Card className='p-6 text-center'>
                         <h2 className='text-xl font-semibold mb-2'>{t('pages.groupDetailPage.errorLoadingGroup')}</h2>
-                        <p className='text-gray-600 mb-4'>{errorValue}</p>
+                        <p className='text-text-muted mb-4'>{errorValue}</p>
                         <Button variant='primary' onClick={() => navigationService.goToDashboard()}>
                             {t('pages.groupDetailPage.backToDashboard')}
                         </Button>
@@ -371,7 +371,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         </div>
 
                         {/* Mobile-only balance summary */}
-                        <div className='lg:hidden'>
+                        <div className='lg:hidden' data-testid='balance-summary-mobile'>
                             <BalanceSummary onSettleUp={handleSettleUp} />
                         </div>
                     </Stack>
@@ -383,9 +383,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         {/* Settlement History Section */}
                         <SidebarCard
                             id='settlements'
+                            data-testid='settlement-history-card'
                             title={
                                 <div className='flex items-center gap-2'>
-                                    <BanknotesIcon className='h-5 w-5 text-gray-600' aria-hidden='true' />
+                                    <BanknotesIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
                                     <span>{t('pages.groupDetailPage.paymentHistory')}</span>
                                 </div>
                             }
@@ -411,9 +412,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         {/* Comments Section */}
                         <SidebarCard
                             id='comments'
+                            data-testid='comments-card'
                             title={
                                 <div className='flex items-center gap-2'>
-                                    <ChatBubbleLeftIcon className='h-5 w-5 text-gray-600' aria-hidden='true' />
+                                    <ChatBubbleLeftIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
                                     <span>{t('pages.groupDetailPage.comments')}</span>
                                 </div>
                             }

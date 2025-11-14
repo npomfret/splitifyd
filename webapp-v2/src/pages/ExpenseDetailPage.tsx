@@ -159,7 +159,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     if (loading.value) {
         return (
             <BaseLayout>
-                <div className='min-h-screen bg-gray-50 dark:bg-gray-900 p-4'>
+                <div className='min-h-screen bg-surface-muted p-4'>
                     <LoadingSpinner size='lg' />
                 </div>
             </BaseLayout>
@@ -169,13 +169,13 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     if (error.value || !expense.value) {
         return (
             <BaseLayout>
-                <div className='min-h-screen bg-gray-50 dark:bg-gray-900 p-4'>
-                    <Card className='max-w-md mx-auto mt-8'>
+                <div className='min-h-screen bg-surface-muted p-4'>
+                    <Card className='max-w-md mx-auto mt-8' data-testid='expense-error-card'>
                         <Stack spacing='md'>
                             <h2 className='text-xl font-semibold text-red-600' role='alert' data-testid='page-error-title'>
                                 {t('pages.expenseDetailPage.error')}
                             </h2>
-                            <p className='text-gray-600 dark:text-gray-400'>{error.value || t('pages.expenseDetailPage.expenseNotFound')}</p>
+                            <p className='text-text-muted'>{error.value || t('pages.expenseDetailPage.expenseNotFound')}</p>
                             <Button onClick={handleBack}>{t('pages.expenseDetailPage.backToGroup')}</Button>
                         </Stack>
                     </Card>
@@ -198,15 +198,15 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
             }`}
             headerVariant='dashboard'
         >
-            <div className='min-h-screen bg-gray-50 dark:bg-gray-900'>
+            <div className='min-h-screen bg-surface-muted'>
                 {/* Page Header */}
-                <div className='bg-white dark:bg-gray-800 shadow-sm'>
+                <div className='bg-surface-base border-b border-border-default shadow-sm' data-testid='expense-header'>
                     <div className='max-w-3xl mx-auto px-4 py-4'>
                         <div className='flex items-center justify-between'>
                             <Button variant='ghost' onClick={handleBack}>
                                 {t('pages.expenseDetailPage.backButton')}
                             </Button>
-                            <h1 className='text-xl font-bold text-gray-900 dark:text-white'>
+                            <h1 className='text-xl font-bold text-text-primary'>
                                 {truncateDescription(expense.value.description)}
                                 {t('pages.expenseDetailPage.titleSeparator')}
                                 <CurrencyAmount amount={expense.value.amount} currency={expense.value.currency} />
@@ -221,14 +221,14 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                     <Stack spacing='md'>
                         {/* Lock Warning Banner */}
                         {expense.value.isLocked && (
-                            <div className='bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4'>
+                            <div className='bg-surface-warning border border-border-warning rounded-lg p-4' data-testid='expense-lock-warning'>
                                 <div className='flex items-start gap-3'>
                                     <span className='text-2xl'>⚠️</span>
                                     <div>
-                                        <p className='font-semibold text-yellow-900 dark:text-yellow-100'>
+                                        <p className='font-semibold text-text-primary'>
                                             {t('pages.expenseDetailPage.cannotEdit')}
                                         </p>
-                                        <p className='text-sm text-yellow-800 dark:text-yellow-200 mt-1'>
+                                        <p className='text-sm text-text-muted mt-1'>
                                             {t('pages.expenseDetailPage.containsDepartedMembers')}
                                         </p>
                                     </div>
@@ -237,23 +237,23 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         )}
 
                         {/* Consolidated Top Card - Main Info, Paid By, Actions, and Metadata */}
-                        <Card>
+                        <Card data-testid='expense-summary-card'>
                             <Stack spacing='lg'>
                                 {/* Top Section - Amount & Description */}
-                                <div className='text-center pb-4 border-b border-primary-100 dark:border-gray-700'>
-                                    <h2 className='text-3xl font-bold text-gray-900 dark:text-white' data-testid='expense-amount'>
+                                <div className='text-center pb-4 border-b border-border-default' data-testid='expense-amount-section'>
+                                    <h2 className='text-3xl font-bold text-text-primary' data-testid='expense-amount'>
                                         <CurrencyAmount amount={expense.value.amount} currency={expense.value.currency} />
                                     </h2>
-                                    <p className='text-lg text-gray-600 dark:text-gray-400 mt-2'>{expense.value.description}</p>
+                                    <p className='text-lg text-text-muted mt-2'>{expense.value.description}</p>
                                 </div>
 
                                 {/* Middle Section - Key Details Grid */}
                                 <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                                     {/* Date */}
                                     <div>
-                                        <p className='text-sm text-gray-500 dark:text-gray-400'>{t('pages.expenseDetailPage.date')}</p>
-                                        <p className='font-medium text-gray-900 dark:text-white'>{formatExpenseDateTime(expense.value.date)}</p>
-                                        <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+                                        <p className='text-sm text-text-muted'>{t('pages.expenseDetailPage.date')}</p>
+                                        <p className='font-medium text-text-primary'>{formatExpenseDateTime(expense.value.date)}</p>
+                                        <p className='text-sm text-text-muted mt-1'>
                                             ({formatDistanceToNow(new Date(expense.value.date))}
                                             {t('pages.expenseDetailPage.ago')})
                                         </p>
@@ -261,47 +261,47 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
                                     {/* Label */}
                                     <div>
-                                        <p className='text-sm text-gray-500 dark:text-gray-400'>{t('pages.expenseDetailPage.label')}</p>
-                                        <p className='font-medium text-gray-900 dark:text-white'>{expense.value.label}</p>
+                                        <p className='text-sm text-text-muted'>{t('pages.expenseDetailPage.label')}</p>
+                                        <p className='font-medium text-text-primary'>{expense.value.label}</p>
                                     </div>
 
                                     {/* Paid By */}
                                     <div>
-                                        <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>{t('pages.expenseDetailPage.paidBy')}</p>
+                                        <p className='text-sm text-text-muted mb-2'>{t('pages.expenseDetailPage.paidBy')}</p>
                                         <div className='flex items-center gap-2'>
                                             <Avatar displayName={payerName} userId={expense.value.paidBy} size='sm' />
                                             <div>
-                                                <p className='font-medium text-gray-900 dark:text-white text-sm'>{payerName}</p>
+                                                <p className='font-medium text-text-primary text-sm'>{payerName}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Actions Section */}
-                                <div className='pt-4 border-t border-primary-100 dark:border-gray-700'>
+                                <div className='pt-4 border-t border-border-default'>
                                     <ExpenseActions expense={expense.value} onEdit={handleEdit} onDelete={handleDelete} onShare={handleShare} onCopy={handleCopy} disabled={expense.value.isLocked} />
                                 </div>
                             </Stack>
                         </Card>
 
                         {/* Split Information - Kept Separate */}
-                        <Card>
+                        <Card data-testid='expense-split-card'>
                             <SplitBreakdown expense={expense.value} members={members.value} />
                         </Card>
 
                         {/* Comments Section */}
-                        <Card>
+                        <Card data-testid='expense-comments-card'>
                             <Stack spacing='md'>
-                                <h3 className='font-semibold text-gray-900 dark:text-white'>{t('pages.expenseDetailPage.discussion')}</h3>
+                                <h3 className='font-semibold text-text-primary'>{t('pages.expenseDetailPage.discussion')}</h3>
                                 <CommentsSection target={{ type: 'expense', expenseId: expenseId! }} maxHeight='300px' />
                             </Stack>
                         </Card>
 
                         {/* Receipt - Kept Separate */}
                         {expense.value.receiptUrl && (
-                            <Card>
+                            <Card data-testid='expense-receipt-card'>
                                 <Stack spacing='md'>
-                                    <h3 className='font-semibold text-gray-900 dark:text-white'>{t('pages.expenseDetailPage.receipt')}</h3>
+                                    <h3 className='font-semibold text-text-primary'>{t('pages.expenseDetailPage.receipt')}</h3>
                                     <div className='text-center'>
                                         <img
                                             src={expense.value.receiptUrl}
@@ -310,15 +310,15 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                             loading='lazy'
                                             onClick={() => setShowReceiptModal(true)}
                                         />
-                                        <p className='text-sm text-gray-500 dark:text-gray-400 mt-2'>{t('pages.expenseDetailPage.clickToViewFullSize')}</p>
+                                        <p className='text-sm text-text-muted mt-2'>{t('pages.expenseDetailPage.clickToViewFullSize')}</p>
                                     </div>
                                 </Stack>
                             </Card>
                         )}
 
                         {/* Metadata - Moved to Bottom */}
-                        <Card className='bg-gray-50 dark:bg-gray-800/50'>
-                            <div className='text-sm text-gray-600 dark:text-gray-400'>
+                        <Card className='bg-surface-muted' data-testid='expense-metadata-card'>
+                            <div className='text-sm text-text-muted'>
                                 <div className='flex items-center justify-between'>
                                     <span>
                                         {t('pages.expenseDetailPage.added')}

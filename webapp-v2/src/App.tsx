@@ -40,6 +40,7 @@ const CookiePolicyPage = lazy(() => import('./pages/static/CookiePolicyPage').th
 const JoinGroupPage = lazy(() => import('./pages/JoinGroupPage').then((m) => ({ default: m.JoinGroupPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const AdminTenantsPage = lazy(() => import('./pages/AdminTenantsPage').then((m) => ({ default: m.AdminTenantsPage })));
+const AdminDiagnosticsPage = lazy(() => import('./pages/AdminDiagnosticsPage').then((m) => ({ default: m.AdminDiagnosticsPage })));
 const UsersBrowserPage = lazy(() => import('./pages/browser/UsersBrowserPage').then((m) => ({ default: m.UsersBrowserPage })));
 const TenantBrandingPage = lazy(() => import('./pages/TenantBrandingPage').then((m) => ({ default: m.TenantBrandingPage })));
 const DomainManagementPage = lazy(() => import('./pages/DomainManagementPage').then((m) => ({ default: m.DomainManagementPage })));
@@ -124,6 +125,7 @@ const CookieRoute = createLazyRoute(CookiePolicyPage);
 const JoinGroupRoute = createProtectedRoute(JoinGroupPage);
 const SettingsRoute = createProtectedRoute(SettingsPage);
 const AdminTenantsRoute = createProtectedRoute(AdminTenantsPage);
+const AdminDiagnosticsRoute = createProtectedRoute(AdminDiagnosticsPage);
 const UsersBrowserRoute = createProtectedRoute(UsersBrowserPage);
 const TenantBrandingRoute = createProtectedRoute(TenantBrandingPage);
 const DomainManagementRoute = createProtectedRoute(DomainManagementPage);
@@ -179,6 +181,7 @@ export function App() {
 
                 {/* Admin Routes - Protected (System Admin only) */}
                 <Route path='/admin/tenants' component={AdminTenantsRoute} />
+                <Route path='/admin/diagnostics' component={AdminDiagnosticsRoute} />
 
                 {/* Browser Routes - Protected */}
                 {enableAdvancedReporting && <Route path='/browser/users' component={UsersBrowserRoute} />}

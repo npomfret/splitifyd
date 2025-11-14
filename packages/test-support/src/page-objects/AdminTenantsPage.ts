@@ -58,7 +58,7 @@ export class AdminTenantsPage extends BasePage {
      * Loading and Error States
      */
     getLoadingSpinner(): Locator {
-        return this.page.locator('.animate-spin');
+        return this.page.getByTestId('tenants-loading-spinner');
     }
 
     getErrorAlert(): Locator {
@@ -165,14 +165,12 @@ export class AdminTenantsPage extends BasePage {
 
     async verifyFeatureEnabled(featureName: string): Promise<void> {
         const status = this.getFeatureStatus(featureName);
-        await expect(status).toContainText('Enabled');
-        await expect(status).toHaveClass(/text-green-600/);
+        await expect(status).toContainText(/enabled/i);
     }
 
     async verifyFeatureDisabled(featureName: string): Promise<void> {
         const status = this.getFeatureStatus(featureName);
-        await expect(status).toContainText('Disabled');
-        await expect(status).toHaveClass(/text-gray-400/);
+        await expect(status).toContainText(/disabled/i);
     }
 
     async verifyLoadingSpinnerVisible(): Promise<void> {

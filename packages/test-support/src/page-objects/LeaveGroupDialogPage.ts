@@ -56,7 +56,7 @@ export class LeaveGroupDialogPage extends BasePage {
      * Dialog message
      */
     getDialogMessage(): Locator {
-        return this.getConfirmationDialog().locator('p.text-sm');
+        return this.getConfirmationDialog().getByTestId('confirm-dialog-message');
     }
 
     /**

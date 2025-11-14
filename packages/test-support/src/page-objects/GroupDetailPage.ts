@@ -151,13 +151,7 @@ export class GroupDetailPage extends BasePage {
      * Expenses section container - found by "Expenses" or "Recent Expenses" heading
      */
     getExpensesContainer(): Locator {
-        return this
-            .page
-            .locator('div')
-            .filter({
-                has: this.page.getByRole('heading').filter({ hasText: /expenses/i }),
-            })
-            .first();
+        return this.page.getByTestId('expenses-list-card');
     }
 
     /**
@@ -167,29 +161,14 @@ export class GroupDetailPage extends BasePage {
      * IMPORTANT: Finds ALL containers first, then filters to only visible ones to avoid hidden mobile versions.
      */
     getBalanceContainer(): Locator {
-        // Find all white containers with "Balances" heading, then filter to visible
-        const allContainers = this
-            .page
-            .locator('.bg-white')
-            .filter({
-                has: this.page.getByRole('heading', { name: 'Balances' }),
-            });
-
-        // Return only the last visible one (sidebar version on desktop)
-        return allContainers.last();
+        return this.page.getByTestId('balance-summary-sidebar');
     }
 
     /**
      * Settlement section container - found by "Settlements" heading
      */
     getSettlementContainer(): Locator {
-        return this
-            .page
-            .locator('div')
-            .filter({
-                has: this.page.getByRole('heading').filter({ hasText: /payment history|settlement/i }),
-            })
-            .first();
+        return this.page.getByTestId('settlement-history-card');
     }
 
     private getBalanceToggle(): Locator {
@@ -324,8 +303,7 @@ export class GroupDetailPage extends BasePage {
      * within the GroupHeader component (has text-gray-600 class)
      */
     getGroupDescription(): Locator {
-        // Find the h1 heading, go up to its parent div, then find the p.text-gray-600 sibling
-        return this.getGroupName().locator('..').locator('p.text-gray-600');
+        return this.page.locator('[data-testid="group-description"]');
     }
 
     /**

@@ -1,4 +1,5 @@
 import { STORAGE_KEYS } from '@/constants.ts';
+import { Input } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -149,34 +150,23 @@ export function RegisterPage() {
     return (
         <AuthLayout title={t('registerPage.title')} description={t('registerPage.description')}>
             <AuthForm onSubmit={handleSubmit} error={displayError} disabled={isSubmitting}>
-                <div class='space-y-1'>
-                    <label for='fullname-input' class='block text-sm font-medium text-gray-700'>
-                        {t('registerPage.fullNameLabel')}{' '}
-                        <span class='text-red-500' data-testid='required-indicator'>
-                            {t('registerPage.requiredIndicator')}
-                        </span>
-                    </label>
-                    <input
-                        id='fullname-input'
-                        type='text'
-                        value={name}
-                        onInput={(e) => {
-                            const value = (e.target as HTMLInputElement).value;
-                            setName(value);
-                            try {
-                                sessionStorage.setItem(STORAGE_KEYS.REGISTER_NAME, value);
-                            } catch {
-                                // Ignore sessionStorage errors
-                            }
-                        }}
-                        placeholder={t('registerPage.fullNamePlaceholder')}
-                        required
-                        disabled={isSubmitting}
-                        autoComplete='off'
-                        aria-label={t('registerPage.fullNameLabel')}
-                        class='block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500'
-                    />
-                </div>
+                <Input
+                    id='fullname-input'
+                    label={t('registerPage.fullNameLabel')}
+                    value={name}
+                    onChange={(value) => {
+                        setName(value);
+                        try {
+                            sessionStorage.setItem(STORAGE_KEYS.REGISTER_NAME, value);
+                        } catch {
+                            // Ignore sessionStorage errors
+                        }
+                    }}
+                    placeholder={t('registerPage.fullNamePlaceholder')}
+                    required
+                    disabled={isSubmitting}
+                    autoComplete='off'
+                />
 
                 <EmailInput
                     value={email}
@@ -219,7 +209,7 @@ export function RegisterPage() {
                 />
 
                 <div class='space-y-3'>
-                    <label class='flex items-start'>
+                    <label class='flex items-start gap-3 text-text-primary'>
                         <input
                             type='checkbox'
                             data-testid='terms-checkbox'
@@ -233,20 +223,20 @@ export function RegisterPage() {
                                     // Ignore sessionStorage errors
                                 }
                             }}
-                            class='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 flex-shrink-0'
+                            class='h-4 w-4 rounded border border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base mt-1 flex-shrink-0 transition-colors'
                             disabled={isSubmitting}
                             required
                             autoComplete='off'
                         />
-                        <span class='ml-2 block text-sm text-gray-700'>
+                        <span class='text-sm text-text-primary'>
                             {t('registerPage.acceptTerms')}{' '}
-                            <a href='/terms' target='_blank' class='text-blue-600 hover:text-blue-500 transition-colors'>
+                            <a href='/terms' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
                                 {t('registerPage.termsOfService')}
                             </a>
                         </span>
                     </label>
 
-                    <label class='flex items-start'>
+                    <label class='flex items-start gap-3 text-text-primary'>
                         <input
                             type='checkbox'
                             data-testid='cookies-checkbox'
@@ -260,20 +250,20 @@ export function RegisterPage() {
                                     // Ignore sessionStorage errors
                                 }
                             }}
-                            class='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 flex-shrink-0'
+                            class='h-4 w-4 rounded border border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base mt-1 flex-shrink-0 transition-colors'
                             disabled={isSubmitting}
                             required
                             autoComplete='off'
                         />
-                        <span class='ml-2 block text-sm text-gray-700'>
+                        <span class='text-sm text-text-primary'>
                             {t('registerPage.acceptTerms')}{' '}
-                            <a href='/cookies' target='_blank' class='text-blue-600 hover:text-blue-500 transition-colors'>
+                            <a href='/cookies' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
                                 {t('registerPage.cookiePolicy')}
                             </a>
                         </span>
                     </label>
 
-                    <label class='flex items-start'>
+                    <label class='flex items-start gap-3 text-text-primary'>
                         <input
                             type='checkbox'
                             data-testid='privacy-checkbox'
@@ -287,14 +277,14 @@ export function RegisterPage() {
                                     // Ignore sessionStorage errors
                                 }
                             }}
-                            class='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 flex-shrink-0'
+                            class='h-4 w-4 rounded border border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base mt-1 flex-shrink-0 transition-colors'
                             disabled={isSubmitting}
                             required
                             autoComplete='off'
                         />
-                        <span class='ml-2 block text-sm text-gray-700'>
+                        <span class='text-sm text-text-primary'>
                             {t('registerPage.acceptTerms')}{' '}
-                            <a href='/privacy-policy' target='_blank' class='text-blue-600 hover:text-blue-500 transition-colors'>
+                            <a href='/privacy-policy' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
                                 {t('registerPage.privacyPolicy')}
                             </a>
                         </span>
@@ -306,9 +296,13 @@ export function RegisterPage() {
                 </SubmitButton>
 
                 <div class='text-center'>
-                    <p class='text-sm text-gray-600'>
+                    <p class='text-sm text-text-muted'>
                         {t('registerPage.hasAccount')}{' '}
-                        <button type='button' onClick={() => navigationService.goToLogin()} class='font-medium text-blue-600 hover:text-blue-500 transition-colors'>
+                        <button
+                            type='button'
+                            onClick={() => navigationService.goToLogin()}
+                            class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'
+                        >
                             {t('registerPage.signIn')}
                         </button>
                     </p>

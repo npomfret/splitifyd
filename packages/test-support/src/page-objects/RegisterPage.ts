@@ -36,9 +36,10 @@ export class RegisterPage extends BasePage {
 
     /**
      * Register page heading container - helps identify we're on the right page
+     * The heading is in the Card parent, which is two levels up from the form
      */
     getPageHeading(): Locator {
-        return this.getRegisterFormContainer().locator('..').getByRole('heading', { name: translation.registerPage.title });
+        return this.getRegisterFormContainer().locator('../..').getByRole('heading', { name: translation.registerPage.title });
     }
 
     /**

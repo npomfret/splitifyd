@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
+import { logError } from '@/utils/browser-logger';
 
 /**
  * Tenant Branding Editor Page
@@ -66,7 +67,7 @@ export function TenantBrandingPage() {
                 setShowPricingPage(Boolean(settings.config.branding.marketingFlags?.showPricingPage ?? false));
             } catch (error: any) {
                 setErrorMessage(error.message || 'Failed to load tenant settings');
-                console.error('Failed to load tenant settings:', error);
+                logError('Failed to load tenant settings', error);
             } finally {
                 setIsLoading(false);
             }
@@ -115,7 +116,7 @@ export function TenantBrandingPage() {
             } else {
                 setErrorMessage(error.message || 'Failed to update branding settings');
             }
-            console.error('Failed to update branding:', error);
+            logError('Failed to update branding', error);
         } finally {
             setIsSaving(false);
         }
@@ -142,8 +143,8 @@ export function TenantBrandingPage() {
                     <Card padding='lg'>
                         <div class='flex items-center justify-center py-12'>
                             <div class='text-center'>
-                                <div class='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-indigo-600' />
-                                <p class='mt-4 text-sm text-slate-600'>Loading tenant settings...</p>
+                                <div class='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-interactive-primary/20 border-t-interactive-primary' />
+                                <p class='mt-4 text-sm text-text-muted'>Loading tenant settings...</p>
                             </div>
                         </div>
                     </Card>
@@ -169,14 +170,14 @@ export function TenantBrandingPage() {
                 <div class='space-y-8'>
                     {/* Header */}
                     <div class='flex flex-col gap-2'>
-                        <span class='text-xs font-medium uppercase tracking-wide text-primary'>
+                        <span class='text-xs font-medium uppercase tracking-wide text-interactive-primary'>
                             Tenant Settings
                         </span>
                         <div class='flex flex-col gap-2'>
-                            <h1 class='text-3xl font-semibold text-slate-900'>
+                            <h1 class='text-3xl font-semibold text-text-primary'>
                                 Branding Configuration
                             </h1>
-                            <p class='max-w-2xl text-sm text-slate-600 sm:text-base'>
+                            <p class='max-w-2xl text-sm text-text-muted sm:text-base'>
                                 Customize your tenant's appearance and marketing features
                             </p>
                         </div>
@@ -192,16 +193,16 @@ export function TenantBrandingPage() {
 
                     {/* Info Card */}
                     {tenantSettings && (
-                        <Card padding='sm' className='bg-primary/10 border-primary/20'>
+                        <Card padding='sm' className='bg-interactive-primary/10 border border-interactive-primary/30'>
                             <div class='flex items-start gap-3'>
-                                <div class='flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100'>
-                                    <svg class='h-5 w-5 text-primary' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                                <div class='flex h-8 w-8 items-center justify-center rounded-full bg-interactive-primary/15'>
+                                    <svg class='h-5 w-5 text-interactive-primary' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                                         <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                                     </svg>
                                 </div>
                                 <div class='flex-1'>
-                                    <p class='text-sm font-medium text-indigo-900'>Tenant ID: {tenantSettings.tenantId}</p>
-                                    <p class='mt-1 text-xs text-primary'>
+                                    <p class='text-sm font-medium text-text-primary'>Tenant ID: {tenantSettings.tenantId}</p>
+                                    <p class='mt-1 text-xs text-interactive-primary'>
                                         Changes will affect all users accessing this tenant's domain
                                     </p>
                                 </div>
@@ -215,8 +216,8 @@ export function TenantBrandingPage() {
                         <Card padding='lg'>
                             <div class='space-y-6'>
                                 <div class='space-y-2'>
-                                    <h2 class='text-xl font-semibold text-slate-900'>Branding Assets</h2>
-                                    <p class='text-sm text-slate-600'>Configure your brand identity</p>
+                                    <h2 class='text-xl font-semibold text-text-primary'>Branding Assets</h2>
+                                    <p class='text-sm text-text-muted'>Configure your brand identity</p>
                                 </div>
 
                                 <Form onSubmit={handleSave} className='space-y-5'>
@@ -252,7 +253,7 @@ export function TenantBrandingPage() {
 
                                     <div class='grid grid-cols-2 gap-4'>
                                         <div>
-                                            <label class='block text-sm font-medium leading-6 text-gray-900 mb-2'>
+                                            <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
                                                 Primary Color
                                             </label>
                                             <input
@@ -260,14 +261,14 @@ export function TenantBrandingPage() {
                                                 value={primaryColor}
                                                 onInput={(e) => setPrimaryColor((e.target as HTMLInputElement).value)}
                                                 disabled={isSaving}
-                                                class='block h-10 w-full rounded-md border border-gray-300 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
+                                                class='block h-10 w-full rounded-md border border-border-default bg-surface-base cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
                                                 data-testid='primary-color-input'
                                             />
-                                            <p class='mt-1 text-xs text-slate-500'>{primaryColor}</p>
+                                            <p class='mt-1 text-xs text-text-muted'>{primaryColor}</p>
                                         </div>
 
                                         <div>
-                                            <label class='block text-sm font-medium leading-6 text-gray-900 mb-2'>
+                                            <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
                                                 Secondary Color
                                             </label>
                                             <input
@@ -275,10 +276,10 @@ export function TenantBrandingPage() {
                                                 value={secondaryColor}
                                                 onInput={(e) => setSecondaryColor((e.target as HTMLInputElement).value)}
                                                 disabled={isSaving}
-                                                class='block h-10 w-full rounded-md border border-gray-300 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
+                                                class='block h-10 w-full rounded-md border border-border-default bg-surface-base cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
                                                 data-testid='secondary-color-input'
                                             />
-                                            <p class='mt-1 text-xs text-slate-500'>{secondaryColor}</p>
+                                            <p class='mt-1 text-xs text-text-muted'>{secondaryColor}</p>
                                         </div>
                                     </div>
                                 </Form>
@@ -286,14 +287,14 @@ export function TenantBrandingPage() {
                         </Card>
 
                         {/* Preview Section */}
-                        <Card padding='lg' className='bg-slate-50'>
+                        <Card padding='lg' className='bg-surface-muted'>
                             <div class='space-y-6'>
                                 <div class='space-y-2'>
-                                    <h2 class='text-xl font-semibold text-slate-900'>Live Preview</h2>
-                                    <p class='text-sm text-slate-600'>See how your branding will look</p>
+                                    <h2 class='text-xl font-semibold text-text-primary'>Live Preview</h2>
+                                    <p class='text-sm text-text-muted'>See how your branding will look</p>
                                 </div>
 
-                                <div class='space-y-4 rounded-lg border border-slate-200 bg-primary-50 p-6'>
+                                <div class='space-y-4 rounded-lg border border-border-default bg-interactive-primary/5 p-6'>
                                     <div class='flex items-center gap-3'>
                                         <div
                                             class='h-12 w-12 rounded-lg flex items-center justify-center text-white font-bold text-lg'
@@ -302,8 +303,8 @@ export function TenantBrandingPage() {
                                             {appName.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
-                                            <p class='font-semibold text-slate-900'>{appName || 'App Name'}</p>
-                                            <p class='text-xs text-slate-500'>Your tenant branding</p>
+                                            <p class='font-semibold text-text-primary'>{appName || 'App Name'}</p>
+                                            <p class='text-xs text-text-muted'>Your tenant branding</p>
                                         </div>
                                     </div>
 
@@ -331,55 +332,55 @@ export function TenantBrandingPage() {
                         <Card padding='lg' className='lg:col-span-2'>
                             <div class='space-y-6'>
                                 <div class='space-y-2'>
-                                    <h2 class='text-xl font-semibold text-slate-900'>Marketing Features</h2>
-                                    <p class='text-sm text-slate-600'>Control which marketing pages are visible</p>
+                                    <h2 class='text-xl font-semibold text-text-primary'>Marketing Features</h2>
+                                    <p class='text-sm text-text-muted'>Control which marketing pages are visible</p>
                                 </div>
 
                                 <div class='grid gap-4 sm:grid-cols-3'>
-                                    <label class='flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 cursor-pointer hover:bg-slate-100 transition-colors'>
+                                    <label class='flex items-center gap-3 rounded-lg border border-border-default bg-surface-base px-4 py-3 cursor-pointer hover:bg-surface-muted transition-colors'>
                                         <input
                                             type='checkbox'
                                             checked={showLandingPage}
                                             onChange={(e) => setShowLandingPage((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-gray-300 text-primary focus:ring-indigo-600'
+                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                             data-testid='show-landing-page-checkbox'
                                         />
                                         <div class='flex-1'>
-                                            <p class='text-sm font-medium text-slate-900'>Landing Page</p>
-                                            <p class='text-xs text-slate-500'>Show marketing homepage</p>
+                                            <p class='text-sm font-medium text-text-primary'>Landing Page</p>
+                                            <p class='text-xs text-text-muted'>Show marketing homepage</p>
                                         </div>
                                     </label>
 
-                                    <label class='flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 cursor-pointer hover:bg-slate-100 transition-colors'>
+                                    <label class='flex items-center gap-3 rounded-lg border border-border-default bg-surface-base px-4 py-3 cursor-pointer hover:bg-surface-muted transition-colors'>
                                         <input
                                             type='checkbox'
                                             checked={showMarketingContent}
                                             onChange={(e) => setShowMarketingContent((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-gray-300 text-primary focus:ring-indigo-600'
+                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                             data-testid='show-marketing-content-checkbox'
                                         />
                                         <div class='flex-1'>
-                                            <p class='text-sm font-medium text-slate-900'>Marketing Content</p>
-                                            <p class='text-xs text-slate-500'>Show features/CTA sections</p>
+                                            <p class='text-sm font-medium text-text-primary'>Marketing Content</p>
+                                            <p class='text-xs text-text-muted'>Show features/CTA sections</p>
                                         </div>
                                     </label>
 
-                                    <label class='flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 cursor-pointer hover:bg-slate-100 transition-colors'>
+                                    <label class='flex items-center gap-3 rounded-lg border border-border-default bg-surface-base px-4 py-3 cursor-pointer hover:bg-surface-muted transition-colors'>
                                         <input
                                             type='checkbox'
                                             checked={showPricingPage}
                                             onChange={(e) => setShowPricingPage((e.target as HTMLInputElement).checked)}
                                             disabled={isSaving}
-                                            class='h-4 w-4 rounded border-gray-300 text-primary focus:ring-indigo-600'
+                                            class='h-4 w-4 rounded border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary'
                                             data-testid='show-pricing-page-checkbox'
                                         />
                                         <div class='flex-1'>
-                                            <p class='text-sm font-medium text-slate-900'>Pricing Page</p>
-                                            <p class='text-xs text-slate-500'>Show /pricing route</p>
-                                        </div>
-                                    </label>
+                                            <p class='text-sm font-medium text-text-primary'>Pricing Page</p>
+                                            <p class='text-xs text-text-muted'>Show /pricing route</p>
+                                    </div>
+                                </label>
                                 </div>
                             </div>
                         </Card>

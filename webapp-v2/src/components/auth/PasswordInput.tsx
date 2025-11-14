@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals';
 import { useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { cx } from '@/utils/cx.ts';
 import { Tooltip } from '../ui';
 
 interface PasswordInputProps {
@@ -83,9 +84,9 @@ export function PasswordInput({
             case 'weak':
                 return 'bg-red-500';
             case 'medium':
-                return 'bg-yellow-500';
+                return 'bg-semantic-warning';
             case 'strong':
-                return 'bg-green-500';
+                return 'bg-semantic-success';
         }
     };
 
@@ -100,9 +101,17 @@ export function PasswordInput({
         }
     };
 
+    const inputClasses = cx(
+        'block w-full rounded-md border border-border-default bg-surface-base px-3 py-2 pr-10 shadow-sm',
+        'text-text-primary placeholder:text-text-muted/70 transition-colors duration-200',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
+        disabled && 'opacity-60 cursor-not-allowed bg-surface-muted text-text-muted',
+        hasError && 'border-red-300 text-red-900 focus-visible:ring-red-500 focus-visible:border-red-500',
+    );
+
     return (
         <div class='space-y-1'>
-            <label for={id} class='block text-sm font-medium text-gray-700'>
+            <label for={id} class='block text-sm font-medium text-text-primary'>
                 {label || t('auth.passwordInput.label')} {required && (
                     <span class='text-red-500' data-testid='required-indicator'>
                         {t('auth.passwordInput.requiredIndicator')}
@@ -124,19 +133,14 @@ export function PasswordInput({
                     aria-required={required}
                     aria-invalid={hasError}
                     aria-describedby={hasError ? `${id}-error` : undefined}
-                    class={`
-            block w-full px-3 py-2 pr-10 border rounded-md shadow-sm 
-            placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2
-            disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
-            ${hasError ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'}
-          `}
+                    class={inputClasses}
                 />
                 <button
                     type='button'
                     onClick={togglePasswordVisibility}
                     disabled={disabled}
                     aria-label={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}
-                    class='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 disabled:opacity-50'
+                    class='absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-primary disabled:opacity-50'
                 >
                     <Tooltip content={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}>
                         {showPassword
@@ -168,15 +172,15 @@ export function PasswordInput({
             {showStrength && value && strength && (
                 <div class='space-y-2'>
                     <div class='flex items-center justify-between'>
-                        <span class='text-xs text-gray-600'>{t('auth.passwordInput.strength')}</span>
+                        <span class='text-xs text-text-muted'>{t('auth.passwordInput.strength')}</span>
                         <span
-                            class={`text-xs font-medium ${strength === 'weak' ? 'text-red-600' : strength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}
+                            class={`text-xs font-medium ${strength === 'weak' ? 'text-red-600' : strength === 'medium' ? 'text-semantic-warning' : 'text-semantic-success'}`}
                             data-testid={`password-strength-${strength}`}
                         >
                             {getStrengthText(strength)}
                         </span>
                     </div>
-                    <div class='w-full bg-gray-200 rounded-full h-2'>
+                    <div class='w-full bg-border-default/60 rounded-full h-2'>
                         <div
                             class={`h-2 rounded-full transition-all duration-300 ${getStrengthColor(strength)}`}
                             style={{

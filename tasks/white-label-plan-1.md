@@ -137,7 +137,7 @@ flowchart LR
 - ✅ Week 1: Shared Foundations (100%)
 - ✅ Week 2: Generator & Seed Themes (100%)
 - ✅ Weeks 3-4: HTTP Endpoints & Bootstrap (100%)
-- 🚧 Weeks 5-6: UI Kit & Admin Console (~60% - core primitives + marketing + dashboard done)
+- ✅ Weeks 5-6: UI Kit & Admin Console (100% - admin tooling, marketing, dashboard, auth, checkout/payment complete)
 - ⏳ Weeks 7-8: Guardrails & Cleanup (pending)
 
 
@@ -302,8 +302,8 @@ scripts/
 **Order of migration (lowest to highest risk):**
 
 1. **Admin-only pages** (week 5.0)
-   - [ ] `/admin/tenant/branding` editor
-   - [ ] `/admin/diagnostics`
+   - [x] `/admin/tenant/branding` editor
+   - [x] `/admin/diagnostics`
    - Low traffic, easy to rollback
 
 2. **Marketing pages** (week 5.5) ✅ **COMPLETED 2025-11-14**
@@ -324,21 +324,21 @@ scripts/
      - `border-t-purple-600` → `border-t-interactive-accent` (loading spinner)
      - `hover:bg-*-700` → `hover:opacity-90`
 
-3. **Authenticated app** (week 6.0) 🚧 **IN PROGRESS**
+3. **Authenticated app** (week 6.0) ✅ **COMPLETED 2025-11-14**
    - [x] Dashboard (`/dashboard`) - Welcome, groups container, filter buttons
-   - [ ] Group detail page (`/group/:id`) - 3 hardcoded color occurrences
-   - [ ] Expense forms (`/expense/add`, `/expense/edit`) - 11+ occurrences
-   - [ ] Expense detail (`/expense/:id`) - 26 occurrences
+   - [x] Group detail page (`/group/:id`) - 3 hardcoded color occurrences
+   - [x] Expense forms (`/expense/add`, `/expense/edit`) - 11+ occurrences
+   - [x] Expense detail (`/expense/:id`) - 26 occurrences
 
 4. **Critical paths** (week 6.5)
-   - [ ] Auth flows (signup/login/reset)
-   - [ ] Checkout/payment
+   - [x] Auth flows (signup/login/reset)
+   - [x] Checkout/payment
    - Highest risk, migrate last
 
 **Per-module checklist:**
 - [x] Replace `bg-primary` → `bg-interactive-primary`
 - [x] Remove inline `style={{...}}` props (enforced by ESLint)
-- [ ] Add data-testid for E2E tests (existing tests preserved)
+- [x] Add data-testid for E2E tests (existing tests preserved)
 - [ ] Run visual regression
 - [ ] Deploy to staging, test 24h
 - [ ] Feature flag rollout (10% → 50% → 100%)

@@ -63,6 +63,8 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
 
     const styles = getVariantStyles();
 
+    const messageTestId = message.includes('outstanding balance') ? 'balance-error-message' : 'confirm-dialog-message';
+
     return (
         <Modal
             open={isOpen}
@@ -101,7 +103,7 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
                     <Typography as='h3' variant='heading' id='confirm-dialog-title'>
                         {title}
                     </Typography>
-                    <Typography variant='caption' id='confirm-dialog-description' data-testid={message.includes('outstanding balance') ? 'balance-error-message' : undefined}>
+                    <Typography variant='caption' id='confirm-dialog-description' data-testid={messageTestId}>
                         {message}
                     </Typography>
                 </div>

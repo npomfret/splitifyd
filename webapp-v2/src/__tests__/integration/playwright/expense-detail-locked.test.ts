@@ -1,4 +1,4 @@
-import { ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, ExpenseDetailPage, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockExpenseCommentsApi, mockExpenseDetailApi } from '../../utils/mock-firebase-service';
@@ -47,8 +47,9 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         // Wait for expense to load
         await expect(page.getByRole('heading', { name: 'Locked Expense' })).toBeVisible();
 
-        // Verify lock warning banner is displayed
-        const warningBanner = page.locator('.bg-yellow-50').filter({ hasText: translationEn.pages.expenseDetailPage.cannotEdit });
+        // Verify lock warning banner is displayed using page object
+        const expenseDetailPage = new ExpenseDetailPage(page);
+        const warningBanner = expenseDetailPage.getLockWarningBanner();
         await expect(warningBanner).toBeVisible();
 
         // Verify warning banner contains the emoji
@@ -154,8 +155,9 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         // Wait for expense to load
         await expect(page.getByRole('heading', { name: 'Normal Expense' })).toBeVisible();
 
-        // Verify lock warning banner is NOT displayed
-        const warningBanner = page.locator('.bg-yellow-50').filter({ hasText: translationEn.pages.expenseDetailPage.cannotEdit });
+        // Verify lock warning banner is NOT displayed using page object
+        const expenseDetailPage = new ExpenseDetailPage(page);
+        const warningBanner = expenseDetailPage.getLockWarningBanner();
         await expect(warningBanner).not.toBeVisible();
 
         // Find the edit button

@@ -13,6 +13,34 @@ export class ExpenseDetailPage extends BasePage {
         super(page);
     }
 
+    private getSummaryCard(): Locator {
+        return this.page.getByTestId('expense-summary-card');
+    }
+
+    private getSplitCard(): Locator {
+        return this.page.getByTestId('expense-split-card');
+    }
+
+    private getCommentsCard(): Locator {
+        return this.page.getByTestId('expense-comments-card');
+    }
+
+    private getReceiptCard(): Locator {
+        return this.page.getByTestId('expense-receipt-card');
+    }
+
+    private getMetadataCard(): Locator {
+        return this.page.getByTestId('expense-metadata-card');
+    }
+
+    getErrorCard(): Locator {
+        return this.page.getByTestId('expense-error-card');
+    }
+
+    getHeader(): Locator {
+        return this.page.getByTestId('expense-header');
+    }
+
     // Basic element selectors
 
     /**
@@ -40,7 +68,7 @@ export class ExpenseDetailPage extends BasePage {
      * Get the discussion section (contains comments)
      */
     getDiscussionSection(): Locator {
-        return this.page.getByTestId('comments-section');
+        return this.getCommentsCard().locator('[data-testid="comments-section"]');
     }
 
     /**
@@ -75,7 +103,7 @@ export class ExpenseDetailPage extends BasePage {
      * Get the lock warning banner for locked expenses
      */
     getLockWarningBanner(): Locator {
-        return this.page.locator('.bg-yellow-50').filter({ hasText: /cannot be edited/i });
+        return this.page.getByTestId('expense-lock-warning');
     }
 
     /**
@@ -89,7 +117,19 @@ export class ExpenseDetailPage extends BasePage {
      * Get the expense amount display element
      */
     getExpenseAmountElement(): Locator {
-        return this.page.getByTestId('expense-amount');
+        return this.page.getByTestId('expense-amount-section');
+    }
+
+    getSplitBreakdownCard(): Locator {
+        return this.getSplitCard();
+    }
+
+    getReceiptSection(): Locator {
+        return this.getReceiptCard();
+    }
+
+    getMetadataSection(): Locator {
+        return this.getMetadataCard();
     }
 
     // Basic actions

@@ -4,6 +4,7 @@ import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanc
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
+import { logError } from '@/utils/browser-logger';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import type { GroupId, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
@@ -50,7 +51,7 @@ export function SettlementHistory({
         return (
             <>
                 {displayName}
-                {isCurrentUser && <span class='text-gray-500 ml-1'>({t('common.you')})</span>}
+                {isCurrentUser && <span class='text-text-muted ml-1'>({t('common.you')})</span>}
             </>
         );
     };
@@ -90,7 +91,7 @@ export function SettlementHistory({
             await enhancedGroupDetailStore.refreshAll();
             setSettlementToDelete(null);
         } catch (error) {
-            console.error('Failed to delete settlement:', error);
+            logError('Failed to delete settlement', error);
         } finally {
             setIsDeleting(false);
         }
@@ -113,7 +114,7 @@ export function SettlementHistory({
     if (totalSettlements === 0) {
         return (
             <div class='text-center py-8'>
-                <svg class='mx-auto h-12 w-12 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                <svg class='mx-auto h-12 w-12 text-text-muted' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                     <path
                         stroke-linecap='round'
                         stroke-linejoin='round'
@@ -121,7 +122,7 @@ export function SettlementHistory({
                         d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
                     />
                 </svg>
-                <p class='mt-2 text-sm text-gray-500'>{t('settlementHistory.noPaymentsYet')}</p>
+                <p class='mt-2 text-sm text-text-muted'>{t('settlementHistory.noPaymentsYet')}</p>
             </div>
         );
     }
@@ -134,11 +135,11 @@ export function SettlementHistory({
                         type='checkbox'
                         checked={showAllSettlements.value}
                         onChange={(e) => (showAllSettlements.value = e.currentTarget.checked)}
-                        class='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                        class='rounded border-border-default text-interactive-primary focus-visible:ring-interactive-primary'
                         data-testid='show-all-settlements-checkbox'
                         autoComplete='off'
                     />
-                    <span class='text-gray-700'>{t('settlementHistory.showAll')}</span>
+                    <span class='text-text-primary'>{t('settlementHistory.showAll')}</span>
                 </label>
                 {canToggleShowDeleted && onShowDeletedChange && (
                     <label class='flex items-center space-x-2 text-sm cursor-pointer'>
@@ -147,17 +148,17 @@ export function SettlementHistory({
                             data-testid='include-deleted-settlements-checkbox'
                             checked={showDeletedSettlements}
                             onChange={(e) => onShowDeletedChange(e.currentTarget.checked)}
-                            class='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                            class='rounded border-border-default text-interactive-primary focus-visible:ring-interactive-primary'
                             autoComplete='off'
                         />
-                        <span class='text-gray-700'>{t('common.includeDeleted')}</span>
+                        <span class='text-text-primary'>{t('common.includeDeleted')}</span>
                     </label>
                 )}
             </div>
 
             {visibleSettlements.length === 0
                 ? (
-                    <div class='text-center py-6 text-sm text-gray-500'>
+                    <div class='text-center py-6 text-sm text-text-muted'>
                         {t('settlementHistory.noPaymentsForYou')}
                     </div>
                 )
@@ -182,7 +183,7 @@ export function SettlementHistory({
                                 <div
                                     key={settlement.id}
                                     class={`group border-b last:border-0 pb-3 last:pb-0 -mx-2 px-2 py-2 rounded relative ${
-                                        isDeleted ? 'opacity-60 bg-gray-50' : isCurrentUserInvolved ? 'hover:bg-blue-50' : 'hover:bg-gray-50'
+                                        isDeleted ? 'opacity-60 bg-surface-muted' : isCurrentUserInvolved ? 'hover:bg-interactive-primary/10' : 'hover:bg-surface-muted'
                                     }`}
                                     style={{
                                         borderLeftWidth: '4px',
@@ -202,15 +203,15 @@ export function SettlementHistory({
                                             />
                                         </div>
                                         <div class='row-start-1 col-start-2 flex items-center gap-2 min-w-0'>
-                                            <span class='text-sm font-semibold text-gray-900 truncate'>
+                                            <span class='text-sm font-semibold text-text-primary truncate'>
                                                 {renderMemberName(settlement.payer)}
                                             </span>
                                         </div>
 
                                         {/* Row 2: Arrow, amount, and date */}
                                         <div class='row-start-2 flex items-center justify-center self-stretch'>
-                                            <div class='flex items-center justify-center w-6 h-full text-gray-400'>
-                                                <svg class='w-3 h-3 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                            <div class='flex items-center justify-center w-6 h-full text-text-muted'>
+                                                <svg class='w-3 h-3 text-text-muted' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                                     <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 14l-7 7m0 0l-7-7m7 7V3' />
                                                 </svg>
                                             </div>
@@ -218,12 +219,12 @@ export function SettlementHistory({
                                         <div class='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
                                             <div class='flex items-center gap-2'>
                                                 <span
-                                                    class={`text-base font-bold tabular-nums ${isDeleted ? 'text-gray-500' : 'text-gray-900'}`}
+                                                    class={`text-base font-bold tabular-nums ${isDeleted ? 'text-text-muted' : 'text-text-primary'}`}
                                                     data-financial-amount='settlement'
                                                 >
                                                     <CurrencyAmount amount={settlement.amount} currency={settlement.currency} displayOptions={{ includeCurrencyCode: false }} />
                                                 </span>
-                                                <RelativeTime date={settlement.date} className='text-xs text-gray-600' tooltipPlacement='bottom' />
+                                                <RelativeTime date={settlement.date} className='text-xs text-text-muted' tooltipPlacement='bottom' />
                                             </div>
 
                                             {/* Action buttons */}
@@ -237,7 +238,7 @@ export function SettlementHistory({
                                                                 type='button'
                                                                 onClick={() => !settlement.isLocked && onEditSettlement(settlement)}
                                                                 disabled={settlement.isLocked}
-                                                                class='p-1 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-gray-400'
+                                                                class='p-1 text-text-muted hover:text-interactive-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:text-text-muted'
                                                                 aria-label={editTooltip}
                                                                 data-testid='edit-settlement-button'
                                                             >
@@ -254,7 +255,7 @@ export function SettlementHistory({
                                                             <button
                                                                 type='button'
                                                                 onClick={() => handleDeleteClick(settlement)}
-                                                                class='p-1 text-gray-400 hover:text-red-600 transition-colors'
+                                                                class='p-1 text-text-muted hover:text-red-600 transition-colors'
                                                                 aria-label={deleteTooltip}
                                                                 data-testid='delete-settlement-button'
                                                             >
@@ -276,14 +277,14 @@ export function SettlementHistory({
                                             />
                                         </div>
                                         <div class='row-start-3 col-start-2 flex items-center gap-2 min-w-0'>
-                                            <span class='text-sm font-semibold text-gray-900 truncate'>
+                                            <span class='text-sm font-semibold text-text-primary truncate'>
                                                 {renderMemberName(settlement.payee)}
                                             </span>
                                         </div>
 
                                         {/* Row 4: Note if present (spans full width) */}
                                         {settlement.note && (
-                                            <div class='row-start-4 col-span-2 text-xs text-gray-600 mt-0.5 truncate'>
+                                            <div class='row-start-4 col-span-2 text-xs text-text-muted mt-0.5 truncate'>
                                                 {settlement.note}
                                             </div>
                                         )}

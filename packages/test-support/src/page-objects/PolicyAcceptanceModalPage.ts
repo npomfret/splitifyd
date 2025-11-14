@@ -14,56 +14,56 @@ export class PolicyAcceptanceModalPage extends BasePage {
     // LOCATOR HELPERS
     // ============================================================================
 
+    getModalOverlay(): Locator {
+        return this.page.getByTestId('policy-modal-overlay');
+    }
+
     getModalContainer(): Locator {
-        return this.page.locator('div.fixed.inset-0.bg-black.bg-opacity-50.flex.items-center.justify-center.p-4.z-50');
+        return this.page.getByTestId('policy-modal-card');
     }
 
     getTitle(): Locator {
-        return this.page.locator('h2.text-2xl.font-bold.text-gray-900:has-text("Accept Updated Policies")');
+        return this.page.getByTestId('policy-modal-title');
     }
 
     getSubtitle(): Locator {
-        return this.page.locator('p.text-sm.text-gray-600.mt-1');
+        return this.page.getByTestId('policy-modal-subtitle');
     }
 
     getProgressBar(): Locator {
-        return this.page.locator('div.w-full.bg-gray-200.rounded-full.h-2');
+        return this.page.getByTestId('policy-progress-indicator');
     }
 
     getPolicyCard(): Locator {
-        return this.page.locator('div.bg-white.rounded-lg.shadow-xl.max-w-4xl');
+        return this.page.getByTestId('policy-card');
     }
 
     getPolicyTitle(): Locator {
-        // Get the policy title - it's the ONLY h3 that appears alongside the accepted badge
-        // in the flex container (one has the policy name, the other spot has the checkmark badge)
-        return this.getPolicyCard()
-            .locator('div.flex.items-center.justify-between')
-            .getByRole('heading', { level: 3 });
+        return this.page.getByTestId('current-policy-title');
     }
 
     getAcceptedBadge(): Locator {
-        return this.page.locator('span.inline-flex.items-center.px-2\\.5.py-0\\.5.rounded-full:has-text("✓ Accepted")');
+        return this.page.getByTestId('policy-accepted-badge');
     }
 
     getPolicyContent(): Locator {
-        return this.page.locator('div.bg-gray-50.rounded-lg.p-4.max-h-96.overflow-y-auto');
+        return this.page.getByTestId('policy-content');
     }
 
     getLoadingSpinner(): Locator {
-        return this.page.locator('span:has-text("Loading policy content...")');
+        return this.page.getByTestId('policy-content-loading');
     }
 
     getAcceptanceSection(): Locator {
-        return this.page.locator('div.bg-blue-50.border.border-blue-200.rounded-lg.p-4');
+        return this.page.getByTestId('policy-acceptance-section');
     }
 
     getAcceptanceCheckbox(): Locator {
-        return this.page.locator('input[type="checkbox"][id^="accept-"]');
+        return this.page.getByTestId('policy-accept-checkbox');
     }
 
     getAcceptanceLabel(): Locator {
-        return this.page.locator('label:has-text("I have read and accept this")');
+        return this.page.getByTestId('policy-accept-label');
     }
 
     // ============================================================================

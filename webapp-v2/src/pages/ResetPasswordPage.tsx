@@ -7,6 +7,7 @@ import { AuthForm } from '../components/auth/AuthForm';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { EmailInput } from '../components/auth/EmailInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
+import { Button, Card, Stack, Typography } from '@/components/ui';
 
 const emailSignal = signal('');
 
@@ -51,9 +52,9 @@ export function ResetPasswordPage() {
     if (emailSent) {
         return (
             <AuthLayout title={t('pages.resetPasswordPage.checkYourEmail')} description={t('pages.resetPasswordPage.resetInstructionsSent')}>
-                <div class='text-center space-y-6'>
-                    <div class='mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center'>
-                        <svg class='w-8 h-8 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                <Stack spacing='lg' className='text-center'>
+                    <div class='mx-auto w-16 h-16 rounded-full flex items-center justify-center bg-semantic-success/10 text-semantic-success'>
+                        <svg class='w-8 h-8' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path
                                 stroke-linecap='round'
                                 stroke-linejoin='round'
@@ -64,36 +65,35 @@ export function ResetPasswordPage() {
                     </div>
 
                     <div class='space-y-2'>
-                        <h2 class='text-lg font-medium text-gray-900'>{t('pages.resetPasswordPage.emailSentSuccessfully')}</h2>
-                        <p class='text-gray-600'>{t('pages.resetPasswordPage.sentInstructionsTo')}</p>
-                        <p class='font-medium text-gray-900'>{emailSignal.value}</p>
+                        <Typography variant='heading'>{t('pages.resetPasswordPage.emailSentSuccessfully')}</Typography>
+                        <Typography variant='body' className='text-text-muted'>
+                            {t('pages.resetPasswordPage.sentInstructionsTo')}
+                        </Typography>
+                        <Typography variant='bodyStrong'>{emailSignal.value}</Typography>
                     </div>
 
-                    <div class='bg-blue-50 border border-blue-200 rounded-md p-4 text-left'>
-                        <h3 class='text-sm font-medium text-blue-800 mb-1'>{t('pages.resetPasswordPage.whatsNext')}</h3>
-                        <ul class='text-sm text-blue-700 space-y-1'>
+                    <Card padding='md' className='text-left bg-surface-warning/60 border-border-warning'>
+                        <Typography variant='caption' className='uppercase tracking-wide text-semantic-warning'>
+                            {t('pages.resetPasswordPage.whatsNext')}
+                        </Typography>
+                        <ul class='mt-3 text-sm text-text-primary space-y-1 list-disc list-inside'>
                             <li>{t('pages.resetPasswordPage.checkEmailInbox')}</li>
                             <li>{t('pages.resetPasswordPage.clickResetLink')}</li>
                             <li>{t('pages.resetPasswordPage.createNewPassword')}</li>
                             <li>{t('pages.resetPasswordPage.signInWithNewPassword')}</li>
                         </ul>
-                    </div>
+                    </Card>
 
-                    <div class='space-y-3'>
-                        <button
-                            onClick={handleTryAgain}
-                            class='w-full px-4 py-2 text-sm font-medium text-blue-600 bg-primary-50 border border-blue-300 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors'
-                        >
+                    <Stack spacing='sm'>
+                        <Button variant='secondary' fullWidth onClick={handleTryAgain}>
                             {t('pages.resetPasswordPage.sendToDifferentEmail')}
-                        </button>
+                        </Button>
 
-                        <div class='text-center'>
-                            <button type='button' onClick={() => navigationService.goToLogin()} class='text-sm text-gray-600 hover:text-gray-900 transition-colors'>
-                                {t('pages.resetPasswordPage.backToSignIn')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                        <Button variant='ghost' fullWidth onClick={() => navigationService.goToLogin()}>
+                            {t('pages.resetPasswordPage.backToSignIn')}
+                        </Button>
+                    </Stack>
+                </Stack>
             </AuthLayout>
         );
     }
@@ -102,7 +102,7 @@ export function ResetPasswordPage() {
         <AuthLayout title={t('pages.resetPasswordPage.resetPassword')} description={t('pages.resetPasswordPage.enterEmailForReset')}>
             <AuthForm onSubmit={handleSubmit} error={error} disabled={isLoading}>
                 <div class='space-y-4'>
-                    <p class='text-sm text-gray-600'>{t('pages.resetPasswordPage.enterEmailDescription')}</p>
+                    <p class='text-sm text-text-muted'>{t('pages.resetPasswordPage.enterEmailDescription')}</p>
 
                     <EmailInput
                         value={emailSignal.value}
@@ -118,7 +118,7 @@ export function ResetPasswordPage() {
                 </SubmitButton>
 
                 <div class='text-center'>
-                    <button type='button' onClick={() => navigationService.goToLogin()} class='text-sm text-gray-600 hover:text-gray-900 transition-colors'>
+                    <button type='button' onClick={() => navigationService.goToLogin()} class='text-sm text-text-muted hover:text-text-primary transition-colors'>
                         {t('pages.resetPasswordPage.backToSignIn')}
                     </button>
                 </div>

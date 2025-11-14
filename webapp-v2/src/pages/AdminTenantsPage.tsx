@@ -6,6 +6,7 @@ import { Alert, Button, Card } from '@/components/ui';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { navigationService } from '@/services/navigation.service';
 import { configStore } from '../stores/config-store';
+import { logError } from '@/utils/browser-logger';
 
 interface TenantBranding {
     appName: string;
@@ -80,7 +81,7 @@ export function AdminTenantsPage() {
             setTenants(response.tenants);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load tenants');
-            console.error('Failed to load tenants:', err);
+            logError('Failed to load tenants', err);
         } finally {
             setIsLoading(false);
         }
@@ -93,7 +94,6 @@ export function AdminTenantsPage() {
 
     const handleEditTenant = (tenantId: string) => {
         // TODO: Implement tenant editing
-        console.log('Edit tenant:', tenantId);
         alert(`Tenant editing not yet implemented for: ${tenantId}`);
     };
 
@@ -115,7 +115,7 @@ export function AdminTenantsPage() {
 
                 {isLoading ? (
                     <div class="flex items-center justify-center py-12">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" data-testid='tenants-loading-spinner'></div>
                     </div>
                 ) : (
                     <>
