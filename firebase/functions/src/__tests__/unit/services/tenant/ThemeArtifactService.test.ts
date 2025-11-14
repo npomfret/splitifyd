@@ -105,6 +105,7 @@ describe('ThemeArtifactService', () => {
                     raised: '#f9f9f9',
                     sunken: '#f0f0f0',
                     overlay: '#000000',
+                    warning: '#fffacd',
                 },
                 text: {
                     primary: '#000000',
@@ -122,6 +123,7 @@ describe('ThemeArtifactService', () => {
                     secondaryHover: '#e0e0e0',
                     secondaryActive: '#d0d0d0',
                     secondaryForeground: '#000000',
+                    accent: '#22c55e',
                     destructive: '#dc3545',
                     destructiveHover: '#c82333',
                     destructiveActive: '#bd2130',
@@ -132,6 +134,7 @@ describe('ThemeArtifactService', () => {
                     default: '#d0d0d0',
                     strong: '#999999',
                     focus: '#0066cc',
+                    warning: '#ffd700',
                 },
                 status: {
                     success: '#28a745',

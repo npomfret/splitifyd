@@ -34,16 +34,16 @@ export function CTASection() {
     }, []);
 
     return (
-        <section class='cta-bottom py-20 bg-primary'>
+        <section class='cta-bottom py-20 bg-interactive-primary'>
             <div class='container mx-auto px-4 text-center'>
-                <h2 ref={h2Ref} class='text-3xl md:text-4xl font-bold text-white mb-4'>
+                <h2 ref={h2Ref} class='text-3xl md:text-4xl font-bold text-interactive-primary-foreground mb-4'>
                     {t('landing.cta.title')}
                 </h2>
-                <p class='text-xl text-purple-100 mb-8 max-w-2xl mx-auto'>{t('landing.cta.subtitle')}</p>
+                <p class='text-xl text-interactive-primary-foreground opacity-90 mb-8 max-w-2xl mx-auto'>{t('landing.cta.subtitle')}</p>
 
                 <button
                     onClick={() => navigation.goToRegister()}
-                    class='inline-block bg-primary-50 text-primary font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors transform hover:scale-105 duration-200'
+                    class='inline-block bg-surface-base text-interactive-primary font-semibold px-8 py-4 rounded-lg hover:opacity-90 transition-opacity transform hover:scale-105 duration-200'
                 >
                     {t('landing.cta.signUpButton')}
                 </button>

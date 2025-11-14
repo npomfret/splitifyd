@@ -105,6 +105,7 @@ const buildSemantics = (palette: BrandingTokens['palette']): BrandingTokens['sem
             raised: tint(palette.neutral, 0.04),
             sunken: darken(palette.neutral, 0.04),
             overlay: '#0f172a',
+            warning: tint(palette.warning, 0.85),
         },
         text: {
             primary: '#0f172a',
@@ -122,6 +123,7 @@ const buildSemantics = (palette: BrandingTokens['palette']): BrandingTokens['sem
             secondaryHover: darken(palette.secondary, 0.08),
             secondaryActive: darken(palette.secondary, 0.16),
             secondaryForeground: '#ffffff',
+            accent: palette.accent,
             destructive: palette.danger,
             destructiveHover: darken(palette.danger, 0.08),
             destructiveActive: darken(palette.danger, 0.12),
@@ -132,6 +134,7 @@ const buildSemantics = (palette: BrandingTokens['palette']): BrandingTokens['sem
             default: '#cbd5f5',
             strong: '#94a3b8',
             focus: palette.accent,
+            warning: tint(palette.warning, 0.3),
         },
         status: {
             success: palette.success,

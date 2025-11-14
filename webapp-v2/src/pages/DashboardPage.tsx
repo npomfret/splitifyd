@@ -93,18 +93,18 @@ export function DashboardPage() {
                         {/* Welcome Section - Only show for first-time users (no groups) after loading is complete */}
                         {enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized && !enhancedGroupsStore.loading && (
                             <div class='mb-6'>
-                                <h2 class='text-2xl font-bold text-gray-900 mb-2'>{t('dashboard.welcomeMessage', { name: user.displayName })}</h2>
-                                <p class='text-gray-600'>{t('dashboard.welcomeDescription')}</p>
+                                <h2 class='text-2xl font-bold text-text-primary mb-2'>{t('dashboard.welcomeMessage', { name: user.displayName })}</h2>
+                                <p class='text-text-muted'>{t('dashboard.welcomeDescription')}</p>
                             </div>
                         )}
 
                         {/* Groups Section */}
-                        <div class='bg-primary-50 border-primary-100 rounded-lg shadow-sm border border-primary-100 p-6' data-testid='groups-container'>
+                        <div class='bg-surface-muted border-border-default rounded-lg shadow-sm border p-6' data-testid='groups-container'>
                             <div class='flex flex-col gap-3 mb-6 lg:flex-row lg:items-center lg:justify-between'>
-                                <h3 class='text-lg font-semibold text-gray-900'>{t('dashboard.yourGroups')}</h3>
+                                <h3 class='text-lg font-semibold text-text-primary'>{t('dashboard.yourGroups')}</h3>
                                 <div class='flex flex-wrap items-center gap-3 justify-between lg:justify-end'>
                                     <div
-                                        class='inline-flex rounded-md border border-primary-100 overflow-hidden'
+                                        class='inline-flex rounded-md border border-border-default overflow-hidden'
                                         role='group'
                                         aria-label={t('dashboard.groupsFilter.label')}
                                     >
@@ -113,8 +113,8 @@ export function DashboardPage() {
                                             aria-pressed={!showArchived}
                                             disabled={filterLoading}
                                             onClick={() => changeGroupFilter(false)}
-                                            class={`px-4 py-2 text-sm font-medium transition-colors focus:outline-none ${
-                                                !showArchived ? 'bg-primary text-white hover:bg-primary-dark' : 'bg-white text-gray-600 hover:bg-gray-50'
+                                            class={`px-4 py-2 text-sm font-medium transition-opacity focus:outline-none ${
+                                                !showArchived ? 'bg-interactive-primary text-interactive-primary-foreground hover:opacity-90' : 'bg-surface-base text-text-muted hover:opacity-90'
                                             }`}
                                         >
                                             {t('dashboard.groupsFilter.active')}
@@ -124,15 +124,15 @@ export function DashboardPage() {
                                             aria-pressed={showArchived}
                                             disabled={filterLoading}
                                             onClick={() => changeGroupFilter(true)}
-                                            class={`px-4 py-2 text-sm font-medium transition-colors focus:outline-none border-l border-primary-100 ${
-                                                showArchived ? 'bg-primary text-white hover:bg-primary-dark' : 'bg-white text-gray-600 hover:bg-gray-50'
+                                            class={`px-4 py-2 text-sm font-medium transition-opacity focus:outline-none border-l border-border-default ${
+                                                showArchived ? 'bg-interactive-primary text-interactive-primary-foreground hover:opacity-90' : 'bg-surface-base text-text-muted hover:opacity-90'
                                             }`}
                                         >
                                             {t('dashboard.groupsFilter.archived')}
                                         </button>
                                     </div>
                                     <button
-                                        class='bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors text-sm font-medium hidden lg:block'
+                                        class='bg-interactive-primary text-interactive-primary-foreground px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium hidden lg:block'
                                         onClick={() => setIsCreateModalOpen(true)}
                                     >
                                         {t('dashboard.createGroup')}

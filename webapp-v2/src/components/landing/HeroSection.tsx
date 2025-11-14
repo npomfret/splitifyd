@@ -65,12 +65,12 @@ export function HeroSection() {
 
             {/* Hero Content */}
             <div class='hero-content container mx-auto px-4 relative z-10 text-center'>
-                <h1 ref={h1Ref} class='text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight'>
+                <h1 ref={h1Ref} class='text-4xl md:text-5xl lg:text-6xl font-bold text-text-primary mb-6 leading-tight'>
                     {t('landing.hero.title')}
                 </h1>
 
-                <p ref={pRef} class='text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mb-12'>
-                    {t('landing.hero.subtitle')} <strong class='text-gray-900'>{t('landing.hero.highlight')}</strong> {t('landing.hero.focusMessage')}
+                <p ref={pRef} class='text-lg md:text-xl text-text-muted max-w-3xl mx-auto mb-12'>
+                    {t('landing.hero.subtitle')} <strong class='text-text-primary'>{t('landing.hero.highlight')}</strong> {t('landing.hero.focusMessage')}
                 </p>
 
                 <img

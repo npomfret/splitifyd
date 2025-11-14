@@ -137,6 +137,7 @@ const BrandingSemanticColorSchema = z.object({
         raised: HexColorSchema,
         sunken: HexColorSchema,
         overlay: HexColorSchema,
+        warning: HexColorSchema,
     }),
     text: z.object({
         primary: HexColorSchema,
@@ -154,6 +155,7 @@ const BrandingSemanticColorSchema = z.object({
         secondaryHover: HexColorSchema,
         secondaryActive: HexColorSchema,
         secondaryForeground: HexColorSchema,
+        accent: HexColorSchema,
         destructive: HexColorSchema,
         destructiveHover: HexColorSchema,
         destructiveActive: HexColorSchema,
@@ -164,6 +166,7 @@ const BrandingSemanticColorSchema = z.object({
         default: HexColorSchema,
         strong: HexColorSchema,
         focus: HexColorSchema,
+        warning: HexColorSchema,
     }),
     status: z.object({
         success: HexColorSchema,

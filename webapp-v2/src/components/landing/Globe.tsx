@@ -222,8 +222,8 @@ export function Globe() {
         // Fallback for error state
         return (
             <div class='w-full h-full flex items-center justify-center'>
-                <div class='text-purple-200 text-center'>
-                    <div class='w-32 h-32 mx-auto mb-4 rounded-full bg-orange-100/20'></div>
+                <div class='text-text-muted text-center'>
+                    <div class='w-32 h-32 mx-auto mb-4 rounded-full bg-interactive-secondary opacity-20'></div>
                     <p>{t('landing.globe.loadError')}</p>
                 </div>
             </div>
@@ -235,7 +235,7 @@ export function Globe() {
         return (
             <div id='globe-container' class='w-full h-full relative'>
                 <div class='absolute inset-0 flex items-center justify-center'>
-                    <div class='w-32 h-32 rounded-full bg-orange-100/20' data-testid='globe-placeholder'></div>
+                    <div class='w-32 h-32 rounded-full bg-interactive-secondary opacity-20' data-testid='globe-placeholder'></div>
                 </div>
             </div>
         );
@@ -245,7 +245,7 @@ export function Globe() {
         <div id='globe-container' ref={containerRef} class='w-full h-full relative'>
             {isLoading && (
                 <div class='absolute inset-0 flex items-center justify-center'>
-                    <div class='w-16 h-16 border-4 border-primary/20 border-t-purple-600 rounded-full animate-spin'></div>
+                    <div class='w-16 h-16 border-4 border-border-default opacity-20 border-t-interactive-accent rounded-full animate-spin'></div>
                 </div>
             )}
         </div>

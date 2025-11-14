@@ -49,13 +49,60 @@ export class ThemeArtifactService {
         sections.push('/* Auto-generated theme CSS */');
         sections.push(':root {');
 
+        const allVariables: Array<[string, string]> = [];
+
         for (const [name, value] of this.flattenTokens(tokens)) {
+            allVariables.push([name, value]);
+        }
+
+        for (const [name, rgbValue] of this.generateRgbVariants(tokens)) {
+            allVariables.push([`${name}-rgb`, rgbValue]);
+        }
+
+        allVariables.sort((a, b) => a[0].localeCompare(b[0]));
+
+        for (const [name, value] of allVariables) {
             sections.push(`  --${name}: ${value};`);
         }
 
         sections.push('}');
 
         return sections.join('\n') + '\n';
+    }
+
+    private hexToRgb(hex: string): string {
+        const clean = hex.replace('#', '');
+        const chunk = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
+        const r = parseInt(chunk.slice(0, 2), 16);
+        const g = parseInt(chunk.slice(2, 4), 16);
+        const b = parseInt(chunk.slice(4, 6), 16);
+        return `${r} ${g} ${b}`;
+    }
+
+    private generateRgbVariants(tokens: BrandingTokens): Array<[string, string]> {
+        const entries: Array<[string, string]> = [];
+        const { colors } = tokens.semantics;
+
+        const generateFromObject = (obj: any, prefix: string[]) => {
+            Object.entries(obj).forEach(([key, value]) => {
+                const kebabKey = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+
+                if (typeof value === 'string' && value.startsWith('#')) {
+                    const varName = [...prefix, kebabKey].join('-');
+                    entries.push([varName, this.hexToRgb(value)]);
+                } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                    generateFromObject(value, [...prefix, kebabKey]);
+                }
+            });
+        };
+
+        generateFromObject(colors, []);
+
+        entries.push(['semantic-success', this.hexToRgb(colors.status.success)]);
+        entries.push(['semantic-warning', this.hexToRgb(colors.status.warning)]);
+        entries.push(['surface-muted', this.hexToRgb(colors.surface.raised)]);
+
+        return entries;
     }
 
     private flattenTokens(tokens: BrandingTokens): Array<[string, string]> {

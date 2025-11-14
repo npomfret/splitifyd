@@ -79,6 +79,67 @@ flowchart LR
 - [x] **Health gate** — Targeted checks complete: `npm run build --workspace packages/test-support`, `npm run build --workspace firebase/functions`, and `cd firebase/functions && npx vitest run src/__tests__/integration/tenant/admin-tenant-publish.test.ts` all pass (wrapper disallows args, so Vitest ran directly per the testing guide).
 - **Sequencing rule:** Freeze `/api/theme.css`, Cloud Storage swaps, and UI bootstrap merges until every checkbox above is complete. Engineers may prototype contracts or TypeScript interfaces in parallel, but no feature branch lands until the build/test gate is green.
 
+### Progress – 2025-11-14 (Phase 2: Page Migration ✅ COMPLETE)
+**Week 5 UI Migration - Marketing Pages ✅ COMPLETE**
+- Completed full semantic token migration for public marketing pages:
+  - `LandingPage.tsx`: All backgrounds (`bg-surface-muted`), text (`text-text-primary/muted`)
+  - `HeroSection.tsx`: Hero title, subtitle, strong emphasis text
+  - `FeaturesGrid.tsx`: Section background and heading
+  - `FeatureCard.tsx`: Card backgrounds (`bg-surface-base`), borders (`border-border-default`), text colors, icon backgrounds (`bg-interactive-accent/secondary`)
+  - `Globe.tsx`: Error states, test placeholders, loading spinner (`border-t-interactive-accent`)
+  - `CTASection.tsx`: Primary CTA section with `bg-interactive-primary` + `text-interactive-primary-foreground`
+  - `PricingPage.tsx`: All pricing cards, buttons, borders, checkmarks (`text-semantic-success`), warning box (`bg-surface-warning`, `border-border-warning`)
+- **Semantic Token Additions (Tailwind + Schema):**
+  - Added `interactive-accent` (green, for icon backgrounds and accents)
+  - Added `interactive-secondary-foreground` (white, paired with `interactive-secondary`)
+  - Added `semantic-success` (green, for success indicators like checkmarks)
+  - Added `semantic-warning`, `surface-warning`, `border-warning` (yellow tones for notices)
+- **Schema Updates (CRITICAL FIX):**
+  - Updated `BrandingSemanticColorSchema` in `packages/shared/src/types/branding.ts`:
+    - Added `surface.warning` (light yellow backgrounds)
+    - Added `interactive.accent` (green accent color)
+    - Added `border.warning` (yellow borders)
+  - Updated `buildSemantics` fixture generator with default values for new tokens
+  - **CSS Generator Enhancement:**
+    - Added `generateRgbVariants()` method to `ThemeArtifactService.ts`
+    - Added `hexToRgb()` utility for color conversion
+    - Maps semantic colors to Tailwind-compatible RGB CSS variables (e.g., `--interactive-accent-rgb: 34 197 94`)
+    - Maintains alphabetical sorting of all CSS variables
+    - Maps `status.success/warning` → `semantic-success-rgb/semantic-warning-rgb` for consolidation
+  - Fixed test fixtures in both integration and unit tests
+- **Pattern Standardization:**
+  - Unified white-text-on-colored-backgrounds: always use paired foreground tokens (e.g., `text-interactive-primary-foreground` with `bg-interactive-primary`)
+  - Eliminated all `text-text-inverted` usage in favor of semantic foreground tokens
+- **Quality Gates ✅:**
+  - Type checking passes (`npm run build`) with zero errors
+  - Integration test passes (`admin-tenant-publish.test.ts`: 7/7 tests pass)
+  - Unit test passes (`ThemeArtifactService.test.ts`: 17/17 tests pass)
+  - **Verification:** ZERO hardcoded color utilities remain in marketing pages ✅
+  - **White-label ready:** Custom tenant themes will now correctly generate all new semantic tokens
+
+**Week 6 UI Migration - Authenticated App 🚧**
+- Completed: `DashboardPage.tsx`
+  - Welcome message text: `text-text-primary/muted`
+  - Groups container: `bg-surface-muted` with `border-border-default`
+  - Active/Archived filter toggle: `bg-interactive-primary` for active state
+  - Create group button: `bg-interactive-primary` with foreground text
+  - All hover states: `hover:opacity-90` (semantic pattern)
+
+**Remaining Work:**
+- Authenticated app: GroupDetailPage (3 occurrences), AddExpensePage (11), ExpenseDetailPage (26)
+- Critical paths: Auth flows (Login, Register, Reset), checkout/payment flows
+- Admin pages: TenantBrandingPage enhancements (artifact history UI, preview iframe, WCAG checker)
+
+**Type Safety:** All migrated code compiles successfully ✅
+
+**Overall Roadmap Status (as of 2025-11-14):**
+- ✅ Week 0.5: Build/Test Hygiene (100%)
+- ✅ Week 1: Shared Foundations (100%)
+- ✅ Week 2: Generator & Seed Themes (100%)
+- ✅ Weeks 3-4: HTTP Endpoints & Bootstrap (100%)
+- 🚧 Weeks 5-6: UI Kit & Admin Console (~60% - core primitives + marketing + dashboard done)
+- ⏳ Weeks 7-8: Guardrails & Cleanup (pending)
+
 
 ## Expert Check-in – 2025-11-13
 - **Week 1 focus:** Lock down shared `BrandingTokens` schema, fixtures, and lint/style guardrails before touching Firebase Storage. Infra (bucket, CORS) can trail once the schema stabilizes.
@@ -241,29 +302,43 @@ scripts/
 **Order of migration (lowest to highest risk):**
 
 1. **Admin-only pages** (week 5.0)
-   - `/admin/tenant/branding` editor
-   - `/admin/diagnostics`
+   - [ ] `/admin/tenant/branding` editor
+   - [ ] `/admin/diagnostics`
    - Low traffic, easy to rollback
 
-2. **Marketing pages** (week 5.5)
-   - Landing page (`/`)
-   - Pricing page (`/pricing`)
+2. **Marketing pages** (week 5.5) ✅ **COMPLETED 2025-11-14**
+   - [x] Landing page (`/`) - Migrated: HeroSection, Globe, FeaturesGrid, FeatureCard, CTASection
+   - [x] Pricing page (`/pricing`) - All cards, buttons, transparency notice
    - Higher traffic but not critical path
+   - **Color mappings applied:**
+     - `text-gray-900/800` → `text-text-primary`
+     - `text-gray-700/600` → `text-text-muted`
+     - `text-purple-200` → `text-text-muted` (error states)
+     - `bg-gray-50` → `bg-surface-muted`
+     - `bg-white` → `bg-surface-base`
+     - `bg-blue-600/500` → `bg-interactive-primary`
+     - `bg-green-100` → `bg-interactive-accent` (icon backgrounds)
+     - `bg-orange-100` → `bg-interactive-secondary` (placeholders, icon backgrounds)
+     - `text-white` → `text-text-inverted` or `text-interactive-primary-foreground`
+     - `border-primary-100` → `border-border-default`
+     - `border-t-purple-600` → `border-t-interactive-accent` (loading spinner)
+     - `hover:bg-*-700` → `hover:opacity-90`
 
-3. **Authenticated app** (week 6.0)
-   - Dashboard
-   - Group list
-   - Expense forms
+3. **Authenticated app** (week 6.0) 🚧 **IN PROGRESS**
+   - [x] Dashboard (`/dashboard`) - Welcome, groups container, filter buttons
+   - [ ] Group detail page (`/group/:id`) - 3 hardcoded color occurrences
+   - [ ] Expense forms (`/expense/add`, `/expense/edit`) - 11+ occurrences
+   - [ ] Expense detail (`/expense/:id`) - 26 occurrences
 
 4. **Critical paths** (week 6.5)
-   - Auth flows (signup/login)
-   - Checkout/payment
+   - [ ] Auth flows (signup/login/reset)
+   - [ ] Checkout/payment
    - Highest risk, migrate last
 
 **Per-module checklist:**
-- [ ] Replace `bg-primary` → `bg-interactive-primary`
-- [ ] Remove inline `style={{...}}` props
-- [ ] Add data-testid for E2E tests
+- [x] Replace `bg-primary` → `bg-interactive-primary`
+- [x] Remove inline `style={{...}}` props (enforced by ESLint)
+- [ ] Add data-testid for E2E tests (existing tests preserved)
 - [ ] Run visual regression
 - [ ] Deploy to staging, test 24h
 - [ ] Feature flag rollout (10% → 50% → 100%)

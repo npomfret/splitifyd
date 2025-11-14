@@ -14,7 +14,7 @@ export function LandingPage() {
 
     return (
         <BaseLayout title={t('pages.landingPage.title')} description={t('pages.landingPage.description')}>
-            <div class='bg-primary-50'>
+            <div class='bg-surface-muted'>
                 <main class='pt-16'>
                     <HeroSection />
                     {showMarketingContent && (
@@ -25,11 +25,11 @@ export function LandingPage() {
                     )}
 
                     {/* Transparency Notice */}
-                    <section class='transparency-notice py-8 bg-gray-50'>
+                    <section class='transparency-notice py-8 bg-surface-muted'>
                         <div class='container mx-auto px-4'>
-                            <div class='transparency-content text-center text-gray-600'>
+                            <div class='transparency-content text-center text-text-muted'>
                                 <p>
-                                    <strong class='text-gray-800'>{t('pages.landingPage.transparencyNotice.bold')}</strong> {t('pages.landingPage.transparencyNotice.text')}
+                                    <strong class='text-text-primary'>{t('pages.landingPage.transparencyNotice.bold')}</strong> {t('pages.landingPage.transparencyNotice.text')}
                                 </p>
                             </div>
                         </div>

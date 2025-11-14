@@ -14,8 +14,14 @@ export default {
                 'interactive-primary': 'rgb(var(--interactive-primary-rgb, 37 99 235) / <alpha-value>)',
                 'interactive-primary-foreground': 'rgb(var(--interactive-primary-foreground-rgb, 255 255 255) / <alpha-value>)',
                 'interactive-secondary': 'rgb(var(--interactive-secondary-rgb, 124 58 237) / <alpha-value>)',
+                'interactive-secondary-foreground': 'rgb(var(--interactive-secondary-foreground-rgb, 255 255 255) / <alpha-value>)',
+                'interactive-accent': 'rgb(var(--interactive-accent-rgb, 34 197 94) / <alpha-value>)',
+                'semantic-success': 'rgb(var(--semantic-success-rgb, 22 163 74) / <alpha-value>)',
+                'semantic-warning': 'rgb(var(--semantic-warning-rgb, 234 179 8) / <alpha-value>)',
+                'surface-warning': 'rgb(var(--surface-warning-rgb, 254 252 232) / <alpha-value>)',
                 'border-default': 'rgb(var(--border-default-rgb, 226 232 240) / <alpha-value>)',
                 'border-strong': 'rgb(var(--border-strong-rgb, 148 163 184) / <alpha-value>)',
+                'border-warning': 'rgb(var(--border-warning-rgb, 250 204 21) / <alpha-value>)',
 
                 // Legacy brand palette (kept for transitional components)
                 primary: {
