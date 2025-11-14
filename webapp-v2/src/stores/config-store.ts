@@ -1,8 +1,75 @@
 import { ReadonlySignal, signal } from '@preact/signals';
 import type { AppConfiguration, BrandingConfig } from '@splitifyd/shared';
 import { firebaseConfigManager } from '../app/firebase-config';
-import { applyBrandingPalette } from '../utils/branding';
 import { syncThemeHash } from '../utils/theme-bootstrap';
+
+const DEFAULT_THEME_COLOR = '#1a73e8';
+const DEFAULT_APP_TITLE = 'Splitifyd';
+const DEFAULT_FAVICON = '/src/assets/logo.svg';
+
+const ensureMetaThemeColor = (): HTMLMetaElement | null => {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('name', 'theme-color');
+        document.head.appendChild(meta);
+    }
+    return meta;
+};
+
+const ensureFavicon = (): HTMLLinkElement | null => {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
+    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+    }
+    return link;
+};
+
+const applyDocumentTitle = (brandName?: string | null): void => {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    const currentTitle = document.title?.trim();
+    if (brandName) {
+        if (!currentTitle || /splitifyd/i.test(currentTitle)) {
+            document.title = brandName;
+        }
+        return;
+    }
+
+    if (!currentTitle || /splitifyd/i.test(currentTitle)) {
+        document.title = DEFAULT_APP_TITLE;
+    }
+};
+
+const updateBrandingMetadata = (branding: BrandingConfig | null): void => {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    const metaTheme = ensureMetaThemeColor();
+    if (metaTheme) {
+        metaTheme.content = branding?.primaryColor ?? DEFAULT_THEME_COLOR;
+    }
+
+    const favicon = ensureFavicon();
+    if (favicon) {
+        favicon.setAttribute('href', branding?.faviconUrl ?? DEFAULT_FAVICON);
+    }
+
+    applyDocumentTitle(branding?.appName ?? null);
+};
 
 interface ConfigStore {
     // State getters - readonly values for external consumers
@@ -67,7 +134,7 @@ class ConfigStoreImpl implements ConfigStore {
 
             this.#configSignal.value = config;
             syncThemeHash(config.theme?.hash ?? null);
-            this.applyBranding(config.tenant?.branding ?? null);
+            updateBrandingMetadata(config.tenant?.branding ?? null);
             this.#errorSignal.value = null;
             configLoaded = true;
         } catch (error) {
@@ -84,11 +151,7 @@ class ConfigStoreImpl implements ConfigStore {
         this.#configSignal.value = null;
         this.#loadingSignal.value = false;
         this.#errorSignal.value = null;
-        applyBrandingPalette(null);
-    }
-
-    private applyBranding(branding: BrandingConfig | null): void {
-        applyBrandingPalette(branding);
+        updateBrandingMetadata(null);
     }
 }
 

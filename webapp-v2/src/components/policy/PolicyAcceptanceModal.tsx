@@ -117,7 +117,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
     return (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50' data-testid='policy-modal-overlay'>
             <div
-                className='bg-white border-primary-100 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col'
+                className='bg-surface-base border-border-default rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col'
                 role='dialog'
                 aria-modal='true'
                 aria-labelledby={titleId}
@@ -125,12 +125,12 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 data-testid='policy-modal-card'
             >
                 {/* Header */}
-                <div className='flex items-center justify-between p-6 border-b border-primary-100' data-testid='policy-modal-header'>
+                <div className='flex items-center justify-between p-6 border-b border-border-default' data-testid='policy-modal-header'>
                     <div>
-                        <h2 className='text-2xl font-bold text-gray-900' id={titleId} data-testid='policy-modal-title'>
+                        <h2 className='text-2xl font-bold text-text-primary' id={titleId} data-testid='policy-modal-title'>
                             {t('policyComponents.policyAcceptanceModal.title')}
                         </h2>
-                        <p className='text-sm text-gray-600 mt-1' id={subtitleId} data-testid='policy-modal-subtitle'>
+                        <p className='text-sm text-text-muted mt-1' id={subtitleId} data-testid='policy-modal-subtitle'>
                             {t('policyComponents.policyAcceptanceModal.policyLabel')}
                             {currentPolicyIndex + 1}
                             {t('policyComponents.policyAcceptanceModal.of')}
@@ -141,7 +141,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                     </div>
                     {onClose && (
                         <Tooltip content={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}>
-                            <button onClick={onClose} className='text-gray-400 hover:text-gray-600 transition-colors' aria-label={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}>
+                            <button onClick={onClose} className='text-text-muted hover:text-text-primary transition-colors' aria-label={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}>
                                 <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                                 </svg>
@@ -151,8 +151,8 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 </div>
 
                 {/* Progress bar */}
-                <div className='px-6 py-3 border-b border-gray-100' data-testid='policy-progress'>
-                    <div className='flex items-center justify-between text-sm text-gray-500 mb-2' data-testid='policy-progress-summary'>
+                <div className='px-6 py-3 border-b border-border-default' data-testid='policy-progress'>
+                    <div className='flex items-center justify-between text-sm text-text-muted mb-2' data-testid='policy-progress-summary'>
                         <span>{t('policyComponents.policyAcceptanceModal.progress')}</span>
                         <span>
                             {acceptedPolicies.size}
@@ -162,7 +162,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                         </span>
                     </div>
                     <div
-                        className='w-full bg-gray-200 rounded-full h-2'
+                        className='w-full bg-surface-muted rounded-full h-2'
                         role='progressbar'
                         aria-valuenow={acceptedPolicies.size}
                         aria-valuemin={0}
@@ -170,7 +170,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                         data-testid='policy-progress-track'
                     >
                         <div
-                            className='bg-blue-600 h-2 rounded-full transition-all duration-300'
+                            className='bg-interactive-primary h-2 rounded-full transition-all duration-300'
                             style={{ width: `${(acceptedPolicies.size / totalPolicies) * 100}%` }}
                             data-testid='policy-progress-indicator'
                         />
@@ -186,11 +186,11 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                             <Card data-testid='policy-card'>
                                 <Stack spacing='md'>
                                     <div className='flex items-center justify-between'>
-                                        <h3 className='text-lg font-semibold text-gray-900' data-testid='current-policy-title'>
+                                        <h3 className='text-lg font-semibold text-text-primary' data-testid='current-policy-title'>
                                             {currentPolicy.policyName}
                                         </h3>
                                         {canAcceptCurrent && (
-                                            <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800' data-testid='policy-accepted-badge'>
+                                            <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-semantic-success-subtle text-semantic-success-emphasis' data-testid='policy-accepted-badge'>
                                                 {t('policyComponents.policyAcceptanceModal.acceptedIcon')}
                                             </span>
                                         )}
@@ -200,20 +200,20 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                         ? (
                                             <div className='flex items-center justify-center py-8' data-testid='policy-content-loading'>
                                                 <LoadingSpinner />
-                                                <span className='ml-2 text-gray-600'>{t('policyComponents.policyAcceptanceModal.loadingContent')}</span>
+                                                <span className='ml-2 text-text-muted'>{t('policyComponents.policyAcceptanceModal.loadingContent')}</span>
                                             </div>
                                         )
                                         : (
                                             <>
-                                                <div className='bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto' data-testid='policy-content'>
+                                                <div className='bg-surface-muted rounded-lg p-4 max-h-96 overflow-y-auto' data-testid='policy-content'>
                                                     <PolicyRenderer content={policyContents[currentPolicy.policyId] || ''} />
                                                 </div>
 
                                                 {!canAcceptCurrent && (
-                                                    <div className='bg-blue-50 border border-blue-200 rounded-lg p-4' data-testid='policy-acceptance-section'>
+                                                    <div className='bg-semantic-info-subtle border border-semantic-info rounded-lg p-4' data-testid='policy-acceptance-section'>
                                                         <div className='flex items-start'>
                                                             <div className='flex-shrink-0'>
-                                                                <svg className='w-5 h-5 text-blue-400 mt-0.5' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
+                                                                <svg className='w-5 h-5 text-semantic-info mt-0.5' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                                                                     <path
                                                                         fillRule='evenodd'
                                                                         d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z'
@@ -222,8 +222,8 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                                 </svg>
                                                             </div>
                                                             <div className='ml-3'>
-                                                                <h4 className='text-sm font-medium text-blue-800'>{t('policyComponents.policyAcceptanceModal.acceptanceRequired')}</h4>
-                                                                <p className='text-sm text-blue-700 mt-1'>{t('policyComponents.policyAcceptanceModal.acceptanceInstructions')}</p>
+                                                                <h4 className='text-sm font-medium text-semantic-info-emphasis'>{t('policyComponents.policyAcceptanceModal.acceptanceRequired')}</h4>
+                                                                <p className='text-sm text-semantic-info-emphasis mt-1'>{t('policyComponents.policyAcceptanceModal.acceptanceInstructions')}</p>
                                                             </div>
                                                         </div>
 
@@ -231,7 +231,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                             <input
                                                                 type='checkbox'
                                                                 id={`accept-${currentPolicy.policyId}`}
-                                                                className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'
+                                                                className='h-4 w-4 text-interactive-primary focus:ring-interactive-primary border-border-default rounded'
                                                                 autoComplete='off'
                                                                 data-testid='policy-accept-checkbox'
                                                                 onChange={(e) => {
@@ -246,7 +246,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                                                     }
                                                                 }}
                                                             />
-                                                            <label htmlFor={`accept-${currentPolicy.policyId}`} className='ml-2 text-sm text-blue-800' data-testid='policy-accept-label'>
+                                                            <label htmlFor={`accept-${currentPolicy.policyId}`} className='ml-2 text-sm text-semantic-info-emphasis' data-testid='policy-accept-label'>
                                                                 {t('policyComponents.policyAcceptanceModal.acceptCheckbox')}
                                                                 {currentPolicy.policyName.toLowerCase()}
                                                             </label>
@@ -262,7 +262,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 </div>
 
                 {/* Footer with navigation */}
-                <div className='flex items-center justify-between p-6 border-t border-primary-100' data-testid='policy-modal-footer'>
+                <div className='flex items-center justify-between p-6 border-t border-border-default' data-testid='policy-modal-footer'>
                     <div className='flex items-center gap-2'>
                         <Button variant='secondary' onClick={handlePrevious} disabled={currentPolicyIndex === 0 || loading}>
                             {t('policyComponents.policyAcceptanceModal.previous')}
@@ -274,7 +274,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
 
                     <div className='flex items-center gap-2'>
                         {policies.length > 1 && (
-                            <span className='text-sm text-gray-500' data-testid='policy-acceptance-count'>
+                            <span className='text-sm text-text-muted' data-testid='policy-acceptance-count'>
                                 {acceptedPolicies.size}
                                 {t('policyComponents.policyAcceptanceModal.of')}
                                 {policies.length}
@@ -284,7 +284,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                         {loading && (
                             <div className='flex items-center gap-2' data-testid='policy-acceptance-loading'>
                                 <LoadingSpinner size='sm' />
-                                <span className='text-sm text-gray-600'>{t('policyComponents.policyAcceptanceModal.accepting')}</span>
+                                <span className='text-sm text-text-muted'>{t('policyComponents.policyAcceptanceModal.accepting')}</span>
                             </div>
                         )}
                     </div>

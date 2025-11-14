@@ -92,10 +92,11 @@ export class LoginPage extends BasePage {
     }
 
     /**
-     * Sign in heading
+     * Sign in heading - located in the Card parent (two levels up from form)
+     * After AuthLayout migration to semantic tokens, the heading is in the Card, which is the form's grandparent
      */
     getSignInHeading(): Locator {
-        return this.getLoginFormContainer().locator('..').getByRole('heading', { name: translation.loginPage.title });
+        return this.getLoginFormContainer().locator('../..').getByRole('heading', { name: translation.loginPage.title });
     }
 
     // ============================================================================

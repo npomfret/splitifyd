@@ -141,6 +141,11 @@ flowchart LR
 - ⏳ Weeks 7-8: Guardrails & Cleanup (pending)
 
 
+### Progress – Phase 3 Cleanup (2025-11-14)
+- Removed the legacy `branding.ts` utilities and `applyBrandingPalette()` so only `/api/theme.css` sets tenant styling. Config loading now limits itself to document metadata (title, `<meta name="theme-color">`, favicon) before deferring to the Theme Artifact pipeline.
+- Deleted the related unit tests and wiring to eliminate the second CSS-variable injector. Remaining cleanup (purging the legacy Tailwind `primary` palette) is tracked under the Phase 3 checklist.
+
+
 ## Expert Check-in – 2025-11-13
 - **Week 1 focus:** Lock down shared `BrandingTokens` schema, fixtures, and lint/style guardrails before touching Firebase Storage. Infra (bucket, CORS) can trail once the schema stabilizes.
 - **Local tenant seeding:** Reuse existing tenant identification middleware; add explicit IDs for `tenant_localhost`, `tenant_loopback`, and `tenant_default` to avoid collisions. Ensure emulator seeds clear any legacy tenant docs so domain routing can map cleanly to the new fixtures.
@@ -344,10 +349,10 @@ scripts/
 - [ ] Feature flag rollout (10% → 50% → 100%)
 
 ### Phase 3: Cleanup (Week 7)
-- Remove `applyBrandingPalette()` function
-- Delete old CSS variable injection code
-- Remove old Tailwind color mappings
-- Archive `branding.ts` utilities (keep in git history)
+- [x] Remove `applyBrandingPalette()` function
+- [x] Delete old CSS variable injection code
+- [ ] Remove old Tailwind color mappings
+- [x] Archive `branding.ts` utilities (keep in git history)
 
 **Rollback plan:**
 - If new theming breaks: revert feature flag (instant)

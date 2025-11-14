@@ -22,18 +22,16 @@ vi.mock('@/app/firebase-config', () => ({
     },
 }));
 
-vi.mock('@/utils/branding', () => ({
-    applyBrandingPalette: vi.fn(),
-}));
-
 vi.mock('@/utils/theme-bootstrap', () => ({
     syncThemeHash: vi.fn(),
     registerThemeServiceWorker: vi.fn(),
 }));
 
 const { firebaseConfigManager } = await import('@/app/firebase-config');
-const { applyBrandingPalette } = await import('@/utils/branding');
 const { syncThemeHash } = await import('@/utils/theme-bootstrap');
+
+const getMetaThemeColor = (): HTMLMetaElement | null => document.querySelector('meta[name="theme-color"]');
+const getFavicon = (): HTMLLinkElement | null => document.querySelector('link[rel="icon"]');
 
 describe('configStore', () => {
     const baseConfig = (branding?: BrandingConfig): AppConfiguration => ({
@@ -66,6 +64,9 @@ describe('configStore', () => {
 
     beforeEach(() => {
         vi.mocked(firebaseConfigManager.getConfig).mockResolvedValue(baseConfig());
+        document.title = 'Splitifyd';
+        getMetaThemeColor()?.remove();
+        getFavicon()?.remove();
     });
 
     afterEach(() => {
@@ -73,7 +74,7 @@ describe('configStore', () => {
         vi.clearAllMocks();
     });
 
-    it('applies branding palette and theme when tenant branding exists', async () => {
+    it('updates branding metadata and theme when tenant branding exists', async () => {
         const branding: BrandingConfig = {
             appName: toTenantAppName('Branded'),
             logoUrl: toTenantLogoUrl('https://logo.svg'),
@@ -88,15 +89,19 @@ describe('configStore', () => {
 
         await configStore.loadConfig();
 
-        expect(applyBrandingPalette).toHaveBeenCalledWith(branding);
+        expect(getMetaThemeColor()?.content).toBe(branding.primaryColor);
+        expect(getFavicon()?.getAttribute('href')).toBe(branding.faviconUrl);
+        expect(document.title).toBe(branding.appName);
         expect(syncThemeHash).toHaveBeenCalledWith('abc123');
     });
 
-    it('clears branding palette when reset is called', async () => {
+    it('resets branding metadata when reset is called', async () => {
         await configStore.loadConfig();
         configStore.reset();
 
-        expect(applyBrandingPalette).toHaveBeenCalledWith(null);
+        expect(getMetaThemeColor()?.content).toBe('#1a73e8');
+        expect(getFavicon()?.getAttribute('href')).toBe('/src/assets/logo.svg');
+        expect(document.title).toBe('Splitifyd');
         expect(syncThemeHash).toHaveBeenCalled();
     });
 

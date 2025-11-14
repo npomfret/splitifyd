@@ -31,7 +31,7 @@ export class PolicyAcceptanceModalPage extends BasePage {
     }
 
     getProgressBar(): Locator {
-        return this.page.getByTestId('policy-progress-indicator');
+        return this.page.getByTestId('policy-progress-track');
     }
 
     getPolicyCard(): Locator {
