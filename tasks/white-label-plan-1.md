@@ -17,12 +17,6 @@
 - [x] Add ESLint plugin: `eslint.config.mjs` now enforces `no-inline-styles/no-inline-styles` for `webapp-v2/src/**/*`.
 - [x] Add Stylelint: `stylelint.config.mjs` + `npm run lint:styles` guard CSS custom properties and forbid `!important`.
 
-### Team Alignment
-- [x] **Code freeze alert:** Freeze scheduled for **Dec 16–27, 2025** (Weeks 5–6). Message drafted in this plan + `#frontend` Slack draft, owners: UI Foundations + Release Mgmt.
-- [x] **Design review:** Semantic token map + naming sent to Design Systems (meeting booked **Nov 18, 2025** with Dana Lee). Notes captured below.
-- [x] **QA capacity:** QA lead (Priya Menon) confirmed availability for Week 7 Playwright visual regression + golden updates; checklist added to runbook.
-- [x] **On-call rotation:** Theme on-call schedule defined for Weeks 5–8 (see Debug Runbook) covering publish/rollback escalations.
-
 ### Documentation Prep
 - [x] Architecture diagram (Mermaid below, kept in this doc).
 - [x] Admin user guide for publishing themes (`docs/guides/white-label-admin-guide.md`).
@@ -46,14 +40,6 @@ flowchart LR
     G --> H[UI primitives / pages]
     E -->|fallback| I[Inline base CSS + SW cache]
 ```
-
-### Baseline Metrics (Measure Before Week 1)
-- [x] Current FOUC rate (via RUM/Sentry) — instrumentation absent; captured as blocker + owner in `docs/guides/white-label-metrics.md`.
-- [x] Median time-to-interactive — pending Lighthouse setup; status + owner documented in metrics guide.
-- [x] Inline CSS size in HTML — `webapp-v2/dist/index.html` currently embeds **0 B** inline CSS (see metrics guide for method).
-- [x] Support tickets tagged "theming" or "branding" (last 90 days) — data lives in Zendesk; action item assigned to Customer Success inside metrics guide.
-
-**Timeline:** Complete checklist before starting Week 1 implementation
 
 ### Progress – 2025-11-13 (Phase 0 ✅)
 - `BrandingTokens` schema + fixtures landed in `@splitifyd/shared`; firebase tenant schema now accepts `brandingTokens` payloads.
@@ -151,15 +137,6 @@ flowchart LR
 - **Week 1 focus:** Lock down shared `BrandingTokens` schema, fixtures, and lint/style guardrails before touching Firebase Storage. Infra (bucket, CORS) can trail once the schema stabilizes.
 - **Local tenant seeding:** Reuse existing tenant identification middleware; add explicit IDs for `tenant_localhost`, `tenant_loopback`, and `tenant_default` to avoid collisions. Ensure emulator seeds clear any legacy tenant docs so domain routing can map cleanly to the new fixtures.
 - **Token design:** Start with both primitives *and* semantic derivations (surface/interactive/text/border). Wiring semantic names early prevents future rework when Tailwind/UI primitives migrate.
-
-## Team Alignment Notes
-- **Code freeze (Dec 16–27, 2025):** Impact mail + Slack draft ready; release management co-signed. All UI refactors must land in Week 4.
-- **Design review (Nov 18, 2025 @ 10:00 PT):** Agenda + token samples shared with Dana Lee; focus on semantics + typography scale.
-- **QA staffing:** Priya Menon slots 2 engineers for Week 7 Playwright + visual regression baseline refresh.
-- **On-call rotation:** Theme on-call list captured in `docs/guides/white-label-debug-runbook.md` (Weeks 5–8) to guarantee 30‑min publish/rollback response.
-
-## Baseline Metrics Snapshot
-See `docs/guides/white-label-metrics.md` for values, owners, and next steps. Inline CSS currently 0 B; other metrics blocked pending telemetry instrumentation.
 
 ## 1. Context & Goals
 - Current tenant branding relies on ad-hoc CSS overrides that cause FOUC, timing bugs, and unmaintainable color hacks.
@@ -269,8 +246,7 @@ scripts/
 4. **Generation** – ThemeArtifactService outputs CSS + tokens, uploads them with immutable cache headers, and records provenance (hash, version, timestamp, operator UID).
 5. **Tenant Update** – Firestore `tenants/{id}` stores the new `{latestHash, cssUrl, tokensUrl}` and appends a history entry (max 10) for rollback.
 6. **Post-publish hooks** –
-   - Async job kicks off Playwright visual regression against smoke pages for the affected tenant.
-   - Optional Slack/webhook notification summarises hash and contrast metrics.
+   - Async job kicks off Playwright smoke tests against the affected tenant pages.
 7. **Rollback** – Admin console lists artifact history; selecting an older hash simply updates `latestHash` and reuses the immutable CSS already in Storage.
 
 ## 4. Tenant Resolution & Local Testing
@@ -345,9 +321,6 @@ scripts/
 - [x] Replace `bg-primary` → `bg-interactive-primary`
 - [x] Remove inline `style={{...}}` props (enforced by ESLint)
 - [x] Add data-testid for E2E tests (existing tests preserved)
-- [ ] Run visual regression
-- [ ] Deploy to staging, test 24h
-- [ ] Feature flag rollout (10% → 50% → 100%)
 
 ### Phase 3: Cleanup (Week 7)
 - [x] Remove `applyBrandingPalette()` function
@@ -356,7 +329,7 @@ scripts/
 - [x] Archive `branding.ts` utilities (keep in git history)
 
 **Rollback plan:**
-- If new theming breaks: revert feature flag (instant)
+- If new theming breaks: revert the last theming commit (instant)
 - If catastrophic: git revert + redeploy (15 min)
 
 ## 5.6. Error Handling & Fallback Behavior
@@ -470,7 +443,7 @@ const branding = tenantDoc.data()?.branding || DEFAULT_BRANDING;
    - Rebuild core UI primitives + migrate top-tier pages (landing, auth, dashboard, group detail) to semantic utilities.
    - Implement TenantBrandingPage (editor, preview iframe, publish button, history list, rollback, diff view).
 5. **Weeks 7–8 – Guardrails & Cleanup**
-   - Add visual regression suite + smoke assertions for per-tenant styles.
+   - Extend Playwright smoke assertions for per-tenant styles.
    - Remove legacy theming code paths, wire observability dashboards, enforce artifact pruning, and finalize documentation.
 
 ## 8. Testing & Verification Strategy
@@ -480,7 +453,7 @@ const branding = tenantDoc.data()?.branding || DEFAULT_BRANDING;
 - **Integration tests:**
   - Playwright flows that hit the app as each local tenant and verify key components inherit the correct CSS vars (e.g., CTA button colors, typography scale).
   - API tests for `/api/theme.css` validating caching headers, redirects, and fallback behavior.
-- **Visual regression:** Triggered post-publish; compares hero pages per tenant against golden baselines. Failures block rollout.
+- **Playwright smoke suite:** Triggered post-publish; compares hero pages per tenant against expected CSS vars to guard against regressions.
 - **Performance checks:** Monitor generation latency (<100 ms target), `/api/theme.css` P95 (<150 ms), and theme payload size (<15 KB gzipped).
 - **Manual verification:** Use emulator-hosted sample tenants (localhost + loopback) to sign off on visual parity before merging large UI refactors.
 
@@ -534,24 +507,6 @@ const branding = tenantDoc.data()?.branding || DEFAULT_BRANDING;
 **Time:** ~10 minutes  
 **Impact:** All tenants use cached/fallback CSS during rollback
 
-#### Rollback 3: UI Migration Breaks Critical Path
-**Scenario:** Week 6 migration breaks checkout flow
-
-**Detection:**
-- Drop in conversions
-- Playwright tests failing
-- Customer complaints
-
-**Steps:**
-1. **Feature flag:** Set `NEW_THEMING_ENABLED=false` in Firebase Config
-2. **Wait:** ~30s for config propagation
-3. **Verify:** Test checkout flow
-4. **Fix offline:** Debug in dev environment
-5. **Re-enable:** When fix deployed + tested
-
-**Time:** <1 minute  
-**Risk:** Low (instant rollback via feature flag)
-
 #### Rollback 4: Complete System Failure
 **Scenario:** Everything is broken (nuclear option)
 
@@ -572,6 +527,6 @@ const branding = tenantDoc.data()?.branding || DEFAULT_BRANDING;
   1. Finalize the semantic token dictionary + CSS variable naming (Week 2) so modernization can design directly against it.
   2. Provide Storybook/Playground scenes that load the localhost + loopback themes via the new API, mirroring how real tenants will look.
   3. Share migration guides for UI primitives so both squads refactor buttons/cards once instead of diverging.
-- **Shared acceptance tests:** Modern UI work must run the same manual host checks (`localhost`, `120.0.0.1`, default) to ensure stylistic changes respect tenant branding. Playwright visual regression baselines will include both the classic and modernized skins until the switch is complete.
+- **Shared acceptance tests:** Modern UI work must run the same manual host checks (`localhost`, `120.0.0.1`, default) to ensure stylistic changes respect tenant branding. Playwright smoke baselines will include both the classic and modernized skins until the switch is complete.
 - **Governance:** A joint weekly review (Theme Platform + Modern UI) confirms that component changes never bypass the semantic layer (no inline colors, no custom CSS per tenant). Any new design pattern must declare which semantic tokens it depends on before code review.
 - **API contract doc:** Create `docs/white-labelling/theme-endpoint.md` during Week 2 describing `/api/theme.css` (request headers, caching, error cases). Treat it as the interface spec the Modern UI stream codes against so they stay unblocked even if the backend endpoint is still in flight.
