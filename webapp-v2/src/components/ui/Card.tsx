@@ -1,4 +1,8 @@
 import { ComponentChildren } from 'preact';
+import type { JSX } from 'preact';
+import { cx } from '@/utils/cx.ts';
+import { Surface } from './Surface';
+import { Typography } from './Typography';
 
 interface CardProps {
     title?: string;
@@ -11,59 +15,44 @@ interface CardProps {
 }
 
 export function Card({ title, subtitle, children, onClick, className = '', padding = 'md', 'data-testid': dataTestId }: CardProps) {
-    const paddingClasses = {
-        none: 'p-0',
-        sm: 'p-4',
-        md: 'p-6',
-        lg: 'p-8',
-    };
-
-    const baseClasses = `
-    rounded-lg shadow-sm border border-primary-100
-    ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}
-    ${paddingClasses[padding]}
-    ${className}
-  `
-        .trim();
-
-    const cardStyle = 'background-color: var(--brand-card-background, white);';
-
-    const content = (
-        <>
-            {(title || subtitle) && (
-                <div className='mb-4'>
-                    {title && <h3 className='text-lg font-semibold text-gray-900'>{title}</h3>}
-                    {subtitle && <p className='text-sm text-gray-600 mt-1'>{subtitle}</p>}
-                </div>
+    const headingBlock = (title || subtitle) && (
+        <div className='mb-4 space-y-1'>
+            {title && (
+                <Typography as='h3' variant='heading'>
+                    {title}
+                </Typography>
             )}
-            {children}
-        </>
+            {subtitle && (
+                <Typography variant='caption' className='text-text-muted'>
+                    {subtitle}
+                </Typography>
+            )}
+        </div>
     );
 
-    if (onClick) {
-        return (
-            <div
-                className={baseClasses}
-                style={cardStyle}
-                onClick={onClick}
-                role='button'
-                tabIndex={0}
-                data-testid={dataTestId}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        onClick();
-                    }
-                }}
-            >
-                {content}
-            </div>
-        );
-    }
+    const handleKeyDown: JSX.KeyboardEventHandler<HTMLDivElement> = (event) => {
+        if (!onClick) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClick();
+        }
+    };
 
     return (
-        <div className={baseClasses} style={cardStyle} data-testid={dataTestId}>
-            {content}
-        </div>
+        <Surface
+            padding={padding}
+            shadow='sm'
+            border='default'
+            interactive={!!onClick}
+            className={cx('space-y-4', className)}
+            onClick={onClick}
+            role={onClick ? 'button' : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            onKeyDown={handleKeyDown}
+            data-testid={dataTestId}
+        >
+            {headingBlock}
+            {children}
+        </Surface>
     );
 }

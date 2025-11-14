@@ -15,7 +15,7 @@ import {
 } from '@splitifyd/shared';
 import {ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig} from '@splitifyd/test-support';
 import {FirestoreWriter} from "../functions/src/services/firestore";
-import { createFirestoreDatabase } from "@splitifyd/firebase-simulator/src";
+import { createFirestoreDatabase } from "@splitifyd/firebase-simulator";
 
 // Lazy initialization - will be set when Firebase is initialized
 let firestoreDb: ReturnType<typeof createFirestoreDatabase>;

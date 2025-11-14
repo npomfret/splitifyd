@@ -7,6 +7,7 @@ import type {
     FirebaseConfig,
     FormDefaults,
     TenantConfig,
+    ThemeConfig,
 } from '@splitifyd/shared';
 import {
     isoStringNow,
@@ -78,6 +79,7 @@ export class AppConfigurationBuilder {
     private environment: EnvironmentConfig;
     private formDefaults: FormDefaults;
     private tenant?: TenantConfig;
+    private theme?: ThemeConfig | null;
 
     constructor() {
         this.firebase = {
@@ -99,6 +101,7 @@ export class AppConfigurationBuilder {
         };
 
         this.tenant = this.createDefaultTenant();
+        this.theme = null;
     }
 
     withFirebaseConfig(overrides: Partial<FirebaseConfig>): this {
@@ -127,6 +130,11 @@ export class AppConfigurationBuilder {
 
     withTenantConfig(tenant: TenantConfig | null | undefined): this {
         this.tenant = tenant ? this.cloneTenant(tenant) : undefined;
+        return this;
+    }
+
+    withThemeConfig(theme: ThemeConfig | null | undefined): this {
+        this.theme = theme ? { ...theme } : null;
         return this;
     }
 
@@ -169,6 +177,7 @@ export class AppConfigurationBuilder {
             environment: { ...this.environment },
             formDefaults: { ...this.formDefaults },
             tenant: this.tenant ? this.cloneTenant(this.tenant) : undefined,
+            theme: this.theme ? { ...this.theme } : undefined,
         };
     }
 

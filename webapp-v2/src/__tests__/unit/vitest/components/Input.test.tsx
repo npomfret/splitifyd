@@ -150,7 +150,7 @@ describe('Input Component', () => {
             render(<Input label='Email' error='Invalid email format' />);
 
             const input = screen.getByRole('textbox');
-            expect(input).toHaveClass('border-red-300', 'text-red-900', 'focus:ring-red-500', 'focus:border-red-500');
+            expect(input).toHaveClass('border-red-300', 'text-red-900', 'focus-visible:ring-red-500', 'focus-visible:border-red-500');
             expect(input).toHaveAttribute('aria-invalid', 'true');
         });
 
@@ -158,7 +158,7 @@ describe('Input Component', () => {
             render(<Input label='Email' />);
 
             const input = screen.getByRole('textbox');
-            expect(input).toHaveClass('border-gray-300', 'focus:ring-primary', 'focus:border-primary');
+            expect(input).toHaveClass('border-border-default', 'focus-visible:ring-interactive-primary', 'focus-visible:border-interactive-primary');
             expect(input).toHaveAttribute('aria-invalid', 'false');
         });
 
@@ -200,7 +200,7 @@ describe('Input Component', () => {
 
             const input = screen.getByRole('textbox');
             expect(input).toBeDisabled();
-            expect(input).toHaveClass('bg-gray-50', 'text-gray-500', 'cursor-not-allowed');
+            expect(input).toHaveClass('bg-surface-muted', 'text-text-muted', 'cursor-not-allowed');
         });
 
         it('should render enabled input by default', () => {
@@ -208,7 +208,7 @@ describe('Input Component', () => {
 
             const input = screen.getByRole('textbox');
             expect(input).toBeEnabled();
-            expect(input).toHaveClass('bg-white');
+            expect(input).toHaveClass('bg-surface-base');
             expect(input).not.toHaveClass('cursor-not-allowed');
         });
     });

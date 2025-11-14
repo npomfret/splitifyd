@@ -65,6 +65,8 @@ flowchart LR
 - `/api/admin/publishTenantTheme` now exists: authenticates admins, loads tenant branding tokens, generates artifacts, saves them, and records metadata (`brandingTokens.artifact`) on the tenant document.
 - `/api/theme.css` endpoint streams the published CSS via the existing tenant resolver, complete with immutable caching headers and a targeted integration test (`theme-css.test.ts`).
 - The frontend now boots with an inline base stylesheet + render-blocking theme link, registers a tiny service worker cache, and syncs the artifact hash from `/api/config` so localhost + loopback testing never FOUCs while still honoring per-tenant CSS.
+- Tailwind now exposes semantic tokens (`surface-*`, `text-*`, `interactive-*`, etc.) backed by CSS variables, and the shared `Button` primitive has been rebuilt on top of those utilities—first page migrations can now start without inline color hacks.
+- `Card`, `Input`, and `Stack` all ride the same semantic utilities, while brand-new `Surface`, `Modal`, and `Typography` primitives give every future component a consistent foundation (ConfirmDialog already consumes them as the first adopter).
 - Tooling guardrails shipped: ESLint `no-inline-styles`, Stylelint config, and lint scripts.
 - Documentation bundle created (admin guide, dev guide, debug runbook, metrics guide) + Mermaid architecture diagram.
 

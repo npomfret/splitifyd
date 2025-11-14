@@ -1,6 +1,9 @@
-import { useEffect, useRef } from 'preact/hooks';
+import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from './Button';
+import { Modal } from './Modal';
+import { Surface } from './Surface';
+import { Typography } from './Typography';
 
 interface ConfirmDialogProps {
     isOpen: boolean;
@@ -17,7 +20,6 @@ interface ConfirmDialogProps {
 
 export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText, onConfirm, onCancel, variant = 'info', loading = false, 'data-testid': dataTestId }: ConfirmDialogProps) {
     const { t } = useTranslation();
-    const modalRef = useRef<HTMLDivElement>(null);
 
     // Handle escape key to close modal
     useEffect(() => {
@@ -34,12 +36,6 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
     }, [isOpen, onCancel, loading]);
 
     // Handle click outside modal to close
-    const handleBackdropClick = (e: Event) => {
-        if (e.target === e.currentTarget && !loading) {
-            onCancel();
-        }
-    };
-
     if (!isOpen) return null;
 
     const getVariantStyles = () => {
@@ -68,10 +64,15 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
     const styles = getVariantStyles();
 
     return (
-        <div className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} data-testid={dataTestId}>
-            <div className='relative top-20 mx-auto p-6 border w-96 shadow-lg rounded-md bg-white border-primary-100 dark:bg-gray-800' ref={modalRef} data-testid='confirmation-dialog'>
-                {/* Icon */}
-                <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full ${styles.iconBg} mb-4`}>
+        <Modal
+            open={isOpen}
+            onClose={loading ? undefined : onCancel}
+            labelledBy='confirm-dialog-title'
+            describedBy='confirm-dialog-description'
+            data-testid={dataTestId}
+        >
+            <Surface padding='lg' shadow='md' border='default' className='space-y-6' data-testid='confirmation-dialog'>
+                <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${styles.iconBg}`}>
                     {variant === 'danger'
                         ? (
                             <svg className={`h-6 w-6 ${styles.icon}`} fill='none' viewBox='0 0 24 24' stroke='currentColor' aria-hidden='true' focusable='false'>
@@ -96,16 +97,16 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
                         )}
                 </div>
 
-                {/* Content */}
-                <div className='text-center'>
-                    <h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>{title}</h3>
-                    <p className='text-sm text-gray-500 dark:text-gray-400 mb-6' data-testid={message.includes('outstanding balance') ? 'balance-error-message' : undefined}>
+                <div className='space-y-2 text-center'>
+                    <Typography as='h3' variant='heading' id='confirm-dialog-title'>
+                        {title}
+                    </Typography>
+                    <Typography variant='caption' id='confirm-dialog-description' data-testid={message.includes('outstanding balance') ? 'balance-error-message' : undefined}>
                         {message}
-                    </p>
+                    </Typography>
                 </div>
 
-                {/* Actions */}
-                <div className='flex items-center justify-end space-x-3'>
+                <div className='flex items-center justify-end gap-3'>
                     <Button variant='secondary' onClick={onCancel} disabled={loading} data-testid='cancel-button'>
                         {cancelText || t('ui.confirmDialog.cancel')}
                     </Button>
@@ -113,7 +114,7 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
                         {confirmText || t('ui.confirmDialog.confirm')}
                     </Button>
                 </div>
-            </div>
-        </div>
+            </Surface>
+        </Modal>
     );
 }

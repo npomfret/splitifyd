@@ -22,7 +22,10 @@ export class ThemeHandlers {
 
         if (!artifact) {
             logger.warn('theme-artifact-missing', { tenantId: tenantContext.tenantId });
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'THEME_ARTIFACT_MISSING', 'Tenant has no published theme');
+            res.setHeader('Content-Type', 'text/css; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.status(HTTP_STATUS.OK).send('/* No theme published for this tenant */\n');
+            return;
         }
 
         const cssContent = await this.readCssContent(artifact);

@@ -21,7 +21,7 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@splitifyd/shared';
-import { createFirestoreDatabase } from '@splitifyd/firebase-simulator/src';
+import { createFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import { FirestoreCollections } from '../functions/src/constants';
 
 interface TenantConfig {

@@ -1,5 +1,6 @@
 import type { Ref } from 'preact';
 import { useCallback } from 'preact/hooks';
+import { cx } from '@/utils/cx.ts';
 import { useTranslation } from 'react-i18next';
 
 interface InputProps {
@@ -51,33 +52,21 @@ export function Input({
     );
 
     const baseInputClasses = [
-        'block',
-        'w-full',
-        'rounded-md',
-        'border',
-        'px-3',
-        'py-2',
-        'text-gray-900',
-        'shadow-sm',
-        'placeholder:text-gray-400',
-        'focus:outline-none',
-        'focus:ring-2',
-        'sm:text-sm',
-        'sm:leading-6',
-        'transition-colors',
-        'duration-200',
+        'block w-full rounded-md border border-border-default px-3 py-2 shadow-sm',
+        'text-text-primary placeholder:text-text-muted/70',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
+        'sm:text-sm sm:leading-6 transition-colors duration-200 bg-surface-base',
     ];
 
-    const stateClasses = error ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-primary focus:border-primary';
+    const stateClasses = error ? 'border-red-300 text-red-900 focus-visible:ring-red-500 focus-visible:border-red-500' : '';
+    const disabledClasses = disabled ? 'opacity-60 cursor-not-allowed bg-surface-muted text-text-muted' : '';
 
-    const disabledClasses = disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white';
-
-    const inputClasses = [...baseInputClasses, stateClasses, disabledClasses, className].filter(Boolean).join(' ');
+    const inputClasses = cx(...baseInputClasses, stateClasses, disabledClasses, className);
 
     return (
         <div>
             {label && (
-                <label htmlFor={inputId} className='block text-sm font-medium leading-6 text-gray-900 mb-2'>
+                <label htmlFor={inputId} className='mb-2 block text-sm font-medium text-text-primary'>
                     {label}
                     {required && (
                         <span className='text-red-500 ml-1' data-testid='required-indicator'>
