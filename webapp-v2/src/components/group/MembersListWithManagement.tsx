@@ -211,7 +211,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     onClick={onInviteClick}
                     aria-label={inviteAriaLabel}
                     data-testid='invite-members-button'
-                    className='p-1 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors duration-200'
+                    className='p-1 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
                 >
                     <UserPlusIcon aria-hidden='true' className='h-5 w-5' />
                 </button>
@@ -249,7 +249,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                                 aria-label={toggleLabel}
                                 aria-expanded={!isCollapsed.value}
                                 data-testid='toggle-members-section'
-                                className='p-1 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors duration-200'
+                                className='p-1 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
                             >
                                 <ChevronDownIcon
                                     aria-hidden='true'

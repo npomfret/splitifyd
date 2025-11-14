@@ -51,7 +51,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 aria-haspopup='true'
                 aria-controls='user-dropdown-menu'
             >
-                <div class='w-8 h-8 bg-orange-100 text-primary rounded-full flex items-center justify-center'>
+                <div class='w-8 h-8 bg-orange-100 text-interactive-primary rounded-full flex items-center justify-center'>
                     <span class='text-sm font-medium'>{userInitial}</span>
                 </div>
                 <div class='hidden sm:block text-left'>
@@ -67,7 +67,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 <div
                     id='user-dropdown-menu'
                     data-testid='user-dropdown-menu'
-                    class='absolute right-0 mt-2 w-56 bg-primary-50 border-primary-100 rounded-lg shadow-lg border border-primary-100 py-1 z-50'
+                    class='absolute right-0 mt-2 w-56 bg-surface-muted border-border-default rounded-lg shadow-lg border border-border-default py-1 z-50'
                     role='menu'
                     aria-orientation='vertical'
                     aria-labelledby='user-menu-button'

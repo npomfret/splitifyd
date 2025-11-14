@@ -115,7 +115,7 @@ export function AdminTenantsPage() {
 
                 {isLoading ? (
                     <div class="flex items-center justify-center py-12">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" data-testid='tenants-loading-spinner'></div>
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-interactive-primary" data-testid='tenants-loading-spinner'></div>
                     </div>
                 ) : (
                     <>
@@ -134,7 +134,7 @@ export function AdminTenantsPage() {
                                 return (
                                     <Card
                                         key={tenant.tenant.tenantId}
-                                        className={`p-6 ${isCurrentTenant ? 'ring-2 ring-purple-500 bg-primary/10' : ''}`}
+                                        className={`p-6 ${isCurrentTenant ? 'ring-2 ring-interactive-secondary bg-interactive-secondary/10' : ''}`}
                                     >
                                         <div class="flex items-start justify-between">
                                             <div class="flex-1">
@@ -148,7 +148,7 @@ export function AdminTenantsPage() {
                                                         </span>
                                                     )}
                                                     {tenant.isDefault && (
-                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-primary-dark">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-warning text-text-primary">
                                                             Default
                                                         </span>
                                                     )}
@@ -165,7 +165,7 @@ export function AdminTenantsPage() {
                                                             <span class="text-gray-500">Primary Domain:</span>{' '}
                                                             <button
                                                                 onClick={() => handleSwitchTenant(tenant.primaryDomain!)}
-                                                                class="font-mono text-primary hover:text-primary-dark hover:underline cursor-pointer"
+                                                                class="font-mono text-interactive-primary hover:text-interactive-primary/80 hover:underline cursor-pointer"
                                                                 title="Click to switch to this tenant"
                                                             >
                                                                 {tenant.primaryDomain}
@@ -182,7 +182,7 @@ export function AdminTenantsPage() {
                                                                         {idx > 0 && ', '}
                                                                         <button
                                                                             onClick={() => handleSwitchTenant(domain)}
-                                                                            class="text-primary hover:text-primary-dark hover:underline cursor-pointer"
+                                                                            class="text-interactive-primary hover:text-interactive-primary/80 hover:underline cursor-pointer"
                                                                             title="Click to switch to this tenant"
                                                                         >
                                                                             {domain}
@@ -193,7 +193,7 @@ export function AdminTenantsPage() {
                                                         </div>
                                                     )}
 
-                                                    <div class="pt-2 border-t border-primary-100 mt-3">
+                                                    <div class="pt-2 border-t border-border-default mt-3">
                                                         <p class="text-gray-500 mb-2">Features:</p>
                                                         <div class="grid grid-cols-2 gap-2">
                                                             <div>

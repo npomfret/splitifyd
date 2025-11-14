@@ -108,7 +108,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                         resize-none overflow-hidden
                         text-sm
                         placeholder-gray-400
-                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                        focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-transparent
                         disabled:opacity-50 disabled:cursor-not-allowed
                         dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100
                         ${isOverLimit ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'}
@@ -127,7 +127,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                         transition-colors
                         ${
                             text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
-                                ? 'text-primary hover:bg-primary/10 dark:text-blue-400 dark:hover:bg-blue-900/20'
+                                ? 'text-interactive-primary hover:bg-interactive-primary/10 dark:text-blue-400 dark:hover:bg-blue-900/20'
                                 : 'text-gray-400 cursor-not-allowed'
                         }
                     `}

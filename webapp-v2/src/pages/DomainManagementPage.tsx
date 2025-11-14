@@ -146,7 +146,7 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                     <Card padding='lg'>
                         <div class='flex items-center justify-center py-12'>
                             <div class='text-center'>
-                                <div class='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-indigo-600' />
+                                <div class='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-interactive-primary/20 border-t-interactive-primary' />
                                 <p class='mt-4 text-sm text-slate-600'>Loading domain settings...</p>
                             </div>
                         </div>
@@ -162,7 +162,7 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                 <div class='space-y-8'>
                     {/* Header */}
                     <div class='flex flex-col gap-2'>
-                        <span class='text-xs font-medium uppercase tracking-wide text-primary'>
+                        <span class='text-xs font-medium uppercase tracking-wide text-interactive-primary'>
                             Tenant Settings
                         </span>
                         <div class='flex flex-col gap-2'>
@@ -202,7 +202,7 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
 
                             {/* Add Domain Form */}
                             {showAddForm && (
-                                <div class='rounded-lg border border-slate-200 bg-slate-50 p-4'>
+                                <div class='rounded-lg border border-slate-200 bg-surface-muted p-4'>
                                     <div class='space-y-4'>
                                         <Input
                                             label='New Domain'
@@ -244,7 +244,7 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                                         <div
                                             key={domain}
                                             data-testid={`domain-item-${domain}`}
-                                            class='flex items-center justify-between rounded-lg border border-slate-200 bg-primary-50 px-4 py-3'
+                                            class='flex items-center justify-between rounded-lg border border-slate-200 bg-interactive-primary/10 px-4 py-3'
                                         >
                                             <div class='flex items-center gap-3'>
                                                 <svg
@@ -264,7 +264,7 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                                                     <p class='font-medium text-slate-900'>{domain}</p>
                                                     {domain === domains.primaryDomain && (
                                                         <span
-                                                            class='mt-1 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary'
+                                                            class='mt-1 inline-flex items-center rounded-full bg-interactive-primary/10 px-2 py-0.5 text-xs font-medium text-interactive-primary'
                                                             data-testid='primary-domain-badge'
                                                         >
                                                             Primary Domain
@@ -296,7 +296,7 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                                 <div class='space-y-4'>
                                     <div class='space-y-2'>
                                         <p class='text-sm font-medium text-slate-700'>CNAME Record</p>
-                                        <div class='rounded bg-primary-50 px-3 py-2 font-mono text-sm text-slate-900'>
+                                        <div class='rounded bg-interactive-primary/10 px-3 py-2 font-mono text-sm text-slate-900'>
                                             <div class='space-y-1'>
                                                 <div><span class='text-slate-500'>Type:</span> CNAME</div>
                                                 <div><span class='text-slate-500'>Name:</span> @ (or your domain)</div>

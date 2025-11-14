@@ -16,7 +16,7 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
     const isGroupPath = path?.includes('/groups/');
 
     return (
-        <div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+        <div className='min-h-screen bg-surface-muted flex items-center justify-center'>
             <div className='text-center' data-testid='error-container'>
                 <h1 className='text-6xl font-bold text-gray-900 mb-4' data-testid='not-found-title'>
                     {t('notFoundPage.title')}
@@ -32,7 +32,7 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
                         ? (
                             <button
                                 onClick={() => navigationService.goToDashboard()}
-                                className='px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block'
+                                className='px-6 py-3 bg-interactive-primary text-interactive-primary-foreground rounded-lg hover:bg-interactive-primary/90 transition-colors inline-block'
                                 data-testid='go-to-dashboard-link'
                             >
                                 {t('notFoundPage.goToDashboard')}
@@ -41,7 +41,7 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
                         : (
                             <button
                                 onClick={() => navigationService.goHome()}
-                                className='px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block'
+                                className='px-6 py-3 bg-interactive-primary text-interactive-primary-foreground rounded-lg hover:bg-interactive-primary/90 transition-colors inline-block'
                                 data-testid='go-home-link'
                             >
                                 {t('notFoundPage.goHome')}

@@ -609,7 +609,7 @@ export function GroupSettingsModal({
         if (!groupMember) {
             if (loadingMembers.value) {
                 return (
-                    <section className='border border-primary-100 rounded-lg p-5 space-y-3 bg-gray-50/60' data-testid='group-display-name-settings'>
+                    <section className='border border-border-default rounded-lg p-5 space-y-3 bg-gray-50/60' data-testid='group-display-name-settings'>
                         <div className='h-4 bg-gray-100 animate-pulse rounded' aria-hidden='true'></div>
                         <div className='h-10 bg-gray-100 animate-pulse rounded' aria-hidden='true'></div>
                     </section>
@@ -622,7 +622,7 @@ export function GroupSettingsModal({
 
         return (
             <div className='space-y-4'>
-                <section className='border border-primary-100 rounded-lg p-5 space-y-4 bg-gray-50/60' data-testid='group-display-name-settings'>
+                <section className='border border-border-default rounded-lg p-5 space-y-4 bg-gray-50/60' data-testid='group-display-name-settings'>
                     <div>
                         <h3 className='text-sm font-semibold text-gray-900'>{t('groupDisplayNameSettings.title')}</h3>
                         <p className='text-sm text-gray-600 mt-1'>{t('groupDisplayNameSettings.description')}</p>
@@ -693,7 +693,7 @@ export function GroupSettingsModal({
                         <div>
                             <label className='block text-sm font-medium text-gray-700 mb-2'>{t('editGroupModal.descriptionLabel')}</label>
                             <textarea
-                                className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none'
+                                className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
                                 rows={3}
                                 placeholder={t('editGroupModal.descriptionPlaceholder')}
                                 value={groupDescription}
@@ -730,7 +730,7 @@ export function GroupSettingsModal({
                         )}
                     </div>
 
-                    <div className='flex items-center justify-between mt-6 pt-4 border-t border-primary-100'>
+                    <div className='flex items-center justify-between mt-6 pt-4 border-t border-border-default'>
                         <Button type='button' variant='danger' onClick={handleDeleteClick} disabled={isSubmitting} data-testid='delete-group-button'>
                             {t('editGroupModal.deleteGroupButton')}
                         </Button>
@@ -751,7 +751,7 @@ export function GroupSettingsModal({
     const renderSecurityTab = () => (
         <div className='space-y-6'>
             {hasSecurityChanges && !permissionsSuccessMessage && (
-                <div className='bg-primary/10 border border-primary/20 text-primary-dark text-sm rounded-md p-3' role='status' data-testid='security-unsaved-banner'>
+                <div className='bg-interactive-primary/10 border border-interactive-primary/20 text-interactive-primary text-sm rounded-md p-3' role='status' data-testid='security-unsaved-banner'>
                     {t('securitySettingsModal.unsavedChanges')}
                 </div>
             )}
@@ -776,7 +776,7 @@ export function GroupSettingsModal({
                                 type='button'
                                 onClick={() => applyPreset(preset)}
                                 className={`h-full border rounded-lg px-4 py-3 text-left transition ${
-                                    isActive ? 'border-primary bg-primary/10 shadow-sm' : 'border-primary-100 hover:border-primary/300 hover:bg-primary/10/40'
+                                    isActive ? 'border-interactive-primary bg-interactive-primary/10 shadow-sm' : 'border-border-default hover:border-interactive-primary/40 hover:bg-interactive-primary/10/40'
                                 }`}
                                 data-testid={`preset-button-${preset}`}
                             >
@@ -784,7 +784,7 @@ export function GroupSettingsModal({
                                     <span className='font-medium text-gray-900'>{t(`securitySettingsModal.presets.${preset}.label`)}</span>
                                 </div>
                                 <p className='text-sm text-gray-600 mt-1'>{t(`securitySettingsModal.presets.${preset}.description`)}</p>
-                                {isActive && <span className='text-xs text-primary font-medium mt-2 block'>{t('securitySettingsModal.presets.activeBadge')}</span>}
+                                {isActive && <span className='text-xs text-interactive-primary font-medium mt-2 block'>{t('securitySettingsModal.presets.activeBadge')}</span>}
                             </button>
                         );
                     })}
@@ -794,14 +794,14 @@ export function GroupSettingsModal({
             <section>
                 <div className='flex items-center justify-between mb-2'>
                     <h3 className='text-base font-semibold text-gray-900'>{t('securitySettingsModal.custom.heading')}</h3>
-                    {selectedPreset === 'custom' && hasPermissionChanges && <span className='text-xs text-primary font-medium'>{t('securitySettingsModal.custom.unsaved')}</span>}
+                    {selectedPreset === 'custom' && hasPermissionChanges && <span className='text-xs text-interactive-primary font-medium'>{t('securitySettingsModal.custom.unsaved')}</span>}
                 </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {permissionOrder.map((key) => (
-                        <label key={key} className='flex flex-col text-sm text-gray-700 gap-2 border border-primary-100 rounded-lg px-4 py-3'>
+                        <label key={key} className='flex flex-col text-sm text-gray-700 gap-2 border border-border-default rounded-lg px-4 py-3'>
                             <span className='font-medium text-gray-900'>{t(`securitySettingsModal.permissions.${key}.label`)}</span>
                             <select
-                                className='border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm'
+                                className='border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-sm'
                                 value={permissionDraft[key]}
                                 onChange={(event) => handlePermissionChange(key, event.currentTarget.value)}
                                 data-testid={`permission-select-${key}`}
@@ -824,13 +824,13 @@ export function GroupSettingsModal({
                     <h3 className='text-base font-semibold text-gray-900 mb-3'>{t('securitySettingsModal.memberRoles.heading')}</h3>
                     <div className='space-y-3'>
                         {members.map((member) => (
-                            <div key={member.uid} className='flex items-center justify-between border border-primary-100 rounded-lg px-4 py-2'>
+                            <div key={member.uid} className='flex items-center justify-between border border-border-default rounded-lg px-4 py-2'>
                                 <div>
                                     <div className='font-medium text-gray-900 text-sm'>{member.groupDisplayName || member.uid}</div>
                                     <div className='text-xs text-gray-500'>{t(`securitySettingsModal.memberRoles.${memberRoleDrafts[member.uid] ?? member.memberRole}`)}</div>
                                 </div>
                                 <select
-                                    className='border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary'
+                                    className='border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary'
                                     value={memberRoleDrafts[member.uid] ?? member.memberRole}
                                     onChange={(event) => updateMemberRoleDraft(member.uid, event.currentTarget.value as MemberRole)}
                                     disabled={member.uid === group.createdBy}
@@ -860,7 +860,7 @@ export function GroupSettingsModal({
                     {!loadingPending && pendingMembers.length === 0 && <p className='text-sm text-gray-600'>{t('securitySettingsModal.pendingMembers.empty')}</p>}
                     <div className='space-y-3'>
                         {pendingMembers.map((member) => (
-                            <div key={member.uid} className='flex items-center justify-between border border-primary-100 rounded-lg px-4 py-2'>
+                            <div key={member.uid} className='flex items-center justify-between border border-border-default rounded-lg px-4 py-2'>
                                 <div>
                                     <div className='font-medium text-gray-900 text-sm'>{member.groupDisplayName || member.uid}</div>
                                     <div className='text-xs text-gray-500'>{t('securitySettingsModal.pendingMembers.requested')}</div>
@@ -891,7 +891,7 @@ export function GroupSettingsModal({
                 </section>
             )}
 
-            <div className='border-t border-primary-100 pt-4 flex justify-end gap-3'>
+            <div className='border-t border-border-default pt-4 flex justify-end gap-3'>
                 <Button variant='secondary' onClick={onClose} data-testid='group-settings-close-button'>
                     {t('common.close')}
                 </Button>
@@ -906,12 +906,12 @@ export function GroupSettingsModal({
         <>
             <div className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
                 <div
-                    className='relative top-12 mx-auto w-full max-w-3xl bg-white border-primary-100 rounded-xl shadow-xl border border-primary-100'
+                    className='relative top-12 mx-auto w-full max-w-3xl bg-white border-border-default rounded-xl shadow-xl border border-border-default'
                     role='dialog'
                     aria-modal='true'
                     aria-labelledby='group-settings-modal-title'
                 >
-                    <div className='flex items-center justify-between px-6 py-4 border-b border-primary-100'>
+                    <div className='flex items-center justify-between px-6 py-4 border-b border-border-default'>
                         <div>
                             <h2 id='group-settings-modal-title' className='text-lg font-semibold text-gray-900' data-testid='group-settings-modal-title'>
                                 {t('groupSettingsModal.title')}
@@ -932,7 +932,7 @@ export function GroupSettingsModal({
                     </div>
 
                     {availableTabs.length > 1 && (
-                        <div className='px-6 pt-4 border-b border-primary-100'>
+                        <div className='px-6 pt-4 border-b border-border-default'>
                             <div className='flex gap-4'>
                                 {availableTabs.map((tab) => {
                                     const isActive = tab === activeTab;
@@ -942,7 +942,7 @@ export function GroupSettingsModal({
                                             type='button'
                                             onClick={() => setActiveTab(tab)}
                                             className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
-                                                isActive ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                                isActive ? 'border-interactive-primary text-interactive-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                             }`}
                                             data-testid={`group-settings-tab-${tab}`}
                                         >
@@ -964,8 +964,8 @@ export function GroupSettingsModal({
 
             {showDeleteConfirm && (
                 <div className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center'>
-                    <div className='relative bg-white border-primary-100 rounded-lg shadow-lg max-w-md w-full mx-4' data-testid='delete-group-dialog'>
-                        <div className='px-6 py-4 border-b border-primary-100'>
+                    <div className='relative bg-white border-border-default rounded-lg shadow-lg max-w-md w-full mx-4' data-testid='delete-group-dialog'>
+                        <div className='px-6 py-4 border-b border-border-default'>
                             <h3 className='text-lg font-semibold text-red-800 flex items-center'>
                                 <span className='mr-2'>⚠️</span>
                                 {t('editGroupModal.deleteConfirmDialog.title')}
@@ -1006,7 +1006,7 @@ export function GroupSettingsModal({
                             )}
                         </div>
 
-                        <div className='px-6 py-4 border-t border-primary-100 flex justify-end space-x-3'>
+                        <div className='px-6 py-4 border-t border-border-default flex justify-end space-x-3'>
                             <Button type='button' variant='secondary' onClick={handleDeleteCancel} disabled={isDeleting}>
                                 {t('editGroupModal.deleteConfirmDialog.cancelText')}
                             </Button>

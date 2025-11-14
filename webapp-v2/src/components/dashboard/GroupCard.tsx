@@ -97,7 +97,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
     const showQuickActions = !isArchivedView && (onInvite || onAddExpense);
 
     return (
-        <Card onClick={onClick} className='hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border-primary-100 h-full flex flex-col group' padding='md' data-testid='group-card'>
+        <Card onClick={onClick} className='hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border-border-default h-full flex flex-col group' padding='md' data-testid='group-card'>
             <div class='flex-1 relative'>
                 {/* Action buttons - positioned absolutely in top right */}
                 {showQuickActions && (
@@ -106,7 +106,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                             <Tooltip content={t('groupCard.addExpenseTooltip', { groupName: group.name })}>
                                 <button
                                     onClick={(e) => handleActionClick(e, () => onAddExpense(group.id))}
-                                    class='p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-full transition-colors'
+                                    class='p-1.5 text-gray-400 hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-full transition-colors'
                                     aria-label={t('groupCard.addExpenseTooltip', { groupName: group.name })}
                                 >
                                     <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
@@ -119,7 +119,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                             <Tooltip content={t('groupCard.inviteTooltip', { groupName: group.name })}>
                                 <button
                                     onClick={(e) => handleActionClick(e, () => onInvite(group.id))}
-                                    class='p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-full transition-colors'
+                                    class='p-1.5 text-gray-400 hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-full transition-colors'
                                     aria-label={t('groupCard.inviteTooltip', { groupName: group.name })}
                                 >
                                     <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>

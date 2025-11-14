@@ -6,7 +6,7 @@ interface LoadingSpinnerProps {
     fullScreen?: boolean;
 }
 
-export function LoadingSpinner({ size = 'md', color = 'text-primary-600', fullScreen = false }: LoadingSpinnerProps) {
+export function LoadingSpinner({ size = 'md', color = 'text-interactive-primary', fullScreen = false }: LoadingSpinnerProps) {
     const { t } = useTranslation();
     const sizeClasses = {
         sm: 'w-4 h-4',

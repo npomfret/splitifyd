@@ -385,7 +385,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             <div
                 ref={modalRef}
                 data-testid='settlement-form-modal'
-                class='bg-interactive-primary/10 border-primary-100 rounded-lg max-w-md w-full p-6 shadow-xl'
+                class='bg-interactive-primary/10 border-border-default rounded-lg max-w-md w-full p-6 shadow-xl'
                 onClick={(e: Event) => e.stopPropagation()}
                 role='dialog'
                 aria-modal='true'
@@ -413,7 +413,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                     if (userDebts.length === 0) return null;
 
                     return (
-                        <div class='mb-4 pb-4 border-b border-primary-100'>
+                        <div class='mb-4 pb-4 border-b border-border-default'>
                             <label class='block text-sm font-medium text-text-primary mb-2 text-center'>
                                 Quick settle:
                             </label>

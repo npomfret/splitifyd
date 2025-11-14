@@ -204,13 +204,13 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
     return (
         <>
             <div class='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
-                <div class='relative top-20 mx-auto w-96 shadow-xl rounded-lg bg-primary-50 border-primary-100 overflow-hidden' role='dialog' aria-modal='true' aria-labelledby='share-modal-title'>
+                <div class='relative top-20 mx-auto w-96 shadow-xl rounded-lg bg-interactive-primary/10 border-interactive-primary/20 overflow-hidden' role='dialog' aria-modal='true' aria-labelledby='share-modal-title'>
                     {/* Modal Header with colored background */}
-                    <div class='bg-gradient-to-r from-primary/10 to-primary/10 px-6 py-4 border-b border-primary/10'>
+                    <div class='bg-gradient-to-r from-interactive-primary/10 to-interactive-primary/10 px-6 py-4 border-b border-interactive-primary/10'>
                         <div class='flex items-center justify-between'>
                             <div class='flex flex-col space-y-1'>
                                 <div class='flex items-center space-x-2'>
-                                    <svg class='w-5 h-5 text-primary' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                    <svg class='w-5 h-5 text-interactive-primary' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                         <path
                                             stroke-linecap='round'
                                             stroke-linejoin='round'
@@ -250,7 +250,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
                         {loading && (
                             <div class='flex justify-center py-8'>
-                                <div class='animate-spin rounded-full h-10 w-10 border-b-2 border-primary'></div>
+                                <div class='animate-spin rounded-full h-10 w-10 border-b-2 border-interactive-primary'></div>
                             </div>
                         )}
 
@@ -272,7 +272,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                             type='text'
                                             value={shareLink}
                                             readOnly={true}
-                                            class='w-full pl-3 pr-12 py-3 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent'
+                                            class='w-full pl-3 pr-12 py-3 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-transparent'
                                             onClick={(e) => (e.target as HTMLInputElement).select()}
                                             data-testid='share-link-input'
                                             autoComplete='off'
@@ -281,7 +281,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                             <button
                                                 type='button'
                                                 onClick={copyToClipboard}
-                                                class='absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-md transition-all duration-200'
+                                                class='absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-md transition-all duration-200'
                                                 data-testid='copy-link-button'
                                                 aria-label={t('shareGroupModal.copyLinkAriaLabel')}
                                             >
@@ -307,7 +307,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
                                     {/* QR Code section */}
                                     <div class='flex flex-col items-center py-4'>
-                                        <div class='p-4 bg-primary-50 border-primary-100 rounded-lg border border-primary-100'>
+                                        <div class='p-4 bg-interactive-primary/10 border-interactive-primary/20 rounded-lg border border-interactive-primary/20'>
                                             <QRCodeCanvas value={shareLink} size={150} />
                                         </div>
                                         <p class='text-sm text-gray-500 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
@@ -316,7 +316,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                 <button
                                                     type='button'
                                                     onClick={() => setRefreshCounter((count) => count + 1)}
-                                                    class='p-2 rounded-full text-primary hover:text-primary hover:bg-primary/10 transition disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed'
+                                                    class='p-2 rounded-full text-interactive-primary hover:text-interactive-primary hover:bg-interactive-primary/10 transition disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed'
                                                     data-testid='generate-new-link-button'
                                                     disabled={loading}
                                                     aria-label={t('shareGroupModal.generateNew')}
@@ -354,8 +354,8 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                     aria-pressed={isSelected}
                                                     class={`px-3 py-1.5 rounded-md border text-sm transition ${
                                                         isSelected
-                                                            ? 'border-primary bg-primary/10 text-primary shadow-sm'
-                                                            : 'border-gray-300 text-gray-600 hover:border-primary/400 hover:text-primary'
+                                                            ? 'border-interactive-primary/20 bg-interactive-primary/10 text-interactive-primary shadow-sm'
+                                                            : 'border-gray-300 text-gray-600 hover:border-interactive-primary/40 hover:text-interactive-primary'
                                                     }`}
                                                     disabled={loading && isSelected}
                                                 >

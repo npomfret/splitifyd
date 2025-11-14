@@ -48,17 +48,17 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         return (
             <div class='flex items-center gap-4'>
-                <button onClick={() => navigation.goToLogin()} class='text-gray-700 hover:text-primary transition-colors' data-testid='header-login-link'>
+                <button onClick={() => navigation.goToLogin()} class='text-gray-700 hover:text-interactive-primary transition-colors' data-testid='header-login-link'>
                     {t('header.login')}
                 </button>
-                <button onClick={() => navigation.goToRegister()} class='bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors' data-testid='header-signup-link'>
+                <button onClick={() => navigation.goToRegister()} class='bg-interactive-primary text-interactive-primary-foreground px-4 py-2 rounded-lg hover:bg-interactive-primary/90 transition-colors' data-testid='header-signup-link'>
                     {t('header.signUp')}
                 </button>
             </div>
         );
     };
 
-    const headerClasses = 'shadow-sm border-b border-primary-100';
+    const headerClasses = 'shadow-sm border-b border-border-default';
     const headerStyle = 'background-color: var(--brand-header-background, white);';
 
     return (

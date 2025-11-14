@@ -123,7 +123,7 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
         'duration-200',
     ];
 
-    const stateClasses = error ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-primary focus:border-primary';
+    const stateClasses = error ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-interactive-primary focus:border-interactive-primary';
 
     const inputClasses = [...baseInputClasses, stateClasses, className].filter(Boolean).join(' ');
 
@@ -170,7 +170,7 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
                                 key={suggestion.name}
                                 onClick={() => handleSuggestionClick(suggestion)}
                                 className={`cursor-pointer select-none relative py-2 pl-3 pr-9 flex items-center space-x-3 ${
-                                    index === highlightedIndex ? 'bg-primary text-white' : 'text-gray-900 hover:bg-gray-100'
+                                    index === highlightedIndex ? 'bg-interactive-primary text-interactive-primary-foreground' : 'text-gray-900 hover:bg-gray-100'
                                 }`}
                                 role='option'
                                 aria-selected={index === highlightedIndex}

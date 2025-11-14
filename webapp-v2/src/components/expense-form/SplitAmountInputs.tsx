@@ -88,7 +88,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                         </div>
                     );
                 })}
-                <div className='pt-2 border-t border-primary-100 dark:border-gray-700'>
+                <div className='pt-2 border-t border-border-default dark:border-gray-700'>
                     <div className='flex justify-between text-sm'>
                         <span className='font-medium text-gray-700 dark:text-gray-300'>{t('expenseComponents.splitAmountInputs.total')}</span>
                         <span
@@ -156,7 +156,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                         </div>
                     );
                 })}
-                <div className='pt-2 border-t border-primary-100 dark:border-gray-700'>
+                <div className='pt-2 border-t border-border-default dark:border-gray-700'>
                     <div className='flex justify-between text-sm'>
                         <span className='font-medium text-gray-700 dark:text-gray-300'>{t('expenseComponents.splitAmountInputs.total')}</span>
                         <span

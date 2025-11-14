@@ -129,7 +129,7 @@ export function SettlementHistory({
 
     return (
         <div class='space-y-2'>
-            <div class='pb-2 border-b border-primary-100 space-y-2'>
+            <div class='pb-2 border-b border-border-default space-y-2'>
                 <label class='flex items-center space-x-2 text-sm cursor-pointer'>
                     <input
                         type='checkbox'
@@ -313,7 +313,7 @@ export function SettlementHistory({
                         onClick={() => enhancedGroupDetailStore.loadMoreSettlements()}
                         disabled={isLoading.value}
                         data-testid='load-more-settlements-button'
-                        class='px-4 py-2 text-sm text-primary hover:text-primary-dark font-medium disabled:opacity-50'
+                        class='px-4 py-2 text-sm text-interactive-primary hover:text-interactive-primary font-medium disabled:opacity-50'
                     >
                         {isLoading.value ? t('common.loading') : t('settlementHistory.loadMorePayments')}
                     </button>

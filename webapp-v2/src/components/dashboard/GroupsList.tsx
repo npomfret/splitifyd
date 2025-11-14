@@ -94,7 +94,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
                 {enhancedGroupsStore.groups.map((group) => (
                     <div key={group.id} class='relative'>
                         {enhancedGroupsStore.updatingGroupIds.has(group.id) && (
-                            <div class='absolute inset-0 bg-primary-50 bg-opacity-75 rounded-lg flex items-center justify-center z-10'>
+                            <div class='absolute inset-0 bg-interactive-primary/10 bg-opacity-75 rounded-lg flex items-center justify-center z-10'>
                                 <LoadingSpinner />
                             </div>
                         )}

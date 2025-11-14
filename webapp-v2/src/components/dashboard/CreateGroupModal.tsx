@@ -205,7 +205,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
     return (
         <div class='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
-            <div class='relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-primary-50 border-primary-100' ref={modalRef} role='dialog' aria-modal='true' aria-labelledby='create-group-modal-title'>
+            <div class='relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-interactive-primary/10 border-interactive-primary/20' ref={modalRef} role='dialog' aria-modal='true' aria-labelledby='create-group-modal-title'>
                 {/* Modal Header */}
                 <div class='flex items-center justify-between mb-6'>
                     <h3 id='create-group-modal-title' class='text-lg font-semibold text-gray-900'>
@@ -282,7 +282,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                             <textarea
                                 name='description'
                                 data-testid='group-description-input'
-                                class='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none'
+                                class='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
                                 rows={3}
                                 placeholder={t('createGroupModal.groupDescriptionPlaceholder')}
                                 value={groupDescriptionSignal.value}
@@ -319,7 +319,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     </div>
 
                     {/* Modal Footer */}
-                    <div class='flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-primary-100'>
+                    <div class='flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-border-default'>
                         <Button
                             type='button'
                             variant='secondary'

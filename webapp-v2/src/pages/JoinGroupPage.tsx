@@ -267,7 +267,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                         className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50'
                         onClick={(e) => e.target === e.currentTarget && handleCancelNamePrompt()}
                     >
-                        <div className='relative top-20 mx-auto w-full max-w-md bg-white border-primary-100 rounded-lg shadow-xl p-6'>
+                        <div className='relative top-20 mx-auto w-full max-w-md bg-white border-border-default rounded-lg shadow-xl p-6'>
                             <h3 className='text-lg font-semibold text-gray-900 mb-4'>
                                 Choose your display name
                             </h3>

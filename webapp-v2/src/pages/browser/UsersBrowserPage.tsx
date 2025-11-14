@@ -427,8 +427,8 @@ export function UsersBrowserPage() {
         if (!selectedUserData.value && !jsonViewLoading.value) return null;
         return (
             <div class='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4'>
-                <div class='bg-primary-50 border-primary-100 rounded-lg shadow-xl max-w-7xl w-full max-h-[80vh] overflow-hidden flex flex-col'>
-                    <div class='px-4 py-3 border-b border-primary-100 flex items-center justify-between'>
+                <div class='bg-interactive-primary/10 border-border-default rounded-lg shadow-xl max-w-7xl w-full max-h-[80vh] overflow-hidden flex flex-col'>
+                    <div class='px-4 py-3 border-b border-border-default flex items-center justify-between'>
                         <h2 class='text-lg font-semibold text-gray-800'>{t('usersBrowser.jsonViewTitle')}</h2>
                         <div class='flex items-center gap-2'>
                             <Button variant='secondary' onClick={copyJson} ariaLabel={t('usersBrowser.copyJson')}>
@@ -449,13 +449,13 @@ export function UsersBrowserPage() {
                             <div class='flex-1 overflow-auto grid grid-cols-2 gap-4 p-4'>
                                 <div class='flex flex-col'>
                                     <h3 class='text-sm font-semibold text-gray-700 mb-2 px-4 py-2 bg-blue-50 rounded-t-lg'>Firebase Auth</h3>
-                                    <pre class='flex-1 overflow-auto p-4 text-sm bg-gray-50 text-gray-800 whitespace-pre-wrap border border-primary-100 rounded-b-lg'>
+                                    <pre class='flex-1 overflow-auto p-4 text-sm bg-gray-50 text-gray-800 whitespace-pre-wrap border border-border-default rounded-b-lg'>
                                     {JSON.stringify(selectedUserData.value?.auth ?? null, null, 2)}
                                     </pre>
                                 </div>
                                 <div class='flex flex-col'>
                                     <h3 class='text-sm font-semibold text-gray-700 mb-2 px-4 py-2 bg-green-50 rounded-t-lg'>Firestore Document</h3>
-                                    <pre class='flex-1 overflow-auto p-4 text-sm bg-gray-50 text-gray-800 whitespace-pre-wrap border border-primary-100 rounded-b-lg'>
+                                    <pre class='flex-1 overflow-auto p-4 text-sm bg-gray-50 text-gray-800 whitespace-pre-wrap border border-border-default rounded-b-lg'>
                                     {JSON.stringify(selectedUserData.value?.firestore ?? null, null, 2)}
                                     </pre>
                                 </div>
@@ -510,7 +510,7 @@ export function UsersBrowserPage() {
                             {!authLoading.value && authUsers.value.length === 0 && !authError.value && <Alert type='info' message={t('usersBrowser.noResults')} />}
 
                             {authUsers.value.length > 0 && (
-                                <div class='overflow-x-auto border border-primary-100 rounded-lg'>
+                                <div class='overflow-x-auto border border-border-default rounded-lg'>
                                     <table class='min-w-full divide-y divide-gray-200'>
                                         <thead class='bg-gray-50'>
                                             <tr>
@@ -537,7 +537,7 @@ export function UsersBrowserPage() {
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody class='bg-primary-50 divide-y divide-gray-200'>
+                                        <tbody class='bg-surface-muted divide-y divide-gray-200'>
                                             {authUsers.value.map((authUser) => {
                                                 const metadata = authUser.metadata;
                                                 return (
@@ -623,7 +623,7 @@ export function UsersBrowserPage() {
                             {!firestoreLoading.value && firestoreUsers.value.length === 0 && !firestoreError.value && <Alert type='info' message={t('usersBrowser.noResults')} />}
 
                             {firestoreUsers.value.length > 0 && (
-                                <div class='overflow-x-auto border border-primary-100 rounded-lg'>
+                                <div class='overflow-x-auto border border-border-default rounded-lg'>
                                     <table class='min-w-full divide-y divide-gray-200'>
                                         <thead class='bg-gray-50'>
                                             <tr>
@@ -644,7 +644,7 @@ export function UsersBrowserPage() {
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody class='bg-primary-50 divide-y divide-gray-200'>
+                                        <tbody class='bg-surface-muted divide-y divide-gray-200'>
                                             {firestoreUsers.value.map((firestoreUser) => (
                                                 <tr key={String(firestoreUser.id)}>
                                                     <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(firestoreUser.id ?? '')}</td>

@@ -144,6 +144,7 @@ flowchart LR
 ### Progress – Phase 3 Cleanup (2025-11-14)
 - Removed the legacy `branding.ts` utilities and `applyBrandingPalette()` so only `/api/theme.css` sets tenant styling. Config loading now limits itself to document metadata (title, `<meta name="theme-color">`, favicon) before deferring to the Theme Artifact pipeline.
 - Deleted the related unit tests and wiring to eliminate the second CSS-variable injector. Remaining cleanup (purging the legacy Tailwind `primary` palette) is tracked under the Phase 3 checklist.
+- Completed the `primary-*` Tailwind sweep: Admin Tenants, Domain Management, Join Group, dashboard cards/feed/empty states, settlements, comments, expense split UI, sidebar widgets, pagination, and CurrencyAmountInput now rely solely on semantic tokens (`bg/interative-*`, `text-text-*`, `border-border-*`). Removed the `primary` palette from `tailwind.config.js` and updated shared inputs/spinners so no `bg/text/border-primary` utilities remain.
 
 
 ## Expert Check-in – 2025-11-13
@@ -351,7 +352,7 @@ scripts/
 ### Phase 3: Cleanup (Week 7)
 - [x] Remove `applyBrandingPalette()` function
 - [x] Delete old CSS variable injection code
-- [ ] Remove old Tailwind color mappings
+- [x] Remove old Tailwind color mappings
 - [x] Archive `branding.ts` utilities (keep in git history)
 
 **Rollback plan:**
