@@ -536,7 +536,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 data-testid='settlement-amount-input'
                             />
                             {amountPrecisionError && (
-                                <p class='mt-2 text-sm text-red-600' role='alert' data-testid='settlement-amount-error'>
+                                <p class='mt-2 text-sm text-semantic-error' role='alert' data-testid='settlement-amount-error'>
                                     {amountPrecisionError}
                                 </p>
                             )}
@@ -582,8 +582,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
                         {/* Warning Message */}
                         {warningMessage && (
-                            <div class='p-3 bg-yellow-50 border border-yellow-200 rounded-md'>
-                                <p class='text-sm text-yellow-800' role='status' data-testid='settlement-warning-message'>
+                            <div class='p-3 bg-surface-warning border border-border-warning rounded-md'>
+                                <p class='text-sm text-semantic-warning' role='status' data-testid='settlement-warning-message'>
                                     ⚠️ {warningMessage}
                                 </p>
                             </div>
@@ -591,8 +591,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
                         {/* Error Message */}
                         {validationError && (
-                            <div class='p-3 bg-red-50 border border-red-200 rounded-md'>
-                                <p class='text-sm text-red-600' role='alert' data-testid='settlement-validation-error'>
+                            <div class='p-3 bg-surface-error border border-border-error rounded-md'>
+                                <p class='text-sm text-semantic-error' role='alert' data-testid='settlement-validation-error'>
                                     {validationError}
                                 </p>
                             </div>

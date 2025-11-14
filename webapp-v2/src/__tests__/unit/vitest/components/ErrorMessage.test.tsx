@@ -32,18 +32,18 @@ describe('ErrorMessage Component', () => {
             // Check for the SVG icon
             const icon = errorElement.querySelector('svg');
             expect(icon).toBeInTheDocument();
-            expect(icon).toHaveClass('w-4', 'h-4', 'text-red-400');
+            expect(icon).toHaveClass('w-4', 'h-4', 'text-semantic-error/80');
         });
 
         it('should apply proper error styling classes', () => {
             render(<ErrorMessage error='Form validation error' />);
 
             const errorElement = screen.getByTestId('error-message');
-            expect(errorElement).toHaveClass('text-red-600');
+            expect(errorElement).toHaveClass('text-semantic-error');
             expect(errorElement).toHaveClass('text-sm');
-            expect(errorElement).toHaveClass('bg-red-50');
+            expect(errorElement).toHaveClass('bg-surface-error');
             expect(errorElement).toHaveClass('border');
-            expect(errorElement).toHaveClass('border-red-200');
+            expect(errorElement).toHaveClass('border-border-error');
             expect(errorElement).toHaveClass('rounded-md');
             expect(errorElement).toHaveClass('p-3');
         });
@@ -131,7 +131,7 @@ describe('ErrorMessage Component', () => {
             expect(errorElement).toBeInTheDocument();
 
             // Should have the base classes but no additional custom classes
-            expect(errorElement).toHaveClass('text-red-600', 'text-sm', 'bg-red-50');
+            expect(errorElement).toHaveClass('text-semantic-error', 'text-sm', 'bg-surface-error');
         });
 
         it('should append custom className to default classes', () => {
@@ -141,7 +141,7 @@ describe('ErrorMessage Component', () => {
             expect(errorElement).toBeInTheDocument();
 
             // Should have both default and custom classes
-            expect(errorElement).toHaveClass('text-red-600', 'text-sm', 'bg-red-50');
+            expect(errorElement).toHaveClass('text-semantic-error', 'text-sm', 'bg-surface-error');
             expect(errorElement).toHaveClass('mt-4', 'font-bold');
         });
 
@@ -150,7 +150,7 @@ describe('ErrorMessage Component', () => {
 
             const errorElement = screen.getByTestId('error-message');
             expect(errorElement).toBeInTheDocument();
-            expect(errorElement).toHaveClass('text-red-600', 'text-sm', 'bg-red-50');
+            expect(errorElement).toHaveClass('text-semantic-error', 'text-sm', 'bg-surface-error');
         });
     });
 
@@ -204,9 +204,9 @@ describe('ErrorMessage Component', () => {
             expect(errorElement).toHaveAttribute('data-testid', 'error-message');
 
             // Should have proper styling to distinguish from financial displays
-            expect(errorElement).toHaveClass('text-red-600');
-            expect(errorElement).toHaveClass('bg-red-50');
-            expect(errorElement).toHaveClass('border-red-200');
+            expect(errorElement).toHaveClass('text-semantic-error');
+            expect(errorElement).toHaveClass('bg-surface-error');
+            expect(errorElement).toHaveClass('border-border-error');
 
             // Should not have financial-amount attributes
             expect(errorElement).not.toHaveAttribute('data-financial-amount');
@@ -227,7 +227,7 @@ describe('ErrorMessage Component', () => {
             expect(errorElement.getAttribute('data-testid')).toContain('error');
 
             // Should have red text styling for visual error identification
-            expect(errorElement).toHaveClass('text-red-600');
+            expect(errorElement).toHaveClass('text-semantic-error');
         });
     });
 });

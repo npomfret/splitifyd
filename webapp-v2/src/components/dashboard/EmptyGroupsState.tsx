@@ -8,7 +8,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
     const { t } = useTranslation();
     return (
         <div class='text-center py-12'>
-            <div class='text-gray-400 mb-4'>
+            <div class='text-text-muted/80 mb-4'>
                 <svg class='w-16 h-16 mx-auto mb-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                     <path
                         stroke-linecap='round'
@@ -19,8 +19,8 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                 </svg>
             </div>
 
-            <h4 class='text-lg font-medium text-gray-900 mb-2'>{t('emptyGroupsState.title')}</h4>
-            <p class='text-gray-600 mb-6 max-w-md mx-auto'>{t('emptyGroupsState.description')}</p>
+            <h4 class='text-lg font-medium text-text-primary mb-2'>{t('emptyGroupsState.title')}</h4>
+            <p class='text-text-muted mb-6 max-w-md mx-auto'>{t('emptyGroupsState.description')}</p>
 
             <button onClick={onCreateGroup} class='bg-interactive-primary text-interactive-primary-foreground px-6 py-3 rounded-md hover:bg-interactive-primary/90 transition-colors font-medium'>
                 {t('emptyGroupsState.createFirstGroup')}
@@ -28,7 +28,7 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
 
             {/* Additional getting started tips */}
             <div class='mt-8 text-left max-w-2xl mx-auto'>
-                <h5 class='text-sm font-medium text-gray-900 mb-3'>{t('emptyGroupsState.gettingStartedTitle')}</h5>
+                <h5 class='text-sm font-medium text-text-primary mb-3'>{t('emptyGroupsState.gettingStartedTitle')}</h5>
                 <div class='grid md:grid-cols-3 gap-4'>
                     <div class='bg-interactive-primary/10 p-4 rounded-lg'>
                         <div class='text-interactive-primary mb-2'>
@@ -41,22 +41,22 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                                 />
                             </svg>
                         </div>
-                        <h6 class='font-medium text-gray-900 mb-1'>{t('emptyGroupsState.step1Title')}</h6>
-                        <p class='text-sm text-gray-600'>{t('emptyGroupsState.step1Description')}</p>
+                        <h6 class='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step1Title')}</h6>
+                        <p class='text-sm text-text-muted'>{t('emptyGroupsState.step1Description')}</p>
                     </div>
 
-                    <div class='bg-green-50 p-4 rounded-lg'>
-                        <div class='text-green-600 mb-2'>
+                    <div class='bg-interactive-accent/10 p-4 rounded-lg'>
+                        <div class='text-semantic-success mb-2'>
                             <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                 <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 6v6m0 0v6m0-6h6m-6 0H6' />
                             </svg>
                         </div>
-                        <h6 class='font-medium text-gray-900 mb-1'>{t('emptyGroupsState.step2Title')}</h6>
-                        <p class='text-sm text-gray-600'>{t('emptyGroupsState.step2Description')}</p>
+                        <h6 class='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step2Title')}</h6>
+                        <p class='text-sm text-text-muted'>{t('emptyGroupsState.step2Description')}</p>
                     </div>
 
-                    <div class='bg-blue-50 p-4 rounded-lg'>
-                        <div class='text-blue-600 mb-2'>
+                    <div class='bg-interactive-primary/10 p-4 rounded-lg'>
+                        <div class='text-interactive-primary mb-2'>
                             <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                 <path
                                     stroke-linecap='round'
@@ -66,8 +66,8 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                                 />
                             </svg>
                         </div>
-                        <h6 class='font-medium text-gray-900 mb-1'>{t('emptyGroupsState.step3Title')}</h6>
-                        <p class='text-sm text-gray-600'>{t('emptyGroupsState.step3Description')}</p>
+                        <h6 class='font-medium text-text-primary mb-1'>{t('emptyGroupsState.step3Title')}</h6>
+                        <p class='text-sm text-text-muted'>{t('emptyGroupsState.step3Description')}</p>
                     </div>
                 </div>
             </div>

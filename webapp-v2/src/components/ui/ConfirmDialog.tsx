@@ -42,20 +42,20 @@ export function ConfirmDialog({ isOpen, title, message, confirmText, cancelText,
         switch (variant) {
             case 'danger':
                 return {
-                    icon: 'text-red-600',
-                    iconBg: 'bg-red-100',
+                    icon: 'text-semantic-error',
+                    iconBg: 'bg-surface-error',
                     button: 'danger' as const,
                 };
             case 'warning':
                 return {
-                    icon: 'text-yellow-600',
-                    iconBg: 'bg-yellow-100',
+                    icon: 'text-semantic-warning',
+                    iconBg: 'bg-surface-warning',
                     button: 'primary' as const,
                 };
             default:
                 return {
-                    icon: 'text-blue-600',
-                    iconBg: 'bg-blue-100',
+                    icon: 'text-interactive-primary',
+                    iconBg: 'bg-interactive-primary/10',
                     button: 'primary' as const,
                 };
         }

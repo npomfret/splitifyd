@@ -11,7 +11,16 @@ interface CommentItemProps {
 export function CommentItem({ comment, showAvatar = true, className = '' }: CommentItemProps) {
     const getAvatarColor = (authorId: string): string => {
         // Generate a consistent color based on the user ID
-        const colors = ['bg-orange-500', 'bg-red-500', 'bg-orange-600', 'bg-red-600', 'bg-orange-400', 'bg-red-400', 'bg-orange-700', 'bg-red-700'];
+        const colors = [
+            'bg-interactive-secondary',
+            'bg-semantic-error',
+            'bg-interactive-secondary/80',
+            'bg-semantic-error/80',
+            'bg-interactive-secondary/60',
+            'bg-semantic-error/60',
+            'bg-interactive-secondary',
+            'bg-semantic-error'
+        ];
         const index = authorId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
         return colors[index];
     };
@@ -31,13 +40,13 @@ export function CommentItem({ comment, showAvatar = true, className = '' }: Comm
             )}
             <div className='flex-1 min-w-0'>
                 <div className='flex items-baseline gap-2 flex-wrap'>
-                    <span className='font-medium text-sm text-gray-900 dark:text-gray-100'>{comment.authorName}</span>
+                    <span className='font-medium text-sm text-text-primary dark:text-text-muted/20'>{comment.authorName}</span>
                     <RelativeTime
                         date={comment.createdAt}
-                        className='text-xs text-gray-500 dark:text-gray-400'
+                        className='text-xs text-text-muted dark:text-text-muted/80'
                     />
                 </div>
-                <p className='mt-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words'>{comment.text}</p>
+                <p className='mt-1 text-sm text-text-primary dark:text-text-muted/60 whitespace-pre-wrap break-words'>{comment.text}</p>
             </div>
         </div>
     );

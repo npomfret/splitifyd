@@ -19,7 +19,7 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
             <div className='flex items-center justify-center py-8'>
                 <div className='text-center'>
                     <div className='w-8 h-8 border-2 border-interactive-primary border-t-transparent rounded-full animate-spin mx-auto mb-2' />
-                    <p className='text-sm text-gray-500 dark:text-gray-400'>{t('comments.commentsList.loading')}</p>
+                    <p className='text-sm text-text-muted dark:text-text-muted/80'>{t('comments.commentsList.loading')}</p>
                 </div>
             </div>
         );
@@ -27,7 +27,7 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
 
     if (!loading && comments.length === 0) {
         return (
-            <div className='flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500'>
+            <div className='flex flex-col items-center justify-center py-8 text-text-muted/80 dark:text-text-muted'>
                 <ChatBubbleLeftRightIcon className='w-12 h-12 mb-2 opacity-50' aria-hidden='true' focusable='false' />
                 <p className='text-sm'>{t('comments.commentsList.empty')}</p>
                 <p className='text-xs mt-1'>{t('comments.commentsList.emptySubtext')}</p>
@@ -36,11 +36,11 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
     }
 
     return (
-        <div className={`overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 ${className}`} style={{ maxHeight }}>
+        <div className={`overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong ${className}`} style={{ maxHeight }}>
             <div className='space-y-4 px-1'>
                 {comments
                     .map((comment) => (
-                        <CommentItem key={comment.id} comment={comment} className='pb-4 border-b border-gray-100 dark:border-gray-800 last:border-0' />
+                        <CommentItem key={comment.id} comment={comment} className='pb-4 border-b border-border-default dark:border-border-strong last:border-0' />
                     ))}
             </div>
 
@@ -50,7 +50,7 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
                         onClick={onLoadMore}
                         disabled={loading}
                         data-testid='load-more-comments-button'
-                        className='px-4 py-2 text-sm text-interactive-primary hover:text-interactive-primary dark:text-blue-400 dark:hover:text-blue-300 font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+                        className='px-4 py-2 text-sm text-interactive-primary hover:text-interactive-primary dark:text-interactive-primary dark:hover:text-interactive-primary font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
                     >
                         {loading
                             ? (

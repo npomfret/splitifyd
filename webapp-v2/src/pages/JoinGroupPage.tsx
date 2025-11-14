@@ -114,14 +114,14 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     if (!actualLinkId) {
         return (
             <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
-                <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+                <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <Card className='w-full max-w-md'>
                         <div className='text-center py-8'>
-                            <div className='text-red-500 text-4xl mb-4' role='alert' data-testid='invalid-link-warning'>
+                            <div className='text-semantic-error text-4xl mb-4' role='alert' data-testid='invalid-link-warning'>
                                 ⚠️
                             </div>
-                            <h2 className='text-xl font-semibold text-gray-900 mb-2'>{t('errors.invalidLink')}</h2>
-                            <p className='text-gray-600 mb-6'>{t('joinGroupPage.errors.invalidLink')}</p>
+                            <h2 className='text-xl font-semibold text-text-primary mb-2'>{t('errors.invalidLink')}</h2>
+                            <p className='text-text-muted mb-6'>{t('joinGroupPage.errors.invalidLink')}</p>
                             <Button variant='secondary' onClick={() => navigationService.goToDashboard()} className='w-full'>
                                 {t('notFoundPage.goToDashboard')}
                             </Button>
@@ -136,11 +136,11 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     if (loadingPreview) {
         return (
             <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
-                <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+                <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <Card className='w-full max-w-md'>
                         <div className='text-center py-8'>
                             <LoadingSpinner size='lg' />
-                            <p className='text-gray-600 mt-4'>{t('joinGroupPage.loadingGroup')}</p>
+                            <p className='text-text-muted mt-4'>{t('joinGroupPage.loadingGroup')}</p>
                         </div>
                     </Card>
                 </div>
@@ -152,14 +152,14 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     if (error && !group) {
         return (
             <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
-                <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+                <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <Card className='w-full max-w-md'>
                         <div className='text-center py-8'>
-                            <div className='text-red-500 text-4xl mb-4' role='alert' data-testid='unable-join-warning'>
+                            <div className='text-semantic-error text-4xl mb-4' role='alert' data-testid='unable-join-warning'>
                                 ⚠️
                             </div>
-                            <h2 className='text-xl font-semibold text-gray-900 mb-2'>{t('joinGroupPage.errors.joinFailed')}</h2>
-                            <p className='text-gray-600 mb-6'>{error}</p>
+                            <h2 className='text-xl font-semibold text-text-primary mb-2'>{t('joinGroupPage.errors.joinFailed')}</h2>
+                            <p className='text-text-muted mb-6'>{error}</p>
                             <Button variant='secondary' onClick={() => navigationService.goToDashboard()} className='w-full'>
                                 {t('notFoundPage.goToDashboard')}
                             </Button>
@@ -174,12 +174,12 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     if (joinSuccess && group) {
         return (
             <BaseLayout title={t('joinGroupPage.joinedTitle', { groupName: group.name })} headerVariant='dashboard'>
-                <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4' data-join-success='true'>
+                <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4' data-join-success='true'>
                     <Card className='w-full max-w-md'>
                         <div className='text-center py-8'>
-                            <div className='text-green-500 text-4xl mb-4'>✅</div>
-                            <h2 className='text-xl font-semibold text-gray-900 mb-2'>{t('joinGroupPage.welcome', { groupName: group.name })}</h2>
-                            <p className='text-gray-600 mb-6'>{t('joinGroupPage.joinSuccess')}</p>
+                            <div className='text-semantic-success text-4xl mb-4'>✅</div>
+                            <h2 className='text-xl font-semibold text-text-primary mb-2'>{t('joinGroupPage.welcome', { groupName: group.name })}</h2>
+                            <p className='text-text-muted mb-6'>{t('joinGroupPage.joinSuccess')}</p>
                             <Stack spacing='md'>
                                 <Button onClick={() => navigationService.goToGroup(group.id)} fullWidth className='py-3'>
                                     {t('joinGroupPage.goToGroup')}
@@ -199,10 +199,10 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     if (group) {
         return (
             <BaseLayout title={`${isAlreadyMember ? group.name : t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
-                <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+                <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                     <div className='w-full max-w-md'>
                         <div className='text-center mb-6'>
-                            <h1 className='text-2xl font-bold text-gray-900 mb-2'>{isAlreadyMember ? group.name : t('joinGroupPage.title')}</h1>
+                            <h1 className='text-2xl font-bold text-text-primary mb-2'>{isAlreadyMember ? group.name : t('joinGroupPage.title')}</h1>
                         </div>
 
                         <Stack spacing='lg'>
@@ -214,17 +214,17 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
 
                             {/* Already Member Message */}
                             {isAlreadyMember && (
-                                <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 text-center'>
-                                    <p className='text-blue-800 font-medium mb-2'>{t('joinGroupPage.alreadyMember')}</p>
-                                    <p className='text-blue-600 text-sm'>{t('joinGroupPage.alreadyMemberDescription')}</p>
+                                <div className='bg-interactive-primary/10 border border-interactive-primary/30 rounded-lg p-4 text-center'>
+                                    <p className='text-interactive-primary font-medium mb-2'>{t('joinGroupPage.alreadyMember')}</p>
+                                    <p className='text-interactive-primary text-sm'>{t('joinGroupPage.alreadyMemberDescription')}</p>
                                 </div>
                             )}
 
                             {pendingApproval && (
-                                <div className='bg-amber-50 border border-amber-200 rounded-lg p-4' data-testid='pending-approval-alert'>
-                                    <p className='text-amber-800 font-semibold mb-2'>{t('joinGroupPage.pendingApprovalTitle')}</p>
-                                    <p className='text-amber-700 text-sm mb-3'>{t('joinGroupPage.pendingApprovalMessage', { groupName: group.name })}</p>
-                                    <p className='text-amber-700 text-xs mb-4'>{t('joinGroupPage.pendingApprovalHelp')}</p>
+                                <div className='bg-surface-warning border border-border-warning rounded-lg p-4' data-testid='pending-approval-alert'>
+                                    <p className='text-semantic-warning font-semibold mb-2'>{t('joinGroupPage.pendingApprovalTitle')}</p>
+                                    <p className='text-semantic-warning text-sm mb-3'>{t('joinGroupPage.pendingApprovalMessage', { groupName: group.name })}</p>
+                                    <p className='text-semantic-warning text-xs mb-4'>{t('joinGroupPage.pendingApprovalHelp')}</p>
                                     <Button variant='secondary' onClick={() => navigationService.goToDashboard()} fullWidth>
                                         {t('joinGroupPage.backToDashboard')}
                                     </Button>
@@ -233,11 +233,11 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
 
                             {/* Error message if any */}
                             {error && !isAlreadyMember && (
-                                <div className='bg-red-50 border border-red-200 rounded-lg p-3'>
-                                    <p className='text-red-700 text-sm' role='alert' data-testid='join-group-error-message'>
+                                <div className='bg-surface-error border border-border-error rounded-lg p-3'>
+                                    <p className='text-semantic-error text-sm' role='alert' data-testid='join-group-error-message'>
                                         {error}
                                     </p>
-                                    <Button variant='ghost' size='sm' onClick={joinGroupStore.clearError} className='mt-2 text-red-600 hover:text-red-700'>
+                                    <Button variant='ghost' size='sm' onClick={joinGroupStore.clearError} className='mt-2 text-semantic-error hover:text-semantic-error'>
                                         {t('common.dismiss')}
                                     </Button>
                                 </div>
@@ -264,14 +264,14 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 {/* Display Name Prompt Modal */}
                 {showNamePrompt && (
                     <div
-                        className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50'
+                        className='fixed inset-0 bg-text-primary bg-opacity-50 overflow-y-auto h-full w-full z-50'
                         onClick={(e) => e.target === e.currentTarget && handleCancelNamePrompt()}
                     >
-                        <div className='relative top-20 mx-auto w-full max-w-md bg-white border-border-default rounded-lg shadow-xl p-6'>
-                            <h3 className='text-lg font-semibold text-gray-900 mb-4'>
+                        <div className='relative top-20 mx-auto w-full max-w-md bg-surface-base border-border-default rounded-lg shadow-xl p-6'>
+                            <h3 className='text-lg font-semibold text-text-primary mb-4'>
                                 Choose your display name
                             </h3>
-                            <p className='text-sm text-gray-600 mb-4'>
+                            <p className='text-sm text-text-muted mb-4'>
                                 This is how other members will see you in "{group.name}"
                             </p>
                             <Input
@@ -312,10 +312,10 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Fallback - shouldn't reach here
     return (
         <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant='dashboard'>
-            <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
+            <div className='min-h-screen bg-surface-muted flex items-center justify-center p-4'>
                 <Card className='w-full max-w-md'>
                     <div className='text-center py-8'>
-                        <p className='text-gray-600'>Loading...</p>
+                        <p className='text-text-muted'>Loading...</p>
                     </div>
                 </Card>
             </div>

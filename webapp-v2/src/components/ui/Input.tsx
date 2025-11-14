@@ -58,7 +58,7 @@ export function Input({
         'sm:text-sm sm:leading-6 transition-colors duration-200 bg-surface-base',
     ];
 
-    const stateClasses = error ? 'border-red-300 text-red-900 focus-visible:ring-red-500 focus-visible:border-red-500' : '';
+    const stateClasses = error ? 'border-border-error text-semantic-error focus-visible:ring-semantic-error focus-visible:border-semantic-error' : '';
     const disabledClasses = disabled ? 'opacity-60 cursor-not-allowed bg-surface-muted text-text-muted' : '';
 
     const inputClasses = cx(...baseInputClasses, stateClasses, disabledClasses, className);
@@ -69,7 +69,7 @@ export function Input({
                 <label htmlFor={inputId} className='mb-2 block text-sm font-medium text-text-primary'>
                     {label}
                     {required && (
-                        <span className='text-red-500 ml-1' data-testid='required-indicator'>
+                        <span className='text-semantic-error ml-1' data-testid='required-indicator'>
                             {t('common.required')}
                         </span>
                     )}
@@ -96,7 +96,7 @@ export function Input({
                 />
             </div>
             {error && (
-                <p id={`${inputId}-error`} className='mt-2 text-sm text-red-600' role='alert' data-testid='input-error-message'>
+                <p id={`${inputId}-error`} className='mt-2 text-sm text-semantic-error' role='alert' data-testid='input-error-message'>
                     {error}
                 </p>
             )}

@@ -46,7 +46,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
     const toastTimerRef = useRef<number | null>(null);
     const requestIdRef = useRef(0);
     const [refreshCounter, setRefreshCounter] = useState(0);
-    const expirationContainerClass = shareLink ? 'space-y-2 border-t border-gray-100 pt-4' : 'space-y-2 pt-4';
+    const expirationContainerClass = shareLink ? 'space-y-2 border-t border-border-default pt-4' : 'space-y-2 pt-4';
     const normalizedGroupName = groupName.trim();
 
     // Handle escape key to close modal
@@ -203,7 +203,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
     return (
         <>
-            <div class='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
+            <div class='fixed inset-0 bg-text-primary bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
                 <div class='relative top-20 mx-auto w-96 shadow-xl rounded-lg bg-interactive-primary/10 border-interactive-primary/20 overflow-hidden' role='dialog' aria-modal='true' aria-labelledby='share-modal-title'>
                     {/* Modal Header with colored background */}
                     <div class='bg-gradient-to-r from-interactive-primary/10 to-interactive-primary/10 px-6 py-4 border-b border-interactive-primary/10'>
@@ -218,12 +218,12 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                             d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z'
                                         />
                                     </svg>
-                                    <h3 id='share-modal-title' class='text-lg font-semibold text-gray-900'>
+                                    <h3 id='share-modal-title' class='text-lg font-semibold text-text-primary'>
                                         {t('shareGroupModal.title')}
                                     </h3>
                                 </div>
                                 {normalizedGroupName && (
-                                    <p class='text-sm text-gray-600' data-testid='share-group-name'>
+                                    <p class='text-sm text-text-muted' data-testid='share-group-name'>
                                         {normalizedGroupName}
                                     </p>
                                 )}
@@ -232,7 +232,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                 <button
                                     type='button'
                                     onClick={onClose}
-                                    class='text-gray-400 hover:text-gray-600 transition-colors rounded-full p-1 hover:bg-gray-100'
+                                    class='text-text-muted/80 hover:text-text-muted transition-colors rounded-full p-1 hover:bg-surface-muted'
                                     data-testid='close-share-modal-button'
                                     aria-label={t('shareGroupModal.closeButtonAriaLabel')}
                                 >
@@ -246,7 +246,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
                     {/* Modal Content */}
                     <div class='p-6'>
-                        <p class='text-sm text-gray-600 mb-4'>{t('shareGroupModal.description')}</p>
+                        <p class='text-sm text-text-muted mb-4'>{t('shareGroupModal.description')}</p>
 
                         {loading && (
                             <div class='flex justify-center py-8'>
@@ -255,8 +255,8 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                         )}
 
                         {error && (
-                            <div class='bg-red-50 border border-red-200 rounded-md p-3 mb-4'>
-                                <p class='text-sm text-red-800' role='alert' data-testid='share-group-error-message'>
+                            <div class='bg-surface-error border border-border-error rounded-md p-3 mb-4'>
+                                <p class='text-sm text-semantic-error' role='alert' data-testid='share-group-error-message'>
                                     {error}
                                 </p>
                             </div>
@@ -272,7 +272,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                             type='text'
                                             value={shareLink}
                                             readOnly={true}
-                                            class='w-full pl-3 pr-12 py-3 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-transparent'
+                                            class='w-full pl-3 pr-12 py-3 border border-border-default rounded-lg bg-surface-muted text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-transparent'
                                             onClick={(e) => (e.target as HTMLInputElement).select()}
                                             data-testid='share-link-input'
                                             autoComplete='off'
@@ -281,13 +281,13 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                             <button
                                                 type='button'
                                                 onClick={copyToClipboard}
-                                                class='absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-md transition-all duration-200'
+                                                class='absolute right-2 top-1/2 -translate-y-1/2 p-2 text-text-muted hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-md transition-all duration-200'
                                                 data-testid='copy-link-button'
                                                 aria-label={t('shareGroupModal.copyLinkAriaLabel')}
                                             >
                                                 {copied
                                                     ? (
-                                                        <svg class='w-5 h-5 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                                        <svg class='w-5 h-5 text-semantic-success' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />
                                                         </svg>
                                                     )
@@ -310,7 +310,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                         <div class='p-4 bg-interactive-primary/10 border-interactive-primary/20 rounded-lg border border-interactive-primary/20'>
                                             <QRCodeCanvas value={shareLink} size={150} />
                                         </div>
-                                        <p class='text-sm text-gray-500 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
+                                        <p class='text-sm text-text-muted mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
                                         <div class='w-full flex justify-end mt-3'>
                                             <Tooltip content={t('shareGroupModal.generateNew')}>
                                                 <button
@@ -339,7 +339,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                             {/* Link expiration options */}
                             <div class={expirationContainerClass}>
                                 <div class='flex flex-col gap-3'>
-                                    <span class='text-sm font-medium text-gray-600'>
+                                    <span class='text-sm font-medium text-text-muted'>
                                         {t('shareGroupModal.expirationLabel')}
                                     </span>
                                     <div class='flex flex-wrap gap-2'>
@@ -355,7 +355,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                     class={`px-3 py-1.5 rounded-md border text-sm transition ${
                                                         isSelected
                                                             ? 'border-interactive-primary/20 bg-interactive-primary/10 text-interactive-primary shadow-sm'
-                                                            : 'border-gray-300 text-gray-600 hover:border-interactive-primary/40 hover:text-interactive-primary'
+                                                            : 'border-border-default text-text-muted hover:border-interactive-primary/40 hover:text-interactive-primary'
                                                     }`}
                                                     disabled={loading && isSelected}
                                                 >
@@ -366,7 +366,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                     </div>
                                 </div>
                                 {expiresAt && (
-                                    <p class='text-xs text-gray-500' data-testid='share-link-expiration-hint'>
+                                    <p class='text-xs text-text-muted' data-testid='share-link-expiration-hint'>
                                         {t('shareGroupModal.expiresAt', { date: formatDateTimeInUserTimeZone(new Date(expiresAt)) })}
                                     </p>
                                 )}
@@ -379,8 +379,8 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
             {/* Toast notification */}
             {showToast && (
                 <div class='fixed bottom-4 right-4 z-[60] animate-slide-up'>
-                    <div class='bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2'>
-                        <svg class='w-5 h-5 text-green-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                    <div class='bg-text-primary text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2'>
+                        <svg class='w-5 h-5 text-semantic-success' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />
                         </svg>
                         <span class='text-sm font-medium'>{t('shareGroupModal.linkCopied')}</span>

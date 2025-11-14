@@ -18,13 +18,13 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
     return (
         <div className='min-h-screen bg-surface-muted flex items-center justify-center'>
             <div className='text-center' data-testid='error-container'>
-                <h1 className='text-6xl font-bold text-gray-900 mb-4' data-testid='not-found-title'>
+                <h1 className='text-6xl font-bold text-text-primary mb-4' data-testid='not-found-title'>
                     {t('notFoundPage.title')}
                 </h1>
-                <p className='text-xl text-gray-600 mb-4' data-testid='not-found-subtitle'>
+                <p className='text-xl text-text-muted mb-4' data-testid='not-found-subtitle'>
                     {isGroupPath ? t('notFoundPage.groupNotFound') : t('notFoundPage.pageNotFound')}
                 </p>
-                <p className='text-sm text-gray-500 mb-8' data-testid='not-found-description'>
+                <p className='text-sm text-text-muted mb-8' data-testid='not-found-description'>
                     {isGroupPath ? t('notFoundPage.groupNotFoundDescription') : t('notFoundPage.pageNotFoundDescription')}
                 </p>
                 <div className='space-x-4'>

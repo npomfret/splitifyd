@@ -76,7 +76,7 @@ describe('Input Component', () => {
             const requiredIndicator = screen.getByTestId('required-indicator');
             expect(requiredIndicator).toBeInTheDocument();
             expect(requiredIndicator).toHaveTextContent('*');
-            expect(requiredIndicator).toHaveClass('text-red-500', 'ml-1');
+            expect(requiredIndicator).toHaveClass('text-semantic-error', 'ml-1');
 
             const input = screen.getByRole('textbox');
             expect(input).toBeRequired();
@@ -135,7 +135,7 @@ describe('Input Component', () => {
             const errorMessage = screen.getByTestId('input-error-message');
             expect(errorMessage).toBeInTheDocument();
             expect(errorMessage).toHaveTextContent('Username is required');
-            expect(errorMessage).toHaveClass('text-red-600');
+            expect(errorMessage).toHaveClass('text-semantic-error');
             expect(errorMessage).toHaveAttribute('role', 'alert');
         });
 
@@ -150,7 +150,7 @@ describe('Input Component', () => {
             render(<Input label='Email' error='Invalid email format' />);
 
             const input = screen.getByRole('textbox');
-            expect(input).toHaveClass('border-red-300', 'text-red-900', 'focus-visible:ring-red-500', 'focus-visible:border-red-500');
+            expect(input).toHaveClass('border-border-error', 'text-semantic-error', 'focus-visible:ring-semantic-error', 'focus-visible:border-semantic-error');
             expect(input).toHaveAttribute('aria-invalid', 'true');
         });
 
@@ -314,7 +314,7 @@ describe('Input Component', () => {
             expect(errorMessage).toHaveAttribute('role', 'alert');
 
             // Should have proper styling
-            expect(errorMessage).toHaveClass('text-red-600');
+            expect(errorMessage).toHaveClass('text-semantic-error');
 
             // Should not have financial-amount attributes
             expect(errorMessage).not.toHaveAttribute('data-financial-amount');

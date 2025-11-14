@@ -30,7 +30,7 @@ function analyzeFirestoreUserSchema(user: Record<string, unknown>): SchemaAnalys
 function renderSchemaStatus(analysis: SchemaAnalysis, translate: (key: string, data?: Record<string, string>) => string) {
     if (analysis.missing.length === 0 && analysis.unexpected.length === 0) {
         return (
-            <span class='inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700'>
+            <span class='inline-flex items-center rounded-full bg-interactive-accent/10 px-2 py-0.5 text-xs font-semibold text-semantic-success'>
                 {translate('usersBrowser.schema.ok')}
             </span>
         );
@@ -39,12 +39,12 @@ function renderSchemaStatus(analysis: SchemaAnalysis, translate: (key: string, d
     return (
         <div class='flex flex-col gap-1'>
             {analysis.missing.map((field) => (
-                <span key={`missing-${field}`} class='inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700'>
+                <span key={`missing-${field}`} class='inline-flex items-center rounded-full bg-surface-error px-2 py-0.5 text-xs font-semibold text-semantic-error'>
                     {translate('usersBrowser.schema.missing', { field })}
                 </span>
             ))}
             {analysis.unexpected.map((field) => (
-                <span key={`unexpected-${field}`} class='inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700'>
+                <span key={`unexpected-${field}`} class='inline-flex items-center rounded-full bg-surface-warning px-2 py-0.5 text-xs font-semibold text-semantic-warning'>
                     {translate('usersBrowser.schema.unexpected', { field })}
                 </span>
             ))}
@@ -104,7 +104,7 @@ export function UsersBrowserPage() {
         return (
             <div class='max-w-5xl mx-auto px-4 py-8'>
                 <Card className='p-6 space-y-4'>
-                    <h1 class='text-xl font-semibold text-gray-900'>{t('usersBrowser.title')}</h1>
+                    <h1 class='text-xl font-semibold text-text-primary'>{t('usersBrowser.title')}</h1>
                     <Alert type='error' message={t('usersBrowser.unauthorized')} />
                     <Button variant='primary' onClick={() => void navigationService.goToDashboard()}>
                         {t('userMenu.dashboard')}
@@ -429,7 +429,7 @@ export function UsersBrowserPage() {
             <div class='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4'>
                 <div class='bg-interactive-primary/10 border-border-default rounded-lg shadow-xl max-w-7xl w-full max-h-[80vh] overflow-hidden flex flex-col'>
                     <div class='px-4 py-3 border-b border-border-default flex items-center justify-between'>
-                        <h2 class='text-lg font-semibold text-gray-800'>{t('usersBrowser.jsonViewTitle')}</h2>
+                        <h2 class='text-lg font-semibold text-text-primary'>{t('usersBrowser.jsonViewTitle')}</h2>
                         <div class='flex items-center gap-2'>
                             <Button variant='secondary' onClick={copyJson} ariaLabel={t('usersBrowser.copyJson')}>
                                 {t('usersBrowser.copyJson')}
@@ -448,14 +448,14 @@ export function UsersBrowserPage() {
                         : (
                             <div class='flex-1 overflow-auto grid grid-cols-2 gap-4 p-4'>
                                 <div class='flex flex-col'>
-                                    <h3 class='text-sm font-semibold text-gray-700 mb-2 px-4 py-2 bg-blue-50 rounded-t-lg'>Firebase Auth</h3>
-                                    <pre class='flex-1 overflow-auto p-4 text-sm bg-gray-50 text-gray-800 whitespace-pre-wrap border border-border-default rounded-b-lg'>
+                                    <h3 class='text-sm font-semibold text-text-primary mb-2 px-4 py-2 bg-interactive-primary/10 rounded-t-lg'>Firebase Auth</h3>
+                                    <pre class='flex-1 overflow-auto p-4 text-sm bg-surface-muted text-text-primary whitespace-pre-wrap border border-border-default rounded-b-lg'>
                                     {JSON.stringify(selectedUserData.value?.auth ?? null, null, 2)}
                                     </pre>
                                 </div>
                                 <div class='flex flex-col'>
-                                    <h3 class='text-sm font-semibold text-gray-700 mb-2 px-4 py-2 bg-green-50 rounded-t-lg'>Firestore Document</h3>
-                                    <pre class='flex-1 overflow-auto p-4 text-sm bg-gray-50 text-gray-800 whitespace-pre-wrap border border-border-default rounded-b-lg'>
+                                    <h3 class='text-sm font-semibold text-text-primary mb-2 px-4 py-2 bg-interactive-accent/10 rounded-t-lg'>Firestore Document</h3>
+                                    <pre class='flex-1 overflow-auto p-4 text-sm bg-surface-muted text-text-primary whitespace-pre-wrap border border-border-default rounded-b-lg'>
                                     {JSON.stringify(selectedUserData.value?.firestore ?? null, null, 2)}
                                     </pre>
                                 </div>
@@ -469,7 +469,7 @@ export function UsersBrowserPage() {
     return (
         <div class='max-w-7xl mx-auto px-4 py-8 space-y-6'>
             <div class='flex items-center justify-between'>
-                <h1 class='text-2xl font-semibold text-gray-900'>{t('usersBrowser.title')}</h1>
+                <h1 class='text-2xl font-semibold text-text-primary'>{t('usersBrowser.title')}</h1>
             </div>
 
             <div class='flex flex-wrap gap-2'>
@@ -485,9 +485,9 @@ export function UsersBrowserPage() {
                 {activeTab.value === 'auth'
                     ? (
                         <div class='space-y-6'>
-                            <p class='text-sm text-gray-600'>{t('usersBrowser.authLimitNote', { count: DEFAULT_AUTH_LIMIT })}</p>
+                            <p class='text-sm text-text-muted'>{t('usersBrowser.authLimitNote', { count: DEFAULT_AUTH_LIMIT })}</p>
                             <form class='flex gap-4' onSubmit={handleAuthSearch}>
-                                <label class='flex flex-col text-sm text-gray-700 flex-1'>
+                                <label class='flex flex-col text-sm text-text-primary flex-1'>
                                     <span class='mb-1'>{t('usersBrowser.searchLabel')}</span>
                                     <Input value={authSearchValue.value} onChange={(value) => (authSearchValue.value = value)} placeholder={t('usersBrowser.searchPlaceholderSmart')} />
                                 </label>
@@ -511,25 +511,25 @@ export function UsersBrowserPage() {
 
                             {authUsers.value.length > 0 && (
                                 <div class='overflow-x-auto border border-border-default rounded-lg'>
-                                    <table class='min-w-full divide-y divide-gray-200'>
-                                        <thead class='bg-gray-50'>
+                                    <table class='min-w-full divide-y divide-border-default'>
+                                        <thead class='bg-surface-muted'>
                                             <tr>
-                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider'>
                                                     {t('usersBrowser.table.auth.uid')}
                                                 </th>
-                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider'>
                                                     {t('usersBrowser.table.auth.email')}
                                                 </th>
-                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider'>
                                                     {t('usersBrowser.table.auth.displayName')}
                                                 </th>
-                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider'>
                                                     {t('usersBrowser.table.auth.status')}
                                                 </th>
-                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider'>
                                                     {t('usersBrowser.table.auth.createdAt')}
                                                 </th>
-                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider'>
                                                     {t('usersBrowser.table.auth.lastSignInAt')}
                                                 </th>
                                                 <th scope='col' class='px-4 py-3'>
@@ -537,27 +537,27 @@ export function UsersBrowserPage() {
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody class='bg-surface-muted divide-y divide-gray-200'>
+                                        <tbody class='bg-surface-muted divide-y divide-border-default'>
                                             {authUsers.value.map((authUser) => {
                                                 const metadata = authUser.metadata;
                                                 return (
                                                     <tr key={String(authUser.uid)}>
-                                                        <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(authUser.uid ?? '')}</td>
-                                                        <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(authUser.email ?? '')}</td>
-                                                        <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(authUser.displayName ?? '')}</td>
+                                                        <td class='px-4 py-3 text-sm text-text-primary break-all'>{String(authUser.uid ?? '')}</td>
+                                                        <td class='px-4 py-3 text-sm text-text-primary break-all'>{String(authUser.email ?? '')}</td>
+                                                        <td class='px-4 py-3 text-sm text-text-primary break-all'>{String(authUser.displayName ?? '')}</td>
                                                         <td class='px-4 py-3 text-sm'>
                                                             <span
                                                                 class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                                                                     authUser.disabled
-                                                                        ? 'bg-red-100 text-red-800'
-                                                                        : 'bg-green-100 text-green-800'
+                                                                        ? 'bg-surface-error text-semantic-error'
+                                                                        : 'bg-interactive-accent/10 text-semantic-success'
                                                                 }`}
                                                             >
                                                                 {authUser.disabled ? t('usersBrowser.statusDisabled') : t('usersBrowser.statusEnabled')}
                                                             </span>
                                                         </td>
-                                                        <td class='px-4 py-3 text-sm text-gray-700'>{getMetadataField(metadata, 'creationTime')}</td>
-                                                        <td class='px-4 py-3 text-sm text-gray-700'>{getMetadataField(metadata, 'lastSignInTime')}</td>
+                                                        <td class='px-4 py-3 text-sm text-text-primary'>{getMetadataField(metadata, 'creationTime')}</td>
+                                                        <td class='px-4 py-3 text-sm text-text-primary'>{getMetadataField(metadata, 'lastSignInTime')}</td>
                                                         <td class='px-4 py-3 text-right text-sm'>
                                                             <div class='flex items-center justify-end gap-2'>
                                                                 <Button
@@ -598,9 +598,9 @@ export function UsersBrowserPage() {
                     )
                     : (
                         <div class='space-y-6'>
-                            <p class='text-sm text-gray-600'>{t('usersBrowser.firestoreLimitNote', { count: DEFAULT_FIRESTORE_LIMIT })}</p>
+                            <p class='text-sm text-text-muted'>{t('usersBrowser.firestoreLimitNote', { count: DEFAULT_FIRESTORE_LIMIT })}</p>
                             <form class='flex gap-4' onSubmit={handleFirestoreSearch}>
-                                <label class='flex flex-col text-sm text-gray-700 flex-1'>
+                                <label class='flex flex-col text-sm text-text-primary flex-1'>
                                     <span class='mb-1'>{t('usersBrowser.searchLabel')}</span>
                                     <Input value={firestoreSearchValue.value} onChange={(value) => (firestoreSearchValue.value = value)} placeholder={t('usersBrowser.searchPlaceholderSmart')} />
                                 </label>
@@ -624,19 +624,19 @@ export function UsersBrowserPage() {
 
                             {firestoreUsers.value.length > 0 && (
                                 <div class='overflow-x-auto border border-border-default rounded-lg'>
-                                    <table class='min-w-full divide-y divide-gray-200'>
-                                        <thead class='bg-gray-50'>
+                                    <table class='min-w-full divide-y divide-border-default'>
+                                        <thead class='bg-surface-muted'>
                                             <tr>
-                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider'>
                                                     {t('usersBrowser.table.firestore.id')}
                                                 </th>
-                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider'>
                                                     {t('usersBrowser.table.firestore.role')}
                                                 </th>
-                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider'>
                                                     {t('usersBrowser.table.firestore.updatedAt')}
                                                 </th>
-                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider'>
+                                                <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider'>
                                                     {t('usersBrowser.table.firestore.schema')}
                                                 </th>
                                                 <th scope='col' class='px-4 py-3'>
@@ -644,12 +644,12 @@ export function UsersBrowserPage() {
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody class='bg-surface-muted divide-y divide-gray-200'>
+                                        <tbody class='bg-surface-muted divide-y divide-border-default'>
                                             {firestoreUsers.value.map((firestoreUser) => (
                                                 <tr key={String(firestoreUser.id)}>
-                                                    <td class='px-4 py-3 text-sm text-gray-900 break-all'>{String(firestoreUser.id ?? '')}</td>
-                                                    <td class='px-4 py-3 text-sm text-gray-700 break-all'>{String(firestoreUser.role ?? '')}</td>
-                                                    <td class='px-4 py-3 text-sm text-gray-700'>{formatDate(firestoreUser.updatedAt)}</td>
+                                                    <td class='px-4 py-3 text-sm text-text-primary break-all'>{String(firestoreUser.id ?? '')}</td>
+                                                    <td class='px-4 py-3 text-sm text-text-primary break-all'>{String(firestoreUser.role ?? '')}</td>
+                                                    <td class='px-4 py-3 text-sm text-text-primary'>{formatDate(firestoreUser.updatedAt)}</td>
                                                     <td class='px-4 py-3'>{renderSchemaStatus(analyzeFirestoreUserSchema(firestoreUser), t)}</td>
                                                     <td class='px-4 py-3 text-right text-sm'>
                                                         <Button variant='secondary' onClick={() => void handleViewJson(String(firestoreUser.id))}>

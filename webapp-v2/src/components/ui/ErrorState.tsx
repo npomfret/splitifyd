@@ -26,8 +26,8 @@ export function ErrorState({ error, title, onRetry, fullPage = false, className 
     const content = (
         <div className={`text-center ${className}`}>
             {/* Error Icon */}
-            <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100'>
-                <svg className='h-6 w-6 text-red-600' fill='none' viewBox='0 0 24 24' stroke='currentColor' aria-hidden='true'>
+            <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-error'>
+                <svg className='h-6 w-6 text-semantic-error' fill='none' viewBox='0 0 24 24' stroke='currentColor' aria-hidden='true'>
                     <path
                         strokeLinecap='round'
                         strokeLinejoin='round'
@@ -38,12 +38,12 @@ export function ErrorState({ error, title, onRetry, fullPage = false, className 
             </div>
 
             {/* Error Title */}
-            <h3 className='mt-4 text-lg font-medium text-gray-900' data-testid='error-title'>
+            <h3 className='mt-4 text-lg font-medium text-text-primary' data-testid='error-title'>
                 {defaultTitle}
             </h3>
 
             {/* Error Message */}
-            <p className='mt-2 text-sm text-gray-600' data-testid='error-message'>
+            <p className='mt-2 text-sm text-text-muted' data-testid='error-message'>
                 {errorMessage}
             </p>
 
@@ -63,7 +63,7 @@ export function ErrorState({ error, title, onRetry, fullPage = false, className 
     );
 
     if (fullPage) {
-        return <div className='min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'>{content}</div>;
+        return <div className='min-h-screen flex items-center justify-center bg-surface-muted py-12 px-4 sm:px-6 lg:px-8'>{content}</div>;
     }
 
     return content;

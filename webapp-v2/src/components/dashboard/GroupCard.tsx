@@ -41,8 +41,8 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
         const settled = [{
             key: 'settled',
             content: t('groupCard.settledUp'),
-            color: 'text-blue-400',
-            bgColor: 'bg-blue-50',
+            color: 'text-interactive-primary',
+            bgColor: 'bg-interactive-primary/10',
         }];
 
         if (!group.balance?.balancesByCurrency) {
@@ -72,15 +72,15 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
         const positiveDisplays = positives.map(({ balance }) => ({
             key: `owed-${balance.currency}`,
             content: renderBalanceMessage('youAreOwed', balance.netBalance, balance.currency),
-            color: 'text-green-600',
-            bgColor: 'bg-green-50',
+            color: 'text-semantic-success',
+            bgColor: 'bg-interactive-accent/10',
         }));
 
         const negativeDisplays = negatives.map(({ balance }) => ({
             key: `owe-${balance.currency}`,
             content: renderBalanceMessage('youOwe', absAmount(balance.netBalance, balance.currency), balance.currency),
-            color: 'text-red-600',
-            bgColor: 'bg-red-50',
+            color: 'text-semantic-error',
+            bgColor: 'bg-surface-error',
         }));
 
         return [...positiveDisplays, ...negativeDisplays];
@@ -106,7 +106,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                             <Tooltip content={t('groupCard.addExpenseTooltip', { groupName: group.name })}>
                                 <button
                                     onClick={(e) => handleActionClick(e, () => onAddExpense(group.id))}
-                                    class='p-1.5 text-gray-400 hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-full transition-colors'
+                                    class='p-1.5 text-text-muted/80 hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-full transition-colors'
                                     aria-label={t('groupCard.addExpenseTooltip', { groupName: group.name })}
                                 >
                                     <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
@@ -119,7 +119,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                             <Tooltip content={t('groupCard.inviteTooltip', { groupName: group.name })}>
                                 <button
                                     onClick={(e) => handleActionClick(e, () => onInvite(group.id))}
-                                    class='p-1.5 text-gray-400 hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-full transition-colors'
+                                    class='p-1.5 text-text-muted/80 hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-full transition-colors'
                                     aria-label={t('groupCard.inviteTooltip', { groupName: group.name })}
                                 >
                                     <svg class='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
@@ -139,9 +139,9 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                 {/* GroupDTO header */}
                 <div class='mb-3 pr-12'>
                     <div class='flex items-start justify-between gap-2'>
-                        <h4 class='font-semibold text-gray-900 text-lg mb-1'>{group.name}</h4>
+                        <h4 class='font-semibold text-text-primary text-lg mb-1'>{group.name}</h4>
                         {isArchivedView && (
-                            <span class='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700' data-testid='archived-badge'>
+                            <span class='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-warning text-semantic-warning' data-testid='archived-badge'>
                                 {t('dashboard.groupCard.archivedBadge')}
                             </span>
                         )}
@@ -160,9 +160,9 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                 </div>
 
                 {/* GroupDTO stats */}
-                <div class='space-y-2 text-sm text-gray-600'>
+                <div class='space-y-2 text-sm text-text-muted'>
                     <div class='flex items-center'>
-                        <svg class='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                        <svg class='w-4 h-4 mr-2 text-text-muted/80' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                         </svg>
                         {group.updatedAt

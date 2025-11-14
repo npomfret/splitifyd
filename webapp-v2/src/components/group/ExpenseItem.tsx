@@ -35,7 +35,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
     return (
         <div
-            className={`border-b last:border-0 pb-3 last:pb-0 cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded relative group ${isDeleted ? 'opacity-60 bg-gray-50' : ''}`}
+            className={`border-b last:border-0 pb-3 last:pb-0 cursor-pointer hover:bg-surface-muted -mx-2 px-2 py-2 rounded relative group ${isDeleted ? 'opacity-60 bg-surface-muted' : ''}`}
             style={{
                 borderLeftWidth: '4px',
                 borderLeftColor: isDeleted ? '#9CA3AF' : themeColor,
@@ -52,22 +52,22 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
                         <div className='flex-1'>
                             <div className='flex items-center gap-2'>
-                                <p className={`font-medium ${isDeleted ? 'line-through text-gray-500' : ''}`}>{expense.description}</p>
+                                <p className={`font-medium ${isDeleted ? 'line-through text-text-muted' : ''}`}>{expense.description}</p>
                                 {isDeleted && (
-                                    <span className='text-xs bg-red-100 text-red-800 px-2 py-1 rounded' data-testid='deleted-badge'>
+                                    <span className='text-xs bg-surface-error text-semantic-error px-2 py-1 rounded' data-testid='deleted-badge'>
                                         {t('expenseItem.deleted')}
                                     </span>
                                 )}
                             </div>
-                            <p className='text-sm text-gray-600'>
+                            <p className='text-sm text-text-muted'>
                                 {t('expenseItem.paidBy')}{' '}
                                 <span className='font-medium'>
                                     {payerName}
                                 </span>{' '}
-                                • <RelativeTime date={expense.date} className='text-gray-600' tooltipPlacement='bottom' />
+                                • <RelativeTime date={expense.date} className='text-text-muted' tooltipPlacement='bottom' />
                                 {isDeleted && expense.deletedAt && (
-                                    <span className='ml-2 text-red-600'>
-                                        • {t('expenseItem.deletedBy')} {deletedByName} <RelativeTime date={expense.deletedAt} className='text-red-600' />
+                                    <span className='ml-2 text-semantic-error'>
+                                        • {t('expenseItem.deletedBy')} {deletedByName} <RelativeTime date={expense.deletedAt} className='text-semantic-error' />
                                     </span>
                                 )}
                             </p>
@@ -77,10 +77,10 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
                 <div className='text-right ml-4 flex items-start gap-2'>
                     <div>
-                        <p className={`font-semibold ${isDeleted ? 'text-gray-500' : ''}`} data-testid='expense-amount'>
+                        <p className={`font-semibold ${isDeleted ? 'text-text-muted' : ''}`} data-testid='expense-amount'>
                             <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                         </p>
-                        <p className='text-xs text-gray-500'>{expense.label}</p>
+                        <p className='text-xs text-text-muted'>{expense.label}</p>
                     </div>
 
                     {/* Copy button - only show if not deleted and onCopy is provided */}
@@ -88,7 +88,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                         <Tooltip content={t('expenseItem.copyExpense')}>
                             <button
                                 onClick={handleCopyClick}
-                                className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-200 rounded text-gray-600 hover:text-gray-800'
+                                className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-surface-muted rounded text-text-muted hover:text-text-primary'
                                 aria-label={t('expenseItem.copyExpense')}
                             >
                                 <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>

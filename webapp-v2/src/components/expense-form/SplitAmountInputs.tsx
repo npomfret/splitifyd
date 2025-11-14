@@ -56,7 +56,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
     if (splitType === 'exact') {
         return (
             <div className='space-y-3'>
-                <p className='text-sm text-gray-600 dark:text-gray-400'>{t('expenseComponents.splitAmountInputs.exactAmountsInstruction')}</p>
+                <p className='text-sm text-text-muted dark:text-text-muted/80'>{t('expenseComponents.splitAmountInputs.exactAmountsInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
                     if (!member) {
@@ -68,10 +68,10 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                         <div key={participantId} className='flex items-center justify-between gap-3'>
                             <div className='flex items-center gap-2 flex-1'>
                                 <Avatar displayName={memberName} userId={participantId} size='sm' />
-                                <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>{memberName}</span>
+                                <span className='text-sm font-medium text-text-primary dark:text-text-muted/60'>{memberName}</span>
                             </div>
                             <div className='flex items-center gap-2'>
-                                <span className='text-gray-500'>{getCurrency(currency)!.symbol}</span>
+                                <span className='text-text-muted'>{getCurrency(currency)!.symbol}</span>
                                 <input
                                     type='text'
                                     inputMode='decimal'
@@ -81,21 +81,21 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                         const value = (e.target as HTMLInputElement).value || ZERO;
                                         updateSplitAmount(participantId, value);
                                     }}
-                                    className='w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right'
+                                    className='w-24 px-2 py-1 border border-border-default dark:border-border-strong rounded focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-white text-right'
                                     autoComplete='off'
                                 />
                             </div>
                         </div>
                     );
                 })}
-                <div className='pt-2 border-t border-border-default dark:border-gray-700'>
+                <div className='pt-2 border-t border-border-default dark:border-border-strong'>
                     <div className='flex justify-between text-sm'>
-                        <span className='font-medium text-gray-700 dark:text-gray-300'>{t('expenseComponents.splitAmountInputs.total')}</span>
+                        <span className='font-medium text-text-primary dark:text-text-muted/60'>{t('expenseComponents.splitAmountInputs.total')}</span>
                         <span
                             className={`font-medium ${
                                 (() => {
                                     const splitUnits = splits.reduce((sum, s) => sum + amountToSmallestUnit(s.amount, currency), 0);
-                                    return splitUnits === totalUnits ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+                                    return splitUnits === totalUnits ? 'text-semantic-success dark:text-semantic-success' : 'text-semantic-error dark:text-semantic-error/80';
                                 })()
                             }`}
                             data-financial-amount='split-total'
@@ -121,7 +121,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
         const percentagesValid = totalPercentageUnits === 100 * 1000;
         return (
             <div className='space-y-3'>
-                <p className='text-sm text-gray-600 dark:text-gray-400'>{t('expenseComponents.splitAmountInputs.percentageInstruction')}</p>
+                <p className='text-sm text-text-muted dark:text-text-muted/80'>{t('expenseComponents.splitAmountInputs.percentageInstruction')}</p>
                 {participants.map((participantId) => {
                     const member = memberMap[participantId];
                     if (!member) {
@@ -133,7 +133,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                         <div key={participantId} className='flex items-center justify-between gap-3'>
                             <div className='flex items-center gap-2 flex-1'>
                                 <Avatar displayName={memberName} userId={participantId} size='sm' />
-                                <span className='text-sm font-medium text-gray-700 dark:text-gray-300'>{memberName}</span>
+                                <span className='text-sm font-medium text-text-primary dark:text-text-muted/60'>{memberName}</span>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <input
@@ -145,22 +145,22 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                         const value = parseFloat((e.target as HTMLInputElement).value) || 0;
                                         updateSplitPercentage(participantId, value);
                                     }}
-                                    className='w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right'
+                                    className='w-20 px-2 py-1 border border-border-default dark:border-border-strong rounded focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-white text-right'
                                     autoComplete='off'
                                 />
-                                <span className='text-gray-500'>{t('expenseComponents.splitAmountInputs.percentSign')}</span>
-                                <span className='text-xs text-gray-500 w-16 text-right'>
+                                <span className='text-text-muted'>{t('expenseComponents.splitAmountInputs.percentSign')}</span>
+                                <span className='text-xs text-text-muted w-16 text-right'>
                                     <CurrencyAmount amount={split?.amount ?? ZERO} currency={currency} />
                                 </span>
                             </div>
                         </div>
                     );
                 })}
-                <div className='pt-2 border-t border-border-default dark:border-gray-700'>
+                <div className='pt-2 border-t border-border-default dark:border-border-strong'>
                     <div className='flex justify-between text-sm'>
-                        <span className='font-medium text-gray-700 dark:text-gray-300'>{t('expenseComponents.splitAmountInputs.total')}</span>
+                        <span className='font-medium text-text-primary dark:text-text-muted/60'>{t('expenseComponents.splitAmountInputs.total')}</span>
                         <span
-                            className={`font-medium ${percentagesValid ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+                            className={`font-medium ${percentagesValid ? 'text-semantic-success dark:text-semantic-success' : 'text-semantic-error dark:text-semantic-error/80'}`}
                             data-financial-amount='percentage-total'
                         >
                             {totalPercentage.toFixed(2)}% / 100%
@@ -173,8 +173,8 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
 
     if (splitType === 'equal') {
         return (
-            <div className='mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg'>
-                <p className='text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>{t('expenseComponents.splitAmountInputs.equalInstruction')}</p>
+            <div className='mt-4 p-4 bg-surface-muted dark:bg-text-primary/50 rounded-lg'>
+                <p className='text-sm font-medium text-text-primary dark:text-text-muted/60 mb-2'>{t('expenseComponents.splitAmountInputs.equalInstruction')}</p>
                 <div className='space-y-1'>
                     {splits.map((split) => {
                         const member = memberMap[split.uid];
@@ -186,9 +186,9 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                             <div key={split.uid} className='flex items-center justify-between gap-2'>
                                 <div className='flex items-center gap-2'>
                                     <Avatar displayName={memberName} userId={split.uid} size='sm' />
-                                    <span className='text-sm text-gray-600 dark:text-gray-400'>{memberName}</span>
+                                    <span className='text-sm text-text-muted dark:text-text-muted/80'>{memberName}</span>
                                 </div>
-                                <span className='text-sm font-medium text-gray-900 dark:text-white'>
+                                <span className='text-sm font-medium text-text-primary dark:text-white'>
                                     <CurrencyAmount amount={split.amount} currency={currency} />
                                 </span>
                             </div>

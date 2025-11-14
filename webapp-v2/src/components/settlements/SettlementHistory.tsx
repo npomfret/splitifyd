@@ -163,7 +163,7 @@ export function SettlementHistory({
                     </div>
                 )
                 : (
-                    <div class='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400'>
+                    <div class='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'>
                         {visibleSettlements.map((settlement) => {
                             const isCurrentUserPayer = settlement.payer.uid === currentUserId;
                             const isCurrentUserPayee = settlement.payee.uid === currentUserId;
@@ -255,7 +255,7 @@ export function SettlementHistory({
                                                             <button
                                                                 type='button'
                                                                 onClick={() => handleDeleteClick(settlement)}
-                                                                class='p-1 text-text-muted hover:text-red-600 transition-colors'
+                                                                class='p-1 text-text-muted hover:text-semantic-error transition-colors'
                                                                 aria-label={deleteTooltip}
                                                                 data-testid='delete-settlement-button'
                                                             >
@@ -291,12 +291,12 @@ export function SettlementHistory({
 
                                         {/* Deleted info if present */}
                                         {isDeleted && settlement.deletedAt && (
-                                            <div class={`${settlement.note ? 'row-start-5' : 'row-start-4'} col-start-2 text-red-600 text-xs mt-1`} data-financial-amount='deleted'>
+                                            <div class={`${settlement.note ? 'row-start-5' : 'row-start-4'} col-start-2 text-semantic-error text-xs mt-1`} data-financial-amount='deleted'>
                                                 {t('settlementHistory.deletedBy')} {deletedByContent}{' '}
                                                 <RelativeTime
                                                     date={settlement
                                                         .deletedAt}
-                                                    className='text-red-600'
+                                                    className='text-semantic-error'
                                                 />
                                             </div>
                                         )}

@@ -21,9 +21,9 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
     return (
         <Card data-testid='who-paid-section'>
             <Stack spacing='md'>
-                <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
+                <h2 className='text-lg font-semibold text-text-primary dark:text-white'>
                     {t('expenseComponents.payerSelector.label')}{' '}
-                    <span className='text-red-500' data-testid='required-indicator'>
+                    <span className='text-semantic-error' data-testid='required-indicator'>
                         {t('expenseComponents.payerSelector.requiredIndicator')}
                     </span>
                 </h2>
@@ -33,7 +33,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                             key={member.uid}
                             className={`
                 flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors
-                ${paidBy === member.uid ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}
+                ${paidBy === member.uid ? 'border-interactive-primary bg-interactive-primary/10 dark:bg-interactive-primary/20' : 'border-border-default dark:border-border-strong hover:bg-surface-muted dark:hover:bg-text-primary'}
               `}
                         >
                             <input
@@ -42,16 +42,16 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                 value={member.uid}
                                 checked={paidBy === member.uid}
                                 onChange={() => updateField('paidBy', member.uid)}
-                                className='text-blue-600 focus:ring-blue-500'
+                                className='text-interactive-primary focus:ring-interactive-primary'
                                 autoComplete='off'
                             />
                             <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
-                            <span className='text-sm font-medium text-gray-900 dark:text-white'>{getGroupDisplayName(member)}</span>
+                            <span className='text-sm font-medium text-text-primary dark:text-white'>{getGroupDisplayName(member)}</span>
                         </label>
                     ))}
                 </div>
                 {validationErrors.paidBy && (
-                    <p className='text-sm text-red-600 dark:text-red-400' role='alert' data-testid='validation-error-paidBy'>
+                    <p className='text-sm text-semantic-error dark:text-semantic-error/80' role='alert' data-testid='validation-error-paidBy'>
                         {validationErrors.paidBy}
                     </p>
                 )}

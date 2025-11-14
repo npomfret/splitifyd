@@ -82,7 +82,7 @@ export function PasswordInput({
     const getStrengthColor = (strength: PasswordStrength) => {
         switch (strength) {
             case 'weak':
-                return 'bg-red-500';
+                return 'bg-semantic-error';
             case 'medium':
                 return 'bg-semantic-warning';
             case 'strong':
@@ -106,14 +106,14 @@ export function PasswordInput({
         'text-text-primary placeholder:text-text-muted/70 transition-colors duration-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
         disabled && 'opacity-60 cursor-not-allowed bg-surface-muted text-text-muted',
-        hasError && 'border-red-300 text-red-900 focus-visible:ring-red-500 focus-visible:border-red-500',
+        hasError && 'border-border-error text-semantic-error focus-visible:ring-semantic-error focus-visible:border-semantic-error',
     );
 
     return (
         <div class='space-y-1'>
             <label for={id} class='block text-sm font-medium text-text-primary'>
                 {label || t('auth.passwordInput.label')} {required && (
-                    <span class='text-red-500' data-testid='required-indicator'>
+                    <span class='text-semantic-error' data-testid='required-indicator'>
                         {t('auth.passwordInput.requiredIndicator')}
                     </span>
                 )}
@@ -174,7 +174,7 @@ export function PasswordInput({
                     <div class='flex items-center justify-between'>
                         <span class='text-xs text-text-muted'>{t('auth.passwordInput.strength')}</span>
                         <span
-                            class={`text-xs font-medium ${strength === 'weak' ? 'text-red-600' : strength === 'medium' ? 'text-semantic-warning' : 'text-semantic-success'}`}
+                            class={`text-xs font-medium ${strength === 'weak' ? 'text-semantic-error' : strength === 'medium' ? 'text-semantic-warning' : 'text-semantic-success'}`}
                             data-testid={`password-strength-${strength}`}
                         >
                             {getStrengthText(strength)}
@@ -192,7 +192,7 @@ export function PasswordInput({
             )}
 
             {displayError && (
-                <p id={`${id}-error`} class='text-sm text-red-600' role='alert'>
+                <p id={`${id}-error`} class='text-sm text-semantic-error' role='alert'>
                     {displayError}
                 </p>
             )}

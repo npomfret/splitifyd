@@ -18,7 +18,7 @@ export function GroupHeader({ group, members, expenseCount = 0, onSettings, show
             <div className='flex justify-between items-start mb-4'>
                 <div>
                     <h1 className='text-2xl font-bold mb-2'>{group.name}</h1>
-                    {group.description && <p className='text-gray-600' data-testid='group-description'>{group.description}</p>}
+                    {group.description && <p className='text-text-muted' data-testid='group-description'>{group.description}</p>}
                 </div>
                 <div className='flex gap-2'>
                     {showSettingsButton && onSettings && (
@@ -38,7 +38,7 @@ export function GroupHeader({ group, members, expenseCount = 0, onSettings, show
                 </div>
             </div>
 
-            <div className='flex gap-6 text-sm text-gray-600'>
+            <div className='flex gap-6 text-sm text-text-muted'>
                 <div data-testid='member-count'>{t('groupHeader.membersCount', { count: members.length })}</div>
                 <div data-testid='expense-count'>
                     {expenseCount} <span className='font-medium'>{t('groupHeader.recent')}</span> {t('groupHeader.expenses')}

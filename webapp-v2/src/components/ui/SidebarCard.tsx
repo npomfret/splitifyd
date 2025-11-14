@@ -27,7 +27,7 @@ export function SidebarCard({
 }: SidebarCardProps) {
     const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed);
 
-    const rootClassName = ['bg-white', 'rounded-lg', 'shadow-sm', 'border', 'border-border-default', 'p-4', className].filter(Boolean).join(' ');
+    const rootClassName = ['bg-surface-base', 'rounded-lg', 'shadow-sm', 'border', 'border-border-default', 'p-4', className].filter(Boolean).join(' ');
     const headerClasses = ['flex', 'items-center', 'justify-between', 'gap-2', !collapsed ? 'mb-3' : ''].filter(Boolean).join(' ');
     const toggleAriaLabel = collapseToggleLabel || (typeof title === 'string' ? `Toggle ${title} section` : 'Toggle section');
 
@@ -45,7 +45,7 @@ export function SidebarCard({
                     aria-label={toggleAriaLabel}
                     aria-expanded={!collapsed}
                     data-testid={collapseToggleTestId}
-                    className='p-1 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
+                    className='p-1 text-text-muted/80 hover:text-text-muted rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
                 >
                     <ChevronDownIcon
                         aria-hidden='true'
@@ -62,7 +62,7 @@ export function SidebarCard({
         <div {...divProps} className={rootClassName}>
             {title && (
                 <div className={headerClasses}>
-                    <h3 className='text-base font-semibold text-gray-900 flex-1'>{title}</h3>
+                    <h3 className='text-base font-semibold text-text-primary flex-1'>{title}</h3>
                     {hasHeaderControls && (
                         <div className='flex items-center gap-1.5'>
                             {headerActions}

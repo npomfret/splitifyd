@@ -609,9 +609,9 @@ export function GroupSettingsModal({
         if (!groupMember) {
             if (loadingMembers.value) {
                 return (
-                    <section className='border border-border-default rounded-lg p-5 space-y-3 bg-gray-50/60' data-testid='group-display-name-settings'>
-                        <div className='h-4 bg-gray-100 animate-pulse rounded' aria-hidden='true'></div>
-                        <div className='h-10 bg-gray-100 animate-pulse rounded' aria-hidden='true'></div>
+                    <section className='border border-border-default rounded-lg p-5 space-y-3 bg-surface-muted/60' data-testid='group-display-name-settings'>
+                        <div className='h-4 bg-surface-muted animate-pulse rounded' aria-hidden='true'></div>
+                        <div className='h-10 bg-surface-muted animate-pulse rounded' aria-hidden='true'></div>
                     </section>
                 );
             }
@@ -622,10 +622,10 @@ export function GroupSettingsModal({
 
         return (
             <div className='space-y-4'>
-                <section className='border border-border-default rounded-lg p-5 space-y-4 bg-gray-50/60' data-testid='group-display-name-settings'>
+                <section className='border border-border-default rounded-lg p-5 space-y-4 bg-surface-muted/60' data-testid='group-display-name-settings'>
                     <div>
-                        <h3 className='text-sm font-semibold text-gray-900'>{t('groupDisplayNameSettings.title')}</h3>
-                        <p className='text-sm text-gray-600 mt-1'>{t('groupDisplayNameSettings.description')}</p>
+                        <h3 className='text-sm font-semibold text-text-primary'>{t('groupDisplayNameSettings.title')}</h3>
+                        <p className='text-sm text-text-muted mt-1'>{t('groupDisplayNameSettings.description')}</p>
                     </div>
 
                     <form onSubmit={handleDisplayNameSubmit} className='space-y-4'>
@@ -640,13 +640,13 @@ export function GroupSettingsModal({
                         />
 
                         {displayNameServerError && (
-                            <div className='bg-red-50 border border-red-200 rounded-md px-3 py-2 text-sm text-red-800' role='alert' data-testid='group-display-name-error'>
+                            <div className='bg-surface-error border border-border-error rounded-md px-3 py-2 text-sm text-semantic-error' role='alert' data-testid='group-display-name-error'>
                                 {displayNameServerError}
                             </div>
                         )}
 
                         {displayNameSuccessMessage && (
-                            <div className='bg-green-50 border border-green-200 rounded-md px-3 py-2 text-sm text-green-800' role='status' data-testid='group-display-name-success'>
+                            <div className='bg-interactive-accent/10 border border-semantic-success/40 rounded-md px-3 py-2 text-sm text-semantic-success' role='status' data-testid='group-display-name-success'>
                                 {displayNameSuccessMessage}
                             </div>
                         )}
@@ -670,7 +670,7 @@ export function GroupSettingsModal({
                 <Form onSubmit={handleGeneralSubmit}>
                     <div className='space-y-4'>
                         {generalSuccessMessage && (
-                            <div className='bg-green-50 border border-green-200 rounded-md px-3 py-2 text-sm text-green-800' role='status' data-testid='group-general-success'>
+                            <div className='bg-interactive-accent/10 border border-semantic-success/40 rounded-md px-3 py-2 text-sm text-semantic-success' role='status' data-testid='group-general-success'>
                                 {generalSuccessMessage}
                             </div>
                         )}
@@ -691,9 +691,9 @@ export function GroupSettingsModal({
                         />
 
                         <div>
-                            <label className='block text-sm font-medium text-gray-700 mb-2'>{t('editGroupModal.descriptionLabel')}</label>
+                            <label className='block text-sm font-medium text-text-primary mb-2'>{t('editGroupModal.descriptionLabel')}</label>
                             <textarea
-                                className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
+                                className='w-full px-3 py-2 border border-border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
                                 rows={3}
                                 placeholder={t('editGroupModal.descriptionPlaceholder')}
                                 value={groupDescription}
@@ -709,10 +709,10 @@ export function GroupSettingsModal({
                         </div>
 
                         {validationError && (
-                            <div className='bg-red-50 border border-red-200 rounded-md p-3'>
+                            <div className='bg-surface-error border border-border-error rounded-md p-3'>
                                 <div className='flex'>
                                     <div className='flex-shrink-0'>
-                                        <svg className='h-5 w-5 text-red-400' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
+                                        <svg className='h-5 w-5 text-semantic-error/80' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                                             <path
                                                 fill-rule='evenodd'
                                                 d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z'
@@ -721,7 +721,7 @@ export function GroupSettingsModal({
                                         </svg>
                                     </div>
                                     <div className='ml-3'>
-                                        <p className='text-sm text-red-800' role='alert' data-testid='edit-group-validation-error'>
+                                        <p className='text-sm text-semantic-error' role='alert' data-testid='edit-group-validation-error'>
                                             {validationError}
                                         </p>
                                     </div>
@@ -756,12 +756,12 @@ export function GroupSettingsModal({
                 </div>
             )}
             {permissionsSuccessMessage && (
-                <div className='bg-green-50 border border-green-200 text-green-800 text-sm rounded-md p-3' role='status' data-testid='security-permissions-success'>
+                <div className='bg-interactive-accent/10 border border-semantic-success/40 text-semantic-success text-sm rounded-md p-3' role='status' data-testid='security-permissions-success'>
                     {permissionsSuccessMessage}
                 </div>
             )}
             {actionError && (
-                <div className='bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3' role='alert'>
+                <div className='bg-surface-error border border-border-error text-semantic-error text-sm rounded-md p-3' role='alert'>
                     {actionError}
                 </div>
             )}
@@ -781,9 +781,9 @@ export function GroupSettingsModal({
                                 data-testid={`preset-button-${preset}`}
                             >
                                 <div className='flex items-center justify-between'>
-                                    <span className='font-medium text-gray-900'>{t(`securitySettingsModal.presets.${preset}.label`)}</span>
+                                    <span className='font-medium text-text-primary'>{t(`securitySettingsModal.presets.${preset}.label`)}</span>
                                 </div>
-                                <p className='text-sm text-gray-600 mt-1'>{t(`securitySettingsModal.presets.${preset}.description`)}</p>
+                                <p className='text-sm text-text-muted mt-1'>{t(`securitySettingsModal.presets.${preset}.description`)}</p>
                                 {isActive && <span className='text-xs text-interactive-primary font-medium mt-2 block'>{t('securitySettingsModal.presets.activeBadge')}</span>}
                             </button>
                         );
@@ -793,15 +793,15 @@ export function GroupSettingsModal({
 
             <section>
                 <div className='flex items-center justify-between mb-2'>
-                    <h3 className='text-base font-semibold text-gray-900'>{t('securitySettingsModal.custom.heading')}</h3>
+                    <h3 className='text-base font-semibold text-text-primary'>{t('securitySettingsModal.custom.heading')}</h3>
                     {selectedPreset === 'custom' && hasPermissionChanges && <span className='text-xs text-interactive-primary font-medium'>{t('securitySettingsModal.custom.unsaved')}</span>}
                 </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {permissionOrder.map((key) => (
-                        <label key={key} className='flex flex-col text-sm text-gray-700 gap-2 border border-border-default rounded-lg px-4 py-3'>
-                            <span className='font-medium text-gray-900'>{t(`securitySettingsModal.permissions.${key}.label`)}</span>
+                        <label key={key} className='flex flex-col text-sm text-text-primary gap-2 border border-border-default rounded-lg px-4 py-3'>
+                            <span className='font-medium text-text-primary'>{t(`securitySettingsModal.permissions.${key}.label`)}</span>
                             <select
-                                className='border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-sm'
+                                className='border border-border-default rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-sm'
                                 value={permissionDraft[key]}
                                 onChange={(event) => handlePermissionChange(key, event.currentTarget.value)}
                                 data-testid={`permission-select-${key}`}
@@ -812,25 +812,25 @@ export function GroupSettingsModal({
                                     </option>
                                 ))}
                             </select>
-                            <span className='text-xs text-gray-500'>{t(`securitySettingsModal.permissions.${key}.description`)}</span>
+                            <span className='text-xs text-text-muted'>{t(`securitySettingsModal.permissions.${key}.description`)}</span>
                         </label>
                     ))}
                 </div>
-                <p className='text-xs text-gray-500 text-right mt-2'>{t('securitySettingsModal.custom.saveHelper')}</p>
+                <p className='text-xs text-text-muted text-right mt-2'>{t('securitySettingsModal.custom.saveHelper')}</p>
             </section>
 
             {canManageMembers && (
                 <section>
-                    <h3 className='text-base font-semibold text-gray-900 mb-3'>{t('securitySettingsModal.memberRoles.heading')}</h3>
+                    <h3 className='text-base font-semibold text-text-primary mb-3'>{t('securitySettingsModal.memberRoles.heading')}</h3>
                     <div className='space-y-3'>
                         {members.map((member) => (
                             <div key={member.uid} className='flex items-center justify-between border border-border-default rounded-lg px-4 py-2'>
                                 <div>
-                                    <div className='font-medium text-gray-900 text-sm'>{member.groupDisplayName || member.uid}</div>
-                                    <div className='text-xs text-gray-500'>{t(`securitySettingsModal.memberRoles.${memberRoleDrafts[member.uid] ?? member.memberRole}`)}</div>
+                                    <div className='font-medium text-text-primary text-sm'>{member.groupDisplayName || member.uid}</div>
+                                    <div className='text-xs text-text-muted'>{t(`securitySettingsModal.memberRoles.${memberRoleDrafts[member.uid] ?? member.memberRole}`)}</div>
                                 </div>
                                 <select
-                                    className='border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary'
+                                    className='border border-border-default rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary'
                                     value={memberRoleDrafts[member.uid] ?? member.memberRole}
                                     onChange={(event) => updateMemberRoleDraft(member.uid, event.currentTarget.value as MemberRole)}
                                     disabled={member.uid === group.createdBy}
@@ -850,20 +850,20 @@ export function GroupSettingsModal({
 
             {canApproveMembers && (
                 <section>
-                    <h3 className='text-base font-semibold text-gray-900 mb-3'>{t('securitySettingsModal.pendingMembers.heading')}</h3>
-                    {pendingError && <div className='bg-red-50 border border-red-200 text-red-700 text-sm rounded-md p-3 mb-3'>{pendingError}</div>}
+                    <h3 className='text-base font-semibold text-text-primary mb-3'>{t('securitySettingsModal.pendingMembers.heading')}</h3>
+                    {pendingError && <div className='bg-surface-error border border-border-error text-semantic-error text-sm rounded-md p-3 mb-3'>{pendingError}</div>}
                     {loadingPending && (
                         <div className='flex justify-center py-6'>
                             <LoadingSpinner />
                         </div>
                     )}
-                    {!loadingPending && pendingMembers.length === 0 && <p className='text-sm text-gray-600'>{t('securitySettingsModal.pendingMembers.empty')}</p>}
+                    {!loadingPending && pendingMembers.length === 0 && <p className='text-sm text-text-muted'>{t('securitySettingsModal.pendingMembers.empty')}</p>}
                     <div className='space-y-3'>
                         {pendingMembers.map((member) => (
                             <div key={member.uid} className='flex items-center justify-between border border-border-default rounded-lg px-4 py-2'>
                                 <div>
-                                    <div className='font-medium text-gray-900 text-sm'>{member.groupDisplayName || member.uid}</div>
-                                    <div className='text-xs text-gray-500'>{t('securitySettingsModal.pendingMembers.requested')}</div>
+                                    <div className='font-medium text-text-primary text-sm'>{member.groupDisplayName || member.uid}</div>
+                                    <div className='text-xs text-text-muted'>{t('securitySettingsModal.pendingMembers.requested')}</div>
                                 </div>
                                 <div className='flex gap-2'>
                                     <Button
@@ -904,23 +904,23 @@ export function GroupSettingsModal({
 
     return (
         <>
-            <div className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
+            <div className='fixed inset-0 bg-text-primary bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
                 <div
-                    className='relative top-12 mx-auto w-full max-w-3xl bg-white border-border-default rounded-xl shadow-xl border border-border-default'
+                    className='relative top-12 mx-auto w-full max-w-3xl bg-surface-base border-border-default rounded-xl shadow-xl border border-border-default'
                     role='dialog'
                     aria-modal='true'
                     aria-labelledby='group-settings-modal-title'
                 >
                     <div className='flex items-center justify-between px-6 py-4 border-b border-border-default'>
                         <div>
-                            <h2 id='group-settings-modal-title' className='text-lg font-semibold text-gray-900' data-testid='group-settings-modal-title'>
+                            <h2 id='group-settings-modal-title' className='text-lg font-semibold text-text-primary' data-testid='group-settings-modal-title'>
                                 {t('groupSettingsModal.title')}
                             </h2>
                         </div>
                         <Tooltip content={t('groupHeader.groupSettingsAriaLabel')}>
                             <button
                                 onClick={onClose}
-                                className='text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100'
+                                className='text-text-muted/80 hover:text-text-muted rounded-full p-1 hover:bg-surface-muted'
                                 aria-label={t('groupHeader.groupSettingsAriaLabel')}
                                 data-testid='close-group-settings-button'
                             >
@@ -942,7 +942,7 @@ export function GroupSettingsModal({
                                             type='button'
                                             onClick={() => setActiveTab(tab)}
                                             className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
-                                                isActive ? 'border-interactive-primary text-interactive-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                                isActive ? 'border-interactive-primary text-interactive-primary' : 'border-transparent text-text-muted hover:text-text-primary hover:border-border-default'
                                             }`}
                                             data-testid={`group-settings-tab-${tab}`}
                                         >
@@ -963,44 +963,44 @@ export function GroupSettingsModal({
             </div>
 
             {showDeleteConfirm && (
-                <div className='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center'>
-                    <div className='relative bg-white border-border-default rounded-lg shadow-lg max-w-md w-full mx-4' data-testid='delete-group-dialog'>
+                <div className='fixed inset-0 bg-text-primary bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center'>
+                    <div className='relative bg-surface-base border-border-default rounded-lg shadow-lg max-w-md w-full mx-4' data-testid='delete-group-dialog'>
                         <div className='px-6 py-4 border-b border-border-default'>
-                            <h3 className='text-lg font-semibold text-red-800 flex items-center'>
+                            <h3 className='text-lg font-semibold text-semantic-error flex items-center'>
                                 <span className='mr-2'>⚠️</span>
                                 {t('editGroupModal.deleteConfirmDialog.title')}
                             </h3>
                         </div>
 
                         <div className='px-6 py-4'>
-                            <div className='bg-red-50 border border-red-200 rounded-md p-4 mb-4'>
-                                <h4 className='text-red-800 font-semibold mb-2'>{t('editGroupModal.deleteConfirmDialog.warningTitle')}</h4>
-                                <p className='text-red-700 text-sm mb-3'>{t('editGroupModal.deleteConfirmDialog.warningMessage')}</p>
-                                <ul className='text-red-700 text-sm list-disc list-inside space-y-1'>
+                            <div className='bg-surface-error border border-border-error rounded-md p-4 mb-4'>
+                                <h4 className='text-semantic-error font-semibold mb-2'>{t('editGroupModal.deleteConfirmDialog.warningTitle')}</h4>
+                                <p className='text-semantic-error text-sm mb-3'>{t('editGroupModal.deleteConfirmDialog.warningMessage')}</p>
+                                <ul className='text-semantic-error text-sm list-disc list-inside space-y-1'>
                                     <li>{t('editGroupModal.deleteConfirmDialog.warningList.expenses')}</li>
                                     <li>{t('editGroupModal.deleteConfirmDialog.warningList.settlements')}</li>
                                     <li>{t('editGroupModal.deleteConfirmDialog.warningList.members')}</li>
                                     <li>{t('editGroupModal.deleteConfirmDialog.warningList.history')}</li>
                                 </ul>
-                                <p className='text-red-800 font-semibold text-sm mt-3'>{t('editGroupModal.deleteConfirmDialog.cannotUndo')}</p>
+                                <p className='text-semantic-error font-semibold text-sm mt-3'>{t('editGroupModal.deleteConfirmDialog.cannotUndo')}</p>
                             </div>
 
                             <div className='mb-4'>
-                                <label className='block text-sm font-medium text-gray-700 mb-2'>{t('editGroupModal.deleteConfirmDialog.typeToConfirm', { groupName: group.name })}</label>
+                                <label className='block text-sm font-medium text-text-primary mb-2'>{t('editGroupModal.deleteConfirmDialog.typeToConfirm', { groupName: group.name })}</label>
                                 <Input type='text' placeholder={group.name} value={confirmationText} onChange={setConfirmationText} className='w-full' disabled={isDeleting} />
                             </div>
 
                             {deleteError && (
-                                <div className='bg-red-50 border border-red-200 rounded-md p-3 mb-4'>
-                                    <p className='text-sm text-red-800' role='alert'>
+                                <div className='bg-surface-error border border-border-error rounded-md p-3 mb-4'>
+                                    <p className='text-sm text-semantic-error' role='alert'>
                                         {deleteError}
                                     </p>
                                 </div>
                             )}
 
                             {isDeleting && (
-                                <div className='text-center text-gray-600 mb-4'>
-                                    <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto mb-2'></div>
+                                <div className='text-center text-text-muted mb-4'>
+                                    <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-semantic-error mx-auto mb-2'></div>
                                     <p className='text-sm'>{t('editGroupModal.deleteConfirmDialog.deletingMessage')}</p>
                                 </div>
                             )}

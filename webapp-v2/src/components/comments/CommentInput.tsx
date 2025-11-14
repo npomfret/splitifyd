@@ -107,11 +107,11 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                         border rounded-lg
                         resize-none overflow-hidden
                         text-sm
-                        placeholder-gray-400
+                        placeholder-text-muted/80
                         focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-transparent
                         disabled:opacity-50 disabled:cursor-not-allowed
-                        dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100
-                        ${isOverLimit ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600'}
+                        dark:bg-text-primary dark:border-border-strong dark:text-text-muted/20
+                        ${isOverLimit ? 'border-semantic-error focus:ring-semantic-error' : 'border-border-default dark:border-border-strong'}
                     `}
                     rows={1}
                     style={{ minHeight: '38px', maxHeight: '120px' }}
@@ -127,8 +127,8 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                         transition-colors
                         ${
                             text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
-                                ? 'text-interactive-primary hover:bg-interactive-primary/10 dark:text-blue-400 dark:hover:bg-blue-900/20'
-                                : 'text-gray-400 cursor-not-allowed'
+                                ? 'text-interactive-primary hover:bg-interactive-primary/10 dark:text-interactive-primary dark:hover:bg-interactive-primary/20'
+                                : 'text-text-muted/80 cursor-not-allowed'
                         }
                     `}
                         aria-label={t('comments.input.sendAriaLabel')}
@@ -141,19 +141,19 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
             </div>
 
             <div className='flex items-center justify-between text-xs'>
-                <div className='text-gray-500 dark:text-gray-400'>
+                <div className='text-text-muted dark:text-text-muted/80'>
                     {error
                         ? (
-                            <span className='text-red-500 dark:text-red-400' role='alert' data-testid='comment-error-message'>
+                            <span className='text-semantic-error dark:text-semantic-error/80' role='alert' data-testid='comment-error-message'>
                                 {error}
                             </span>
                         )
-                        : <span className='text-xs text-gray-400 dark:text-gray-500'>{t('comments.commentInput.helpText')}</span>}
+                        : <span className='text-xs text-text-muted/80 dark:text-text-muted'>{t('comments.commentInput.helpText')}</span>}
                 </div>
                 {text.value.length > 0 && (
                     <span
                         className={`
-                        ${isOverLimit ? 'text-red-500 font-medium' : 'text-gray-500 dark:text-gray-400'}
+                        ${isOverLimit ? 'text-semantic-error font-medium' : 'text-text-muted dark:text-text-muted/80'}
                     `}
                         data-testid={isOverLimit ? 'character-limit-exceeded' : 'character-count'}
                     >

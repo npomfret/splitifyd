@@ -52,7 +52,7 @@ export function ExpensesList({
                     </label>
                 )}
             </div>
-            {expenses.value.length === 0 ? <p className='text-gray-600'>{t('expensesList.noExpensesYet')}</p> : (
+            {expenses.value.length === 0 ? <p className='text-text-muted'>{t('expensesList.noExpensesYet')}</p> : (
                 <Stack spacing='md'>
                     {expenses.value.map((expense) => <ExpenseItem key={expense.id} expense={expense} members={members.value} onClick={onExpenseClick} onCopy={onExpenseCopy} />)}
 

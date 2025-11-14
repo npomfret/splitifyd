@@ -58,11 +58,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return (
             <div class='min-h-screen flex items-center justify-center'>
                 <div class='text-center'>
-                    <h2 class='text-2xl font-bold text-red-600 mb-2' role='alert' data-testid='auth-error-heading'>
+                    <h2 class='text-2xl font-bold text-semantic-error mb-2' role='alert' data-testid='auth-error-heading'>
                         {t('authProvider.authenticationError')}
                     </h2>
-                    <p class='text-gray-600 mb-4'>{initError}</p>
-                    <button onClick={() => window.location.reload()} class='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'>
+                    <p class='text-text-muted mb-4'>{initError}</p>
+                    <button onClick={() => window.location.reload()} class='px-4 py-2 bg-interactive-primary text-white rounded hover:bg-interactive-primary'>
                         {t('authProvider.retry')}
                     </button>
                 </div>

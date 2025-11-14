@@ -131,6 +131,7 @@ flowchart LR
 - Removed the legacy `branding.ts` utilities and `applyBrandingPalette()` so only `/api/theme.css` sets tenant styling. Config loading now limits itself to document metadata (title, `<meta name="theme-color">`, favicon) before deferring to the Theme Artifact pipeline.
 - Deleted the related unit tests and wiring to eliminate the second CSS-variable injector. Remaining cleanup (purging the legacy Tailwind `primary` palette) is tracked under the Phase 3 checklist.
 - Completed the `primary-*` Tailwind sweep: Admin Tenants, Domain Management, Join Group, dashboard cards/feed/empty states, settlements, comments, expense split UI, sidebar widgets, pagination, and CurrencyAmountInput now rely solely on semantic tokens (`bg/interative-*`, `text-text-*`, `border-border-*`). Removed the `primary` palette from `tailwind.config.js` and updated shared inputs/spinners so no `bg/text/border-primary` utilities remain.
+- Finished the remaining hard-coded color removal: purged every `gray-*`, `blue-*`, `yellow-*`, `orange-*`, and `red-*` Tailwind utility from `webapp-v2/src`, replacing them with semantic surfaces/text/border tokens (including new `semantic-error`, `surface-error`, and `border-error` scales). Scrollbars, placeholders, gradients, alerts, error states, and tests now reference the semantic palette exclusively, so the UI no longer depends on Tailwind’s default color map.
 
 
 ## Expert Check-in – 2025-11-13

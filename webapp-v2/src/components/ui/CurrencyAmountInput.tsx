@@ -86,7 +86,7 @@ export function CurrencyAmountInput({
 
         return (
             <>
-                {title && <div className='px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50'>{title}</div>}
+                {title && <div className='px-3 py-1 text-xs font-semibold text-text-muted uppercase tracking-wider bg-surface-muted'>{title}</div>}
                 {currencies.map((curr, index) => {
                     const globalIndex = startIndex + index;
                     const isHighlighted = highlightedIndex === globalIndex;
@@ -122,10 +122,10 @@ export function CurrencyAmountInput({
     return (
         <div className={className}>
             {label && (
-                <label htmlFor={inputId} className='block text-sm font-medium leading-6 text-gray-900 mb-2'>
+                <label htmlFor={inputId} className='block text-sm font-medium leading-6 text-text-primary mb-2'>
                     {label}
                     {required && (
-                        <span className='text-red-500 ml-1' data-testid='required-indicator'>
+                        <span className='text-semantic-error ml-1' data-testid='required-indicator'>
                             {t('uiComponents.currencyAmountInput.requiredIndicator')}
                         </span>
                     )}
@@ -144,23 +144,23 @@ export function CurrencyAmountInput({
               flex items-center justify-center px-3 
               border border-r-0 rounded-l-md
               transition-colors duration-200
-              ${disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 hover:bg-gray-100 text-gray-700 cursor-pointer'}
-              ${error ? 'border-red-300' : 'border-gray-300'}
+              ${disabled ? 'bg-surface-muted text-text-muted/80 cursor-not-allowed' : 'bg-surface-muted hover:bg-surface-muted text-text-primary cursor-pointer'}
+              ${error ? 'border-border-error' : 'border-border-default'}
             `}
                         aria-label={t('uiComponents.currencyAmountInput.selectCurrency')}
                         aria-expanded={isOpen}
                         aria-haspopup='listbox'
                     >
                         <div className='flex items-baseline gap-2'>
-                            <span className={`font-semibold text-lg leading-none ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>
+                            <span className={`font-semibold text-lg leading-none ${disabled ? 'text-text-muted/80' : 'text-text-primary'}`}>
                                 {selectedCurrency?.symbol ?? currency ?? t('uiComponents.currencyAmountInput.unknown')}
                             </span>{' '}
-                            <span className={`text-xs font-medium uppercase tracking-wide ${disabled ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <span className={`text-xs font-medium uppercase tracking-wide ${disabled ? 'text-text-muted/80' : 'text-text-muted'}`}>
                                 {selectedCurrency?.acronym ?? currency ?? ''}
                             </span>
                         </div>
                         <svg
-                            className={`ml-1 h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                            className={`ml-1 h-4 w-4 text-text-muted/80 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                             aria-hidden='true'
                             focusable='false'
                             xmlns='http://www.w3.org/2000/svg'
@@ -196,8 +196,8 @@ export function CurrencyAmountInput({
               border rounded-r-md
               focus:outline-none focus:ring-2 focus:ring-interactive-primary
               transition-colors duration-200
-              ${disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-900'}
-              ${error ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'}
+              ${disabled ? 'bg-surface-muted text-text-muted cursor-not-allowed' : 'bg-surface-base text-text-primary'}
+              ${error ? 'border-border-error focus:ring-semantic-error' : 'border-border-default'}
             `}
                         aria-invalid={!!error}
                         aria-describedby={error ? `${inputId}-error` : undefined}
@@ -206,9 +206,9 @@ export function CurrencyAmountInput({
 
                 {/* Currency dropdown */}
                 {isOpen && (
-                    <div ref={dropdownRef} role='listbox' className='absolute z-20 mt-1 w-full max-w-md bg-white shadow-lg max-h-80 rounded-md overflow-hidden ring-1 ring-black ring-opacity-5'>
+                    <div ref={dropdownRef} role='listbox' className='absolute z-20 mt-1 w-full max-w-md bg-surface-base shadow-lg max-h-80 rounded-md overflow-hidden ring-1 ring-black ring-opacity-5'>
                         {/* Search input */}
-                        <div className='sticky top-0 bg-white border-b border-border-default p-2'>
+                        <div className='sticky top-0 bg-surface-base border-b border-border-default p-2'>
                             <input
                                 ref={searchInputRef}
                                 type='text'
@@ -216,7 +216,7 @@ export function CurrencyAmountInput({
                                 onInput={handleSearchChange}
                                 onKeyDown={handleKeyDown}
                                 placeholder={t('uiComponents.currencyAmountInput.searchPlaceholder')}
-                                className='w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-interactive-primary'
+                                className='w-full px-3 py-1.5 text-sm border border-border-default rounded-md focus:outline-none focus:ring-1 focus:ring-interactive-primary'
                                 aria-label={t('uiComponents.currencyAmountInput.searchAriaLabel')}
                             />
                         </div>
@@ -225,7 +225,7 @@ export function CurrencyAmountInput({
                         <div className='overflow-auto max-h-64'>
                             {filteredCurrencies.length === 0
                                 ? (
-                                    <div className='px-3 py-4 text-sm text-gray-500 text-center' role='status'>
+                                    <div className='px-3 py-4 text-sm text-text-muted text-center' role='status'>
                                         {t('uiComponents.currencyAmountInput.noCurrencies')}
                                     </div>
                                 )
@@ -250,7 +250,7 @@ export function CurrencyAmountInput({
             </div>
 
             {error && (
-                <p id={`${inputId}-error`} className='mt-2 text-sm text-red-600' role='alert' data-testid='currency-input-error-message'>
+                <p id={`${inputId}-error`} className='mt-2 text-sm text-semantic-error' role='alert' data-testid='currency-input-error-message'>
                     {error}
                 </p>
             )}

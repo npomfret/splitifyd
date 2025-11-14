@@ -46,19 +46,19 @@ export function UserMenu({ user }: UserMenuProps) {
                     e.stopPropagation();
                     setIsOpen(!isOpen);
                 }}
-                class='flex items-center space-x-2 hover:bg-gray-100 rounded-lg px-2 py-1 transition-colors'
+                class='flex items-center space-x-2 hover:bg-surface-muted rounded-lg px-2 py-1 transition-colors'
                 aria-expanded={isOpen}
                 aria-haspopup='true'
                 aria-controls='user-dropdown-menu'
             >
-                <div class='w-8 h-8 bg-orange-100 text-interactive-primary rounded-full flex items-center justify-center'>
+                <div class='w-8 h-8 bg-interactive-secondary/10 text-interactive-primary rounded-full flex items-center justify-center'>
                     <span class='text-sm font-medium'>{userInitial}</span>
                 </div>
                 <div class='hidden sm:block text-left'>
-                    <p class='text-sm font-medium text-gray-700' data-testid='user-menu-display-name'>{userName}</p>
-                    <p class='text-xs text-gray-500'>{user.email}</p>
+                    <p class='text-sm font-medium text-text-primary' data-testid='user-menu-display-name'>{userName}</p>
+                    <p class='text-xs text-text-muted'>{user.email}</p>
                 </div>
-                <svg class='w-4 h-4 text-gray-500' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                <svg class='w-4 h-4 text-text-muted' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                     <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7' />
                 </svg>
             </button>
@@ -72,9 +72,9 @@ export function UserMenu({ user }: UserMenuProps) {
                     aria-orientation='vertical'
                     aria-labelledby='user-menu-button'
                 >
-                    <div class='px-4 py-2 border-b border-gray-100'>
-                        <p class='text-sm font-medium text-gray-900'>{userName}</p>
-                        <p class='text-xs text-gray-500'>{user.email}</p>
+                    <div class='px-4 py-2 border-b border-border-default'>
+                        <p class='text-sm font-medium text-text-primary'>{userName}</p>
+                        <p class='text-xs text-text-muted'>{user.email}</p>
                     </div>
 
                     <button
@@ -82,7 +82,7 @@ export function UserMenu({ user }: UserMenuProps) {
                             setIsOpen(false);
                             navigationService.goToDashboard();
                         }}
-                        class='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                        class='block w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-surface-muted transition-colors'
                         data-testid='user-menu-dashboard-link'
                         role='menuitem'
                     >
@@ -94,7 +94,7 @@ export function UserMenu({ user }: UserMenuProps) {
                             setIsOpen(false);
                             navigationService.goToSettings();
                         }}
-                        class='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                        class='block w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-surface-muted transition-colors'
                         data-testid='user-menu-settings-link'
                         role='menuitem'
                     >
@@ -103,10 +103,10 @@ export function UserMenu({ user }: UserMenuProps) {
 
                     {isSystemAdmin && (
                         <>
-                            <hr class='my-1 border-gray-100' />
+                            <hr class='my-1 border-border-default' />
 
                             <div class='px-4 py-2'>
-                                <p class='text-xs font-semibold text-gray-500 uppercase tracking-wider'>System Admin</p>
+                                <p class='text-xs font-semibold text-text-muted uppercase tracking-wider'>System Admin</p>
                             </div>
 
                             <button
@@ -114,7 +114,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                     setIsOpen(false);
                                     navigationService.goToAdminTenants();
                                 }}
-                                class='block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                                class='block w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-surface-muted transition-colors'
                                 data-testid='user-menu-admin-tenants-link'
                                 role='menuitem'
                             >
@@ -123,7 +123,7 @@ export function UserMenu({ user }: UserMenuProps) {
                         </>
                     )}
 
-                    <hr class='my-1 border-gray-100' />
+                    <hr class='my-1 border-border-default' />
 
                     <button
                         data-testid='sign-out-button'
@@ -138,7 +138,7 @@ export function UserMenu({ user }: UserMenuProps) {
                                 console.error('Logout failed:', error);
                             }
                         }}
-                        class='w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                        class='w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-surface-muted transition-colors'
                         disabled={authStore.loading}
                         role='menuitem'
                     >

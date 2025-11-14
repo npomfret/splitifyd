@@ -172,7 +172,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                 <div className='min-h-screen bg-surface-muted p-4'>
                     <Card className='max-w-md mx-auto mt-8' data-testid='expense-error-card'>
                         <Stack spacing='md'>
-                            <h2 className='text-xl font-semibold text-red-600' role='alert' data-testid='page-error-title'>
+                            <h2 className='text-xl font-semibold text-semantic-error' role='alert' data-testid='page-error-title'>
                                 {t('pages.expenseDetailPage.error')}
                             </h2>
                             <p className='text-text-muted'>{error.value || t('pages.expenseDetailPage.expenseNotFound')}</p>

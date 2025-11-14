@@ -23,9 +23,9 @@ export function Alert({ type, title, message, dismissible = false, onDismiss }: 
 
     const typeStyles = {
         info: {
-            bg: 'bg-blue-50',
-            border: 'border-blue-200',
-            text: 'text-blue-800',
+            bg: 'bg-interactive-primary/10',
+            border: 'border-interactive-primary/30',
+            text: 'text-interactive-primary',
             icon: (
                 <svg className='w-5 h-5 mr-2' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                     <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clipRule='evenodd' />
@@ -33,9 +33,9 @@ export function Alert({ type, title, message, dismissible = false, onDismiss }: 
             ),
         },
         success: {
-            bg: 'bg-green-50',
-            border: 'border-green-200',
-            text: 'text-green-800',
+            bg: 'bg-interactive-accent/10',
+            border: 'border-semantic-success/40',
+            text: 'text-semantic-success',
             icon: (
                 <svg className='w-5 h-5 mr-2' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                     <path
@@ -47,9 +47,9 @@ export function Alert({ type, title, message, dismissible = false, onDismiss }: 
             ),
         },
         warning: {
-            bg: 'bg-yellow-50',
-            border: 'border-yellow-200',
-            text: 'text-yellow-800',
+            bg: 'bg-surface-warning',
+            border: 'border-border-warning',
+            text: 'text-semantic-warning',
             icon: (
                 <svg className='w-5 h-5 mr-2' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                     <path
@@ -61,9 +61,9 @@ export function Alert({ type, title, message, dismissible = false, onDismiss }: 
             ),
         },
         error: {
-            bg: 'bg-red-50',
-            border: 'border-red-200',
-            text: 'text-red-800',
+            bg: 'bg-surface-error',
+            border: 'border-border-error',
+            text: 'text-semantic-error',
             icon: (
                 <svg className='w-5 h-5 mr-2' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                     <path

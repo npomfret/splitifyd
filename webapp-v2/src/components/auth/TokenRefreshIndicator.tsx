@@ -30,7 +30,7 @@ export function TokenRefreshIndicator() {
 
     return (
         <div
-            class='fixed bottom-6 right-6 z-50 flex items-center space-x-3 rounded-md bg-gray-900/90 px-4 py-3 text-white shadow-lg backdrop-blur-sm'
+            class='fixed bottom-6 right-6 z-50 flex items-center space-x-3 rounded-md bg-text-primary/90 px-4 py-3 text-white shadow-lg backdrop-blur-sm'
             role='status'
             aria-live='polite'
         >

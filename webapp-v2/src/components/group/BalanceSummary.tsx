@@ -42,7 +42,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
         return (
             <>
                 {name}
-                {isCurrentUser && <span className='text-gray-500 ml-1'>({t('common.you')})</span>}
+                {isCurrentUser && <span className='text-text-muted ml-1'>({t('common.you')})</span>}
             </>
         );
     };
@@ -84,12 +84,12 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
     const testIdPrefix = variant === 'sidebar' ? 'sidebar-' : '';
 
     const content = !balances.value
-        ? <p className='text-gray-600 text-sm' data-testid={`${testIdPrefix}balance-loading`}>{t('balanceSummary.loadingBalances')}</p>
+        ? <p className='text-text-muted text-sm' data-testid={`${testIdPrefix}balance-loading`}>{t('balanceSummary.loadingBalances')}</p>
         : groupedDebts.length === 0 || groupedDebts.every(g => g.debts.length === 0)
-        ? <p className='text-gray-600 text-sm' data-testid={`${testIdPrefix}balance-settled-up`}>{t('balanceSummary.allSettledUp')}</p>
+        ? <p className='text-text-muted text-sm' data-testid={`${testIdPrefix}balance-settled-up`}>{t('balanceSummary.allSettledUp')}</p>
         : (
             <div
-                className='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400'
+                className='space-y-2 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'
                 data-testid={`${testIdPrefix}balance-debts-list`}
             >
                 {groupedDebts.map(({ currency, debts }) => (
@@ -112,7 +112,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                             <div
                                 key={`${debt.from.uid}-${debt.to.uid}-${currency}`}
                                 data-testid='debt-item'
-                                className='group border-b last:border-0 pb-3 last:pb-0 -mx-2 px-2 py-2 rounded relative hover:bg-gray-50'
+                                className='group border-b last:border-0 pb-3 last:pb-0 -mx-2 px-2 py-2 rounded relative hover:bg-surface-muted'
                                 style={{
                                     borderLeftWidth: '4px',
                                     borderLeftColor: themeColor,
@@ -130,30 +130,30 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                         />
                                     </div>
                                     <div className='row-start-1 col-start-2 flex items-center gap-2 min-w-0'>
-                                        <span className='text-sm font-semibold text-gray-900 truncate'>
+                                        <span className='text-sm font-semibold text-text-primary truncate'>
                                             {renderMemberName(debt.from.uid)}
                                         </span>
                                     </div>
 
                                     {/* Row 2: Down arrow only */}
                                     <div className='row-start-2 flex items-center justify-center self-stretch'>
-                                        <div className='flex items-center justify-center w-6 h-full text-gray-400'>
-                                            <svg className='w-3 h-3 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
+                                        <div className='flex items-center justify-center w-6 h-full text-text-muted/80'>
+                                            <svg className='w-3 h-3 text-text-muted/80' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M19 14l-7 7m0 0l-7-7m7 7V3' />
                                             </svg>
                                         </div>
                                     </div>
                                     <div className='row-start-2 col-start-2 flex items-center gap-2 w-full min-w-0'>
                                         <div className='flex items-center gap-1 flex-1'>
-                                            <span className='text-xs text-gray-500'>owes</span>
+                                            <span className='text-xs text-text-muted'>owes</span>
                                             <CurrencyAmount
                                                 amount={debt.amount}
                                                 currency={debt.currency}
-                                                className='text-base font-bold tabular-nums text-gray-900'
+                                                className='text-base font-bold tabular-nums text-text-primary'
                                                 displayOptions={{ includeCurrencyCode: false }}
                                                 data-financial-amount='debt'
                                             />
-                                            <span className='text-xs text-gray-500'>to</span>
+                                            <span className='text-xs text-text-muted'>to</span>
                                         </div>
                                         {/* Settlement button - only show if current user owes this debt and onSettleUp is provided */}
                                         {isCurrentUserFrom && onSettleUp && (
@@ -183,7 +183,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                         />
                                     </div>
                                     <div className='row-start-3 col-start-2 flex items-center gap-2 min-w-0'>
-                                        <span className='text-sm font-semibold text-gray-900 truncate'>
+                                        <span className='text-sm font-semibold text-text-primary truncate'>
                                             {renderMemberName(debt.to.uid)}
                                         </span>
                                     </div>
@@ -200,7 +200,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
             <SidebarCard
                 title={
                     <div className='flex items-center gap-2'>
-                        <ScaleIcon className='h-5 w-5 text-gray-600' aria-hidden='true' />
+                        <ScaleIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
                         <span>{t('balanceSummary.title')}</span>
                     </div>
                 }
@@ -216,10 +216,10 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                             type='checkbox'
                             checked={showAllBalances.value}
                             onChange={(e) => showAllBalances.value = e.currentTarget.checked}
-                            className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                            className='rounded border-border-default text-interactive-primary focus:ring-interactive-primary'
                             autoComplete='off'
                         />
-                        <span className='text-gray-700'>{t('balanceSummary.showAll')}</span>
+                        <span className='text-text-primary'>{t('balanceSummary.showAll')}</span>
                     </label>
                 </div>
                 {content}
@@ -237,10 +237,10 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                         type='checkbox'
                         checked={showAllBalances.value}
                         onChange={(e) => showAllBalances.value = e.currentTarget.checked}
-                        className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                        className='rounded border-border-default text-interactive-primary focus:ring-interactive-primary'
                         autoComplete='off'
                     />
-                    <span className='text-gray-700'>{t('balanceSummary.showAll')}</span>
+                    <span className='text-text-primary'>{t('balanceSummary.showAll')}</span>
                 </label>
             </div>
             {content}

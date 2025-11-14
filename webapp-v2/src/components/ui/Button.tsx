@@ -92,9 +92,9 @@ export function Button({
             'focus-visible:ring-border-default',
         ],
         danger: [
-            'bg-red-600 text-white shadow-md',
-            !isDisabled && 'hover:bg-red-700',
-            'focus-visible:ring-red-500',
+            'bg-semantic-error text-text-inverted shadow-md',
+            !isDisabled && 'hover:bg-semantic-error/90',
+            'focus-visible:ring-semantic-error',
         ],
     };
 

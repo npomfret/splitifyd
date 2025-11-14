@@ -140,13 +140,13 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
 
     const membersList = (
         <>
-            <div className='space-y-0.5 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400'>
+            <div className='space-y-0.5 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'>
                 {members.value.map((member) => {
                     const memberTheme = member.themeColor;
                     return (
                         <div
                             key={member.uid}
-                            className='flex items-center justify-between py-1.5 px-1.5 rounded-md hover:bg-gray-50 transition-colors'
+                            className='flex items-center justify-between py-1.5 px-1.5 rounded-md hover:bg-surface-muted transition-colors'
                             data-testid='member-item'
                             data-member-name={getGroupDisplayName(member)}
                             data-member-id={member.uid}
@@ -154,11 +154,11 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                             <div className='flex items-center gap-2 min-w-0 flex-1'>
                                 <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' themeColor={memberTheme} />
                                 <div className='flex flex-col min-w-0 flex-1'>
-                                    <span className='font-medium text-gray-900 text-sm truncate leading-tight'>
+                                    <span className='font-medium text-text-primary text-sm truncate leading-tight'>
                                         {getGroupDisplayName(member)}
-                                        {member.uid === currentUserId && <span className='text-gray-500 ml-1'>({t('common.you')})</span>}
+                                        {member.uid === currentUserId && <span className='text-text-muted ml-1'>({t('common.you')})</span>}
                                     </span>
-                                    {getMemberRole(member) && <span className='text-xs text-gray-500 leading-tight'>{getMemberRole(member)}</span>}
+                                    {getMemberRole(member) && <span className='text-xs text-text-muted leading-tight'>{getMemberRole(member)}</span>}
                                 </div>
                             </div>
                             {/* Show actions only if current user is owner */}
@@ -197,7 +197,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
     const titleContent = (
         <span className='flex items-baseline gap-1.5'>
             <span>{t('membersList.title')}</span>
-            <span className='text-sm font-medium text-gray-500'>({memberCount.value})</span>
+            <span className='text-sm font-medium text-text-muted'>({memberCount.value})</span>
         </span>
     );
     const headerClasses = ['flex', 'items-center', 'justify-between', 'gap-2', !isCollapsed.value ? 'mb-4' : ''].filter(Boolean).join(' ');
@@ -211,7 +211,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     onClick={onInviteClick}
                     aria-label={inviteAriaLabel}
                     data-testid='invite-members-button'
-                    className='p-1 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
+                    className='p-1 text-text-muted/80 hover:text-text-muted rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
                 >
                     <UserPlusIcon aria-hidden='true' className='h-5 w-5' />
                 </button>
@@ -236,9 +236,9 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
         : (
             <Card data-testid='members-container'>
                 <div className={headerClasses}>
-                    <h2 className='text-lg font-semibold text-gray-900 flex items-baseline gap-2'>
+                    <h2 className='text-lg font-semibold text-text-primary flex items-baseline gap-2'>
                         <span>{t('membersList.title')}</span>
-                        <span className='text-sm font-medium text-gray-500'>({memberCount.value})</span>
+                        <span className='text-sm font-medium text-text-muted'>({memberCount.value})</span>
                     </h2>
                     <div className='flex items-center gap-1.5'>
                         {inviteButton}
@@ -249,7 +249,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                                 aria-label={toggleLabel}
                                 aria-expanded={!isCollapsed.value}
                                 data-testid='toggle-members-section'
-                                className='p-1 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
+                                className='p-1 text-text-muted/80 hover:text-text-muted rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
                             >
                                 <ChevronDownIcon
                                     aria-hidden='true'

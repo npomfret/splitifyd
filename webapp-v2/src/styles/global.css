@@ -190,7 +190,7 @@
     }
 
     .user-indicator {
-        border-color: #374151; /* gray-700 for dark mode */
+        border-color: rgb(var(--border-strong-rgb, 148 163 184));
     }
 
     /* Adjust patterns for dark mode */

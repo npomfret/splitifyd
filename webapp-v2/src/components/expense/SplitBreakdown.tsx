@@ -37,13 +37,13 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
     const getSplitTypeBadgeColor = (type: string) => {
         switch (type) {
             case SplitTypes.EQUAL:
-                return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+                return 'bg-interactive-primary/10 text-interactive-primary dark:bg-interactive-primary/30 dark:text-interactive-primary';
             case SplitTypes.EXACT:
-                return 'bg-orange-100 text-interactive-primary dark:bg-purple-900/30 dark:text-purple-300';
+                return 'bg-interactive-secondary/10 text-interactive-primary dark:bg-purple-900/30 dark:text-purple-300';
             case SplitTypes.PERCENTAGE:
-                return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+                return 'bg-interactive-accent/10 text-semantic-success dark:bg-semantic-success/30 dark:text-semantic-success';
             default:
-                return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+                return 'bg-surface-muted text-text-primary dark:bg-text-primary/30 dark:text-text-muted/60';
         }
     };
 
@@ -52,7 +52,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
     return (
         <Stack spacing='md'>
             <div className='flex items-center justify-between'>
-                <h3 className='font-semibold text-gray-900 dark:text-white'>
+                <h3 className='font-semibold text-text-primary dark:text-white'>
                     {t('expenseComponents.splitBreakdown.splitBetween')}
                     {expense.participants.length}
                     {expense.participants.length === 1 ? t('expenseComponents.splitBreakdown.person') : t('expenseComponents.splitBreakdown.people')}
@@ -73,13 +73,13 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                     const isOwing = !isPayer && splitUnits > 0;
 
                     return (
-                        <div key={split.uid} className='bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4'>
+                        <div key={split.uid} className='bg-surface-muted dark:bg-text-primary/50 rounded-lg p-4'>
                             <div className='flex items-center justify-between mb-2'>
                                 <div className='flex items-center gap-3'>
                                     <div className='relative'>
                                         <Avatar displayName={memberName} userId={split.uid} size='md' />
                                         {isPayer && (
-                                            <div className='absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-0.5'>
+                                            <div className='absolute -bottom-1 -right-1 bg-interactive-accent text-white rounded-full p-0.5'>
                                                 <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>
                                                     <path
                                                         fillRule='evenodd'
@@ -91,31 +91,31 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                         )}
                                     </div>
                                     <div>
-                                        <p className='font-medium text-gray-900 dark:text-white'>{memberName}</p>
-                                        {isPayer && <p className='text-xs text-green-600 dark:text-green-400'>{t('expenseComponents.splitBreakdown.paid')}</p>}
+                                        <p className='font-medium text-text-primary dark:text-white'>{memberName}</p>
+                                        {isPayer && <p className='text-xs text-semantic-success dark:text-semantic-success'>{t('expenseComponents.splitBreakdown.paid')}</p>}
                                     </div>
                                 </div>
                                 <div className='text-right'>
                                     <p
-                                        className={`font-semibold ${isOwing ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}
+                                        className={`font-semibold ${isOwing ? 'text-semantic-error dark:text-semantic-error/80' : 'text-text-primary dark:text-white'}`}
                                         data-financial-amount='split'
                                         data-testid='split-amount'
                                     >
                                         <CurrencyAmount amount={split.amount} currency={expense.currency} />
                                     </p>
-                                    <p className='text-xs text-gray-500 dark:text-gray-400'>{percentage.toFixed(1)}%</p>
+                                    <p className='text-xs text-text-muted dark:text-text-muted/80'>{percentage.toFixed(1)}%</p>
                                 </div>
                             </div>
 
                             <div className='mt-3'>
-                                <div className='w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden'>
+                                <div className='w-full bg-surface-muted dark:bg-text-primary rounded-full h-2 overflow-hidden'>
                                     <div
-                                        className={`h-full transition-all duration-300 ${isPayer ? 'bg-green-500 dark:bg-green-400' : 'bg-red-500 dark:bg-red-400'}`}
+                                        className={`h-full transition-all duration-300 ${isPayer ? 'bg-interactive-accent dark:bg-semantic-success' : 'bg-semantic-error dark:bg-semantic-error/80'}`}
                                         style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
                                     />
                                 </div>
                                 {isOwing && memberMap[expense.paidBy] && (
-                                    <p className='text-xs text-gray-600 dark:text-gray-400 mt-1'>
+                                    <p className='text-xs text-text-muted dark:text-text-muted/80 mt-1'>
                                         {t('expenseComponents.splitBreakdown.owes')}
                                         {getGroupDisplayName(memberMap[expense.paidBy])}
                                     </p>
@@ -127,8 +127,8 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
             </div>
 
             {expense.splitType === SplitTypes.PERCENTAGE && (
-                <div className='mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg'>
-                    <p className='text-sm text-yellow-800 dark:text-yellow-200'>
+                <div className='mt-2 p-3 bg-surface-warning dark:bg-semantic-warning/20 rounded-lg'>
+                    <p className='text-sm text-semantic-warning dark:text-semantic-warning/60'>
                         {t('expenseComponents.splitBreakdown.total')}
                         {(() => {
                             if (totalUnits === 0) {

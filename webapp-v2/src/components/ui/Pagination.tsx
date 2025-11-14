@@ -23,8 +23,8 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                 <button
                     onClick={onPrevious}
                     disabled={!hasPrevious || loading}
-                    class={`relative inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${
-                        !hasPrevious || loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'
+                    class={`relative inline-flex items-center rounded-md border border-border-default px-4 py-2 text-sm font-medium ${
+                        !hasPrevious || loading ? 'bg-surface-muted text-text-muted/80 cursor-not-allowed' : 'bg-surface-base text-text-primary hover:bg-surface-muted'
                     }`}
                     data-testid='pagination-previous-mobile'
                 >
@@ -33,8 +33,8 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                 <button
                     onClick={onNext}
                     disabled={!hasMore || loading}
-                    class={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium ${
-                        !hasMore || loading ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'
+                    class={`relative ml-3 inline-flex items-center rounded-md border border-border-default px-4 py-2 text-sm font-medium ${
+                        !hasMore || loading ? 'bg-surface-muted text-text-muted/80 cursor-not-allowed' : 'bg-surface-base text-text-primary hover:bg-surface-muted'
                     }`}
                     data-testid='pagination-next-mobile'
                 >
@@ -43,7 +43,7 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
             </div>
             <div class='hidden sm:flex sm:flex-1 sm:items-center sm:justify-between'>
                 <div>
-                    <p class='text-sm text-gray-700'>
+                    <p class='text-sm text-text-primary'>
                         {t('pagination.page')} <span class='font-medium'>{currentPage}</span>
                     </p>
                 </div>
@@ -52,8 +52,8 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                         <button
                             onClick={onPrevious}
                             disabled={!hasPrevious || loading}
-                            class={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0 ${
-                                !hasPrevious || loading ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-gray-50'
+                            class={`relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted/80 ring-1 ring-inset ring-border-default focus:z-20 focus:outline-offset-0 ${
+                                !hasPrevious || loading ? 'bg-surface-muted cursor-not-allowed' : 'hover:bg-surface-muted'
                             }`}
                             data-testid='pagination-previous'
                         >
@@ -69,8 +69,8 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                         <button
                             onClick={onNext}
                             disabled={!hasMore || loading}
-                            class={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0 ${
-                                !hasMore || loading ? 'bg-gray-100 cursor-not-allowed' : 'hover:bg-gray-50'
+                            class={`relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted/80 ring-1 ring-inset ring-border-default focus:z-20 focus:outline-offset-0 ${
+                                !hasMore || loading ? 'bg-surface-muted cursor-not-allowed' : 'hover:bg-surface-muted'
                             }`}
                             data-testid='pagination-next'
                         >

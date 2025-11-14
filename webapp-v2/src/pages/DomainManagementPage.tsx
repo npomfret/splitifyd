@@ -147,7 +147,7 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                         <div class='flex items-center justify-center py-12'>
                             <div class='text-center'>
                                 <div class='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-interactive-primary/20 border-t-interactive-primary' />
-                                <p class='mt-4 text-sm text-slate-600'>Loading domain settings...</p>
+                                <p class='mt-4 text-sm text-text-muted'>Loading domain settings...</p>
                             </div>
                         </div>
                     </Card>
@@ -166,10 +166,10 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                             Tenant Settings
                         </span>
                         <div class='flex flex-col gap-2'>
-                            <h1 class='text-3xl font-semibold text-slate-900'>
+                            <h1 class='text-3xl font-semibold text-text-primary'>
                                 Domain Management
                             </h1>
-                            <p class='max-w-2xl text-sm text-slate-600 sm:text-base'>
+                            <p class='max-w-2xl text-sm text-text-muted sm:text-base'>
                                 Configure custom domains for your tenant
                             </p>
                         </div>
@@ -188,8 +188,8 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                         <div class='space-y-6'>
                             <div class='flex items-center justify-between'>
                                 <div class='space-y-2'>
-                                    <h2 class='text-xl font-semibold text-slate-900'>Configured Domains</h2>
-                                    <p class='text-sm text-slate-600'>Domains mapped to your tenant</p>
+                                    <h2 class='text-xl font-semibold text-text-primary'>Configured Domains</h2>
+                                    <p class='text-sm text-text-muted'>Domains mapped to your tenant</p>
                                 </div>
                                 <Button
                                     onClick={() => setShowAddForm(!showAddForm)}
@@ -202,7 +202,7 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
 
                             {/* Add Domain Form */}
                             {showAddForm && (
-                                <div class='rounded-lg border border-slate-200 bg-surface-muted p-4'>
+                                <div class='rounded-lg border border-border-default bg-surface-muted p-4'>
                                     <div class='space-y-4'>
                                         <Input
                                             label='New Domain'
@@ -244,11 +244,11 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                                         <div
                                             key={domain}
                                             data-testid={`domain-item-${domain}`}
-                                            class='flex items-center justify-between rounded-lg border border-slate-200 bg-interactive-primary/10 px-4 py-3'
+                                            class='flex items-center justify-between rounded-lg border border-border-default bg-interactive-primary/10 px-4 py-3'
                                         >
                                             <div class='flex items-center gap-3'>
                                                 <svg
-                                                    class='h-5 w-5 text-slate-400'
+                                                    class='h-5 w-5 text-text-muted/80'
                                                     fill='none'
                                                     viewBox='0 0 24 24'
                                                     stroke='currentColor'
@@ -261,7 +261,7 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                                                     />
                                                 </svg>
                                                 <div>
-                                                    <p class='font-medium text-slate-900'>{domain}</p>
+                                                    <p class='font-medium text-text-primary'>{domain}</p>
                                                     {domain === domains.primaryDomain && (
                                                         <span
                                                             class='mt-1 inline-flex items-center rounded-full bg-interactive-primary/10 px-2 py-0.5 text-xs font-medium text-interactive-primary'
@@ -283,30 +283,30 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                     <Card padding='lg'>
                         <div class='space-y-6'>
                             <div class='space-y-2'>
-                                <h2 class='text-xl font-semibold text-slate-900'>DNS Configuration</h2>
-                                <p class='text-sm text-slate-600'>
+                                <h2 class='text-xl font-semibold text-text-primary'>DNS Configuration</h2>
+                                <p class='text-sm text-text-muted'>
                                     Add these DNS records to verify domain ownership
                                 </p>
                             </div>
 
                             <div
-                                class='rounded-lg border border-slate-200 bg-slate-50 p-4'
+                                class='rounded-lg border border-border-default bg-surface-muted p-4'
                                 data-testid='dns-instructions'
                             >
                                 <div class='space-y-4'>
                                     <div class='space-y-2'>
-                                        <p class='text-sm font-medium text-slate-700'>CNAME Record</p>
-                                        <div class='rounded bg-interactive-primary/10 px-3 py-2 font-mono text-sm text-slate-900'>
+                                        <p class='text-sm font-medium text-text-primary'>CNAME Record</p>
+                                        <div class='rounded bg-interactive-primary/10 px-3 py-2 font-mono text-sm text-text-primary'>
                                             <div class='space-y-1'>
-                                                <div><span class='text-slate-500'>Type:</span> CNAME</div>
-                                                <div><span class='text-slate-500'>Name:</span> @ (or your domain)</div>
-                                                <div><span class='text-slate-500'>Value:</span> {domains?.primaryDomain || 'your-primary-domain'}</div>
-                                                <div><span class='text-slate-500'>TTL:</span> 3600</div>
+                                                <div><span class='text-text-muted'>Type:</span> CNAME</div>
+                                                <div><span class='text-text-muted'>Name:</span> @ (or your domain)</div>
+                                                <div><span class='text-text-muted'>Value:</span> {domains?.primaryDomain || 'your-primary-domain'}</div>
+                                                <div><span class='text-text-muted'>TTL:</span> 3600</div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class='flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800'>
+                                    <div class='flex items-start gap-2 rounded-md bg-surface-warning px-3 py-2 text-sm text-semantic-warning'>
                                         <svg
                                             class='h-5 w-5 flex-shrink-0'
                                             fill='none'

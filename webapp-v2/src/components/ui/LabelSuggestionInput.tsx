@@ -112,9 +112,9 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
         'border',
         'px-3',
         'py-2',
-        'text-gray-900',
+        'text-text-primary',
         'shadow-sm',
-        'placeholder:text-gray-400',
+        'placeholder:text-text-muted/80',
         'focus:outline-none',
         'focus:ring-2',
         'sm:text-sm',
@@ -123,17 +123,17 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
         'duration-200',
     ];
 
-    const stateClasses = error ? 'border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-interactive-primary focus:border-interactive-primary';
+    const stateClasses = error ? 'border-border-error text-semantic-error focus:ring-semantic-error focus:border-semantic-error' : 'border-border-default focus:ring-interactive-primary focus:border-interactive-primary';
 
     const inputClasses = [...baseInputClasses, stateClasses, className].filter(Boolean).join(' ');
 
     return (
         <div className='relative'>
             {label && (
-                <label htmlFor={inputId} className='block text-sm font-medium leading-6 text-gray-900 mb-2'>
+                <label htmlFor={inputId} className='block text-sm font-medium leading-6 text-text-primary mb-2'>
                     {label}
                     {required && (
-                        <span className='text-red-500 ml-1' data-testid='required-indicator'>
+                        <span className='text-semantic-error ml-1' data-testid='required-indicator'>
                             {t('uiComponents.labelSuggestionInput.requiredIndicator')}
                         </span>
                     )}
@@ -162,7 +162,7 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
                 {isOpen && filteredSuggestions.length > 0 && (
                     <div
                         ref={dropdownRef}
-                        className='absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm'
+                        className='absolute z-10 mt-1 w-full bg-surface-base shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm'
                         role='listbox'
                     >
                         {filteredSuggestions.map((suggestion, index) => (
@@ -170,7 +170,7 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
                                 key={suggestion.name}
                                 onClick={() => handleSuggestionClick(suggestion)}
                                 className={`cursor-pointer select-none relative py-2 pl-3 pr-9 flex items-center space-x-3 ${
-                                    index === highlightedIndex ? 'bg-interactive-primary text-interactive-primary-foreground' : 'text-gray-900 hover:bg-gray-100'
+                                    index === highlightedIndex ? 'bg-interactive-primary text-interactive-primary-foreground' : 'text-text-primary hover:bg-surface-muted'
                                 }`}
                                 role='option'
                                 aria-selected={index === highlightedIndex}
@@ -183,7 +183,7 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
                 )}
             </div>
             {error && (
-                <p id={`${inputId}-error`} className='mt-2 text-sm text-red-600' role='alert' data-testid='label-input-error-message'>
+                <p id={`${inputId}-error`} className='mt-2 text-sm text-semantic-error' role='alert' data-testid='label-input-error-message'>
                     {error}
                 </p>
             )}

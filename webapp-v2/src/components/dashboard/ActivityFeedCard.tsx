@@ -53,14 +53,14 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
         <div className='bg-surface-base border-border-default rounded-lg shadow-sm border border-border-default' data-testid='activity-feed-card'>
             <div className='p-6'>
                 <div className='flex items-center justify-between mb-4'>
-                    <h3 className='text-lg font-semibold text-gray-900'>{t('activityFeed.title')}</h3>
+                    <h3 className='text-lg font-semibold text-text-primary'>{t('activityFeed.title')}</h3>
                     {loading.value && !initialized.value ? <span className='text-xs font-medium text-interactive-primary animate-pulse'>{t('activityFeed.loading')}</span> : null}
                 </div>
 
                 {error.value
                     ? (
-                        <div className='bg-red-50 border border-red-200 rounded-md p-4 mb-4'>
-                            <p className='text-sm text-red-700 mb-3' role='alert' data-testid='activity-feed-error'>
+                        <div className='bg-surface-error border border-border-error rounded-md p-4 mb-4'>
+                            <p className='text-sm text-semantic-error mb-3' role='alert' data-testid='activity-feed-error'>
                                 {t('activityFeed.error.loadFailed')}
                             </p>
                             <button
@@ -76,8 +76,8 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
 
                 {!error.value && initialized.value && items.value.length === 0
                     ? (
-                        <div className='text-sm text-gray-600' data-testid='activity-feed-empty'>
-                            <p className='font-medium text-gray-900 mb-1'>{t('activityFeed.emptyState.title')}</p>
+                        <div className='text-sm text-text-muted' data-testid='activity-feed-empty'>
+                            <p className='font-medium text-text-primary mb-1'>{t('activityFeed.emptyState.title')}</p>
                             <p>{t('activityFeed.emptyState.description')}</p>
                         </div>
                     )
@@ -93,12 +93,12 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
 
                                 const content = (
                                     <>
-                                        <p className='text-sm text-gray-900'>{description}</p>
-                                        {item.details?.commentPreview ? <p className='text-sm text-gray-600 mt-1 italic truncate'>{item.details.commentPreview}</p> : null}
-                                        <div className='mt-2 flex items-center gap-2 text-xs text-gray-500'>
-                                            <span className='font-medium text-gray-700'>{groupLabel}</span>
+                                        <p className='text-sm text-text-primary'>{description}</p>
+                                        {item.details?.commentPreview ? <p className='text-sm text-text-muted mt-1 italic truncate'>{item.details.commentPreview}</p> : null}
+                                        <div className='mt-2 flex items-center gap-2 text-xs text-text-muted'>
+                                            <span className='font-medium text-text-primary'>{groupLabel}</span>
                                             <span aria-hidden='true'>•</span>
-                                            <RelativeTime date={item.timestamp} className='text-gray-500' />
+                                            <RelativeTime date={item.timestamp} className='text-text-muted' />
                                         </div>
                                     </>
                                 );

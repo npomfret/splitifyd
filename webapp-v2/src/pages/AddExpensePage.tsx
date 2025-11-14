@@ -33,7 +33,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 <div className='min-h-screen bg-surface-muted flex items-center justify-center px-4'>
                     <Card className='max-w-md w-full' data-testid='add-expense-error-card'>
                         <Stack spacing='md'>
-                            <h2 className='text-xl font-semibold text-red-600' role='alert' data-testid='page-error-title'>
+                            <h2 className='text-xl font-semibold text-semantic-error' role='alert' data-testid='page-error-title'>
                                 {t('pages.addExpensePage.error')}
                             </h2>
                             <p className='text-text-muted'>{t('pages.addExpensePage.noGroupMessage')}</p>
@@ -72,7 +72,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 <div className='min-h-screen bg-surface-muted flex items-center justify-center px-4'>
                     <Card className='max-w-md w-full' data-testid='add-expense-error-card'>
                         <Stack spacing='md'>
-                            <h2 className='text-xl font-semibold text-red-600' role='alert' data-testid='page-error-title'>
+                            <h2 className='text-xl font-semibold text-semantic-error' role='alert' data-testid='page-error-title'>
                                 {t('pages.addExpensePage.error')}
                             </h2>
                             <p className='text-text-muted'>{formState.initError}</p>
@@ -93,7 +93,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 <div className='min-h-screen bg-surface-muted flex items-center justify-center px-4'>
                     <Card className='max-w-md w-full' data-testid='add-expense-error-card'>
                         <Stack spacing='md'>
-                            <h2 className='text-xl font-semibold text-red-600' role='alert' data-testid='page-error-title'>
+                            <h2 className='text-xl font-semibold text-semantic-error' role='alert' data-testid='page-error-title'>
                                 {t('pages.addExpensePage.groupNotFound')}
                             </h2>
                             <p className='text-text-muted'>{t('pages.addExpensePage.groupNotFoundMessage')}</p>
@@ -180,7 +180,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                         />
 
                                             {formState.validationErrors.splits && (
-                                            <p className='text-sm text-red-600 mt-2' role='alert' data-testid='validation-error-splits'>
+                                            <p className='text-sm text-semantic-error mt-2' role='alert' data-testid='validation-error-splits'>
                                                 {formState.validationErrors.splits}
                                             </p>
                                         )}

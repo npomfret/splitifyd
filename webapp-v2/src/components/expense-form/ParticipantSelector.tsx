@@ -26,9 +26,9 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
         <Card data-testid='split-between-section'>
             <Stack spacing='md'>
                 <div className='flex items-center justify-between'>
-                    <h2 className='text-lg font-semibold text-gray-900 dark:text-white'>
+                    <h2 className='text-lg font-semibold text-text-primary dark:text-white'>
                         {t('expenseComponents.participantSelector.label')}{' '}
-                        <span className='text-red-500' data-testid='required-indicator'>
+                        <span className='text-semantic-error' data-testid='required-indicator'>
                             {t('expenseComponents.participantSelector.requiredIndicator')}
                         </span>
                     </h2>
@@ -50,8 +50,8 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                                 key={member.uid}
                                 className={`
                   flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors
-                  ${isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}
-                  ${isPayer ? 'ring-2 ring-green-500' : ''}
+                  ${isSelected ? 'border-interactive-primary bg-interactive-primary/10 dark:bg-interactive-primary/20' : 'border-border-default dark:border-border-strong hover:bg-surface-muted dark:hover:bg-text-primary'}
+                  ${isPayer ? 'ring-2 ring-semantic-success' : ''}
                 `}
                             >
                                 <input
@@ -59,20 +59,20 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                                     checked={isSelected}
                                     onChange={() => handleParticipantToggle(member.uid)}
                                     disabled={isPayer}
-                                    className='text-blue-600 focus:ring-blue-500 disabled:opacity-50'
+                                    className='text-interactive-primary focus:ring-interactive-primary disabled:opacity-50'
                                     autoComplete='off'
                                 />
                                 <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
-                                <span className='text-sm font-medium text-gray-900 dark:text-white flex-1'>
+                                <span className='text-sm font-medium text-text-primary dark:text-white flex-1'>
                                     {getGroupDisplayName(member)}
-                                    {isPayer && <span className='text-green-600 dark:text-green-400 ml-1'>{t('expenseComponents.participantSelector.payerSuffix')}</span>}
+                                    {isPayer && <span className='text-semantic-success dark:text-semantic-success ml-1'>{t('expenseComponents.participantSelector.payerSuffix')}</span>}
                                 </span>
                             </label>
                         );
                     })}
                 </div>
                 {validationErrors.participants && (
-                    <p className='text-sm text-red-600 dark:text-red-400' role='alert' data-testid='validation-error-participants'>
+                    <p className='text-sm text-semantic-error dark:text-semantic-error/80' role='alert' data-testid='validation-error-participants'>
                         {validationErrors.participants}
                     </p>
                 )}

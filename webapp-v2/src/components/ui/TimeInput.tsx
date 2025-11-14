@@ -134,9 +134,9 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
     return (
         <div className={`relative ${className}`} ref={containerRef}>
             {label && (
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label className='block text-sm font-medium text-text-primary dark:text-text-muted/60 mb-1'>
                     {label} {required && (
-                        <span className='text-red-500' data-testid='required-indicator'>
+                        <span className='text-semantic-error' data-testid='required-indicator'>
                             {t('uiComponents.timeInput.requiredIndicator')}
                         </span>
                     )}
@@ -149,9 +149,9 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                     <button
                         type='button'
                         onClick={handleLabelClick}
-                        className={`text-left px-3 py-2 border rounded-lg w-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                            error ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
-                        } dark:bg-gray-700 dark:text-white`}
+                        className={`text-left px-3 py-2 border rounded-lg w-full hover:bg-surface-muted dark:hover:bg-text-primary transition-colors ${
+                            error ? 'border-semantic-error dark:border-semantic-error' : 'border-border-default dark:border-border-strong'
+                        } dark:bg-text-primary dark:text-white`}
                     >
                         {t('uiComponents.timeInput.at')}
                         {inputValue.value}
@@ -168,15 +168,15 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                         onKeyDown={handleKeyDown}
                         placeholder={t('uiComponents.timeInput.placeholder')}
                         autoComplete='off'
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
-                            error ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-white ${
+                            error ? 'border-semantic-error dark:border-semantic-error' : 'border-border-default dark:border-border-strong'
                         }`}
                     />
                 )}
 
             {/* Suggestions dropdown */}
             {isEditing.value && showSuggestions.value && suggestions.value.length > 0 && (
-                <div className='absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                <div className='absolute z-10 w-full mt-1 bg-surface-base dark:bg-text-primary border border-border-default dark:border-border-strong rounded-lg shadow-lg max-h-60 overflow-y-auto'>
                     {suggestions.value.map((suggestion, index) => (
                         <button
                             key={suggestion}
@@ -185,7 +185,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                                 e.preventDefault(); // Prevent blur
                                 handleSuggestionClick(suggestion);
                             }}
-                            className={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 ${index === selectedIndex.value ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+                            className={`w-full text-left px-3 py-2 hover:bg-surface-muted dark:hover:bg-text-primary ${index === selectedIndex.value ? 'bg-surface-muted dark:bg-text-primary' : ''}`}
                         >
                             {suggestion}
                         </button>
@@ -194,7 +194,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
             )}
 
             {error && (
-                <p className='text-sm text-red-600 dark:text-red-400 mt-1' role='alert' data-testid='time-input-error-message'>
+                <p className='text-sm text-semantic-error dark:text-semantic-error/80 mt-1' role='alert' data-testid='time-input-error-message'>
                     {error}
                 </p>
             )}
