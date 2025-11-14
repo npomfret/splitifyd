@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Input } from '@/components/ui';
+import { Alert, Button, Card, Input, LoadingSpinner } from '@/components/ui';
 import { SystemUserRoles } from '@splitifyd/shared';
 import type { AddTenantDomainRequest, TenantDomainsResponse } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
@@ -146,7 +146,7 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                     <Card padding='lg'>
                         <div class='flex items-center justify-center py-12'>
                             <div class='text-center'>
-                                <div class='mx-auto h-12 w-12 animate-spin rounded-full border-4 border-interactive-primary/20 border-t-interactive-primary' />
+                                <LoadingSpinner size='lg' />
                                 <p class='mt-4 text-sm text-text-muted'>Loading domain settings...</p>
                             </div>
                         </div>

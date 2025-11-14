@@ -2,7 +2,7 @@ import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { useSignal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Tooltip } from '../ui';
+import { LoadingSpinner, Tooltip } from '../ui';
 
 interface CommentInputProps {
     onSubmit: (text: string) => Promise<void>;
@@ -134,7 +134,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                         aria-label={t('comments.input.sendAriaLabel')}
                     >
                         {isSubmitting
-                            ? <div className='w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin' />
+                            ? <LoadingSpinner size='sm' color='text-current' />
                             : <PaperAirplaneIcon className='w-4 h-4' aria-hidden='true' />}
                     </button>
                 </Tooltip>

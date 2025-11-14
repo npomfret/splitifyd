@@ -539,7 +539,7 @@ export class RegisterPage extends BasePage {
      * Check if loading spinner is visible (for registration process)
      */
     async isLoadingSpinnerVisible(): Promise<boolean> {
-        const spinner = this.page.locator('button[type="submit"] svg.animate-spin');
+        const spinner = this.page.locator('button[type="submit"] [data-testid="loading-spinner"]');
         return await spinner.isVisible().catch(() => false);
     }
 

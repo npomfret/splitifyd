@@ -1,6 +1,7 @@
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import type { CommentDTO } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
+import { LoadingSpinner } from '../ui';
 import { CommentItem } from './CommentItem';
 
 interface CommentsListProps {
@@ -16,12 +17,12 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
     const { t } = useTranslation();
     if (loading && comments.length === 0) {
         return (
-            <div className='flex items-center justify-center py-8'>
-                <div className='text-center'>
-                    <div className='w-8 h-8 border-2 border-interactive-primary border-t-transparent rounded-full animate-spin mx-auto mb-2' />
-                    <p className='text-sm text-text-muted dark:text-text-muted/80'>{t('comments.commentsList.loading')}</p>
+                <div className='flex items-center justify-center py-8'>
+                    <div className='text-center'>
+                        <LoadingSpinner size='md' />
+                        <p className='text-sm text-text-muted dark:text-text-muted/80 mt-2'>{t('comments.commentsList.loading')}</p>
+                    </div>
                 </div>
-            </div>
         );
     }
 
@@ -55,7 +56,7 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
                         {loading
                             ? (
                                 <span className='flex items-center gap-2'>
-                                    <div className='w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin' />
+                                    <LoadingSpinner size='sm' color='text-current' />
                                     {t('comments.commentsList.loadingMore')}
                                 </span>
                             )

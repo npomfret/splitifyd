@@ -1,5 +1,5 @@
 import { ShareGroupModal } from '@/components/group/ShareGroupModal';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/preact';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/preact';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
@@ -191,8 +191,8 @@ describe('ShareGroupModal', () => {
         );
 
         // Loading spinner should be visible
-        const spinner = screen.getByRole('presentation').querySelector('.animate-spin');
-        expect(spinner).toBeInTheDocument();
+        const modal = screen.getByRole('dialog', { name: /share/i });
+        expect(within(modal).getByTestId('loading-spinner')).toBeInTheDocument();
 
         // Link input should not be visible yet
         expect(screen.queryByTestId('share-link-input')).not.toBeInTheDocument();
@@ -205,7 +205,7 @@ describe('ShareGroupModal', () => {
 
         // Loading should disappear and link should appear
         await waitFor(() => {
-            expect(screen.queryByRole('presentation')?.querySelector('.animate-spin')).not.toBeInTheDocument();
+            expect(within(modal).queryByTestId('loading-spinner')).not.toBeInTheDocument();
         });
         await screen.findByTestId('share-link-input');
     });

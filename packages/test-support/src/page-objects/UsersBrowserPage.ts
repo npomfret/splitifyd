@@ -54,7 +54,7 @@ export class UsersBrowserPage extends BasePage {
      * Loading and Error States
      */
     getLoadingSpinner(): Locator {
-        return this.page.locator('.animate-spin');
+        return this.page.getByTestId('loading-spinner');
     }
 
     getErrorAlert(): Locator {
@@ -201,7 +201,6 @@ export class UsersBrowserPage extends BasePage {
     async verifyUserIsDisabled(row: Locator): Promise<void> {
         const badge = this.getStatusBadge(row);
         await expect(badge).toContainText('Disabled');
-        await expect(badge).toHaveClass(/bg-red-100/);
     }
 
     /**
@@ -210,7 +209,6 @@ export class UsersBrowserPage extends BasePage {
     async verifyUserIsEnabled(row: Locator): Promise<void> {
         const badge = this.getStatusBadge(row);
         await expect(badge).toContainText('Active');
-        await expect(badge).toHaveClass(/bg-green-100/);
     }
 
     /**

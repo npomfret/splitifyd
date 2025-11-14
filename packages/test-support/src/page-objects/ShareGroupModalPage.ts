@@ -61,7 +61,7 @@ export class ShareGroupModalPage extends BasePage {
      * Toast notification
      */
     getToastNotification(): Locator {
-        return this.page.locator('.fixed.bottom-4.right-4');
+        return this.page.getByTestId('share-link-toast');
     }
 
     // ============================================================================
@@ -107,7 +107,7 @@ export class ShareGroupModalPage extends BasePage {
      * Loading spinner
      */
     getLoadingSpinner(): Locator {
-        return this.getModalContainer().locator('.animate-spin');
+        return this.getModalContainer().getByTestId('loading-spinner');
     }
 
     /**

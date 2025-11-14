@@ -1,5 +1,5 @@
 import { apiClient } from '@/app/apiClient.ts';
-import { Tooltip } from '@/components/ui';
+import { LoadingSpinner, Tooltip } from '@/components/ui';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
 import { GroupId } from '@splitifyd/shared';
@@ -250,7 +250,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
                         {loading && (
                             <div class='flex justify-center py-8'>
-                                <div class='animate-spin rounded-full h-10 w-10 border-b-2 border-interactive-primary'></div>
+                                <LoadingSpinner size='lg' />
                             </div>
                         )}
 
@@ -378,7 +378,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
 
             {/* Toast notification */}
             {showToast && (
-                <div class='fixed bottom-4 right-4 z-[60] animate-slide-up'>
+                <div class='fixed bottom-4 right-4 z-[60] animate-slide-up' role='status' aria-live='polite' data-testid='share-link-toast'>
                     <div class='bg-text-primary text-white px-4 py-3 rounded-lg shadow-lg flex items-center space-x-2'>
                         <svg class='w-5 h-5 text-semantic-success' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                             <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7' />

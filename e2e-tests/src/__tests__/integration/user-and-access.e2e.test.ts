@@ -255,7 +255,7 @@ simpleTest.describe('Policy Acceptance', () => {
                 await page.locator('h1').filter({ hasText: heading }).first().waitFor();
 
                 // Wait for policy content to fully load - the loading spinner should disappear
-                await expect(page.locator('.animate-spin')).toBeHidden({ timeout: 5000 });
+                await expect(page.getByTestId('loading-spinner')).toBeHidden({ timeout: 5000 });
             }
 
             // Test footer navigation from login page

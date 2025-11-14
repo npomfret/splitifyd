@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { apiClient } from '../app/apiClient';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { Alert, Button, Card } from '@/components/ui';
+import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { navigationService } from '@/services/navigation.service';
 import { configStore } from '../stores/config-store';
@@ -115,7 +115,7 @@ export function AdminTenantsPage() {
 
                 {isLoading ? (
                     <div class="flex items-center justify-center py-12">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-interactive-primary" data-testid='tenants-loading-spinner'></div>
+                        <LoadingSpinner size='lg' testId='tenants-loading-spinner' />
                     </div>
                 ) : (
                     <>

@@ -4,9 +4,10 @@ interface LoadingSpinnerProps {
     size?: 'sm' | 'md' | 'lg';
     color?: string;
     fullScreen?: boolean;
+    testId?: string;
 }
 
-export function LoadingSpinner({ size = 'md', color = 'text-interactive-primary', fullScreen = false }: LoadingSpinnerProps) {
+export function LoadingSpinner({ size = 'md', color = 'text-interactive-primary', fullScreen = false, testId = 'loading-spinner' }: LoadingSpinnerProps) {
     const { t } = useTranslation();
     const sizeClasses = {
         sm: 'w-4 h-4',
@@ -16,6 +17,7 @@ export function LoadingSpinner({ size = 'md', color = 'text-interactive-primary'
 
     const spinner = (
         <svg
+            data-testid={testId}
             className={`animate-spin ${sizeClasses[size]} ${color}`}
             xmlns='http://www.w3.org/2000/svg'
             fill='none'

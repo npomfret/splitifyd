@@ -1000,7 +1000,9 @@ export function GroupSettingsModal({
 
                             {isDeleting && (
                                 <div className='text-center text-text-muted mb-4'>
-                                    <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-semantic-error mx-auto mb-2'></div>
+                                    <div className='mx-auto mb-2'>
+                                        <LoadingSpinner size='sm' color='text-semantic-error' />
+                                    </div>
                                     <p className='text-sm'>{t('editGroupModal.deleteConfirmDialog.deletingMessage')}</p>
                                 </div>
                             )}

@@ -549,7 +549,7 @@ export class GroupSettingsModalPage extends BasePage {
             await dashboardGuards.verifyDashboardPageLoaded();
         }
 
-        const spinner = this.page.locator('.animate-spin');
+        const spinner = this.page.getByTestId('loading-spinner');
         await expect(spinner).not.toBeVisible({ timeout: 5000 });
 
         return dashboardPage;
