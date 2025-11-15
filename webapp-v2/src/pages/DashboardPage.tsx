@@ -99,10 +99,10 @@ export function DashboardPage() {
                         )}
 
                         {/* Groups Section */}
-                        <div class='bg-surface-muted border-border-default rounded-lg shadow-sm border p-6' data-testid='groups-container'>
-                            <div class='flex flex-col gap-3 mb-6 lg:flex-row lg:items-center lg:justify-between'>
-                                <h3 class='text-lg font-semibold text-text-primary'>{t('dashboard.yourGroups')}</h3>
-                                <div class='flex flex-wrap items-center gap-3 justify-between lg:justify-end'>
+                        <div class='glass-panel border-border-default rounded-lg shadow-lg border p-8' data-testid='groups-container'>
+                            <div class='flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between'>
+                                <h3 class='text-xl font-bold text-text-primary'>{t('dashboard.yourGroups')}</h3>
+                                <div class='flex flex-wrap items-center gap-4 justify-between lg:justify-end'>
                                     <div
                                         class='inline-flex rounded-md border border-border-default overflow-hidden'
                                         role='group'
@@ -113,8 +113,8 @@ export function DashboardPage() {
                                             aria-pressed={!showArchived}
                                             disabled={filterLoading}
                                             onClick={() => changeGroupFilter(false)}
-                                            class={`px-4 py-2 text-sm font-medium transition-opacity focus:outline-none ${
-                                                !showArchived ? 'bg-interactive-primary text-interactive-primary-foreground hover:opacity-90' : 'bg-surface-base text-text-muted hover:opacity-90'
+                                            class={`px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none ${
+                                                !showArchived ? 'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-sm' : 'bg-surface-base text-text-muted hover:bg-surface-muted'
                                             }`}
                                         >
                                             {t('dashboard.groupsFilter.active')}
@@ -124,15 +124,15 @@ export function DashboardPage() {
                                             aria-pressed={showArchived}
                                             disabled={filterLoading}
                                             onClick={() => changeGroupFilter(true)}
-                                            class={`px-4 py-2 text-sm font-medium transition-opacity focus:outline-none border-l border-border-default ${
-                                                showArchived ? 'bg-interactive-primary text-interactive-primary-foreground hover:opacity-90' : 'bg-surface-base text-text-muted hover:opacity-90'
+                                            class={`px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none border-l border-border-default ${
+                                                showArchived ? 'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-sm' : 'bg-surface-base text-text-muted hover:bg-surface-muted'
                                             }`}
                                         >
                                             {t('dashboard.groupsFilter.archived')}
                                         </button>
                                     </div>
                                     <button
-                                        class='bg-interactive-primary text-interactive-primary-foreground px-4 py-2 rounded-md hover:opacity-90 transition-opacity text-sm font-medium hidden lg:block'
+                                        class='bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-6 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hidden lg:block hover:shadow-lg hover:scale-[1.02]'
                                         onClick={() => setIsCreateModalOpen(true)}
                                     >
                                         {t('dashboard.createGroup')}

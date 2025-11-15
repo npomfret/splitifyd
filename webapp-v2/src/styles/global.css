@@ -6,7 +6,8 @@
 @layer base {
     html,
     body {
-        @apply antialiased bg-surface-base;
+        @apply antialiased;
+        /* background-color comes from tenant theme CSS (aurora animation or solid color) */
         min-height: 100vh;
         margin: 0;
         padding: 0;
@@ -14,9 +15,38 @@
 
     #app {
         min-height: 100vh;
+        position: relative;
+        z-index: 1;
     }
 
     html {
         color-scheme: light dark;
+    }
+}
+
+/* Button hover effects per Modern UI/UX guide section 4.2 */
+@layer components {
+    .btn,
+    button:not([class*="unstyled"]) {
+        transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
+                    opacity 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .btn:hover:not(:disabled),
+    button:hover:not(:disabled):not([class*="unstyled"]) {
+        transform: translateY(-2px) scale(1.01);
+    }
+
+    .btn:active:not(:disabled),
+    button:active:not(:disabled):not([class*="unstyled"]) {
+        transform: translateY(0) scale(0.98);
+    }
+
+    /* Gradient button glow effect */
+    button[class*="bg-[image:var(--gradient-primary)]"]:hover:not(:disabled),
+    .btn-gradient:hover:not(:disabled) {
+        box-shadow: 0 0 20px rgba(var(--interactive-primary-rgb), 0.4),
+                    0 8px 16px rgba(0, 0, 0, 0.3);
     }
 }

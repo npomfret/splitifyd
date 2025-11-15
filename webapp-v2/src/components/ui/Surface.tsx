@@ -4,7 +4,7 @@ import type { ComponentChildren, JSX } from 'preact';
 type DivProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, 'className' | 'children'>;
 
 interface SurfaceProps extends DivProps {
-    variant?: 'base' | 'muted' | 'inverted';
+    variant?: 'base' | 'muted' | 'inverted' | 'glass';
     padding?: 'none' | 'sm' | 'md' | 'lg';
     shadow?: 'none' | 'sm' | 'md' | 'lg';
     border?: 'none' | 'default' | 'strong';
@@ -17,6 +17,7 @@ const variantClasses = {
     base: 'bg-surface-base text-text-primary',
     muted: 'bg-surface-muted text-text-primary',
     inverted: 'bg-text-primary text-surface-base',
+    glass: 'glass-panel text-text-primary',
 } as const;
 
 const paddingClasses = {

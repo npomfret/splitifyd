@@ -11,10 +11,11 @@ interface CardProps {
     onClick?: () => void;
     className?: string;
     padding?: 'none' | 'sm' | 'md' | 'lg';
+    variant?: 'base' | 'muted' | 'inverted' | 'glass';
     'data-testid'?: string;
 }
 
-export function Card({ title, subtitle, children, onClick, className = '', padding = 'md', 'data-testid': dataTestId }: CardProps) {
+export function Card({ title, subtitle, children, onClick, className = '', padding = 'md', variant = 'base', 'data-testid': dataTestId }: CardProps) {
     const headingBlock = (title || subtitle) && (
         <div className='mb-4 space-y-1'>
             {title && (
@@ -40,6 +41,7 @@ export function Card({ title, subtitle, children, onClick, className = '', paddi
 
     return (
         <Surface
+            variant={variant}
             padding={padding}
             shadow='sm'
             border='default'

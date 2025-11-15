@@ -50,7 +50,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
     };
 
     return (
-        <div className='bg-surface-base border-border-default rounded-lg shadow-sm border border-border-default' data-testid='activity-feed-card'>
+        <div className='glass-panel border-border-default rounded-lg shadow-lg border border-border-default' data-testid='activity-feed-card'>
             <div className='p-6'>
                 <div className='flex items-center justify-between mb-4'>
                     <h3 className='text-lg font-semibold text-text-primary'>{t('activityFeed.title')}</h3>
@@ -85,7 +85,7 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
 
                 {items.value.length > 0
                     ? (
-                        <ul className='space-y-4'>
+                        <ul className='space-y-3'>
                             {items.value.map((item) => {
                                 const handleNavigate = getActivityNavigationHandler(item);
                                 const description = renderEventDescription(item, userId, t);
@@ -93,41 +93,49 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
 
                                 const content = (
                                     <>
-                                        <p className='text-sm text-text-primary'>{description}</p>
-                                        {item.details?.commentPreview ? <p className='text-sm text-text-muted mt-1 italic truncate'>{item.details.commentPreview}</p> : null}
-                                        <div className='mt-2 flex items-center gap-2 text-xs text-text-muted'>
-                                            <span className='font-medium text-text-primary'>{groupLabel}</span>
-                                            <span aria-hidden='true'>•</span>
-                                            <RelativeTime date={item.timestamp} className='text-text-muted' />
+                                        <p className='text-sm font-medium text-text-primary leading-snug'>{description}</p>
+                                        {item.details?.commentPreview ? <p className='text-xs text-text-muted mt-1.5 italic line-clamp-2'>{item.details.commentPreview}</p> : null}
+                                        <div className='mt-2 flex items-center gap-2 text-xs'>
+                                            <span className='font-semibold text-text-primary/80'>{groupLabel}</span>
+                                            <span className='text-text-muted/50' aria-hidden='true'>•</span>
+                                            <RelativeTime date={item.timestamp} className='text-text-muted/70' />
                                         </div>
                                     </>
                                 );
 
                                 return (
-                                    <li key={item.id} className='flex items-start gap-3' data-testid='activity-feed-item' data-event-type={item.eventType}>
-                                        <div className='h-2 w-2 rounded-full mt-2 bg-interactive-primary flex-shrink-0' aria-hidden='true' />
-                                        <div className='flex-1'>
-                                            {handleNavigate
-                                                ? (
-                                                    <button
-                                                        type='button'
-                                                        onClick={handleNavigate}
-                                                        className='group flex w-full items-start justify-between gap-3 rounded-md border border-transparent px-3 py-2 text-left transition-colors duration-150 hover:border-interactive-primary/20 hover:bg-interactive-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2'
-                                                        aria-label={description}
+                                    <li key={item.id} className='relative' data-testid='activity-feed-item' data-event-type={item.eventType}>
+                                        {handleNavigate
+                                            ? (
+                                                <button
+                                                    type='button'
+                                                    onClick={handleNavigate}
+                                                    className='group flex w-full items-start gap-3 rounded-lg border border-border-default/50 bg-surface-base/30 backdrop-blur-sm px-4 py-3 text-left transition-all duration-200 hover:border-interactive-primary/40 hover:bg-surface-base/50 hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2'
+                                                    aria-label={description}
+                                                >
+                                                    <div className='h-2.5 w-2.5 rounded-full mt-1.5 bg-interactive-primary flex-shrink-0 shadow-sm shadow-interactive-primary/50' aria-hidden='true' />
+                                                    <div className='flex-1 min-w-0'>
+                                                        {content}
+                                                    </div>
+                                                    <svg
+                                                        className='h-4 w-4 flex-shrink-0 mt-1 text-interactive-primary opacity-0 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0.5'
+                                                        fill='none'
+                                                        stroke='currentColor'
+                                                        viewBox='0 0 24 24'
+                                                        aria-hidden='true'
                                                     >
-                                                        <div className='flex-1'>
-                                                            {content}
-                                                        </div>
-                                                        <span
-                                                            className='flex h-5 w-5 items-center justify-center flex-shrink-0 text-interactive-primary font-medium opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100'
-                                                            aria-hidden='true'
-                                                        >
-                                                            →
-                                                        </span>
-                                                    </button>
-                                                )
-                                                : content}
-                                        </div>
+                                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                                                    </svg>
+                                                </button>
+                                            )
+                                            : (
+                                                <div className='flex items-start gap-3 rounded-lg border border-border-default/50 bg-surface-base/30 backdrop-blur-sm px-4 py-3'>
+                                                    <div className='h-2.5 w-2.5 rounded-full mt-1.5 bg-interactive-primary flex-shrink-0 shadow-sm shadow-interactive-primary/50' aria-hidden='true' />
+                                                    <div className='flex-1 min-w-0'>
+                                                        {content}
+                                                    </div>
+                                                </div>
+                                            )}
                                     </li>
                                 );
                             })}

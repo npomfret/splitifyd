@@ -97,7 +97,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
     const showQuickActions = !isArchivedView && (onInvite || onAddExpense);
 
     return (
-        <Card onClick={onClick} className='hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border-border-default h-full flex flex-col group' padding='md' data-testid='group-card'>
+        <Card onClick={onClick} variant='glass' className='hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer border-border-default h-full flex flex-col group' padding='md' data-testid='group-card'>
             <div class='flex-1 relative'>
                 {/* Action buttons - positioned absolutely in top right */}
                 {showQuickActions && (
@@ -137,8 +137,8 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                 )}
 
                 {/* GroupDTO header */}
-                <div class='mb-3 pr-12'>
-                    <div class='flex items-start justify-between gap-2'>
+                <div class='mb-3'>
+                    <div class='flex items-start justify-between gap-2 pr-12'>
                         <h4 class='font-semibold text-text-primary text-lg mb-1'>{group.name}</h4>
                         {isArchivedView && (
                             <span class='inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-surface-warning text-semantic-warning' data-testid='archived-badge'>
@@ -150,7 +150,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                         {balanceDisplays.map((display) => (
                             <div
                                 key={display.key}
-                                class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${display.bgColor} ${display.color}`}
+                                class={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium self-start ${display.bgColor} ${display.color}`}
                                 data-financial-amount='balance'
                             >
                                 {display.content}

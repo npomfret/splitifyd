@@ -101,52 +101,52 @@ const auroraPalette: BrandingTokens['palette'] = {
 const auroraSemantics: BrandingTokens['semantics'] = {
     colors: {
         surface: {
-            base: '#0a0d15',           // Rich dark blue-gray (not pure black)
-            raised: '#0f1320',          // Slightly elevated with blue tint
-            sunken: '#06080d',          // Deeper shadow
-            overlay: 'rgba(15, 23, 42, 0.85)',  // Semi-transparent modals
+            base: '#1a1d2e',           // Lighter dark blue-gray base
+            raised: '#252944',          // SOLID opaque for dropdowns/menus - fully readable
+            sunken: '#12141f',          // Deeper shadow
+            overlay: '#1e2336',         // SOLID opaque for modals - high readability
             warning: '#fef3c7',
-            muted: 'rgba(15, 19, 32, 0.8)',  // Muted surface for secondary buttons
-            // Glassmorphism (opacity will be handled in CSS)
-            glass: 'rgba(15, 19, 32, 0.65)',     // Semi-transparent glass with blue tint
-            glassBorder: 'rgba(255, 255, 255, 0.07)',  // Subtle glass border
+            muted: 'rgba(40, 45, 65, 0.7)',  // Lighter muted surface for secondary buttons
+            // Glassmorphism with more transparency
+            glass: 'rgba(25, 30, 50, 0.45)',     // More transparent glass for better aurora visibility
+            glassBorder: 'rgba(255, 255, 255, 0.12)',  // Brighter glass border
             aurora: '#000000',
             spotlight: '#ffffff',
         },
         text: {
-            primary: '#f8fafc',
-            secondary: '#cbd5e1',
-            muted: 'rgba(248, 250, 252, 0.7)',  // Transparent muted text
-            inverted: '#05060a',        // Dark text for light backgrounds
+            primary: '#ffffff',         // Pure white for better contrast
+            secondary: '#e2e8f0',       // Lighter secondary text
+            muted: 'rgba(255, 255, 255, 0.65)',  // Lighter muted text
+            inverted: '#0a0d15',        // Dark text for light backgrounds
             accent: '#34d399',          // Teal accent for links/highlights
             // Advanced text
             hero: '#ffffff',
-            eyebrow: 'rgba(148, 163, 184, 0.9)',  // Uppercase labels
+            eyebrow: 'rgba(203, 213, 225, 0.9)',  // Lighter uppercase labels
             code: '#22d3ee',
         },
         interactive: {
             primary: '#34d399',         // Teal gradient start
             primaryHover: '#2dd4bf',    // Lighter teal on hover
             primaryActive: '#14b8a6',   // Darker teal when pressed
-            primaryForeground: '#05060a',  // Dark text on teal button
-            secondary: 'rgba(255, 255, 255, 0.06)',  // Glass secondary button
-            secondaryHover: 'rgba(255, 255, 255, 0.1)',
-            secondaryActive: 'rgba(255, 255, 255, 0.15)',
-            secondaryForeground: '#f8fafc',
+            primaryForeground: '#0a0d15',  // Dark text on teal button
+            secondary: 'rgba(255, 255, 255, 0.08)',  // Lighter glass secondary button
+            secondaryHover: 'rgba(255, 255, 255, 0.14)',
+            secondaryActive: 'rgba(255, 255, 255, 0.20)',
+            secondaryForeground: '#ffffff',
             accent: '#22d3ee',          // Cyan accents
             destructive: '#f87171',     // Softer red for errors
             destructiveHover: '#ef4444',
             destructiveActive: '#dc2626',
             destructiveForeground: '#ffffff',
-            // Advanced interactions (opacity in CSS)
-            ghost: 'rgba(255, 255, 255, 0.05)',
+            // Advanced interactions
+            ghost: 'rgba(255, 255, 255, 0.08)',
             magnetic: '#4f46e5',
-            glow: 'rgba(52, 211, 153, 0.15)',  // Teal glow for shadows
+            glow: 'rgba(52, 211, 153, 0.25)',  // Brighter teal glow
         },
         border: {
-            subtle: 'rgba(255, 255, 255, 0.04)',
-            default: 'rgba(255, 255, 255, 0.08)',
-            strong: 'rgba(255, 255, 255, 0.12)',
+            subtle: 'rgba(255, 255, 255, 0.06)',
+            default: 'rgba(255, 255, 255, 0.12)',  // More visible borders
+            strong: 'rgba(255, 255, 255, 0.18)',
             focus: '#34d399',           // Teal focus rings
             warning: '#fde047',
         },
@@ -156,11 +156,11 @@ const auroraSemantics: BrandingTokens['semantics'] = {
             danger: '#f87171',
             info: '#22d3ee',
         },
-        // Gradients - cinematic aurora effect
+        // Gradients - brighter aurora effect
         gradient: {
             primary: ['#34d399', '#22d3ee'],       // Teal to cyan
             accent: ['#22d3ee', '#34d399'],        // Reversed
-            aurora: ['#4f46e5', '#ec4899', '#22d3ee', '#34d399'],  // Full spectrum
+            aurora: ['#6366f1', '#ec4899', '#22d3ee', '#34d399'],  // Brighter spectrum
             text: ['#34d399', '#22d3ee'],          // Gradient text effect
         },
     },
@@ -192,17 +192,17 @@ const auroraMotion = {
     duration: {
         instant: 50,
         fast: 150,
-        base: 320,
+        base: 320,      // Primary transition duration
         slow: 500,
         glacial: 1200,
     },
     easing: {
-        standard: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        standard: 'cubic-bezier(0.22, 1, 0.36, 1)',     // Natural ease-out
         decelerate: 'cubic-bezier(0.05, 0.7, 0.1, 1)',
         accelerate: 'cubic-bezier(0.3, 0, 0.8, 0.15)',
         spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
     },
-    enableParallax: true,
+    enableParallax: true,        // Enables aurora background animation
     enableMagneticHover: true,
     enableScrollReveal: true,
 };
