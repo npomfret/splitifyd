@@ -1,15 +1,158 @@
 # Webapp-v2 Architecture & Style Guide
 
 ## Table of Contents
-1. [Stack & Layout](#stack--layout)
-2. [Tenant Theming System](#tenant-theming-system)
-3. [State & Stores](#state--stores)
-4. [API & Data Flow](#api--data-flow)
-5. [Navigation & Routing](#navigation--routing)
-6. [UI Components & Styling](#ui-components--styling)
-7. [Error & Financial Semantics](#error--financial-semantics)
-8. [Testing & Tooling](#testing--tooling)
-9. [Observability & Resilience](#observability--resilience)
+1. [CRITICAL: Tenant Configuration Rules](#critical-tenant-configuration-rules)
+2. [Stack & Layout](#stack--layout)
+3. [Tenant Theming System](#tenant-theming-system)
+4. [State & Stores](#state--stores)
+5. [API & Data Flow](#api--data--flow)
+6. [Navigation & Routing](#navigation--routing)
+7. [UI Components & Styling](#ui-components--styling)
+8. [Error & Financial Semantics](#error--financial-semantics)
+9. [Testing & Tooling](#testing--tooling)
+10. [Observability & Resilience](#observability--resilience)
+
+---
+
+## CRITICAL: Tenant Configuration Rules
+
+### ⚠️ SINGLE SOURCE OF TRUTH
+
+**ONE FILE defines all tenants:** `firebase/scripts/tenant-configs.json`
+
+**NEVER:**
+- ❌ Create hardcoded tenant arrays in other scripts
+- ❌ Duplicate tenant definitions across multiple files
+- ❌ Mix tenant configuration sources
+- ❌ Add tenants directly to Firestore without updating tenant-configs.json
+
+**ALWAYS:**
+- ✅ Edit `tenant-configs.json` to add/remove/modify tenants
+- ✅ All scripts MUST read from tenant-configs.json
+- ✅ One tenant MUST have `"isDefault": true`
+- ✅ After editing tenant-configs.json, restart emulator to reseed
+
+### Tenant Configuration Schema
+
+```json
+[
+  {
+    "id": "localhost-tenant",              // Unique tenant ID
+    "domains": ["localhost"],              // Domain mapping (without port)
+    "isDefault": true,                     // ONE tenant must be default
+    "branding": {
+      "appName": "Splitifyd Demo",
+      "logoUrl": "/logo.svg",
+      "faviconUrl": "/favicon.ico",
+      "primaryColor": "#3B82F6",           // Hex color (legacy, not used in new themes)
+      "secondaryColor": "#8B5CF6"          // Hex color (legacy, not used in new themes)
+    },
+    "features": {
+      "enableAdvancedReporting": true,
+      "enableMultiCurrency": true,
+      "enableCustomFields": true,
+      "maxGroupsPerUser": 100,
+      "maxUsersPerGroup": 50
+    }
+  }
+]
+```
+
+### How Tenants Are Loaded
+
+**On emulator startup:**
+1. `start-with-data.ts` runs
+2. Calls `createDefaultTenant()` → syncs ONLY default tenant
+3. Calls `publishLocalThemes({ defaultOnly: true })` → publishes ONLY default tenant theme
+
+**When you run `generate:test-data`:**
+1. Calls `createAllDemoTenants()` → syncs ALL tenants from tenant-configs.json
+2. Calls `publishLocalThemes()` → publishes ALL tenant themes
+
+### Theme Fixture Mapping
+
+Each tenant ID maps to a branding token fixture in `packages/shared/src/fixtures/branding-tokens.ts`:
+
+```typescript
+// In publish-local-themes.ts
+const fixtureMap: Record<string, BrandingTokenFixtureKey> = {
+  'localhost-tenant': 'localhost',    // Uses Aurora theme
+  'partner-tenant': 'loopback',       // Uses Brutalist theme
+};
+```
+
+**To add a new tenant:**
+1. Add entry to `tenant-configs.json`
+2. Add mapping to `fixtureMap` in `publish-local-themes.ts` (lines 26-29)
+3. Create branding fixture in `@splitifyd/shared/src/fixtures/branding-tokens.ts`
+4. Restart emulator
+
+### Verifying Tenant Setup
+
+```bash
+# Check how many tenants are configured
+cat firebase/scripts/tenant-configs.json | jq length
+
+# Check which tenant is default
+cat firebase/scripts/tenant-configs.json | jq '.[] | select(.isDefault == true) | .id'
+
+# Republish all themes after changing configs (USE THIS!)
+cd firebase && npm run theme:publish-local
+
+# Or run script directly
+npx tsx firebase/scripts/publish-local-themes.ts
+
+# Check generated theme CSS
+curl http://localhost:6005/api/theme.css | head -50
+curl http://127.0.0.1:6005/api/theme.css | head -50
+```
+
+**⚠️ IMPORTANT:** After making ANY changes to:
+- Theme generation code (`ThemeArtifactService.ts`)
+- Branding token fixtures (`packages/shared/src/fixtures/branding-tokens.ts`)
+- Tenant configs (`firebase/scripts/tenant-configs.json`)
+
+You MUST run: `cd firebase && npm run theme:publish-local`
+
+### Common Mistakes
+
+**Mistake: Adding tenants to multiple places**
+```typescript
+// ❌ WRONG - hardcoded tenant list in publish-local-themes.ts
+const TENANT_SEEDS: TenantSeed[] = [
+  { tenantId: 'localhost-tenant', ... },
+  { tenantId: 'partner-tenant', ... },
+  { tenantId: 'NEW_TENANT', ... },  // DON'T DO THIS!
+];
+```
+
+```json
+// ✅ CORRECT - add to tenant-configs.json ONLY
+[
+  { "id": "localhost-tenant", ... },
+  { "id": "partner-tenant", ... },
+  { "id": "NEW_TENANT", ... }
+]
+```
+
+**Mistake: Forgetting to set a default tenant**
+```json
+// ❌ WRONG - no default tenant
+[
+  { "id": "tenant1", "isDefault": false },
+  { "id": "tenant2", "isDefault": false }
+]
+
+// ✅ CORRECT - exactly one default
+[
+  { "id": "tenant1", "isDefault": true },
+  { "id": "tenant2", "isDefault": false }
+]
+```
+
+**Mistake: Not restarting after changes**
+- Editing `tenant-configs.json` does NOT automatically update Firestore
+- You MUST restart the emulator or run `publish-local-themes.ts` manually
 
 ---
 
@@ -678,6 +821,15 @@ test('Aurora theme applies correct colors', async ({ page }) => {
 @media (prefers-reduced-motion: reduce) {
   .feature-item { transition: none; }
 }
+```
+
+#### Mistake 5: Hardcoded color values in dark mode
+```tsx
+// ❌ WRONG - hardcoded purple in dark mode
+return 'bg-interactive-secondary/10 text-interactive-primary dark:bg-purple-900/30 dark:text-purple-300';
+
+// ✅ CORRECT - uses semantic tokens for both light and dark
+return 'bg-interactive-secondary/10 text-interactive-primary dark:bg-interactive-secondary/30 dark:text-interactive-secondary';
 ```
 
 ---
