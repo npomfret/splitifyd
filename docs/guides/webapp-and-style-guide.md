@@ -378,10 +378,31 @@ This allows Tailwind's opacity modifiers to work:
 
 ### Styling Rules & Anti-Patterns
 
-#### ✅ DO: Use semantic tokens
+⚠️ **CRITICAL RULES - READ THIS FIRST** ⚠️
+
+**The theming system is tenant-specific. Each tenant (localhost vs 127.0.0.1) has its own unique theme.**
+
+#### 🚫 NEVER DO THESE THINGS:
+
+1. **NEVER hardcode colors or backgrounds in components**
+   - ❌ `bg-blue-600`, `text-white`, `bg-gray-50`
+   - ❌ `style={{ backgroundColor: '#ffffff' }}`
+   - ❌ `style="background-color: rgba(5, 6, 10, 0.7)"`
+   - **WHY**: This makes ALL tenants look the same
+
+2. **NEVER add CSS variables to global.css or component files**
+   - ❌ `:root { --surface-base-rgb: 255 255 255; }`
+   - ❌ Hardcoded rgba values in inline styles
+   - **WHY**: These override the tenant-specific theme CSS
+
+3. **NEVER change components that affect all tenants unless you mean to**
+   - ❌ Adding `bg-surface-base` to Header when you only want to fix Aurora
+   - **WHY**: Both tenants share the same component code, only their CSS variables differ
+
+#### ✅ DO: Use semantic tokens ONLY
 
 ```tsx
-// Good: Semantic tokens adapt to tenant theme
+// Good: Semantic tokens adapt to each tenant's theme
 <Button className="bg-interactive-primary text-interactive-primary-foreground">
   Sign In
 </Button>
@@ -392,6 +413,11 @@ This allows Tailwind's opacity modifiers to work:
 </Card>
 ```
 
+**How it works:**
+- Aurora (localhost): `bg-surface-base` → `#05060a` (dark)
+- Brutalist (127.0.0.1): `bg-surface-base` → `#fafafa` (light)
+- Same component, different colors per tenant!
+
 #### ❌ DON'T: Use hardcoded colors
 
 ```tsx
@@ -401,13 +427,24 @@ This allows Tailwind's opacity modifiers to work:
 <h2 className="text-gray-900">                   ❌
 ```
 
-#### ❌ DON'T: Use inline styles
+**Why this is bad:**
+- All tenants will have blue buttons
+- Tenant customization is completely bypassed
+- The entire white-label system is broken
+
+#### ❌ DON'T: Use inline styles with hardcoded values
 
 ```tsx
 // Bad: Inline styles bypass the theming system
 <div style={{ backgroundColor: '#ffffff' }}>     ❌
 <Button style={{ color: '#2563eb' }}>            ❌
+<header style="background-color: rgba(5, 6, 10, 0.7)">  ❌
 ```
+
+**Why this is bad:**
+- These values apply to ALL tenants
+- Tenant-specific CSS variables are ignored
+- Makes debugging impossible (which tenant is broken?)
 
 **Lint enforcement:**
 - ESLint rule `no-inline-styles/no-inline-styles` catches `style={{...}}` props
@@ -572,6 +609,107 @@ test('Aurora theme applies correct colors', async ({ page }) => {
   expect(bgColor).toBe('rgb(79, 70, 229)');  // Aurora primary
 });
 ```
+
+### How to Fix Tenant-Specific Issues
+
+**Problem: "I want to change the Aurora theme but not the Brutalist theme"**
+
+**CORRECT Solution:** Change the Aurora branding tokens in `packages/shared/src/fixtures/branding-tokens.ts`
+
+```typescript
+// packages/shared/src/fixtures/branding-tokens.ts
+const auroraSemantics: BrandingTokens['semantics'] = {
+  colors: {
+    surface: {
+      base: '#090b19',  // ← Change this for Aurora only
+      raised: '#0f1219',
+    },
+  },
+};
+
+// Brutalist tokens remain unchanged
+const brutalistSemantics: BrandingTokens['semantics'] = {
+  colors: {
+    surface: {
+      base: '#fafafa',  // ← Different value for Brutalist
+      raised: '#ffffff',
+    },
+  },
+};
+```
+
+Then regenerate themes:
+```bash
+cd firebase
+npm run generate:test-data
+cd ../webapp-v2
+npm run build
+```
+
+**WRONG Solution:** ❌ Hardcoding values in components
+```tsx
+// ❌ NEVER DO THIS - affects ALL tenants
+<header style="background-color: rgba(5, 6, 10, 0.7)">
+```
+
+---
+
+**Problem: "The body background is too dark on Aurora"**
+
+**CORRECT Solution:** Update Aurora's `surface.base` token
+
+```typescript
+// packages/shared/src/fixtures/branding-tokens.ts
+const auroraSemantics: BrandingTokens['semantics'] = {
+  colors: {
+    surface: {
+      base: '#0a0d15',  // ← Lighter than #05060a
+    },
+  },
+};
+```
+
+**WRONG Solutions:**
+- ❌ Adding `bg-gray-900` to components
+- ❌ Adding `:root { --surface-base-rgb: ... }` to global.css
+- ❌ Using inline styles
+
+---
+
+**Problem: "I want glassmorphism on Aurora but not Brutalist"**
+
+**CORRECT Solution:** Add glassmorphism colors to Aurora tokens only
+
+```typescript
+// Aurora gets glass effects
+const auroraSemantics: BrandingTokens['semantics'] = {
+  colors: {
+    surface: {
+      glass: 'rgba(9, 11, 25, 0.65)',
+      glassBorder: 'rgba(255, 255, 255, 0.07)',
+    },
+  },
+};
+
+// Brutalist stays flat
+const brutalistSemantics: BrandingTokens['semantics'] = {
+  colors: {
+    surface: {
+      glass: '#ffffff',  // Solid white (no transparency)
+      glassBorder: '#e5e7eb',  // Solid gray
+    },
+  },
+};
+```
+
+Then use in components:
+```tsx
+<div className="bg-[var(--semantics-colors-surface-glass)]">
+  {/* Aurora: transparent glass, Brutalist: solid white */}
+</div>
+```
+
+---
 
 ### Debugging Theme Issues
 
