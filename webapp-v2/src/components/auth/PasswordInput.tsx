@@ -102,7 +102,7 @@ export function PasswordInput({
     };
 
     const inputClasses = cx(
-        'block w-full rounded-md border border-border-default bg-surface-base px-3 py-2 pr-10 shadow-sm',
+        'block w-full rounded-md border border-border-default bg-surface-raised backdrop-blur-sm px-3 py-2 pr-10 shadow-sm',
         'text-text-primary placeholder:text-text-muted/70 transition-colors duration-200',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
         disabled && 'opacity-60 cursor-not-allowed bg-surface-muted text-text-muted',

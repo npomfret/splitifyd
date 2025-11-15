@@ -31,7 +31,7 @@ export class ThemeHandlers {
         const cssContent = await this.readCssContent(artifact);
 
         res.setHeader('Content-Type', 'text/css; charset=utf-8');
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('ETag', `"${artifact.hash}"`);
         res.setHeader('Last-Modified', new Date(artifact.generatedAtEpochMs).toUTCString());
 

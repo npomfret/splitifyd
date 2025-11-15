@@ -93,6 +93,13 @@ export class ThemeArtifactService {
 
         sections.push('}');
 
+        // Aurora background animation
+        const auroraAnimation = this.generateAuroraAnimation(tokens);
+        if (auroraAnimation) {
+            sections.push('');
+            sections.push(auroraAnimation);
+        }
+
         // Glassmorphism @supports fallback
         const glassFallback = this.generateGlassmorphismFallback(tokens);
         if (glassFallback) {
@@ -316,14 +323,20 @@ export class ThemeArtifactService {
         const glass = tokens.semantics.colors.surface.glass;
 
         if (!glass) {
-            return null;
+            // For themes without glassmorphism, use a simple raised surface
+            return [
+                '/* Card styling for non-glassmorphic themes */',
+                '.glass-panel {',
+                `  background: ${tokens.semantics.colors.surface.raised};`,
+                '}',
+            ].join('\n');
         }
 
-        // Only generate fallback if glassmorphism colors are defined
+        // For glassmorphic themes, provide fallback and modern styling
         return [
             '/* Glassmorphism fallback for older browsers */',
             '.glass-panel {',
-            `  background: ${tokens.semantics.colors.surface.overlay}f2;`,
+            `  background: ${tokens.semantics.colors.surface.overlay};`,
             '}',
             '',
             '@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {',
@@ -334,6 +347,59 @@ export class ThemeArtifactService {
             '  }',
             '}',
         ].join('\n');
+    }
+
+    /**
+     * Generate aurora background animation
+     * Creates atmospheric animated gradient backgrounds
+     */
+    private generateAuroraAnimation(tokens: BrandingTokens): string | null {
+        const gradient = tokens.semantics.colors.gradient;
+        const motion = tokens.motion;
+
+        // Only generate if aurora gradient is defined and motion is enabled
+        if (!gradient?.aurora || !motion?.enableParallax) {
+            return null;
+        }
+
+        const [color1, color2, color3, color4] = gradient.aurora;
+
+        return [
+            '/* Atmospheric aurora background */\n',
+            'body {',
+            `  background-color: ${tokens.semantics.colors.surface.base};`,
+            '}\n',
+            'body::before,',
+            'body::after {',
+            '  content: \'\';',
+            '  position: fixed;',
+            '  inset: 0;',
+            '  pointer-events: none;',
+            '  z-index: 0;',
+            '}\n',
+            'body::before {',
+            '  background:',
+            `    radial-gradient(circle at 20% 20%, ${color1}66, transparent 55%),`,
+            `    radial-gradient(circle at 80% 0%, ${color2}59, transparent 60%);`,
+            '  filter: blur(25px);',
+            '}\n',
+            'body::after {',
+            '  background:',
+            `    radial-gradient(circle at 40% 80%, ${color3 || color2}59, transparent 60%)${color4 ? `,` : `;`}`,
+            color4 ? `    radial-gradient(circle at 80% 60%, ${color4}40, transparent 75%);` : '',
+            '  animation: aurora 24s ease-in-out infinite alternate;',
+            '}\n',
+            '@keyframes aurora {',
+            '  0%   { transform: translateY(0); opacity: 0.8; }',
+            '  50%  { transform: translateY(-40px); opacity: 0.65; }',
+            '  100% { transform: translateY(20px); opacity: 0.85; }',
+            '}\n',
+            '/* Ensure content layers above animated background */',
+            '#app > * {',
+            '  position: relative;',
+            '  z-index: 1;',
+            '}',
+        ].filter(Boolean).join('\n');
     }
 
     /**
@@ -358,6 +424,9 @@ export class ThemeArtifactService {
         return [
             '/* Respect user motion preferences */',
             '@media (prefers-reduced-motion: reduce) {',
+            '  body::after {',
+            '    animation: none !important;',
+            '  }',
             '  *,',
             '  *::before,',
             '  *::after {',

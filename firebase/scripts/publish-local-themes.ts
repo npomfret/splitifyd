@@ -4,6 +4,8 @@ import { ApiDriver } from '@splitifyd/test-support';
 import type { BrandingTokens, BrandingTokenFixtureKey } from '@splitifyd/shared';
 import { brandingTokenFixtures } from '@splitifyd/shared';
 import { logger } from './logger';
+import * as fs from 'fs';
+import * as path from 'path';
 
 type TenantSeed = {
     tenantId: string;
@@ -14,30 +16,29 @@ type TenantSeed = {
     defaultTenant?: boolean;
 };
 
-const TENANT_SEEDS: TenantSeed[] = [
-    {
-        tenantId: 'localhost-tenant',
-        displayName: 'Splitifyd Demo',
-        primaryDomain: 'localhost',
-        aliasDomains: [],
-        fixture: 'localhost',
-    },
-    {
-        tenantId: 'partner-tenant',
-        displayName: 'Partner Expenses',
-        primaryDomain: '127.0.0.1',
-        aliasDomains: [],
-        fixture: 'loopback',
-    },
-    {
-        tenantId: 'default-fallback-tenant',
-        displayName: 'Splitifyd',
-        primaryDomain: 'default.splitifyd.local',
-        aliasDomains: [],
-        fixture: 'default',
-        defaultTenant: true,
-    },
-];
+// Load tenants from tenant-configs.json - SINGLE SOURCE OF TRUTH
+function loadTenantSeeds(): TenantSeed[] {
+    const configPath = path.join(__dirname, 'tenant-configs.json');
+    const configData = fs.readFileSync(configPath, 'utf-8');
+    const configs = JSON.parse(configData);
+
+    // Map fixture names based on tenant ID
+    const fixtureMap: Record<string, BrandingTokenFixtureKey> = {
+        'localhost-tenant': 'localhost',
+        'partner-tenant': 'loopback',
+    };
+
+    return configs.map((config: any) => ({
+        tenantId: config.id,
+        displayName: config.branding.appName,
+        primaryDomain: config.domains[0] || 'localhost',
+        aliasDomains: config.domains.slice(1),
+        fixture: fixtureMap[config.id] || 'localhost',
+        defaultTenant: config.isDefault,
+    }));
+}
+
+const TENANT_SEEDS = loadTenantSeeds();
 
 const BASE_FEATURES = {
     enableAdvancedReporting: false,

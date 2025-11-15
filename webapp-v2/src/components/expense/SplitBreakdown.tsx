@@ -39,7 +39,7 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
             case SplitTypes.EQUAL:
                 return 'bg-interactive-primary/10 text-interactive-primary dark:bg-interactive-primary/30 dark:text-interactive-primary';
             case SplitTypes.EXACT:
-                return 'bg-interactive-secondary/10 text-interactive-primary dark:bg-purple-900/30 dark:text-purple-300';
+                return 'bg-interactive-secondary/10 text-interactive-primary dark:bg-interactive-secondary/30 dark:text-interactive-secondary';
             case SplitTypes.PERCENTAGE:
                 return 'bg-interactive-accent/10 text-semantic-success dark:bg-semantic-success/30 dark:text-semantic-success';
             default:

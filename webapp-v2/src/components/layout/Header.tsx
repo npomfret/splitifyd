@@ -48,7 +48,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         return (
             <div class='flex items-center gap-4'>
-                <button onClick={() => navigation.goToLogin()} class='text-text-primary hover:text-interactive-primary transition-colors' data-testid='header-login-link'>
+                <button onClick={() => navigation.goToLogin()} class='px-4 py-2 rounded-lg text-text-primary border border-border-default hover:bg-surface-muted transition-colors' data-testid='header-login-link'>
                     {t('header.login')}
                 </button>
                 <button onClick={() => navigation.goToRegister()} class='bg-interactive-primary text-interactive-primary-foreground px-4 py-2 rounded-lg hover:bg-interactive-primary/90 transition-colors' data-testid='header-signup-link'>
@@ -58,11 +58,8 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
         );
     };
 
-    const headerClasses = 'shadow-sm border-b border-border-default';
-    const headerStyle = 'background-color: var(--brand-header-background, white);';
-
     return (
-        <header class={headerClasses} style={headerStyle}>
+        <header class='border-b border-border-subtle backdrop-blur-sm' style='background: rgba(var(--surface-base-rgb), 0.7);'>
             <div class='max-w-7xl mx-auto px-4'>
                 <nav class='flex items-center justify-between h-16'>
                     <div class='flex items-center space-x-8'>

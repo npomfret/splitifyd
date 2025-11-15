@@ -6,8 +6,10 @@
 @layer base {
     html,
     body {
-        @apply antialiased;
+        @apply antialiased bg-surface-base;
         min-height: 100vh;
+        margin: 0;
+        padding: 0;
     }
 
     #app {

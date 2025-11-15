@@ -204,11 +204,11 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         && DISPLAY_NAME_PATTERN.test(trimmedDisplayName);
 
     return (
-        <div class='fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
-            <div class='relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-interactive-primary/10 border-interactive-primary/20' ref={modalRef} role='dialog' aria-modal='true' aria-labelledby='create-group-modal-title'>
+        <div class='fixed inset-0 bg-surface-overlay overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
+            <div class='relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-surface-raised border-border-default' ref={modalRef} role='dialog' aria-modal='true' aria-labelledby='create-group-modal-title'>
                 {/* Modal Header */}
                 <div class='flex items-center justify-between mb-6'>
-                    <h3 id='create-group-modal-title' class='text-lg font-semibold text-gray-900'>
+                    <h3 id='create-group-modal-title' class='text-lg font-semibold text-text-primary'>
                         {t('createGroupModal.title')}
                     </h3>
                     <Tooltip content={t('createGroupModal.closeButtonAriaLabel')}>
@@ -220,7 +220,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 });
                                 onClose();
                             }}
-                            class='text-gray-400 hover:text-gray-600 transition-colors'
+                            class='text-text-muted hover:text-text-primary transition-colors'
                             disabled={isSubmitting}
                             aria-label={t('createGroupModal.closeButtonAriaLabel')}
                         >
@@ -252,7 +252,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 error={validationError || undefined}
                             />
-                            <p class='mt-1 text-sm text-gray-500'>{t('createGroupModal.groupNameHelpText')}</p>
+                            <p class='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupNameHelpText')}</p>
                         </div>
 
                         {/* Group Display Name */}
@@ -273,16 +273,16 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 error={displayNameValidationError || undefined}
                             />
-                            <p class='mt-1 text-sm text-gray-500'>{t('createGroupModal.groupDisplayNameHelpText')}</p>
+                            <p class='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupDisplayNameHelpText')}</p>
                         </div>
 
                         {/* Group Description (Optional) */}
                         <div>
-                            <label class='block text-sm font-medium text-gray-700 mb-2'>{t('createGroupModal.groupDescriptionLabel')}</label>
+                            <label class='block text-sm font-medium text-text-primary mb-2'>{t('createGroupModal.groupDescriptionLabel')}</label>
                             <textarea
                                 name='description'
                                 data-testid='group-description-input'
-                                class='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
+                                class='w-full px-3 py-2 border border-border-default bg-surface-base text-text-primary rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
                                 rows={3}
                                 placeholder={t('createGroupModal.groupDescriptionPlaceholder')}
                                 value={groupDescriptionSignal.value}
@@ -292,12 +292,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 disabled={isSubmitting}
                                 maxLength={200}
                             />
-                            <p class='mt-1 text-sm text-gray-500'>{t('createGroupModal.groupDescriptionHelpText')}</p>
+                            <p class='mt-1 text-sm text-text-muted'>{t('createGroupModal.groupDescriptionHelpText')}</p>
                         </div>
 
                         {/* Error Display */}
                         {enhancedGroupsStore.errorSignal.value && (
-                            <div class='bg-red-50 border border-red-200 rounded-md p-3'>
+                            <div class='bg-surface-warning border border-border-warning rounded-md p-3'>
                                 <div class='flex'>
                                     <div class='flex-shrink-0'>
                                         <svg class='h-5 w-5 text-red-400' fill='currentColor' viewBox='0 0 20 20' aria-hidden='true' focusable='false'>

@@ -1,20 +1,39 @@
 import { z } from 'zod';
 
 const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
+const RGBA_COLOR_PATTERN = /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+\s*)?\)$/i;
 const CSS_LENGTH_PATTERN = /^-?\d*\.?\d+(px|rem)$/i;
+const FLEXIBLE_LENGTH_PATTERN = /^(?:clamp|min|max)\([\s\S]+\)$|^-?\d*\.?\d+(px|rem|vw|vh|%)$/i;
 
 export type HexColor = `#${string}`;
+export type CssColor = `#${string}` | `rgba(${string})` | `rgb(${string})`;
 export type CssLength = `${number}${'px' | 'rem'}`;
+export type FlexibleLength = string; // Allows clamp(), min(), max(), etc.
 
 export const HexColorSchema = z
     .string()
     .regex(HEX_COLOR_PATTERN, 'Expected hex color (#RRGGBB or #RGB)')
     .transform((value) => value.toLowerCase() as HexColor);
 
+// Flexible color schema that accepts hex or rgba
+export const CssColorSchema = z
+    .string()
+    .refine(
+        (value) => HEX_COLOR_PATTERN.test(value) || RGBA_COLOR_PATTERN.test(value),
+        'Expected hex color (#RRGGBB) or rgba(r, g, b, a)'
+    )
+    .transform((value) => value as CssColor);
+
 export const CssLengthSchema = z
     .string()
     .regex(CSS_LENGTH_PATTERN, 'Expected CSS length (px or rem)')
     .transform((value) => value.toLowerCase() as CssLength);
+
+// Flexible length schema that accepts clamp(), px, rem, vw, vh, %
+export const FlexibleLengthSchema = z
+    .string()
+    .regex(FLEXIBLE_LENGTH_PATTERN, 'Expected CSS length (px, rem, vw, vh, %, or clamp())')
+    .transform((value) => value as FlexibleLength);
 
 const BrandingPaletteSchema = z.object({
     primary: HexColorSchema,
@@ -113,10 +132,10 @@ const BrandingSpacingScaleSchema = z.object({
 });
 
 const BrandingSpacingSemanticSchema = z.object({
-    pagePadding: CssLengthSchema,
-    sectionGap: CssLengthSchema,
-    cardPadding: CssLengthSchema,
-    componentGap: CssLengthSchema,
+    pagePadding: FlexibleLengthSchema,
+    sectionGap: FlexibleLengthSchema,
+    cardPadding: FlexibleLengthSchema,
+    componentGap: FlexibleLengthSchema,
 });
 
 const BrandingRadiiSchema = z.object({
@@ -182,66 +201,66 @@ const BrandingLegalSchema = z.object({
 
 const BrandingSemanticColorSchema = z.object({
     surface: z.object({
-        base: HexColorSchema,
-        raised: HexColorSchema,
-        sunken: HexColorSchema,
-        overlay: HexColorSchema,
-        warning: HexColorSchema,
+        base: CssColorSchema,
+        raised: CssColorSchema,
+        sunken: CssColorSchema,
+        overlay: CssColorSchema,
+        warning: CssColorSchema,
         // New for glassmorphism
-        glass: HexColorSchema.optional(),
-        glassBorder: HexColorSchema.optional(),
-        aurora: HexColorSchema.optional(),
-        spotlight: HexColorSchema.optional(),
+        glass: CssColorSchema.optional(),
+        glassBorder: CssColorSchema.optional(),
+        aurora: CssColorSchema.optional(),
+        spotlight: CssColorSchema.optional(),
     }),
     text: z.object({
-        primary: HexColorSchema,
-        secondary: HexColorSchema,
-        muted: HexColorSchema,
-        inverted: HexColorSchema,
-        accent: HexColorSchema,
+        primary: CssColorSchema,
+        secondary: CssColorSchema,
+        muted: CssColorSchema,
+        inverted: CssColorSchema,
+        accent: CssColorSchema,
         // New for advanced typography
-        hero: HexColorSchema.optional(),
-        eyebrow: HexColorSchema.optional(),
-        code: HexColorSchema.optional(),
+        hero: CssColorSchema.optional(),
+        eyebrow: CssColorSchema.optional(),
+        code: CssColorSchema.optional(),
     }),
     interactive: z.object({
-        primary: HexColorSchema,
-        primaryHover: HexColorSchema,
-        primaryActive: HexColorSchema,
-        primaryForeground: HexColorSchema,
-        secondary: HexColorSchema,
-        secondaryHover: HexColorSchema,
-        secondaryActive: HexColorSchema,
-        secondaryForeground: HexColorSchema,
-        accent: HexColorSchema,
-        destructive: HexColorSchema,
-        destructiveHover: HexColorSchema,
-        destructiveActive: HexColorSchema,
-        destructiveForeground: HexColorSchema,
+        primary: CssColorSchema,
+        primaryHover: CssColorSchema,
+        primaryActive: CssColorSchema,
+        primaryForeground: CssColorSchema,
+        secondary: CssColorSchema,
+        secondaryHover: CssColorSchema,
+        secondaryActive: CssColorSchema,
+        secondaryForeground: CssColorSchema,
+        accent: CssColorSchema,
+        destructive: CssColorSchema,
+        destructiveHover: CssColorSchema,
+        destructiveActive: CssColorSchema,
+        destructiveForeground: CssColorSchema,
         // New for advanced interactions
-        ghost: HexColorSchema.optional(),
-        magnetic: HexColorSchema.optional(),
-        glow: HexColorSchema.optional(),
+        ghost: CssColorSchema.optional(),
+        magnetic: CssColorSchema.optional(),
+        glow: CssColorSchema.optional(),
     }),
     border: z.object({
-        subtle: HexColorSchema,
-        default: HexColorSchema,
-        strong: HexColorSchema,
-        focus: HexColorSchema,
-        warning: HexColorSchema,
+        subtle: CssColorSchema,
+        default: CssColorSchema,
+        strong: CssColorSchema,
+        focus: CssColorSchema,
+        warning: CssColorSchema,
     }),
     status: z.object({
-        success: HexColorSchema,
-        warning: HexColorSchema,
-        danger: HexColorSchema,
-        info: HexColorSchema,
+        success: CssColorSchema,
+        warning: CssColorSchema,
+        danger: CssColorSchema,
+        info: CssColorSchema,
     }),
     // New gradient system
     gradient: z.object({
-        primary: z.array(HexColorSchema).length(2).optional(),
-        accent: z.array(HexColorSchema).length(2).optional(),
-        aurora: z.array(HexColorSchema).min(2).max(4).optional(),
-        text: z.array(HexColorSchema).length(2).optional(),
+        primary: z.array(CssColorSchema).length(2).optional(),
+        accent: z.array(CssColorSchema).length(2).optional(),
+        aurora: z.array(CssColorSchema).min(2).max(4).optional(),
+        text: z.array(CssColorSchema).length(2).optional(),
     }).optional(),
 });
 

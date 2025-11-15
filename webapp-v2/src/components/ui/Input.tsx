@@ -55,7 +55,7 @@ export function Input({
         'block w-full rounded-md border border-border-default px-3 py-2 shadow-sm',
         'text-text-primary placeholder:text-text-muted/70',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
-        'sm:text-sm sm:leading-6 transition-colors duration-200 bg-surface-base',
+        'sm:text-sm sm:leading-6 transition-colors duration-200 bg-surface-raised backdrop-blur-sm',
     ];
 
     const stateClasses = error ? 'border-border-error text-semantic-error focus-visible:ring-semantic-error focus-visible:border-semantic-error' : '';

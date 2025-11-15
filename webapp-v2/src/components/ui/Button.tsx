@@ -77,9 +77,11 @@ export function Button({
 
     const variantClasses: Record<NonNullable<ButtonProps['variant']>, Array<string | false>> = {
         primary: [
-            'bg-interactive-primary text-interactive-primary-foreground shadow-md',
-            !isDisabled && 'hover:bg-interactive-primary/90',
+            'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-[var(--shadows-md)]',
+            !isDisabled && 'hover:shadow-[0_0_20px_rgba(var(--interactive-primary-rgb),0.3)] hover:scale-[1.02]',
+            !isDisabled && 'active:scale-[0.98]',
             'focus-visible:ring-interactive-primary',
+            'transition-all duration-200',
         ],
         secondary: [
             'bg-surface-muted text-text-primary border border-border-default shadow-sm',

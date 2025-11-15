@@ -101,72 +101,72 @@ const auroraPalette: BrandingTokens['palette'] = {
 const auroraSemantics: BrandingTokens['semantics'] = {
     colors: {
         surface: {
-            base: '#090b19',
-            raised: '#0f1219',
-            sunken: '#05060d',
-            overlay: '#0f172a',
+            base: '#0a0d15',           // Rich dark blue-gray (not pure black)
+            raised: '#0f1320',          // Slightly elevated with blue tint
+            sunken: '#06080d',          // Deeper shadow
+            overlay: 'rgba(15, 23, 42, 0.85)',  // Semi-transparent modals
             warning: '#fef3c7',
             // Glassmorphism (opacity will be handled in CSS)
-            glass: '#090b19',
-            glassBorder: '#ffffff',
+            glass: 'rgba(15, 19, 32, 0.65)',     // Semi-transparent glass with blue tint
+            glassBorder: 'rgba(255, 255, 255, 0.07)',  // Subtle glass border
             aurora: '#000000',
             spotlight: '#ffffff',
         },
         text: {
             primary: '#f8fafc',
             secondary: '#cbd5e1',
-            muted: '#94a3b8',
-            inverted: '#0f172a',
-            accent: '#22d3ee',
+            muted: 'rgba(248, 250, 252, 0.7)',  // Transparent muted text
+            inverted: '#05060a',        // Dark text for light backgrounds
+            accent: '#34d399',          // Teal accent for links/highlights
             // Advanced text
             hero: '#ffffff',
-            eyebrow: '#94a3b8',
+            eyebrow: 'rgba(148, 163, 184, 0.9)',  // Uppercase labels
             code: '#22d3ee',
         },
         interactive: {
-            primary: '#4f46e5',
-            primaryHover: '#4338ca',
-            primaryActive: '#3730a3',
-            primaryForeground: '#ffffff',
-            secondary: '#ec4899',
-            secondaryHover: '#db2777',
-            secondaryActive: '#be185d',
-            secondaryForeground: '#ffffff',
-            accent: '#22d3ee',
-            destructive: '#ef4444',
-            destructiveHover: '#dc2626',
-            destructiveActive: '#b91c1c',
+            primary: '#34d399',         // Teal gradient start
+            primaryHover: '#2dd4bf',    // Lighter teal on hover
+            primaryActive: '#14b8a6',   // Darker teal when pressed
+            primaryForeground: '#05060a',  // Dark text on teal button
+            secondary: 'rgba(255, 255, 255, 0.06)',  // Glass secondary button
+            secondaryHover: 'rgba(255, 255, 255, 0.1)',
+            secondaryActive: 'rgba(255, 255, 255, 0.15)',
+            secondaryForeground: '#f8fafc',
+            accent: '#22d3ee',          // Cyan accents
+            destructive: '#f87171',     // Softer red for errors
+            destructiveHover: '#ef4444',
+            destructiveActive: '#dc2626',
             destructiveForeground: '#ffffff',
             // Advanced interactions (opacity in CSS)
-            ghost: '#ffffff',
+            ghost: 'rgba(255, 255, 255, 0.05)',
             magnetic: '#4f46e5',
-            glow: '#22d3ee',
+            glow: 'rgba(52, 211, 153, 0.15)',  // Teal glow for shadows
         },
         border: {
-            subtle: '#1e293b',
-            default: '#334155',
-            strong: '#475569',
-            focus: '#22d3ee',
+            subtle: 'rgba(255, 255, 255, 0.04)',
+            default: 'rgba(255, 255, 255, 0.08)',
+            strong: 'rgba(255, 255, 255, 0.12)',
+            focus: '#34d399',           // Teal focus rings
             warning: '#fde047',
         },
         status: {
-            success: '#22c55e',
-            warning: '#eab308',
-            danger: '#ef4444',
-            info: '#38bdf8',
+            success: '#34d399',         // Teal for success
+            warning: '#fbbf24',
+            danger: '#f87171',
+            info: '#22d3ee',
         },
-        // Gradients
+        // Gradients - cinematic aurora effect
         gradient: {
-            primary: ['#4f46e5', '#ec4899'],
-            accent: ['#22d3ee', '#34d399'],
-            aurora: ['#4f46e5', '#ec4899', '#22d3ee', '#34d399'],
-            text: ['#22d3ee', '#ec4899'],
+            primary: ['#34d399', '#22d3ee'],       // Teal to cyan
+            accent: ['#22d3ee', '#34d399'],        // Reversed
+            aurora: ['#4f46e5', '#ec4899', '#22d3ee', '#34d399'],  // Full spectrum
+            text: ['#34d399', '#22d3ee'],          // Gradient text effect
         },
     },
     spacing: {
-        pagePadding: '1.5rem',
-        sectionGap: '2rem',
-        cardPadding: '1rem',
+        pagePadding: 'clamp(1.5rem, 4vw, 3rem)',    // Fluid padding
+        sectionGap: 'clamp(2rem, 5vw, 3.5rem)',
+        cardPadding: 'clamp(1rem, 3vw, 2rem)',
         componentGap: '0.75rem',
     },
     typography: auroraTypography.semantics,
@@ -175,14 +175,14 @@ const auroraSemantics: BrandingTokens['semantics'] = {
 const auroraShadows = {
     sm: '0 1px 2px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.04)',
     md: '0 4px 12px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.06)',
-    lg: '0 20px 60px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+    lg: '0 20px 60px rgba(5, 6, 10, 0.45), 0 0 30px rgba(52, 211, 153, 0.1)',  // Soft shadow with teal glow
 } as const satisfies BrandingTokens['shadows'];
 
 const auroraRadii = {
     none: '0px',
-    sm: '8px',
-    md: '12px',
-    lg: '18px',
+    sm: '12px',           // Slightly more rounded
+    md: '18px',           // Comfortable radius for cards
+    lg: '28px',           // Hero/large card radius
     pill: '999px',
     full: '9999px',
 } as const satisfies BrandingTokens['radii'];
@@ -261,8 +261,8 @@ const brutalistPalette: BrandingTokens['palette'] = {
     secondary: '#d4d4d8',    // Gray 300
     secondaryVariant: '#a1a1aa',
     accent: '#a1a1aa',
-    neutral: '#fafafa',      // Gray 50
-    neutralVariant: '#f4f4f5',
+    neutral: '#e5e5e5',      // Light grey (no white!)
+    neutralVariant: '#d4d4d4',
     success: '#a1a1aa',
     warning: '#a1a1aa',
     danger: '#a1a1aa',
@@ -272,11 +272,12 @@ const brutalistPalette: BrandingTokens['palette'] = {
 const brutalistSemantics: BrandingTokens['semantics'] = {
     colors: {
         surface: {
-            base: '#fafafa',
-            raised: '#ffffff',
-            sunken: '#f4f4f5',
-            overlay: '#18181b',
-            warning: '#fef3c7',
+            base: '#c8c8c8',        // Grey 350 - main background
+            raised: '#ececec',      // Grey 100 - cards, elevated elements
+            sunken: '#b8b8b8',      // Grey 400 - depressed areas (input fields)
+            overlay: '#262626',     // Grey 800 - dark overlays
+            warning: '#fef3c7',     // Keep warning visible
+            muted: '#a8a8a8',       // Grey 450 - disabled/muted surfaces
             // No glassmorphism
             glass: undefined,
             glassBorder: undefined,
@@ -284,47 +285,49 @@ const brutalistSemantics: BrandingTokens['semantics'] = {
             spotlight: undefined,
         },
         text: {
-            primary: '#18181b',
-            secondary: '#3f3f46',
-            muted: '#71717a',
-            inverted: '#fafafa',
-            accent: '#18181b',
+            primary: '#171717',     // Grey 900 - primary text
+            secondary: '#404040',   // Grey 700 - secondary text
+            muted: '#737373',       // Grey 500 - muted text
+            inverted: '#e8e8e8',    // Grey 200 - text on dark backgrounds
+            accent: '#525252',      // Grey 600 - accent text
+            disabled: '#a3a3a3',    // Grey 400 - disabled text
             // No advanced text
             hero: undefined,
             eyebrow: undefined,
             code: undefined,
         },
         interactive: {
-            primary: '#a1a1aa',
-            primaryHover: '#71717a',
-            primaryActive: '#52525b',
-            primaryForeground: '#ffffff',
-            secondary: '#d4d4d8',
-            secondaryHover: '#a1a1aa',
-            secondaryActive: '#71717a',
-            secondaryForeground: '#18181b',
-            accent: '#a1a1aa',
-            destructive: '#a1a1aa',
-            destructiveHover: '#71717a',
-            destructiveActive: '#52525b',
-            destructiveForeground: '#ffffff',
+            primary: '#404040',           // Grey 700 - primary buttons (darker for contrast)
+            primaryHover: '#303030',       // Grey 750 - hover state
+            primaryActive: '#202020',      // Grey 800 - active state
+            primaryForeground: '#f5f5f5',  // Grey 100 - text on buttons
+            secondary: '#d4d4d4',          // Grey 300 - secondary buttons
+            secondaryHover: '#a3a3a3',     // Grey 400 - hover
+            secondaryActive: '#737373',    // Grey 500 - active
+            secondaryForeground: '#171717', // Grey 900 - text
+            accent: '#606060',             // Grey 600 - accent elements
+            destructive: '#505050',        // Grey 650 - destructive actions
+            destructiveHover: '#404040',   // Grey 700
+            destructiveActive: '#303030',  // Grey 750
+            destructiveForeground: '#f5f5f5', // Grey 100
             // No advanced interactions
             ghost: undefined,
             magnetic: undefined,
             glow: undefined,
         },
         border: {
-            subtle: '#f4f4f5',
-            default: '#e4e4e7',
-            strong: '#a1a1aa',
-            focus: '#71717a',
-            warning: '#fde047',
+            subtle: '#d8d8d8',      // Grey 250 - subtle borders
+            default: '#888888',     // Grey 500 - default borders (stronger)
+            strong: '#606060',      // Grey 600 - strong borders
+            focus: '#404040',       // Grey 700 - focus rings (darker for visibility)
+            warning: '#fde047',     // Keep warning visible
+            error: '#888888',       // Grey 500 - error borders
         },
         status: {
-            success: '#a1a1aa',
-            warning: '#a1a1aa',
-            danger: '#a1a1aa',
-            info: '#a1a1aa',
+            success: '#8a8a8a',     // Grey 450
+            warning: '#a3a3a3',     // Grey 400
+            danger: '#8a8a8a',      // Grey 450
+            info: '#a3a3a3',        // Grey 400
         },
         // No gradients
         gradient: undefined,
@@ -339,9 +342,9 @@ const brutalistSemantics: BrandingTokens['semantics'] = {
 };
 
 const brutalistShadows = {
-    sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
-    md: '0 2px 4px rgba(0, 0, 0, 0.08)',
-    lg: '0 4px 8px rgba(0, 0, 0, 0.12)',
+    sm: '0 1px 3px rgba(0, 0, 0, 0.15)',
+    md: '0 3px 6px rgba(0, 0, 0, 0.20)',
+    lg: '0 8px 16px rgba(0, 0, 0, 0.25)',
 } as const satisfies BrandingTokens['shadows'];
 
 const brutalistRadii = {

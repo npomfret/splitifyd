@@ -24,7 +24,7 @@
       "maxGroupsPerUser": 100,
       "maxUsersPerGroup": 50
     },
-    "isDefault": false
+    "isDefault": true
   },
   {
     "id": "partner-tenant",
@@ -52,32 +52,5 @@
       "maxUsersPerGroup": 30
     },
     "isDefault": false
-  },
-  {
-    "id": "default-fallback-tenant",
-    "domains": [],
-    "branding": {
-      "appName": "Splitifyd",
-      "logoUrl": "/logo.svg",
-      "faviconUrl": "/favicon.ico",
-      "primaryColor": "#10B981",
-      "secondaryColor": "#059669",
-      "backgroundColor": "#F0FDF4",
-      "headerBackgroundColor": "#D1FAE5",
-      "marketingFlags": {
-        "showLandingPage": true,
-        "showMarketingContent": true,
-        "showPricingPage": true,
-        "showBlogPage": false
-      }
-    },
-    "features": {
-      "enableAdvancedReporting": true,
-      "enableMultiCurrency": true,
-      "enableCustomFields": true,
-      "maxGroupsPerUser": 100,
-      "maxUsersPerGroup": 200
-    },
-    "isDefault": true
   }
 ]

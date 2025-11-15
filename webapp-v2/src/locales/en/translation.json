@@ -147,7 +147,7 @@
   },
   "loginPage": {
     "title": "Sign In",
-    "description": "Sign in to your Splitifyd account to manage your shared expenses",
+    "description": "Sign in to your account to manage your shared expenses",
     "rememberMe": "Remember me",
     "forgotPassword": "Forgot your password?",
     "submitButton": "Sign In",
