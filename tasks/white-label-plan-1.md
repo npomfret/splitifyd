@@ -118,13 +118,13 @@ flowchart LR
 
 **Type Safety:** All migrated code compiles successfully ✅
 
-**Overall Roadmap Status (as of 2025-11-14):**
+**Overall Roadmap Status (as of 2025-11-15):**
 - ✅ Week 0.5: Build/Test Hygiene (100%)
 - ✅ Week 1: Shared Foundations (100%)
 - ✅ Week 2: Generator & Seed Themes (100%)
 - ✅ Weeks 3-4: HTTP Endpoints & Bootstrap (100%)
 - ✅ Weeks 5-6: UI Kit & Admin Console (100% - admin tooling, marketing, dashboard, auth, checkout/payment complete)
-- ⏳ Weeks 7-8: Guardrails & Cleanup (pending)
+- ✅ Weeks 7-8: Guardrails & Cleanup (100% - CSS cascade fix, legacy code removal, emulator startup automation)
 
 
 ### Progress – Phase 3 Cleanup (2025-11-14)
@@ -133,6 +133,29 @@ flowchart LR
 - Completed the `primary-*` Tailwind sweep: Admin Tenants, Domain Management, Join Group, dashboard cards/feed/empty states, settlements, comments, expense split UI, sidebar widgets, pagination, and CurrencyAmountInput now rely solely on semantic tokens (`bg/interative-*`, `text-text-*`, `border-border-*`). Removed the `primary` palette from `tailwind.config.js` and updated shared inputs/spinners so no `bg/text/border-primary` utilities remain.
 - Finished the remaining hard-coded color removal: purged every `gray-*`, `blue-*`, `yellow-*`, `orange-*`, and `red-*` Tailwind utility from `webapp-v2/src`, replacing them with semantic surfaces/text/border tokens (including new `semantic-error`, `surface-error`, and `border-error` scales). Scrollbars, placeholders, gradients, alerts, error states, and tests now reference the semantic palette exclusively, so the UI no longer depends on Tailwind’s default color map.
 - Hardened the Playwright page objects: replaced CSS-class locators (e.g., `.animate-spin`, `.space-y-0.5`, `.fixed.bottom-4.right-4`) with accessible anchors and new `data-testid` hooks (`loading-spinner`, `share-link-toast`, `members-scroll-container`). Updated the corresponding UI components and unit/e2e tests so selectors now target visible headings, roles, or purposeful test IDs rather than Tailwind classes. Added a dedicated `theme-smoke` Playwright suite that intercepts `/api/theme.css`, applies tenant-specific CSS variable fixtures, and asserts that the landing CTA elements render the expected semantic colors for both the fallback and loopback tenants.
+
+### Progress – Phase 3 Final Cleanup (2025-11-15)
+- **Critical CSS cascade fix:** Discovered that `webapp-v2/src/styles/global.css` contained hardcoded CSS variables in a `:root` block (lines 14-25) that were being compiled into the Tailwind CSS bundle and loaded AFTER `/api/theme.css`, causing the hardcoded values to override tenant theme variables.
+- **Brutal refactor:** Removed 178 lines of legacy code from `global.css`, including:
+  - All hardcoded CSS variable definitions (`:root { --interactive-primary-rgb: ..., --surface-base-rgb: ..., etc }`)
+  - Legacy theme classes (`btn-theme-primary`, `card-theme-accent`, `text-theme-primary`, etc.)
+  - Pattern utilities (`pattern-dots`, `pattern-stripes`, `pattern-grid`)
+  - Dark mode overrides and fallback styles
+- **Result:** Reduced from 199 lines to 21 lines; CSS bundle size decreased from 48.25 kB to 46.92 kB; theme CSS variables now properly apply without hardcoded overrides.
+- **HTML optimization:** Updated `webapp-v2/index.html` to include a static `<link rel="stylesheet" href="/api/theme.css">` tag that loads BEFORE Vite's compiled CSS, ensuring proper CSS cascade order (theme variables defined first, Tailwind utilities consume them second).
+- **Emulator startup flow:** Integrated tenant creation into `firebase/scripts/start-with-data.ts` with proper execution order:
+  1. Start emulator
+  2. Create Bill Splitter user (required for authentication)
+  3. Create default tenant and publish theme CSS (`createDefaultTenant()`)
+  4. Seed policies
+- **Tenant separation architecture:** Split tenant creation logic to support minimal emulator startup vs full test data:
+  - `createDefaultTenant()` in `test-data-generator.ts` creates only `default-fallback-tenant`
+  - `createAllDemoTenants()` creates all three demo tenants (`localhost-tenant`, `partner-tenant`, `default-fallback-tenant`)
+  - Both `syncTenantConfigs()` and `publishLocalThemes()` accept `{ defaultOnly?: boolean }` option
+  - `start-with-data.ts` calls `createDefaultTenant()` for minimal startup
+  - `generateFullTestData()` calls `createAllDemoTenants()` for comprehensive demo environment
+- **Verification:** Both `localhost:6005` and `127.0.0.1:6005` now correctly serve the default theme on fresh emulator start; running `npm run generate:test-data` creates the additional domain-specific themes (Aurora for localhost, Brutalist for loopback).
+- **Status:** Phase 3 cleanup COMPLETE ✅ - zero hardcoded CSS variables, zero legacy branding code, proper CSS cascade, automatic tenant creation on emulator startup.
 
 
 ## Expert Check-in – 2025-11-13
@@ -202,10 +225,22 @@ shared/src/
 ```
 
 ## 2.6. Local Theme Seeding Workflow (APIs Only)
-- **Scripted publish:** `firebase/scripts/publish-local-themes.ts` (run with `npm run --workspace firebase theme:publish-local`) signs in as the Bill Splitter admin (`test1@test.com`) and walks the `/api/admin/tenants` + `/api/admin/publishTenantTheme` flow for `tenant_localhost`, `tenant_loopback`, and `tenant_default`. Still zero direct Firestore writes.
-- **Fixtures as input:** Uses `brandingTokenFixtures` from `@splitifyd/shared` so every environment replays the same token payloads the Admin UI will manage.
-- **Failure visibility:** Command exits non-zero with a helpful hint (usually “Bill Splitter missing — run start-with-data”). CI/local dev shells see the failure immediately if auth or the admin APIs regress.
-- **Manual testing loop:** After running the script, verify `curl -H "Host: localhost" http://localhost:5001/<project>/<region>/api/theme.css` (swap the Host header for `120.0.0.1`) before opening `webapp-v2`. Any other domain should fall back to the seeded default tenant CSS.
+
+### Emulator Startup (Default Tenant Only)
+- **Automatic creation:** `firebase/scripts/start-with-data.ts` now creates ONLY the default-fallback-tenant during emulator startup (after Bill Splitter user creation, before policy seeding)
+- **Function separation:**
+  - `createDefaultTenant()` - creates and publishes only `default-fallback-tenant` (used by emulator startup)
+  - `createAllDemoTenants()` - creates and publishes all three tenants: `localhost-tenant`, `partner-tenant`, and `default-fallback-tenant` (used by full test data generator)
+- **Filtering mechanism:** Both `syncTenantConfigs()` and `publishLocalThemes()` accept `{ defaultOnly?: boolean }` option to control scope
+- **Design decision:** Emulator should boot with minimal data - only one tenant. Additional demo tenants (localhost, loopback) are created when running `npm run generate:test-data`
+- **Result:** On fresh emulator start, both `localhost:6005` and `127.0.0.1:6005` serve the same default theme until full test data is generated
+
+### Full Test Data Generation (All Demo Tenants)
+- **Scripted publish:** `firebase/scripts/test-data-generator.ts` calls `createAllDemoTenants()` which creates all three tenants via the admin API flow
+- **Fixtures as input:** Uses `brandingTokenFixtures` from `@splitifyd/shared` and `tenant-configs.json` for tenant metadata
+- **API-based flow:** Signs in as the Bill Splitter admin (`test1@test.com`) and walks `/api/admin/tenants` + `/api/admin/publishTenantTheme` endpoints. Still zero direct Firestore writes.
+- **Failure visibility:** Command exits non-zero with a helpful hint (usually "Bill Splitter missing — run start-with-data"). CI/local dev shells see the failure immediately if auth or the admin APIs regress.
+- **Manual testing loop:** After running the script, verify `curl -H "Host: localhost" http://localhost:5001/<project>/<region>/api/theme.css` (swap the Host header for `127.0.0.1`) before opening `webapp-v2`. Any other domain should fall back to the seeded default tenant CSS.
 
 ### Frontend (webapp-v2/src/)
 ```
@@ -324,11 +359,15 @@ scripts/
 - [x] Remove inline `style={{...}}` props (enforced by ESLint)
 - [x] Add data-testid for E2E tests (existing tests preserved)
 
-### Phase 3: Cleanup (Week 7)
+### Phase 3: Cleanup (Week 7) ✅ **COMPLETED 2025-11-15**
 - [x] Remove `applyBrandingPalette()` function
 - [x] Delete old CSS variable injection code
 - [x] Remove old Tailwind color mappings
 - [x] Archive `branding.ts` utilities (keep in git history)
+- [x] Fix CSS cascade issue (remove hardcoded variables from global.css)
+- [x] Optimize HTML loading order (theme.css before Tailwind)
+- [x] Integrate tenant creation into emulator startup
+- [x] Split tenant creation logic (default-only vs all-demo-tenants)
 
 **Rollback plan:**
 - If new theming breaks: revert the last theming commit (instant)

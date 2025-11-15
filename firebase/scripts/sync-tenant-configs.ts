@@ -64,15 +64,21 @@ function getFirestoreDb() {
     return firestoreDb;
 }
 
-async function syncTenantConfigs() {
+async function syncTenantConfigs(options?: { defaultOnly?: boolean }) {
     const configPath = path.join(__dirname, 'tenant-configs.json');
     const configData = fs.readFileSync(configPath, 'utf-8');
-    const configs: TenantConfig[] = JSON.parse(configData);
+    let configs: TenantConfig[] = JSON.parse(configData);
+
+    // If defaultOnly, filter to only the default tenant
+    if (options?.defaultOnly) {
+        configs = configs.filter((c) => c.isDefault === true);
+        console.log('🔄 Syncing default tenant only...');
+    } else {
+        console.log('🔄 Syncing all tenant configurations from JSON...');
+    }
 
     const db = getFirestoreDb();
     const now = Timestamp.now();
-
-    console.log('🔄 Syncing tenant configurations from JSON...');
 
     for (const config of configs) {
         const tenantRef = db.collection(FirestoreCollections.TENANTS).doc(config.id);

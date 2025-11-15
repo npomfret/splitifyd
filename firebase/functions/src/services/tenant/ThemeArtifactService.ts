@@ -47,16 +47,42 @@ export class ThemeArtifactService {
     private buildCss(tokens: BrandingTokens): string {
         const sections: string[] = [];
         sections.push('/* Auto-generated theme CSS */');
+
+        // Font face declarations (if custom fonts provided)
+        if (tokens.assets.fonts) {
+            const fontFaces = this.generateFontFaces(tokens);
+            if (fontFaces) {
+                sections.push('');
+                sections.push(fontFaces);
+            }
+        }
+
+        // Root CSS variables
+        sections.push('');
         sections.push(':root {');
 
         const allVariables: Array<[string, string]> = [];
 
+        // Flatten all basic tokens
         for (const [name, value] of this.flattenTokens(tokens)) {
             allVariables.push([name, value]);
         }
 
+        // RGB variants for Tailwind opacity utilities
         for (const [name, rgbValue] of this.generateRgbVariants(tokens)) {
             allVariables.push([`${name}-rgb`, rgbValue]);
+        }
+
+        // Gradient CSS variables
+        for (const [name, gradientValue] of this.generateGradients(tokens)) {
+            allVariables.push([name, gradientValue]);
+        }
+
+        // Fluid typography CSS variables
+        if (tokens.typography.fluidScale) {
+            for (const [name, fluidValue] of this.generateFluidTypography(tokens)) {
+                allVariables.push([name, fluidValue]);
+            }
         }
 
         allVariables.sort((a, b) => a[0].localeCompare(b[0]));
@@ -66,6 +92,20 @@ export class ThemeArtifactService {
         }
 
         sections.push('}');
+
+        // Glassmorphism @supports fallback
+        const glassFallback = this.generateGlassmorphismFallback(tokens);
+        if (glassFallback) {
+            sections.push('');
+            sections.push(glassFallback);
+        }
+
+        // Motion media query (prefers-reduced-motion)
+        const motionQuery = this.generateMotionMediaQuery(tokens);
+        if (motionQuery) {
+            sections.push('');
+            sections.push(motionQuery);
+        }
 
         return sections.join('\n') + '\n';
     }
@@ -137,5 +177,196 @@ export class ThemeArtifactService {
 
         entries.sort((a, b) => a[0].localeCompare(b[0]));
         return entries;
+    }
+
+    /**
+     * Generate gradient CSS variables
+     */
+    private generateGradients(tokens: BrandingTokens): Array<[string, string]> {
+        const entries: Array<[string, string]> = [];
+        const gradients = tokens.semantics.colors.gradient;
+
+        if (!gradients) {
+            return entries;
+        }
+
+        // Primary gradient (2 colors)
+        if (gradients.primary && gradients.primary.length === 2) {
+            entries.push([
+                'gradient-primary',
+                `linear-gradient(135deg, ${gradients.primary[0]}, ${gradients.primary[1]})`,
+            ]);
+        }
+
+        // Accent gradient (2 colors)
+        if (gradients.accent && gradients.accent.length === 2) {
+            entries.push([
+                'gradient-accent',
+                `linear-gradient(135deg, ${gradients.accent[0]}, ${gradients.accent[1]})`,
+            ]);
+        }
+
+        // Text gradient (2 colors) - for webkit-background-clip
+        if (gradients.text && gradients.text.length === 2) {
+            entries.push([
+                'gradient-text',
+                `linear-gradient(120deg, ${gradients.text[0]}, ${gradients.text[1]})`,
+            ]);
+        }
+
+        // Aurora gradient (2-4 colors) - layered radial gradients for background
+        if (gradients.aurora && gradients.aurora.length >= 2) {
+            const [color1, color2, color3, color4] = gradients.aurora;
+
+            // Create layered radial gradients for atmospheric effect
+            const layers: string[] = [];
+            layers.push(`radial-gradient(circle at 20% 20%, ${color1}66, transparent 55%)`);
+            layers.push(`radial-gradient(circle at 80% 0%, ${color2}59, transparent 60%)`);
+
+            if (color3) {
+                layers.push(`radial-gradient(circle at 40% 80%, ${color3}59, transparent 60%)`);
+            }
+            if (color4) {
+                layers.push(`radial-gradient(circle at 80% 60%, ${color4}40, transparent 75%)`);
+            }
+
+            entries.push(['gradient-aurora', layers.join(', ')]);
+        }
+
+        return entries;
+    }
+
+    /**
+     * Generate fluid typography CSS variables
+     */
+    private generateFluidTypography(tokens: BrandingTokens): Array<[string, string]> {
+        const entries: Array<[string, string]> = [];
+        const fluidScale = tokens.typography.fluidScale;
+
+        if (!fluidScale) {
+            return entries;
+        }
+
+        // Generate --fluid-{size} variables
+        Object.entries(fluidScale).forEach(([size, clampValue]) => {
+            if (clampValue) {
+                entries.push([`fluid-${size}`, clampValue]);
+            }
+        });
+
+        return entries;
+    }
+
+    /**
+     * Generate @font-face rules for custom fonts
+     */
+    private generateFontFaces(tokens: BrandingTokens): string | null {
+        const fonts = tokens.assets.fonts;
+
+        if (!fonts) {
+            return null;
+        }
+
+        const fontFaces: string[] = [];
+
+        // Heading font (e.g., Space Grotesk)
+        if (fonts.headingUrl) {
+            fontFaces.push(
+                `@font-face {`,
+                `  font-family: '${tokens.typography.fontFamily.sans.split(',')[0].trim()}';`,
+                `  src: url('${fonts.headingUrl}') format('woff2');`,
+                `  font-display: swap;`,
+                `  font-weight: 400 700;`,
+                `}`
+            );
+        }
+
+        // Body font (e.g., Inter)
+        if (fonts.bodyUrl) {
+            fontFaces.push(
+                `@font-face {`,
+                `  font-family: 'Inter';`,
+                `  src: url('${fonts.bodyUrl}') format('woff2');`,
+                `  font-display: swap;`,
+                `  font-weight: 400 700;`,
+                `}`
+            );
+        }
+
+        // Mono font (e.g., Geist Mono)
+        if (fonts.monoUrl) {
+            fontFaces.push(
+                `@font-face {`,
+                `  font-family: '${tokens.typography.fontFamily.mono.split(',')[0].trim()}';`,
+                `  src: url('${fonts.monoUrl}') format('woff2');`,
+                `  font-display: swap;`,
+                `  font-weight: 400 700;`,
+                `}`
+            );
+        }
+
+        return fontFaces.length > 0 ? fontFaces.join('\n') : null;
+    }
+
+    /**
+     * Generate @supports fallback for glassmorphism
+     * Provides solid background for browsers without backdrop-filter support
+     */
+    private generateGlassmorphismFallback(tokens: BrandingTokens): string | null {
+        const glass = tokens.semantics.colors.surface.glass;
+
+        if (!glass) {
+            return null;
+        }
+
+        // Only generate fallback if glassmorphism colors are defined
+        return [
+            '/* Glassmorphism fallback for older browsers */',
+            '.glass-panel {',
+            `  background: ${tokens.semantics.colors.surface.overlay}f2;`,
+            '}',
+            '',
+            '@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {',
+            '  .glass-panel {',
+            `    background: ${glass};`,
+            '    backdrop-filter: blur(24px);',
+            '    -webkit-backdrop-filter: blur(24px);',
+            '  }',
+            '}',
+        ].join('\n');
+    }
+
+    /**
+     * Generate prefers-reduced-motion media query
+     * Disables all animations if motion is disabled or user prefers reduced motion
+     */
+    private generateMotionMediaQuery(tokens: BrandingTokens): string | null {
+        const motion = tokens.motion;
+
+        if (!motion) {
+            return null;
+        }
+
+        // Check if any motion features are enabled
+        const hasMotion =
+            motion.enableParallax || motion.enableMagneticHover || motion.enableScrollReveal;
+
+        if (!hasMotion) {
+            return null;
+        }
+
+        return [
+            '/* Respect user motion preferences */',
+            '@media (prefers-reduced-motion: reduce) {',
+            '  *,',
+            '  *::before,',
+            '  *::after {',
+            '    animation-duration: 0.01ms !important;',
+            '    animation-iteration-count: 1 !important;',
+            '    transition-duration: 0.01ms !important;',
+            '    scroll-behavior: auto !important;',
+            '  }',
+            '}',
+        ].join('\n');
     }
 }

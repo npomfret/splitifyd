@@ -59,6 +59,9 @@ const TypographyLetterSpacingSchema = z.object({
     tight: CssLengthSchema,
     normal: CssLengthSchema,
     wide: CssLengthSchema,
+    // New for advanced tracking
+    wider: CssLengthSchema.optional(),
+    eyebrow: CssLengthSchema.optional(), // For all-caps labels
 });
 
 const TypographySemanticSchema = z.object({
@@ -71,6 +74,19 @@ const TypographySemanticSchema = z.object({
     display: z.enum(['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl']),
 });
 
+// New: Fluid Typography Scale (clamp-based)
+const FluidTypographyScaleSchema = z.object({
+    xs: z.string().optional(),    // clamp(0.75rem, 0.9vw, 0.875rem)
+    sm: z.string().optional(),    // clamp(0.875rem, 1vw, 1rem)
+    base: z.string().optional(),  // clamp(1rem, 1.2vw, 1.125rem)
+    lg: z.string().optional(),    // clamp(1.125rem, 1.5vw, 1.25rem)
+    xl: z.string().optional(),    // clamp(1.25rem, 2vw, 1.5rem)
+    '2xl': z.string().optional(), // clamp(1.5rem, 2.5vw, 1.875rem)
+    '3xl': z.string().optional(), // clamp(1.875rem, 3vw, 2.25rem)
+    '4xl': z.string().optional(), // clamp(2.25rem, 4vw, 3rem)
+    hero: z.string().optional(),  // clamp(2.5rem, 5vw, 3.75rem)
+}).optional();
+
 const BrandingTypographySchema = z.object({
     fontFamily: z.object({
         sans: z.string().min(1),
@@ -82,6 +98,8 @@ const BrandingTypographySchema = z.object({
     lineHeights: TypographyLineHeightSchema,
     letterSpacing: TypographyLetterSpacingSchema,
     semantics: TypographySemanticSchema,
+    // New: Fluid typography scale
+    fluidScale: FluidTypographyScaleSchema,
 });
 
 const BrandingSpacingScaleSchema = z.object({
@@ -117,12 +135,43 @@ const BrandingShadowsSchema = z.object({
 });
 
 const BrandingAssetsSchema = z.object({
-    logoUrl: z.string().url(),
-    wordmarkUrl: z.string().url().optional(),
-    faviconUrl: z.string().url(),
-    heroIllustrationUrl: z.string().url().optional(),
-    backgroundTextureUrl: z.string().url().optional(),
+    logoUrl: z.string().min(1), // Required - can be absolute URL, relative path, or data URL. Used as favicon if faviconUrl not provided
+    wordmarkUrl: z.string().min(1).optional(),
+    faviconUrl: z.string().min(1).optional(), // Optional - defaults to logoUrl if not provided
+    heroIllustrationUrl: z.string().min(1).optional(),
+    backgroundTextureUrl: z.string().min(1).optional(),
+    // New for self-hosted fonts
+    fonts: z.object({
+        headingUrl: z.string().min(1).optional(), // Space Grotesk, etc.
+        bodyUrl: z.string().min(1).optional(),    // Inter, etc.
+        monoUrl: z.string().min(1).optional(),    // Geist Mono, etc.
+    }).optional(),
 });
+
+// New: Motion Tokens
+const BrandingMotionSchema = z.object({
+    // Durations (ms) - allow 0 for no motion
+    duration: z.object({
+        instant: z.number().min(0).max(100).optional(),     // 0-50ms
+        fast: z.number().min(0).max(200).optional(),        // 0-150ms
+        base: z.number().min(0).max(400).optional(),        // 0-320ms
+        slow: z.number().min(0).max(800).optional(),        // 0-500ms
+        glacial: z.number().min(0).max(2000).optional(),    // 0-1200ms
+    }).optional(),
+
+    // Easing curves (cubic-bezier values as strings)
+    easing: z.object({
+        standard: z.string().optional(),    // cubic-bezier(0.22, 1, 0.36, 1)
+        decelerate: z.string().optional(),  // cubic-bezier(0.05, 0.7, 0.1, 1)
+        accelerate: z.string().optional(),  // cubic-bezier(0.3, 0, 0.8, 0.15)
+        spring: z.string().optional(),      // cubic-bezier(0.34, 1.56, 0.64, 1)
+    }).optional(),
+
+    // Feature flags
+    enableParallax: z.boolean().optional(),
+    enableMagneticHover: z.boolean().optional(),
+    enableScrollReveal: z.boolean().optional(),
+}).optional();
 
 const BrandingLegalSchema = z.object({
     companyName: z.string().min(1),
@@ -138,6 +187,11 @@ const BrandingSemanticColorSchema = z.object({
         sunken: HexColorSchema,
         overlay: HexColorSchema,
         warning: HexColorSchema,
+        // New for glassmorphism
+        glass: HexColorSchema.optional(),
+        glassBorder: HexColorSchema.optional(),
+        aurora: HexColorSchema.optional(),
+        spotlight: HexColorSchema.optional(),
     }),
     text: z.object({
         primary: HexColorSchema,
@@ -145,6 +199,10 @@ const BrandingSemanticColorSchema = z.object({
         muted: HexColorSchema,
         inverted: HexColorSchema,
         accent: HexColorSchema,
+        // New for advanced typography
+        hero: HexColorSchema.optional(),
+        eyebrow: HexColorSchema.optional(),
+        code: HexColorSchema.optional(),
     }),
     interactive: z.object({
         primary: HexColorSchema,
@@ -160,6 +218,10 @@ const BrandingSemanticColorSchema = z.object({
         destructiveHover: HexColorSchema,
         destructiveActive: HexColorSchema,
         destructiveForeground: HexColorSchema,
+        // New for advanced interactions
+        ghost: HexColorSchema.optional(),
+        magnetic: HexColorSchema.optional(),
+        glow: HexColorSchema.optional(),
     }),
     border: z.object({
         subtle: HexColorSchema,
@@ -174,6 +236,13 @@ const BrandingSemanticColorSchema = z.object({
         danger: HexColorSchema,
         info: HexColorSchema,
     }),
+    // New gradient system
+    gradient: z.object({
+        primary: z.array(HexColorSchema).length(2).optional(),
+        accent: z.array(HexColorSchema).length(2).optional(),
+        aurora: z.array(HexColorSchema).min(2).max(4).optional(),
+        text: z.array(HexColorSchema).length(2).optional(),
+    }).optional(),
 });
 
 const BrandingSemanticSchema = z.object({
@@ -192,6 +261,8 @@ export const BrandingTokensSchema = z.object({
     assets: BrandingAssetsSchema,
     legal: BrandingLegalSchema,
     semantics: BrandingSemanticSchema,
+    // New: Motion system
+    motion: BrandingMotionSchema,
 });
 
 export const BrandingArtifactMetadataSchema = z.object({
@@ -217,6 +288,8 @@ export type BrandingAssets = z.infer<typeof BrandingAssetsSchema>;
 export type BrandingLegal = z.infer<typeof BrandingLegalSchema>;
 export type BrandingSemanticColors = z.infer<typeof BrandingSemanticColorSchema>;
 export type BrandingSemantics = z.infer<typeof BrandingSemanticSchema>;
+export type BrandingMotion = z.infer<typeof BrandingMotionSchema>;
+export type FluidTypographyScale = z.infer<typeof FluidTypographyScaleSchema>;
 export type BrandingTokens = z.infer<typeof BrandingTokensSchema>;
 export type BrandingArtifactMetadata = z.infer<typeof BrandingArtifactMetadataSchema>;
 export type TenantBranding = z.infer<typeof TenantBrandingSchema>;

@@ -65,7 +65,9 @@ const updateBrandingMetadata = (branding: BrandingConfig | null): void => {
 
     const favicon = ensureFavicon();
     if (favicon) {
-        favicon.setAttribute('href', branding?.faviconUrl ?? DEFAULT_FAVICON);
+        // Use faviconUrl if provided, otherwise fall back to logoUrl, then default
+        const faviconHref = branding?.faviconUrl ?? branding?.logoUrl ?? DEFAULT_FAVICON;
+        favicon.setAttribute('href', faviconHref);
     }
 
     applyDocumentTitle(branding?.appName ?? null);

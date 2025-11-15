@@ -527,11 +527,28 @@ const generateRandomExpense = (): TestExpenseTemplate => {
     return { description, amount, label };
 };
 
-async function createDefaultTenant(): Promise<void> {
-    console.log('🏢 Syncing demo tenants from JSON configuration...');
+export async function createDefaultTenant(): Promise<void> {
+    console.log('🏢 Creating default fallback tenant only...');
+
+    const { syncTenantConfigs } = await import('./sync-tenant-configs');
+    await syncTenantConfigs({ defaultOnly: true });
+
+    // After syncing the default tenant, publish its theme CSS
+    console.log('🎨 Publishing theme CSS for default tenant...');
+    const { publishLocalThemes } = await import('./publish-local-themes');
+    await publishLocalThemes({ defaultOnly: true });
+}
+
+export async function createAllDemoTenants(): Promise<void> {
+    console.log('🏢 Syncing all demo tenants from JSON configuration...');
 
     const { syncTenantConfigs } = await import('./sync-tenant-configs');
     await syncTenantConfigs();
+
+    // After syncing basic tenant configs, publish the theme CSS artifacts
+    console.log('🎨 Publishing theme CSS artifacts for all tenants...');
+    const { publishLocalThemes } = await import('./publish-local-themes');
+    await publishLocalThemes();
 }
 
 async function createTestPoolUsers(): Promise<void> {
@@ -1622,11 +1639,11 @@ export async function generateFullTestData(): Promise<void> {
 
     console.log(`🚀 Starting test data generation in ${testConfig.mode} mode`);
 
-    // Create default tenant first (required for API routes to work)
-    console.log('Creating default tenant...');
+    // Create all demo tenants (required for API routes to work)
+    console.log('Creating all demo tenants...');
     const tenantCreationStart = Date.now();
-    await createDefaultTenant();
-    logTiming('Default tenant creation', tenantCreationStart);
+    await createAllDemoTenants();
+    logTiming('All demo tenants creation', tenantCreationStart);
 
     // Initialize test pool users first (before regular test data)
     console.log('Initializing test user pool...');

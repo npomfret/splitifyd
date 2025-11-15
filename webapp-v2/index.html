@@ -5,29 +5,8 @@
         <link rel="icon" type="image/svg+xml" href="/src/assets/logo.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Splitifyd</title>
-        <style id="tenant-theme-inline-base">
-            :root {
-                --surface-base: #ffffff;
-                --surface-muted: #f5f7fb;
-                --text-primary: #0f172a;
-                --text-muted: #475569;
-                --interactive-primary: #2563eb;
-                --interactive-primary-text: #ffffff;
-                --border-default: #e2e8f0;
-            }
-
-            body {
-                background-color: var(--surface-base);
-                color: var(--text-primary);
-                font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                min-height: 100vh;
-                margin: 0;
-            }
-
-            a {
-                color: var(--interactive-primary);
-            }
-        </style>
+        <!-- Theme CSS MUST load before Tailwind to set CSS variables -->
+        <link id="tenant-theme-stylesheet" rel="stylesheet" href="/api/theme.css" />
         <script id="tenant-theme-bootstrap">
             (function () {
                 var storageKey = 'splitifyd:theme-hash';
@@ -43,22 +22,11 @@
                     hash: storedHash,
                 };
 
-                var head = document.head || document.getElementsByTagName('head')[0];
-                var link = document.createElement('link');
-                link.id = 'tenant-theme-stylesheet';
-                link.rel = 'stylesheet';
-                link.href = storedHash ? '/api/theme.css?v=' + encodeURIComponent(storedHash) : '/api/theme.css';
-                link.addEventListener(
-                    'load',
-                    function () {
-                        var fallback = document.getElementById('tenant-theme-inline-base');
-                        if (fallback && fallback.parentNode) {
-                            fallback.parentNode.removeChild(fallback);
-                        }
-                    },
-                    { once: true },
-                );
-                head.appendChild(link);
+                // Update href with cache-busting hash if available
+                var link = document.getElementById('tenant-theme-stylesheet');
+                if (link && storedHash) {
+                    link.href = '/api/theme.css?v=' + encodeURIComponent(storedHash);
+                }
             })();
         </script>
     </head>

@@ -8,7 +8,7 @@ export function WarningBanner() {
     }
 
     return (
-        <div className='fixed top-0 left-0 right-0 z-50 bg-semantic-error py-1'>
+        <div className='fixed bottom-0 left-0 right-0 z-50 bg-semantic-error py-1'>
             <p className='text-center text-xs text-semantic-warning/80'>{config.environment.warningBanner}</p>
         </div>
     );

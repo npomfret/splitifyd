@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
 import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
-import { generateBillSplitterUser } from './test-data-generator';
+import { generateBillSplitterUser, createDefaultTenant } from './test-data-generator';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
@@ -24,6 +24,20 @@ async function runSeedPoliciesStep(): Promise<void> {
     logger.info('');
     logger.info('✅ Policy seeding completed successfully!');
     logger.info('📋 Privacy policy, terms, and cookie policy are now available');
+}
+
+async function runCreateDefaultTenantStep(): Promise<void> {
+    logger.info('');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('🏢 CREATING DEFAULT TENANTS...');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('');
+
+    await createDefaultTenant();
+
+    logger.info('');
+    logger.info('✅ Default tenants created and themes published!');
+    logger.info('🎨 Theme CSS available at /api/theme.css');
 }
 
 async function runEnsureBillSplitterUserStep(): Promise<void> {
@@ -93,11 +107,14 @@ const main = async () => {
 
         logger.info('🚀 You can now use the webapp and all endpoints are available');
 
-        // Step 2: Seed policies
-        await runSeedPoliciesStep();
-
-        // Step 3: Ensure default test user exists
+        // Step 2: Ensure default test user exists (needed for tenant creation)
         await runEnsureBillSplitterUserStep();
+
+        // Step 3: Create default tenants and publish themes (requires admin user)
+        await runCreateDefaultTenantStep();
+
+        // Step 4: Seed policies
+        await runSeedPoliciesStep();
 
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');

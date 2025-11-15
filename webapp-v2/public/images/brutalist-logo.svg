@@ -1,0 +1,38 @@
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .bar {
+        animation: fadeGrow 5s ease-in-out infinite alternate;
+        transform-origin: center bottom;
+        }
+        .bar-2 { animation-delay: 1s; }
+        .bar-3 { animation-delay: 2s; }
+
+        @keyframes fadeGrow {
+        0%   { transform: scaleY(0.7); opacity: 0.5; }
+        100% { transform: scaleY(1.0); opacity: 1; }
+        }
+    </style>
+
+    <!-- Card background -->
+    <rect x="8" y="8" width="64" height="64" rx="14" fill="#F4F4F4" stroke="#D0D0D0"/>
+
+    <!-- Header lines (title + subtitle) -->
+    <rect x="18" y="18" width="24" height="4" rx="2" fill="#D6D6D6"/>
+    <rect x="18" y="26" width="18" height="3" rx="1.5" fill="#E0E0E0"/>
+
+    <!-- "People" circles (abstract participants) -->
+    <circle cx="24" cy="38" r="4" fill="#D2D2D2"/>
+    <circle cx="40" cy="38" r="4" fill="#C8C8C8"/>
+    <circle cx="56" cy="38" r="4" fill="#BEBEBE"/>
+
+    <!-- Divider line -->
+    <line x1="18" y1="44" x2="62" y2="44" stroke="#D5D5D5" stroke-width="1.5"/>
+
+    <!-- Bars representing "who owes what" -->
+    <rect class="bar bar-1" x="20" y="50" width="10" height="12" fill="#C7C7C7"/>
+    <rect class="bar bar-2" x="35" y="48" width="10" height="14" fill="#BFBFBF"/>
+    <rect class="bar bar-3" x="50" y="46" width="10" height="16" fill="#B7B7B7"/>
+
+    <!-- Footer label -->
+    <rect x="24" y="66" width="32" height="3" rx="1.5" fill="#E1E1E1"/>
+</svg>

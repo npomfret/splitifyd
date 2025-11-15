@@ -16,24 +16,24 @@ type TenantSeed = {
 
 const TENANT_SEEDS: TenantSeed[] = [
     {
-        tenantId: 'tenant_localhost',
-        displayName: 'Splitifyd – Localhost',
+        tenantId: 'localhost-tenant',
+        displayName: 'Splitifyd Demo',
         primaryDomain: 'localhost',
-        aliasDomains: ['127.0.0.1'],
+        aliasDomains: [],
         fixture: 'localhost',
     },
     {
-        tenantId: 'tenant_loopback',
-        displayName: 'Splitifyd – Loopback',
-        primaryDomain: '120.0.0.1',
-        aliasDomains: ['loopback.local', 'localhost.localdomain'],
+        tenantId: 'partner-tenant',
+        displayName: 'Partner Expenses',
+        primaryDomain: '127.0.0.1',
+        aliasDomains: [],
         fixture: 'loopback',
     },
     {
-        tenantId: 'tenant_default',
-        displayName: 'Splitifyd – Default',
+        tenantId: 'default-fallback-tenant',
+        displayName: 'Splitifyd',
         primaryDomain: 'default.splitifyd.local',
-        aliasDomains: ['fallback.splitifyd.local', 'preview.splitifyd.local'],
+        aliasDomains: [],
         fixture: 'default',
         defaultTenant: true,
     },
@@ -96,14 +96,19 @@ async function seedTenant(api: ApiDriver, adminToken: string, seed: TenantSeed):
     logger.info(`   ✓ Published hash ${publishResult.artifact.hash}`);
 }
 
-async function main(): Promise<void> {
+export async function publishLocalThemes(options?: { defaultOnly?: boolean }): Promise<void> {
     const apiDriver = new ApiDriver();
 
     logger.info('Authenticating default admin (Bill Splitter)…');
     const admin = await apiDriver.getDefaultAdminUser();
     logger.info(`Authenticated as ${admin.email}`);
 
-    for (const seed of TENANT_SEEDS) {
+    // Filter tenants based on options
+    const tenantsToPublish = options?.defaultOnly
+        ? TENANT_SEEDS.filter(seed => seed.defaultTenant === true)
+        : TENANT_SEEDS;
+
+    for (const seed of tenantsToPublish) {
         try {
             await seedTenant(apiDriver, admin.token, seed);
         } catch (error) {
@@ -112,10 +117,21 @@ async function main(): Promise<void> {
         }
     }
 
-    logger.info('✅ Local themes ready: visit http://localhost:5173 (localhost) or http://120.0.0.1:5173 (loopback) once front-end bootstrap lands.');
+    if (options?.defaultOnly) {
+        logger.info('✅ Default tenant theme ready.');
+    } else {
+        logger.info('✅ Local themes ready: visit http://localhost:5173 (localhost) or http://127.0.0.1:5173 (loopback).');
+    }
 }
 
-main().catch((error) => {
-    logger.error('Theme publishing script failed', { error });
-    process.exit(1);
-});
+async function main(): Promise<void> {
+    await publishLocalThemes();
+}
+
+// Run if executed directly
+if (require.main === module) {
+    main().catch((error) => {
+        logger.error('Theme publishing script failed', { error });
+        process.exit(1);
+    });
+}
