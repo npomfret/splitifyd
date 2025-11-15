@@ -1,16 +1,555 @@
 # Webapp-v2 Architecture & Style Guide
 
 ## Table of Contents
-1. [CRITICAL: Tenant Configuration Rules](#critical-tenant-configuration-rules)
-2. [Stack & Layout](#stack--layout)
+1. [🚨 MANDATORY UX CHANGE RULES 🚨](#-mandatory-ux-change-rules-)
+2. [CRITICAL: Tenant Configuration Rules](#critical-tenant-configuration-rules)
 3. [Tenant Theming System](#tenant-theming-system)
-4. [State & Stores](#state--stores)
-5. [API & Data Flow](#api--data--flow)
-6. [Navigation & Routing](#navigation--routing)
-7. [UI Components & Styling](#ui-components--styling)
-8. [Error & Financial Semantics](#error--financial-semantics)
-9. [Testing & Tooling](#testing--tooling)
-10. [Observability & Resilience](#observability--resilience)
+4. [Stack & Layout](#stack--layout)
+5. [State & Stores](#state--stores)
+6. [API & Data Flow](#api--data--flow)
+7. [Navigation & Routing](#navigation--routing)
+8. [UI Components & Styling](#ui-components--styling)
+9. [Error & Financial Semantics](#error--financial-semantics)
+10. [Testing & Tooling](#testing--tooling)
+11. [Observability & Resilience](#observability--resilience)
+
+---
+
+# 🚨 MANDATORY UX CHANGE RULES 🚨
+
+## THE GOLDEN RULE: NEVER HARDCODE COLORS OR STYLES
+
+**THIS IS A MULTI-TENANT WHITE-LABEL APPLICATION**
+
+Every tenant must have their own unique branding. Any hardcoded color, font, or spacing **BREAKS THE ENTIRE SYSTEM**.
+
+---
+
+## ⛔ ABSOLUTE PROHIBITIONS
+
+### 1. NEVER HARDCODE COLORS IN COMPONENTS
+
+```tsx
+// ❌ FORBIDDEN - Will break for all other tenants
+<div className="bg-gray-600 text-blue-500">
+<div className="bg-white text-black">
+<button className="bg-purple-600 hover:bg-purple-700">
+
+// ❌ FORBIDDEN - Inline styles with hardcoded colors
+<div style={{ backgroundColor: '#ffffff', color: '#000000' }}>
+
+// ✅ CORRECT - Use semantic tokens ONLY
+<div className="bg-surface-raised text-text-primary">
+<button className="bg-interactive-primary text-interactive-primary-foreground">
+```
+
+**Why this matters:** When Tenant A wants a dark purple brand and Tenant B wants a light blue brand, hardcoded `bg-gray-600` will appear on BOTH tenants and look terrible on one or both.
+
+---
+
+### 2. NEVER ADD CSS VARIABLES TO GLOBAL.CSS OR COMPONENT FILES
+
+```css
+/* ❌ FORBIDDEN in global.css or any .css file */
+:root {
+  --surface-base-rgb: 255 255 255;
+  --text-primary-rgb: 0 0 0;
+}
+
+/* ❌ FORBIDDEN - Hardcoded gradients in CSS files */
+.hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* ✅ CORRECT - No color definitions in CSS files */
+/* Colors come ONLY from /api/theme.css which is generated per-tenant */
+```
+
+**Why this matters:** CSS variables in global.css will override the tenant's theme CSS, making every tenant look identical.
+
+---
+
+### 3. NEVER USE HARDCODED OPACITY VALUES ON BACKGROUNDS
+
+```tsx
+// ❌ FORBIDDEN - Creates see-through unreadable menus
+<div className="bg-surface-raised/50">  // 50% transparent - text will be unreadable
+
+// ❌ FORBIDDEN - Semi-transparent overlays that break on light backgrounds
+<div className="bg-black/30">
+
+// ✅ CORRECT - Use solid semantic tokens for dropdowns/menus
+<div className="bg-surface-raised">     // Fully opaque and readable
+
+// ✅ CORRECT - Use semantic tokens designed for transparency
+<div className="bg-surface-glass">      // Controlled glassmorphism from theme
+```
+
+**Why this matters:** Dropdown menus, modals, and overlays MUST be readable. Semi-transparent backgrounds make text illegible when content scrolls behind them.
+
+---
+
+### 4. NEVER FORGET TO REPUBLISH THEMES AFTER CHANGES
+
+```bash
+# ❌ FORBIDDEN - Making changes without republishing
+# You edit branding-tokens.ts
+# You refresh the browser
+# Nothing changed! You wasted 10 minutes debugging.
+
+# ✅ CORRECT - Always republish after theme changes
+cd firebase
+npm run theme:publish-local
+# Now refresh browser with Cmd+Shift+R (hard refresh)
+```
+
+**Why this matters:** Theme changes don't auto-apply. The CSS is cached in Cloud Storage. You MUST regenerate and republish.
+
+---
+
+## ✅ MANDATORY REQUIREMENTS
+
+### 1. EVERY UI CHANGE MUST USE SEMANTIC TOKENS
+
+**Available Semantic Tokens:**
+
+| Category | Token | Usage |
+|----------|-------|-------|
+| **Surfaces** | `bg-surface-base` | Page background |
+| | `bg-surface-raised` | Cards, dropdowns, menus (OPAQUE) |
+| | `bg-surface-overlay` | Modals, toasts (OPAQUE) |
+| | `bg-surface-glass` | Glassmorphism effects (controlled transparency) |
+| **Text** | `text-text-primary` | Headings, primary content |
+| | `text-text-secondary` | Subheadings, labels |
+| | `text-text-muted` | Captions, metadata |
+| **Interactive** | `bg-interactive-primary` | Primary buttons |
+| | `text-interactive-primary` | Links, accents |
+| | `bg-interactive-primary/10` | Hover backgrounds |
+| **Borders** | `border-border-default` | Standard borders |
+| | `border-border-subtle` | Light dividers |
+| **Status** | `text-semantic-error` | Error messages |
+| | `text-semantic-success` | Success states |
+| | `text-semantic-warning` | Warning states |
+
+---
+
+### 2. WHEN YOU NEED A NEW COLOR/STYLE
+
+If a semantic token doesn't exist, **DO NOT HARDCODE IT**. Instead:
+
+**Step 1:** Add to schema (`packages/shared/src/types/branding.ts`)
+```typescript
+const BrandingSemanticColorSchema = z.object({
+  surface: z.object({
+    base: CssColorSchema,
+    raised: CssColorSchema,
+    // ✅ Add new token here
+    dropdown: CssColorSchema,  // NEW: Solid opaque for dropdowns
+  }),
+});
+```
+
+**Step 2:** Add to ALL theme fixtures (`packages/shared/src/fixtures/branding-tokens.ts`)
+```typescript
+// Aurora theme
+const auroraSemantics: BrandingTokens['semantics'] = {
+  colors: {
+    surface: {
+      base: '#1a1d2e',
+      raised: '#252944',
+      dropdown: '#2a2f4a',  // NEW: Aurora value
+    },
+  },
+};
+
+// Brutalist theme
+const brutalistSemantics: BrandingTokens['semantics'] = {
+  colors: {
+    surface: {
+      base: '#fafafa',
+      raised: '#ffffff',
+      dropdown: '#f4f4f5',  // NEW: Brutalist value
+    },
+  },
+};
+```
+
+**Step 3:** Update CSS generator (`firebase/functions/src/services/theme/ThemeArtifactService.ts`)
+```typescript
+private generateSemanticCss(semantics: BrandingSemantics): string {
+  const rgbVars: string[] = [];
+
+  // Add new token to CSS generation
+  rgbVars.push(
+    `--surface-dropdown-rgb: ${this.hexToRgb(semantics.colors.surface.dropdown)};`
+  );
+
+  return rgbVars.sort().join('\n  ');
+}
+```
+
+**Step 4:** Update Tailwind config (`webapp-v2/tailwind.config.js`)
+```javascript
+{
+  colors: {
+    'surface-dropdown': 'rgb(var(--surface-dropdown-rgb) / <alpha-value>)',
+  }
+}
+```
+
+**Step 5:** Republish themes
+```bash
+cd firebase
+npm run theme:publish-local
+```
+
+**Step 6:** Use it
+```tsx
+<div className="bg-surface-dropdown">
+  Now configurable per tenant!
+</div>
+```
+
+---
+
+### 3. OPACITY RULES FOR READABILITY
+
+**OPAQUE (No transparency) - For text readability:**
+- Dropdowns / menus: `bg-surface-raised` (100% opaque)
+- Modals / overlays: `bg-surface-overlay` (100% opaque)
+- Cards with text: `bg-surface-raised` or `bg-surface-base`
+
+**TRANSPARENT (Controlled) - For visual effects only:**
+- Glassmorphism: `bg-surface-glass` (theme-defined transparency)
+- Hover states: `bg-interactive-primary/10` (10% opacity)
+- Disabled states: `opacity-50`
+
+**Anti-Pattern:**
+```tsx
+// ❌ NEVER do this - text will be unreadable
+<div className="bg-surface-raised/60 backdrop-blur-xl">
+  <p>This text is unreadable when content scrolls behind it</p>
+</div>
+
+// ✅ CORRECT - fully opaque background
+<div className="bg-surface-raised">
+  <p>This text is always readable</p>
+</div>
+```
+
+---
+
+### 4. WORKFLOW FOR UI CHANGES
+
+**Before making ANY UI change, ask yourself:**
+
+1. ✅ Am I using semantic tokens? (`bg-surface-*`, `text-text-*`, etc.)
+2. ✅ Is this change configurable per tenant?
+3. ✅ Will this work for BOTH dark themes (Aurora) AND light themes (Brutalist)?
+4. ✅ Did I avoid hardcoding any colors, fonts, or spacing?
+5. ✅ If this uses transparency, is the text still readable?
+
+**After making UI changes:**
+
+1. ✅ Test on both `localhost` (Aurora theme) and `127.0.0.1` (Brutalist theme)
+2. ✅ Run: `cd firebase && npm run theme:publish-local`
+3. ✅ Hard refresh browser: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
+4. ✅ Check for hardcoded colors: `grep -r "bg-gray\|bg-blue\|text-gray" webapp-v2/src/components`
+5. ✅ Check for inline styles: `grep -r "style={{" webapp-v2/src/components`
+
+---
+
+## 🔍 DEBUGGING CHECKLIST
+
+### "My theme changes aren't showing up"
+
+- [ ] Did you edit `packages/shared/src/fixtures/branding-tokens.ts`?
+- [ ] Did you run `cd firebase && npm run theme:publish-local`?
+- [ ] Did you hard refresh the browser (Cmd+Shift+R)?
+- [ ] Check browser console: Is `/api/theme.css` loading?
+- [ ] Run: `curl http://localhost:6005/api/theme.css | head -20` - Do you see your changes?
+
+### "Text is unreadable / too dark / too light"
+
+- [ ] Is the background using a semantic token? (not hardcoded)
+- [ ] Is the background OPAQUE (100% opacity) for text content?
+- [ ] Are you using `text-text-primary` (not `text-text-secondary` or darker)?
+- [ ] Check the theme fixture - is the color actually light/dark enough?
+- [ ] Example: Aurora `text-primary: '#ffffff'` (pure white) for dark backgrounds
+
+### "The menu/dropdown looks transparent and unreadable"
+
+- [ ] Are you using `bg-surface-raised` (opaque) instead of `bg-surface-glass` (transparent)?
+- [ ] Did you accidentally add `/50` or opacity to the background?
+- [ ] Remove any `backdrop-blur` that conflicts with solid backgrounds
+- [ ] Check Aurora theme: `surface.raised` should be `#252944` (solid color, no rgba)
+
+### "Everything looks the same on all tenants"
+
+- [ ] Did you hardcode colors in components? (`bg-gray-600`, etc.)
+- [ ] Did you add `:root` variables to `global.css`? (forbidden!)
+- [ ] Are you using Tailwind's default colors? (forbidden!)
+- [ ] Check: `grep -r "bg-gray\|bg-white\|bg-black" webapp-v2/src/components`
+
+---
+
+## 📝 EXAMPLES
+
+### Example 1: Creating a User Menu Dropdown
+
+```tsx
+// ❌ WRONG - Hardcoded, breaks theming, unreadable
+export function UserMenu() {
+  return (
+    <div className="relative">
+      <button className="bg-gray-800 text-white px-4 py-2">
+        Menu
+      </button>
+      <div className="absolute bg-white/80 backdrop-blur-xl shadow-lg">
+        <a className="text-gray-900 hover:bg-blue-500">Dashboard</a>
+        <a className="text-gray-900 hover:bg-blue-500">Settings</a>
+      </div>
+    </div>
+  );
+}
+
+// ✅ CORRECT - Uses semantic tokens, readable, tenant-branded
+export function UserMenu() {
+  return (
+    <div className="relative z-50">
+      <button className="bg-interactive-primary text-interactive-primary-foreground px-4 py-2 rounded-lg border border-border-default">
+        Menu
+      </button>
+      <div className="absolute bg-surface-raised border border-border-default rounded-xl shadow-2xl">
+        <a className="text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary">
+          Dashboard
+        </a>
+        <a className="text-text-primary hover:bg-interactive-primary/10 hover:text-interactive-primary">
+          Settings
+        </a>
+      </div>
+    </div>
+  );
+}
+```
+
+### Example 2: Creating a Glassmorphic Card
+
+```tsx
+// ❌ WRONG - Hardcoded transparency, will break
+export function Card({ children }) {
+  return (
+    <div className="bg-gray-900/60 backdrop-blur-xl border border-gray-700">
+      {children}
+    </div>
+  );
+}
+
+// ✅ CORRECT - Uses glass token from theme
+export function Card({ children, variant = 'base' }) {
+  return (
+    <Surface variant={variant === 'glass' ? 'glass' : 'base'}>
+      {children}
+    </Surface>
+  );
+}
+
+// Usage:
+<Card variant="glass">Glassmorphic effect</Card>
+<Card variant="base">Solid background</Card>
+```
+
+### Example 3: Improving Theme Readability
+
+```typescript
+// In packages/shared/src/fixtures/branding-tokens.ts
+
+// ❌ WRONG - Aurora theme is too dark to read
+const auroraSemantics: BrandingTokens['semantics'] = {
+  colors: {
+    surface: {
+      raised: 'rgba(30, 35, 55, 0.85)',  // 85% transparent - UNREADABLE!
+    },
+    text: {
+      primary: '#cbd5e1',  // Too gray - hard to read
+      secondary: '#64748b',  // Too dark - invisible
+    },
+  },
+};
+
+// ✅ CORRECT - Aurora theme with proper contrast
+const auroraSemantics: BrandingTokens['semantics'] = {
+  colors: {
+    surface: {
+      raised: '#252944',  // 100% OPAQUE - fully readable
+    },
+    text: {
+      primary: '#ffffff',  // Pure white - excellent contrast
+      secondary: '#e2e8f0',  // Light gray - still readable
+    },
+  },
+};
+
+// Then republish:
+// cd firebase && npm run theme:publish-local
+```
+
+---
+
+## 🎯 QUICK REFERENCE
+
+### When to Use Each Surface Token
+
+| Situation | Token | Opacity | Reasoning |
+|-----------|-------|---------|-----------|
+| Page background | `bg-surface-base` | 100% | Main background color |
+| Card / Panel | `bg-surface-raised` | 100% | Contains text - must be opaque |
+| Dropdown menu | `bg-surface-raised` | 100% | Contains text - must be opaque |
+| Modal dialog | `bg-surface-overlay` | 100% | Contains text - must be opaque |
+| Glassmorphic effect | `bg-surface-glass` | Theme-defined | Visual effect only, minimal text |
+| Hover highlight | `bg-interactive-primary/10` | 10% | Subtle feedback |
+
+### When to Use Each Text Token
+
+| Situation | Token | Example |
+|-----------|-------|---------|
+| Page title | `text-text-primary` | "Dashboard" |
+| Section heading | `text-text-primary` | "Your Groups" |
+| Body text | `text-text-primary` | "You have 5 groups" |
+| Label / Caption | `text-text-secondary` | "Updated 2 hours ago" |
+| Metadata / Muted | `text-text-muted` | "test@example.com" |
+| Link / Accent | `text-interactive-primary` | "Learn more" |
+| Error message | `text-semantic-error` | "Invalid email" |
+
+---
+
+## 🔒 ADMIN PAGES: EXCEPTION TO BRANDING RULES
+
+### Admin Pages DO NOT Follow Tenant Branding
+
+**Admin pages** (tenant management, system configuration, analytics) have their own **fixed, consistent style** that is **completely separate** from tenant branding.
+
+**Why this matters:**
+- Admins need a consistent experience across all tenants
+- Clear visual distinction between "admin mode" and "user mode"
+- Admin UI never changes when switching between tenants
+- Professional, neutral appearance for system management
+
+---
+
+### Admin Page Styling Rules
+
+**Admin pages CAN use hardcoded colors** (exception to the golden rule):
+
+```tsx
+// ✅ ALLOWED in admin pages only
+// File: webapp-v2/src/pages/admin/TenantsPage.tsx
+export function TenantsPage() {
+  return (
+    <div className="bg-slate-50 min-h-screen">
+      <header className="bg-white border-b border-slate-200">
+        <h1 className="text-slate-900 font-semibold">Tenant Management</h1>
+      </header>
+      <main className="max-w-7xl mx-auto p-6">
+        <Card className="bg-white border-slate-200">
+          <button className="bg-blue-600 hover:bg-blue-700 text-white">
+            Create Tenant
+          </button>
+        </Card>
+      </main>
+    </div>
+  );
+}
+
+// ❌ FORBIDDEN in user-facing pages
+// File: webapp-v2/src/pages/DashboardPage.tsx
+export function DashboardPage() {
+  return (
+    <div className="bg-slate-50">  {/* WRONG - breaks tenant branding */}
+      <h1 className="text-slate-900">Dashboard</h1>
+    </div>
+  );
+}
+```
+
+---
+
+### Admin Theme Specification
+
+**Fixed color palette for admin pages:**
+
+```typescript
+// Admin pages use a neutral, professional palette
+{
+  background: {
+    page: '#f8fafc',        // Slate 50
+    card: '#ffffff',        // White
+    hover: '#f1f5f9',       // Slate 100
+  },
+  text: {
+    primary: '#0f172a',     // Slate 900
+    secondary: '#475569',   // Slate 600
+    muted: '#94a3b8',       // Slate 400
+  },
+  border: {
+    default: '#e2e8f0',     // Slate 200
+    strong: '#cbd5e1',      // Slate 300
+  },
+  interactive: {
+    primary: '#2563eb',     // Blue 600
+    primaryHover: '#1d4ed8', // Blue 700
+    danger: '#dc2626',      // Red 600
+    success: '#16a34a',     // Green 600
+  }
+}
+```
+
+---
+
+### Identifying Admin vs User Pages
+
+**Admin pages** are located in:
+- `webapp-v2/src/pages/admin/` - All admin pages
+- `webapp-v2/src/components/admin/` - Admin-only components
+
+**User-facing pages** (MUST use tenant branding):
+- `webapp-v2/src/pages/` (root level) - DashboardPage, GroupDetailPage, etc.
+- `webapp-v2/src/components/` (non-admin) - All user-facing components
+
+**How to tell if you're in an admin page:**
+
+```tsx
+// ✅ Admin page - can use hardcoded colors
+// File path contains /admin/
+webapp-v2/src/pages/admin/TenantsPage.tsx
+webapp-v2/src/components/admin/TenantTable.tsx
+
+// ❌ User page - MUST use semantic tokens
+// File path does NOT contain /admin/
+webapp-v2/src/pages/DashboardPage.tsx
+webapp-v2/src/components/dashboard/GroupCard.tsx
+```
+
+---
+
+### Admin Page Checklist
+
+When creating an admin page:
+
+- [ ] File is in `src/pages/admin/` or `src/components/admin/`
+- [ ] Uses fixed Tailwind colors (slate, blue, red, green)
+- [ ] Does NOT use semantic tokens (`bg-surface-*`, `text-text-*`)
+- [ ] Does NOT load `/api/theme.css` styling
+- [ ] Has clear "Admin" header or indicator
+- [ ] Uses consistent admin color palette across all admin pages
+
+When creating a user page:
+
+- [ ] File is NOT in `/admin/` directory
+- [ ] Uses ONLY semantic tokens
+- [ ] Works for both Aurora (dark) and Brutalist (light) themes
+- [ ] NO hardcoded colors
+- [ ] Loads tenant branding from `/api/theme.css`
 
 ---
 
@@ -114,61 +653,6 @@ curl http://127.0.0.1:6005/api/theme.css | head -50
 
 You MUST run: `cd firebase && npm run theme:publish-local`
 
-### Common Mistakes
-
-**Mistake: Adding tenants to multiple places**
-```typescript
-// ❌ WRONG - hardcoded tenant list in publish-local-themes.ts
-const TENANT_SEEDS: TenantSeed[] = [
-  { tenantId: 'localhost-tenant', ... },
-  { tenantId: 'partner-tenant', ... },
-  { tenantId: 'NEW_TENANT', ... },  // DON'T DO THIS!
-];
-```
-
-```json
-// ✅ CORRECT - add to tenant-configs.json ONLY
-[
-  { "id": "localhost-tenant", ... },
-  { "id": "partner-tenant", ... },
-  { "id": "NEW_TENANT", ... }
-]
-```
-
-**Mistake: Forgetting to set a default tenant**
-```json
-// ❌ WRONG - no default tenant
-[
-  { "id": "tenant1", "isDefault": false },
-  { "id": "tenant2", "isDefault": false }
-]
-
-// ✅ CORRECT - exactly one default
-[
-  { "id": "tenant1", "isDefault": true },
-  { "id": "tenant2", "isDefault": false }
-]
-```
-
-**Mistake: Not restarting after changes**
-- Editing `tenant-configs.json` does NOT automatically update Firestore
-- You MUST restart the emulator or run `publish-local-themes.ts` manually
-
----
-
-## Stack & Layout
-- **Framework**: Preact + TypeScript on Vite
-- **Routing**: `preact-router` with lazy-loaded pages
-- **Shared code**: Domain types and Zod schemas from `@splitifyd/shared`
-- **Firebase**: Wrapped by `firebaseConfigManager` + `FirebaseService` (handles emulator wiring)
-- **Source structure**: Feature-first organization:
-  - `components/<feature>/` - Feature-specific UI components
-  - `pages/` - Route-level page components
-  - `app/stores/` - Singleton state stores
-  - `app/hooks/` - Reusable hooks
-  - `utils/` - Utility functions
-  - `__tests__/` - Co-located tests
-
 ---
 
 ## Tenant Theming System
@@ -212,46 +696,30 @@ The system ships with **two distinct demo tenants** for local development:
 **"Cinematic Glassmorphism"** - A dark, modern UI with neon gradients and animations
 
 **Visual characteristics:**
-- Dark atmospheric background (`#090b19`)
+- Dark atmospheric background (`#1a1d2e`)
 - Glassmorphic surfaces with `backdrop-filter: blur(24px)`
-- Neon accent colors (cyan `#22d3ee`, indigo `#4f46e5`, pink `#ec4899`)
+- Neon accent colors (teal `#34d399`, cyan `#22d3ee`)
 - Animated aurora backgrounds (gradients moving over 24s)
 - Fluid typography with responsive `clamp()` scales
 - Smooth animations (320ms cubic-bezier easing)
-- Magnetic hover effects, scroll reveals, parallax
+- Magnetic hover effects, scroll reveals
 
 **Primary colors:**
 ```typescript
 {
-  primary: '#4f46e5',           // Indigo
-  accent: '#22d3ee',            // Cyan (neon)
-  secondary: '#ec4899',         // Pink
+  primary: '#34d399',           // Teal
+  accent: '#22d3ee',            // Cyan
   surface: {
-    base: '#090b19',            // Near black
-    glass: '#090b19',           // With opacity in CSS
-    glassBorder: '#ffffff',     // With opacity in CSS
+    base: '#1a1d2e',            // Dark blue-gray
+    raised: '#252944',          // SOLID opaque - fully readable
+    overlay: '#1e2336',         // SOLID opaque - fully readable
+    glass: 'rgba(25, 30, 50, 0.45)',  // Controlled transparency
   },
   text: {
-    primary: '#f8fafc',         // Near white
-    muted: '#94a3b8',           // Slate
-    hero: '#ffffff',            // Pure white for titles
+    primary: '#ffffff',         // Pure white - excellent contrast
+    secondary: '#e2e8f0',       // Light gray - still readable
+    muted: 'rgba(255, 255, 255, 0.65)',
   }
-}
-```
-
-**Typography:**
-- Sans: Space Grotesk, Inter
-- Serif: Fraunces, Georgia
-- Mono: Geist Mono, JetBrains Mono
-
-**Motion:**
-```typescript
-{
-  duration: { fast: 150, base: 320, slow: 500 },
-  easing: { standard: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-  enableParallax: true,
-  enableMagneticHover: true,
-  enableScrollReveal: true
 }
 ```
 
@@ -264,723 +732,39 @@ The system ships with **two distinct demo tenants** for local development:
 - Grayscale palette (grays 50-900)
 - Sharp corners (4px border radius everywhere)
 - Zero animations (all durations set to 0ms)
-- No parallax, no hover effects, no scroll reveals
+- No parallax, no hover effects
 - Inter font only
 
 **Primary colors:**
 ```typescript
 {
-  primary: '#a1a1aa',           // Gray 400 (everything!)
-  accent: '#a1a1aa',
-  secondary: '#d4d4d8',
+  primary: '#a1a1aa',           // Gray 400
   surface: {
     base: '#fafafa',            // Gray 50
-    raised: '#ffffff',
-    sunken: '#f4f4f5',
+    raised: '#ffffff',          // White
+    overlay: '#f4f4f5',         // Gray 100
   },
   text: {
     primary: '#18181b',         // Gray 900
-    muted: '#71717a',           // Gray 500
+    secondary: '#71717a',       // Gray 500
   }
 }
 ```
 
-**Typography:**
-- Sans: Inter
-- Mono: Monaco, Courier New
-- No fluid scales, no special letter spacing
-
-**Motion:**
-```typescript
-{
-  duration: { fast: 0, base: 0, slow: 0 },  // ALL zero!
-  easing: { standard: 'linear' },
-  enableParallax: false,
-  enableMagneticHover: false,
-  enableScrollReveal: false
-}
-```
-
-### Semantic Token System
-
-The theming system uses **semantic tokens** that map to tenant-specific values. These are the ONLY colors/styles you should use in components.
-
-#### Surface Colors
-```css
---surface-base-rgb: <tenant value>        /* Main background */
---surface-raised-rgb: <tenant value>      /* Elevated cards */
---surface-sunken-rgb: <tenant value>      /* Recessed areas */
---surface-overlay-rgb: <tenant value>     /* Modals, toasts */
---surface-warning-rgb: <tenant value>     /* Warning backgrounds */
---surface-error-rgb: <tenant value>       /* Error backgrounds */
-```
-
-**Usage:**
-```tsx
-<div className="bg-surface-base">           {/* Main page background */}
-<Card className="bg-surface-raised">       {/* Elevated card */}
-<Modal className="bg-surface-overlay">     {/* Modal backdrop */}
-```
-
-#### Text Colors
-```css
---text-primary-rgb: <tenant value>        /* Primary text */
---text-muted-rgb: <tenant value>          /* Secondary text */
---text-inverted-rgb: <tenant value>       /* Text on dark backgrounds */
-```
-
-**Usage:**
-```tsx
-<h1 className="text-text-primary">Main Heading</h1>
-<p className="text-text-muted">Subtitle or description</p>
-<Button className="text-text-inverted">Dark button text</Button>
-```
-
-#### Interactive Colors
-```css
---interactive-primary-rgb: <tenant value>             /* Primary actions */
---interactive-primary-foreground-rgb: <tenant value>  /* Text on primary */
---interactive-secondary-rgb: <tenant value>           /* Secondary actions */
---interactive-secondary-foreground-rgb: <tenant value>
---interactive-accent-rgb: <tenant value>              /* Accents, highlights */
-```
-
-**Usage:**
-```tsx
-<Button className="bg-interactive-primary text-interactive-primary-foreground">
-  Primary Action
-</Button>
-<Button className="bg-interactive-secondary text-interactive-secondary-foreground">
-  Secondary Action
-</Button>
-<span className="text-interactive-accent">Highlighted term</span>
-```
-
-#### Border Colors
-```css
---border-subtle-rgb: <tenant value>       /* Very light borders */
---border-default-rgb: <tenant value>      /* Standard borders */
---border-strong-rgb: <tenant value>       /* Emphasized borders */
---border-warning-rgb: <tenant value>      /* Warning borders */
---border-error-rgb: <tenant value>        /* Error borders */
-```
-
-**Usage:**
-```tsx
-<Card className="border border-border-default">
-<Input className="border-border-subtle focus:border-border-strong">
-<Alert className="border-border-warning">
-```
-
-#### Status Colors
-```css
---semantic-success-rgb: <tenant value>    /* Success states */
---semantic-warning-rgb: <tenant value>    /* Warning states */
---semantic-error-rgb: <tenant value>      /* Error states */
-```
-
-**Usage:**
-```tsx
-<Badge className="bg-semantic-success text-white">Success</Badge>
-<Alert className="bg-surface-warning border-border-warning">Warning</Alert>
-<span className="text-semantic-error">Error message</span>
-```
-
-### How CSS Variables Work
-
-The `/api/theme.css` endpoint generates CSS like this:
-
-```css
-:root {
-  /* RGB values for Tailwind's opacity modifiers */
-  --surface-base-rgb: 9 11 25;              /* Aurora: #090b19 */
-  --text-primary-rgb: 248 250 252;          /* Aurora: #f8fafc */
-  --interactive-primary-rgb: 79 70 229;     /* Aurora: #4f46e5 */
-
-  /* Spacing scales */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 0.75rem;
-  --spacing-lg: 1rem;
-  --spacing-xl: 1.5rem;
-
-  /* Border radii */
-  --radius-sm: 8px;      /* Aurora: rounded */
-  --radius-md: 12px;
-  --radius-lg: 18px;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.12), ...;
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.18), ...;
-
-  /* Typography */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-
-  /* Motion (Aurora only) */
-  --motion-duration-base: 320ms;
-  --motion-easing-standard: cubic-bezier(0.22, 1, 0.36, 1);
-}
-```
-
-**Brutalist theme would generate:**
-```css
-:root {
-  --surface-base-rgb: 250 250 250;          /* #fafafa */
-  --text-primary-rgb: 24 24 27;             /* #18181b */
-  --interactive-primary-rgb: 161 161 170;   /* #a1a1aa */
-
-  --radius-sm: 4px;      /* Brutalist: sharp corners everywhere */
-  --radius-md: 4px;
-  --radius-lg: 4px;
-
-  --motion-duration-base: 0ms;              /* Zero animations! */
-  --motion-easing-standard: linear;
-}
-```
-
-### Tailwind Integration
-
-`webapp-v2/tailwind.config.js` maps semantic tokens to Tailwind utilities:
-
-```javascript
-{
-  colors: {
-    'surface-base': 'rgb(var(--surface-base-rgb) / <alpha-value>)',
-    'surface-raised': 'rgb(var(--surface-raised-rgb) / <alpha-value>)',
-    'text-primary': 'rgb(var(--text-primary-rgb) / <alpha-value>)',
-    'text-muted': 'rgb(var(--text-muted-rgb) / <alpha-value>)',
-    'interactive-primary': 'rgb(var(--interactive-primary-rgb) / <alpha-value>)',
-    // ... etc
-  },
-  spacing: {
-    xs: 'var(--spacing-xs)',
-    sm: 'var(--spacing-sm)',
-    md: 'var(--spacing-md)',
-    lg: 'var(--spacing-lg)',
-    xl: 'var(--spacing-xl)',
-  },
-  borderRadius: {
-    sm: 'var(--radius-sm)',
-    md: 'var(--radius-md)',
-    lg: 'var(--radius-lg)',
-  }
-}
-```
-
-This allows Tailwind's opacity modifiers to work:
-```tsx
-<div className="bg-surface-base/80">       {/* 80% opacity */}
-<div className="text-text-muted/50">       {/* 50% opacity */}
-```
-
-### Critical CSS Cascade Rules
-
-⚠️ **CRITICAL**: Theme CSS MUST load BEFORE Tailwind CSS
-
-**Correct order** (`webapp-v2/index.html`):
-```html
-<head>
-  <!-- 1. Theme CSS loads first (sets CSS variables) -->
-  <link rel="stylesheet" href="/api/theme.css">
-
-  <!-- 2. Tailwind CSS loads second (consumes variables) -->
-  <script type="module" src="/src/main.tsx"></script>  <!-- includes Tailwind -->
-</head>
-```
-
-**Why this matters:**
-- If Tailwind loads first, its compiled CSS might contain hardcoded fallback values
-- If global.css contains `:root { --surface-base-rgb: ... }`, those hardcoded values will override the tenant theme
-- Theme CSS variables must be defined BEFORE any CSS that references them
-
-**What NOT to do:**
-```css
-/* ❌ NEVER put hardcoded CSS variables in global.css */
-:root {
-  --surface-base-rgb: 255 255 255;   /* This overrides tenant themes! */
-  --text-primary-rgb: 15 23 42;
-}
-```
-
-**What to do instead:**
-```css
-/* ✅ global.css should only have base styles, no color variables */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  html, body {
-    @apply antialiased;
-    min-height: 100vh;
-  }
-}
-```
-
-### Styling Rules & Anti-Patterns
-
-⚠️ **CRITICAL RULES** ⚠️
-
-**Each tenant has its own theme. Components must ONLY use semantic tokens.**
-
-#### 🚫 NEVER:
-
-1. **Hardcode Tailwind colors in components**
-   ```tsx
-   ❌ className="bg-gray-600 text-blue-500 border-red-200"
-   ❌ className="bg-white text-black"
-   ✅ className="bg-surface-raised text-text-primary border-border-default"
-   ```
-
-2. **Use inline styles with hardcoded values**
-   ```tsx
-   ❌ style={{ backgroundColor: '#ffffff', color: '#000000' }}
-   ✅ className="bg-surface-base text-text-primary"
-   ```
-   Exception: Dynamic values (width percentages, z-index, pointer-events)
-
-3. **Add CSS variables to global.css or component CSS files**
-   ```css
-   ❌ :root { --surface-base-rgb: 255 255 255; }
-   ❌ background: radial-gradient(circle, rgba(106, 13, 173, 0.2), transparent);
-   ✅ /* No color definitions in CSS files - use semantic tokens only */
-   ```
-
-4. **Cover the aurora background**
-   ```tsx
-   ❌ <main className="bg-surface-base">  /* Blocks animated background */
-   ✅ <main className="">                 /* Transparent, aurora shows through */
-   ```
-
-5. **Use hardcoded animations/transitions**
-   ```css
-   ❌ transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-   ✅ transition: transform calc(var(--motion-duration-base, 320) * 1ms) var(--motion-easing-standard);
-   ```
-
-6. **Forget reduced motion**
-   ```css
-   ❌ /* No accessibility consideration */
-   ✅ @media (prefers-reduced-motion: reduce) {
-       .animated { transition: none; transform: none; }
-     }
-   ```
-
-#### ✅ DO: Use semantic tokens
-
-```tsx
-// Surfaces
-<div className="bg-surface-base">           // Page background
-<div className="bg-surface-raised">         // Cards, elevated panels
-<div className="bg-surface-overlay">        // Modals, overlays
-
-// Text
-<h1 className="text-text-primary">          // Headings, primary content
-<p className="text-text-muted">             // Secondary text, captions
-<span className="text-text-accent">         // Highlights, links
-
-// Interactive
-<button className="bg-interactive-primary text-interactive-primary-foreground">
-<button className="bg-interactive-secondary text-interactive-secondary-foreground">
-
-// Borders
-<div className="border border-border-default">
-<input className="border-border-subtle focus:border-border-strong">
-
-// Status
-<div className="bg-surface-warning border-border-warning">
-<span className="text-semantic-error">
-```
-
-#### ✅ DO: Use motion tokens in CSS
-
-```css
-.feature-item {
-    transition: transform
-        calc(var(--motion-duration-base, 320) * 1ms)
-        var(--motion-easing-standard, cubic-bezier(0.22, 1, 0.36, 1));
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .feature-item { transition: none; }
-}
-```
-
-#### ✅ DO: Check your work
-
-```bash
-# Find hardcoded colors (should return 0 results)
-grep -r "bg-gray\|bg-blue\|bg-red\|text-gray\|text-blue\|border-gray" src/components
-
-# Find inline styles (check each one is justified)
-grep -r "style=" src/components
-
-# Find hardcoded CSS colors (should only be in theme fixtures)
-grep -r "#[0-9a-fA-F]\{6\}" src/styles/
-```
-
-### Adding New Semantic Tokens
-
-When you need a new color/style that doesn't exist:
-
-1. **Update the schema** (`packages/shared/src/types/branding.ts`):
-```typescript
-const BrandingSemanticColorSchema = z.object({
-  surface: z.object({
-    base: HexColorSchema,
-    raised: HexColorSchema,
-    // NEW: Add your token here
-    highlighted: HexColorSchema,
-  }),
-  // ...
-});
-```
-
-2. **Update fixtures** (`packages/shared/src/fixtures/branding-tokens.ts`):
-```typescript
-const auroraSemantics: BrandingTokens['semantics'] = {
-  colors: {
-    surface: {
-      base: '#090b19',
-      raised: '#0f1219',
-      highlighted: '#1a1f3a',  // ← Aurora value
-    },
-  },
-};
-
-const brutalistSemantics: BrandingTokens['semantics'] = {
-  colors: {
-    surface: {
-      base: '#fafafa',
-      raised: '#ffffff',
-      highlighted: '#f4f4f5',  // ← Brutalist value
-    },
-  },
-};
-```
-
-3. **Update CSS generator** (`firebase/functions/src/services/theme/ThemeArtifactService.ts`):
-```typescript
-private generateSemanticCss(semantics: BrandingSemantics): string {
-  const rgbVars: string[] = [];
-
-  // Add new token
-  rgbVars.push(
-    `--surface-highlighted-rgb: ${this.hexToRgb(semantics.colors.surface.highlighted)};`
-  );
-
-  return rgbVars.sort().join('\n  ');
-}
-```
-
-4. **Update Tailwind config** (`webapp-v2/tailwind.config.js`):
-```javascript
-{
-  colors: {
-    'surface-highlighted': 'rgb(var(--surface-highlighted-rgb) / <alpha-value>)',
-  }
-}
-```
-
-5. **Use it in components**:
-```tsx
-<Card className="bg-surface-highlighted">
-  Featured content
-</Card>
-```
-
-6. **Publish updated themes**:
-```bash
-cd firebase
-npm run generate:test-data  # Regenerates all tenant themes
-```
-
-### Testing Tenant Themes
-
-#### Viewing Demo Tenants
-
-1. **Start the emulator** (creates default tenant):
-```bash
-cd firebase
-npm run start:with-data
-```
-
-2. **Generate full demo data** (creates localhost + loopback tenants):
-```bash
-cd firebase
-npm run generate:test-data
-```
-
-3. **View Aurora theme** (localhost):
-```
-http://localhost:6005/
-```
-- Should show dark background, neon colors, animations
-
-4. **View Brutalist theme** (loopback):
-```
-http://127.0.0.1:6005/
-```
-- Should show light background, grayscale, no animations
-
-#### Verifying Theme CSS
-
-```bash
-# Check Aurora theme
-curl -H "Host: localhost" http://localhost:5001/splitifyd-dev/us-central1/api/theme.css | head -20
-
-# Check Brutalist theme
-curl -H "Host: 127.0.0.1" http://localhost:5001/splitifyd-dev/us-central1/api/theme.css | head -20
-```
-
-Should output different CSS variables for each tenant.
-
-#### Playwright Theme Tests
-
-Automated tests intercept `/api/theme.css` and verify UI elements render correct colors:
-
-```typescript
-// e2e-tests/src/tests/theme-smoke.test.ts
-test('Aurora theme applies correct colors', async ({ page }) => {
-  await page.route('**/api/theme.css', route => {
-    route.fulfill({
-      body: generateThemeCSS(localhostBrandingTokens)
-    });
-  });
-
-  const button = page.getByRole('button', { name: 'Sign In' });
-  const bgColor = await button.evaluate(el =>
-    getComputedStyle(el).backgroundColor
-  );
-
-  expect(bgColor).toBe('rgb(79, 70, 229)');  // Aurora primary
-});
-```
-
-### Common Mistakes & Fixes
-
-#### Mistake 1: Modal with hardcoded gray colors
-```tsx
-// ❌ WRONG
-<div className="fixed inset-0 bg-gray-600 bg-opacity-50">
-  <div className="bg-white border-gray-300">
-    <h3 className="text-gray-900">Title</h3>
-    <p className="text-gray-500">Description</p>
-
-// ✅ CORRECT
-<div className="fixed inset-0 bg-surface-overlay">
-  <div className="bg-surface-raised border-border-default">
-    <h3 className="text-text-primary">Title</h3>
-    <p className="text-text-muted">Description</p>
-```
-
-#### Mistake 2: CSS file with hardcoded gradients
-```css
-/* ❌ WRONG - breaks theming */
-#globe-container {
-  background: radial-gradient(circle, rgba(106, 13, 173, 0.2), transparent);
-}
-.hero {
-  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-}
-
-/* ✅ CORRECT - uses theme tokens */
-#globe-container {
-  /* No background - let theme handle it */
-}
-.hero {
-  /* Use Tailwind classes with semantic tokens in component */
-}
-```
-
-#### Mistake 3: Covering the aurora background
-```tsx
-// ❌ WRONG - solid background blocks animation
-<main className="bg-surface-base flex items-center">
-
-// ✅ CORRECT - transparent allows aurora to show
-<main className="flex items-center">
-```
-
-#### Mistake 4: Hardcoded transitions
-```css
-/* ❌ WRONG */
-.feature-item {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ✅ CORRECT */
-.feature-item {
-  transition: transform
-    calc(var(--motion-duration-base, 320) * 1ms)
-    var(--motion-easing-standard, cubic-bezier(0.22, 1, 0.36, 1));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .feature-item { transition: none; }
-}
-```
-
-#### Mistake 5: Hardcoded color values in dark mode
-```tsx
-// ❌ WRONG - hardcoded purple in dark mode
-return 'bg-interactive-secondary/10 text-interactive-primary dark:bg-purple-900/30 dark:text-purple-300';
-
-// ✅ CORRECT - uses semantic tokens for both light and dark
-return 'bg-interactive-secondary/10 text-interactive-primary dark:bg-interactive-secondary/30 dark:text-interactive-secondary';
-```
-
 ---
 
-### How to Fix Tenant-Specific Issues
-
-**Problem: "I want to change the Aurora theme but not the Brutalist theme"**
-
-**CORRECT Solution:** Change the Aurora branding tokens in `packages/shared/src/fixtures/branding-tokens.ts`
-
-```typescript
-// packages/shared/src/fixtures/branding-tokens.ts
-const auroraSemantics: BrandingTokens['semantics'] = {
-  colors: {
-    surface: {
-      base: '#090b19',  // ← Change this for Aurora only
-      raised: '#0f1219',
-    },
-  },
-};
-
-// Brutalist tokens remain unchanged
-const brutalistSemantics: BrandingTokens['semantics'] = {
-  colors: {
-    surface: {
-      base: '#fafafa',  // ← Different value for Brutalist
-      raised: '#ffffff',
-    },
-  },
-};
-```
-
-Then regenerate themes:
-```bash
-cd firebase
-npm run generate:test-data
-cd ../webapp-v2
-npm run build
-```
-
-**WRONG Solution:** ❌ Hardcoding values in components
-```tsx
-// ❌ NEVER DO THIS - affects ALL tenants
-<header style="background-color: rgba(5, 6, 10, 0.7)">
-```
-
----
-
-**Problem: "The body background is too dark on Aurora"**
-
-**CORRECT Solution:** Update Aurora's `surface.base` token
-
-```typescript
-// packages/shared/src/fixtures/branding-tokens.ts
-const auroraSemantics: BrandingTokens['semantics'] = {
-  colors: {
-    surface: {
-      base: '#0a0d15',  // ← Lighter than #05060a
-    },
-  },
-};
-```
-
-**WRONG Solutions:**
-- ❌ Adding `bg-gray-900` to components
-- ❌ Adding `:root { --surface-base-rgb: ... }` to global.css
-- ❌ Using inline styles
-
----
-
-**Problem: "I want glassmorphism on Aurora but not Brutalist"**
-
-**CORRECT Solution:** Add glassmorphism colors to Aurora tokens only
-
-```typescript
-// Aurora gets glass effects
-const auroraSemantics: BrandingTokens['semantics'] = {
-  colors: {
-    surface: {
-      glass: 'rgba(9, 11, 25, 0.65)',
-      glassBorder: 'rgba(255, 255, 255, 0.07)',
-    },
-  },
-};
-
-// Brutalist stays flat
-const brutalistSemantics: BrandingTokens['semantics'] = {
-  colors: {
-    surface: {
-      glass: '#ffffff',  // Solid white (no transparency)
-      glassBorder: '#e5e7eb',  // Solid gray
-    },
-  },
-};
-```
-
-Then use in components:
-```tsx
-<div className="bg-[var(--semantics-colors-surface-glass)]">
-  {/* Aurora: transparent glass, Brutalist: solid white */}
-</div>
-```
-
----
-
-### Debugging Theme Issues
-
-#### Issue: "All pages look the same regardless of hostname"
-
-**Diagnosis:**
-```bash
-# 1. Check which tenant is resolving
-curl http://localhost:5001/splitifyd-dev/us-central1/api/config
-
-# 2. Verify theme CSS exists
-curl http://localhost:5001/splitifyd-dev/us-central1/api/theme.css | head -5
-
-# 3. Check if hardcoded CSS variables are overriding
-grep -r ":root {" webapp-v2/src/styles/
-```
-
-**Fix:**
-- Ensure `firebase/scripts/start-with-data.ts` created tenants
-- Check `firebase/scripts/test-data-generator.ts` published themes
-- Remove any `:root { --*-rgb: ... }` from `global.css`
-
-#### Issue: "Tailwind classes aren't working"
-
-**Diagnosis:**
-```bash
-# Check Tailwind config includes semantic tokens
-grep "surface-base" webapp-v2/tailwind.config.js
-```
-
-**Fix:**
-- Ensure `tailwind.config.js` maps all semantic tokens
-- Rebuild: `cd webapp-v2 && npm run build`
-
-#### Issue: "Inline styles showing in production"
-
-**Diagnosis:**
-```bash
-# Lint check will catch these
-cd webapp-v2
-npm run lint
-```
-
-**Fix:**
-- Remove `style={{...}}` props
-- Use Tailwind utilities or CSS variables instead
-- Add `data-testid` for E2E tests instead of targeting classes
+## Stack & Layout
+- **Framework**: Preact + TypeScript on Vite
+- **Routing**: `preact-router` with lazy-loaded pages
+- **Shared code**: Domain types and Zod schemas from `@splitifyd/shared`
+- **Firebase**: Wrapped by `firebaseConfigManager` + `FirebaseService` (handles emulator wiring)
+- **Source structure**: Feature-first organization:
+  - `components/<feature>/` - Feature-specific UI components
+  - `pages/` - Route-level page components
+  - `app/stores/` - Singleton state stores
+  - `app/hooks/` - Reusable hooks
+  - `utils/` - Utility functions
+  - `__tests__/` - Co-located tests
 
 ---
 
@@ -1016,41 +800,6 @@ UI kit under `components/ui` provides audited components:
 - `Typography` - Text components with semantic colors
 - `Modal`, `Alert`, `Badge` - Status-aware components
 
-### Component Guidelines
-
-#### ✅ DO: Use semantic tokens in all components
-
-```tsx
-// Good: Button component using semantic tokens
-export function Button({ variant, children }) {
-  const classes = {
-    primary: 'bg-interactive-primary text-interactive-primary-foreground',
-    secondary: 'bg-interactive-secondary text-interactive-secondary-foreground',
-    ghost: 'bg-transparent text-text-primary hover:bg-surface-raised',
-  };
-
-  return (
-    <button className={`${classes[variant]} px-4 py-2 rounded-md`}>
-      {children}
-    </button>
-  );
-}
-```
-
-#### ❌ DON'T: Hardcode colors in components
-
-```tsx
-// Bad: Hardcoded colors
-export function Button({ variant, children }) {
-  const classes = {
-    primary: 'bg-blue-600 text-white',        ❌
-    secondary: 'bg-gray-200 text-gray-900',   ❌
-  };
-
-  return <button className={classes[variant]}>{children}</button>;
-}
-```
-
 ### Creating New Components
 
 1. **Use semantic tokens only**
@@ -1065,7 +814,7 @@ import { logUserAction } from '@/utils/browser-logger';
 
 export interface CardProps {
   children: ComponentChildren;
-  variant?: 'default' | 'elevated' | 'sunken';
+  variant?: 'default' | 'elevated' | 'glass';
   className?: string;
 }
 
@@ -1075,7 +824,7 @@ export function Card({ children, variant = 'default', className = '' }: CardProp
   const variantClasses = {
     default: 'bg-surface-base border-border-default',
     elevated: 'bg-surface-raised border-border-subtle shadow-md',
-    sunken: 'bg-surface-sunken border-border-default',
+    glass: 'bg-surface-glass border-border-subtle backdrop-blur-xl',
   };
 
   return (
@@ -1115,20 +864,6 @@ export function Card({ children, variant = 'default', className = '' }: CardProp
 
 ## Quick Reference
 
-### Semantic Token Cheat Sheet
-
-| Use Case | Tailwind Class | CSS Variable |
-|----------|---------------|--------------|
-| Main background | `bg-surface-base` | `var(--surface-base-rgb)` |
-| Card background | `bg-surface-raised` | `var(--surface-raised-rgb)` |
-| Primary text | `text-text-primary` | `var(--text-primary-rgb)` |
-| Muted text | `text-text-muted` | `var(--text-muted-rgb)` |
-| Primary button | `bg-interactive-primary` | `var(--interactive-primary-rgb)` |
-| Button text | `text-interactive-primary-foreground` | `var(--interactive-primary-foreground-rgb)` |
-| Border | `border-border-default` | `var(--border-default-rgb)` |
-| Success state | `bg-semantic-success` | `var(--semantic-success-rgb)` |
-| Error state | `bg-semantic-error` | `var(--semantic-error-rgb)` |
-
 ### Commands
 
 ```bash
@@ -1137,6 +872,9 @@ cd firebase && npm run start:with-data
 
 # Generate all demo tenants (localhost + loopback)
 cd firebase && npm run generate:test-data
+
+# Republish themes after changes (ALWAYS RUN THIS!)
+cd firebase && npm run theme:publish-local
 
 # Build webapp
 cd webapp-v2 && npm run build
@@ -1148,40 +886,12 @@ cd webapp-v2 && npm run lint:styles
 # Test theme CSS output
 curl -H "Host: localhost" http://localhost:5001/splitifyd-dev/us-central1/api/theme.css
 curl -H "Host: 127.0.0.1" http://localhost:5001/splitifyd-dev/us-central1/api/theme.css
-```
 
-### Common Patterns
+# Find hardcoded colors (should return 0 results)
+grep -r "bg-gray\|bg-blue\|bg-red\|text-gray\|text-blue\|border-gray" webapp-v2/src/components
 
-```tsx
-// Pattern 1: Button with semantic tokens
-<Button
-  variant="primary"
-  className="hover:opacity-90 transition-opacity"
->
-  Click Me
-</Button>
-
-// Pattern 2: Card with semantic background
-<Card className="bg-surface-raised p-6">
-  <h2 className="text-text-primary mb-2">Title</h2>
-  <p className="text-text-muted">Description</p>
-</Card>
-
-// Pattern 3: Status badge
-<Badge className="bg-semantic-success text-white">
-  Active
-</Badge>
-
-// Pattern 4: Form input
-<Input
-  className="border-border-default focus:border-border-strong"
-  error={error}
-/>
-
-// Pattern 5: Alert
-<Alert className="bg-surface-warning border-border-warning">
-  <span className="text-semantic-warning">Warning message</span>
-</Alert>
+# Find inline styles (check each one is justified)
+grep -r "style={{" webapp-v2/src/components
 ```
 
 ---
