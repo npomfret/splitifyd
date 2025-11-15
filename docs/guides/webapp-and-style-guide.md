@@ -378,98 +378,104 @@ This allows Tailwind's opacity modifiers to work:
 
 ### Styling Rules & Anti-Patterns
 
-⚠️ **CRITICAL RULES - READ THIS FIRST** ⚠️
+⚠️ **CRITICAL RULES** ⚠️
 
-**The theming system is tenant-specific. Each tenant (localhost vs 127.0.0.1) has its own unique theme.**
+**Each tenant has its own theme. Components must ONLY use semantic tokens.**
 
-#### 🚫 NEVER DO THESE THINGS:
+#### 🚫 NEVER:
 
-1. **NEVER hardcode colors or backgrounds in components**
-   - ❌ `bg-blue-600`, `text-white`, `bg-gray-50`
-   - ❌ `style={{ backgroundColor: '#ffffff' }}`
-   - ❌ `style="background-color: rgba(5, 6, 10, 0.7)"`
-   - **WHY**: This makes ALL tenants look the same
+1. **Hardcode Tailwind colors in components**
+   ```tsx
+   ❌ className="bg-gray-600 text-blue-500 border-red-200"
+   ❌ className="bg-white text-black"
+   ✅ className="bg-surface-raised text-text-primary border-border-default"
+   ```
 
-2. **NEVER add CSS variables to global.css or component files**
-   - ❌ `:root { --surface-base-rgb: 255 255 255; }`
-   - ❌ Hardcoded rgba values in inline styles
-   - **WHY**: These override the tenant-specific theme CSS
+2. **Use inline styles with hardcoded values**
+   ```tsx
+   ❌ style={{ backgroundColor: '#ffffff', color: '#000000' }}
+   ✅ className="bg-surface-base text-text-primary"
+   ```
+   Exception: Dynamic values (width percentages, z-index, pointer-events)
 
-3. **NEVER change components that affect all tenants unless you mean to**
-   - ❌ Adding `bg-surface-base` to Header when you only want to fix Aurora
-   - **WHY**: Both tenants share the same component code, only their CSS variables differ
+3. **Add CSS variables to global.css or component CSS files**
+   ```css
+   ❌ :root { --surface-base-rgb: 255 255 255; }
+   ❌ background: radial-gradient(circle, rgba(106, 13, 173, 0.2), transparent);
+   ✅ /* No color definitions in CSS files - use semantic tokens only */
+   ```
 
-#### ✅ DO: Use semantic tokens ONLY
+4. **Cover the aurora background**
+   ```tsx
+   ❌ <main className="bg-surface-base">  /* Blocks animated background */
+   ✅ <main className="">                 /* Transparent, aurora shows through */
+   ```
+
+5. **Use hardcoded animations/transitions**
+   ```css
+   ❌ transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+   ✅ transition: transform calc(var(--motion-duration-base, 320) * 1ms) var(--motion-easing-standard);
+   ```
+
+6. **Forget reduced motion**
+   ```css
+   ❌ /* No accessibility consideration */
+   ✅ @media (prefers-reduced-motion: reduce) {
+       .animated { transition: none; transform: none; }
+     }
+   ```
+
+#### ✅ DO: Use semantic tokens
 
 ```tsx
-// Good: Semantic tokens adapt to each tenant's theme
-<Button className="bg-interactive-primary text-interactive-primary-foreground">
-  Sign In
-</Button>
+// Surfaces
+<div className="bg-surface-base">           // Page background
+<div className="bg-surface-raised">         // Cards, elevated panels
+<div className="bg-surface-overlay">        // Modals, overlays
 
-<Card className="bg-surface-raised border border-border-default">
-  <h2 className="text-text-primary">Welcome</h2>
-  <p className="text-text-muted">Get started below</p>
-</Card>
+// Text
+<h1 className="text-text-primary">          // Headings, primary content
+<p className="text-text-muted">             // Secondary text, captions
+<span className="text-text-accent">         // Highlights, links
+
+// Interactive
+<button className="bg-interactive-primary text-interactive-primary-foreground">
+<button className="bg-interactive-secondary text-interactive-secondary-foreground">
+
+// Borders
+<div className="border border-border-default">
+<input className="border-border-subtle focus:border-border-strong">
+
+// Status
+<div className="bg-surface-warning border-border-warning">
+<span className="text-semantic-error">
 ```
 
-**How it works:**
-- Aurora (localhost): `bg-surface-base` → `#05060a` (dark)
-- Brutalist (127.0.0.1): `bg-surface-base` → `#fafafa` (light)
-- Same component, different colors per tenant!
+#### ✅ DO: Use motion tokens in CSS
 
-#### ❌ DON'T: Use hardcoded colors
+```css
+.feature-item {
+    transition: transform
+        calc(var(--motion-duration-base, 320) * 1ms)
+        var(--motion-easing-standard, cubic-bezier(0.22, 1, 0.36, 1));
+}
 
-```tsx
-// Bad: Hardcoded colors break white-labeling
-<Button className="bg-blue-600 text-white">      ❌
-<Card className="bg-gray-50 border-gray-200">    ❌
-<h2 className="text-gray-900">                   ❌
+@media (prefers-reduced-motion: reduce) {
+    .feature-item { transition: none; }
+}
 ```
 
-**Why this is bad:**
-- All tenants will have blue buttons
-- Tenant customization is completely bypassed
-- The entire white-label system is broken
+#### ✅ DO: Check your work
 
-#### ❌ DON'T: Use inline styles with hardcoded values
+```bash
+# Find hardcoded colors (should return 0 results)
+grep -r "bg-gray\|bg-blue\|bg-red\|text-gray\|text-blue\|border-gray" src/components
 
-```tsx
-// Bad: Inline styles bypass the theming system
-<div style={{ backgroundColor: '#ffffff' }}>     ❌
-<Button style={{ color: '#2563eb' }}>            ❌
-<header style="background-color: rgba(5, 6, 10, 0.7)">  ❌
-```
+# Find inline styles (check each one is justified)
+grep -r "style=" src/components
 
-**Why this is bad:**
-- These values apply to ALL tenants
-- Tenant-specific CSS variables are ignored
-- Makes debugging impossible (which tenant is broken?)
-
-**Lint enforcement:**
-- ESLint rule `no-inline-styles/no-inline-styles` catches `style={{...}}` props
-- Stylelint enforces CSS variable usage
-- CI fails if violations are found
-
-#### ✅ DO: Use Tailwind utilities with semantic tokens
-
-```tsx
-// Good: Opacity modifiers work with semantic tokens
-<div className="bg-surface-base/80">              ✅
-<div className="text-text-muted/50">              ✅
-<div className="hover:bg-surface-raised">         ✅
-```
-
-#### ✅ DO: Use custom properties for advanced styling
-
-```tsx
-// Good: CSS variables from tenant theme
-<div style={{
-  backdropFilter: 'blur(24px)',                   ✅
-  background: 'var(--surface-glass)',             ✅
-  borderRadius: 'var(--radius-lg)',               ✅
-  transition: 'var(--motion-duration-base)'       ✅
-}} />
+# Find hardcoded CSS colors (should only be in theme fixtures)
+grep -r "#[0-9a-fA-F]\{6\}" src/styles/
 ```
 
 ### Adding New Semantic Tokens
@@ -609,6 +615,72 @@ test('Aurora theme applies correct colors', async ({ page }) => {
   expect(bgColor).toBe('rgb(79, 70, 229)');  // Aurora primary
 });
 ```
+
+### Common Mistakes & Fixes
+
+#### Mistake 1: Modal with hardcoded gray colors
+```tsx
+// ❌ WRONG
+<div className="fixed inset-0 bg-gray-600 bg-opacity-50">
+  <div className="bg-white border-gray-300">
+    <h3 className="text-gray-900">Title</h3>
+    <p className="text-gray-500">Description</p>
+
+// ✅ CORRECT
+<div className="fixed inset-0 bg-surface-overlay">
+  <div className="bg-surface-raised border-border-default">
+    <h3 className="text-text-primary">Title</h3>
+    <p className="text-text-muted">Description</p>
+```
+
+#### Mistake 2: CSS file with hardcoded gradients
+```css
+/* ❌ WRONG - breaks theming */
+#globe-container {
+  background: radial-gradient(circle, rgba(106, 13, 173, 0.2), transparent);
+}
+.hero {
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+}
+
+/* ✅ CORRECT - uses theme tokens */
+#globe-container {
+  /* No background - let theme handle it */
+}
+.hero {
+  /* Use Tailwind classes with semantic tokens in component */
+}
+```
+
+#### Mistake 3: Covering the aurora background
+```tsx
+// ❌ WRONG - solid background blocks animation
+<main className="bg-surface-base flex items-center">
+
+// ✅ CORRECT - transparent allows aurora to show
+<main className="flex items-center">
+```
+
+#### Mistake 4: Hardcoded transitions
+```css
+/* ❌ WRONG */
+.feature-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ✅ CORRECT */
+.feature-item {
+  transition: transform
+    calc(var(--motion-duration-base, 320) * 1ms)
+    var(--motion-easing-standard, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-item { transition: none; }
+}
+```
+
+---
 
 ### How to Fix Tenant-Specific Issues
 
