@@ -263,7 +263,7 @@ export interface BrandingMarketingFlags {
 export interface BrandingConfig {
     appName: TenantAppName;
     logoUrl: TenantLogoUrl;
-    faviconUrl: TenantFaviconUrl;
+    faviconUrl?: TenantFaviconUrl; // Optional - falls back to logoUrl if not provided
     primaryColor: TenantPrimaryColor;
     secondaryColor: TenantSecondaryColor;
     backgroundColor?: TenantBackgroundColor;
