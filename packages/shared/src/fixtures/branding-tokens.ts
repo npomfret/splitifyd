@@ -106,6 +106,7 @@ const auroraSemantics: BrandingTokens['semantics'] = {
             sunken: '#06080d',          // Deeper shadow
             overlay: 'rgba(15, 23, 42, 0.85)',  // Semi-transparent modals
             warning: '#fef3c7',
+            muted: 'rgba(15, 19, 32, 0.8)',  // Muted surface for secondary buttons
             // Glassmorphism (opacity will be handled in CSS)
             glass: 'rgba(15, 19, 32, 0.65)',     // Semi-transparent glass with blue tint
             glassBorder: 'rgba(255, 255, 255, 0.07)',  // Subtle glass border
@@ -277,7 +278,7 @@ const brutalistSemantics: BrandingTokens['semantics'] = {
             sunken: '#b8b8b8',      // Grey 400 - depressed areas (input fields)
             overlay: '#262626',     // Grey 800 - dark overlays
             warning: '#fef3c7',     // Keep warning visible
-            muted: '#a8a8a8',       // Grey 450 - disabled/muted surfaces
+            muted: '#909090',       // Grey 500 - disabled/muted surfaces (darker for visibility)
             // No glassmorphism
             glass: undefined,
             glassBorder: undefined,
@@ -301,9 +302,9 @@ const brutalistSemantics: BrandingTokens['semantics'] = {
             primaryHover: '#303030',       // Grey 750 - hover state
             primaryActive: '#202020',      // Grey 800 - active state
             primaryForeground: '#f5f5f5',  // Grey 100 - text on buttons
-            secondary: '#d4d4d4',          // Grey 300 - secondary buttons
-            secondaryHover: '#a3a3a3',     // Grey 400 - hover
-            secondaryActive: '#737373',    // Grey 500 - active
+            secondary: '#a8a8a8',          // Grey 450 - secondary buttons (darker for visibility)
+            secondaryHover: '#888888',     // Grey 500 - hover
+            secondaryActive: '#707070',    // Grey 550 - active
             secondaryForeground: '#171717', // Grey 900 - text
             accent: '#606060',             // Grey 600 - accent elements
             destructive: '#505050',        // Grey 650 - destructive actions
@@ -329,8 +330,12 @@ const brutalistSemantics: BrandingTokens['semantics'] = {
             danger: '#8a8a8a',      // Grey 450
             info: '#a3a3a3',        // Grey 400
         },
-        // No gradients
-        gradient: undefined,
+        // Solid color "gradients" (no actual gradient effect for brutalism)
+        gradient: {
+            primary: ['#404040', '#404040'],    // Solid dark grey
+            accent: ['#606060', '#606060'],     // Solid medium grey
+            text: ['#171717', '#171717'],       // Solid black text
+        },
     },
     spacing: {
         pagePadding: '1.5rem',

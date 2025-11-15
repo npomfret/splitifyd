@@ -84,6 +84,7 @@ export function Button({
             'transition-all duration-200',
         ],
         secondary: [
+            // Uses surface-muted for button background
             'bg-surface-muted text-text-primary border border-border-default shadow-sm',
             !isDisabled && 'hover:bg-surface-raised',
             'focus-visible:ring-border-strong',

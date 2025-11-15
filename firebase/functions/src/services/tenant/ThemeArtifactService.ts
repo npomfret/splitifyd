@@ -147,7 +147,8 @@ export class ThemeArtifactService {
 
         entries.push(['semantic-success', this.hexToRgb(colors.status.success)]);
         entries.push(['semantic-warning', this.hexToRgb(colors.status.warning)]);
-        entries.push(['surface-muted', this.hexToRgb(colors.surface.raised)]);
+        // Use surface.muted if available, otherwise fall back to surface.raised
+        entries.push(['surface-muted', this.hexToRgb(colors.surface.muted || colors.surface.raised)]);
 
         return entries;
     }

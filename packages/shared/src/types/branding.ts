@@ -206,6 +206,7 @@ const BrandingSemanticColorSchema = z.object({
         sunken: CssColorSchema,
         overlay: CssColorSchema,
         warning: CssColorSchema,
+        muted: CssColorSchema.optional(),
         // New for glassmorphism
         glass: CssColorSchema.optional(),
         glassBorder: CssColorSchema.optional(),
@@ -218,6 +219,7 @@ const BrandingSemanticColorSchema = z.object({
         muted: CssColorSchema,
         inverted: CssColorSchema,
         accent: CssColorSchema,
+        disabled: CssColorSchema.optional(),
         // New for advanced typography
         hero: CssColorSchema.optional(),
         eyebrow: CssColorSchema.optional(),
@@ -248,6 +250,7 @@ const BrandingSemanticColorSchema = z.object({
         strong: CssColorSchema,
         focus: CssColorSchema,
         warning: CssColorSchema,
+        error: CssColorSchema.optional(),
     }),
     status: z.object({
         success: CssColorSchema,
