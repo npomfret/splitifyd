@@ -42,7 +42,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
             key: 'settled',
             content: t('groupCard.settledUp'),
             color: 'text-interactive-primary',
-            bgColor: 'bg-interactive-primary/10',
+            icon: '✓',
         }];
 
         if (!group.balance?.balancesByCurrency) {
@@ -73,14 +73,14 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
             key: `owed-${balance.currency}`,
             content: renderBalanceMessage('youAreOwed', balance.netBalance, balance.currency),
             color: 'text-semantic-success',
-            bgColor: 'bg-interactive-accent/10',
+            icon: '↑',
         }));
 
         const negativeDisplays = negatives.map(({ balance }) => ({
             key: `owe-${balance.currency}`,
             content: renderBalanceMessage('youOwe', absAmount(balance.netBalance, balance.currency), balance.currency),
             color: 'text-semantic-error',
-            bgColor: 'bg-surface-error',
+            icon: '↓',
         }));
 
         return [...positiveDisplays, ...negativeDisplays];
@@ -146,14 +146,15 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                             </span>
                         )}
                     </div>
-                    <div class='flex flex-col gap-1'>
+                    <div class='flex flex-col gap-1.5 mt-2'>
                         {balanceDisplays.map((display) => (
                             <div
                                 key={display.key}
-                                class={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium self-start ${display.bgColor} ${display.color}`}
+                                class={`flex items-center gap-1.5 text-sm font-medium ${display.color}`}
                                 data-financial-amount='balance'
                             >
-                                {display.content}
+                                <span class='text-base leading-none opacity-70'>{display.icon}</span>
+                                <span class='leading-tight'>{display.content}</span>
                             </div>
                         ))}
                     </div>
