@@ -138,11 +138,6 @@ test.describe('Dashboard Create Group Functionality', () => {
                 await createGroupModal.fillGroupName('Test Group');
             }
 
-            // Wait for backdrop debounce guard to expire (200ms) before clicking backdrop
-            if (closeMethod.name === 'backdrop click') {
-                await page.waitForTimeout(250);
-            }
-
             await closeMethod.action(createGroupModal);
             await createGroupModal.verifyModalClosed();
         });

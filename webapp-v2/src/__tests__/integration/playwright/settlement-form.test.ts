@@ -12,9 +12,8 @@ type MemberSeed = {
     groupDisplayName?: string;
 };
 
-async function expectNoGlobalError(page: Page): Promise<void> {
-    await expect(page.getByText('Something went wrong')).toHaveCount(0);
-    await expect(page.getByText(/ErrorBoundary caught an error/i)).toHaveCount(0);
+async function expectNoGlobalError(settlementFormPage: SettlementFormPage): Promise<void> {
+    await settlementFormPage.expectNoGlobalErrors();
 }
 
 async function openSettlementFormForTest(
@@ -127,7 +126,7 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.fillAmount('0');
 
         await settlementFormPage.submitExpectValidationError('Please enter a valid amount greater than 0');
-        await expectNoGlobalError(page);
+        await expectNoGlobalError(settlementFormPage);
     });
 
     test('should show validation error when amount exceeds maximum', async ({ authenticatedPage }) => {
@@ -138,7 +137,7 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.fillAmount('1000000');
 
         await settlementFormPage.submitExpectValidationError('Amount cannot exceed 999,999.99');
-        await expectNoGlobalError(page);
+        await expectNoGlobalError(settlementFormPage);
     });
 
     test('should show validation error when date is in the future', async ({ authenticatedPage }) => {
@@ -151,7 +150,7 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.setDate(tomorrow);
 
         await settlementFormPage.submitExpectValidationError('Date cannot be in the future');
-        await expectNoGlobalError(page);
+        await expectNoGlobalError(settlementFormPage);
     });
 
     test('should keep submit button disabled when amount precision exceeds currency limit', async ({ authenticatedPage }) => {
@@ -170,7 +169,7 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.expectAmountValue('10.12');
         await expect(settlementFormPage.getModal().getByTestId('settlement-amount-error')).toHaveCount(0);
 
-        await expectNoGlobalError(page);
+        await expectNoGlobalError(settlementFormPage);
     });
 
     test('should close modal when close button (X) is clicked', async ({ authenticatedPage }) => {
@@ -272,7 +271,7 @@ test.describe('Settlement Form - Warning Message Bug (Reproduce)', () => {
         await settlementFormPage.fillAmount('84.79');
 
         // BUG: The warning message appears even though this is a valid settlement
-        const warningMessage = page.getByTestId('settlement-warning-message');
+        const warningMessage = settlementFormPage.getWarningMessage();
 
         // This assertion will FAIL due to the bug - the warning incorrectly appears
         await expect(warningMessage).not.toBeVisible();
@@ -280,7 +279,7 @@ test.describe('Settlement Form - Warning Message Bug (Reproduce)', () => {
         // The form should be valid and submittable without warnings
         await settlementFormPage.expectSubmitEnabled();
 
-        await expectNoGlobalError(page);
+        await expectNoGlobalError(settlementFormPage);
     });
 });
 
@@ -328,19 +327,15 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Wait for balances to load - just check the balance summary card exists
-        await expect(page.getByTestId('balance-summary-sidebar')).toBeAttached();
-
-        // Small delay to ensure store balances are populated
-        await page.waitForTimeout(500);
+        await expect(groupDetailPage.getBalanceContainer()).toBeAttached();
 
         // Click the Settle Up button from Group Actions (not the balance summary button)
         const settlementFormPage = await groupDetailPage.clickSettleUpButton(2, { waitForFormReady: true });
 
-        const modal = settlementFormPage.getModal();
-        await expect(modal.getByText('Quick settle:')).toBeVisible();
+        await expect(settlementFormPage.getQuickSettleHeading()).toBeVisible();
 
         // The name may be truncated in the UI, so match the beginning and amount
-        const shortcutButton = modal.getByRole('button', { name: /\$37\.25\s*.*→\s*Alexandra Very/ });
+        const shortcutButton = settlementFormPage.getQuickSettleShortcutButton(/\$37\.25\s*.*→\s*Alexandra Very/);
         await expect(shortcutButton).toBeVisible();
     });
 
@@ -393,8 +388,8 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
         const modal = settlementFormPage.getModal();
         await expect(modal).toBeVisible();
 
-        await expect(modal.getByText('Quick settle:')).toHaveCount(0);
-        await expect(modal.getByRole('button', { name: /\$37\.25\s*→\s*Alexandra Verylongname/ })).toHaveCount(0);
+        await expect(settlementFormPage.getQuickSettleHeading()).toHaveCount(0);
+        await expect(settlementFormPage.getQuickSettleShortcutButton(/\$37\.25\s*→\s*Alexandra Verylongname/)).toHaveCount(0);
     });
 });
 
@@ -449,6 +444,6 @@ test.describe('Settlement Form - Amount Warnings', () => {
 
         await settlementFormPage.fillAmount('50.00');
         await expect(settlementFormPage.getModal().getByTestId('settlement-warning-message')).toHaveCount(0);
-        await expectNoGlobalError(page);
+        await expectNoGlobalError(settlementFormPage);
     });
 });

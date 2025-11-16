@@ -250,9 +250,6 @@ test.describe('Dashboard Groups Pagination', () => {
 
         const clickPromise = dashboardPage.clickPaginationNextWithoutWait();
 
-        // Give time for the click handler to start (but not complete due to delayed response)
-        await page.waitForTimeout(100);
-
         // Now buttons should be disabled during loading
         await dashboardPage.verifyPaginationNextDisabled();
         await dashboardPage.verifyPaginationPreviousDisabled();

@@ -319,15 +319,19 @@ export abstract class BasePage {
     async pressEscapeToClose(modalContainer: Locator, timeout: number = TEST_TIMEOUTS.MODAL_TRANSITION): Promise<void> {
         await expect(modalContainer).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
-        // CRITICAL FIX: Focus the modal container before pressing Escape
-        // This ensures the keydown event will be captured by the modal's event listener
-        // See: https://playwright.dev/docs/input#keys-and-shortcuts
-        await modalContainer.focus();
+        // Try to focus on a focusable element within the modal to ensure keyboard events are captured
+        // First, try to find and focus the first input, button, or other focusable element
+        const focusableElement = modalContainer.locator('input, button, textarea, select, [tabindex]:not([tabindex="-1"])').first();
+        const hasFocusable = await focusableElement.count() > 0;
 
-        // Wait for focus to be applied and event listeners to be ready
-        // This prevents race conditions between Playwright's keyboard.press() and Preact's useEffect
-        await this._page.waitForTimeout(100);
+        if (hasFocusable) {
+            await focusableElement.focus();
+        } else {
+            // Fallback: try focusing the modal container itself
+            await modalContainer.focus();
+        }
 
+        // Press Escape - the event should bubble to the modal's event listener
         await this._page.keyboard.press('Escape');
 
         try {
@@ -378,6 +382,14 @@ export abstract class BasePage {
         }
 
         return '[input]';
+    }
+
+    /**
+     * Verify that no global error messages are displayed on the page
+     */
+    async expectNoGlobalErrors(): Promise<void> {
+        await expect(this._page.getByText('Something went wrong')).toHaveCount(0);
+        await expect(this._page.getByText(/ErrorBoundary caught an error/i)).toHaveCount(0);
     }
 
 }

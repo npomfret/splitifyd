@@ -372,9 +372,12 @@ export class ExpenseFormPage extends BasePage {
 
         if (searchVisible) {
             await this.fillPreactInput(searchInput, currencyCode);
-            await this.page.waitForTimeout(350);
-            await searchInput.press('ArrowDown');
-            await searchInput.press('Enter');
+
+            // Wait for the dropdown to filter and show the matching option, then click it
+            const currencyOption = this.page.getByRole('option', { name: new RegExp(currencyCode, 'i') });
+            await expect(currencyOption).toBeVisible({ timeout: 2000 });
+            await currencyOption.click();
+
             await expect(searchInput).not.toBeVisible({ timeout: 2000 });
             return;
         }
@@ -681,9 +684,6 @@ export class ExpenseFormPage extends BasePage {
     }
 
     async clickTimeSuggestion(time: string): Promise<void> {
-        // Wait for dropdown to stabilize after typing
-        await this.page.waitForTimeout(300);
-
         // Verify the suggestion exists in the dropdown
         const suggestion = this.getTimeSuggestion(time);
         await expect(suggestion).toBeVisible({ timeout: 3000 });
@@ -706,7 +706,6 @@ export class ExpenseFormPage extends BasePage {
         // Navigate to the target suggestion using ArrowDown
         for (let i = 0; i <= targetIndex; i++) {
             await timeInput.press('ArrowDown');
-            await this.page.waitForTimeout(50); // Small delay between key presses
         }
 
         // Select the highlighted suggestion with Enter

@@ -90,10 +90,6 @@ export class PolicyAcceptanceModalPage extends BasePage {
         // Use click instead of check due to immediate unmounting on change.
         await checkbox.click();
         await expect(this.getAcceptedBadge()).toBeVisible();
-
-        // Small delay to allow the component's auto-advance logic to complete (500ms delay in component)
-        // This prevents race conditions where we check for the next policy before auto-advance fires
-        await this.page.waitForTimeout(600);
     }
 
     async waitForPolicyContentToLoad(): Promise<void> {

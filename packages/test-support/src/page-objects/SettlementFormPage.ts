@@ -63,6 +63,18 @@ export class SettlementFormPage extends BasePage {
         return this.getModal().locator('button[aria-label]').first();
     }
 
+    getWarningMessage(): Locator {
+        return this.page.getByTestId('settlement-warning-message');
+    }
+
+    getQuickSettleHeading(): Locator {
+        return this.getModal().getByText('Quick settle:');
+    }
+
+    getQuickSettleShortcutButton(pattern: string | RegExp): Locator {
+        return this.getModal().getByRole('button', { name: pattern });
+    }
+
     async navigateAndOpen(groupId: GroupId | string, options?: ReadyOptions): Promise<void> {
         await this.page.goto(`/groups/${groupId}`);
 
@@ -158,9 +170,12 @@ export class SettlementFormPage extends BasePage {
 
         if (searchVisible) {
             await this.fillPreactInput(searchInput, currency);
-            await this.page.waitForTimeout(300);
-            await searchInput.press('ArrowDown');
-            await searchInput.press('Enter');
+
+            // Wait for the dropdown to filter and show the matching option, then click it
+            const currencyOption = this.getModal().getByRole('option', { name: new RegExp(currency, 'i') });
+            await expect(currencyOption).toBeVisible({ timeout: 2000 });
+            await currencyOption.click();
+
             await expect(searchInput).not.toBeVisible({ timeout: 2000 });
             return;
         }
@@ -241,9 +256,6 @@ export class SettlementFormPage extends BasePage {
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
         }, value);
-
-        // Brief wait for Preact to process the event
-        await this.page.waitForTimeout(200);
     }
 
     async selectPayee(payeeName: string): Promise<void> {
@@ -267,9 +279,6 @@ export class SettlementFormPage extends BasePage {
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
         }, value);
-
-        // Brief wait for Preact to process the event
-        await this.page.waitForTimeout(200);
     }
 
     async fillAndSubmitSettlement(payeeName: string, amount: string, currency: CurrencyISOCode, note?: string): Promise<void> {

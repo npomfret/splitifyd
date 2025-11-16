@@ -11,9 +11,8 @@ type MemberSeed = {
     groupDisplayName?: string;
 };
 
-async function expectNoGlobalError(page: Page) {
-    await expect(page.getByText('Something went wrong')).toHaveCount(0);
-    await expect(page.getByText(/ErrorBoundary caught an error/i)).toHaveCount(0);
+async function expectNoGlobalError(expenseFormPage: ExpenseFormPage) {
+    await expenseFormPage.expectNoGlobalErrors();
 }
 
 async function openExpenseFormForTest(
@@ -1153,7 +1152,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.expectAmountValue('3.333');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
-            await expectNoGlobalError(page);
+            await expectNoGlobalError(expenseFormPage);
         });
 
         test('should require description when field is cleared', async ({ authenticatedPage }) => {
@@ -1166,7 +1165,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifyDescriptionErrorMessageContains('Description is required');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
-            await expectNoGlobalError(page);
+            await expectNoGlobalError(expenseFormPage);
         });
 
         test('should require amount when cleared after entry', async ({ authenticatedPage }) => {
@@ -1185,7 +1184,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.expectAmountValue('');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
-            await expectNoGlobalError(page);
+            await expectNoGlobalError(expenseFormPage);
         });
 
         test('should require amount greater than zero', async ({ authenticatedPage }) => {
@@ -1199,7 +1198,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.expectAmountValue('0');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
-            await expectNoGlobalError(page);
+            await expectNoGlobalError(expenseFormPage);
         });
 
         test('should require currency selection before submitting', async ({ authenticatedPage }) => {
@@ -1217,7 +1216,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifyAmountErrorMessageContains('Currency is required');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
-            await expectNoGlobalError(page);
+            await expectNoGlobalError(expenseFormPage);
         });
 
         test('should reject future dates with inline error', async ({ authenticatedPage }) => {
@@ -1230,7 +1229,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifyDateErrorMessageContains('Date cannot be in the future');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
-            await expectNoGlobalError(page);
+            await expectNoGlobalError(expenseFormPage);
         });
 
         test('should validate exact split totals without crashing', async ({ authenticatedPage }) => {
@@ -1250,7 +1249,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.verifySplitErrorMessageContains('Split amounts must equal the total expense amount');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
-            await expectNoGlobalError(page);
+            await expectNoGlobalError(expenseFormPage);
         });
 
         test('should flag excessively large amounts inline', async ({ authenticatedPage }) => {
@@ -1269,7 +1268,7 @@ test.describe('Expense Form', () => {
             await expenseFormPage.expectAmountValue('1000001');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
-            await expectNoGlobalError(page);
+            await expectNoGlobalError(expenseFormPage);
         });
     });
 });

@@ -414,6 +414,7 @@ export class DashboardPage extends BasePage {
         }
 
         const createGroupModal = await this.clickCreateGroup();
+        await expect(createGroupModal.getModalContainer()).toBeVisible({ timeout: 5000 });
         await createGroupModal.createGroup(name, description);
 
         // Wait for modal to close and navigation to occur
