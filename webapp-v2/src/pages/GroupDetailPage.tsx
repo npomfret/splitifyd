@@ -9,7 +9,7 @@ import { navigationService } from '@/services/navigation.service';
 import { permissionsStore } from '@/stores/permissions-store.ts';
 import { BanknotesIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
-import type { GroupId, SettlementWithMembers } from '@splitifyd/shared';
+import type { GroupId, SettlementWithMembers, SimplifiedDebt } from '@splitifyd/shared';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';

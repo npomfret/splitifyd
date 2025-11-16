@@ -175,7 +175,8 @@ export class UserAdminHandlers {
             }
 
             // Update Firestore role instead of custom claims
-            await this.firestoreWriter.updateUser(uid, { role: role ?? undefined });
+            // When role is null, default to SYSTEM_USER
+            await this.firestoreWriter.updateUser(uid, { role: role ?? SystemUserRoles.SYSTEM_USER });
 
             // Fetch updated user to return
             const updatedUser = await this.authService.getUser(uid);

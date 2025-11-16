@@ -4194,10 +4194,10 @@ describe('app tests', () => {
                     email: 'regular@test.com',
                 });
 
-                // Verify role was removed from Firestore (will be undefined)
+                // Verify role was set to default SYSTEM_USER
                 const userDoc = await appDriver.database.collection('users').doc(regularUser).get();
                 const data = userDoc.data();
-                expect(data?.role).toBeUndefined();
+                expect(data?.role).toBe(SystemUserRoles.SYSTEM_USER);
             });
 
             it('should reject invalid role value', async () => {

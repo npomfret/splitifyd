@@ -298,8 +298,8 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Execute
             await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
 
-            // Verify FirestoreWriter was called with undefined (null becomes undefined for Firestore)
-            expect(mockFirestoreWriter.updateUser).toHaveBeenCalledWith('user3', { role: undefined });
+            // Verify FirestoreWriter was called with SYSTEM_USER (null defaults to system_user)
+            expect(mockFirestoreWriter.updateUser).toHaveBeenCalledWith('user3', { role: SystemUserRoles.SYSTEM_USER });
 
             // Verify response
             expect(jsonSpy).toHaveBeenCalled();
