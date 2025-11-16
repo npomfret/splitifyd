@@ -1,5 +1,4 @@
 import express from 'express';
-import { logger } from '../logger';
 import type { TenantResolutionOptions } from '../services/tenant/TenantRegistryService';
 import { TenantRegistryService } from '../services/tenant/TenantRegistryService';
 
@@ -64,10 +63,6 @@ export const tenantContextMiddleware =
 
             // Skip tenant resolution for diagnostic/public routes
             if (isRouteExempt(req.path)) {
-                logger.debug('tenant-context-skipped', {
-                    path: req.path,
-                    reason: 'route-exempt',
-                });
                 next();
                 return;
             }
@@ -85,12 +80,6 @@ export const tenantContextMiddleware =
 
                 const resolution = await tenantRegistry.resolveTenant(options);
                 req.tenant = resolution;
-
-                logger.debug('tenant-context-resolved', {
-                    tenantId: resolution.tenantId,
-                    source: resolution.source,
-                    host: host ?? 'unknown',
-                });
 
                 next();
             } catch (error) {

@@ -144,10 +144,28 @@ class NavigationService {
     }
 
     /**
-     * Navigate to admin tenants page (System Admin only)
+     * Navigate to admin page with optional tab (System Admin only)
+     * @param tab - Optional tab to open ('tenants', 'diagnostics', 'users')
+     */
+    goToAdmin(tab?: 'tenants' | 'diagnostics' | 'users'): Promise<void> {
+        if (tab) {
+            return this.navigateTo(ROUTES.ADMIN, { queryParams: { tab } });
+        }
+        return this.navigateTo(ROUTES.ADMIN);
+    }
+
+    /**
+     * @deprecated Use goToAdmin('tenants') instead
      */
     goToAdminTenants(): Promise<void> {
-        return this.navigateTo(ROUTES.ADMIN_TENANTS);
+        return this.goToAdmin('tenants');
+    }
+
+    /**
+     * @deprecated Use goToAdmin('diagnostics') instead
+     */
+    goToAdminDiagnostics(): Promise<void> {
+        return this.goToAdmin('diagnostics');
     }
 
     /**

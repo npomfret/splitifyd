@@ -1,4 +1,5 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
+import { logError } from '@/utils/browser-logger';
 import { Alert, Avatar, Button, Card, Form, Input } from '@/components/ui';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
@@ -94,7 +95,9 @@ export function SettingsPage() {
             // No need for token refresh or page reload - UI updates automatically via signals
         } catch (error) {
             setErrorMessage(t('settingsPage.errorMessages.profileUpdateFailed'));
-            console.error('Profile update error:', error);
+            logError('settingsPage.profileUpdateFailed', error, {
+                userId: user?.uid,
+            });
         }
     };
 
@@ -145,7 +148,9 @@ export function SettingsPage() {
             } else {
                 setErrorMessage(t('settingsPage.errorMessages.passwordChangeFailed'));
             }
-            console.error('Password change error:', error);
+            logError('settingsPage.passwordChangeFailed', error, {
+                userId: user?.uid,
+            });
         } finally {
             setIsLoading(false);
         }
@@ -220,7 +225,10 @@ export function SettingsPage() {
             } else {
                 setErrorMessage(t('settingsPage.errorMessages.emailChangeFailed'));
             }
-            console.error('Email change error:', error);
+            logError('settingsPage.emailChangeFailed', error, {
+                userId: user?.uid,
+                attemptedEmail: trimmedEmail,
+            });
         } finally {
             setIsEmailLoading(false);
         }

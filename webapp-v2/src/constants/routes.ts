@@ -22,7 +22,8 @@ export const ROUTES = {
     SETTINGS: '/settings',
 
     // Admin Pages (System Admin only)
-    ADMIN_TENANTS: '/admin/tenants',
+    ADMIN: '/admin',
+    ADMIN_TENANTS: '/admin/tenants', // @deprecated Use ADMIN with ?tab=tenants
     USERS_BROWSER: '/browser/users',
 
     // Static Pages

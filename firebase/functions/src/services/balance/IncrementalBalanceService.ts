@@ -4,7 +4,6 @@ import { negateNormalizedAmount } from '@splitifyd/shared';
 import { GroupId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import type { ITransaction } from '../../firestore-wrapper';
-import { logger } from '../../logger';
 import type { GroupBalanceDTO, ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 import type { IFirestoreWriter } from '../firestore';
 import { DebtSimplificationService } from './DebtSimplificationService';
@@ -23,8 +22,6 @@ export class IncrementalBalanceService {
     }
 
     applyExpenseCreated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: string[]): void {
-        logger.info('Applying expense creation to balance', { groupId, expenseId: expense.id });
-
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const delta = this.expenseProcessor.processExpenses([expense], memberIds);
             const newBalancesByCurrency = this.applyDelta(currentBalance.balancesByCurrency, delta, memberIds, 1);
@@ -40,8 +37,6 @@ export class IncrementalBalanceService {
     }
 
     applyExpenseDeleted(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, expense: ExpenseDTO, memberIds: string[]): void {
-        logger.info('Applying expense deletion to balance', { groupId, expenseId: expense.id });
-
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const delta = this.expenseProcessor.processExpenses([expense], memberIds);
             const newBalancesByCurrency = this.applyDelta(currentBalance.balancesByCurrency, delta, memberIds, -1);
@@ -57,8 +52,6 @@ export class IncrementalBalanceService {
     }
 
     applyExpenseUpdated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, oldExpense: ExpenseDTO, newExpense: ExpenseDTO, memberIds: string[]): void {
-        logger.info('Applying expense update to balance', { groupId, expenseId: newExpense.id });
-
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const removeDelta = this.expenseProcessor.processExpenses([oldExpense], memberIds);
             const addDelta = this.expenseProcessor.processExpenses([newExpense], memberIds);
@@ -78,8 +71,6 @@ export class IncrementalBalanceService {
     }
 
     applySettlementCreated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, settlement: SettlementDTO, memberIds: string[]): void {
-        logger.info('Applying settlement creation to balance', { groupId, settlementId: settlement.id });
-
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const balancesByCurrency = JSON.parse(JSON.stringify(currentBalance.balancesByCurrency)) as CurrencyBalances;
 
@@ -121,8 +112,6 @@ export class IncrementalBalanceService {
     }
 
     applySettlementUpdated(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, oldSettlement: SettlementDTO, newSettlement: SettlementDTO, memberIds: string[]): void {
-        logger.info('Applying settlement update to balance', { groupId, settlementId: newSettlement.id });
-
         this.firestoreWriter.updateGroupBalanceInTransaction(transaction, groupId, currentBalance, (currentBalance) => {
             const balancesByCurrency = JSON.parse(JSON.stringify(currentBalance.balancesByCurrency)) as CurrencyBalances;
 

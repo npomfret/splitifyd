@@ -103,10 +103,10 @@ export function AdminTenantsPage() {
 
     return (
         <BaseLayout title="System Admin - Tenants">
-            <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="max-w-7xl mx-auto px-4 py-8 bg-slate-900 min-h-screen">
                 <div class="mb-6">
-                    <h1 class="text-3xl font-bold text-text-primary">Tenant Management</h1>
-                    <p class="mt-2 text-text-muted">View and manage all tenant configurations</p>
+                    <h1 class="text-3xl font-bold text-white">Tenant Management</h1>
+                    <p class="mt-2 text-slate-300">View and manage all tenant configurations</p>
                 </div>
 
                 {error && (
@@ -120,8 +120,8 @@ export function AdminTenantsPage() {
                 ) : (
                     <>
                         <div class="mb-4 flex items-center justify-between">
-                            <p class="text-sm text-text-muted">
-                                Total tenants: <span class="font-semibold">{tenants.length}</span>
+                            <p class="text-sm text-slate-300">
+                                Total tenants: <span class="font-semibold text-white">{tenants.length}</span>
                             </p>
                             <Button onClick={loadTenants} variant="secondary" size="sm">
                                 Refresh
@@ -134,21 +134,21 @@ export function AdminTenantsPage() {
                                 return (
                                     <Card
                                         key={tenant.tenant.tenantId}
-                                        className={`p-6 ${isCurrentTenant ? 'ring-2 ring-interactive-secondary bg-interactive-secondary/10' : ''}`}
+                                        className={`p-6 bg-slate-800 border border-slate-700 ${isCurrentTenant ? 'ring-2 ring-blue-500 bg-blue-900/20' : ''}`}
                                     >
                                         <div class="flex items-start justify-between">
                                             <div class="flex-1">
                                                 <div class="flex items-center gap-3 mb-2">
-                                                    <h3 class="text-lg font-semibold text-text-primary">
+                                                    <h3 class="text-lg font-semibold text-white">
                                                         {tenant.tenant.branding.appName}
                                                     </h3>
                                                     {isCurrentTenant && (
-                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-interactive-accent/10 text-semantic-success">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
                                                             Current
                                                         </span>
                                                     )}
                                                     {tenant.isDefault && (
-                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-warning text-text-primary">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
                                                             Default
                                                         </span>
                                                     )}
@@ -156,16 +156,16 @@ export function AdminTenantsPage() {
 
                                                 <div class="space-y-2 text-sm">
                                                     <div>
-                                                        <span class="text-text-muted">Tenant ID:</span>{' '}
-                                                        <span class="font-mono text-text-primary">{tenant.tenant.tenantId}</span>
+                                                        <span class="text-slate-400">Tenant ID:</span>{' '}
+                                                        <span class="font-mono text-slate-200">{tenant.tenant.tenantId}</span>
                                                     </div>
 
                                                     {tenant.primaryDomain && (
                                                         <div>
-                                                            <span class="text-text-muted">Primary Domain:</span>{' '}
+                                                            <span class="text-slate-400">Primary Domain:</span>{' '}
                                                             <button
                                                                 onClick={() => handleSwitchTenant(tenant.primaryDomain!)}
-                                                                class="font-mono text-interactive-primary hover:text-interactive-primary/80 hover:underline cursor-pointer"
+                                                                class="font-mono text-blue-400 hover:text-blue-300 hover:underline cursor-pointer"
                                                                 title="Click to switch to this tenant"
                                                             >
                                                                 {tenant.primaryDomain}
@@ -175,14 +175,14 @@ export function AdminTenantsPage() {
 
                                                     {tenant.domains.length > 0 && (
                                                         <div>
-                                                            <span class="text-text-muted">All Domains:</span>{' '}
-                                                            <span class="font-mono text-text-primary">
+                                                            <span class="text-slate-400">All Domains:</span>{' '}
+                                                            <span class="font-mono text-slate-200">
                                                                 {tenant.domains.map((domain, idx) => (
                                                                     <>
                                                                         {idx > 0 && ', '}
                                                                         <button
                                                                             onClick={() => handleSwitchTenant(domain)}
-                                                                            class="text-interactive-primary hover:text-interactive-primary/80 hover:underline cursor-pointer"
+                                                                            class="text-blue-400 hover:text-blue-300 hover:underline cursor-pointer"
                                                                             title="Click to switch to this tenant"
                                                                         >
                                                                             {domain}
@@ -193,33 +193,33 @@ export function AdminTenantsPage() {
                                                         </div>
                                                     )}
 
-                                                    <div class="pt-2 border-t border-border-default mt-3">
-                                                        <p class="text-text-muted mb-2">Features:</p>
+                                                    <div class="pt-2 border-t border-slate-700 mt-3">
+                                                        <p class="text-slate-400 mb-2">Features:</p>
                                                         <div class="grid grid-cols-2 gap-2">
                                                             <div>
-                                                                <span class="text-text-muted">Multi-Currency:</span>{' '}
-                                                                <span class={tenant.tenant.features.enableMultiCurrency ? 'text-semantic-success' : 'text-text-muted/80'}>
+                                                                <span class="text-slate-400">Multi-Currency:</span>{' '}
+                                                                <span class={tenant.tenant.features.enableMultiCurrency ? 'text-green-400' : 'text-slate-500'}>
                                                                     {tenant.tenant.features.enableMultiCurrency ? 'Enabled' : 'Disabled'}
                                                                 </span>
                                                             </div>
                                                             <div>
-                                                                <span class="text-text-muted">Advanced Reporting:</span>{' '}
-                                                                <span class={tenant.tenant.features.enableAdvancedReporting ? 'text-semantic-success' : 'text-text-muted/80'}>
+                                                                <span class="text-slate-400">Advanced Reporting:</span>{' '}
+                                                                <span class={tenant.tenant.features.enableAdvancedReporting ? 'text-green-400' : 'text-slate-500'}>
                                                                     {tenant.tenant.features.enableAdvancedReporting ? 'Enabled' : 'Disabled'}
                                                                 </span>
                                                             </div>
                                                             <div>
-                                                                <span class="text-text-muted">Max Groups:</span>{' '}
-                                                                <span class="text-text-primary">{tenant.tenant.features.maxGroupsPerUser || 'N/A'}</span>
+                                                                <span class="text-slate-400">Max Groups:</span>{' '}
+                                                                <span class="text-white">{tenant.tenant.features.maxGroupsPerUser || 'N/A'}</span>
                                                             </div>
                                                             <div>
-                                                                <span class="text-text-muted">Max Users per Group:</span>{' '}
-                                                                <span class="text-text-primary">{tenant.tenant.features.maxUsersPerGroup || 'N/A'}</span>
+                                                                <span class="text-slate-400">Max Users per Group:</span>{' '}
+                                                                <span class="text-white">{tenant.tenant.features.maxUsersPerGroup || 'N/A'}</span>
                                                             </div>
                                                         </div>
                                                     </div>
 
-                                                    <div class="pt-2 text-xs text-text-muted">
+                                                    <div class="pt-2 text-xs text-slate-400">
                                                         <div>Created: {new Date(tenant.tenant.createdAt).toLocaleDateString()}</div>
                                                         <div>Updated: {new Date(tenant.tenant.updatedAt).toLocaleDateString()}</div>
                                                     </div>
@@ -241,8 +241,8 @@ export function AdminTenantsPage() {
                         </div>
 
                         {tenants.length === 0 && (
-                            <Card className="p-12 text-center">
-                                <p class="text-text-muted">No tenants found</p>
+                            <Card className="p-12 text-center bg-slate-800 border border-slate-700">
+                                <p class="text-slate-400">No tenants found</p>
                             </Card>
                         )}
                     </>

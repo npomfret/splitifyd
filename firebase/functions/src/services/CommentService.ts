@@ -59,13 +59,6 @@ export class CommentService {
             authorAvatar: comment.authorAvatar || undefined,
         }));
 
-        logger.info('comments-listed', {
-            targetType: 'group',
-            targetId: groupId,
-            count: comments.length,
-            timings: timer.getTimings(),
-        });
-
         return {
             comments,
             hasMore: result.hasMore,
@@ -94,13 +87,6 @@ export class CommentService {
             ...comment,
             authorAvatar: comment.authorAvatar || undefined,
         }));
-
-        logger.info('comments-listed', {
-            targetType: 'expense',
-            targetId: expenseId,
-            count: comments.length,
-            timings: timer.getTimings(),
-        });
 
         return {
             comments,

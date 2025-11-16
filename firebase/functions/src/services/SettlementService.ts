@@ -102,12 +102,6 @@ export class SettlementService {
         const result = await this._getGroupSettlementsData(groupId, options);
         timer.endPhase();
 
-        logger.info('settlements-listed', {
-            groupId,
-            count: result.count,
-            timings: timer.getTimings(),
-        });
-
         return result;
     }
 

@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 import { createHandlerRegistry } from '../ApplicationFactory';
 import { FirestoreCollections } from '../constants';
+import { logger } from '../logger';
 import { ComponentBuilder } from '../services/ComponentBuilder';
 
 /**
@@ -533,7 +534,11 @@ export function createRouteDefinitions(componentBuilder: ComponentBuilder) {
         if (handler) {
             route.handler = handler;
         } else if (!route.isInline) {
-            console.warn(`Warning: No handler found for route ${route.method} ${route.path} (${route.handlerName})`);
+            logger.warn('route-handler-missing', {
+                method: route.method,
+                path: route.path,
+                handlerName: route.handlerName,
+            });
         }
     }
 

@@ -1,4 +1,5 @@
 import { Alert, Button, Card, Input, LoadingSpinner } from '@/components/ui';
+import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles } from '@splitifyd/shared';
 import type { AddTenantDomainRequest, TenantDomainsResponse } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
@@ -48,7 +49,9 @@ export function DomainManagementPage() {
                 setDomains(domainsData);
             } catch (error: any) {
                 setErrorMessage(error.message || 'Failed to load tenant domains');
-                console.error('Failed to load tenant domains:', error);
+                logError('domainManagement.loadDomainsFailed', error, {
+                    userId: user?.uid,
+                });
             } finally {
                 setIsLoading(false);
             }
@@ -96,17 +99,20 @@ export function DomainManagementPage() {
             // Reload domains
             const domainsData = await apiClient.getTenantDomains();
             setDomains(domainsData);
-        } catch (error: any) {
-            if (error.code === 'NOT_IMPLEMENTED') {
-                setErrorMessage('Domain addition not yet implemented on the backend');
-            } else {
-                setErrorMessage(error.message || 'Failed to add domain');
+            } catch (error: any) {
+                if (error.code === 'NOT_IMPLEMENTED') {
+                    setErrorMessage('Domain addition not yet implemented on the backend');
+                } else {
+                    setErrorMessage(error.message || 'Failed to add domain');
+                }
+                logError('domainManagement.addDomainFailed', error, {
+                    userId: user?.uid,
+                    domain: newDomain.trim(),
+                });
+            } finally {
+                setIsAdding(false);
             }
-            console.error('Failed to add domain:', error);
-        } finally {
-            setIsAdding(false);
-        }
-    };
+        };
 
     const handleCopyDnsInstructions = async () => {
         const dnsText = `CNAME Record Configuration:
@@ -121,7 +127,9 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
             await navigator.clipboard.writeText(dnsText);
             setCopiedDns(true);
         } catch (error) {
-            console.error('Failed to copy DNS instructions:', error);
+            logError('domainManagement.copyDnsInstructionsFailed', error, {
+                userId: user?.uid,
+            });
         }
     };
 

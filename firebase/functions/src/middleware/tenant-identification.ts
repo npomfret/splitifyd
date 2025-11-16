@@ -1,7 +1,6 @@
 import express from 'express';
 import type { TenantResolutionOptions } from '../services/tenant/TenantRegistryService';
 import { TenantRegistryService } from '../services/tenant/TenantRegistryService';
-import { logger } from '../logger';
 
 export interface TenantIdentificationConfig {
     allowOverrideHeader: () => boolean;
@@ -39,12 +38,6 @@ class TenantIdentification {
             const resolution = await this.tenantRegistry.resolveTenant(this.buildResolutionOptions(req));
             req.tenant = resolution;
 
-            logger.debug('tenant-identification:resolved', {
-                tenantId: resolution.tenantId,
-                source: resolution.source,
-                path: req.path,
-            });
-
             next();
         } catch (error) {
             next(error);
@@ -53,14 +46,10 @@ class TenantIdentification {
 
     private shouldSkip(req: express.Request): boolean {
         if (EXEMPT_ROUTES.includes(req.path)) {
-            logger.debug('tenant-identification:skipped', { path: req.path, reason: 'route-exempt' });
             return true;
         }
 
         const exempt = EXEMPT_PATTERNS.some((pattern) => pattern.test(req.path));
-        if (exempt) {
-            logger.debug('tenant-identification:skipped', { path: req.path, reason: 'pattern-exempt' });
-        }
         return exempt;
     }
 

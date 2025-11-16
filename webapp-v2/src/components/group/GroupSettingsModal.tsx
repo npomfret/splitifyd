@@ -485,7 +485,7 @@ export function GroupSettingsModal({
             onClose();
 
             apiClient.deleteGroup(group.id).catch((error) => {
-                console.error('Group deletion failed (user already redirected):', error);
+                logError('Group deletion failed after redirect', error, { groupId: group.id });
             });
         } catch (error) {
             const message = error instanceof Error ? error.message : t('editGroupModal.deleteConfirmDialog.deleteFailed');

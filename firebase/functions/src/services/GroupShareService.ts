@@ -403,13 +403,6 @@ export class GroupShareService {
 
         const existingMemberIds = existingMembers.map((member) => member.uid);
 
-        logger.info('JOIN: Fetched existing members before transaction', {
-            groupId,
-            joiningUserId: userId,
-            existingMembersIds: existingMemberIds,
-            existingMembersCount: existingMemberIds.length,
-        });
-
         // Enforce hard cap on group size
         if (existingMemberIds.length >= MAX_GROUP_MEMBERS) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'GROUP_AT_CAPACITY', `Cannot add member. Group has reached maximum size of ${MAX_GROUP_MEMBERS} members`);
@@ -489,14 +482,6 @@ export class GroupShareService {
                 if (activityRecipients.size > 0) {
                     timer.startPhase('transaction:buildActivityItem');
                     const groupName = groupInTransaction.name;
-
-                    logger.info('JOIN: Recording activity feed for member join', {
-                        groupId,
-                        joiningUserId: userId,
-                        actorName: memberDoc.groupDisplayName,
-                        recipients: Array.from(activityRecipients),
-                        recipientCount: activityRecipients.size,
-                    });
 
                     const activityItem = this.activityFeedService.buildGroupActivityItem({
                         groupId,

@@ -25,16 +25,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     const [displayNameValidationError, setDisplayNameValidationError] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
     const emitModalDebugLog = (message: string, data?: Record<string, unknown>) => {
-        if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
-            console.info(
-                `${message}:`,
-                JSON.stringify({
-                    timestamp: new Date().toISOString(),
-                    ...(data ?? {}),
-                }),
-            );
-        }
-
         logInfo(message, data);
     };
 

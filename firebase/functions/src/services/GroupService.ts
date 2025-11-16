@@ -277,12 +277,6 @@ export class GroupService {
         );
         timer.endPhase();
 
-        logger.info('groups-listed', {
-            userId,
-            count: groupsWithBalances.length,
-            timings: timer.getTimings(),
-        });
-
         // Step 3: Build response
         return {
             groups: groupsWithBalances,
@@ -417,7 +411,7 @@ export class GroupService {
             // PHASE 1: ALL READS FIRST
             const currentGroup = context.group;
             if (!currentGroup) {
-                logger.info('Group not found during soft delete transaction; assuming already deleted', { groupId });
+                logger.warn('group-soft-delete-missing', { groupId });
                 return;
             }
 
@@ -560,16 +554,10 @@ export class GroupService {
         const { group } = await this.fetchGroupWithAccess(groupId, userId, true, { includeDeleted: true });
 
         if (group.deletedAt) {
-            logger.info('Group already soft deleted, returning success', { groupId });
             return { message: 'Group deleted successfully' };
         }
         const memberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
         const requestContext = { groupId, memberCount: memberIds.length, members: memberIds };
-
-        logger.info('Initiating group soft delete', {
-            ...requestContext,
-            operation: 'SOFT_DELETE',
-        });
 
         const now = toISOString(new Date().toISOString());
         let performedDeletion = false;
@@ -583,7 +571,7 @@ export class GroupService {
             }
 
             if (currentGroup.deletedAt) {
-                logger.info('Group already soft deleted during transaction', { groupId });
+                logger.warn('group-soft-delete-race', { groupId });
                 return;
             }
 
@@ -656,9 +644,8 @@ export class GroupService {
 
         LoggerContext.setBusinessContext({ groupId });
 
-        logger.info('Group soft delete completed', {
+        logger.info('group-soft-delete-completed', {
             ...requestContext,
-            operation: 'SOFT_DELETE_SUCCESS',
             performedDeletion,
         });
 

@@ -518,12 +518,6 @@ export class ExpenseService {
             };
         });
 
-        logger.info('expenses-listed', {
-            groupId,
-            count: expenses.length,
-            timings: timer.getTimings(),
-        });
-
         return {
             expenses,
             count: expenses.length,
