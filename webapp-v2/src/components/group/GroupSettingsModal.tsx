@@ -625,7 +625,7 @@ export function GroupSettingsModal({
                 <section className='border border-border-default rounded-lg p-5 space-y-4 bg-surface-muted/60' data-testid='group-display-name-settings'>
                     <div>
                         <h3 className='text-sm font-semibold text-text-primary'>{t('groupDisplayNameSettings.title')}</h3>
-                        <p className='text-sm text-text-muted mt-1'>{t('groupDisplayNameSettings.description')}</p>
+                        <p className='text-sm text-text-primary/70 mt-1'>{t('groupDisplayNameSettings.description')}</p>
                     </div>
 
                     <form onSubmit={handleDisplayNameSubmit} className='space-y-4'>
@@ -693,7 +693,7 @@ export function GroupSettingsModal({
                         <div>
                             <label className='block text-sm font-medium text-text-primary mb-2'>{t('editGroupModal.descriptionLabel')}</label>
                             <textarea
-                                className='w-full px-3 py-2 border border-border-default rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none'
+                                className='w-full px-3 py-2 border border-border-default bg-surface-raised backdrop-blur-sm text-text-primary placeholder:text-text-muted/70 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none transition-colors duration-200'
                                 rows={3}
                                 placeholder={t('editGroupModal.descriptionPlaceholder')}
                                 value={groupDescription}
@@ -783,7 +783,7 @@ export function GroupSettingsModal({
                                 <div className='flex items-center justify-between'>
                                     <span className='font-medium text-text-primary'>{t(`securitySettingsModal.presets.${preset}.label`)}</span>
                                 </div>
-                                <p className='text-sm text-text-muted mt-1'>{t(`securitySettingsModal.presets.${preset}.description`)}</p>
+                                <p className='text-sm text-text-primary/70 mt-1'>{t(`securitySettingsModal.presets.${preset}.description`)}</p>
                                 {isActive && <span className='text-xs text-interactive-primary font-medium mt-2 block'>{t('securitySettingsModal.presets.activeBadge')}</span>}
                             </button>
                         );
@@ -801,7 +801,7 @@ export function GroupSettingsModal({
                         <label key={key} className='flex flex-col text-sm text-text-primary gap-2 border border-border-default rounded-lg px-4 py-3'>
                             <span className='font-medium text-text-primary'>{t(`securitySettingsModal.permissions.${key}.label`)}</span>
                             <select
-                                className='border border-border-default rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-sm'
+                                className='border border-border-default bg-surface-raised backdrop-blur-sm text-text-primary rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-sm transition-colors duration-200'
                                 value={permissionDraft[key]}
                                 onChange={(event) => handlePermissionChange(key, event.currentTarget.value)}
                                 data-testid={`permission-select-${key}`}
@@ -812,11 +812,11 @@ export function GroupSettingsModal({
                                     </option>
                                 ))}
                             </select>
-                            <span className='text-xs text-text-muted'>{t(`securitySettingsModal.permissions.${key}.description`)}</span>
+                            <span className='text-xs text-text-primary/60'>{t(`securitySettingsModal.permissions.${key}.description`)}</span>
                         </label>
                     ))}
                 </div>
-                <p className='text-xs text-text-muted text-right mt-2'>{t('securitySettingsModal.custom.saveHelper')}</p>
+                <p className='text-xs text-text-primary/60 text-right mt-2'>{t('securitySettingsModal.custom.saveHelper')}</p>
             </section>
 
             {canManageMembers && (
@@ -827,10 +827,10 @@ export function GroupSettingsModal({
                             <div key={member.uid} className='flex items-center justify-between border border-border-default rounded-lg px-4 py-2'>
                                 <div>
                                     <div className='font-medium text-text-primary text-sm'>{member.groupDisplayName || member.uid}</div>
-                                    <div className='text-xs text-text-muted'>{t(`securitySettingsModal.memberRoles.${memberRoleDrafts[member.uid] ?? member.memberRole}`)}</div>
+                                    <div className='text-xs text-text-primary/60'>{t(`securitySettingsModal.memberRoles.${memberRoleDrafts[member.uid] ?? member.memberRole}`)}</div>
                                 </div>
                                 <select
-                                    className='border border-border-default rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary'
+                                    className='border border-border-default bg-surface-raised backdrop-blur-sm text-text-primary rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200'
                                     value={memberRoleDrafts[member.uid] ?? member.memberRole}
                                     onChange={(event) => updateMemberRoleDraft(member.uid, event.currentTarget.value as MemberRole)}
                                     disabled={member.uid === group.createdBy}
@@ -857,13 +857,13 @@ export function GroupSettingsModal({
                             <LoadingSpinner />
                         </div>
                     )}
-                    {!loadingPending && pendingMembers.length === 0 && <p className='text-sm text-text-muted'>{t('securitySettingsModal.pendingMembers.empty')}</p>}
+                    {!loadingPending && pendingMembers.length === 0 && <p className='text-sm text-text-primary/70'>{t('securitySettingsModal.pendingMembers.empty')}</p>}
                     <div className='space-y-3'>
                         {pendingMembers.map((member) => (
                             <div key={member.uid} className='flex items-center justify-between border border-border-default rounded-lg px-4 py-2'>
                                 <div>
                                     <div className='font-medium text-text-primary text-sm'>{member.groupDisplayName || member.uid}</div>
-                                    <div className='text-xs text-text-muted'>{t('securitySettingsModal.pendingMembers.requested')}</div>
+                                    <div className='text-xs text-text-primary/60'>{t('securitySettingsModal.pendingMembers.requested')}</div>
                                 </div>
                                 <div className='flex gap-2'>
                                     <Button

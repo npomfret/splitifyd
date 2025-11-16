@@ -199,25 +199,6 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
             headerVariant='dashboard'
         >
             <div className='min-h-screen'>
-                {/* Page Header */}
-                <div className='glass-panel border-b border-border-default shadow-lg sticky top-16 z-40' data-testid='expense-header'>
-                    <div className='max-w-3xl mx-auto px-4 py-4'>
-                        <div className='flex items-center gap-4'>
-                            <Button variant='ghost' onClick={handleBack}>
-                                {t('pages.expenseDetailPage.backButton')}
-                            </Button>
-                            <div className='flex-1'>
-                                <h1 className='text-xl font-bold text-text-primary'>
-                                    {expense.value.description}
-                                </h1>
-                                <p className='text-sm text-text-primary/70 mt-1'>
-                                    <CurrencyAmount amount={expense.value.amount} currency={expense.value.currency} />
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 {/* Content */}
                 <div className='max-w-3xl mx-auto px-4 py-6'>
                     <Stack spacing='md'>
@@ -241,35 +222,41 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         {/* Consolidated Top Card - Main Info, Paid By, Actions, and Metadata */}
                         <Card variant='glass' className='border-border-default' data-testid='expense-summary-card'>
                             <Stack spacing='lg'>
+                                {/* Back Button */}
+                                <div className='flex items-center'>
+                                    <Button variant='ghost' onClick={handleBack}>
+                                        {t('pages.expenseDetailPage.backButton')}
+                                    </Button>
+                                </div>
+
                                 {/* Top Section - Amount & Description */}
                                 <div className='text-center pb-4 border-b border-border-default' data-testid='expense-amount-section'>
                                     <h2 className='text-3xl font-bold text-text-primary' data-testid='expense-amount'>
                                         <CurrencyAmount amount={expense.value.amount} currency={expense.value.currency} />
                                     </h2>
-                                    <p className='text-lg text-text-muted mt-2'>{expense.value.description}</p>
+                                    <p className='text-lg text-text-primary/80 mt-2'>{expense.value.description}</p>
                                 </div>
 
                                 {/* Middle Section - Key Details Grid */}
                                 <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                                     {/* Date */}
                                     <div>
-                                        <p className='text-sm text-text-muted'>{t('pages.expenseDetailPage.date')}</p>
+                                        <p className='text-sm text-text-primary/60'>{t('pages.expenseDetailPage.date')}</p>
                                         <p className='font-medium text-text-primary'>{formatExpenseDateTime(expense.value.date)}</p>
-                                        <p className='text-sm text-text-muted mt-1'>
-                                            ({formatDistanceToNow(new Date(expense.value.date))}
-                                            {t('pages.expenseDetailPage.ago')})
+                                        <p className='text-sm text-text-primary/60 mt-1'>
+                                            ({formatDistanceToNow(new Date(expense.value.date))})
                                         </p>
                                     </div>
 
                                     {/* Label */}
                                     <div>
-                                        <p className='text-sm text-text-muted'>{t('pages.expenseDetailPage.label')}</p>
+                                        <p className='text-sm text-text-primary/60'>{t('pages.expenseDetailPage.label')}</p>
                                         <p className='font-medium text-text-primary'>{expense.value.label}</p>
                                     </div>
 
                                     {/* Paid By */}
                                     <div>
-                                        <p className='text-sm text-text-muted mb-2'>{t('pages.expenseDetailPage.paidBy')}</p>
+                                        <p className='text-sm text-text-primary/60 mb-2'>{t('pages.expenseDetailPage.paidBy')}</p>
                                         <div className='flex items-center gap-2'>
                                             <Avatar displayName={payerName} userId={expense.value.paidBy} size='sm' />
                                             <div>
@@ -320,7 +307,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
                         {/* Metadata - Moved to Bottom */}
                         <Card variant='glass' className='border-border-default' data-testid='expense-metadata-card'>
-                            <div className='text-sm text-text-muted'>
+                            <div className='text-sm text-text-primary/60'>
                                 <div className='flex items-center justify-between'>
                                     <span>
                                         {t('pages.expenseDetailPage.added')}

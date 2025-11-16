@@ -53,6 +53,25 @@ import {UserRegistrationBuilder} from './builders';
 import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
 import {Matcher, PollOptions, pollUntil} from './Polling';
 
+const randomLetters = (min: number, max: number): string => {
+    const length = Math.floor(Math.random() * (max - min + 1)) + min;
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += alphabet[Math.floor(Math.random() * alphabet.length)];
+    }
+    return result;
+};
+
+const generateUserStyleDisplayName = (): string => {
+    const parts = ['User', randomLetters(2, 7)];
+    const extraParts = Math.random() < 0.5 ? 0 : 1; // total sections: 2 or 3 after "User"
+    for (let i = 0; i < extraParts; i++) {
+        parts.push(randomLetters(2, 8));
+    }
+    return parts.join(' ');
+};
+
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
 const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
@@ -238,7 +257,7 @@ export class ApiDriver {
     }
 
     async joinGroupByLink(shareToken: ShareLinkToken | string, token: AuthToken): Promise<JoinGroupResponse> {
-        const displayName = `Test User ${Date.now()}`;
+        const displayName = generateUserStyleDisplayName();
         return await this.apiRequest('/groups/join', 'POST', { shareToken, groupDisplayName: displayName }, token);
     }
 
