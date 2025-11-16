@@ -114,13 +114,15 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
         'py-2',
         'text-text-primary',
         'shadow-sm',
-        'placeholder:text-text-muted/80',
+        'placeholder:text-text-muted/70',
         'focus:outline-none',
         'focus:ring-2',
         'sm:text-sm',
         'sm:leading-6',
         'transition-colors',
         'duration-200',
+        'bg-surface-raised',
+        'backdrop-blur-sm',
     ];
 
     const stateClasses = error ? 'border-border-error text-semantic-error focus:ring-semantic-error focus:border-semantic-error' : 'border-border-default focus:ring-interactive-primary focus:border-interactive-primary';

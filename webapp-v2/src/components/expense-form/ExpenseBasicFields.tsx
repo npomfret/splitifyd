@@ -29,13 +29,13 @@ export function ExpenseBasicFields(
     const recentCurrencies = currencyService.getRecentCurrencies();
 
     return (
-        <Card data-testid='expense-details-section'>
+        <Card variant='glass' className='border-border-default' data-testid='expense-details-section'>
             <Stack spacing='md'>
-                <h2 className='text-lg font-semibold text-text-primary dark:text-white'>{t('expenseBasicFields.title')}</h2>
+                <h2 className='text-lg font-semibold text-text-primary'>{t('expenseBasicFields.title')}</h2>
 
                 {/* Description */}
                 <div>
-                    <label className='block text-sm font-medium text-text-primary dark:text-text-muted/60 mb-1'>
+                    <label className='block text-sm font-medium text-text-primary mb-1'>
                         {t('expenseBasicFields.descriptionLabel')}{' '}
                         <span className='text-semantic-error' data-testid='required-indicator'>
                             *
@@ -46,15 +46,15 @@ export function ExpenseBasicFields(
                         name='expense-description'
                         value={description}
                         onInput={(e) => updateField('description', (e.target as HTMLInputElement).value)}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-white ${
-                            validationErrors.description ? 'border-semantic-error dark:border-semantic-error' : 'border-border-default dark:border-border-strong'
+                        className={`w-full px-3 py-2 border rounded-lg bg-surface-raised backdrop-blur-sm text-text-primary placeholder:text-text-muted/70 focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200 ${
+                            validationErrors.description ? 'border-semantic-error' : 'border-border-default'
                         }`}
                         placeholder={t('expenseBasicFields.descriptionPlaceholder')}
                         required
                         autoComplete='off'
                     />
                     {validationErrors.description && (
-                        <p className='text-sm text-semantic-error dark:text-semantic-error/80 mt-1' role='alert' data-testid='validation-error-description'>
+                        <p className='text-sm text-semantic-error mt-1' role='alert' data-testid='validation-error-description'>
                             {validationErrors.description}
                         </p>
                     )}
@@ -86,14 +86,14 @@ export function ExpenseBasicFields(
                         {/* when the form first renders the currency and amount are empty */}
                         {recentAmounts.length > 0 && amount && currency && (
                             <div className='mt-2'>
-                                <p className='text-xs text-text-muted dark:text-text-muted/80 mb-1'>{t('expenseBasicFields.recentAmounts')}</p>
+                                <p className='text-xs text-text-muted mb-1'>{t('expenseBasicFields.recentAmounts')}</p>
                                 <div className='flex flex-wrap gap-1'>
                                     {recentAmounts.map((amt, index) => (
                                         <button
                                             key={index}
                                             type='button'
                                             onClick={() => updateField('amount', amt)}
-                                            className='px-2 py-1 text-xs bg-surface-muted dark:bg-text-primary text-text-primary dark:text-text-muted/60 rounded hover:bg-surface-muted dark:hover:bg-text-primary transition-colors'
+                                            className='px-2 py-1 text-xs bg-surface-base/50 border border-border-default/50 text-text-primary rounded hover:bg-surface-muted hover:border-interactive-primary/40 transition-all duration-200'
                                         >
                                             <CurrencyAmount amount={amt} currency={currency} />
                                         </button>
@@ -113,7 +113,6 @@ export function ExpenseBasicFields(
                             placeholder={t('expenseBasicFields.labelPlaceholder')}
                             required
                             error={validationErrors.label}
-                            className='dark:bg-text-primary dark:text-white dark:border-border-strong'
                         />
                     </div>
                 </div>
@@ -122,7 +121,7 @@ export function ExpenseBasicFields(
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     {/* Date */}
                     <div>
-                        <label className='block text-sm font-medium text-text-primary dark:text-text-muted/60 mb-1'>
+                        <label className='block text-sm font-medium text-text-primary mb-1'>
                             {t('expenseBasicFields.dateLabel')}{' '}
                             <span className='text-semantic-error' data-testid='required-indicator'>
                                 *
@@ -132,14 +131,14 @@ export function ExpenseBasicFields(
                             type='date'
                             value={date}
                             onInput={(e) => updateField('date', (e.target as HTMLInputElement).value)}
-                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary dark:bg-text-primary dark:text-white ${
-                                validationErrors.date ? 'border-semantic-error dark:border-semantic-error' : 'border-border-default dark:border-border-strong'
+                            className={`w-full px-3 py-2 border rounded-lg bg-surface-raised backdrop-blur-sm text-text-primary focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200 ${
+                                validationErrors.date ? 'border-semantic-error' : 'border-border-default'
                             }`}
                             required
                             autoComplete='off'
                         />
                         {validationErrors.date && (
-                            <p className='text-sm text-semantic-error dark:text-semantic-error/80 mt-1' role='alert' data-testid='validation-error-date'>
+                            <p className='text-sm text-semantic-error mt-1' role='alert' data-testid='validation-error-date'>
                                 {validationErrors.date}
                             </p>
                         )}
@@ -219,7 +218,6 @@ export function ExpenseBasicFields(
                                     onChange={(newTime) => updateField('time', newTime)}
                                     label={t('expenseBasicFields.timeLabel')}
                                     error={validationErrors.time}
-                                    className='dark:bg-text-primary dark:text-white dark:border-border-strong'
                                 />
                             )
                             : (
@@ -236,10 +234,10 @@ export function ExpenseBasicFields(
                                                 const minutes = now.getMinutes().toString().padStart(2, '0');
                                                 updateField('time', `${hours}:${minutes}`);
                                             }}
-                                            className='p-2 rounded-lg hover:bg-surface-muted dark:hover:bg-text-primary transition-colors'
+                                            className='p-2 rounded-lg hover:bg-surface-muted transition-colors'
                                             aria-label={t('expenseBasicFields.addSpecificTime')}
                                         >
-                                            <ClockIcon className='h-5 w-5 text-text-muted dark:text-text-muted/80 hover:text-text-primary dark:hover:text-text-muted/40' aria-hidden='true' />
+                                            <ClockIcon className='h-5 w-5 text-text-muted hover:text-text-primary' aria-hidden='true' />
                                         </button>
                                     </Tooltip>
                                 </div>

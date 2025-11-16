@@ -115,9 +115,9 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
     const subtitleId = 'policy-modal-subtitle';
 
     return (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50' data-testid='policy-modal-overlay'>
+        <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50' data-testid='policy-modal-overlay'>
             <div
-                className='bg-surface-base border-border-default rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col'
+                className='bg-surface-base border-border-default rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col opacity-100'
                 role='dialog'
                 aria-modal='true'
                 aria-labelledby={titleId}

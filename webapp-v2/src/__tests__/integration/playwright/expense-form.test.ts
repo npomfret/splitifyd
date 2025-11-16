@@ -86,6 +86,29 @@ test.describe('Expense Form', () => {
         });
     });
 
+    test.describe('Unsaved changes guard', () => {
+        test('cancel without edits should not prompt', async ({ authenticatedPage }) => {
+            const groupId = 'unsaved-guard-group';
+            const { expenseFormPage, page } = await openExpenseFormForTest(authenticatedPage, groupId);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            const dialogs: string[] = [];
+            const onDialog = (dialog: any) => {
+                dialogs.push(dialog.message());
+                void dialog.dismiss();
+            };
+            page.on('dialog', onDialog);
+
+            await expenseFormPage.getCancelButton().click();
+
+            await expect(page).toHaveURL(/\/groups\/unsaved-guard-group$/);
+            expect(dialogs).toHaveLength(0);
+
+            page.off('dialog', onDialog);
+        });
+    });
+
     test.describe('Equal Split Recalculation', () => {
         test('should recalculate EQUAL splits when amount changes', async ({ authenticatedPage }) => {
             const { page, user: testUser } = authenticatedPage;

@@ -38,7 +38,7 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
                 aria-labelledby={labelledBy}
                 aria-describedby={describedBy}
                 className={cx(
-                    'w-full rounded-2xl border border-border-default bg-surface-base text-text-primary shadow-lg',
+                    'w-full rounded-2xl border border-border-default bg-surface-base text-text-primary shadow-2xl opacity-100',
                     sizeClasses[size],
                     className,
                 )}

@@ -63,7 +63,7 @@ export function Tooltip({ content, children, placement = 'top', className }: Too
             <span
                 id={tooltipId}
                 role='tooltip'
-                className={`pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-text-primary px-2 py-1 text-xs font-medium text-white shadow-lg transition-opacity duration-150 ${positionClasses} ${
+                className={`pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md border border-border-strong bg-surface-raised px-2.5 py-1.5 text-xs font-medium text-text-primary shadow-md transition-opacity duration-150 backdrop-blur-sm ${positionClasses} ${
                     isVisible ? 'opacity-100' : 'opacity-0'
                 }`}
                 aria-hidden={!isVisible}

@@ -189,6 +189,13 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
+     * Click cancel and wait for navigation; preferred in tests that assert no unsaved prompt.
+     */
+    async clickCancel(): Promise<void> {
+        await this.getCancelButton().click();
+    }
+
+    /**
      * Update Expense button (edit mode)
      */
     getUpdateExpenseButton(): Locator {

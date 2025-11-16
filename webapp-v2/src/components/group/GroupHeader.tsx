@@ -14,11 +14,11 @@ interface GroupHeaderProps {
 export function GroupHeader({ group, members, expenseCount = 0, onSettings, showSettingsButton }: GroupHeaderProps) {
     const { t } = useTranslation();
     return (
-        <Card className='p-6'>
+        <Card variant='glass' className='p-6 border-border-default'>
             <div className='flex justify-between items-start mb-4'>
                 <div>
                     <h1 className='text-2xl font-bold mb-2'>{group.name}</h1>
-                    {group.description && <p className='text-text-muted' data-testid='group-description'>{group.description}</p>}
+                    {group.description && <p className='text-text-primary/80' data-testid='group-description'>{group.description}</p>}
                 </div>
                 <div className='flex gap-2'>
                     {showSettingsButton && onSettings && (

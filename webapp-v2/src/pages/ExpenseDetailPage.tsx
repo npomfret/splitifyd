@@ -159,7 +159,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     if (loading.value) {
         return (
             <BaseLayout>
-                <div className='min-h-screen bg-surface-muted p-4'>
+                <div className='min-h-screen p-4'>
                     <LoadingSpinner size='lg' />
                 </div>
             </BaseLayout>
@@ -169,7 +169,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     if (error.value || !expense.value) {
         return (
             <BaseLayout>
-                <div className='min-h-screen bg-surface-muted p-4'>
+                <div className='min-h-screen p-4'>
                     <Card className='max-w-md mx-auto mt-8' data-testid='expense-error-card'>
                         <Stack spacing='md'>
                             <h2 className='text-xl font-semibold text-semantic-error' role='alert' data-testid='page-error-title'>
@@ -198,20 +198,22 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
             }`}
             headerVariant='dashboard'
         >
-            <div className='min-h-screen bg-surface-muted'>
+            <div className='min-h-screen'>
                 {/* Page Header */}
-                <div className='bg-surface-base border-b border-border-default shadow-sm' data-testid='expense-header'>
+                <div className='glass-panel border-b border-border-default shadow-lg sticky top-16 z-40' data-testid='expense-header'>
                     <div className='max-w-3xl mx-auto px-4 py-4'>
-                        <div className='flex items-center justify-between'>
+                        <div className='flex items-center gap-4'>
                             <Button variant='ghost' onClick={handleBack}>
                                 {t('pages.expenseDetailPage.backButton')}
                             </Button>
-                            <h1 className='text-xl font-bold text-text-primary'>
-                                {truncateDescription(expense.value.description)}
-                                {t('pages.expenseDetailPage.titleSeparator')}
-                                <CurrencyAmount amount={expense.value.amount} currency={expense.value.currency} />
-                            </h1>
-                            <div className='w-16'></div> {/* Spacer for centered title */}
+                            <div className='flex-1'>
+                                <h1 className='text-xl font-bold text-text-primary'>
+                                    {expense.value.description}
+                                </h1>
+                                <p className='text-sm text-text-primary/70 mt-1'>
+                                    <CurrencyAmount amount={expense.value.amount} currency={expense.value.currency} />
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -237,7 +239,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         )}
 
                         {/* Consolidated Top Card - Main Info, Paid By, Actions, and Metadata */}
-                        <Card data-testid='expense-summary-card'>
+                        <Card variant='glass' className='border-border-default' data-testid='expense-summary-card'>
                             <Stack spacing='lg'>
                                 {/* Top Section - Amount & Description */}
                                 <div className='text-center pb-4 border-b border-border-default' data-testid='expense-amount-section'>
@@ -285,12 +287,12 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         </Card>
 
                         {/* Split Information - Kept Separate */}
-                        <Card data-testid='expense-split-card'>
+                        <Card variant='glass' className='border-border-default' data-testid='expense-split-card'>
                             <SplitBreakdown expense={expense.value} members={members.value} />
                         </Card>
 
                         {/* Comments Section */}
-                        <Card data-testid='expense-comments-card'>
+                        <Card variant='glass' className='border-border-default' data-testid='expense-comments-card'>
                             <Stack spacing='md'>
                                 <h3 className='font-semibold text-text-primary'>{t('pages.expenseDetailPage.discussion')}</h3>
                                 <CommentsSection target={{ type: 'expense', expenseId: expenseId! }} maxHeight='300px' />
@@ -299,7 +301,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
                         {/* Receipt - Kept Separate */}
                         {expense.value.receiptUrl && (
-                            <Card data-testid='expense-receipt-card'>
+                            <Card variant='glass' className='border-border-default' data-testid='expense-receipt-card'>
                                 <Stack spacing='md'>
                                     <h3 className='font-semibold text-text-primary'>{t('pages.expenseDetailPage.receipt')}</h3>
                                     <div className='text-center'>
@@ -317,7 +319,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         )}
 
                         {/* Metadata - Moved to Bottom */}
-                        <Card className='bg-surface-muted' data-testid='expense-metadata-card'>
+                        <Card variant='glass' className='border-border-default' data-testid='expense-metadata-card'>
                             <div className='text-sm text-text-muted'>
                                 <div className='flex items-center justify-between'>
                                     <span>

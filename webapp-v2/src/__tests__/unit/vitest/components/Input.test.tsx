@@ -208,7 +208,7 @@ describe('Input Component', () => {
 
             const input = screen.getByRole('textbox');
             expect(input).toBeEnabled();
-            expect(input).toHaveClass('bg-surface-base');
+            expect(input).toHaveClass('bg-surface-raised');
             expect(input).not.toHaveClass('cursor-not-allowed');
         });
     });

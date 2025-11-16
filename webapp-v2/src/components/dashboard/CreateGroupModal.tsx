@@ -204,8 +204,8 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         && DISPLAY_NAME_PATTERN.test(trimmedDisplayName);
 
     return (
-        <div class='fixed inset-0 bg-surface-overlay overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
-            <div class='relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-surface-raised border-border-default' ref={modalRef} role='dialog' aria-modal='true' aria-labelledby='create-group-modal-title'>
+        <div class='fixed inset-0 bg-black/40 backdrop-blur-sm overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
+            <div class='relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-surface-base border-border-default opacity-100' ref={modalRef} role='dialog' aria-modal='true' aria-labelledby='create-group-modal-title'>
                 {/* Modal Header */}
                 <div class='flex items-center justify-between mb-6'>
                     <h3 id='create-group-modal-title' class='text-lg font-semibold text-text-primary'>

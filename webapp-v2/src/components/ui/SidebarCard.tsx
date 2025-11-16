@@ -27,7 +27,7 @@ export function SidebarCard({
 }: SidebarCardProps) {
     const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed);
 
-    const rootClassName = ['bg-surface-base', 'rounded-lg', 'shadow-sm', 'border', 'border-border-default', 'p-4', className].filter(Boolean).join(' ');
+    const rootClassName = ['glass-panel', 'rounded-lg', 'shadow-lg', 'border', 'border-border-default', 'p-4', className].filter(Boolean).join(' ');
     const headerClasses = ['flex', 'items-center', 'justify-between', 'gap-2', !collapsed ? 'mb-3' : ''].filter(Boolean).join(' ');
     const toggleAriaLabel = collapseToggleLabel || (typeof title === 'string' ? `Toggle ${title} section` : 'Toggle section');
 

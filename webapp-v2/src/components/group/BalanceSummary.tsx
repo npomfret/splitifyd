@@ -112,11 +112,9 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                             <div
                                 key={`${debt.from.uid}-${debt.to.uid}-${currency}`}
                                 data-testid='debt-item'
-                                className='group border-b last:border-0 pb-3 last:pb-0 -mx-2 px-2 py-2 rounded relative hover:bg-surface-muted'
+                                className='group border border-border-default/50 rounded-lg px-3 py-2.5 mb-2 last:mb-0 backdrop-blur-sm transition-all duration-200 hover:border-interactive-primary/40 hover:-translate-y-0.5 hover:shadow-sm relative'
                                 style={{
-                                    borderLeftWidth: '4px',
-                                    borderLeftColor: themeColor,
-                                    backgroundColor: isCurrentUserInvolved ? `${themeColor}08` : 'transparent',
+                                    backgroundColor: isCurrentUserInvolved ? `${themeColor}12` : 'rgba(var(--surface-base-rgb), 0.3)',
                                 }}
                             >
                                 <div className='grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 items-start'>
@@ -228,7 +226,7 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
     }
 
     return (
-        <Card className='p-6' data-testid='balance-summary-main'>
+        <Card variant='glass' className='p-6 border-border-default' data-testid='balance-summary-main'>
             <div className='flex items-center justify-between mb-4'>
                 <h2 className='text-lg font-semibold'>{t('balanceSummary.title')}</h2>
                 {/* Filter toggle for non-sidebar variant */}

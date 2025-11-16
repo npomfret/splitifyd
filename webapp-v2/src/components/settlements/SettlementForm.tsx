@@ -90,7 +90,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 setCurrency(settlementToEdit.currency);
                 setDate(settlementToEdit.date.split('T')[0]);
                 setNote(settlementToEdit.note || '');
-            } else if (preselectedDebt && currentUser) {
+            } else if (preselectedDebt && preselectedDebt.from && preselectedDebt.to && currentUser) {
                 setPayerId(preselectedDebt.from.uid);
                 setPayeeId(preselectedDebt.to.uid);
                 setAmount(preselectedDebt.amount);
@@ -351,6 +351,11 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
 
     if (!isOpen) return null;
 
+    // Don't render if user is not authenticated
+    if (!currentUser) {
+        return null;
+    }
+
     // Computed property for form validity
     const isFormValid = (() => {
         if (!payerId || !payeeId || payerId === payeeId || !currency) {
@@ -381,11 +386,11 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     })();
 
     return (
-        <div class='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4' onClick={handleBackdropClick}>
+        <div class='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4' onClick={handleBackdropClick}>
             <div
                 ref={modalRef}
                 data-testid='settlement-form-modal'
-                class='bg-interactive-primary/10 border-border-default rounded-lg max-w-md w-full p-6 shadow-xl'
+                class='bg-surface-base border border-border-default rounded-lg max-w-md w-full p-6 shadow-xl opacity-100'
                 onClick={(e: Event) => e.stopPropagation()}
                 role='dialog'
                 aria-modal='true'
@@ -405,7 +410,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 </div>
 
                 {/* Quick Settlement Buttons - only show in create mode when not pre-filled from balances */}
-                {!editMode && !preselectedDebt && currentUser && enhancedGroupDetailStore.balances?.simplifiedDebts && (() => {
+                {!editMode && !preselectedDebt && enhancedGroupDetailStore.balances?.simplifiedDebts && (() => {
                     const userDebts = enhancedGroupDetailStore.balances.simplifiedDebts.filter(
                         (debt: SimplifiedDebt) => debt.from.uid === currentUser.uid,
                     );
@@ -476,14 +481,14 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 data-testid='settlement-payer-select'
                                 value={payerId}
                                 onChange={(e) => setPayerId((e.target as HTMLSelectElement).value)}
-                                class='w-full px-3 py-2 border border-border-default rounded-md focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary'
+                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 disabled={isSubmitting}
                             >
                                 <option value=''>{t('settlementForm.selectPersonPlaceholder')}</option>
                                 {members.map((member: GroupMember) => (
                                     <option key={member.uid} value={member.uid}>
                                         {getGroupDisplayName(member)}
-                                        {member.uid === currentUser?.uid && t('settlementForm.youSuffix')}
+                                        {member.uid === currentUser.uid && t('settlementForm.youSuffix')}
                                     </option>
                                 ))}
                             </select>
@@ -499,7 +504,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 data-testid='settlement-payee-select'
                                 value={payeeId}
                                 onChange={(e) => setPayeeId((e.target as HTMLSelectElement).value)}
-                                class='w-full px-3 py-2 border border-border-default rounded-md focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary'
+                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 disabled={isSubmitting}
                             >
                                 <option value=''>{t('settlementForm.selectPersonPlaceholder')}</option>
@@ -508,7 +513,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                     .map((member: GroupMember) => (
                                         <option key={member.uid} value={member.uid}>
                                             {getGroupDisplayName(member)}
-                                            {member.uid === currentUser?.uid && t('settlementForm.youSuffix')}
+                                            {member.uid === currentUser.uid && t('settlementForm.youSuffix')}
                                         </option>
                                     ))}
                             </select>
@@ -556,7 +561,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 max={new Date().toISOString().split('T')[0]}
                                 disabled={isSubmitting}
                                 required
-                                class='w-full px-3 py-2 border border-border-default rounded-md focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary'
+                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 autoComplete='off'
                             />
                         </div>
@@ -575,7 +580,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 onInput={(e: Event) => setNote((e.target as HTMLInputElement).value)}
                                 disabled={isSubmitting}
                                 maxLength={500}
-                                class='w-full px-3 py-2 border border-border-default rounded-md focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary'
+                                class='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-sm text-text-primary placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 autoComplete='off'
                             />
                         </div>

@@ -23,10 +23,10 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
     const { t } = useTranslation();
 
     return (
-        <Card data-testid='split-between-section'>
+        <Card variant='glass' className='border-border-default' data-testid='split-between-section'>
             <Stack spacing='md'>
                 <div className='flex items-center justify-between'>
-                    <h2 className='text-lg font-semibold text-text-primary dark:text-white'>
+                    <h2 className='text-lg font-semibold text-text-primary'>
                         {t('expenseComponents.participantSelector.label')}{' '}
                         <span className='text-semantic-error' data-testid='required-indicator'>
                             {t('expenseComponents.participantSelector.requiredIndicator')}
@@ -49,9 +49,9 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                             <label
                                 key={member.uid}
                                 className={`
-                  flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors
-                  ${isSelected ? 'border-interactive-primary bg-interactive-primary/10 dark:bg-interactive-primary/20' : 'border-border-default dark:border-border-strong hover:bg-surface-muted dark:hover:bg-text-primary'}
-                  ${isPayer ? 'ring-2 ring-semantic-success' : ''}
+                  flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors bg-surface-raised/50 backdrop-blur-sm
+                  ${isSelected ? 'border-interactive-primary bg-interactive-primary/5 ring-2 ring-interactive-primary/30' : 'border-border-default hover:bg-surface-muted/60 hover:border-interactive-primary/40'}
+                  ${isPayer ? 'ring-2 ring-semantic-success/50' : ''}
                 `}
                             >
                                 <input
@@ -63,16 +63,16 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                                     autoComplete='off'
                                 />
                                 <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
-                                <span className='text-sm font-medium text-text-primary dark:text-white flex-1'>
+                                <span className='text-sm font-medium text-text-primary flex-1'>
                                     {getGroupDisplayName(member)}
-                                    {isPayer && <span className='text-semantic-success dark:text-semantic-success ml-1'>{t('expenseComponents.participantSelector.payerSuffix')}</span>}
+                                    {isPayer && <span className='text-semantic-success ml-1'>{t('expenseComponents.participantSelector.payerSuffix')}</span>}
                                 </span>
                             </label>
                         );
                     })}
                 </div>
                 {validationErrors.participants && (
-                    <p className='text-sm text-semantic-error dark:text-semantic-error/80' role='alert' data-testid='validation-error-participants'>
+                    <p className='text-sm text-semantic-error' role='alert' data-testid='validation-error-participants'>
                         {validationErrors.participants}
                     </p>
                 )}

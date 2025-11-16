@@ -196,7 +196,8 @@ export function CurrencyAmountInput({
               border rounded-r-md
               focus:outline-none focus:ring-2 focus:ring-interactive-primary
               transition-colors duration-200
-              ${disabled ? 'bg-surface-muted text-text-muted cursor-not-allowed' : 'bg-surface-base text-text-primary'}
+              placeholder:text-text-muted/70
+              ${disabled ? 'bg-surface-muted text-text-muted cursor-not-allowed' : 'bg-surface-raised backdrop-blur-sm text-text-primary'}
               ${error ? 'border-border-error focus:ring-semantic-error' : 'border-border-default'}
             `}
                         aria-invalid={!!error}

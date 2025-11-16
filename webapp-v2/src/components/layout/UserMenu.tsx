@@ -46,7 +46,7 @@ export function UserMenu({ user }: UserMenuProps) {
                     e.stopPropagation();
                     setIsOpen(!isOpen);
                 }}
-                class='flex items-center gap-3 px-3 py-2 rounded-lg border border-border-default/40 hover:border-interactive-primary/50 hover:bg-surface-raised/50 transition-all duration-200 group'
+                class='flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-base border border-border-default/60 hover:border-interactive-primary/50 hover:bg-surface-raised transition-all duration-200 group shadow-md'
                 aria-expanded={isOpen}
                 aria-haspopup='true'
                 aria-controls='user-dropdown-menu'

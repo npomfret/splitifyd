@@ -35,52 +35,45 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
     return (
         <div
-            className={`border-b last:border-0 pb-3 last:pb-0 cursor-pointer hover:bg-surface-muted -mx-2 px-2 py-2 rounded relative group ${isDeleted ? 'opacity-60 bg-surface-muted' : ''}`}
-            style={{
-                borderLeftWidth: '4px',
-                borderLeftColor: isDeleted ? '#9CA3AF' : themeColor,
-                backgroundColor: isDeleted ? '' : `${themeColor}08`, // Very light background
-            }}
+            className={`border border-border-default/50 rounded-lg px-4 py-3 cursor-pointer hover:border-interactive-primary/40 hover:bg-surface-base/30 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md relative group ${isDeleted ? 'opacity-60 bg-surface-muted' : 'bg-surface-base/20'}`}
             onClick={() => onClick?.(expense)}
             data-testid='expense-item'
         >
-            <div className='flex justify-between items-start'>
-                <div className='flex-1'>
-                    <div className='flex items-center gap-3'>
-                        {/* User avatar */}
-                        <Avatar displayName={payerName} userId={expense.paidBy} size='sm' themeColor={paidByTheme} />
+            <div className='flex justify-between items-start gap-4'>
+                <div className='flex items-center gap-3 flex-1 min-w-0'>
+                    {/* User avatar */}
+                    <Avatar displayName={payerName} userId={expense.paidBy} size='sm' themeColor={paidByTheme} />
 
-                        <div className='flex-1'>
-                            <div className='flex items-center gap-2'>
-                                <p className={`font-medium ${isDeleted ? 'line-through text-text-muted' : ''}`}>{expense.description}</p>
-                                {isDeleted && (
-                                    <span className='text-xs bg-surface-error text-semantic-error px-2 py-1 rounded' data-testid='deleted-badge'>
-                                        {t('expenseItem.deleted')}
-                                    </span>
-                                )}
-                            </div>
-                            <p className='text-sm text-text-muted'>
-                                {t('expenseItem.paidBy')}{' '}
-                                <span className='font-medium'>
-                                    {payerName}
-                                </span>{' '}
-                                • <RelativeTime date={expense.date} className='text-text-muted' tooltipPlacement='bottom' />
-                                {isDeleted && expense.deletedAt && (
-                                    <span className='ml-2 text-semantic-error'>
-                                        • {t('expenseItem.deletedBy')} {deletedByName} <RelativeTime date={expense.deletedAt} className='text-semantic-error' />
-                                    </span>
-                                )}
-                            </p>
+                    <div className='flex-1 min-w-0'>
+                        <div className='flex items-center gap-2'>
+                            <p className={`font-medium text-sm ${isDeleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>{expense.description}</p>
+                            {isDeleted && (
+                                <span className='text-xs bg-surface-error text-semantic-error px-2 py-0.5 rounded' data-testid='deleted-badge'>
+                                    {t('expenseItem.deleted')}
+                                </span>
+                            )}
                         </div>
+                        <p className='text-xs text-text-primary/70'>
+                            {t('expenseItem.paidBy')}{' '}
+                            <span className='font-medium text-text-primary/80'>
+                                {payerName}
+                            </span>{' '}
+                            • <RelativeTime date={expense.date} className='text-text-muted/70' tooltipPlacement='bottom' />
+                            {isDeleted && expense.deletedAt && (
+                                <span className='ml-2 text-semantic-error'>
+                                    • {t('expenseItem.deletedBy')} {deletedByName} <RelativeTime date={expense.deletedAt} className='text-semantic-error' />
+                                </span>
+                            )}
+                        </p>
                     </div>
                 </div>
 
-                <div className='text-right ml-4 flex items-start gap-2'>
-                    <div>
-                        <p className={`font-semibold ${isDeleted ? 'text-text-muted' : ''}`} data-testid='expense-amount'>
+                <div className='flex items-center gap-2 flex-shrink-0'>
+                    <div className='text-right'>
+                        <p className={`font-semibold text-base ${isDeleted ? 'text-text-muted' : 'text-text-primary'}`} data-testid='expense-amount'>
                             <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                         </p>
-                        <p className='text-xs text-text-muted'>{expense.label}</p>
+                        <p className='text-xs text-text-muted/70'>{expense.label}</p>
                     </div>
 
                     {/* Copy button - only show if not deleted and onCopy is provided */}
@@ -88,7 +81,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                         <Tooltip content={t('expenseItem.copyExpense')}>
                             <button
                                 onClick={handleCopyClick}
-                                className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-surface-muted rounded text-text-muted hover:text-text-primary'
+                                className='opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 hover:bg-interactive-primary/10 rounded text-text-muted hover:text-interactive-primary'
                                 aria-label={t('expenseItem.copyExpense')}
                             >
                                 <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>

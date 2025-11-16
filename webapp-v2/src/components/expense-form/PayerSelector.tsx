@@ -19,9 +19,9 @@ interface PayerSelectorProps {
 export function PayerSelector({ members, paidBy, validationErrors, updateField }: PayerSelectorProps) {
     const { t } = useTranslation();
     return (
-        <Card data-testid='who-paid-section'>
+        <Card variant='glass' className='border-border-default' data-testid='who-paid-section'>
             <Stack spacing='md'>
-                <h2 className='text-lg font-semibold text-text-primary dark:text-white'>
+                <h2 className='text-lg font-semibold text-text-primary'>
                     {t('expenseComponents.payerSelector.label')}{' '}
                     <span className='text-semantic-error' data-testid='required-indicator'>
                         {t('expenseComponents.payerSelector.requiredIndicator')}
@@ -32,8 +32,8 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                         <label
                             key={member.uid}
                             className={`
-                flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors
-                ${paidBy === member.uid ? 'border-interactive-primary bg-interactive-primary/10 dark:bg-interactive-primary/20' : 'border-border-default dark:border-border-strong hover:bg-surface-muted dark:hover:bg-text-primary'}
+                flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors bg-surface-raised/50 backdrop-blur-sm
+                ${paidBy === member.uid ? 'border-interactive-primary bg-interactive-primary/5 ring-2 ring-interactive-primary/30' : 'border-border-default hover:bg-surface-muted/60 hover:border-interactive-primary/40'}
               `}
                         >
                             <input
@@ -46,12 +46,12 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                                 autoComplete='off'
                             />
                             <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' />
-                            <span className='text-sm font-medium text-text-primary dark:text-white'>{getGroupDisplayName(member)}</span>
+                            <span className='text-sm font-medium text-text-primary'>{getGroupDisplayName(member)}</span>
                         </label>
                     ))}
                 </div>
                 {validationErrors.paidBy && (
-                    <p className='text-sm text-semantic-error dark:text-semantic-error/80' role='alert' data-testid='validation-error-paidBy'>
+                    <p className='text-sm text-semantic-error' role='alert' data-testid='validation-error-paidBy'>
                         {validationErrors.paidBy}
                     </p>
                 )}

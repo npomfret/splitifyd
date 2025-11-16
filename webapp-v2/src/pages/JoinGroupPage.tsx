@@ -264,10 +264,10 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 {/* Display Name Prompt Modal */}
                 {showNamePrompt && (
                     <div
-                        className='fixed inset-0 bg-text-primary bg-opacity-50 overflow-y-auto h-full w-full z-50'
+                        className='fixed inset-0 bg-black/40 backdrop-blur-sm overflow-y-auto h-full w-full z-50'
                         onClick={(e) => e.target === e.currentTarget && handleCancelNamePrompt()}
                     >
-                        <div className='relative top-20 mx-auto w-full max-w-md bg-surface-base border-border-default rounded-lg shadow-xl p-6'>
+                        <div className='relative top-20 mx-auto w-full max-w-md bg-surface-base border-border-default rounded-lg shadow-xl p-6 opacity-100'>
                             <h3 className='text-lg font-semibold text-text-primary mb-4'>
                                 Choose your display name
                             </h3>

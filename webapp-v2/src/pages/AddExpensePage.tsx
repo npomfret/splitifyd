@@ -117,7 +117,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
             description={`${pageDescription}${t('pages.addExpensePage.titleIn')}${formState.group.name}`}
             headerVariant='dashboard'
         >
-            <div className='min-h-screen bg-surface-muted'>
+            <div className='min-h-screen'>
                 <ExpenseFormHeader isEditMode={isEditMode} isCopyMode={isCopyMode} groupName={formState.group.name} onCancel={formState.handleCancel} />
 
                 <div className='max-w-3xl mx-auto px-4 py-6'>
@@ -167,7 +167,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 <>
                                     <SplitTypeSelector splitType={formState.splitType} updateField={formState.updateField} />
 
-                                    <Card>
+                                    <Card variant='glass' className='border-border-default'>
                                         <SplitAmountInputs
                                             splitType={formState.splitType}
                                             amount={formState.amount}
