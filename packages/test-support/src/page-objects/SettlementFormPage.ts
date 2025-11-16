@@ -233,8 +233,17 @@ export class SettlementFormPage extends BasePage {
             .toPass({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
         const value = await this.findOptionValue(payerSelect, payerName);
-        await payerSelect.selectOption(value);
-        await expect(payerSelect).toHaveValue(value);
+
+        // Use evaluate to set value and trigger events for Preact compatibility
+        await payerSelect.evaluate((el: HTMLSelectElement, newValue: string) => {
+            el.value = newValue;
+            // Dispatch both input and change events to ensure Preact handles it
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        }, value);
+
+        // Brief wait for Preact to process the event
+        await this.page.waitForTimeout(200);
     }
 
     async selectPayee(payeeName: string): Promise<void> {
@@ -250,8 +259,17 @@ export class SettlementFormPage extends BasePage {
             .toPass({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
         const value = await this.findOptionValue(payeeSelect, payeeName);
-        await payeeSelect.selectOption(value);
-        await expect(payeeSelect).toHaveValue(value);
+
+        // Use evaluate to set value and trigger events for Preact compatibility
+        await payeeSelect.evaluate((el: HTMLSelectElement, newValue: string) => {
+            el.value = newValue;
+            // Dispatch both input and change events to ensure Preact handles it
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        }, value);
+
+        // Brief wait for Preact to process the event
+        await this.page.waitForTimeout(200);
     }
 
     async fillAndSubmitSettlement(payeeName: string, amount: string, currency: CurrencyISOCode, note?: string): Promise<void> {

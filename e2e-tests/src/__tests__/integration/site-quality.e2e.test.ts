@@ -49,7 +49,11 @@ test.describe('Site Quality - SEO', () => {
         // Part 2: Pricing page SEO validation (skip if pricing page feature is disabled)
         await page.goto(`${EMULATOR_URL}/pricing`);
         await waitForApp(page);
-        const is404 = (await page.locator('text=404').count()) > 0;
+
+        // Wait for the page to render and check if it's a 404
+        await page.waitForSelector('h1', { timeout: 5000 });
+        const h1Text = await page.locator('h1').first().textContent();
+        const is404 = h1Text?.includes('404') || false;
 
         if (!is404) {
             await waitForApp(page); // Wait for React to mount and set meta tags
@@ -60,7 +64,7 @@ test.describe('Site Quality - SEO', () => {
             expect(pricingTitle.length).toBeLessThan(60);
 
             // Meta description validation - wait for it to be added by React
-            await page.waitForSelector('meta[name="description"]', { timeout: 5000 });
+            await page.waitForSelector('meta[name="description"]', { state: 'attached', timeout: 5000 });
             const pricingMetaDescription = await page.getAttribute('meta[name="description"]', 'content');
             expect(pricingMetaDescription).toBeTruthy();
             expect(pricingMetaDescription!.length).toBeGreaterThan(50);
