@@ -24,6 +24,7 @@ type ConsoleLoggingFixtures = {
     mockFirebase: MockFirebase;
     authenticatedMockFirebase: (user: ClientUser) => Promise<MockFirebase>;
     authenticatedPage: { page: Page; user: ClientUser; mockFirebase: MockFirebase; };
+    systemAdminPage: { page: Page; user: ClientUser; mockFirebase: MockFirebase; };
     msw: MswController;
 };
 
@@ -378,6 +379,34 @@ export const test = base.extend<ConsoleLoggingFixtures>({
     authenticatedPage: async ({ pageWithLogging }, use) => {
         const testUser = ClientUserBuilder
             .validUser()
+            .build();
+        const mockFirebase = await createMockFirebase(pageWithLogging, testUser);
+        await mockFullyAcceptedPoliciesApi(pageWithLogging);
+        await setupSuccessfulApiMocks(pageWithLogging, testUser);
+
+        await use({
+            page: pageWithLogging,
+            user: testUser,
+            mockFirebase,
+        });
+
+        await mockFirebase.dispose();
+    },
+
+    /**
+     * System admin page fixture - provides a pre-authenticated system admin user with policies accepted
+     * Use this for tests that require admin panel access
+     *
+     * Usage:
+     *   test('my admin test', async ({ systemAdminPage }) => {
+     *       const { page, user, mockFirebase } = systemAdminPage;
+     *       // page is authenticated as system admin, can access /admin routes
+     *   });
+     */
+    systemAdminPage: async ({ pageWithLogging }, use) => {
+        const testUser = ClientUserBuilder
+            .validUser()
+            .withRole('system_admin')
             .build();
         const mockFirebase = await createMockFirebase(pageWithLogging, testUser);
         await mockFullyAcceptedPoliciesApi(pageWithLogging);

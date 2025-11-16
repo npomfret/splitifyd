@@ -709,6 +709,19 @@ export class AppDriver {
         return res.getJson() as UserProfileResponse;
     }
 
+    // Admin User Management
+    async adminUpdateUser(targetUid: string, updates: { disabled: boolean }, adminToken: AuthToken): Promise<any> {
+        const req = createStubRequest(adminToken, updates, { uid: targetUid });
+        const res = await this.dispatchByHandler('updateUserAdmin', req);
+        return res.getJson();
+    }
+
+    async adminUpdateUserRole(targetUid: string, updates: { role: string | null }, adminToken: AuthToken): Promise<any> {
+        const req = createStubRequest(adminToken, updates, { uid: targetUid });
+        const res = await this.dispatchByHandler('updateUserRoleAdmin', req);
+        return res.getJson();
+    }
+
     async registerUser(registration: UserRegistration): Promise<RegisterUserResult> {
         const req = createStubRequest('', registration);
         const res = await this.dispatchByHandler('register', req);

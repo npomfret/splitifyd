@@ -173,6 +173,10 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
                     setDefaultsForCreateMode();
                 }
 
+                // Capture the initial state after form has been populated
+                // This allows hasUnsavedChanges() to correctly detect user modifications
+                expenseFormStore.captureInitialState();
+
                 isInitialized.value = true;
             } catch (error) {
                 logError('Failed to initialize expense form', error);

@@ -69,6 +69,7 @@ interface ExpenseFormStore {
     updateExpense(groupId: GroupId, expenseId: ExpenseId): Promise<ExpenseDTO>;
     clearError(): void;
     reset(): void;
+    captureInitialState(): void;
     hasUnsavedChanges(): boolean;
     saveDraft(groupId: GroupId): void;
     loadDraft(groupId: GroupId): boolean;
@@ -237,6 +238,20 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     readonly #savingSignal = signal<boolean>(false);
     readonly #errorSignal = signal<string | null>(null);
     readonly #validationErrorsSignal = signal<Record<string, string>>({});
+
+    // Initial state snapshot for tracking unsaved changes
+    #initialState: {
+        description: string;
+        amount: Amount;
+        currency: string;
+        date: string;
+        time: string;
+        paidBy: string;
+        label: string;
+        splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
+        participants: string[];
+        splits: ExpenseSplit[];
+    } | null = null;
 
     private getActiveCurrency(): string | null {
         const currency = this.#currencySignal.value;
@@ -1006,19 +1021,53 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#validationErrorsSignal.value = {};
     }
 
+    /**
+     * Capture the current form state as the initial state for change tracking
+     */
+    captureInitialState(): void {
+        this.#initialState = {
+            description: this.#descriptionSignal.value,
+            amount: this.#amountSignal.value,
+            currency: this.#currencySignal.value,
+            date: this.#dateSignal.value,
+            time: this.#timeSignal.value,
+            paidBy: this.#paidBySignal.value,
+            label: this.#labelSignal.value,
+            splitType: this.#splitTypeSignal.value,
+            participants: [...this.#participantsSignal.value],
+            splits: [...this.#splitsSignal.value],
+        };
+    }
+
     hasUnsavedChanges(): boolean {
-        // Check if any field has been modified from initial state
-        const hasAmount = this.toUnits(this.#amountSignal.value) > 0;
+        // If no initial state captured yet, compare against empty/default state
+        if (!this.#initialState) {
+            const hasAmount = this.toUnits(this.#amountSignal.value) > 0;
+            return (
+                this.#descriptionSignal.value.trim() !== ''
+                || hasAmount
+                || this.#currencySignal.value !== ''
+                || this.#dateSignal.value !== getTodayDate()
+                || this.#paidBySignal.value !== ''
+                || this.#labelSignal.value !== 'food'
+                || this.#splitTypeSignal.value !== SplitTypes.EQUAL
+                || this.#participantsSignal.value.length > 0
+                || this.#splitsSignal.value.length > 0
+            );
+        }
+
+        // Compare current state against captured initial state
         return (
-            this.#descriptionSignal.value.trim() !== ''
-            || hasAmount
-            || this.#currencySignal.value !== ''
-            || this.#dateSignal.value !== getTodayDate()
-            || this.#paidBySignal.value !== ''
-            || this.#labelSignal.value !== 'food'
-            || this.#splitTypeSignal.value !== SplitTypes.EQUAL
-            || this.#participantsSignal.value.length > 0
-            || this.#splitsSignal.value.length > 0
+            this.#descriptionSignal.value !== this.#initialState.description
+            || this.#amountSignal.value !== this.#initialState.amount
+            || this.#currencySignal.value !== this.#initialState.currency
+            || this.#dateSignal.value !== this.#initialState.date
+            || this.#timeSignal.value !== this.#initialState.time
+            || this.#paidBySignal.value !== this.#initialState.paidBy
+            || this.#labelSignal.value !== this.#initialState.label
+            || this.#splitTypeSignal.value !== this.#initialState.splitType
+            || JSON.stringify(this.#participantsSignal.value) !== JSON.stringify(this.#initialState.participants)
+            || JSON.stringify(this.#splitsSignal.value) !== JSON.stringify(this.#initialState.splits)
         );
     }
 

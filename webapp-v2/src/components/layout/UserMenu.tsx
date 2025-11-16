@@ -37,7 +37,7 @@ export function UserMenu({ user }: UserMenuProps) {
 
     const userInitial = user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
     const userName = user.displayName || user.email.split('@')[0];
-    const isSystemAdmin = user.role === SystemUserRoles.SYSTEM_ADMIN || user.role === SystemUserRoles.SYSTEM_USER;
+    const isSystemAdmin = user.role === SystemUserRoles.SYSTEM_ADMIN;
 
     return (
         <div class='relative z-50' ref={menuRef}>

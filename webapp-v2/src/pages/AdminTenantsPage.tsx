@@ -57,7 +57,7 @@ export function AdminTenantsPage() {
     const [error, setError] = useState<string | null>(null);
 
     const user = authStore.user;
-    const isSystemAdmin = user?.role === SystemUserRoles.SYSTEM_ADMIN || user?.role === SystemUserRoles.SYSTEM_USER;
+    const isSystemAdmin = user?.role === SystemUserRoles.SYSTEM_ADMIN;
 
     // Get current tenant ID from config
     const currentTenantId = configStore.config?.tenant?.tenantId;

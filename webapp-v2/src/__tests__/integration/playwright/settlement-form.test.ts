@@ -323,8 +323,18 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
         await mockGroupDetailApi(page, groupId, fullDetails);
         await mockGroupCommentsApi(page, groupId);
 
-        const settlementFormPage = new SettlementFormPage(page);
-        await settlementFormPage.navigateAndOpen(groupId);
+        const groupDetailPage = new GroupDetailPage(page);
+        await groupDetailPage.navigateToGroup(groupId);
+        await groupDetailPage.waitForGroupToLoad();
+
+        // Wait for balances to load - just check the balance summary card exists
+        await expect(page.getByTestId('balance-summary-sidebar')).toBeAttached();
+
+        // Small delay to ensure store balances are populated
+        await page.waitForTimeout(500);
+
+        // Click the Settle Up button from Group Actions (not the balance summary button)
+        const settlementFormPage = await groupDetailPage.clickSettleUpButton(2, { waitForFormReady: true });
 
         const modal = settlementFormPage.getModal();
         await expect(modal.getByText('Quick settle:')).toBeVisible();

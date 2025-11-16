@@ -7,6 +7,7 @@ import {
     MemberRoles,
     MemberStatuses,
     smallestUnitToAmountString,
+    SystemUserRoles,
     toGroupName,
     UserBalance,
 } from '@splitifyd/shared';
@@ -3840,6 +3841,7 @@ describe('app tests', () => {
                                     raised: '#fafbfc',
                                     sunken: '#eff1f3',
                                     overlay: '#0f172a',
+                                    warning: '#fef3c7',
                                 },
                                 text: {
                                     primary: '#0f172a',
@@ -3861,12 +3863,14 @@ describe('app tests', () => {
                                     destructiveHover: '#dc3e3e',
                                     destructiveActive: '#c93838',
                                     destructiveForeground: '#ffffff',
+                                    accent: '#f97316',
                                 },
                                 border: {
                                     subtle: '#e2e8f0',
                                     default: '#cbd5f5',
                                     strong: '#94a3b8',
                                     focus: '#f97316',
+                                    warning: '#fbbf24',
                                 },
                                 status: {
                                     success: '#22c55e',
@@ -3890,6 +3894,24 @@ describe('app tests', () => {
                                 heading: '2xl',
                                 display: '4xl',
                             },
+                        },
+                        motion: {
+                            duration: {
+                                instant: 50,
+                                fast: 150,
+                                base: 250,
+                                slow: 400,
+                                glacial: 800,
+                            },
+                            easing: {
+                                standard: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                                decelerate: 'cubic-bezier(0.05, 0.7, 0.1, 1)',
+                                accelerate: 'cubic-bezier(0.3, 0, 0.8, 0.15)',
+                                spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+                            },
+                            enableParallax: false,
+                            enableMagneticHover: false,
+                            enableScrollReveal: false,
                         },
                     },
                 },
@@ -4066,5 +4088,144 @@ describe('app tests', () => {
         // NOTE: Integration tests for POST /api/admin/tenants/publish are in
         // src/__tests__/integration/tenant/admin-tenant-publish.test.ts
 
+    });
+
+    describe('Admin User Management', () => {
+        const adminUser = 'admin-user';
+        const regularUser = 'regular-user';
+
+        beforeEach(() => {
+            appDriver.seedAdminUser(adminUser, {
+                email: 'admin@test.com',
+                displayName: 'Admin User',
+            });
+            appDriver.seedUser(regularUser, {
+                email: 'regular@test.com',
+                displayName: 'Regular User',
+                role: SystemUserRoles.SYSTEM_USER,
+            });
+        });
+
+        describe('PUT /api/admin/users/:uid - updateUser (disable/enable)', () => {
+            it('should allow admin to disable a user account', async () => {
+                const result = await appDriver.adminUpdateUser(regularUser, { disabled: true }, adminUser);
+
+                expect(result).toMatchObject({
+                    uid: regularUser,
+                    email: 'regular@test.com',
+                    disabled: true,
+                });
+            });
+
+            it('should allow admin to enable a disabled user account', async () => {
+                // First disable the user
+                await appDriver.adminUpdateUser(regularUser, { disabled: true }, adminUser);
+
+                // Then enable them
+                const result = await appDriver.adminUpdateUser(regularUser, { disabled: false }, adminUser);
+
+                expect(result).toMatchObject({
+                    uid: regularUser,
+                    email: 'regular@test.com',
+                    disabled: false,
+                });
+            });
+
+            it('should reject non-admin user', async () => {
+                const result = await appDriver.adminUpdateUser(regularUser, { disabled: true }, regularUser);
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'FORBIDDEN',
+                    },
+                });
+            });
+
+            it('should reject invalid UID', async () => {
+                await expect(
+                    appDriver.adminUpdateUser('', { disabled: true }, adminUser),
+                ).rejects.toThrow();
+            });
+
+            it('should reject non-existent user', async () => {
+                await expect(
+                    appDriver.adminUpdateUser('nonexistent-user', { disabled: true }, adminUser),
+                ).rejects.toThrow();
+            });
+        });
+
+        describe('PUT /api/admin/users/:uid/role - updateUserRole', () => {
+            it('should allow admin to promote user to system_admin', async () => {
+                const result = await appDriver.adminUpdateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
+
+                expect(result).toMatchObject({
+                    uid: regularUser,
+                    email: 'regular@test.com',
+                });
+
+                // Verify role was written to Firestore
+                const userDoc = await appDriver.database.collection('users').doc(regularUser).get();
+                const data = userDoc.data();
+                expect(data?.role).toBe(SystemUserRoles.SYSTEM_ADMIN);
+            });
+
+            it('should allow admin to promote user to tenant_admin', async () => {
+                const result = await appDriver.adminUpdateUserRole(regularUser, { role: SystemUserRoles.TENANT_ADMIN }, adminUser);
+
+                expect(result).toMatchObject({
+                    uid: regularUser,
+                    email: 'regular@test.com',
+                });
+
+                // Verify role was written to Firestore
+                const userDoc = await appDriver.database.collection('users').doc(regularUser).get();
+                const data = userDoc.data();
+                expect(data?.role).toBe(SystemUserRoles.TENANT_ADMIN);
+            });
+
+            it('should allow admin to demote user by setting role to null', async () => {
+                // First promote the user
+                await appDriver.adminUpdateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
+
+                // Then demote them
+                const result = await appDriver.adminUpdateUserRole(regularUser, { role: null }, adminUser);
+
+                expect(result).toMatchObject({
+                    uid: regularUser,
+                    email: 'regular@test.com',
+                });
+
+                // Verify role was removed from Firestore (will be undefined)
+                const userDoc = await appDriver.database.collection('users').doc(regularUser).get();
+                const data = userDoc.data();
+                expect(data?.role).toBeUndefined();
+            });
+
+            it('should reject invalid role value', async () => {
+                await expect(
+                    appDriver.adminUpdateUserRole(regularUser, { role: 'invalid_role' } as any, adminUser),
+                ).rejects.toThrow();
+            });
+
+            it('should reject non-admin user', async () => {
+                const result = await appDriver.adminUpdateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, regularUser);
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'FORBIDDEN',
+                    },
+                });
+            });
+
+            it('should reject invalid UID', async () => {
+                await expect(
+                    appDriver.adminUpdateUserRole('', { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
+                ).rejects.toThrow();
+            });
+
+            it('should reject non-existent user', async () => {
+                await expect(
+                    appDriver.adminUpdateUserRole('nonexistent-user', { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
+                ).rejects.toThrow();
+            });
+        });
     });
 });

@@ -19,6 +19,7 @@ import {
     UserId,
     ZERO,
 } from '@splitifyd/shared';
+import { useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip } from '../ui';
@@ -68,6 +69,19 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     const currentUser = authStore.user;
     const members = enhancedGroupDetailStore.members || [];
 
+    // Use useComputed to reactively track balances changes
+    const balances = useComputed(() => enhancedGroupDetailStore.balances);
+
+    // Compute quick settle debts reactively
+    const quickSettleDebts = useComputed(() => {
+        if (!balances.value?.simplifiedDebts || !currentUser) {
+            return [];
+        }
+        return balances.value.simplifiedDebts.filter(
+            (debt: SimplifiedDebt) => debt.from.uid === currentUser.uid,
+        );
+    });
+
     useEffect(() => {
         const wasOpen = previousIsOpenRef.current;
         const isNowOpen = isOpen;
@@ -102,13 +116,12 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 setPayeeId('');
                 setAmount(ZERO);
                 // Determine currency from existing group balances or recent expenses
-                const balances = enhancedGroupDetailStore.balances;
                 const expenses = enhancedGroupDetailStore.expenses;
                 let detectedCurrency = '';
 
                 // First try: get currency from existing debts involving current user
-                if (balances?.simplifiedDebts && balances.simplifiedDebts.length > 0) {
-                    const userDebt = balances.simplifiedDebts.find((debt: SimplifiedDebt) => debt.from.uid === currentUser.uid || debt.to.uid === currentUser.uid);
+                if (balances.value?.simplifiedDebts && balances.value.simplifiedDebts.length > 0) {
+                    const userDebt = balances.value.simplifiedDebts.find((debt: SimplifiedDebt) => debt.from.uid === currentUser.uid || debt.to.uid === currentUser.uid);
                     if (userDebt) {
                         detectedCurrency = userDebt.currency;
                     }
@@ -137,11 +150,11 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     };
 
     const getCurrentDebt = (): string => {
-        if (!payerId || !payeeId || !currency || !enhancedGroupDetailStore.balances) {
+        if (!payerId || !payeeId || !currency || !balances.value) {
             return ZERO;
         }
 
-        const simplifiedDebts = enhancedGroupDetailStore.balances.simplifiedDebts;
+        const simplifiedDebts = balances.value.simplifiedDebts;
         if (!simplifiedDebts) return ZERO;
 
         // Find the simplified debt from payer to payee in the specified currency
@@ -228,7 +241,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
         }
 
         setWarningMessage(null);
-    }, [payerId, payeeId, amount, currency, enhancedGroupDetailStore.balances, amountPrecisionError, t]);
+    }, [payerId, payeeId, amount, currency, balances.value, amountPrecisionError, t]);
 
     const recalculatePrecisionError = (amountValue: string, currencyCode: string) => {
         if (!currencyCode || !amountValue || amountValue.trim() === '') {
@@ -410,22 +423,15 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 </div>
 
                 {/* Quick Settlement Buttons - only show in create mode when not pre-filled from balances */}
-                {!editMode && !preselectedDebt && enhancedGroupDetailStore.balances?.simplifiedDebts && (() => {
-                    const userDebts = enhancedGroupDetailStore.balances.simplifiedDebts.filter(
-                        (debt: SimplifiedDebt) => debt.from.uid === currentUser.uid,
-                    );
-
-                    if (userDebts.length === 0) return null;
-
-                    return (
-                        <div class='mb-4 pb-4 border-b border-border-default'>
-                            <label class='block text-sm font-medium text-text-primary mb-2 text-center'>
-                                Quick settle:
-                            </label>
-                            <div class='flex flex-wrap gap-2 justify-center'>
-                                {userDebts.map((debt: SimplifiedDebt) => {
-                                    const payeeMember = members.find((m: GroupMember) => m.uid === debt.to.uid);
-                                    if (!payeeMember) return null;
+                {!editMode && !preselectedDebt && quickSettleDebts.value.length > 0 && (
+                    <div class='mb-4 pb-4 border-b border-border-default'>
+                        <label class='block text-sm font-medium text-text-primary mb-2 text-center'>
+                            Quick settle:
+                        </label>
+                        <div class='flex flex-wrap gap-2 justify-center'>
+                            {quickSettleDebts.value.map((debt: SimplifiedDebt) => {
+                                const payeeMember = members.find((m: GroupMember) => m.uid === debt.to.uid);
+                                if (!payeeMember) return null;
 
                                     return (
                                         <button
@@ -463,11 +469,10 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                             </span>
                                         </button>
                                     );
-                                })}
-                            </div>
+                            })}
                         </div>
-                    );
-                })()}
+                    </div>
+                )}
 
                 <Form onSubmit={handleSubmit}>
                     <div class='space-y-4'>

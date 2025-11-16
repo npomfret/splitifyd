@@ -2,8 +2,8 @@ import { AdminTenantsPage } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Admin Tenants Page - System Admin View', () => {
-    test('should display page title and description', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display page title and description', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -13,8 +13,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await expect(adminTenantsPage.getPageDescription()).toContainText('View and manage all tenant configurations');
     });
 
-    test('should display tenant count', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display tenant count', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -25,8 +25,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await expect(adminTenantsPage.getTenantCount()).toContainText('Total tenants:');
     });
 
-    test('should display refresh button', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display refresh button', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -41,8 +41,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
     // due to varying network speeds and React render timing. The loading behavior is
     // already verified by the test below that confirms the spinner is hidden after load.
 
-    test('should hide loading spinner after data loads', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should hide loading spinner after data loads', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -52,8 +52,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.verifyLoadingSpinnerHidden();
     });
 
-    test('should display tenant cards', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display tenant cards', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -64,8 +64,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(cardCount).toBeGreaterThan(0);
     });
 
-    test('should display tenant app name', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display tenant app name', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -80,8 +80,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(appNameText!.trim().length).toBeGreaterThan(0);
     });
 
-    test('should display default badge for default tenant', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display default badge for default tenant', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -97,8 +97,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         }
     });
 
-    test('should display tenant ID', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display tenant ID', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -112,8 +112,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(cardText).toContain('Tenant ID:');
     });
 
-    test('should display primary domain when available', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display primary domain when available', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -129,8 +129,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         }
     });
 
-    test('should display all domains when available', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display all domains when available', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -146,8 +146,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         }
     });
 
-    test('should display feature flags section', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display feature flags section', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -163,8 +163,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(cardText).toContain('Advanced Reporting:');
     });
 
-    test('should display feature enabled/disabled status', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display feature enabled/disabled status', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -179,8 +179,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(cardText).toMatch(/Advanced Reporting:.*?(Enabled|Disabled)/);
     });
 
-    test('should display max groups and max users limits', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display max groups and max users limits', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -195,8 +195,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(cardText).toContain('Max Users per Group:');
     });
 
-    test('should display created and updated dates', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should display created and updated dates', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -211,8 +211,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(cardText).toContain('Updated:');
     });
 
-    test('should refresh tenant list when refresh button clicked', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should refresh tenant list when refresh button clicked', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -232,8 +232,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(newCount).toBe(initialCount);
     });
 
-    test('should extract tenant data correctly', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should extract tenant data correctly', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -263,8 +263,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(typeof tenantData.features.advancedReporting).toBe('boolean');
     });
 
-    test('should handle empty tenant list', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should handle empty tenant list', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         // Mock empty response (this would need MSW setup in real scenario)
@@ -279,8 +279,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         }
     });
 
-    test('should maintain proper URL after navigation', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should maintain proper URL after navigation', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -291,15 +291,15 @@ test.describe('Admin Tenants Page - System Admin View', () => {
 });
 
 test.describe('Admin Tenants Page - Access Control', () => {
-    test('should have correct page URL constant', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should have correct page URL constant', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         expect(adminTenantsPage.url).toBe('/admin/tenants');
     });
 
-    test('should navigate using page object navigate method', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should navigate using page object navigate method', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -311,8 +311,8 @@ test.describe('Admin Tenants Page - Access Control', () => {
 });
 
 test.describe('Admin Tenants Page - Data Extraction', () => {
-    test('should count tenant cards accurately', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should count tenant cards accurately', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -327,8 +327,8 @@ test.describe('Admin Tenants Page - Data Extraction', () => {
         expect(count).toBe(actualCount);
     });
 
-    test('should extract multi-currency feature flag', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should extract multi-currency feature flag', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -341,8 +341,8 @@ test.describe('Admin Tenants Page - Data Extraction', () => {
         expect(typeof tenantData.features.multiCurrency).toBe('boolean');
     });
 
-    test('should extract advanced reporting feature flag', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should extract advanced reporting feature flag', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();
@@ -355,8 +355,8 @@ test.describe('Admin Tenants Page - Data Extraction', () => {
         expect(typeof tenantData.features.advancedReporting).toBe('boolean');
     });
 
-    test('should extract default tenant status', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should extract default tenant status', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
 
         await adminTenantsPage.navigate();

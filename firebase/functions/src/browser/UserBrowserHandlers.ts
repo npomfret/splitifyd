@@ -4,6 +4,8 @@ import { FirestoreCollections } from '../constants';
 import { type IDocumentSnapshot, type IFirestoreDatabase, Timestamp } from '../firestore-wrapper';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
+import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
+import { SystemUserRoles } from '@splitifyd/shared';
 
 interface ListAuthQuery {
     limit: number;
@@ -84,7 +86,37 @@ function serializeFirestoreDocument(doc: IDocumentSnapshot): Record<string, unkn
 }
 
 export class UserBrowserHandlers {
-    constructor(private readonly authService: IAuthService, private readonly db: IFirestoreDatabase) {}
+    constructor(
+        private readonly authService: IAuthService,
+        private readonly db: IFirestoreDatabase,
+        private readonly firestoreReader?: IFirestoreReader,
+    ) {}
+
+    /**
+     * Enrich auth users with their Firestore roles
+     */
+    private async enrichWithFirestoreRoles(users: UserRecord[]): Promise<any[]> {
+        if (!this.firestoreReader) {
+            // If no firestoreReader, return auth users without role enrichment
+            return users.map(serializeUserRecord);
+        }
+
+        // Fetch Firestore user documents for all users in parallel
+        const firestoreUsers = await Promise.all(
+            users.map((user) => this.firestoreReader!.getUser(user.uid).catch(() => null)),
+        );
+
+        // Merge auth users with their Firestore roles
+        return users.map((authUser, index) => {
+            const firestoreUser = firestoreUsers[index];
+            const role = firestoreUser?.role ?? SystemUserRoles.SYSTEM_USER;
+
+            return {
+                ...serializeUserRecord(authUser),
+                role,
+            };
+        });
+    }
 
     listAuthUsers = async (req: Request, res: Response): Promise<void> => {
         const query: ListAuthQuery = {
@@ -97,19 +129,23 @@ export class UserBrowserHandlers {
         try {
             if (query.email) {
                 const user = await this.authService.getUserByEmail(query.email);
-                res.json({ users: user ? [serializeUserRecord(user)] : [], hasMore: false });
+                const enrichedUsers = user ? await this.enrichWithFirestoreRoles([user]) : [];
+                res.json({ users: enrichedUsers, hasMore: false });
                 return;
             }
 
             if (query.uid) {
                 const user = await this.authService.getUser(query.uid);
-                res.json({ users: user ? [serializeUserRecord(user)] : [], hasMore: false });
+                const enrichedUsers = user ? await this.enrichWithFirestoreRoles([user]) : [];
+                res.json({ users: enrichedUsers, hasMore: false });
                 return;
             }
 
             const result = await this.authService.listUsers({ limit: query.limit, pageToken: query.pageToken });
+            const enrichedUsers = await this.enrichWithFirestoreRoles(result.users);
+
             res.json({
-                users: result.users.map(serializeUserRecord),
+                users: enrichedUsers,
                 nextPageToken: result.pageToken ?? undefined,
                 hasMore: Boolean(result.pageToken),
             });

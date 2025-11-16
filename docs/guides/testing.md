@@ -34,20 +34,19 @@ npx vitest run src/__tests__/unit/your-test.test.ts
 ```
 
 ```bash
-# Webapp-v2 (Playwright) integration tests (MUST use wrapper script)
-cd webapp-v2
-./run-test.sh login                    # Run login.test.ts
-./run-test.sh login "specific test"    # Run specific test
-./run-test.sh login --headed           # Debug with visible browser
-./run-test.sh login --repeat 10        # Flakiness detection
+# Universal single-test runner (works in root or any src parent)
+./run-test.sh webapp-v2/login                 # Webapp Playwright file match
+./run-test.sh webapp-v2/login "should show"   # Specific test name
+./run-test.sh e2e-tests/user-and-access       # E2E Playwright integration
+HEADED=1 ./run-test.sh webapp-v2/login        # Visible browser
+RUNS=10 ./run-test.sh e2e-tests/site-quality  # Loop until fail (10 runs)
 ```
 
-```bash
-# E2E (Playwright _ firebase) tests 
-# edit the run-until-fail.sh file to specify a test file and test case
-cd e2e-tests
-./run-until-fail.sh 1                   # Run and e2e test against the debugger
-```
+Notes:
+- `file-pattern` is fuzzy; it matches `*.test.ts` under that workspace’s `src`.
+- Optional `test-name` passes through to `--grep`/`--testNamePattern`.
+- `HEADED=1` opens the Playwright browser. `RUNS=N` repeats N times.
+- From inside a workspace (e.g., `cd webapp-v2`), drop the workspace prefix: `./run-test.sh login`.
 
 To run a suite, these commands can be run from the root or any subdir
 ```bash
@@ -348,7 +347,7 @@ export class CreateGroupModalPage extends BasePage {
 ### Debugging
 
 1. **Check `playwright-output/` first** - traces, console logs, screenshots
-2. **Use `run-until-fail.sh`** - reproduce flaky failures
+2. **Use `RUNS=N ./run-test.sh …`** - reproduce flaky failures
 3. **Read error messages** - proxy provides detailed context
 4. **Never serve HTML report** - use `PLAYWRIGHT_HTML_OPEN=never` (the _run_ scripts already do this)
 

@@ -148,8 +148,9 @@ export class ExpenseDetailPage extends BasePage {
     async waitForPageReady(): Promise<void> {
         await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+$/);
         await this.waitForDomContentLoaded();
-        const expenseHeading = this.page.getByRole('heading', { level: 1 }).first();
-        await expect(expenseHeading).toBeVisible();
+        // Wait for the Edit button to be visible as a reliable indicator the page is ready
+        const editButton = this.getEditButton();
+        await expect(editButton).toBeVisible();
     }
 
     /**
@@ -320,8 +321,11 @@ export class ExpenseDetailPage extends BasePage {
      * Get the current expense description from the page
      */
     async getCurrentExpenseDescription(): Promise<string> {
-        const headings = await this.page.getByRole('heading').allTextContents();
-        return headings.join(', ');
+        // Description is now a <p> tag within the expense-amount-section
+        const amountSection = this.getExpenseAmountElement();
+        const descriptionElement = amountSection.locator('p.text-lg');
+        const description = await descriptionElement.textContent();
+        return description?.trim() || '';
     }
 
     /**

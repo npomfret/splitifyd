@@ -1027,6 +1027,20 @@ class ApiClient {
         });
     }
 
+    /**
+     * Update user role (system_admin, tenant_admin, or regular user)
+     * Admin-only endpoint
+     */
+    async updateUserRole(uid: string, updates: { role: string | null }) {
+        return this.request({
+            endpoint: '/admin/users/:uid/role',
+            method: 'PUT',
+            params: { uid },
+            body: updates,
+            schema: AuthUserSchema,
+        });
+    }
+
     // User policy acceptance methods
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[]): Promise<AcceptMultiplePoliciesResponse> {
         return this.request({

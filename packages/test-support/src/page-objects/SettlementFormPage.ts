@@ -65,7 +65,34 @@ export class SettlementFormPage extends BasePage {
 
     async navigateAndOpen(groupId: GroupId | string, options?: ReadyOptions): Promise<void> {
         await this.page.goto(`/groups/${groupId}`);
-        const openButton = this.page.getByRole('button', { name: /settle up/i });
+
+        // Wait for page to be fully loaded
+        await this.page.waitForLoadState('networkidle').catch(() => {});
+
+        // Try multiple strategies to find the Settle Up button:
+        // 1. GroupActions button by test-id (most reliable, doesn't pre-fill)
+        // 2. GroupActions button by accessible name
+        // 3. BalanceSummary button (pre-fills the form with specific debt)
+        const groupActionsButtonByTestId = this.page.getByTestId('settle-up-button');
+        const groupActionsButtonByName = this.page.getByRole('button', { name: /settle up/i });
+        const balanceSummaryButton = this.page.getByRole('button', { name: /record settlement.*debt/i }).first();
+
+        let openButton = groupActionsButtonByTestId;
+
+        // Wait for group detail to load by checking for a member count or balance indicator
+        await this.page.getByTestId('balance-summary-sidebar').waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+
+        // Check each button with a short timeout
+        const testIdVisible = await groupActionsButtonByTestId.isVisible({ timeout: 1000 }).catch(() => false);
+
+        if (!testIdVisible) {
+            if (await groupActionsButtonByName.isVisible({ timeout: 1000 }).catch(() => false)) {
+                openButton = groupActionsButtonByName;
+            } else {
+                openButton = balanceSummaryButton;
+            }
+        }
+
         await expect(openButton).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await expect(openButton).toBeEnabled({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
         await openButton.click();

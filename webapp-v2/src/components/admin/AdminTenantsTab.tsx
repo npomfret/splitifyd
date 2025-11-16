@@ -97,11 +97,14 @@ export function AdminTenantsTab() {
 
     return (
         <>
-            <div class="mb-4 flex items-center justify-between">
-                <p class="text-sm text-slate-300">
-                    Total tenants: <span class="font-semibold text-white">{tenants.length}</span>
-                </p>
-                <Button onClick={loadTenants} variant="secondary" size="sm">
+            <div class="mb-6 flex items-center justify-between bg-white/70 backdrop-blur-sm rounded-lg p-4 border border-indigo-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                    <p class="text-sm text-gray-700">
+                        Total tenants: <span class="font-bold text-amber-700">{tenants.length}</span>
+                    </p>
+                </div>
+                <Button onClick={loadTenants} variant="secondary" size="sm" className="!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50">
                     Refresh
                 </Button>
             </div>
@@ -112,21 +115,21 @@ export function AdminTenantsTab() {
                     return (
                         <Card
                             key={tenant.tenant.tenantId}
-                            className={`p-6 bg-slate-800 border border-slate-700 ${isCurrentTenant ? 'ring-2 ring-blue-500 bg-blue-900/20' : ''}`}
+                            className={`p-6 bg-white/70 backdrop-blur-sm border border-indigo-200 hover:border-indigo-300 transition-all ${isCurrentTenant ? 'ring-2 ring-amber-400 bg-amber-50/50 border-amber-300' : ''}`}
                         >
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <h3 class="text-lg font-semibold text-white">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <h3 class="text-lg font-semibold text-amber-700">
                                             {tenant.tenant.branding.appName}
                                         </h3>
                                         {isCurrentTenant && (
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400">
-                                                Current
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-300">
+                                                Active
                                             </span>
                                         )}
                                         {tenant.isDefault && (
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-700 border border-amber-300">
                                                 Default
                                             </span>
                                         )}
@@ -134,16 +137,16 @@ export function AdminTenantsTab() {
 
                                     <div class="space-y-2 text-sm">
                                         <div>
-                                            <span class="text-slate-400">Tenant ID:</span>{' '}
-                                            <span class="font-mono text-slate-200">{tenant.tenant.tenantId}</span>
+                                            <span class="text-indigo-600">Tenant ID:</span>{' '}
+                                            <span class="font-mono text-gray-800">{tenant.tenant.tenantId}</span>
                                         </div>
 
                                         {tenant.primaryDomain && (
                                             <div>
-                                                <span class="text-slate-400">Primary Domain:</span>{' '}
+                                                <span class="text-indigo-600">Primary Domain:</span>{' '}
                                                 <button
                                                     onClick={() => handleSwitchTenant(tenant.primaryDomain!)}
-                                                    class="font-mono text-blue-400 hover:text-blue-300 hover:underline cursor-pointer"
+                                                    class="font-mono text-amber-700 hover:text-amber-600 hover:underline cursor-pointer transition-colors"
                                                     title="Click to switch to this tenant"
                                                 >
                                                     {tenant.primaryDomain}
@@ -153,14 +156,14 @@ export function AdminTenantsTab() {
 
                                         {tenant.domains.length > 0 && (
                                             <div>
-                                                <span class="text-slate-400">All Domains:</span>{' '}
-                                                <span class="font-mono text-slate-200">
+                                                <span class="text-indigo-600">All Domains:</span>{' '}
+                                                <span class="font-mono text-gray-800">
                                                     {tenant.domains.map((domain, idx) => (
                                                         <>
                                                             {idx > 0 && ', '}
                                                             <button
                                                                 onClick={() => handleSwitchTenant(domain)}
-                                                                class="text-blue-400 hover:text-blue-300 hover:underline cursor-pointer"
+                                                                class="text-amber-700 hover:text-amber-600 hover:underline cursor-pointer transition-colors"
                                                                 title="Click to switch to this tenant"
                                                             >
                                                                 {domain}
@@ -171,35 +174,35 @@ export function AdminTenantsTab() {
                                             </div>
                                         )}
 
-                                        <div class="pt-2 border-t border-slate-700 mt-3">
-                                            <p class="text-slate-400 mb-2">Features:</p>
-                                            <div class="grid grid-cols-2 gap-2">
-                                                <div>
-                                                    <span class="text-slate-400">Multi-Currency:</span>{' '}
-                                                    <span class={tenant.tenant.features.enableMultiCurrency ? 'text-green-400' : 'text-slate-500'}>
+                                        <div class="pt-3 border-t border-indigo-200 mt-3">
+                                            <p class="text-indigo-600 mb-2 font-medium">Features:</p>
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div class="bg-indigo-50 rounded-md p-2 border border-indigo-200">
+                                                    <span class="text-indigo-700 text-xs">Multi-Currency:</span>{' '}
+                                                    <span class={tenant.tenant.features.enableMultiCurrency ? 'text-emerald-700 font-medium' : 'text-gray-500'}>
                                                         {tenant.tenant.features.enableMultiCurrency ? 'Enabled' : 'Disabled'}
                                                     </span>
                                                 </div>
-                                                <div>
-                                                    <span class="text-slate-400">Advanced Reporting:</span>{' '}
-                                                    <span class={tenant.tenant.features.enableAdvancedReporting ? 'text-green-400' : 'text-slate-500'}>
+                                                <div class="bg-indigo-50 rounded-md p-2 border border-indigo-200">
+                                                    <span class="text-indigo-700 text-xs">Advanced Reporting:</span>{' '}
+                                                    <span class={tenant.tenant.features.enableAdvancedReporting ? 'text-emerald-700 font-medium' : 'text-gray-500'}>
                                                         {tenant.tenant.features.enableAdvancedReporting ? 'Enabled' : 'Disabled'}
                                                     </span>
                                                 </div>
-                                                <div>
-                                                    <span class="text-slate-400">Max Groups:</span>{' '}
-                                                    <span class="text-white">{tenant.tenant.features.maxGroupsPerUser || 'N/A'}</span>
+                                                <div class="bg-indigo-50 rounded-md p-2 border border-indigo-200">
+                                                    <span class="text-indigo-700 text-xs">Max Groups:</span>{' '}
+                                                    <span class="text-amber-700 font-medium">{tenant.tenant.features.maxGroupsPerUser || 'N/A'}</span>
                                                 </div>
-                                                <div>
-                                                    <span class="text-slate-400">Max Users per Group:</span>{' '}
-                                                    <span class="text-white">{tenant.tenant.features.maxUsersPerGroup || 'N/A'}</span>
+                                                <div class="bg-indigo-50 rounded-md p-2 border border-indigo-200">
+                                                    <span class="text-indigo-700 text-xs">Max Users/Group:</span>{' '}
+                                                    <span class="text-amber-700 font-medium">{tenant.tenant.features.maxUsersPerGroup || 'N/A'}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="pt-2 text-xs text-slate-400">
-                                            <div>Created: {new Date(tenant.tenant.createdAt).toLocaleDateString()}</div>
-                                            <div>Updated: {new Date(tenant.tenant.updatedAt).toLocaleDateString()}</div>
+                                        <div class="pt-3 text-xs text-indigo-600 flex gap-4">
+                                            <div>Created: <span class="text-gray-700">{new Date(tenant.tenant.createdAt).toLocaleDateString()}</span></div>
+                                            <div>Updated: <span class="text-gray-700">{new Date(tenant.tenant.updatedAt).toLocaleDateString()}</span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -208,6 +211,7 @@ export function AdminTenantsTab() {
                                         onClick={() => handleEditTenant(tenant.tenant.tenantId)}
                                         variant="secondary"
                                         size="sm"
+                                        className="!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50"
                                     >
                                         Edit
                                     </Button>
@@ -219,8 +223,13 @@ export function AdminTenantsTab() {
             </div>
 
             {tenants.length === 0 && (
-                <Card className="p-12 text-center bg-slate-800 border border-slate-700">
-                    <p class="text-slate-400">No tenants found</p>
+                <Card className="p-12 text-center bg-white/70 backdrop-blur-sm border border-indigo-200">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-4">
+                        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                    </div>
+                    <p class="text-indigo-700 text-lg">No tenants found</p>
                 </Card>
             )}
         </>

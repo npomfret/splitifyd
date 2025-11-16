@@ -44,8 +44,8 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         // Navigate to expense detail page
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
-        // Wait for expense to load
-        await expect(page.getByRole('heading', { name: 'Locked Expense' })).toBeVisible();
+        // Wait for expense to load - description is now in a <p> tag, not a heading
+        await expect(page.getByText('Locked Expense')).toBeVisible();
 
         // Verify lock warning banner is displayed using page object
         const expenseDetailPage = new ExpenseDetailPage(page);
@@ -100,8 +100,8 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         // Navigate to expense detail page
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
-        // Wait for expense to load
-        await expect(page.getByRole('heading', { name: 'Locked Expense' })).toBeVisible();
+        // Wait for expense to load - description is now in a <p> tag, not a heading
+        await expect(page.getByText('Locked Expense')).toBeVisible();
 
         // Find the edit button
         const editButton = page.getByRole('button', { name: translationEn.expenseComponents.expenseActions.edit });
@@ -152,8 +152,8 @@ test.describe('Expense Detail - Locked Expense UI', () => {
         // Navigate to expense detail page
         await page.goto(`/groups/${groupId}/expenses/${expenseId}`, { waitUntil: 'domcontentloaded' });
 
-        // Wait for expense to load
-        await expect(page.getByRole('heading', { name: 'Normal Expense' })).toBeVisible();
+        // Wait for expense to load - description is now in a <p> tag, not a heading
+        await expect(page.getByText('Normal Expense')).toBeVisible();
 
         // Verify lock warning banner is NOT displayed using page object
         const expenseDetailPage = new ExpenseDetailPage(page);

@@ -64,16 +64,17 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const userBrowserHandlers = new UserBrowserHandlers(
         authService,
         db,
+        componentBuilder.buildFirestoreReader(),
     );
     const tenantBrowserHandlers = new TenantBrowserHandlers(
         componentBuilder.buildFirestoreReader(),
     );
-    const userAdminHandlers = new UserAdminHandlers(authService);
 
     // Services for inline handlers
     const userService = componentBuilder.buildUserService();
     const policyService = componentBuilder.buildPolicyService();
     const firestoreWriter = componentBuilder.buildFirestoreWriter();
+    const userAdminHandlers = new UserAdminHandlers(authService, firestoreWriter);
     const tenantRegistryService = componentBuilder.buildTenantRegistryService();
     const tenantAdminService = new TenantAdminService(
         componentBuilder.buildFirestoreWriter(),
@@ -536,6 +537,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         // User admin (system admin)
         updateUserAdmin: userAdminHandlers.updateUser,
+        updateUserRoleAdmin: userAdminHandlers.updateUserRole,
 
         // Tenant browser (system admin)
         listAllTenants: tenantBrowserHandlers.listAllTenants,

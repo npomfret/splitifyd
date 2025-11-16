@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
+import { appConfigHandler, firebaseInitConfigHandler } from '@/test/msw/handlers';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 type ThemeCssVars = {
@@ -52,7 +53,10 @@ const themeMap = new Map(themeFixtures.map((fixture) => [fixture.hashKey, fixtur
 
 test.describe('Tenant theme smoke suite', () => {
     for (const fixture of themeFixtures) {
-        test(`applies ${fixture.label}`, async ({ pageWithLogging: page }) => {
+        test(`applies ${fixture.label}`, async ({ pageWithLogging: page, msw }) => {
+            // Register config handlers to prevent 404 errors
+            await msw.use([firebaseInitConfigHandler(), appConfigHandler()]);
+
             // Set up route interception FIRST (before any navigation or init scripts)
             await page.route(/\/api\/theme\.css/, async (route) => {
                 const url = new URL(route.request().url());
@@ -95,11 +99,19 @@ test.describe('Tenant theme smoke suite', () => {
             await expectRootCssVar(page, '--surface-base-rgb', fixture.cssVars.surfaceBase);
             await expectRootCssVar(page, '--border-default-rgb', fixture.cssVars.borderDefault);
 
-            // Verify theme colors are applied to actual UI elements (using login page since / redirects there)
-            const signInButton = page.getByRole('button', { name: 'Sign In' });
-            await expect(signInButton).toBeVisible();
-            await expectColorMatch(signInButton, 'background-color', fixture.cssVars.interactivePrimary);
+            // Verify theme colors are applied to visible UI elements
+            // Check the "Sign Up" button in the header (always visible and styled with theme color)
+            const headerSignUpButton = page.getByRole('button', { name: 'Sign Up' }).first();
+            await expect(headerSignUpButton).toBeVisible();
+            await expectColorMatch(headerSignUpButton, 'background-color', fixture.cssVars.interactivePrimary);
 
+            // Navigate to login page to check more theme applications
+            const loginButton = page.getByText('Login').first();
+            await expect(loginButton).toBeVisible();
+            await loginButton.click();
+            await page.waitForURL('/login');
+
+            // Check the "Sign up" link text color on the login page
             const signUpLink = page.getByTestId('loginpage-signup-button');
             await expect(signUpLink).toBeVisible();
             await expectColorMatch(signUpLink, 'color', fixture.cssVars.interactivePrimary);

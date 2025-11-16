@@ -224,8 +224,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         navigationService.goToAddExpense(groupId!);
     };
 
-    const handleSettleUp = (preselectedDebt?: any) => {
-        modals.openSettlementForm(undefined, preselectedDebt);
+    const handleSettleUp = (preselectedDebt?: SimplifiedDebt) => {
+        // Only pass preselectedDebt if it's actually a debt object (not a DOM event)
+        const debt = preselectedDebt && typeof preselectedDebt === 'object' && 'from' in preselectedDebt ? preselectedDebt : undefined;
+        modals.openSettlementForm(undefined, debt);
     };
 
     const handleEditSettlement = (settlement: SettlementWithMembers) => {

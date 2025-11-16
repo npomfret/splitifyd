@@ -77,76 +77,88 @@ export function AdminDiagnosticsTab() {
         <div class='space-y-6'>
             {actionMessage && <Alert type={actionMessage.type} message={actionMessage.text} />}
 
-            <Card padding='lg' data-testid='tenant-overview-card'>
+            <Card padding='lg' data-testid='tenant-overview-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
                 <Stack spacing='sm'>
-                    <Typography variant='heading'>Tenant Overview</Typography>
-                    <div class='grid gap-4 md:grid-cols-3 text-sm text-text-primary'>
-                        <div>
-                            <p class='text-text-muted'>Tenant ID</p>
-                            <p class='font-mono'>{config?.tenant?.tenantId ?? 'unknown'}</p>
+                    <div class='flex items-center gap-2 mb-2'>
+                        <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                        <Typography variant='heading' className='text-amber-700'>Tenant Overview</Typography>
+                    </div>
+                    <div class='grid gap-4 md:grid-cols-3 text-sm'>
+                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p class='text-indigo-600 text-xs mb-1'>Tenant ID</p>
+                            <p class='font-mono text-amber-700 font-medium'>{config?.tenant?.tenantId ?? 'unknown'}</p>
                         </div>
-                        <div>
-                            <p class='text-text-muted'>App Name</p>
-                            <p>{tenantBranding?.appName ?? 'Not configured'}</p>
+                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p class='text-indigo-600 text-xs mb-1'>App Name</p>
+                            <p class='text-gray-800 font-medium'>{tenantBranding?.appName ?? 'Not configured'}</p>
                         </div>
-                        <div>
-                            <p class='text-text-muted'>Last Updated</p>
-                            <p>{config?.tenant?.updatedAt ?? '—'}</p>
+                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p class='text-indigo-600 text-xs mb-1'>Last Updated</p>
+                            <p class='text-gray-800 font-medium'>{config?.tenant?.updatedAt ?? '—'}</p>
                         </div>
                     </div>
                 </Stack>
             </Card>
 
-            <Card padding='lg' data-testid='theme-artifact-card'>
+            <Card padding='lg' data-testid='theme-artifact-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
                 <Stack spacing='md'>
                     <div class='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
                         <div>
-                            <Typography variant='heading'>Theme Artifact</Typography>
-                            <Typography variant='caption' className='text-text-muted'>Hash + CSS delivery helpers</Typography>
+                            <div class='flex items-center gap-2 mb-1'>
+                                <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                                <Typography variant='heading' className='text-amber-700'>Theme Artifact</Typography>
+                            </div>
+                            <Typography variant='caption' className='text-indigo-600 ml-3'>Hash + CSS delivery helpers</Typography>
                         </div>
                         <div class='flex flex-wrap gap-3'>
-                            <Button variant='secondary' size='sm' onClick={handleCopyThemeLink} data-testid='copy-theme-link-button'>
+                            <Button variant='secondary' size='sm' onClick={handleCopyThemeLink} data-testid='copy-theme-link-button' className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'>
                                 Copy Theme Link
                             </Button>
-                            <Button variant='ghost' size='sm' onClick={handleForceReload} data-testid='force-reload-theme-button'>
+                            <Button variant='ghost' size='sm' onClick={handleForceReload} data-testid='force-reload-theme-button' className='!text-gray-800 hover:!bg-gray-100'>
                                 Force Reload Theme
                             </Button>
                         </div>
                     </div>
-                    <div class='grid gap-4 text-sm text-text-primary md:grid-cols-3'>
-                        <div>
-                            <p class='text-text-muted'>Active Hash</p>
-                            <p class='font-mono'>{config?.theme?.hash ?? 'not published'}</p>
+                    <div class='grid gap-4 text-sm md:grid-cols-3'>
+                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p class='text-indigo-600 text-xs mb-1'>Active Hash</p>
+                            <p class='font-mono text-amber-700 font-medium'>{config?.theme?.hash ?? 'not published'}</p>
                         </div>
-                        <div>
-                            <p class='text-text-muted'>Generated At</p>
-                            <p>{config?.theme?.generatedAtEpochMs ? new Date(config.theme.generatedAtEpochMs).toISOString() : '—'}</p>
+                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p class='text-indigo-600 text-xs mb-1'>Generated At</p>
+                            <p class='text-gray-800 text-xs'>{config?.theme?.generatedAtEpochMs ? new Date(config.theme.generatedAtEpochMs).toISOString() : '—'}</p>
                         </div>
-                        <div>
-                            <p class='text-text-muted'>Link</p>
-                            <p class='font-mono break-all'>{themeLink}</p>
+                        <div class='bg-indigo-50 rounded-md p-3 border border-indigo-200'>
+                            <p class='text-indigo-600 text-xs mb-1'>Link</p>
+                            <p class='font-mono text-amber-700 text-xs break-all'>{themeLink}</p>
                         </div>
                     </div>
                 </Stack>
             </Card>
 
             {tenantBranding && (
-                <Card padding='lg' data-testid='branding-tokens-card'>
+                <Card padding='lg' data-testid='branding-tokens-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
                     <Stack spacing='md'>
-                        <Typography variant='heading'>Branding Tokens</Typography>
-                        <pre class='bg-surface-muted rounded-md p-4 text-sm overflow-x-auto border border-border-default'>{JSON.stringify(tenantBranding, null, 2)}</pre>
+                        <div class='flex items-center gap-2 mb-2'>
+                            <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                            <Typography variant='heading' className='text-amber-700'>Branding Tokens</Typography>
+                        </div>
+                        <pre class='bg-indigo-50 rounded-md p-4 text-sm overflow-x-auto border border-indigo-200 text-gray-800'>{JSON.stringify(tenantBranding, null, 2)}</pre>
                     </Stack>
                 </Card>
             )}
 
-            <Card padding='lg' data-testid='computed-vars-card'>
+            <Card padding='lg' data-testid='computed-vars-card' className='bg-white/70 backdrop-blur-sm border border-indigo-200'>
                 <Stack spacing='md'>
-                    <Typography variant='heading'>Computed CSS Variables</Typography>
+                    <div class='flex items-center gap-2 mb-2'>
+                        <div class='w-1 h-6 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full'></div>
+                        <Typography variant='heading' className='text-amber-700'>Computed CSS Variables</Typography>
+                    </div>
                     <div class='grid gap-3 md:grid-cols-2'>
                         {Object.entries(computedVars).map(([variable, value]) => (
-                            <div key={variable} class='rounded-md border border-border-default bg-surface-base px-4 py-3'>
-                                <p class='text-xs uppercase text-text-muted'>{variable}</p>
-                                <p class='font-mono text-sm'>{value || 'not set'}</p>
+                            <div key={variable} class='rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3'>
+                                <p class='text-xs uppercase text-indigo-600 mb-1'>{variable}</p>
+                                <p class='font-mono text-sm text-amber-700'>{value || 'not set'}</p>
                             </div>
                         ))}
                     </div>

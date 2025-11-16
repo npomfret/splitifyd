@@ -182,10 +182,10 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Cancel button - scoped to form to avoid multiple matches
+     * Cancel button - uses data-testid as it's outside the form element
      */
     getCancelButton(): Locator {
-        return this.page.locator('form').getByRole('button', { name: /cancel/i });
+        return this.page.getByTestId('expense-form-cancel');
     }
 
     /**
@@ -265,7 +265,12 @@ export class ExpenseFormPage extends BasePage {
     }
 
     getTimeSuggestion(time: string): Locator {
-        return this.page.getByRole('button', { name: time });
+        // Find the time input first, then locate the suggestion button near it
+        // This ensures we're clicking suggestions from the correct dropdown
+        const timeInput = this.getTimeInput();
+        // The suggestions are siblings of the input within the same parent container
+        // Use page-level search but this helps us ensure we're in the right context
+        return this.page.getByRole('button', { name: time, exact: true });
     }
 
     /**
@@ -676,8 +681,36 @@ export class ExpenseFormPage extends BasePage {
     }
 
     async clickTimeSuggestion(time: string): Promise<void> {
+        // Wait for dropdown to stabilize after typing
+        await this.page.waitForTimeout(300);
+
+        // Verify the suggestion exists in the dropdown
         const suggestion = this.getTimeSuggestion(time);
-        await suggestion.click();
+        await expect(suggestion).toBeVisible({ timeout: 3000 });
+
+        // Use keyboard navigation instead of clicking to avoid pointer interception issues
+        // The TimeInput component supports ArrowDown/ArrowUp for navigation and Enter to select
+
+        // Determine how many times to press ArrowDown to reach the target suggestion
+        // We need to find the index of the target time in the visible suggestions
+        const allSuggestions = await this.page.getByRole('button').filter({ hasText: /\d{1,2}:\d{2}\s*(AM|PM)/i }).allTextContents();
+        const targetIndex = allSuggestions.findIndex(text => text === time);
+
+        if (targetIndex === -1) {
+            throw new Error(`Could not find suggestion "${time}" in the list: ${allSuggestions.join(', ')}`);
+        }
+
+        // Get the time input to send keyboard events
+        const timeInput = this.getTimeInput();
+
+        // Navigate to the target suggestion using ArrowDown
+        for (let i = 0; i <= targetIndex; i++) {
+            await timeInput.press('ArrowDown');
+            await this.page.waitForTimeout(50); // Small delay between key presses
+        }
+
+        // Select the highlighted suggestion with Enter
+        await timeInput.press('Enter');
     }
 
     // ============================================================================

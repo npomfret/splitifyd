@@ -7,6 +7,7 @@ import { navigationService } from '@/services/navigation.service';
 import { LoadingState } from '@/components/ui';
 import { AdminTenantsTab } from '../components/admin/AdminTenantsTab';
 import { AdminDiagnosticsTab } from '../components/admin/AdminDiagnosticsTab';
+import { AdminUsersTab } from '../components/admin/AdminUsersTab';
 
 type AdminTab = 'tenants' | 'diagnostics' | 'users';
 
@@ -17,7 +18,7 @@ interface AdminPageProps {
 export function AdminPage({ tab: initialTab }: AdminPageProps) {
     const authStore = useAuthRequired();
     const user = authStore.user;
-    const isSystemAdmin = user?.role === SystemUserRoles.SYSTEM_ADMIN || user?.role === SystemUserRoles.SYSTEM_USER;
+    const isSystemAdmin = user?.role === SystemUserRoles.SYSTEM_ADMIN;
     const hasResolvedRole = user?.role !== undefined && user?.role !== null;
 
     // Get tab from URL query parameter if not provided as prop
@@ -77,27 +78,42 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
 
     return (
         <BaseLayout title="System Admin">
-            <div class="bg-slate-900 min-h-screen">
-                <div class="max-w-7xl mx-auto px-4 py-8">
-                    {/* Header */}
-                    <div class="mb-8">
-                        <h1 class="text-3xl font-bold text-white">System Administration</h1>
-                        <p class="mt-2 text-slate-300">Manage tenants, diagnostics, and system settings</p>
+            {/* Admin-specific background with grid pattern */}
+            <div class="relative min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-gray-100">
+                {/* Decorative grid overlay */}
+                <div class="absolute inset-0 bg-[linear-gradient(to_right,#e0e7ff_1px,transparent_1px),linear-gradient(to_bottom,#e0e7ff_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30"></div>
+
+                {/* Content */}
+                <div class="relative max-w-7xl mx-auto px-4 py-8">
+                    {/* Header with admin badge */}
+                    <div class="mb-8 pb-6 border-b border-indigo-200">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-amber-600 bg-clip-text text-transparent">
+                                System Administration
+                            </h1>
+                        </div>
+                        <p class="mt-2 text-indigo-700 ml-13">Command center for tenants, diagnostics, and system configuration</p>
                     </div>
 
-                    {/* Tabs */}
-                    <div class="border-b border-slate-700 mb-6">
-                        <nav class="flex space-x-8" aria-label="Admin tabs">
+                    {/* Tabs with admin styling */}
+                    <div class="mb-8">
+                        <nav class="flex space-x-2 bg-white/70 backdrop-blur-sm rounded-lg p-1.5 border border-indigo-200" aria-label="Admin tabs">
                             {tabs.map((tab) => {
                                 const isActive = activeTab === tab.id;
-                                const isDisabled = tab.id === 'users'; // Users tab not implemented yet
+                                const isDisabled = false; // All tabs are now implemented
 
-                                const tabClassName = `flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                const tabClassName = `flex items-center gap-2 py-3 px-4 rounded-md font-medium text-sm transition-all ${
                                     isActive
-                                        ? 'border-blue-500 text-blue-400'
+                                        ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 shadow-lg shadow-amber-500/10 border border-amber-300'
                                         : isDisabled
-                                            ? 'border-transparent text-slate-600 cursor-not-allowed'
-                                            : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-400'
+                                            ? 'text-gray-400 cursor-not-allowed'
+                                            : 'text-indigo-600 hover:text-amber-600 hover:bg-indigo-50'
                                 }`;
 
                                 return (
@@ -123,11 +139,6 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                                             />
                                         </svg>
                                         {tab.label}
-                                        {isDisabled && (
-                                            <span class="ml-2 text-xs bg-slate-700 text-slate-400 px-2 py-0.5 rounded">
-                                                Coming Soon
-                                            </span>
-                                        )}
                                     </button>
                                 );
                             })}
@@ -138,11 +149,7 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                     <div class="mt-6">
                         {activeTab === 'tenants' && <AdminTenantsTab />}
                         {activeTab === 'diagnostics' && <AdminDiagnosticsTab />}
-                        {activeTab === 'users' && (
-                            <div class="bg-slate-800 border border-slate-700 rounded-lg p-12 text-center">
-                                <p class="text-slate-400">User management coming soon</p>
-                            </div>
-                        )}
+                        {activeTab === 'users' && <AdminUsersTab />}
                     </div>
                 </div>
             </div>

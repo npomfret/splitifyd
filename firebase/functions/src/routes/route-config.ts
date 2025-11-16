@@ -491,6 +491,13 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'admin',
         middleware: ['authenticateAdmin'],
     },
+    {
+        method: 'PUT',
+        path: '/admin/users/:uid/role',
+        handlerName: 'updateUserRoleAdmin',
+        category: 'admin',
+        middleware: ['authenticateAdmin'],
+    },
 
     // === Tenant Settings (Tenant Admin Only) ===
     {
