@@ -31,8 +31,18 @@ export class ThemeHandlers {
         const cssContent = await this.readCssContent(artifact);
 
         res.setHeader('Content-Type', 'text/css; charset=utf-8');
-        // todo: consider cache strategy
-        res.setHeader('Cache-Control', 'no-cache');
+
+        // Content-addressed caching: when ?v=hash is present, cache aggressively since content is immutable
+        // Otherwise, use no-cache to ensure browsers check for updates
+        const requestedVersion = req.query.v;
+        if (requestedVersion) {
+            // Version parameter present - enable aggressive caching
+            // The presence of ?v= indicates the client is requesting a specific immutable version
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else {
+            // No version - use no-cache so browsers always check for updates
+            res.setHeader('Cache-Control', 'no-cache');
+        }
 
         res.setHeader('ETag', `"${artifact.hash}"`);
         res.setHeader('Last-Modified', new Date(artifact.generatedAtEpochMs).toUTCString());

@@ -10,6 +10,12 @@ import { getConfig } from '../client-config';
  * - All responses: Disable ETags to prevent 304 responses
  */
 export function applyCacheControl(req: Request, res: Response, next: NextFunction): void {
+    // Skip cache control for theme.css - it has its own versioning-based caching strategy
+    if (req.path === '/theme.css') {
+        next();
+        return;
+    }
+
     const config = getConfig();
 
     // Define static pages and config endpoints that can have minimal caching
