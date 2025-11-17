@@ -779,6 +779,20 @@ export class DashboardPage extends BasePage {
         }
     }
 
+    /**
+     * Verify create group button is visible
+     */
+    async verifyCreateGroupButtonVisible(): Promise<void> {
+        await expect(this.getCreateGroupButton()).toBeVisible();
+    }
+
+    /**
+     * Verify create group button is enabled
+     */
+    async verifyCreateGroupButtonEnabled(): Promise<void> {
+        await expect(this.getCreateGroupButton()).toBeEnabled();
+    }
+
     // ============================================================================
     // ACTIVITY FEED SELECTORS AND METHODS
     // ============================================================================

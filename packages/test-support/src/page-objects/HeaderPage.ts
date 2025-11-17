@@ -137,4 +137,20 @@ export class HeaderPage extends BasePage {
     async verifySignOutMenuItemVisible(): Promise<void> {
         await expect(this.getUserDropdownMenu().getByTestId('sign-out-button')).toBeVisible();
     }
+
+    async verifyUserMenuButtonVisible(): Promise<void> {
+        await expect(this.getUserMenuButton()).toBeVisible();
+    }
+
+    async verifyUserDropdownMenuVisible(): Promise<void> {
+        await expect(this.getUserDropdownMenu()).toBeVisible();
+    }
+
+    async verifyUserDropdownMenuNotVisible(): Promise<void> {
+        await expect(this.getUserDropdownMenu()).not.toBeVisible();
+    }
+
+    async verifyDashboardLinkVisible(): Promise<void> {
+        await expect(this.getDashboardLink()).toBeVisible();
+    }
 }

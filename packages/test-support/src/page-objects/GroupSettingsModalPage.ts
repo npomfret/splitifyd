@@ -506,6 +506,22 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(this.getDeleteButton()).toBeVisible();
     }
 
+    async verifyGeneralSuccessAlertVisible(): Promise<void> {
+        await expect(this.getGeneralSuccessAlert()).toBeVisible();
+    }
+
+    async verifySaveButtonDisabled(): Promise<void> {
+        await expect(this.getSaveButton()).toBeDisabled();
+    }
+
+    async verifySaveButtonEnabled(): Promise<void> {
+        await expect(this.getSaveButton()).toBeEnabled();
+    }
+
+    async verifyModalVisible(): Promise<void> {
+        await expect(this.getModal()).toBeVisible();
+    }
+
     async cancel(): Promise<void> {
         await this.clickCancel();
     }
@@ -557,5 +573,165 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(spinner).not.toBeVisible({ timeout: 5000 });
 
         return dashboardPage;
+    }
+
+    /**
+     * Verify security unsaved banner is visible
+     */
+    async verifySecurityUnsavedBannerVisible(): Promise<void> {
+        await expect(this.getSecurityUnsavedBanner()).toBeVisible();
+    }
+
+    /**
+     * Verify security unsaved banner is not visible
+     */
+    async verifySecurityUnsavedBannerNotVisible(): Promise<void> {
+        await expect(this.getSecurityUnsavedBanner()).not.toBeVisible();
+    }
+
+    /**
+     * Verify security success alert is visible
+     */
+    async verifySecuritySuccessAlertVisible(): Promise<void> {
+        await expect(this.getSecuritySuccessAlert()).toBeVisible();
+    }
+
+    /**
+     * Verify security success alert is not visible
+     */
+    async verifySecuritySuccessAlertNotVisible(): Promise<void> {
+        await expect(this.getSecuritySuccessAlert()).not.toBeVisible();
+    }
+
+    /**
+     * Verify display name section is visible
+     */
+    async verifyDisplayNameSectionVisible(): Promise<void> {
+        await expect(this.getDisplayNameSection()).toBeVisible();
+    }
+
+    /**
+     * Verify display name input is visible
+     */
+    async verifyDisplayNameInputVisible(): Promise<void> {
+        await expect(this.getDisplayNameInput()).toBeVisible();
+    }
+
+    /**
+     * Verify display name save button is visible
+     */
+    async verifyDisplayNameSaveButtonVisible(): Promise<void> {
+        await expect(this.getDisplayNameSaveButton()).toBeVisible();
+    }
+
+    /**
+     * Verify display name save button is disabled
+     */
+    async verifyDisplayNameSaveButtonDisabled(): Promise<void> {
+        await expect(this.getDisplayNameSaveButton()).toBeDisabled();
+    }
+
+    /**
+     * Verify display name error is visible
+     */
+    async verifyDisplayNameErrorVisible(): Promise<void> {
+        await expect(this.getDisplayNameError()).toBeVisible();
+    }
+
+    /**
+     * Verify display name success is visible
+     */
+    async verifyDisplayNameSuccessVisible(): Promise<void> {
+        await expect(this.getDisplayNameSuccess()).toBeVisible();
+    }
+
+    /**
+     * Verify display name success is not visible
+     */
+    async verifyDisplayNameSuccessNotVisible(): Promise<void> {
+        await expect(this.getDisplayNameSuccess()).not.toBeVisible();
+    }
+
+    /**
+     * Verify pending approve button is visible
+     */
+    async verifyPendingApproveButtonVisible(memberId: string): Promise<void> {
+        await expect(this.getPendingApproveButton(memberId)).toBeVisible();
+    }
+
+    /**
+     * Verify pending approve button is not visible
+     */
+    async verifyPendingApproveButtonNotVisible(memberId: string): Promise<void> {
+        await expect(this.getPendingApproveButton(memberId)).not.toBeVisible();
+    }
+
+    /**
+     * Verify pending reject button is visible
+     */
+    async verifyPendingRejectButtonVisible(memberId: string): Promise<void> {
+        await expect(this.getPendingRejectButton(memberId)).toBeVisible();
+    }
+
+    /**
+     * Verify pending reject button is not visible
+     */
+    async verifyPendingRejectButtonNotVisible(memberId: string): Promise<void> {
+        await expect(this.getPendingRejectButton(memberId)).not.toBeVisible();
+    }
+
+    /**
+     * Verify modal container is visible
+     */
+    async verifyModalContainerVisible(): Promise<void> {
+        await expect(this.getModalContainer()).toBeVisible();
+    }
+
+    /**
+     * Verify modal container is not visible
+     */
+    async verifyModalContainerNotVisible(): Promise<void> {
+        await expect(this.getModalContainer()).not.toBeVisible();
+    }
+
+    // Public locator accessors for tests
+    getDisplayNameInputLocator(): Locator {
+        return this.getDisplayNameInput();
+    }
+
+    getDisplayNameSaveButtonLocator(): Locator {
+        return this.getDisplayNameSaveButton();
+    }
+
+    getDisplayNameSuccessLocator(): Locator {
+        return this.getDisplayNameSuccess();
+    }
+
+    getDisplayNameSectionLocator(): Locator {
+        return this.getDisplayNameSection();
+    }
+
+    getDisplayNameErrorLocator(): Locator {
+        return this.getDisplayNameError();
+    }
+
+    getPendingApproveButtonLocator(memberId: string): Locator {
+        return this.getPendingApproveButton(memberId);
+    }
+
+    getPendingRejectButtonLocator(memberId: string): Locator {
+        return this.getPendingRejectButton(memberId);
+    }
+
+    getModalContainerLocator(): Locator {
+        return this.getModalContainer();
+    }
+
+    /**
+     * Verify "No pending requests" message is visible after all pending members are processed
+     */
+    async verifyNoPendingRequestsMessageVisible(): Promise<void> {
+        await this.ensureSecurityTab();
+        await expect(this.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
     }
 }

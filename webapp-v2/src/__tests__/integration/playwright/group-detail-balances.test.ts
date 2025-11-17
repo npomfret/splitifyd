@@ -89,7 +89,7 @@ test.describe('Group Detail - Balance Display: All Settled Up', () => {
         await groupDetailPage.verifySettledUp();
 
         // Verify no debt items are present using POM method
-        await expect(groupDetailPage.getDebtItems()).toHaveCount(0);
+        await groupDetailPage.verifyDebtItemsCount(0);
     });
 });
 
@@ -309,13 +309,13 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
         await groupDetailPage.waitForGroupToLoad();
 
         // Default view should hide debts that don't involve the current user
-        await expect(groupDetailPage.getSettledUpMessage()).toBeVisible();
-        await expect(groupDetailPage.getDebtItems()).toHaveCount(0);
+        await groupDetailPage.verifySettledUpMessageVisible();
+        await groupDetailPage.verifyDebtItemsCount(0);
 
         // Enable "Show all" filter since the current user is not involved in this debt
         await groupDetailPage.toggleShowAllBalances(true);
 
-        await expect(groupDetailPage.getSettledUpMessage()).not.toBeVisible();
+        await groupDetailPage.verifySettledUpMessageNotVisible();
 
         // Verify specific optimized debt relationship
         await groupDetailPage.verifyDebtRelationship('Bob', 'Alice', '$10.00');
@@ -354,10 +354,10 @@ test.describe('Group Detail - Balance Display: Loading States', () => {
         await groupDetailPage.navigateToGroup(groupId);
 
         // Verify balances section is visible using POM method
-        await expect(groupDetailPage.getBalanceContainer()).toBeVisible();
+        await groupDetailPage.verifyBalanceContainerVisible();
 
         // Verify heading using POM method
-        await expect(groupDetailPage.getBalanceSummaryHeading()).toBeVisible();
+        await groupDetailPage.verifyBalanceSummaryHeadingVisible();
     });
 });
 

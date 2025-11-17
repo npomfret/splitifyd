@@ -188,7 +188,7 @@ test.describe('Group Detail - Members Display', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Verify member count is displayed
-        await expect(groupDetailPage.getMemberCount()).toContainText('2');
+        await groupDetailPage.verifyMemberCountText('2');
     });
 });
 
@@ -237,13 +237,13 @@ test.describe('Group Detail - Security Settings', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
-        await expect(groupDetailPage.getSecuritySettingsButton()).toBeVisible();
+        await groupDetailPage.verifySecuritySettingsButtonVisible();
 
         const settingsModal = await groupDetailPage.openSecuritySettings();
         await settingsModal.waitForSecurityTab();
 
         await settingsModal.selectPreset('managed');
-        await expect(settingsModal.getSecurityUnsavedBanner()).toBeVisible();
+        await settingsModal.verifySecurityUnsavedBannerVisible();
 
         const permissionsRequestPromise = page.waitForRequest(
             (request) => request.url().includes(`/api/groups/${groupId}/security/permissions`) && request.method() === 'PATCH',
@@ -259,8 +259,8 @@ test.describe('Group Detail - Security Settings', () => {
             memberApproval: 'admin-required',
             settingsManagement: 'admin-only',
         });
-        await expect(settingsModal.getSecuritySuccessAlert()).toBeVisible();
-        await expect(settingsModal.getSecurityUnsavedBanner()).not.toBeVisible();
+        await settingsModal.verifySecuritySuccessAlertVisible();
+        await settingsModal.verifySecurityUnsavedBannerNotVisible();
 
         await settingsModal.clickFooterClose();
         await expect(page.getByTestId('group-settings-modal-title')).toBeHidden();
@@ -448,7 +448,7 @@ test.describe('Group Detail - Sidebar Sections', () => {
         await groupDetailPage.expectSettlementsCollapsed();
 
         // Verify balance content is visible
-        await expect(groupDetailPage.getDebtItems()).toHaveCount(1);
+        await groupDetailPage.verifyDebtItemsCount(1);
 
         await groupDetailPage.ensureCommentsSectionExpanded();
         await groupDetailPage.waitForCommentCount(1);
@@ -615,7 +615,7 @@ test.describe('Group Detail - Expenses Display', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Verify expense count is displayed
-        await expect(groupDetailPage.getExpenseCount()).toContainText('3');
+        await groupDetailPage.verifyExpenseCountText('3');
     });
 });
 

@@ -49,7 +49,7 @@ test.describe('Network & Server Error Handling', () => {
 
         // Open modal and fill form
         const createGroupModal = await dashboardPage.clickCreateGroup();
-        await expect(createGroupModal.getModalContainer()).toBeVisible();
+        await createGroupModal.verifyModalContainerVisible();
         await createGroupModal.fillGroupForm('Network Test Group', 'Testing network error handling');
 
         // Submit the form
@@ -64,15 +64,13 @@ test.describe('Network & Server Error Handling', () => {
             .toPass({ timeout: 5000, intervals: [100] });
 
         // Wait for error message to appear (this is the expected behavior)
-        const errorMessage = createGroupModal.getErrorMessage().first();
-        await expect(errorMessage).toBeVisible({ timeout: 10000 });
+        await createGroupModal.verifyErrorMessageVisible();
 
         // Verify modal stays open on error
-        await expect(createGroupModal.getModalContainer()).toBeVisible();
+        await createGroupModal.verifyModalContainerVisible();
 
         // Verify submit button is re-enabled after error
-        const submitButton = createGroupModal.getSubmitButton();
-        await expect(submitButton).toBeEnabled({ timeout: 2000 });
+        await createGroupModal.verifySubmitButtonEnabled();
 
         // Clean up route
         await page.unroute('**/api/groups');
@@ -105,9 +103,8 @@ test.describe('Network & Server Error Handling', () => {
         await dashboardPage.waitForDomContentLoaded();
 
         // App should still be functional despite malformed response
-        const createButton = dashboardPage.getCreateGroupButton();
-        await expect(createButton).toBeVisible({ timeout: 10000 });
-        await expect(createButton).toBeEnabled();
+        await dashboardPage.verifyCreateGroupButtonVisible();
+        await dashboardPage.verifyCreateGroupButtonEnabled();
         await dashboardPage.expectUrl(/\/dashboard/);
 
         // Clean up route
@@ -146,8 +143,7 @@ test.describe('Network & Server Error Handling', () => {
         await dashboardPage.waitForDomContentLoaded();
 
         // Should show error indication
-        const errorIndication = createGroupModalPage.getErrorMessage();
-        await expect(errorIndication.first()).toBeVisible({ timeout: 5000 });
+        await createGroupModalPage.verifyErrorMessageVisible();
 
         // Test 2: Timeout scenario (within same test)
         await page.unroute('**/api/groups');
@@ -184,12 +180,10 @@ test.describe('Network & Server Error Handling', () => {
         await Promise.race([submitPromise, buttonReenabledPromise]);
 
         // Verify expected state: button should be re-enabled after timeout
-        const submitButton = createGroupModalPage.getSubmitButton();
-        const isSubmitButtonEnabled = await submitButton.isEnabled();
-        expect(isSubmitButtonEnabled).toBe(true);
+        await createGroupModalPage.verifySubmitButtonEnabled();
 
         // Modal should still be open
-        await expect(createGroupModalPage.getModalContainer()).toBeVisible();
+        await createGroupModalPage.verifyModalContainerVisible();
 
         // Close modal
         await page.keyboard.press('Escape');
@@ -201,20 +195,16 @@ test.describe('Network & Server Error Handling', () => {
 
         // Test 1: Client-side validation
         await dashboardPage.clickCreateGroup();
-        await expect(createGroupModalPage.getModalContainer()).toBeVisible();
-
-        // Try to submit empty form
-        const submitButton = createGroupModalPage.getSubmitButton();
-        await expect(submitButton).toBeVisible();
+        await createGroupModalPage.verifyModalContainerVisible();
 
         // Submit button should be disabled for empty form
-        await expect(submitButton).toBeDisabled();
+        await createGroupModalPage.verifySubmitButtonDisabled();
 
         // Fill with valid data and verify form can be submitted
         await createGroupModalPage.fillGroupForm(generateTestGroupName('Valid'), 'Valid description');
 
         // Button should now be enabled
-        await expect(submitButton).toBeEnabled();
+        await createGroupModalPage.verifySubmitButtonEnabled();
 
         // Test 2: Server validation errors (within same test)
         test.info().annotations.push({
@@ -245,11 +235,10 @@ test.describe('Network & Server Error Handling', () => {
         // The error is displayed via enhancedGroupsStore.errorSignal in the modal
 
         // Modal should still be open
-        await expect(createGroupModalPage.getModalContainer()).toBeVisible();
+        await createGroupModalPage.verifyModalContainerVisible();
 
         // Should show error message within the modal
-        const errorMessage = createGroupModalPage.getErrorMessage();
-        await expect(errorMessage.first()).toBeVisible({ timeout: 5000 });
+        await createGroupModalPage.verifyErrorMessageVisible();
 
         // Should remain on dashboard URL but modal should still be open
         await dashboardPage.expectUrl(/\/dashboard/);
@@ -288,23 +277,21 @@ test.describe('Form Validation & UI Error Handling', () => {
             memberNames,
             (page: Page) => new ExpenseFormPage(page),
         );
-        const submitButton = expenseFormPage.getSaveButtonForValidation();
-
         // Test validation sequence
-        await expect(submitButton).toBeDisabled(); // Empty form
+        await expenseFormPage.verifySaveButtonDisabled(); // Empty form
 
         await expenseFormPage.fillDescription('Test expense');
-        await expect(submitButton).toBeDisabled(); // Missing amount
+        await expenseFormPage.verifySaveButtonDisabled(); // Missing amount
 
         await expenseFormPage.fillAmount('0');
-        await expect(submitButton).toBeDisabled(); // Zero amount
+        await expenseFormPage.verifySaveButtonDisabled(); // Zero amount
 
         await expenseFormPage.fillAmount('50');
-        await expect(submitButton).toBeEnabled({ timeout: 2000 }); // Valid form
+        await expenseFormPage.verifySaveButtonEnabled(); // Valid form
 
         // Test clearing description disables form again
         await expenseFormPage.fillDescription('');
-        await expect(submitButton).toBeDisabled(); // Missing description
+        await expenseFormPage.verifySaveButtonDisabled(); // Missing description
     });
 
     test('should handle server validation errors gracefully', async ({ createLoggedInBrowsers }, testInfo) => {
@@ -334,11 +321,10 @@ test.describe('Form Validation & UI Error Handling', () => {
         const currencyOption = page.getByText('Euro (EUR)').first();
         await currencyOption.click();
 
-        const submitButton = expenseFormPage.getSaveButtonForValidation();
-        await expect(submitButton).toBeEnabled({ timeout: 2000 });
+        await expenseFormPage.verifySaveButtonEnabled();
 
         await expenseFormPage.typeLabelText(''); // Clear label to trigger server error
-        await submitButton.click();
+        await expenseFormPage.clickSaveExpenseButton();
 
         await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
         await expect(page.getByRole('heading', { name: /something went wrong/i })).toBeVisible({ timeout: 5000 });

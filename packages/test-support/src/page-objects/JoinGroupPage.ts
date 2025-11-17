@@ -316,6 +316,26 @@ export class JoinGroupPage extends BasePage {
         await expect(this.getUnableToJoinWarning()).toBeVisible({ timeout: TEST_TIMEOUTS.ERROR_DISPLAY });
     }
 
+    async verifyJoinGroupButtonDisabled(): Promise<void> {
+        await expect(this.getJoinGroupButton()).toBeDisabled();
+    }
+
+    async verifyJoinGroupButtonEnabled(): Promise<void> {
+        await expect(this.getJoinGroupButton()).toBeEnabled();
+    }
+
+    async verifyBackToDashboardButtonVisible(): Promise<void> {
+        await expect(this.getBackToDashboardButton()).toBeVisible();
+    }
+
+    async verifyBackToDashboardButtonEnabled(): Promise<void> {
+        await expect(this.getBackToDashboardButton()).toBeEnabled();
+    }
+
+    async isJoinGroupButtonVisible(): Promise<boolean> {
+        return await this.getJoinGroupButton().isVisible().catch(() => false);
+    }
+
     async verifyErrorMessageContains(expectedText: string): Promise<void> {
         const inlineError = this.page.getByTestId('join-group-error-message');
         const headingError = this.page.getByRole('heading', { name: expectedText });

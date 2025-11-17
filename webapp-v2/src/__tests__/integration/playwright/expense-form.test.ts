@@ -99,7 +99,8 @@ test.describe('Expense Form', () => {
             };
             page.on('dialog', onDialog);
 
-            await expenseFormPage.getCancelButton().click();
+            await expenseFormPage.verifyCancelButtonVisible();
+            await expenseFormPage.clickCancel();
 
             await expect(page).toHaveURL(/\/groups\/unsaved-guard-group$/);
             expect(dialogs).toHaveLength(0);

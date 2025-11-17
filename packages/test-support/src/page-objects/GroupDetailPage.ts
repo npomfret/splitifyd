@@ -814,6 +814,23 @@ export class GroupDetailPage extends BasePage {
         }
     }
 
+    /**
+     * Click the include deleted expenses checkbox
+     */
+    async clickIncludeDeletedExpensesCheckbox(): Promise<void> {
+        const checkbox = this.getIncludeDeletedExpensesCheckbox();
+        await checkbox.click();
+    }
+
+    /**
+     * Click the include deleted settlements checkbox
+     */
+    async clickIncludeDeletedSettlementsCheckbox(): Promise<void> {
+        await this.ensureSettlementsSectionExpanded();
+        const checkbox = this.getIncludeDeletedSettlementsCheckbox();
+        await checkbox.click();
+    }
+
     // ============================================================================
     // MODALS
     // ============================================================================
@@ -1043,6 +1060,48 @@ export class GroupDetailPage extends BasePage {
     async verifyHasDebts(): Promise<void> {
         await this.ensureBalancesSectionExpanded();
         await expect(this.getDebtItems().first()).toBeVisible();
+    }
+
+    /**
+     * Verify remove member button is disabled for a specific member
+     */
+    async verifyRemoveMemberButtonDisabled(memberName: string): Promise<void> {
+        await expect(this.getRemoveMemberButton(memberName)).toBeDisabled();
+    }
+
+    /**
+     * Verify edit group button is visible
+     */
+    async verifyEditGroupButtonVisible(): Promise<void> {
+        await expect(this.getEditGroupButton()).toBeVisible();
+    }
+
+    /**
+     * Verify edit group button is enabled
+     */
+    async verifyEditGroupButtonEnabled(): Promise<void> {
+        await expect(this.getEditGroupButton()).toBeEnabled();
+    }
+
+    /**
+     * Verify expense by description is visible
+     */
+    async verifyExpenseByDescriptionVisible(description: string): Promise<void> {
+        await expect(this.getExpenseByDescription(description)).toBeVisible();
+    }
+
+    /**
+     * Verify expense by description is not visible
+     */
+    async verifyExpenseByDescriptionNotVisible(description: string): Promise<void> {
+        await expect(this.getExpenseByDescription(description)).not.toBeVisible();
+    }
+
+    /**
+     * Verify specific debt relationship is not visible
+     */
+    async verifyDebtInfoNotVisible(debtorName: string, creditorName: string): Promise<void> {
+        await expect(this.getDebtInfo(debtorName, creditorName)).not.toBeVisible();
     }
 
     /**
@@ -1694,5 +1753,180 @@ export class GroupDetailPage extends BasePage {
             .getMembersContainer()
             .locator(`[data-testid="member-item"][data-member-name="${memberName}"]`);
         await expect(memberItem).not.toBeVisible();
+    }
+
+    /**
+     * Verify debt items are visible
+     */
+    async verifyDebtItemsVisible(): Promise<void> {
+        await expect(this.getDebtItems().first()).toBeVisible();
+    }
+
+    /**
+     * Verify debt items count matches expected
+     */
+    async verifyDebtItemsCount(count: number): Promise<void> {
+        await expect(this.getDebtItems()).toHaveCount(count);
+    }
+
+    /**
+     * Verify settled up message is visible
+     */
+    async verifySettledUpMessageVisible(): Promise<void> {
+        await expect(this.getSettledUpMessage()).toBeVisible();
+    }
+
+    /**
+     * Verify settled up message is not visible
+     */
+    async verifySettledUpMessageNotVisible(): Promise<void> {
+        await expect(this.getSettledUpMessage()).not.toBeVisible();
+    }
+
+    /**
+     * Verify balance container is visible
+     */
+    async verifyBalanceContainerVisible(): Promise<void> {
+        await expect(this.getBalanceContainer()).toBeVisible();
+    }
+
+    /**
+     * Verify balance summary heading is visible
+     */
+    async verifyBalanceSummaryHeadingVisible(): Promise<void> {
+        await expect(this.getBalanceSummaryHeading()).toBeVisible();
+    }
+
+    /**
+     * Verify comment items count matches expected
+     */
+    async verifyCommentItemsCount(count: number): Promise<void> {
+        await expect(this.getCommentItems()).toHaveCount(count);
+    }
+
+    /**
+     * Verify include deleted expenses checkbox is visible
+     */
+    async verifyIncludeDeletedExpensesCheckboxVisible(): Promise<void> {
+        await expect(this.getIncludeDeletedExpensesCheckbox()).toBeVisible();
+    }
+
+    /**
+     * Verify include deleted expenses checkbox is checked
+     */
+    async verifyIncludeDeletedExpensesCheckboxChecked(): Promise<void> {
+        await expect(this.getIncludeDeletedExpensesCheckbox()).toBeChecked();
+    }
+
+    /**
+     * Verify include deleted expenses checkbox does not exist
+     */
+    async verifyIncludeDeletedExpensesCheckboxNotExists(): Promise<void> {
+        await expect(this.getIncludeDeletedExpensesCheckbox()).toHaveCount(0);
+    }
+
+    /**
+     * Verify include deleted settlements checkbox is visible
+     */
+    async verifyIncludeDeletedSettlementsCheckboxVisible(): Promise<void> {
+        await expect(this.getIncludeDeletedSettlementsCheckbox()).toBeVisible();
+    }
+
+    /**
+     * Verify include deleted settlements checkbox is checked
+     */
+    async verifyIncludeDeletedSettlementsCheckboxChecked(): Promise<void> {
+        await expect(this.getIncludeDeletedSettlementsCheckbox()).toBeChecked();
+    }
+
+    /**
+     * Verify include deleted settlements checkbox does not exist
+     */
+    async verifyIncludeDeletedSettlementsCheckboxNotExists(): Promise<void> {
+        await expect(this.getIncludeDeletedSettlementsCheckbox()).toHaveCount(0);
+    }
+
+    /**
+     * Verify settlement container is visible
+     */
+    async verifySettlementContainerVisible(): Promise<void> {
+        await expect(this.getSettlementContainer()).toBeVisible();
+    }
+
+    /**
+     * Verify settlement container is not visible
+     */
+    async verifySettlementContainerNotVisible(): Promise<void> {
+        await expect(this.getSettlementContainer()).not.toBeVisible();
+    }
+
+    /**
+     * Verify expenses container is visible
+     */
+    async verifyExpensesContainerVisible(): Promise<void> {
+        await expect(this.getExpensesContainer()).toBeVisible();
+    }
+
+    /**
+     * Verify expenses container is not visible
+     */
+    async verifyExpensesContainerNotVisible(): Promise<void> {
+        await expect(this.getExpensesContainer()).not.toBeVisible();
+    }
+
+    /**
+     * Verify member item is visible
+     */
+    async verifyMemberItemVisible(memberName: string): Promise<void> {
+        await expect(this.getMemberItem(memberName)).toBeVisible();
+    }
+
+    /**
+     * Verify member cards count matches expected
+     */
+    async verifyMemberCardsCount(count: number): Promise<void> {
+        await expect(this.getMemberCards()).toHaveCount(count);
+    }
+
+    /**
+     * Verify member count text contains expected value
+     */
+    async verifyMemberCountText(text: string): Promise<void> {
+        await expect(this.getMemberCount()).toContainText(text);
+    }
+
+    /**
+     * Verify security settings button is visible
+     */
+    async verifySecuritySettingsButtonVisible(): Promise<void> {
+        await expect(this.getSecuritySettingsButton()).toBeVisible();
+    }
+
+    /**
+     * Verify expense count text contains expected value
+     */
+    async verifyExpenseCountText(text: string): Promise<void> {
+        await expect(this.getExpenseCount()).toContainText(text);
+    }
+
+    // Public locator accessors for tests
+    getEditGroupButtonLocator(): Locator {
+        return this.getEditGroupButton();
+    }
+
+    getMemberItemLocator(memberName: string): Locator {
+        return this.getMemberItem(memberName);
+    }
+
+    getMemberCardsLocator(): Locator {
+        return this.getMemberCards();
+    }
+
+    getBalanceContainerLocator(): Locator {
+        return this.getBalanceContainer();
+    }
+
+    getSettlementButtonForDebtLocator(payerName: string, payeeName: string): Locator {
+        return this.getSettlementButtonForDebt(payerName, payeeName);
     }
 }

@@ -160,14 +160,14 @@ test.describe('Settlement Form Validation', () => {
         await settlementFormPage.selectPayee('User 2');
         await settlementFormPage.fillAmount('10.123');
 
-        const precisionError = settlementFormPage.getModal().getByTestId('settlement-amount-error');
+        const precisionError = settlementFormPage.getAmountErrorMessage();
         await expect(precisionError).toContainText('decimal place');
         await settlementFormPage.expectSubmitDisabled();
         await settlementFormPage.expectAmountValue('10.123');
 
         await settlementFormPage.fillAmount('10.12');
         await settlementFormPage.expectAmountValue('10.12');
-        await expect(settlementFormPage.getModal().getByTestId('settlement-amount-error')).toHaveCount(0);
+        await expect(settlementFormPage.getAmountErrorMessage()).toHaveCount(0);
 
         await expectNoGlobalError(settlementFormPage);
     });
@@ -271,10 +271,8 @@ test.describe('Settlement Form - Warning Message Bug (Reproduce)', () => {
         await settlementFormPage.fillAmount('84.79');
 
         // BUG: The warning message appears even though this is a valid settlement
-        const warningMessage = settlementFormPage.getWarningMessage();
-
         // This assertion will FAIL due to the bug - the warning incorrectly appears
-        await expect(warningMessage).not.toBeVisible();
+        await settlementFormPage.verifyWarningMessageNotVisible();
 
         // The form should be valid and submittable without warnings
         await settlementFormPage.expectSubmitEnabled();
@@ -327,16 +325,15 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Wait for balances to load - just check the balance summary card exists
-        await expect(groupDetailPage.getBalanceContainer()).toBeAttached();
+        await expect(groupDetailPage.getBalanceContainerLocator()).toBeAttached();
 
         // Click the Settle Up button from Group Actions (not the balance summary button)
         const settlementFormPage = await groupDetailPage.clickSettleUpButton(2, { waitForFormReady: true });
 
-        await expect(settlementFormPage.getQuickSettleHeading()).toBeVisible();
+        await settlementFormPage.verifyQuickSettleHeadingVisible();
 
         // The name may be truncated in the UI, so match the beginning and amount
-        const shortcutButton = settlementFormPage.getQuickSettleShortcutButton(/\$37\.25\s*.*→\s*Alexandra Very/);
-        await expect(shortcutButton).toBeVisible();
+        await settlementFormPage.verifyQuickSettleShortcutButtonVisible(/\$37\.25\s*.*→\s*Alexandra Very/);
     });
 
     test('hides quick settle shortcuts when modal is pre-filled from balances', async ({ authenticatedPage }) => {
@@ -381,15 +378,14 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
-        const debtButton = groupDetailPage.getSettlementButtonForDebt(user.displayName, 'Alexandra Verylongname');
+        const debtButton = groupDetailPage.getSettlementButtonForDebtLocator(user.displayName, 'Alexandra Verylongname');
         await debtButton.click();
 
         const settlementFormPage = new SettlementFormPage(page);
-        const modal = settlementFormPage.getModal();
-        await expect(modal).toBeVisible();
+        await settlementFormPage.verifyModalVisible();
 
-        await expect(settlementFormPage.getQuickSettleHeading()).toHaveCount(0);
-        await expect(settlementFormPage.getQuickSettleShortcutButton(/\$37\.25\s*→\s*Alexandra Verylongname/)).toHaveCount(0);
+        await settlementFormPage.verifyQuickSettleHeadingNotVisible();
+        await settlementFormPage.verifyQuickSettleShortcutButtonNotVisible(/\$37\.25\s*→\s*Alexandra Verylongname/);
     });
 });
 
@@ -439,11 +435,11 @@ test.describe('Settlement Form - Amount Warnings', () => {
         await settlementFormPage.selectPayee('Alexandra Verylongname');
         await settlementFormPage.fillAmount('10.00');
 
-        const warning = settlementFormPage.getModal().getByTestId('settlement-warning-message');
+        const warning = settlementFormPage.getSettlementWarningMessage();
         await expect(warning).toContainText('still owe');
 
         await settlementFormPage.fillAmount('50.00');
-        await expect(settlementFormPage.getModal().getByTestId('settlement-warning-message')).toHaveCount(0);
+        await expect(settlementFormPage.getSettlementWarningMessage()).toHaveCount(0);
         await expectNoGlobalError(settlementFormPage);
     });
 });

@@ -190,4 +190,9 @@ export class PolicyAcceptanceModalPage extends BasePage {
     async verifyAcceptanceLabelVisible(): Promise<void> {
         await expect(this.getAcceptanceLabel()).toBeVisible();
     }
+
+    // Public locator accessor for tests
+    getModalContainerLocator(): Locator {
+        return this.getModalContainer();
+    }
 }

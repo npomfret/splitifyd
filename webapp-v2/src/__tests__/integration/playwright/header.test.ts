@@ -2,14 +2,14 @@ import { HeaderPage } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Header Page Object', () => {
-    test('should have all required element getters', async ({ authenticatedPage }) => {
+    test('should have all required verification methods', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
         const headerPage = new HeaderPage(page);
 
-        // Verify all getter methods exist and return Locators
-        expect(headerPage.getUserMenuButton()).toBeTruthy();
-        expect(headerPage.getUserDropdownMenu()).toBeTruthy();
-        expect(headerPage.getDashboardLink()).toBeTruthy();
+        // Verify all verification methods exist
+        expect(typeof headerPage.verifyUserMenuButtonVisible).toBe('function');
+        expect(typeof headerPage.verifyUserDropdownMenuVisible).toBe('function');
+        expect(typeof headerPage.verifyDashboardLinkVisible).toBe('function');
     });
 
     test('should have user menu action methods', async ({ authenticatedPage }) => {
@@ -30,8 +30,7 @@ test.describe('Header Page Object', () => {
         // Navigate to dashboard where header is rendered (first navigation may take longer)
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded', timeout: 10000 });
 
-        const userMenuButton = headerPage.getUserMenuButton();
-        await expect(userMenuButton).toBeVisible();
+        await headerPage.verifyUserMenuButtonVisible();
     });
 
     test('should be able to get user dropdown menu', async ({ authenticatedPage }) => {
@@ -42,8 +41,7 @@ test.describe('Header Page Object', () => {
         await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
         // Dropdown should not be visible initially
-        const dropdown = headerPage.getUserDropdownMenu();
-        await expect(dropdown).not.toBeVisible();
+        await headerPage.verifyUserDropdownMenuNotVisible();
     });
 
     test('should be able to open user menu', async ({ authenticatedPage }) => {
@@ -57,8 +55,7 @@ test.describe('Header Page Object', () => {
         await headerPage.openUserMenu();
 
         // Verify menu is open
-        const dropdown = headerPage.getUserDropdownMenu();
-        await expect(dropdown).toBeVisible();
+        await headerPage.verifyUserDropdownMenuVisible();
     });
 
     test('should be able to get current user display name', async ({ authenticatedPage }) => {
@@ -99,7 +96,6 @@ test.describe('Header Page Object', () => {
         await headerPage.openUserMenu();
 
         // Check for dashboard link
-        const dashboardLink = headerPage.getDashboardLink();
-        await expect(dashboardLink).toBeVisible();
+        await headerPage.verifyDashboardLinkVisible();
     });
 });

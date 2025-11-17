@@ -83,7 +83,7 @@ test.describe('Users Browser Page - Basic Functionality', () => {
         await usersBrowserPage.navigate();
         await usersBrowserPage.verifyPageLoaded();
 
-        await expect(usersBrowserPage.getPageTitle()).toHaveText('Users Browser');
+        await expect(usersBrowserPage.getPageTitleLocator()).toHaveText('Users Browser');
     });
 
     test('should display Firebase Auth Users tab', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
@@ -101,7 +101,7 @@ test.describe('Users Browser Page - Basic Functionality', () => {
         await usersBrowserPage.navigate();
         await usersBrowserPage.waitForAuthTableLoaded();
 
-        await expect(usersBrowserPage.getAuthTab()).toBeVisible();
+        await usersBrowserPage.verifyAuthTabVisible();
     });
 
     test('should display auth users table', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
@@ -118,7 +118,7 @@ test.describe('Users Browser Page - Basic Functionality', () => {
         await usersBrowserPage.navigate();
         await usersBrowserPage.waitForAuthTableLoaded();
 
-        await expect(usersBrowserPage.getAuthTable()).toBeVisible();
+        await usersBrowserPage.verifyAuthTableVisible();
     });
 
     test('should hide loading spinner after data loads', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
@@ -172,8 +172,8 @@ test.describe('Users Browser Page - User Status Display', () => {
         await usersBrowserPage.navigate();
         await usersBrowserPage.waitForAuthTableLoaded();
 
-        const firstRow = usersBrowserPage.getAuthTableRows().first();
-        const statusBadge = usersBrowserPage.getStatusBadge(firstRow);
+        const firstRow = usersBrowserPage.getAuthTableRowsLocator().first();
+        const statusBadge = usersBrowserPage.getStatusBadgeLocator(firstRow);
 
         await expect(statusBadge).toBeVisible();
     });
@@ -192,7 +192,7 @@ test.describe('Users Browser Page - User Status Display', () => {
         await usersBrowserPage.navigate();
         await usersBrowserPage.waitForAuthTableLoaded();
 
-        const firstRow = usersBrowserPage.getAuthTableRows().first();
+        const firstRow = usersBrowserPage.getAuthTableRowsLocator().first();
         const status = await usersBrowserPage.getUserStatus(firstRow);
 
         expect(['Active', 'Disabled']).toContain(status);
@@ -214,11 +214,11 @@ test.describe('Users Browser Page - Disable/Enable Buttons', () => {
         await usersBrowserPage.navigate();
         await usersBrowserPage.waitForAuthTableLoaded();
 
-        const firstRow = usersBrowserPage.getAuthTableRows().first();
+        const firstRow = usersBrowserPage.getAuthTableRowsLocator().first();
 
         // Should have either a Disable or Enable button visible
-        const disableBtn = usersBrowserPage.getDisableButton(firstRow);
-        const enableBtn = usersBrowserPage.getEnableButton(firstRow);
+        const disableBtn = usersBrowserPage.getDisableButtonLocator(firstRow);
+        const enableBtn = usersBrowserPage.getEnableButtonLocator(firstRow);
 
         const disableVisible = await disableBtn.isVisible().catch(() => false);
         const enableVisible = await enableBtn.isVisible().catch(() => false);
@@ -240,8 +240,8 @@ test.describe('Users Browser Page - Disable/Enable Buttons', () => {
         await usersBrowserPage.navigate();
         await usersBrowserPage.waitForAuthTableLoaded();
 
-        const firstRow = usersBrowserPage.getAuthTableRows().first();
-        const viewJsonBtn = usersBrowserPage.getViewJsonButton(firstRow);
+        const firstRow = usersBrowserPage.getAuthTableRowsLocator().first();
+        const viewJsonBtn = usersBrowserPage.getViewJsonButtonLocator(firstRow);
 
         await expect(viewJsonBtn).toBeVisible();
     });

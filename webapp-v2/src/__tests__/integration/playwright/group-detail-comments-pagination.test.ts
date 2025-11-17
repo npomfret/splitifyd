@@ -111,7 +111,7 @@ test.describe('Group Detail - Comment Pagination', () => {
 
         await expect(page.getByText('First page welcome comment')).toBeVisible();
         await expect(page.getByText('First page reminder comment')).toBeVisible();
-        await expect(groupDetailPage.getCommentItems()).toHaveCount(2);
+        await groupDetailPage.verifyCommentItemsCount(2);
 
         const loadMoreButton = page.getByTestId('load-more-comments-button');
         await expect(loadMoreButton).toBeVisible();
@@ -120,7 +120,7 @@ test.describe('Group Detail - Comment Pagination', () => {
 
         await expect(page.getByText('Second page update comment')).toBeVisible();
         await expect(page.getByText('Second page follow-up comment')).toBeVisible();
-        await expect(groupDetailPage.getCommentItems()).toHaveCount(4);
+        await groupDetailPage.verifyCommentItemsCount(4);
         await expect(loadMoreButton).not.toBeVisible();
     });
 });

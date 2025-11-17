@@ -630,7 +630,7 @@ simpleTest.describe('Share Link Access Management', () => {
 
             // Should show error page OR join page without join button (both are valid error states)
             const isErrorPage = await joinGroupPage.isErrorPage();
-            const joinButtonVisible = await joinGroupPage.getJoinGroupButton().isVisible().catch(() => false);
+            const joinButtonVisible = await joinGroupPage.isJoinGroupButtonVisible();
 
             if (!isErrorPage && joinButtonVisible) {
                 // If no error message and join button is visible, that's unexpected
@@ -657,8 +657,7 @@ simpleTest.describe('Share Link Access Management', () => {
                 expect(page.url()).toContain('/join');
                 await expect(page.getByText('Invalid Link')).toBeVisible();
 
-                const backButton = joinGroupPage.getBackToDashboardButton();
-                await expect(backButton).toBeVisible();
+                await joinGroupPage.verifyBackToDashboardButtonVisible();
             }
 
             // Test with malicious/invalid shareToken - should show error
@@ -669,11 +668,10 @@ simpleTest.describe('Share Link Access Management', () => {
             await expect(page.getByText('Failed to join group')).toBeVisible();
 
             // Should have a button to go back to dashboard using page object method
-            const backButton = joinGroupPage.getBackToDashboardButton();
-            await expect(backButton).toBeVisible();
+            await joinGroupPage.verifyBackToDashboardButtonVisible();
 
             // Click the button to verify navigation works using page object method
-            await backButton.click();
+            await joinGroupPage.clickBackToDashboard();
             await joinGroupPage.expectUrl(/\/dashboard/);
         });
 

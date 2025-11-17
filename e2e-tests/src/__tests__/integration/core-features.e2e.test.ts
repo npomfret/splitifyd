@@ -48,9 +48,8 @@ simpleTest.describe('Member Management - Core Operations', () => {
         );
         await expenseFormPage.verifySplitBetweenHeadingVisible();
 
-        const userCheckbox = expenseFormPage.getSplitOptionsFirstCheckbox();
-        await expect(userCheckbox).toBeVisible();
-        await expect(userCheckbox).toBeChecked();
+        await expenseFormPage.verifySplitOptionsFirstCheckboxVisible();
+        await expenseFormPage.verifySplitOptionsFirstCheckboxChecked();
         const isUserInSplit = await expenseFormPage.isUserInSplitOptions(currentUserDisplayName);
         expect(isUserInSplit).toBe(true);
     });
@@ -180,8 +179,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
 
         // Owner tries to remove member - button should be disabled
         await groupDetailPage.ensureMembersSectionExpanded();
-        const removeButton = groupDetailPage.getRemoveMemberButton(memberDisplayName);
-        await expect(removeButton).toBeDisabled({ timeout: 5000 });
+        await groupDetailPage.verifyRemoveMemberButtonDisabled(memberDisplayName);
     });
 
     simpleTest('should allow leaving/removing after settlement clears balance', async ({ createLoggedInBrowsers }) => {
@@ -341,8 +339,7 @@ simpleTest.describe('Group Settings & Management', () => {
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Verify settings button is visible for owner
-        const settingsButton = groupDetailPage.getEditGroupButton();
-        await expect(settingsButton).toBeVisible();
+        await groupDetailPage.verifyEditGroupButtonVisible();
 
         // === Test 1: Basic editing functionality ===
         let editModal = await groupDetailPage.clickEditGroupAndOpenModal();
@@ -353,7 +350,7 @@ simpleTest.describe('Group Settings & Management', () => {
 
         // Save changes (modal stays open until we close it)
         await editModal.saveChanges();
-        await expect(editModal.getGeneralSuccessAlert()).toBeVisible();
+        await editModal.verifyGeneralSuccessAlertVisible();
         await editModal.clickClose();
 
         // Wait for save to complete and real-time updates to propagate
@@ -368,20 +365,19 @@ simpleTest.describe('Group Settings & Management', () => {
 
         // Try to save with empty name
         await editModal.clearGroupName();
-        await expect(editModal.getSaveButton()).toBeVisible();
-        await expect(editModal.getSaveButton()).toBeDisabled();
+        await editModal.verifySaveButtonDisabled();
 
         // Try with too short name
         await editModal.editGroupName('A');
-        await expect(editModal.getSaveButton()).toBeDisabled();
+        await editModal.verifySaveButtonDisabled();
 
         // Try with valid name
         await editModal.editGroupName('Valid Name');
-        await expect(editModal.getSaveButton()).toBeEnabled();
+        await editModal.verifySaveButtonEnabled();
 
         // Clear again and check button is disabled
         await editModal.clearGroupName();
-        await expect(editModal.getSaveButton()).toBeDisabled();
+        await editModal.verifySaveButtonDisabled();
 
         // === Test 3: No changes detection ===
         // Reset to original values
@@ -389,19 +385,19 @@ simpleTest.describe('Group Settings & Management', () => {
         await editModal.editDescription('Updated description text');
 
         // Save button should be disabled when no changes from current state
-        await expect(editModal.getSaveButton()).toBeDisabled();
+        await editModal.verifySaveButtonDisabled();
 
         // Make a change
         await editModal.editGroupName('Changed Name');
-        await expect(editModal.getSaveButton()).toBeEnabled();
+        await editModal.verifySaveButtonEnabled();
 
         // Revert the change
         await editModal.editGroupName('Updated Group Name');
-        await expect(editModal.getSaveButton()).toBeDisabled();
+        await editModal.verifySaveButtonDisabled();
 
         // Cancel the modal
         await editModal.cancel();
-        await expect(editModal.getModal()).not.toBeVisible();
+        await editModal.verifyModalNotVisible();
     });
 
     simpleTest('should show settings button based on permissions', async ({ createLoggedInBrowsers }) => {
@@ -419,13 +415,11 @@ simpleTest.describe('Group Settings & Management', () => {
         await expect(memberPage).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId));
 
         // Verify owner CAN see settings button
-        const ownerSettingsButton = ownerGroupDetailPage.getEditGroupButton();
-        await expect(ownerSettingsButton).toBeVisible();
+        await ownerGroupDetailPage.verifyEditGroupButtonVisible();
 
         // Verify member CAN ALSO see settings button (because memberApproval: 'automatic' gives them canApproveMembers)
         // This allows them to access the Security tab for approving pending members
-        const memberSettingsButton = memberGroupDetailPage.getEditGroupButton();
-        await expect(memberSettingsButton).toBeVisible();
+        await memberGroupDetailPage.verifyEditGroupButtonVisible();
 
         // Verify both can see the group name
         await ownerGroupDetailPage.verifyGroupNameText(groupName);
@@ -446,9 +440,9 @@ simpleTest.describe('Group Settings & Management', () => {
         // Owner switches the group to the managed preset so that admin approval is required
         let settingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
         await settingsModal.selectPreset('managed');
-        await expect(settingsModal.getSecurityUnsavedBanner()).toBeVisible();
+        await settingsModal.verifySecurityUnsavedBannerVisible();
         await settingsModal.saveSecuritySettings();
-        await expect(settingsModal.getSecuritySuccessAlert()).toBeVisible();
+        await settingsModal.verifySecuritySuccessAlertVisible();
         await settingsModal.clickFooterClose();
 
         // Share the invite link with other members
@@ -473,7 +467,7 @@ simpleTest.describe('Group Settings & Management', () => {
         settingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
         await settingsModal.waitForPendingMember(approverUser.uid);
         await settingsModal.approveMember(approverUser.uid); // This waits for button to disappear
-        await expect(settingsModal.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
+        await settingsModal.verifyNoPendingRequestsMessageVisible();
         await settingsModal.clickFooterClose();
 
         // Approved user can now see the group on their dashboard
@@ -495,7 +489,7 @@ simpleTest.describe('Group Settings & Management', () => {
         settingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
         await settingsModal.waitForPendingMember(rejectUser.uid);
         await settingsModal.rejectMember(rejectUser.uid); // This waits for button to disappear
-        await expect(settingsModal.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
+        await settingsModal.verifyNoPendingRequestsMessageVisible();
         await settingsModal.clickFooterClose();
 
         // Rejected user can attempt to join again (no longer pending) and sees enabled join button
@@ -505,7 +499,7 @@ simpleTest.describe('Group Settings & Management', () => {
         // Owner confirms approved user is listed as admin and group remains accessible
         const refreshedSettingsModal = await ownerGroupDetailPage.clickEditGroupAndOpenModal('security');
         await refreshedSettingsModal.waitForSecurityTab();
-        await expect(refreshedSettingsModal.getPendingApproveButton(approverUser.uid)).toHaveCount(0);
+        await refreshedSettingsModal.verifyPendingApproveButtonNotVisible(approverUser.uid);
         await refreshedSettingsModal.clickFooterClose();
 
         await approverDashboardPage.navigate();

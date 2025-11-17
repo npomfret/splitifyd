@@ -170,27 +170,27 @@ test.describe('Group security pending members', () => {
         const pendingList = pendingEntries.map((entry) => entry);
 
         for (const entry of pendingList) {
-            await expect(settingsModal.getPendingApproveButton(entry.uid)).toBeVisible();
-            await expect(settingsModal.getPendingRejectButton(entry.uid)).toBeVisible();
-            await expect(settingsModal.getModalContainer().getByText(entry.displayName)).toBeVisible();
+            await expect(settingsModal.getPendingApproveButtonLocator(entry.uid)).toBeVisible();
+            await expect(settingsModal.getPendingRejectButtonLocator(entry.uid)).toBeVisible();
+            await expect(settingsModal.getModalContainerLocator().getByText(entry.displayName)).toBeVisible();
         }
 
         const [firstPending, secondPending] = pendingList;
 
         await settingsModal.approveMember(firstPending.uid);
-        await expect(settingsModal.getPendingApproveButton(firstPending.uid)).toHaveCount(0);
-        await expect(settingsModal.getPendingRejectButton(firstPending.uid)).toHaveCount(0);
-        await expect(settingsModal.getPendingApproveButton(secondPending.uid)).toBeVisible();
+        await expect(settingsModal.getPendingApproveButtonLocator(firstPending.uid)).toHaveCount(0);
+        await expect(settingsModal.getPendingRejectButtonLocator(firstPending.uid)).toHaveCount(0);
+        await expect(settingsModal.getPendingApproveButtonLocator(secondPending.uid)).toBeVisible();
 
         await settingsModal.rejectMember(secondPending.uid);
-        await expect(settingsModal.getPendingRejectButton(secondPending.uid)).toHaveCount(0);
-        await expect(settingsModal.getModalContainer().getByText(secondPending.displayName)).toHaveCount(0);
-        await expect(settingsModal.getModalContainer().getByText('No pending requests right now.')).toBeVisible();
+        await expect(settingsModal.getPendingRejectButtonLocator(secondPending.uid)).toHaveCount(0);
+        await expect(settingsModal.getModalContainerLocator().getByText(secondPending.displayName)).toHaveCount(0);
+        await expect(settingsModal.getModalContainerLocator().getByText('No pending requests right now.')).toBeVisible();
 
         await settingsModal.clickFooterClose();
 
         await groupDetailPage.waitForMemberCount(2);
-        await expect(groupDetailPage.getMemberItem(firstPending.displayName)).toBeVisible();
-        await expect(groupDetailPage.getMemberCards()).toHaveCount(2);
+        await expect(groupDetailPage.getMemberItemLocator(firstPending.displayName)).toBeVisible();
+        await expect(groupDetailPage.getMemberCardsLocator()).toHaveCount(2);
     });
 });

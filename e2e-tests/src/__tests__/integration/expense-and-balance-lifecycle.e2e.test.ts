@@ -90,7 +90,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
 
         // Should be back to group page with expense deleted
         await expect(groupDetailPage1.page).toHaveURL(GroupDetailPage.groupDetailUrlPattern(groupId));
-        await expect(groupDetailPage1.getExpenseByDescription(updatedDescription)).not.toBeVisible();
+        await groupDetailPage1.verifyExpenseByDescriptionNotVisible(updatedDescription);
 
         // Balance should still show the settlement amount as the only transaction
         // Since expense is deleted but settlement remains, User2 actually paid User1 €50.00
@@ -399,7 +399,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             await page.waitForPage(groupId, memberCount);
             // Ensure "Show all balances" is enabled
             await page.toggleShowAllBalances(true);
-            await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 fully settled
+            await page.verifyDebtInfoNotVisible(user2DisplayName, user1DisplayName); // User2 fully settled
             await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // User3 still owes
         }
 
@@ -417,7 +417,7 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
             await page.waitForPage(groupId, memberCount);
             // Ensure "Show all balances" is enabled
             await page.toggleShowAllBalances(true);
-            await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 still fully settled
+            await page.verifyDebtInfoNotVisible(user2DisplayName, user1DisplayName); // User2 still fully settled
             await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥15'); // 40 - 25 = 15
         }
 

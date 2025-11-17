@@ -2,21 +2,21 @@ import { SettingsPage } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Settings Page Object', () => {
-    test('should have all required element getters', async ({ authenticatedPage }) => {
+    test('should have all required verification methods', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
         const settingsPage = new SettingsPage(page);
 
-        // Verify all getter methods exist and return Locators
-        expect(settingsPage.getProfileDisplayName()).toBeTruthy();
-        expect(settingsPage.getProfileEmail()).toBeTruthy();
-        expect(settingsPage.getDisplayNameInput()).toBeTruthy();
-        expect(settingsPage.getSaveChangesButton()).toBeTruthy();
-        expect(settingsPage.getChangePasswordButton()).toBeTruthy();
-        expect(settingsPage.getCurrentPasswordInput()).toBeTruthy();
-        expect(settingsPage.getNewPasswordInput()).toBeTruthy();
-        expect(settingsPage.getConfirmPasswordInput()).toBeTruthy();
-        expect(settingsPage.getUpdatePasswordButton()).toBeTruthy();
-        expect(settingsPage.getCancelButton()).toBeTruthy();
+        // Verify all verification methods exist
+        expect(typeof settingsPage.verifyProfileDisplayNameVisible).toBe('function');
+        expect(typeof settingsPage.verifyProfileEmailVisible).toBe('function');
+        expect(typeof settingsPage.verifyDisplayNameInputVisible).toBe('function');
+        expect(typeof settingsPage.verifySaveChangesButtonVisible).toBe('function');
+        expect(typeof settingsPage.verifyChangePasswordButtonVisible).toBe('function');
+        expect(typeof settingsPage.verifyCurrentPasswordInputVisible).toBe('function');
+        expect(typeof settingsPage.verifyNewPasswordInputVisible).toBe('function');
+        expect(typeof settingsPage.verifyConfirmPasswordInputVisible).toBe('function');
+        expect(typeof settingsPage.verifyUpdatePasswordButtonVisible).toBe('function');
+        expect(typeof settingsPage.verifyCancelButtonVisible).toBe('function');
     });
 
     test('should have settings action methods', async ({ authenticatedPage }) => {
@@ -55,10 +55,10 @@ test.describe('Settings Page Object', () => {
         await page.goto('/settings', { waitUntil: 'domcontentloaded' });
 
         // Check profile elements are visible
-        await expect(settingsPage.getProfileDisplayName()).toBeVisible();
-        await expect(settingsPage.getProfileEmail()).toBeVisible();
-        await expect(settingsPage.getDisplayNameInput()).toBeVisible();
-        await expect(settingsPage.getSaveChangesButton()).toBeVisible();
+        await settingsPage.verifyProfileDisplayNameVisible();
+        await settingsPage.verifyProfileEmailVisible();
+        await settingsPage.verifyDisplayNameInputVisible();
+        await settingsPage.verifySaveChangesButtonVisible();
     });
 
     test('should display password section elements', async ({ authenticatedPage }) => {
@@ -69,12 +69,12 @@ test.describe('Settings Page Object', () => {
         await page.goto('/settings', { waitUntil: 'domcontentloaded' });
 
         // Password change button should be visible
-        await expect(settingsPage.getChangePasswordButton()).toBeVisible();
+        await settingsPage.verifyChangePasswordButtonVisible();
 
         // Password form should not be visible initially
-        await expect(settingsPage.getCurrentPasswordInput()).not.toBeVisible();
-        await expect(settingsPage.getNewPasswordInput()).not.toBeVisible();
-        await expect(settingsPage.getConfirmPasswordInput()).not.toBeVisible();
+        await settingsPage.verifyCurrentPasswordInputNotVisible();
+        await settingsPage.verifyNewPasswordInputNotVisible();
+        await settingsPage.verifyConfirmPasswordInputNotVisible();
     });
 
     test('should be able to open password change form', async ({ authenticatedPage }) => {
@@ -88,11 +88,11 @@ test.describe('Settings Page Object', () => {
         await settingsPage.openPasswordChangeForm();
 
         // Verify form is visible
-        await expect(settingsPage.getCurrentPasswordInput()).toBeVisible();
-        await expect(settingsPage.getNewPasswordInput()).toBeVisible();
-        await expect(settingsPage.getConfirmPasswordInput()).toBeVisible();
-        await expect(settingsPage.getUpdatePasswordButton()).toBeVisible();
-        await expect(settingsPage.getCancelButton()).toBeVisible();
+        await settingsPage.verifyCurrentPasswordInputVisible();
+        await settingsPage.verifyNewPasswordInputVisible();
+        await settingsPage.verifyConfirmPasswordInputVisible();
+        await settingsPage.verifyUpdatePasswordButtonVisible();
+        await settingsPage.verifyCancelButtonVisible();
     });
 
     test('should be able to fill password change form', async ({ authenticatedPage }) => {
@@ -109,9 +109,9 @@ test.describe('Settings Page Object', () => {
         await settingsPage.fillPasswordChangeForm('currentPassword1234', 'newPassword456');
 
         // Verify inputs have values (check they're not empty)
-        const currentPasswordValue = await settingsPage.getCurrentPasswordInput().inputValue();
-        const newPasswordValue = await settingsPage.getNewPasswordInput().inputValue();
-        const confirmPasswordValue = await settingsPage.getConfirmPasswordInput().inputValue();
+        const currentPasswordValue = await settingsPage.getCurrentPasswordInputValue();
+        const newPasswordValue = await settingsPage.getNewPasswordInputValue();
+        const confirmPasswordValue = await settingsPage.getConfirmPasswordInputValue();
 
         expect(currentPasswordValue).toBe('currentPassword1234');
         expect(newPasswordValue).toBe('newPassword456');
@@ -132,7 +132,7 @@ test.describe('Settings Page Object', () => {
         await settingsPage.fillPasswordChangeForm('currentPassword1234', 'newPassword456', 'differentPassword789');
 
         // Verify confirm password is different
-        const confirmPasswordValue = await settingsPage.getConfirmPasswordInput().inputValue();
+        const confirmPasswordValue = await settingsPage.getConfirmPasswordInputValue();
         expect(confirmPasswordValue).toBe('differentPassword789');
     });
 
@@ -147,14 +147,14 @@ test.describe('Settings Page Object', () => {
         await settingsPage.openPasswordChangeForm();
 
         // Verify form is visible
-        await expect(settingsPage.getCurrentPasswordInput()).toBeVisible();
+        await settingsPage.verifyCurrentPasswordInputVisible();
 
         // Cancel the form
         await settingsPage.cancelPasswordChange();
 
         // Verify form is hidden
-        await expect(settingsPage.getCurrentPasswordInput()).not.toBeVisible();
-        await expect(settingsPage.getChangePasswordButton()).toBeVisible();
+        await settingsPage.verifyCurrentPasswordInputNotVisible();
+        await settingsPage.verifyChangePasswordButtonVisible();
     });
 
     test('should verify password form visibility state', async ({ authenticatedPage }) => {
@@ -174,16 +174,14 @@ test.describe('Settings Page Object', () => {
         await settingsPage.verifyPasswordFormVisible(true);
     });
 
-    test('should get success message locator', async ({ authenticatedPage }) => {
+    test('should verify success message visibility', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
         const settingsPage = new SettingsPage(page);
 
-        // Verify success message getters return Locators
-        const genericSuccess = settingsPage.getSuccessMessage();
-        const specificSuccess = settingsPage.getSuccessMessage('Profile updated');
-
-        expect(genericSuccess).toBeTruthy();
-        expect(specificSuccess).toBeTruthy();
+        // Verify success message verification methods exist
+        expect(typeof settingsPage.verifySuccessMessage).toBe('function');
+        expect(typeof settingsPage.verifySuccessMessageVisible).toBe('function');
+        expect(typeof settingsPage.verifySuccessMessageNotVisible).toBe('function');
     });
 
     test('should have correct URL constant', async ({ authenticatedPage }) => {
@@ -220,9 +218,9 @@ test.describe('Settings Page Object', () => {
         await settingsPage.waitForFormReady();
 
         // Verify key elements are visible
-        await expect(settingsPage.getDisplayNameInput()).toBeVisible();
-        await expect(settingsPage.getSaveChangesButton()).toBeVisible();
-        await expect(settingsPage.getChangePasswordButton()).toBeVisible();
+        await settingsPage.verifyDisplayNameInputVisible();
+        await settingsPage.verifySaveChangesButtonVisible();
+        await settingsPage.verifyChangePasswordButtonVisible();
     });
 
     test('should get profile display name element', async ({ authenticatedPage }) => {
@@ -232,11 +230,10 @@ test.describe('Settings Page Object', () => {
         // Navigate to settings
         await page.goto('/settings', { waitUntil: 'domcontentloaded' });
 
-        // Get display name and verify it has content
-        const displayName = settingsPage.getProfileDisplayName();
-        await expect(displayName).toBeVisible();
+        // Verify display name is visible and has content
+        await settingsPage.verifyProfileDisplayNameVisible();
 
-        const displayNameText = await displayName.textContent();
+        const displayNameText = await settingsPage.getProfileDisplayNameText();
         expect(displayNameText).toBeTruthy();
         expect(displayNameText!.trim().length).toBeGreaterThan(0);
     });
@@ -248,11 +245,10 @@ test.describe('Settings Page Object', () => {
         // Navigate to settings
         await page.goto('/settings', { waitUntil: 'domcontentloaded' });
 
-        // Get email and verify it has content
-        const email = settingsPage.getProfileEmail();
-        await expect(email).toBeVisible();
+        // Verify email is visible and has content
+        await settingsPage.verifyProfileEmailVisible();
 
-        const emailText = await email.textContent();
+        const emailText = await settingsPage.getProfileEmailText();
         expect(emailText).toBeTruthy();
         expect(emailText!.trim().length).toBeGreaterThan(0);
         expect(emailText).toMatch(/@/); // Should contain @ symbol

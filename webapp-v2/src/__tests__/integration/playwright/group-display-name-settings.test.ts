@@ -114,11 +114,11 @@ test.describe('Group display name settings', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupTitle('Display Name Test Group');
 
-        await expect(groupDetailPage.getEditGroupButton()).toBeVisible();
+        await expect(groupDetailPage.getEditGroupButtonLocator()).toBeVisible();
 
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('identity');
-        const displayNameInput = modal.getDisplayNameInput();
-        const saveButton = modal.getDisplayNameSaveButton();
+        const displayNameInput = modal.getDisplayNameInputLocator();
+        const saveButton = modal.getDisplayNameSaveButtonLocator();
 
         await expect(displayNameInput).toHaveValue('Current Alias');
         await expect(saveButton).toBeDisabled();
@@ -128,7 +128,7 @@ test.describe('Group display name settings', () => {
 
         await modal.saveDisplayName();
 
-        await expect(modal.getDisplayNameSuccess()).toBeVisible();
+        await expect(modal.getDisplayNameSuccessLocator()).toBeVisible();
         await expect(displayNameInput).toHaveValue('Updated Alias');
         await expect(saveButton).toBeDisabled();
     });
@@ -150,8 +150,8 @@ test.describe('Group display name settings', () => {
         await groupDetailPage.waitForGroupTitle('Display Name Test Group');
 
         const modal = await groupDetailPage.clickEditGroupAndOpenModal('identity');
-        const displayNameSection = modal.getDisplayNameSection();
-        const saveButton = modal.getDisplayNameSaveButton();
+        const displayNameSection = modal.getDisplayNameSectionLocator();
+        const saveButton = modal.getDisplayNameSaveButtonLocator();
 
         await expect(saveButton).toBeDisabled();
 
@@ -198,7 +198,7 @@ test.describe('Group display name settings', () => {
         await modal.fillDisplayName('ALICE');
         await modal.saveDisplayName();
 
-        const serverError = modal.getDisplayNameError();
+        const serverError = modal.getDisplayNameErrorLocator();
         await expect(serverError).toBeVisible();
         await expect(serverError).toContainText('already in use');
 
@@ -207,8 +207,8 @@ test.describe('Group display name settings', () => {
         await modal.saveDisplayName();
 
         await expect(serverError).toHaveCount(0);
-        await expect(modal.getDisplayNameSuccess()).toBeVisible();
-        const displayNameInput = modal.getDisplayNameInput();
+        await expect(modal.getDisplayNameSuccessLocator()).toBeVisible();
+        const displayNameInput = modal.getDisplayNameInputLocator();
         await expect(displayNameInput).toHaveValue('Alicia Cooper');
     });
 });

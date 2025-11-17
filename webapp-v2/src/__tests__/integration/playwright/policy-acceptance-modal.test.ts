@@ -116,6 +116,6 @@ test.describe('Policy Acceptance Modal', () => {
             })),
         });
 
-        await expect(policyModal.getModalContainer()).not.toBeVisible();
+        await expect(policyModal.getModalContainerLocator()).not.toBeVisible();
     });
 });

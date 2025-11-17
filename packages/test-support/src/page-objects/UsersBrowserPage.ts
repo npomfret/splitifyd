@@ -182,6 +182,58 @@ export class UsersBrowserPage extends BasePage {
         await expect(this.getLoadingSpinner()).not.toBeVisible();
     }
 
+    async verifyPageTitleVisible(): Promise<void> {
+        await expect(this.getPageTitle()).toBeVisible();
+    }
+
+    async verifyAuthTabVisible(): Promise<void> {
+        await expect(this.getAuthTab()).toBeVisible();
+    }
+
+    async verifyAuthTableVisible(): Promise<void> {
+        await expect(this.getAuthTable()).toBeVisible();
+    }
+
+    async verifyStatusBadgeVisible(row: Locator): Promise<void> {
+        await expect(this.getStatusBadge(row)).toBeVisible();
+    }
+
+    async verifyDisableButtonVisible(row: Locator): Promise<void> {
+        await expect(this.getDisableButton(row)).toBeVisible();
+    }
+
+    async verifyEnableButtonVisible(row: Locator): Promise<void> {
+        await expect(this.getEnableButton(row)).toBeVisible();
+    }
+
+    async verifyViewJsonButtonVisible(row: Locator): Promise<void> {
+        await expect(this.getViewJsonButton(row)).toBeVisible();
+    }
+
+    getAuthTableRowsLocator(): Locator {
+        return this.getAuthTableRows();
+    }
+
+    getPageTitleLocator(): Locator {
+        return this.getPageTitle();
+    }
+
+    getStatusBadgeLocator(row: Locator): Locator {
+        return this.getStatusBadge(row);
+    }
+
+    getDisableButtonLocator(row: Locator): Locator {
+        return this.getDisableButton(row);
+    }
+
+    getEnableButtonLocator(row: Locator): Locator {
+        return this.getEnableButton(row);
+    }
+
+    getViewJsonButtonLocator(row: Locator): Locator {
+        return this.getViewJsonButton(row);
+    }
+
     /**
      * Check user status
      */

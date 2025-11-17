@@ -480,6 +480,22 @@ export class CreateGroupModalPage extends BasePage {
         }
     }
 
+    async verifySubmitButtonEnabled(): Promise<void> {
+        await expect(this.getSubmitButton()).toBeEnabled();
+    }
+
+    async verifySubmitButtonDisabled(): Promise<void> {
+        await expect(this.getSubmitButton()).toBeDisabled();
+    }
+
+    async verifyErrorMessageVisible(): Promise<void> {
+        await expect(this.getErrorMessage().first()).toBeVisible();
+    }
+
+    async verifyModalContainerVisible(): Promise<void> {
+        await expect(this.getModalContainer()).toBeVisible();
+    }
+
     /**
      * Verify help text is displayed correctly
      */

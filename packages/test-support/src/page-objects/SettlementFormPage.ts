@@ -423,6 +423,38 @@ export class SettlementFormPage extends BasePage {
         await expect(updateButton).toBeEnabled();
     }
 
+    async verifyQuickSettleHeadingVisible(): Promise<void> {
+        await expect(this.getQuickSettleHeading()).toBeVisible();
+    }
+
+    async verifyQuickSettleHeadingNotVisible(): Promise<void> {
+        await expect(this.getQuickSettleHeading()).toHaveCount(0);
+    }
+
+    async verifyQuickSettleShortcutButtonVisible(pattern: string | RegExp): Promise<void> {
+        await expect(this.getQuickSettleShortcutButton(pattern)).toBeVisible();
+    }
+
+    async verifyQuickSettleShortcutButtonNotVisible(pattern: string | RegExp): Promise<void> {
+        await expect(this.getQuickSettleShortcutButton(pattern)).toHaveCount(0);
+    }
+
+    async verifyWarningMessageVisible(): Promise<void> {
+        await expect(this.getWarningMessage()).toBeVisible();
+    }
+
+    async verifyWarningMessageNotVisible(): Promise<void> {
+        await expect(this.getWarningMessage()).not.toBeVisible();
+    }
+
+    getAmountErrorMessage(): Locator {
+        return this.getModal().getByTestId('settlement-amount-error');
+    }
+
+    getSettlementWarningMessage(): Locator {
+        return this.getModal().getByTestId('settlement-warning-message');
+    }
+
     private async resolvePrimaryActionButton(): Promise<Locator> {
         const recordButton = this.getRecordPaymentButton();
         const updateButton = this.getUpdatePaymentButton();

@@ -152,6 +152,78 @@ export class SettingsPage extends BasePage {
         await expect(this.getDisplayNameInput()).toHaveValue(value);
     }
 
+    async verifyProfileDisplayNameVisible(): Promise<void> {
+        await expect(this.getProfileDisplayName()).toBeVisible();
+    }
+
+    async verifyProfileEmailVisible(): Promise<void> {
+        await expect(this.getProfileEmail()).toBeVisible();
+    }
+
+    async verifySaveChangesButtonVisible(): Promise<void> {
+        await expect(this.getSaveChangesButton()).toBeVisible();
+    }
+
+    async verifyCurrentPasswordInputVisible(): Promise<void> {
+        await expect(this.getCurrentPasswordInput()).toBeVisible();
+    }
+
+    async verifyCurrentPasswordInputNotVisible(): Promise<void> {
+        await expect(this.getCurrentPasswordInput()).not.toBeVisible();
+    }
+
+    async verifyNewPasswordInputVisible(): Promise<void> {
+        await expect(this.getNewPasswordInput()).toBeVisible();
+    }
+
+    async verifyNewPasswordInputNotVisible(): Promise<void> {
+        await expect(this.getNewPasswordInput()).not.toBeVisible();
+    }
+
+    async verifyConfirmPasswordInputVisible(): Promise<void> {
+        await expect(this.getConfirmPasswordInput()).toBeVisible();
+    }
+
+    async verifyConfirmPasswordInputNotVisible(): Promise<void> {
+        await expect(this.getConfirmPasswordInput()).not.toBeVisible();
+    }
+
+    async verifyUpdatePasswordButtonVisible(): Promise<void> {
+        await expect(this.getUpdatePasswordButton()).toBeVisible();
+    }
+
+    async verifyCancelButtonVisible(): Promise<void> {
+        await expect(this.getCancelButton()).toBeVisible();
+    }
+
+    async verifySuccessMessageVisible(): Promise<void> {
+        await expect(this.getSuccessMessage()).toBeVisible();
+    }
+
+    async verifySuccessMessageNotVisible(): Promise<void> {
+        await expect(this.getSuccessMessage()).not.toBeVisible();
+    }
+
+    async getCurrentPasswordInputValue(): Promise<string> {
+        return await this.getCurrentPasswordInput().inputValue();
+    }
+
+    async getNewPasswordInputValue(): Promise<string> {
+        return await this.getNewPasswordInput().inputValue();
+    }
+
+    async getConfirmPasswordInputValue(): Promise<string> {
+        return await this.getConfirmPasswordInput().inputValue();
+    }
+
+    async getProfileDisplayNameText(): Promise<string | null> {
+        return await this.getProfileDisplayName().textContent();
+    }
+
+    async getProfileEmailText(): Promise<string | null> {
+        return await this.getProfileEmail().textContent();
+    }
+
     /**
      * Error message verification
      */

@@ -202,4 +202,17 @@ export class TenantBrandingPage extends BasePage {
         // Wait for the main heading to be visible
         await this.page.locator('text=Branding Configuration').waitFor({ state: 'visible' });
     }
+
+    // Public locator accessors for tests
+    getShowLandingPageCheckboxLocator(): Locator {
+        return this.getShowLandingPageCheckbox();
+    }
+
+    getShowMarketingContentCheckboxLocator(): Locator {
+        return this.getShowMarketingContentCheckbox();
+    }
+
+    getShowPricingPageCheckboxLocator(): Locator {
+        return this.getShowPricingPageCheckbox();
+    }
 }

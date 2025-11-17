@@ -672,6 +672,22 @@ export class ExpenseFormPage extends BasePage {
         return this.getClockIcon().count();
     }
 
+    async verifySplitOptionsFirstCheckboxVisible(): Promise<void> {
+        await expect(this.getSplitOptionsFirstCheckbox()).toBeVisible();
+    }
+
+    async verifySplitOptionsFirstCheckboxChecked(): Promise<void> {
+        await expect(this.getSplitOptionsFirstCheckbox()).toBeChecked();
+    }
+
+    async verifySaveButtonDisabled(): Promise<void> {
+        await expect(this.getSaveButtonForValidation()).toBeDisabled();
+    }
+
+    async verifySaveButtonEnabled(): Promise<void> {
+        await expect(this.getSaveButtonForValidation()).toBeEnabled();
+    }
+
     async clickUpdateExpenseButton(): Promise<void> {
         const updateButton = this.getUpdateExpenseButton();
         await expect(updateButton).toBeVisible({ timeout: 2000 });
@@ -899,5 +915,9 @@ export class ExpenseFormPage extends BasePage {
         const errorMessage = this.page.getByTestId('validation-error-splits');
         await expect(errorMessage).toBeVisible();
         await expect(errorMessage).toContainText(text);
+    }
+
+    async verifyCancelButtonVisible(): Promise<void> {
+        await expect(this.getCancelButton()).toBeVisible();
     }
 }

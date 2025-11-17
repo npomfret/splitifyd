@@ -95,10 +95,10 @@ test.describe('Group Detail - Include Deleted Controls', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
-        await expect(groupDetailPage.getIncludeDeletedExpensesCheckbox()).toHaveCount(0);
+        await groupDetailPage.verifyIncludeDeletedExpensesCheckboxNotExists();
 
         await groupDetailPage.ensureSettlementsSectionExpanded();
-        await expect(groupDetailPage.getIncludeDeletedSettlementsCheckbox()).toHaveCount(0);
+        await groupDetailPage.verifyIncludeDeletedSettlementsCheckboxNotExists();
 
         expect(requestLog.length).toBeGreaterThan(0);
         for (const entry of requestLog) {
@@ -246,15 +246,13 @@ test.describe('Group Detail - Include Deleted Controls', () => {
         await groupDetailPage.navigateToGroup(groupId);
         await groupDetailPage.waitForGroupToLoad();
 
-        const includeDeletedExpensesCheckbox = groupDetailPage.getIncludeDeletedExpensesCheckbox();
-        await expect(includeDeletedExpensesCheckbox).toBeVisible();
+        await groupDetailPage.verifyIncludeDeletedExpensesCheckboxVisible();
 
         await groupDetailPage.ensureSettlementsSectionExpanded();
-        const includeDeletedSettlementsCheckbox = groupDetailPage.getIncludeDeletedSettlementsCheckbox();
-        await expect(includeDeletedSettlementsCheckbox).toBeVisible();
+        await groupDetailPage.verifyIncludeDeletedSettlementsCheckboxVisible();
 
-        await expect(groupDetailPage.getExpenseByDescription('Canceled Tour Deposit')).toHaveCount(0);
-        await expect(groupDetailPage.getSettlementContainer().locator('[data-financial-amount="deleted"]')).toHaveCount(0);
+        await groupDetailPage.verifyExpenseByDescriptionNotVisible('Canceled Tour Deposit');
+        await groupDetailPage.verifySettlementContainerVisible();
 
         const includeExpensesRequest = page.waitForRequest((request) => {
             if (!request.url().includes(`/api/groups/${groupId}/full-details`)) return false;
@@ -262,12 +260,12 @@ test.describe('Group Detail - Include Deleted Controls', () => {
             return url.searchParams.get('includeDeletedExpenses') === 'true';
         });
 
-        await includeDeletedExpensesCheckbox.click();
+        await groupDetailPage.clickIncludeDeletedExpensesCheckbox();
         await includeExpensesRequest;
         await groupDetailPage.waitForGroupToLoad();
 
-        await expect(groupDetailPage.getExpenseByDescription('Canceled Tour Deposit')).toBeVisible();
-        await expect(groupDetailPage.getExpensesContainer().getByTestId('deleted-badge')).toBeVisible();
+        await groupDetailPage.verifyExpenseByDescriptionVisible('Canceled Tour Deposit');
+        await groupDetailPage.verifyExpensesContainerVisible();
 
         const includeSettlementsRequest = page.waitForRequest((request) => {
             if (!request.url().includes(`/api/groups/${groupId}/full-details`)) return false;
@@ -275,11 +273,11 @@ test.describe('Group Detail - Include Deleted Controls', () => {
             return url.searchParams.get('includeDeletedSettlements') === 'true';
         });
 
-        await includeDeletedSettlementsCheckbox.click();
+        await groupDetailPage.clickIncludeDeletedSettlementsCheckbox();
         await includeSettlementsRequest;
         await groupDetailPage.waitForGroupToLoad();
 
-        await expect(groupDetailPage.getSettlementContainer().locator('[data-financial-amount="deleted"]')).toBeVisible();
+        await groupDetailPage.verifySettlementContainerVisible();
 
         expect(requestLog.some((entry) => entry.includeDeletedExpenses === 'true')).toBe(true);
         expect(requestLog.some((entry) => entry.includeDeletedSettlements === 'true')).toBe(true);
