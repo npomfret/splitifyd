@@ -16,7 +16,7 @@
         "showPricingPage": true
       }
     },
-    "isDefault": true
+    "isDefault": false
   },
   {
     "id": "default-tenant",
@@ -35,6 +35,6 @@
         "showPricingPage": false
       }
     },
-    "isDefault": false
+    "isDefault": true
   }
 ]
