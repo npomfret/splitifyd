@@ -8,6 +8,7 @@ Read these first!
 - @/docs/guides/general.md
 - @/docs/guides/testing.md
 - @/docs/guides/types.md
+- @/docs/guides/validation.md
 - @/docs/guides/webapp-and-style-guide.md
 
 Remember: 
