@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 /**
  * Usage:
- *   ./scripts/delete-prod-data.ts <emulator|production> [collectionId...]
+ *   ./firebase/scripts/delete-data.ts <emulator|production> [collectionId...]
  *
  * If collection IDs are supplied, only those collections (minus protected ones) are deleted.
  * Otherwise, every non-protected collection will be purged.
@@ -14,6 +14,7 @@ import { stdin as input, stdout as output } from 'node:process';
 import * as path from 'path';
 import { createInterface } from 'readline/promises';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
+import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
 
 const envPath = path.join(__dirname, '../functions/.env');
 if (fs.existsSync(envPath)) {
@@ -162,11 +163,29 @@ async function wipeCollections(firestore: Firestore, requestedCollectionIds: str
     console.log(`   • Protected collections skipped: ${Array.from(PROTECTED_COLLECTIONS).join(', ')}`);
 }
 
+function ensureInstanceModeMatchesTarget(env: ScriptEnvironment): void {
+    const instanceMode = requireInstanceMode();
+
+    if (env.isEmulator) {
+        if (!isDevInstanceMode(instanceMode)) {
+            console.error(`❌ INSTANCE_MODE must be a dev instance when targeting the emulator. Current: ${instanceMode}`);
+            process.exit(1);
+        }
+        return;
+    }
+
+    if (instanceMode !== 'prod') {
+        console.error(`❌ INSTANCE_MODE must be "prod" when targeting production. Current: ${instanceMode}`);
+        process.exit(1);
+    }
+}
+
 async function main(): Promise<void> {
     const rawArgs = process.argv.slice(2);
     const env = parseEnvironment(rawArgs);
     const requestedCollections = rawArgs.slice(1).map((name) => name.trim()).filter((name) => name.length > 0);
     const uniqueRequestedCollections = Array.from(new Set(requestedCollections));
+    ensureInstanceModeMatchesTarget(env);
     initializeFirebase(env);
 
     if (env.isEmulator) {

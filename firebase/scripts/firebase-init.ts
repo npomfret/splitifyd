@@ -71,10 +71,18 @@ export function initializeFirebase(env: ScriptEnvironment): void {
 
         if (admin.apps.length === 0) {
             console.log('🔑 Initializing Firebase Admin with service account...');
-            admin.initializeApp({
-                credential: admin.credential.cert(serviceAccountPath),
-                projectId: 'splitifyd',
-            });
+            const credential = admin.credential.cert(serviceAccountPath);
+            const projectId = process.env.GCLOUD_PROJECT ?? process.env.PROJECT_ID;
+            const appOptions: admin.AppOptions = projectId
+                ? {
+                      credential,
+                      projectId,
+                  }
+                : {
+                      credential,
+                  };
+
+            admin.initializeApp(appOptions);
         } else {
             console.log('   Firebase Admin already initialized');
         }
