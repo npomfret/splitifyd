@@ -1,9 +1,4 @@
-import {
-    toFeatureToggleAdvancedReporting,
-    toFeatureToggleCustomFields,
-    toFeatureToggleMultiCurrency,
-    toShowBlogPageFlag,
-    toShowLandingPageFlag,
+import {toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAppName,
@@ -13,10 +8,7 @@ import {
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
-    toTenantSecondaryColor,
-    toTenantMaxGroupsPerUser,
-    toTenantMaxUsersPerGroup,
-} from '@splitifyd/shared';
+    toTenantSecondaryColor,} from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
@@ -54,24 +46,17 @@ describe('Tenant Firestore Integration', () => {
                 logoUrl: toTenantLogoUrl('https://test.example.com/logo.svg'),
                 faviconUrl: toTenantFaviconUrl('https://test.example.com/favicon.ico'),
                 primaryColor: toTenantPrimaryColor('#FF5733'),
-                secondaryColor: toTenantSecondaryColor('#33FF57'),
-            },
-            features: {
-                enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
-                enableMultiCurrency: toFeatureToggleMultiCurrency(false),
-                enableCustomFields: toFeatureToggleCustomFields(true),
-                maxGroupsPerUser: toTenantMaxGroupsPerUser(25),
-                maxUsersPerGroup: toTenantMaxUsersPerGroup(50),
-            },
+                secondaryColor: toTenantSecondaryColor('#33FF57')
+},
             domains: {
                 primary: toTenantDomainName('test.example.com'),
                 aliases: [toTenantDomainName('test-alias.example.com')],
-                normalized: [toTenantDomainName('test.example.com'), toTenantDomainName('test-alias.example.com')],
-            },
+                normalized: [toTenantDomainName('test.example.com'), toTenantDomainName('test-alias.example.com')]
+},
             defaultTenant: toTenantDefaultFlag(false),
             createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-        };
+            updatedAt: Timestamp.now()
+};
 
         await db.collection(FirestoreCollections.TENANTS).doc(testTenantId).set(testTenantDoc);
 
@@ -82,24 +67,17 @@ describe('Tenant Firestore Integration', () => {
                 logoUrl: toTenantLogoUrl('https://default.example.com/logo.svg'),
                 faviconUrl: toTenantFaviconUrl('https://default.example.com/favicon.ico'),
                 primaryColor: toTenantPrimaryColor('#1a73e8'),
-                secondaryColor: toTenantSecondaryColor('#34a853'),
-            },
-            features: {
-                enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
-                enableMultiCurrency: toFeatureToggleMultiCurrency(true),
-                enableCustomFields: toFeatureToggleCustomFields(true),
-                maxGroupsPerUser: toTenantMaxGroupsPerUser(100),
-                maxUsersPerGroup: toTenantMaxUsersPerGroup(200),
-            },
+                secondaryColor: toTenantSecondaryColor('#34a853')
+},
             domains: {
                 primary: toTenantDomainName('default.example.com'),
                 aliases: [],
-                normalized: [toTenantDomainName('default.example.com')],
-            },
+                normalized: [toTenantDomainName('default.example.com')]
+},
             defaultTenant: toTenantDefaultFlag(true),
             createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-        };
+            updatedAt: Timestamp.now()
+};
 
         await db.collection(FirestoreCollections.TENANTS).doc(defaultTenantId).set(defaultTenantDoc);
     });
@@ -117,7 +95,6 @@ describe('Tenant Firestore Integration', () => {
             expect(result).not.toBeNull();
             expect(result?.tenant.tenantId).toBe(testTenantId);
             expect(result?.tenant.branding.appName).toBe('Test Tenant App');
-            expect(result?.tenant.features.enableAdvancedReporting).toBe(true);
         });
 
         it('should return null for non-existent tenant', async () => {
@@ -203,15 +180,8 @@ describe('Tenant Firestore Integration', () => {
                     logoUrl: toTenantLogoUrl('https://dupe.example.com/logo.svg'),
                     faviconUrl: toTenantFaviconUrl('https://dupe.example.com/favicon.ico'),
                     primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#FFFFFF'),
-                },
-                features: {
-                    enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
-                    enableMultiCurrency: toFeatureToggleMultiCurrency(false),
-                    enableCustomFields: toFeatureToggleCustomFields(false),
-                    maxGroupsPerUser: toTenantMaxGroupsPerUser(10),
-                    maxUsersPerGroup: toTenantMaxUsersPerGroup(10),
-                },
+                    secondaryColor: toTenantSecondaryColor('#FFFFFF')
+},
                 domains: {
                     primary: toTenantDomainName('dupe.example.com'),
                     aliases: [toTenantDomainName('dupe.example.com')], // Duplicate!
@@ -223,8 +193,8 @@ describe('Tenant Firestore Integration', () => {
                 },
                 defaultTenant: toTenantDefaultFlag(false),
                 createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            };
+                updatedAt: Timestamp.now()
+};
 
             await db.collection(FirestoreCollections.TENANTS).doc(tenantWithDupes).set(dupeDoc);
 
@@ -252,22 +222,15 @@ describe('Tenant Firestore Integration', () => {
                     secondaryColor: toTenantSecondaryColor('#FFFFFF'),
                     // No accentColor, themePalette, customCSS, marketingFlags
                 },
-                features: {
-                    enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
-                    enableMultiCurrency: toFeatureToggleMultiCurrency(false),
-                    enableCustomFields: toFeatureToggleCustomFields(false),
-                    maxGroupsPerUser: toTenantMaxGroupsPerUser(5),
-                    maxUsersPerGroup: toTenantMaxUsersPerGroup(5),
-                },
                 domains: {
                     primary: toTenantDomainName('minimal.example.com'),
                     aliases: [],
-                    normalized: [toTenantDomainName('minimal.example.com')],
-                },
+                    normalized: [toTenantDomainName('minimal.example.com')]
+},
                 // No defaultTenant field (optional)
                 createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            };
+                updatedAt: Timestamp.now()
+};
 
             await db.collection(FirestoreCollections.TENANTS).doc(minimalTenantId).set(minimalDoc);
 
@@ -293,7 +256,6 @@ function assertTenantRegistryRecordStructure(record: TenantRegistryRecord): void
 
     expect(record.tenant).toHaveProperty('tenantId');
     expect(record.tenant).toHaveProperty('branding');
-    expect(record.tenant).toHaveProperty('features');
     expect(record.tenant).toHaveProperty('createdAt');
     expect(record.tenant).toHaveProperty('updatedAt');
 
@@ -302,12 +264,6 @@ function assertTenantRegistryRecordStructure(record: TenantRegistryRecord): void
     expect(record.tenant.branding).toHaveProperty('faviconUrl');
     expect(record.tenant.branding).toHaveProperty('primaryColor');
     expect(record.tenant.branding).toHaveProperty('secondaryColor');
-
-    expect(record.tenant.features).toHaveProperty('enableAdvancedReporting');
-    expect(record.tenant.features).toHaveProperty('enableMultiCurrency');
-    expect(record.tenant.features).toHaveProperty('enableCustomFields');
-    expect(record.tenant.features).toHaveProperty('maxGroupsPerUser');
-    expect(record.tenant.features).toHaveProperty('maxUsersPerGroup');
 
     expect(Array.isArray(record.domains)).toBe(true);
     expect(typeof record.isDefault).toBe('boolean');
@@ -329,24 +285,17 @@ describe('Tenant Branding Updates', () => {
                 logoUrl: toTenantLogoUrl('https://original.example.com/logo.svg'),
                 faviconUrl: toTenantFaviconUrl('https://original.example.com/favicon.ico'),
                 primaryColor: toTenantPrimaryColor('#000000'),
-                secondaryColor: toTenantSecondaryColor('#FFFFFF'),
-            },
-            features: {
-                enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
-                enableMultiCurrency: toFeatureToggleMultiCurrency(false),
-                enableCustomFields: toFeatureToggleCustomFields(false),
-                maxGroupsPerUser: toTenantMaxGroupsPerUser(10),
-                maxUsersPerGroup: toTenantMaxUsersPerGroup(20),
-            },
+                secondaryColor: toTenantSecondaryColor('#FFFFFF')
+},
             domains: {
                 primary: toTenantDomainName('update-test.example.com'),
                 aliases: [],
-                normalized: [toTenantDomainName('update-test.example.com')],
-            },
+                normalized: [toTenantDomainName('update-test.example.com')]
+},
             defaultTenant: toTenantDefaultFlag(false),
             createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-        };
+            updatedAt: Timestamp.now()
+};
 
         await db.collection(FirestoreCollections.TENANTS).doc(updateTestTenantId).set(tenantDoc);
     });
@@ -358,8 +307,8 @@ describe('Tenant Branding Updates', () => {
 
     it('should update single branding field', async () => {
         const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
-            appName: toTenantAppName('Updated App Name'),
-        });
+            appName: toTenantAppName('Updated App Name')
+});
 
         expect(result.success).toBe(true);
 
@@ -372,8 +321,8 @@ describe('Tenant Branding Updates', () => {
     it('should update multiple branding fields', async () => {
         const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
             primaryColor: toTenantPrimaryColor('#FF0000'),
-            secondaryColor: toTenantSecondaryColor('#00FF00'),
-        });
+            secondaryColor: toTenantSecondaryColor('#00FF00')
+});
 
         expect(result.success).toBe(true);
 
@@ -387,9 +336,9 @@ describe('Tenant Branding Updates', () => {
         const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
             marketingFlags: {
                 showLandingPage: toShowLandingPageFlag(true),
-                showPricingPage: toShowPricingPageFlag(false),
-            },
-        });
+                showPricingPage: toShowPricingPageFlag(false)
+}
+});
 
         expect(result.success).toBe(true);
 
@@ -405,17 +354,16 @@ describe('Tenant Branding Updates', () => {
             marketingFlags: {
                 showLandingPage: toShowLandingPageFlag(true),
                 showMarketingContent: toShowMarketingContentFlag(true),
-                showPricingPage: toShowPricingPageFlag(true),
-                showBlogPage: toShowBlogPageFlag(true),
-            },
-        });
+                showPricingPage: toShowPricingPageFlag(true)
+}
+});
 
         // Then update only one flag
         const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
             marketingFlags: {
-                showLandingPage: toShowLandingPageFlag(false),
-            },
-        });
+                showLandingPage: toShowLandingPageFlag(false)
+}
+});
 
         expect(result.success).toBe(true);
 
@@ -424,7 +372,6 @@ describe('Tenant Branding Updates', () => {
         expect(tenant?.tenant.branding.marketingFlags?.showLandingPage).toBe(false);
         expect(tenant?.tenant.branding.marketingFlags?.showMarketingContent).toBe(true); // Unchanged
         expect(tenant?.tenant.branding.marketingFlags?.showPricingPage).toBe(true); // Unchanged
-        expect(tenant?.tenant.branding.marketingFlags?.showBlogPage).toBe(true); // Unchanged
     });
 
     it('should update updatedAt timestamp', async () => {
@@ -435,8 +382,8 @@ describe('Tenant Branding Updates', () => {
         await new Promise((resolve) => setTimeout(resolve, 10));
 
         await firestoreWriter.updateTenantBranding(updateTestTenantId, {
-            appName: toTenantAppName('Timestamp Test'),
-        });
+            appName: toTenantAppName('Timestamp Test')
+});
 
         const afterUpdate = await firestoreReader.getTenantById(toTenantId(updateTestTenantId));
         const afterTimestamp = afterUpdate?.tenant.updatedAt;
@@ -446,8 +393,8 @@ describe('Tenant Branding Updates', () => {
 
     it('should handle non-existent tenant gracefully', async () => {
         const result = await firestoreWriter.updateTenantBranding('non-existent-tenant', {
-            appName: toTenantAppName('Should Fail'),
-        });
+            appName: toTenantAppName('Should Fail')
+});
 
         // updateTenantBranding will return success=false on error
         expect(result.success).toBe(false);

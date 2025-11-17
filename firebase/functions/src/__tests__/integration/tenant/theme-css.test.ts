@@ -16,25 +16,18 @@ const buildTenantPayload = (tenantId: string) => {
             primaryColor: tokens.palette.primary,
             secondaryColor: tokens.palette.secondary,
             accentColor: tokens.palette.accent,
-            themePalette: 'default',
-        },
+            themePalette: 'default'
+},
         brandingTokens: {
-            tokens,
-        },
+            tokens
+},
         domains: {
             primary: `${tenantId}.local.test`,
             aliases: [],
-            normalized: [`${tenantId}.local.test`],
-        },
-        features: {
-            enableAdvancedReporting: false,
-            enableMultiCurrency: true,
-            enableCustomFields: false,
-            maxGroupsPerUser: 25,
-            maxUsersPerGroup: 25,
-        },
-        defaultTenant: false,
-    };
+            normalized: [`${tenantId}.local.test`]
+},
+        defaultTenant: false
+};
 };
 
 describe('Theme CSS delivery', () => {
@@ -59,8 +52,8 @@ describe('Theme CSS delivery', () => {
         try {
             response = await apiDriver.fetchThemeCss({
                 tenantId,
-                version: publishResult.artifact.hash,
-            });
+                version: publishResult.artifact.hash
+});
         } catch (error: any) {
             console.error('theme-css-response-body', error.body);
             throw error;

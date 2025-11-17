@@ -97,15 +97,7 @@ export class SplitifydFirestoreTestDatabase extends StubFirestoreDatabase {
                     showLandingPage: true,
                     showMarketingContent: true,
                     showPricingPage: true,
-                    showBlogPage: false,
                 },
-            },
-            features: {
-                enableAdvancedReporting: false,
-                enableMultiCurrency: false,
-                enableCustomFields: false,
-                maxGroupsPerUser: 10,
-                maxUsersPerGroup: 20,
             },
             domains: {
                 primary: 'test.example.com',

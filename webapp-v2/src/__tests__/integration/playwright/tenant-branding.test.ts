@@ -29,21 +29,14 @@ const mockTenantSettings: TenantSettingsResponse = {
             marketingFlags: {
                 showLandingPage: true as any,
                 showMarketingContent: true as any,
-                showPricingPage: false as any,
-            },
-        },
-        features: {
-            enableAdvancedReporting: true as any,
-            enableMultiCurrency: false as any,
-            enableCustomFields: false as any,
-            maxGroupsPerUser: 100 as any,
-            maxUsersPerGroup: 200 as any,
-        },
+                showPricingPage: false as any
+}
+},
         createdAt: '2025-01-01T00:00:00.000Z' as any,
-        updatedAt: '2025-01-01T00:00:00.000Z' as any,
-    },
+        updatedAt: '2025-01-01T00:00:00.000Z' as any
+},
     domains: ['localhost' as any],
-    primaryDomain: 'localhost' as any,
+    primaryDomain: 'localhost' as any
 };
 
 test.describe('Tenant Branding Page - Access Control', () => {
@@ -79,8 +72,8 @@ test.describe('Tenant Branding Page - Access Control', () => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
-                body: JSON.stringify(mockTenantSettings),
-            });
+                body: JSON.stringify(mockTenantSettings)
+});
         });
 
         const brandingPage = new TenantBrandingPage(page);
@@ -112,8 +105,8 @@ test.describe('Tenant Branding Page - Access Control', () => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
-                body: JSON.stringify(mockTenantSettings),
-            });
+                body: JSON.stringify(mockTenantSettings)
+});
         });
 
         const brandingPage = new TenantBrandingPage(page);
@@ -144,8 +137,8 @@ test.describe('Tenant Branding Page - Form Interactions', () => {
                 await route.fulfill({
                     status: 200,
                     contentType: 'application/json',
-                    body: JSON.stringify(mockTenantSettings),
-                });
+                    body: JSON.stringify(mockTenantSettings)
+});
             } else {
                 await route.continue();
             }
@@ -237,8 +230,8 @@ test.describe('Tenant Branding Page - Form Submission', () => {
                 await route.fulfill({
                     status: 200,
                     contentType: 'application/json',
-                    body: JSON.stringify(mockTenantSettings),
-                });
+                    body: JSON.stringify(mockTenantSettings)
+});
             } else {
                 await route.continue();
             }
@@ -258,10 +251,10 @@ test.describe('Tenant Branding Page - Form Submission', () => {
                 body: JSON.stringify({
                     error: {
                         code: 'NOT_IMPLEMENTED',
-                        message: 'Tenant branding update not yet implemented',
-                    },
-                }),
-            });
+                        message: 'Tenant branding update not yet implemented'
+}
+})
+});
         });
 
         // Make a change and save
@@ -288,9 +281,9 @@ test.describe('Tenant Branding Page - Form Submission', () => {
                     status: 200,
                     contentType: 'application/json',
                     body: JSON.stringify({
-                        message: 'Branding updated successfully',
-                    }),
-                });
+                        message: 'Branding updated successfully'
+})
+});
             } else {
                 await route.continue();
             }
@@ -333,8 +326,8 @@ test.describe('Tenant Branding Page - Marketing Flags', () => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
-                body: JSON.stringify(mockTenantSettings),
-            });
+                body: JSON.stringify(mockTenantSettings)
+});
         });
     });
 

@@ -9,7 +9,6 @@ const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => ({
         ...tenant.branding,
         marketingFlags: tenant.branding.marketingFlags ? { ...tenant.branding.marketingFlags } : undefined,
     },
-    features: { ...tenant.features },
     createdAt: tenant.createdAt,
     updatedAt: tenant.updatedAt,
 });

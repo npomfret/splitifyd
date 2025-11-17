@@ -40,14 +40,6 @@ function loadTenantSeeds(): TenantSeed[] {
 
 const TENANT_SEEDS = loadTenantSeeds();
 
-const BASE_FEATURES = {
-    enableAdvancedReporting: false,
-    enableMultiCurrency: true,
-    enableCustomFields: false,
-    maxGroupsPerUser: 200,
-    maxUsersPerGroup: 200,
-};
-
 const normalizeDomain = (value: string): string => {
     return value.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0].replace(/:\d+$/, '');
 };
@@ -79,7 +71,6 @@ async function seedTenant(api: ApiDriver, adminToken: string, seed: TenantSeed):
         brandingTokens: {
             tokens,
         },
-        features: BASE_FEATURES,
         domains: {
             primary: primaryDomain,
             aliases: aliasDomains,

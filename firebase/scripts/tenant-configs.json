@@ -13,16 +13,8 @@
       "marketingFlags": {
         "showLandingPage": true,
         "showMarketingContent": true,
-        "showPricingPage": true,
-        "showBlogPage": false
+        "showPricingPage": true
       }
-    },
-    "features": {
-      "enableAdvancedReporting": true,
-      "enableMultiCurrency": true,
-      "enableCustomFields": true,
-      "maxGroupsPerUser": 100,
-      "maxUsersPerGroup": 50
     },
     "isDefault": true
   },
@@ -40,16 +32,8 @@
       "marketingFlags": {
         "showLandingPage": false,
         "showMarketingContent": false,
-        "showPricingPage": false,
-        "showBlogPage": false
+        "showPricingPage": false
       }
-    },
-    "features": {
-      "enableAdvancedReporting": false,
-      "enableMultiCurrency": true,
-      "enableCustomFields": false,
-      "maxGroupsPerUser": 50,
-      "maxUsersPerGroup": 30
     },
     "isDefault": false
   }

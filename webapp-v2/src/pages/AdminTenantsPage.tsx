@@ -18,22 +18,12 @@ interface TenantBranding {
         showLandingPage?: boolean;
         showMarketingContent?: boolean;
         showPricingPage?: boolean;
-        showBlogPage?: boolean;
     };
-}
-
-interface TenantFeatures {
-    enableAdvancedReporting?: boolean;
-    enableMultiCurrency?: boolean;
-    enableCustomFields?: boolean;
-    maxGroupsPerUser?: number;
-    maxUsersPerGroup?: number;
 }
 
 interface TenantConfig {
     tenantId: string;
     branding: TenantBranding;
-    features: TenantFeatures;
     createdAt: string;
     updatedAt: string;
 }
@@ -192,32 +182,6 @@ export function AdminTenantsPage() {
                                                             </span>
                                                         </div>
                                                     )}
-
-                                                    <div class="pt-2 border-t border-slate-700 mt-3">
-                                                        <p class="text-slate-400 mb-2">Features:</p>
-                                                        <div class="grid grid-cols-2 gap-2">
-                                                            <div>
-                                                                <span class="text-slate-400">Multi-Currency:</span>{' '}
-                                                                <span class={tenant.tenant.features.enableMultiCurrency ? 'text-green-400' : 'text-slate-500'}>
-                                                                    {tenant.tenant.features.enableMultiCurrency ? 'Enabled' : 'Disabled'}
-                                                                </span>
-                                                            </div>
-                                                            <div>
-                                                                <span class="text-slate-400">Advanced Reporting:</span>{' '}
-                                                                <span class={tenant.tenant.features.enableAdvancedReporting ? 'text-green-400' : 'text-slate-500'}>
-                                                                    {tenant.tenant.features.enableAdvancedReporting ? 'Enabled' : 'Disabled'}
-                                                                </span>
-                                                            </div>
-                                                            <div>
-                                                                <span class="text-slate-400">Max Groups:</span>{' '}
-                                                                <span class="text-white">{tenant.tenant.features.maxGroupsPerUser || 'N/A'}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span class="text-slate-400">Max Users per Group:</span>{' '}
-                                                                <span class="text-white">{tenant.tenant.features.maxUsersPerGroup || 'N/A'}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
 
                                                     <div class="pt-2 text-xs text-slate-400">
                                                         <div>Created: {new Date(tenant.tenant.createdAt).toLocaleDateString()}</div>

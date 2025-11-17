@@ -7,16 +7,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mock dependencies
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string) => key,
-    }),
+        t: (key: string) => key
+})
 }));
 
 vi.mock('@/components/layout/BaseLayout', () => ({
-    BaseLayout: ({ children }: { children: ComponentChildren }) => <div data-testid='base-layout'>{children}</div>,
+    BaseLayout: ({ children }: { children: ComponentChildren }) => <div data-testid='base-layout'>{children}</div>
 }));
 
 vi.mock('@/app/hooks/useAuthRequired', () => ({
-    useAuthRequired: vi.fn(),
+    useAuthRequired: vi.fn()
 }));
 
 vi.mock('@/app/apiClient', async (importOriginal) => {
@@ -25,9 +25,9 @@ vi.mock('@/app/apiClient', async (importOriginal) => {
         ...actual,
         apiClient: {
             getTenantSettings: vi.fn(),
-            updateTenantBranding: vi.fn(),
-        },
-    };
+            updateTenantBranding: vi.fn()
+}
+};
 });
 
 const { useAuthRequired } = await import('@/app/hooks/useAuthRequired');
@@ -50,35 +50,28 @@ const mockTenantSettings: TenantSettingsResponse = {
             marketingFlags: {
                 showLandingPage: true as any,
                 showMarketingContent: true as any,
-                showPricingPage: false as any,
-            },
-        },
-        features: {
-            enableAdvancedReporting: true as any,
-            enableMultiCurrency: false as any,
-            enableCustomFields: false as any,
-            maxGroupsPerUser: 100 as any,
-            maxUsersPerGroup: 200 as any,
-        },
+                showPricingPage: false as any
+}
+},
         createdAt: '2025-01-01T00:00:00.000Z' as any,
-        updatedAt: '2025-01-01T00:00:00.000Z' as any,
-    },
+        updatedAt: '2025-01-01T00:00:00.000Z' as any
+},
     domains: ['localhost' as any],
-    primaryDomain: 'localhost' as any,
+    primaryDomain: 'localhost' as any
 };
 
 const mockTenantAdminUser = {
     uid: 'admin-123',
     email: 'admin@test.com',
     displayName: 'Tenant Admin',
-    role: SystemUserRoles.TENANT_ADMIN,
+    role: SystemUserRoles.TENANT_ADMIN
 };
 
 const mockRegularUser = {
     uid: 'user-123',
     email: 'user@test.com',
     displayName: 'Regular User',
-    role: SystemUserRoles.SYSTEM_USER,
+    role: SystemUserRoles.SYSTEM_USER
 };
 
 describe('TenantBrandingPage', () => {
@@ -90,8 +83,8 @@ describe('TenantBrandingPage', () => {
         it('should deny access to regular users', async () => {
             mockedUseAuthRequired.mockReturnValue({
                 user: mockRegularUser,
-                initialized: true,
-            } as any);
+                initialized: true
+} as any);
 
             render(<TenantBrandingPage />);
 
@@ -105,8 +98,8 @@ describe('TenantBrandingPage', () => {
         it('should allow access to tenant admins', async () => {
             mockedUseAuthRequired.mockReturnValue({
                 user: mockTenantAdminUser,
-                initialized: true,
-            } as any);
+                initialized: true
+} as any);
 
             mockedApiClient.getTenantSettings.mockResolvedValueOnce(mockTenantSettings);
 
@@ -122,8 +115,8 @@ describe('TenantBrandingPage', () => {
         it('should allow access to system admins', async () => {
             mockedUseAuthRequired.mockReturnValue({
                 user: { ...mockTenantAdminUser, role: SystemUserRoles.SYSTEM_ADMIN },
-                initialized: true,
-            } as any);
+                initialized: true
+} as any);
 
             mockedApiClient.getTenantSettings.mockResolvedValueOnce(mockTenantSettings);
 
@@ -141,8 +134,8 @@ describe('TenantBrandingPage', () => {
         it('should show loading spinner while fetching settings', async () => {
             mockedUseAuthRequired.mockReturnValue({
                 user: mockTenantAdminUser,
-                initialized: true,
-            } as any);
+                initialized: true
+} as any);
 
             mockedApiClient.getTenantSettings.mockImplementation(
                 () => new Promise((resolve) => setTimeout(() => resolve(mockTenantSettings), 100)),
@@ -160,8 +153,8 @@ describe('TenantBrandingPage', () => {
         it('should show error message if loading fails', async () => {
             mockedUseAuthRequired.mockReturnValue({
                 user: mockTenantAdminUser,
-                initialized: true,
-            } as any);
+                initialized: true
+} as any);
 
             mockedApiClient.getTenantSettings.mockRejectedValueOnce(new Error('Network error'));
 
@@ -177,8 +170,8 @@ describe('TenantBrandingPage', () => {
         beforeEach(() => {
             mockedUseAuthRequired.mockReturnValue({
                 user: mockTenantAdminUser,
-                initialized: true,
-            } as any);
+                initialized: true
+} as any);
 
             mockedApiClient.getTenantSettings.mockResolvedValue(mockTenantSettings);
         });
@@ -224,8 +217,8 @@ describe('TenantBrandingPage', () => {
         beforeEach(() => {
             mockedUseAuthRequired.mockReturnValue({
                 user: mockTenantAdminUser,
-                initialized: true,
-            } as any);
+                initialized: true
+} as any);
 
             mockedApiClient.getTenantSettings.mockResolvedValue(mockTenantSettings);
         });
@@ -277,8 +270,8 @@ describe('TenantBrandingPage', () => {
         beforeEach(() => {
             mockedUseAuthRequired.mockReturnValue({
                 user: mockTenantAdminUser,
-                initialized: true,
-            } as any);
+                initialized: true
+} as any);
 
             mockedApiClient.getTenantSettings.mockResolvedValue(mockTenantSettings);
         });
@@ -303,8 +296,8 @@ describe('TenantBrandingPage', () => {
             await waitFor(() => {
                 expect(mockedApiClient.updateTenantBranding).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        appName: 'New App Name',
-                    }),
+                        appName: 'New App Name'
+}),
                 );
             });
         });
@@ -398,8 +391,8 @@ describe('TenantBrandingPage', () => {
         beforeEach(() => {
             mockedUseAuthRequired.mockReturnValue({
                 user: mockTenantAdminUser,
-                initialized: true,
-            } as any);
+                initialized: true
+} as any);
 
             mockedApiClient.getTenantSettings.mockResolvedValue(mockTenantSettings);
         });

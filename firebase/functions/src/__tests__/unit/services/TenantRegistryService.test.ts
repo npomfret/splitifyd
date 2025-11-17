@@ -1,7 +1,4 @@
 import {
-    toFeatureToggleAdvancedReporting,
-    toFeatureToggleCustomFields,
-    toFeatureToggleMultiCurrency,
     toISOString,
     toTenantAppName,
     toTenantDefaultFlag,
@@ -11,8 +8,6 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantMaxGroupsPerUser,
-    toTenantMaxUsersPerGroup,
     type TenantConfig,
 } from '@splitifyd/shared';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
@@ -35,13 +30,6 @@ describe('TenantRegistryService', () => {
             primaryColor: toTenantPrimaryColor('#0066CC'),
             secondaryColor: toTenantSecondaryColor('#FF6600'),
         },
-        features: {
-            enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
-            enableMultiCurrency: toFeatureToggleMultiCurrency(true),
-            enableCustomFields: toFeatureToggleCustomFields(false),
-            maxGroupsPerUser: toTenantMaxGroupsPerUser(10),
-            maxUsersPerGroup: toTenantMaxUsersPerGroup(20),
-        },
         createdAt: toISOString('2025-01-15T10:00:00.000Z'),
         updatedAt: toISOString('2025-01-20T14:30:00.000Z'),
     };
@@ -61,13 +49,6 @@ describe('TenantRegistryService', () => {
             faviconUrl: toTenantFaviconUrl('/favicon.ico'),
             primaryColor: toTenantPrimaryColor('#1a73e8'),
             secondaryColor: toTenantSecondaryColor('#34a853'),
-        },
-        features: {
-            enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
-            enableMultiCurrency: toFeatureToggleMultiCurrency(true),
-            enableCustomFields: toFeatureToggleCustomFields(true),
-            maxGroupsPerUser: toTenantMaxGroupsPerUser(50),
-            maxUsersPerGroup: toTenantMaxUsersPerGroup(100),
         },
         createdAt: toISOString('2025-01-01T00:00:00.000Z'),
         updatedAt: toISOString('2025-01-01T00:00:00.000Z'),

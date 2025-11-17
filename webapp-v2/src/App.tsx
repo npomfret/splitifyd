@@ -42,7 +42,6 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ de
 const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
 const AdminTenantsPage = lazy(() => import('./pages/AdminTenantsPage').then((m) => ({ default: m.AdminTenantsPage }))); // @deprecated
 const AdminDiagnosticsPage = lazy(() => import('./pages/AdminDiagnosticsPage').then((m) => ({ default: m.AdminDiagnosticsPage }))); // @deprecated
-const UsersBrowserPage = lazy(() => import('./pages/browser/UsersBrowserPage').then((m) => ({ default: m.UsersBrowserPage })));
 const TenantBrandingPage = lazy(() => import('./pages/TenantBrandingPage').then((m) => ({ default: m.TenantBrandingPage })));
 const DomainManagementPage = lazy(() => import('./pages/DomainManagementPage').then((m) => ({ default: m.DomainManagementPage })));
 
@@ -128,7 +127,6 @@ const SettingsRoute = createProtectedRoute(SettingsPage);
 const AdminRoute = createProtectedRoute(AdminPage);
 const AdminTenantsRoute = createProtectedRoute(AdminTenantsPage); // @deprecated
 const AdminDiagnosticsRoute = createProtectedRoute(AdminDiagnosticsPage); // @deprecated
-const UsersBrowserRoute = createProtectedRoute(UsersBrowserPage);
 const TenantBrandingRoute = createProtectedRoute(TenantBrandingPage);
 const DomainManagementRoute = createProtectedRoute(DomainManagementPage);
 
@@ -141,7 +139,6 @@ export function App() {
     const marketingFlags = config?.tenant?.branding?.marketingFlags;
     const showLandingPage = marketingFlags?.showLandingPage ?? true; // Default to true - show landing page unless explicitly disabled
     const showPricingPage = marketingFlags?.showPricingPage ?? false;
-    const enableAdvancedReporting = config?.tenant?.features?.enableAdvancedReporting ?? false;
 
     const handlePolicyAcceptance = async () => {
         // Refresh policy status after acceptance to hide the modal
@@ -187,9 +184,6 @@ export function App() {
                 <Route path='/admin/tenants' component={AdminTenantsRoute} />
                 {/* @deprecated - Use /admin?tab=diagnostics instead */}
                 <Route path='/admin/diagnostics' component={AdminDiagnosticsRoute} />
-
-                {/* Browser Routes - Protected */}
-                {enableAdvancedReporting && <Route path='/browser/users' component={UsersBrowserRoute} />}
 
                 {/* Group Routes - Protected */}
                 <Route path='/groups/:id' component={GroupDetailRoute} />

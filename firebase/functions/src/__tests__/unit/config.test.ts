@@ -17,19 +17,16 @@ describe('Configuration Response Functions', () => {
                     projectId: 'tenant-project',
                     storageBucket: 'tenant.firebasestorage.app',
                     messagingSenderId: '654321',
-                    appId: '1:654321:web:def',
-                })
+                    appId: '1:654321:web:def'
+})
                 .withTenantOverrides({
                     tenantId: 'acme',
                     branding: {
                         marketingFlags: {
-                            showPricingPage: false,
-                        },
-                    },
-                    features: {
-                        enableMultiCurrency: true,
-                    },
-                })
+                            showPricingPage: false
+}
+}
+})
                 .build();
 
             expect(() => validateAppConfiguration(configWithTenant)).not.toThrow();

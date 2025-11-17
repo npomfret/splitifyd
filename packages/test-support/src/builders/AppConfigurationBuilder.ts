@@ -3,7 +3,6 @@ import type {
     BrandingConfig,
     BrandingMarketingFlags,
     EnvironmentConfig,
-    FeatureConfig,
     FirebaseConfig,
     FormDefaults,
     TenantConfig,
@@ -11,10 +10,6 @@ import type {
 } from '@splitifyd/shared';
 import {
     isoStringNow,
-    toFeatureToggleAdvancedReporting,
-    toFeatureToggleCustomFields,
-    toFeatureToggleMultiCurrency,
-    toShowBlogPageFlag,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
@@ -27,8 +22,6 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
     toTenantThemePaletteName,
-    toTenantMaxGroupsPerUser,
-    toTenantMaxUsersPerGroup,
 } from '@splitifyd/shared';
 import { convertToISOString } from '../test-helpers';
 
@@ -48,21 +41,11 @@ export interface TenantBrandingFlagsOverrides {
     showLandingPage?: boolean;
     showMarketingContent?: boolean;
     showPricingPage?: boolean;
-    showBlogPage?: boolean;
-}
-
-export interface TenantFeatureOverrides {
-    enableAdvancedReporting?: boolean;
-    enableMultiCurrency?: boolean;
-    enableCustomFields?: boolean;
-    maxGroupsPerUser?: number;
-    maxUsersPerGroup?: number;
 }
 
 export interface TenantOverrides {
     tenantId?: string;
     branding?: TenantBrandingOverrides;
-    features?: TenantFeatureOverrides;
     createdAt?: string | Date;
     updatedAt?: string | Date;
 }
@@ -151,10 +134,6 @@ export class AppConfigurationBuilder {
             this.applyBrandingOverrides(this.tenant.branding, overrides.branding);
         }
 
-        if (overrides.features) {
-            this.applyFeatureOverrides(this.tenant.features, overrides.features);
-        }
-
         if (overrides.createdAt) {
             this.tenant.createdAt = convertToISOString(overrides.createdAt);
         }
@@ -195,15 +174,7 @@ export class AppConfigurationBuilder {
                     showLandingPage: true,
                     showMarketingContent: true,
                     showPricingPage: true,
-                    showBlogPage: false,
                 }),
-            },
-            features: {
-                enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
-                enableMultiCurrency: toFeatureToggleMultiCurrency(false),
-                enableCustomFields: toFeatureToggleCustomFields(true),
-                maxGroupsPerUser: toTenantMaxGroupsPerUser(50),
-                maxUsersPerGroup: toTenantMaxUsersPerGroup(100),
             },
             createdAt: now,
             updatedAt: now,
@@ -240,24 +211,6 @@ export class AppConfigurationBuilder {
         }
     }
 
-    private applyFeatureOverrides(features: FeatureConfig, overrides: TenantFeatureOverrides): void {
-        if (overrides.enableAdvancedReporting !== undefined) {
-            features.enableAdvancedReporting = toFeatureToggleAdvancedReporting(overrides.enableAdvancedReporting);
-        }
-        if (overrides.enableMultiCurrency !== undefined) {
-            features.enableMultiCurrency = toFeatureToggleMultiCurrency(overrides.enableMultiCurrency);
-        }
-        if (overrides.enableCustomFields !== undefined) {
-            features.enableCustomFields = toFeatureToggleCustomFields(overrides.enableCustomFields);
-        }
-        if (overrides.maxGroupsPerUser !== undefined) {
-            features.maxGroupsPerUser = toTenantMaxGroupsPerUser(overrides.maxGroupsPerUser);
-        }
-        if (overrides.maxUsersPerGroup !== undefined) {
-            features.maxUsersPerGroup = toTenantMaxUsersPerGroup(overrides.maxUsersPerGroup);
-        }
-    }
-
     private mergeBrandingFlags(
         current: BrandingMarketingFlags | undefined,
         overrides: TenantBrandingFlagsOverrides,
@@ -274,10 +227,6 @@ export class AppConfigurationBuilder {
 
         if (overrides.showPricingPage !== undefined) {
             flags.showPricingPage = toShowPricingPageFlag(overrides.showPricingPage);
-        }
-
-        if (overrides.showBlogPage !== undefined) {
-            flags.showBlogPage = toShowBlogPageFlag(overrides.showBlogPage);
         }
 
         return flags;
@@ -298,10 +247,6 @@ export class AppConfigurationBuilder {
             marketing.showPricingPage = toShowPricingPageFlag(flags.showPricingPage);
         }
 
-        if (flags.showBlogPage !== undefined) {
-            marketing.showBlogPage = toShowBlogPageFlag(flags.showBlogPage);
-        }
-
         return marketing;
     }
 
@@ -312,7 +257,6 @@ export class AppConfigurationBuilder {
                 ...tenant.branding,
                 marketingFlags: tenant.branding.marketingFlags ? { ...tenant.branding.marketingFlags } : undefined,
             },
-            features: { ...tenant.features },
             createdAt: tenant.createdAt,
             updatedAt: tenant.updatedAt,
         };

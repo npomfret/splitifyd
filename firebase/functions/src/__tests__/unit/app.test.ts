@@ -9,7 +9,7 @@ import {
     smallestUnitToAmountString,
     SystemUserRoles,
     toGroupName,
-    UserBalance,
+    UserBalance
 } from '@splitifyd/shared';
 import type { UserId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
@@ -168,8 +168,8 @@ describe('app tests', () => {
 
             const firstPage = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: 2,
-                settlementLimit: 2,
-            }, user1);
+                settlementLimit: 2
+}, user1);
 
             expect(firstPage.expenses.expenses).toHaveLength(2);
             expect(firstPage.expenses.hasMore).toBe(true);
@@ -183,8 +183,8 @@ describe('app tests', () => {
                 expenseLimit: 2,
                 expenseCursor: firstPage.expenses.nextCursor,
                 settlementLimit: 2,
-                settlementCursor: firstPage.settlements.nextCursor,
-            }, user1);
+                settlementCursor: firstPage.settlements.nextCursor
+}, user1);
 
             expect(secondPage.expenses.expenses.length).toBeGreaterThanOrEqual(1);
 
@@ -197,8 +197,8 @@ describe('app tests', () => {
             while (settlementCursor) {
                 const nextPage = await appDriver.getGroupFullDetails(groupId, {
                     settlementLimit: 2,
-                    settlementCursor,
-                }, user1);
+                    settlementCursor
+}, user1);
 
                 seenSettlementIds.push(...nextPage.settlements.settlements.map((settlement) => settlement.id));
                 settlementCursor = nextPage.settlements.nextCursor;
@@ -206,8 +206,8 @@ describe('app tests', () => {
 
             const thirdPage = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: 2,
-                expenseCursor: secondPage.expenses.nextCursor,
-            }, user1);
+                expenseCursor: secondPage.expenses.nextCursor
+}, user1);
 
             expect(secondPage.expenses.expenses).toHaveLength(2);
             expect(secondPage.expenses.hasMore).toBe(true);
@@ -758,8 +758,8 @@ describe('app tests', () => {
 
             await appDriver.updateGroup(groupId, {
                 name: toGroupName('Adventure Squad+'),
-                description: 'Updated itinerary for the squad',
-            }, user1);
+                description: 'Updated itinerary for the squad'
+}, user1);
             await appDriver.updateGroupMemberDisplayName(groupId, 'Squad Leader', user1);
 
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
@@ -820,8 +820,8 @@ describe('app tests', () => {
 
             await appDriver.updateSettlement(settlementId, {
                 amount: '50.00',
-                note: 'Adjusted amount',
-            }, user2);
+                note: 'Adjusted amount'
+}, user2);
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBeUndefined();
@@ -975,8 +975,8 @@ describe('app tests', () => {
                 splits: [
                     { ...baseExpense.splits[0], amount: '80.00' },
                     { ...baseExpense.splits[1], amount: '30.00' },
-                ],
-            };
+                ]
+};
 
             await expect(appDriver.createExpense(invalidExpense, user1))
                 .rejects
@@ -1005,9 +1005,9 @@ describe('app tests', () => {
                 amount: '12.34',
                 splits: baseExpense.splits.map((split) => ({
                     ...split,
-                    amount: '6.17',
-                })),
-            };
+                    amount: '6.17'
+}))
+};
 
             await expect(appDriver.createExpense(invalidExpense, user1))
                 .rejects
@@ -1128,8 +1128,8 @@ describe('app tests', () => {
 
             await expect(appDriver.updateSettlement(settlementId, {
                 amount: '20.123',
-                currency: 'USD',
-            }, user2))
+                currency: 'USD'
+}, user2))
                 .rejects
                 .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
@@ -1266,8 +1266,8 @@ describe('app tests', () => {
             const settlementId = groupDetails.settlements.settlements[0].id;
 
             await expect(appDriver.updateSettlement(settlementId, {
-                amount: '45.00',
-            }, user1))
+                amount: '45.00'
+}, user1))
                 .rejects
                 .toMatchObject({ code: 'NOT_SETTLEMENT_CREATOR' });
         });
@@ -1463,8 +1463,8 @@ describe('app tests', () => {
             }
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {
-                expenseLimit: NUM_OPERATIONS,
-            }, user1);
+                expenseLimit: NUM_OPERATIONS
+}, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances, 'USD balances should exist after many small operations').toBeDefined();
@@ -1740,8 +1740,8 @@ describe('app tests', () => {
             }
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {
-                expenseLimit: OPERATIONS_COUNT,
-            }, user1);
+                expenseLimit: OPERATIONS_COUNT
+}, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances).toBeDefined();
@@ -1839,8 +1839,8 @@ describe('app tests', () => {
 
             const exactSplits = percentageSplits.map(split => ({
                 uid: split.uid,
-                amount: split.amount,
-            }));
+                amount: split.amount
+}));
             await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
                 .minimal()
                 .withAmount(AMOUNT, CURRENCY)
@@ -1908,8 +1908,8 @@ describe('app tests', () => {
                 .rejects
                 .toMatchObject({
                     code: 'INVALID_INPUT',
-                    details: { message: 'Cannot remove member with outstanding balance' },
-                });
+                    details: { message: 'Cannot remove member with outstanding balance' }
+});
         });
 
         it('should allow removal of member with zero balance', async () => {
@@ -2463,8 +2463,8 @@ describe('app tests', () => {
             it('should accept a single policy', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 const result = await appDriver.acceptMultiplePolicies([
                     {policyId: policy1.id, versionHash: policy1.versionHash},
@@ -2480,18 +2480,18 @@ describe('app tests', () => {
             it('should accept multiple policies at once', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
-                    text: 'Privacy Policy v1',
-                }, user1);
+                    text: 'Privacy Policy v1'
+}, user1);
 
                 const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
-                    text: 'Cookie Policy v1',
-                }, user1);
+                    text: 'Cookie Policy v1'
+}, user1);
 
                 const result = await appDriver.acceptMultiplePolicies([
                     {policyId: policy1.id, versionHash: policy1.versionHash},
@@ -2509,8 +2509,8 @@ describe('app tests', () => {
             it('should persist policy acceptance in user document', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 await appDriver.acceptMultiplePolicies([
                     {policyId: policy1.id, versionHash: policy1.versionHash},
@@ -2564,8 +2564,8 @@ describe('app tests', () => {
             it('should reject when version hash is invalid for existing policy', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 await expect(
                     appDriver.acceptMultiplePolicies([
@@ -2579,8 +2579,8 @@ describe('app tests', () => {
             it('should reject entire batch if any policy is invalid', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 await expect(
                     appDriver.acceptMultiplePolicies([
@@ -2600,13 +2600,13 @@ describe('app tests', () => {
             it('should show all policies as pending when user has not accepted any', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
-                    text: 'Privacy Policy v1',
-                }, user1);
+                    text: 'Privacy Policy v1'
+}, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2628,13 +2628,13 @@ describe('app tests', () => {
             it('should show no pending policies when user has accepted current versions', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
-                    text: 'Privacy Policy v1',
-                }, user1);
+                    text: 'Privacy Policy v1'
+}, user1);
 
                 await appDriver.acceptMultiplePolicies([
                     {policyId: policy1.id, versionHash: policy1.versionHash},
@@ -2656,8 +2656,8 @@ describe('app tests', () => {
             it('should show pending when user has accepted old versions', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 await appDriver.acceptMultiplePolicies([
                     {policyId: policy1.id, versionHash: policy1.versionHash},
@@ -2667,8 +2667,8 @@ describe('app tests', () => {
 
                 const updatedPolicy = await appDriver.updatePolicy(policy1.id, {
                     text: 'Terms of Service v2 - updated',
-                    publish: true,
-                }, user1);
+                    publish: true
+}, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2687,18 +2687,18 @@ describe('app tests', () => {
             it('should show mixed acceptance state across multiple policies', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
-                    text: 'Privacy Policy v1',
-                }, user1);
+                    text: 'Privacy Policy v1'
+}, user1);
 
                 const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
-                    text: 'Cookie Policy v1',
-                }, user1);
+                    text: 'Cookie Policy v1'
+}, user1);
 
                 await appDriver.acceptMultiplePolicies([
                     {policyId: policy1.id, versionHash: policy1.versionHash},
@@ -2707,8 +2707,8 @@ describe('app tests', () => {
 
                 await appDriver.updatePolicy(policy1.id, {
                     text: 'Terms of Service v2',
-                    publish: true,
-                }, user1);
+                    publish: true
+}, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2730,8 +2730,8 @@ describe('app tests', () => {
             it('should return correct response structure', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2747,8 +2747,8 @@ describe('app tests', () => {
             it('should include all required fields in each policy', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 await appDriver.acceptMultiplePolicies([
                     {policyId: policy1.id, versionHash: policy1.versionHash},
@@ -2775,18 +2775,18 @@ describe('app tests', () => {
             it('should correctly count totalPending', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1',
-                }, user1);
+                    text: 'Terms of Service v1'
+}, user1);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
-                    text: 'Privacy Policy v1',
-                }, user1);
+                    text: 'Privacy Policy v1'
+}, user1);
 
                 const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
-                    text: 'Cookie Policy v1',
-                }, user1);
+                    text: 'Cookie Policy v1'
+}, user1);
 
                 await appDriver.acceptMultiplePolicies([
                     {policyId: policy1.id, versionHash: policy1.versionHash},
@@ -2826,12 +2826,12 @@ describe('app tests', () => {
                 .build(), user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                transactionChangeCount: 1,
-            });
+                transactionChangeCount: 1
+});
 
             await appDriver.expectNotificationUpdate(user2, group.id, {
-                transactionChangeCount: 1,
-            });
+                transactionChangeCount: 1
+});
         });
 
         it('should update notifications when settlement is created', async () => {
@@ -2847,12 +2847,12 @@ describe('app tests', () => {
                 .build(), user2);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                balanceChangeCount: 1,
-            });
+                balanceChangeCount: 1
+});
 
             await appDriver.expectNotificationUpdate(user2, group.id, {
-                balanceChangeCount: 1,
-            });
+                balanceChangeCount: 1
+});
         });
 
         it('should update notifications when group comment is added', async () => {
@@ -2863,12 +2863,12 @@ describe('app tests', () => {
             await appDriver.createGroupComment(group.id, 'Test comment', user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                commentChangeCount: 1,
-            });
+                commentChangeCount: 1
+});
 
             await appDriver.expectNotificationUpdate(user2, group.id, {
-                commentChangeCount: 1,
-            });
+                commentChangeCount: 1
+});
         });
 
         it('should update notifications when expense comment is added', async () => {
@@ -2888,12 +2888,12 @@ describe('app tests', () => {
             await appDriver.createExpenseComment(expense.id, 'Expense comment', user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                commentChangeCount: 1,
-            });
+                commentChangeCount: 1
+});
 
             await appDriver.expectNotificationUpdate(user2, group.id, {
-                commentChangeCount: 1,
-            });
+                commentChangeCount: 1
+});
         });
 
         it('should increment changeVersion on multiple operations', async () => {
@@ -2925,8 +2925,8 @@ describe('app tests', () => {
             await appDriver.updateGroup(group.id, {name: toGroupName('Updated Name')}, user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                groupDetailsChangeCount: 2,
-            });
+                groupDetailsChangeCount: 2
+});
         });
 
         it('should prune activity feed entries beyond the latest 20 items via async cleanup', async () => {
@@ -3087,8 +3087,8 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const permissionsUpdate = await appDriver.updateGroupPermissions(group.id, {
-                memberApproval: 'admin-required',
-            }, user1);
+                memberApproval: 'admin-required'
+}, user1);
 
             expect(permissionsUpdate.message).toBe('Permissions updated successfully');
 
@@ -3136,8 +3136,8 @@ describe('app tests', () => {
                 password: 'ValidPass123!',
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
-                privacyPolicyAccepted: true,
-            });
+                privacyPolicyAccepted: true
+});
 
             expect(registrationResult.success).toBe(true);
             expect(registrationResult.user.displayName).toBe('Registered User');
@@ -3157,8 +3157,8 @@ describe('app tests', () => {
                     password: 'ValidPass123!',
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
-                    privacyPolicyAccepted: false,
-                }),
+                    privacyPolicyAccepted: false
+}),
             )
                 .rejects
                 .toThrow(/Privacy Policy/);
@@ -3167,8 +3167,8 @@ describe('app tests', () => {
         describe('updateUserProfile', () => {
             it('should update display name successfully', async () => {
                 const updatedProfile = await appDriver.updateUserProfile({
-                    displayName: 'Updated Name',
-                }, user1);
+                    displayName: 'Updated Name'
+}, user1);
 
                 expect(updatedProfile.displayName).toBe('Updated Name');
 
@@ -3178,8 +3178,8 @@ describe('app tests', () => {
 
             it('should sanitize display name input', async () => {
                 const updatedProfile = await appDriver.updateUserProfile({
-                    displayName: '<script>alert("xss")</script>Clean Name',
-                }, user1);
+                    displayName: '<script>alert("xss")</script>Clean Name'
+}, user1);
 
                 expect(updatedProfile.displayName).not.toContain('<script>');
                 expect(updatedProfile.displayName).toContain('Clean Name');
@@ -3210,8 +3210,8 @@ describe('app tests', () => {
             it('should successfully change password with valid credentials', async () => {
                 const result = await appDriver.changePassword({
                     currentPassword: VALID_CURRENT_PASSWORD,
-                    newPassword: VALID_NEW_PASSWORD,
-                }, user1);
+                    newPassword: VALID_NEW_PASSWORD
+}, user1);
 
                 expect(result.message).toBe('Password changed successfully');
             });
@@ -3220,8 +3220,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: 'WrongPassword123!',
-                        newPassword: VALID_NEW_PASSWORD,
-                    }, user1),
+                        newPassword: VALID_NEW_PASSWORD
+}, user1),
                 )
                     .rejects
                     .toThrow(/password is incorrect/i);
@@ -3231,8 +3231,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: VALID_CURRENT_PASSWORD,
-                    }, user1),
+                        newPassword: VALID_CURRENT_PASSWORD
+}, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3242,8 +3242,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: 'Short1!',
-                    }, user1),
+                        newPassword: 'Short1!'
+}, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3252,8 +3252,8 @@ describe('app tests', () => {
             it('should reject when currentPassword field is missing', async () => {
                 await expect(
                     appDriver.changePassword({
-                        newPassword: VALID_NEW_PASSWORD,
-                    } as any, user1),
+                        newPassword: VALID_NEW_PASSWORD
+} as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3262,8 +3262,8 @@ describe('app tests', () => {
             it('should reject when newPassword field is missing', async () => {
                 await expect(
                     appDriver.changePassword({
-                        currentPassword: VALID_CURRENT_PASSWORD,
-                    } as any, user1),
+                        currentPassword: VALID_CURRENT_PASSWORD
+} as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3273,8 +3273,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: '',
-                        newPassword: VALID_NEW_PASSWORD,
-                    }, user1),
+                        newPassword: VALID_NEW_PASSWORD
+}, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3284,8 +3284,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: '',
-                    }, user1),
+                        newPassword: ''
+}, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3299,8 +3299,8 @@ describe('app tests', () => {
             it('should successfully change email with valid credentials', async () => {
                 const profile = await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
-                    newEmail: NEW_EMAIL,
-                }, user1);
+                    newEmail: NEW_EMAIL
+}, user1);
 
                 expect(profile.email).toBe(NEW_EMAIL);
                 expect(profile.emailVerified).toBe(false);
@@ -3310,8 +3310,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: 'WrongPassword123!',
-                        newEmail: NEW_EMAIL,
-                    }, user1),
+                        newEmail: NEW_EMAIL
+}, user1),
                 )
                     .rejects
                     .toThrow(/password is incorrect/i);
@@ -3323,8 +3323,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                        newEmail: currentProfile.email!,
-                    }, user1),
+                        newEmail: currentProfile.email!
+}, user1),
                 )
                     .rejects
                     .toThrow(/must be different/i);
@@ -3334,8 +3334,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                        newEmail: 'not-an-email',
-                    }, user1),
+                        newEmail: 'not-an-email'
+}, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3344,8 +3344,8 @@ describe('app tests', () => {
             it('should reject when currentPassword field is missing', async () => {
                 await expect(
                     appDriver.changeEmail({
-                        newEmail: NEW_EMAIL,
-                    } as any, user1),
+                        newEmail: NEW_EMAIL
+} as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3354,8 +3354,8 @@ describe('app tests', () => {
             it('should reject when newEmail field is missing', async () => {
                 await expect(
                     appDriver.changeEmail({
-                        currentPassword: CURRENT_PASSWORD,
-                    } as any, user1),
+                        currentPassword: CURRENT_PASSWORD
+} as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3365,8 +3365,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: '',
-                        newEmail: NEW_EMAIL,
-                    }, user1),
+                        newEmail: NEW_EMAIL
+}, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3376,8 +3376,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                        newEmail: '',
-                    }, user1),
+                        newEmail: ''
+}, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3386,8 +3386,8 @@ describe('app tests', () => {
             it('should lowercase email address', async () => {
                 const profile = await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
-                    newEmail: 'NewEmail@EXAMPLE.COM',
-                }, user1);
+                    newEmail: 'NewEmail@EXAMPLE.COM'
+}, user1);
 
                 expect(profile.email).toBe('newemail@example.com');
             });
@@ -3398,8 +3398,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                        newEmail: otherUserEmail,
-                    }, user1),
+                        newEmail: otherUserEmail
+}, user1),
                 )
                     .rejects
                     .toThrow(/already exists/i);
@@ -3419,36 +3419,36 @@ describe('app tests', () => {
 
             const created = await appDriver.createPolicy({
                 policyName,
-                text: 'Initial policy text',
-            }, policyAdmin);
+                text: 'Initial policy text'
+}, policyAdmin);
 
             expect(created).toMatchObject({
                 success: true,
                 id: expect.any(String),
-                versionHash: expect.any(String),
-            });
+                versionHash: expect.any(String)
+});
 
             const draftUpdate = await appDriver.updatePolicy(created.id, {
                 text: 'Updated draft policy text',
-                publish: false,
-            }, policyAdmin);
+                publish: false
+}, policyAdmin);
 
             expect(draftUpdate).toMatchObject({
                 success: true,
                 published: false,
-                versionHash: expect.any(String),
-            });
+                versionHash: expect.any(String)
+});
 
             const publishedUpdate = await appDriver.updatePolicy(created.id, {
                 text: 'Final published policy text',
-                publish: true,
-            }, policyAdmin);
+                publish: true
+}, policyAdmin);
 
             expect(publishedUpdate).toMatchObject({
                 success: true,
                 published: true,
-                currentVersionHash: expect.any(String),
-            });
+                currentVersionHash: expect.any(String)
+});
 
             const policyDetails = await appDriver.getPolicy(created.id, policyAdmin);
             const publishedVersionHash = publishedUpdate.currentVersionHash;
@@ -3466,29 +3466,29 @@ describe('app tests', () => {
             await expect(
                 appDriver.updatePolicy(policyId, {
                     text: 'Updated terms version 1',
-                    publish: true,
-                }, policyAdmin),
+                    publish: true
+}, policyAdmin),
             )
                 .rejects
                 .toThrow(/Policy not found/);
 
             const created = await appDriver.createPolicy({
                 policyName,
-                text: 'Initial terms content',
-            }, policyAdmin);
+                text: 'Initial terms content'
+}, policyAdmin);
 
             expect(created.id).toBe(policyId);
 
             const update = await appDriver.updatePolicy(created.id, {
                 text: 'Updated terms version 2',
-                publish: true,
-            }, policyAdmin);
+                publish: true
+}, policyAdmin);
 
             expect(update).toMatchObject({
                 success: true,
                 published: true,
-                currentVersionHash: expect.any(String),
-            });
+                currentVersionHash: expect.any(String)
+});
 
             const policyDetails = await appDriver.getPolicy(policyId, policyAdmin);
             const publishedHash = update.currentVersionHash;
@@ -3519,12 +3519,11 @@ describe('app tests', () => {
                     tenantId: expect.any(String),
                     config: expect.objectContaining({
                         tenantId: expect.any(String),
-                        branding: expect.any(Object),
-                        features: expect.any(Object),
-                    }),
+                        branding: expect.any(Object)
+}),
                     domains: expect.any(Array),
-                    primaryDomain: expect.any(String),
-                });
+                    primaryDomain: expect.any(String)
+});
 
                 expect(settings.config.branding).toMatchObject({
                     appName: expect.any(String),
@@ -3534,24 +3533,18 @@ describe('app tests', () => {
                     secondaryColor: expect.any(String),
                     marketingFlags: expect.objectContaining({
                         showLandingPage: expect.any(Boolean),
-                        showPricingPage: expect.any(Boolean),
-                    }),
-                });
-
-                expect(settings.config.features).toMatchObject({
-                    enableAdvancedReporting: expect.any(Boolean),
-                    maxGroupsPerUser: expect.any(Number),
-                    maxUsersPerGroup: expect.any(Number),
-                });
+                        showPricingPage: expect.any(Boolean)
+})
+});
             });
 
             it('should deny regular user access to tenant settings', async () => {
                 const result = await appDriver.getTenantSettings(regularUser);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN',
-                    },
-                });
+                        code: 'FORBIDDEN'
+}
+});
             });
         });
 
@@ -3561,8 +3554,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     domains: expect.any(Array),
-                    primaryDomain: expect.any(String),
-                });
+                    primaryDomain: expect.any(String)
+});
 
                 expect(result.domains.length).toBeGreaterThan(0);
                 expect(result.domains).toContain(result.primaryDomain);
@@ -3572,9 +3565,9 @@ describe('app tests', () => {
                 const result = await appDriver.listTenantDomains(regularUser);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN',
-                    },
-                });
+                        code: 'FORBIDDEN'
+}
+});
             });
         });
 
@@ -3582,14 +3575,14 @@ describe('app tests', () => {
             it('should allow tenant admin to update branding', async () => {
                 const brandingData = {
                     appName: 'Custom Brand',
-                    primaryColor: '#FF0000',
-                };
+                    primaryColor: '#FF0000'
+};
 
                 const result = await appDriver.updateTenantBranding(tenantAdmin, brandingData);
 
                 expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully',
-                });
+                    message: 'Tenant branding updated successfully'
+});
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(tenantAdmin);
@@ -3599,12 +3592,12 @@ describe('app tests', () => {
 
             it('should update partial branding fields', async () => {
                 const result = await appDriver.updateTenantBranding(tenantAdmin, {
-                    logoUrl: 'https://custom.com/logo.svg',
-                });
+                    logoUrl: 'https://custom.com/logo.svg'
+});
 
                 expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully',
-                });
+                    message: 'Tenant branding updated successfully'
+});
 
                 const settings = await appDriver.getTenantSettings(tenantAdmin);
                 expect(settings.config.branding.logoUrl).toBe('https://custom.com/logo.svg');
@@ -3614,13 +3607,13 @@ describe('app tests', () => {
                 const result = await appDriver.updateTenantBranding(tenantAdmin, {
                     marketingFlags: {
                         showLandingPage: false,
-                        showPricingPage: true,
-                    },
-                });
+                        showPricingPage: true
+}
+});
 
                 expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully',
-                });
+                    message: 'Tenant branding updated successfully'
+});
 
                 const settings = await appDriver.getTenantSettings(tenantAdmin);
                 expect(settings.config.branding.marketingFlags?.showLandingPage).toBe(false);
@@ -3637,37 +3630,37 @@ describe('app tests', () => {
                 expect(result).toMatchObject({
                     error: {
                         code: 'VALIDATION_ERROR',
-                        message: expect.stringContaining('Invalid branding update request'),
-                    },
-                });
+                        message: expect.stringContaining('Invalid branding update request')
+}
+});
             });
 
             it('should reject extra fields', async () => {
                 const invalidData = {
                     appName: 'Valid',
-                    unexpectedField: 'should fail',
-                };
+                    unexpectedField: 'should fail'
+};
 
                 const result = await appDriver.updateTenantBranding(tenantAdmin, invalidData);
 
                 expect(result).toMatchObject({
                     error: {
-                        code: 'VALIDATION_ERROR',
-                    },
-                });
+                        code: 'VALIDATION_ERROR'
+}
+});
             });
 
             it('should deny regular user access to update branding', async () => {
                 const brandingData = {
-                    appName: 'Custom Brand',
-                };
+                    appName: 'Custom Brand'
+};
 
                 const result = await appDriver.updateTenantBranding(regularUser, brandingData);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN',
-                    },
-                });
+                        code: 'FORBIDDEN'
+}
+});
             });
 
             it('should allow system admin to update branding', async () => {
@@ -3675,42 +3668,42 @@ describe('app tests', () => {
                 appDriver.seedAdminUser(systemAdmin, {});
 
                 const result = await appDriver.updateTenantBranding(systemAdmin, {
-                    appName: 'System Admin Updated',
-                });
+                    appName: 'System Admin Updated'
+});
 
                 expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully',
-                });
+                    message: 'Tenant branding updated successfully'
+});
             });
         });
 
         describe('POST /settings/tenant/domains', () => {
             it('should return 501 not implemented for domain addition', async () => {
                 const domainData = {
-                    domain: 'custom.example.com',
-                };
+                    domain: 'custom.example.com'
+};
 
                 const result = await appDriver.addTenantDomain(tenantAdmin, domainData);
 
                 expect(result).toMatchObject({
                     error: {
                         code: 'NOT_IMPLEMENTED',
-                        message: expect.stringContaining('not yet implemented'),
-                    },
-                });
+                        message: expect.stringContaining('not yet implemented')
+}
+});
             });
 
             it('should deny regular user access to add domain', async () => {
                 const domainData = {
-                    domain: 'custom.example.com',
-                };
+                    domain: 'custom.example.com'
+};
 
                 const result = await appDriver.addTenantDomain(regularUser, domainData);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN',
-                    },
-                });
+                        code: 'FORBIDDEN'
+}
+});
             });
         });
 
@@ -3727,8 +3720,8 @@ describe('app tests', () => {
 
                 expect(settings).toMatchObject({
                     tenantId: expect.any(String),
-                    config: expect.any(Object),
-                });
+                    config: expect.any(Object)
+});
             });
 
             it('should allow system admin to list domains', async () => {
@@ -3736,8 +3729,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     domains: expect.any(Array),
-                    primaryDomain: expect.any(String),
-                });
+                    primaryDomain: expect.any(String)
+});
             });
         });
     });
@@ -3759,9 +3752,8 @@ describe('app tests', () => {
                     primaryColor: '#2563eb',
                     secondaryColor: '#7c3aed',
                     accentColor: '#f97316',
-                    themePalette: 'default',
-                    
-                },
+                    themePalette: 'default'
+},
                 brandingTokens: {
                     tokens: {
                         version: 1,
@@ -3776,14 +3768,14 @@ describe('app tests', () => {
                             success: '#22c55e',
                             warning: '#eab308',
                             danger: '#ef4444',
-                            info: '#38bdf8',
-                        },
+                            info: '#38bdf8'
+},
                         typography: {
                             fontFamily: {
                                 sans: 'Space Grotesk, Inter, system-ui, -apple-system, BlinkMacSystemFont',
                                 serif: 'Fraunces, Georgia, serif',
-                                mono: 'JetBrains Mono, SFMono-Regular, Menlo, monospace',
-                            },
+                                mono: 'JetBrains Mono, SFMono-Regular, Menlo, monospace'
+},
                             sizes: {
                                 xs: '0.75rem',
                                 sm: '0.875rem',
@@ -3793,24 +3785,24 @@ describe('app tests', () => {
                                 '2xl': '1.5rem',
                                 '3xl': '1.875rem',
                                 '4xl': '2.25rem',
-                                '5xl': '3rem',
-                            },
+                                '5xl': '3rem'
+},
                             weights: {
                                 regular: 400,
                                 medium: 500,
                                 semibold: 600,
-                                bold: 700,
-                            },
+                                bold: 700
+},
                             lineHeights: {
                                 compact: '1.25rem',
                                 standard: '1.5rem',
-                                spacious: '1.75rem',
-                            },
+                                spacious: '1.75rem'
+},
                             letterSpacing: {
                                 tight: '-0.02rem',
                                 normal: '0rem',
-                                wide: '0.04rem',
-                            },
+                                wide: '0.04rem'
+},
                             semantics: {
                                 body: 'md',
                                 bodyStrong: 'md',
@@ -3818,9 +3810,9 @@ describe('app tests', () => {
                                 button: 'sm',
                                 eyebrow: 'xs',
                                 heading: '2xl',
-                                display: '4xl',
-                            },
-                        },
+                                display: '4xl'
+}
+},
                         spacing: {
                             '2xs': '0.125rem',
                             xs: '0.25rem',
@@ -3828,31 +3820,31 @@ describe('app tests', () => {
                             md: '0.75rem',
                             lg: '1rem',
                             xl: '1.5rem',
-                            '2xl': '2rem',
-                        },
+                            '2xl': '2rem'
+},
                         radii: {
                             none: '0px',
                             sm: '4px',
                             md: '8px',
                             lg: '16px',
                             pill: '999px',
-                            full: '9999px',
-                        },
+                            full: '9999px'
+},
                         shadows: {
                             sm: '0 1px 2px rgba(15, 23, 42, 0.08)',
                             md: '0 4px 12px rgba(15, 23, 42, 0.12)',
-                            lg: '0 20px 60px rgba(15, 23, 42, 0.18)',
-                        },
+                            lg: '0 20px 60px rgba(15, 23, 42, 0.18)'
+},
                         assets: {
                             logoUrl: 'https://static.splitifyd.dev/branding/test/logo.svg',
-                            faviconUrl: 'https://static.splitifyd.dev/branding/test/favicon.png',
-                        },
+                            faviconUrl: 'https://static.splitifyd.dev/branding/test/favicon.png'
+},
                         legal: {
                             companyName: 'Test Company',
                             supportEmail: 'support@test.com',
                             privacyPolicyUrl: 'https://test.com/privacy',
-                            termsOfServiceUrl: 'https://test.com/terms',
-                        },
+                            termsOfServiceUrl: 'https://test.com/terms'
+},
                         semantics: {
                             colors: {
                                 surface: {
@@ -3860,15 +3852,15 @@ describe('app tests', () => {
                                     raised: '#fafbfc',
                                     sunken: '#eff1f3',
                                     overlay: '#0f172a',
-                                    warning: '#fef3c7',
-                                },
+                                    warning: '#fef3c7'
+},
                                 text: {
                                     primary: '#0f172a',
                                     secondary: '#475569',
                                     muted: '#94a3b8',
                                     inverted: '#ffffff',
-                                    accent: '#f97316',
-                                },
+                                    accent: '#f97316'
+},
                                 interactive: {
                                     primary: '#2563eb',
                                     primaryHover: '#224dc7',
@@ -3882,28 +3874,28 @@ describe('app tests', () => {
                                     destructiveHover: '#dc3e3e',
                                     destructiveActive: '#c93838',
                                     destructiveForeground: '#ffffff',
-                                    accent: '#f97316',
-                                },
+                                    accent: '#f97316'
+},
                                 border: {
                                     subtle: '#e2e8f0',
                                     default: '#cbd5f5',
                                     strong: '#94a3b8',
                                     focus: '#f97316',
-                                    warning: '#fbbf24',
-                                },
+                                    warning: '#fbbf24'
+},
                                 status: {
                                     success: '#22c55e',
                                     warning: '#eab308',
                                     danger: '#ef4444',
-                                    info: '#38bdf8',
-                                },
-                            },
+                                    info: '#38bdf8'
+}
+},
                             spacing: {
                                 pagePadding: '1.5rem',
                                 sectionGap: '2rem',
                                 cardPadding: '1rem',
-                                componentGap: '0.75rem',
-                            },
+                                componentGap: '0.75rem'
+},
                             typography: {
                                 body: 'md',
                                 bodyStrong: 'md',
@@ -3911,43 +3903,36 @@ describe('app tests', () => {
                                 button: 'sm',
                                 eyebrow: 'xs',
                                 heading: '2xl',
-                                display: '4xl',
-                            },
-                        },
+                                display: '4xl'
+}
+},
                         motion: {
                             duration: {
                                 instant: 50,
                                 fast: 150,
                                 base: 250,
                                 slow: 400,
-                                glacial: 800,
-                            },
+                                glacial: 800
+},
                             easing: {
                                 standard: 'cubic-bezier(0.22, 1, 0.36, 1)',
                                 decelerate: 'cubic-bezier(0.05, 0.7, 0.1, 1)',
                                 accelerate: 'cubic-bezier(0.3, 0, 0.8, 0.15)',
-                                spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-                            },
+                                spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+},
                             enableParallax: false,
                             enableMagneticHover: false,
-                            enableScrollReveal: false,
-                        },
-                    },
-                },
-                features: {
-                    enableAdvancedReporting: true,
-                    enableMultiCurrency: true,
-                    enableCustomFields: false,
-                    maxGroupsPerUser: 50,
-                    maxUsersPerGroup: 100,
-                },
+                            enableScrollReveal: false
+}
+}
+},
                 domains: {
                     primary: 'test.splitifyd.dev',
                     aliases: ['test.splitifyd.com'],
-                    normalized: ['test.splitifyd.dev', 'test.splitifyd.com'],
-                },
-                defaultTenant: false,
-            });
+                    normalized: ['test.splitifyd.dev', 'test.splitifyd.com']
+},
+                defaultTenant: false
+});
 
             it('should create a new tenant when it does not exist', async () => {
                 const payload = createValidTenantPayload('tenant_new_test');
@@ -3956,8 +3941,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_new_test',
-                    created: true,
-                });
+                    created: true
+});
             });
 
             it('should update an existing tenant when it already exists', async () => {
@@ -3972,16 +3957,16 @@ describe('app tests', () => {
                     ...payload,
                     branding: {
                         ...payload.branding,
-                        appName: 'Updated Tenant App',
-                    },
-                };
+                        appName: 'Updated Tenant App'
+}
+};
 
                 const updateResult = await appDriver.upsertTenant(adminUser, updatedPayload);
 
                 expect(updateResult).toMatchObject({
                     tenantId: 'tenant_existing_test',
-                    created: false,
-                });
+                    created: false
+});
             });
 
             it('should reject invalid branding tokens schema', async () => {
@@ -3992,10 +3977,10 @@ describe('app tests', () => {
                             version: 1,
                             palette: {
                                 primary: 'not-a-hex-color', // Invalid hex color
-                            },
-                        },
-                    },
-                };
+                            }
+}
+}
+};
 
                 await expect(appDriver.upsertTenant(adminUser, invalidPayload)).rejects.toThrow();
             });
@@ -4006,8 +3991,8 @@ describe('app tests', () => {
                     branding: {
                         appName: 'Test App',
                         // Missing required fields
-                    },
-                };
+                    }
+};
 
                 await expect(appDriver.upsertTenant(adminUser, invalidPayload)).rejects.toThrow();
             });
@@ -4021,9 +4006,9 @@ describe('app tests', () => {
                 const result = await appDriver.upsertTenant(regularUser, payload);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN',
-                    },
-                });
+                        code: 'FORBIDDEN'
+}
+});
             });
 
             it('should allow system admin to upsert tenant', async () => {
@@ -4036,8 +4021,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_system_admin',
-                    created: true,
-                });
+                    created: true
+});
             });
 
             it('should preserve brandingTokens with negative CSS values', async () => {
@@ -4050,8 +4035,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_negative_css',
-                    created: true,
-                });
+                    created: true
+});
 
                 // Verify the data was stored correctly by reading back
                 const tenantDoc = await appDriver.database.collection('tenants').doc('tenant_negative_css').get();
@@ -4063,15 +4048,15 @@ describe('app tests', () => {
             it('should handle default tenant flag correctly', async () => {
                 const payloadWithDefault = {
                     ...createValidTenantPayload('tenant_default_flag'),
-                    defaultTenant: true,
-                };
+                    defaultTenant: true
+};
 
                 const result = await appDriver.upsertTenant(adminUser, payloadWithDefault);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_default_flag',
-                    created: true,
-                });
+                    created: true
+});
 
                 // Verify the default flag was stored
                 const tenantDoc = await appDriver.database.collection('tenants').doc('tenant_default_flag').get();
@@ -4085,8 +4070,8 @@ describe('app tests', () => {
                 payload.domains = {
                     primary: 'example.splitifyd.dev',
                     aliases: ['www.example.splitifyd.dev', 'example.splitifyd.com'],
-                    normalized: ['example.splitifyd.dev', 'www.example.splitifyd.dev', 'example.splitifyd.com'],
-                };
+                    normalized: ['example.splitifyd.dev', 'www.example.splitifyd.dev', 'example.splitifyd.com']
+};
 
                 const result = await appDriver.upsertTenant(adminUser, payload);
 
@@ -4116,13 +4101,13 @@ describe('app tests', () => {
         beforeEach(() => {
             appDriver.seedAdminUser(adminUser, {
                 email: 'admin@test.com',
-                displayName: 'Admin User',
-            });
+                displayName: 'Admin User'
+});
             appDriver.seedUser(regularUser, {
                 email: 'regular@test.com',
                 displayName: 'Regular User',
-                role: SystemUserRoles.SYSTEM_USER,
-            });
+                role: SystemUserRoles.SYSTEM_USER
+});
         });
 
         describe('PUT /api/admin/users/:uid - updateUser (disable/enable)', () => {
@@ -4132,8 +4117,8 @@ describe('app tests', () => {
                 expect(result).toMatchObject({
                     uid: regularUser,
                     email: 'regular@test.com',
-                    disabled: true,
-                });
+                    disabled: true
+});
             });
 
             it('should allow admin to enable a disabled user account', async () => {
@@ -4146,17 +4131,17 @@ describe('app tests', () => {
                 expect(result).toMatchObject({
                     uid: regularUser,
                     email: 'regular@test.com',
-                    disabled: false,
-                });
+                    disabled: false
+});
             });
 
             it('should reject non-admin user', async () => {
                 const result = await appDriver.adminUpdateUser(regularUser, { disabled: true }, regularUser);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN',
-                    },
-                });
+                        code: 'FORBIDDEN'
+}
+});
             });
 
             it('should reject invalid UID', async () => {
@@ -4178,8 +4163,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     uid: regularUser,
-                    email: 'regular@test.com',
-                });
+                    email: 'regular@test.com'
+});
 
                 // Verify role was written to Firestore
                 const userDoc = await appDriver.database.collection('users').doc(regularUser).get();
@@ -4192,8 +4177,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     uid: regularUser,
-                    email: 'regular@test.com',
-                });
+                    email: 'regular@test.com'
+});
 
                 // Verify role was written to Firestore
                 const userDoc = await appDriver.database.collection('users').doc(regularUser).get();
@@ -4210,8 +4195,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     uid: regularUser,
-                    email: 'regular@test.com',
-                });
+                    email: 'regular@test.com'
+});
 
                 // Verify role was set to default SYSTEM_USER
                 const userDoc = await appDriver.database.collection('users').doc(regularUser).get();
@@ -4229,9 +4214,9 @@ describe('app tests', () => {
                 const result = await appDriver.adminUpdateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, regularUser);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN',
-                    },
-                });
+                        code: 'FORBIDDEN'
+}
+});
             });
 
             it('should reject invalid UID', async () => {

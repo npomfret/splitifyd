@@ -29,8 +29,8 @@ test.describe('Root Route - Conditional Rendering', () => {
             // Verify landing page content is visible
             // Landing page should have marketing content or at least a hero section
             await expect(page.locator('body')).toContainText(/split|expense|group/i, {
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            });
+                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE
+});
         });
 
         test('should show landing page for authenticated users', async ({ authenticatedPage }) => {
@@ -44,8 +44,8 @@ test.describe('Root Route - Conditional Rendering', () => {
 
             // Verify landing page content is visible (not dashboard content)
             await expect(page.locator('body')).toContainText(/split|expense|group/i, {
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            });
+                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE
+});
         });
     });
 
@@ -69,8 +69,8 @@ test.describe('Root Route - Conditional Rendering', () => {
 
             // Verify dashboard content (empty state) - use first match to avoid strict mode violation
             await expect(page.getByText(/create.*first.*group/i).first()).toBeVisible({
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            });
+                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE
+});
         });
 
         test('should redirect to login when unauthenticated user tries to access /dashboard', async ({ pageWithLogging: page }) => {
@@ -81,46 +81,12 @@ test.describe('Root Route - Conditional Rendering', () => {
 
             // Verify login page
             await expect(page.getByRole('heading', { name: /sign.*in/i })).toBeVisible({
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            });
+                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE
+});
         });
     });
 
     test.describe('Feature-gated routes', () => {
-        test('should show /browser/users route when enableAdvancedReporting is enabled', async ({ authenticatedPage }) => {
-            const { page } = authenticatedPage;
-
-            // Mock required APIs for dashboard
-            await mockGroupsApi(page, {
-                groups: [],
-                count: 0,
-                hasMore: false,
-                pagination: { limit: 20, order: 'desc' },
-                metadata: {
-                    serverTime: Date.now(),
-                    lastChangeTimestamp: Date.now(),
-                    changeCount: 0,
-                },
-            });
-            await mockActivityFeedApi(page, []);
-
-            // Navigate to dashboard first to load the app and config
-            // This ensures the config is loaded and feature flags are evaluated
-            await page.goto('/dashboard', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
-
-            // Now navigate to the feature-gated route
-            // Default tenant has enableAdvancedReporting: true
-            await page.goto('/browser/users', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });
-
-            // Should load the page (not 404)
-            await expect(page).toHaveURL(/\/browser\/users/);
-
-            // Page should load without 404
-            await expect(page.locator('body')).not.toContainText(/404|not found/i, {
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
-            });
-        });
-
         test('should show 404 for /pricing route when showPricingPage is disabled', async ({ pageWithLogging: page }) => {
             // Navigate to pricing page
             await page.goto('/pricing', { timeout: TEST_TIMEOUTS.NAVIGATION, waitUntil: 'domcontentloaded' });

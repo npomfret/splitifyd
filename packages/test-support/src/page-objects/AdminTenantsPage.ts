@@ -116,12 +116,6 @@ export class AdminTenantsPage extends BasePage {
         return this.page.locator(`text=${domain}`);
     }
 
-    /**
-     * Feature Status Getters
-     */
-    protected getFeatureStatus(featureName: string): Locator {
-        return this.page.locator(`text=${featureName}`).locator('..').locator('span').last();
-    }
 
     /**
      * Actions
@@ -163,15 +157,6 @@ export class AdminTenantsPage extends BasePage {
         await expect(this.getDefaultBadge()).toBeVisible();
     }
 
-    async verifyFeatureEnabled(featureName: string): Promise<void> {
-        const status = this.getFeatureStatus(featureName);
-        await expect(status).toContainText(/enabled/i);
-    }
-
-    async verifyFeatureDisabled(featureName: string): Promise<void> {
-        const status = this.getFeatureStatus(featureName);
-        await expect(status).toContainText(/disabled/i);
-    }
 
     async verifyLoadingSpinnerVisible(): Promise<void> {
         await expect(this.getLoadingSpinner()).toBeVisible();
@@ -250,10 +235,6 @@ export class AdminTenantsPage extends BasePage {
         tenantId: string;
         isDefault: boolean;
         primaryDomain: string | null;
-        features: {
-            multiCurrency: boolean;
-            advancedReporting: boolean;
-        };
     }> {
         const card = this.getTenantCardByName(appName);
         await expect(card).toBeVisible();
@@ -275,19 +256,11 @@ export class AdminTenantsPage extends BasePage {
         const primaryDomainMatch = cardText.match(/Primary Domain:\s*([^\s]+)/);
         const primaryDomain = primaryDomainMatch ? primaryDomainMatch[1] : null;
 
-        // Extract feature flags
-        const multiCurrency = cardText.includes('Multi-Currency') && cardText.includes('Enabled');
-        const advancedReporting = cardText.includes('Advanced Reporting') && cardText.includes('Enabled');
-
         return {
             appName,
             tenantId,
             isDefault,
             primaryDomain,
-            features: {
-                multiCurrency,
-                advancedReporting,
-            },
         };
     }
 

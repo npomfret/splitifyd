@@ -2,10 +2,6 @@ import { Timestamp } from 'firebase-admin/firestore';
 import * as fs from 'fs';
 import * as path from 'path';
 import {
-    toFeatureToggleAdvancedReporting,
-    toFeatureToggleCustomFields,
-    toFeatureToggleMultiCurrency,
-    toShowBlogPageFlag,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
@@ -16,8 +12,6 @@ import {
     toTenantDomainName,
     toTenantFaviconUrl,
     toTenantLogoUrl,
-    toTenantMaxGroupsPerUser,
-    toTenantMaxUsersPerGroup,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@splitifyd/shared';
@@ -39,15 +33,7 @@ interface TenantConfig {
             showLandingPage?: boolean;
             showMarketingContent?: boolean;
             showPricingPage?: boolean;
-            showBlogPage?: boolean;
         };
-    };
-    features: {
-        enableAdvancedReporting: boolean;
-        enableMultiCurrency: boolean;
-        enableCustomFields: boolean;
-        maxGroupsPerUser: number;
-        maxUsersPerGroup: number;
     };
     isDefault: boolean;
 }
@@ -109,15 +95,7 @@ async function syncTenantConfigs(options?: { defaultOnly?: boolean }) {
                     showLandingPage: toShowLandingPageFlag(config.branding.marketingFlags?.showLandingPage ?? false),
                     showMarketingContent: toShowMarketingContentFlag(config.branding.marketingFlags?.showMarketingContent ?? false),
                     showPricingPage: toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
-                    showBlogPage: toShowBlogPageFlag(config.branding.marketingFlags?.showBlogPage ?? false),
                 },
-            },
-            features: {
-                enableAdvancedReporting: toFeatureToggleAdvancedReporting(config.features.enableAdvancedReporting),
-                enableMultiCurrency: toFeatureToggleMultiCurrency(config.features.enableMultiCurrency),
-                enableCustomFields: toFeatureToggleCustomFields(config.features.enableCustomFields),
-                maxGroupsPerUser: toTenantMaxGroupsPerUser(config.features.maxGroupsPerUser),
-                maxUsersPerGroup: toTenantMaxUsersPerGroup(config.features.maxUsersPerGroup),
             },
             domains: {
                 primary: primaryDomain,

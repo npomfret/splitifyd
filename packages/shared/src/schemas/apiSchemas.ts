@@ -27,12 +27,6 @@ import {
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
-    toShowBlogPageFlag,
-    toFeatureToggleAdvancedReporting,
-    toFeatureToggleMultiCurrency,
-    toFeatureToggleCustomFields,
-    toTenantMaxGroupsPerUser,
-    toTenantMaxUsersPerGroup,
     UserId,
 } from '../shared-types';
 
@@ -69,7 +63,6 @@ const BrandingMarketingFlagsSchema = z.object({
     showLandingPage: z.boolean().transform(toShowLandingPageFlag).optional(),
     showMarketingContent: z.boolean().transform(toShowMarketingContentFlag).optional(),
     showPricingPage: z.boolean().transform(toShowPricingPageFlag).optional(),
-    showBlogPage: z.boolean().transform(toShowBlogPageFlag).optional(),
 });
 
 const BrandingConfigSchema = z.object({
@@ -84,18 +77,9 @@ const BrandingConfigSchema = z.object({
     marketingFlags: BrandingMarketingFlagsSchema.optional(),
 });
 
-const FeatureConfigSchema = z.object({
-    enableAdvancedReporting: z.boolean().transform(toFeatureToggleAdvancedReporting),
-    enableMultiCurrency: z.boolean().transform(toFeatureToggleMultiCurrency),
-    enableCustomFields: z.boolean().transform(toFeatureToggleCustomFields),
-    maxGroupsPerUser: z.number().int().min(0).transform(toTenantMaxGroupsPerUser),
-    maxUsersPerGroup: z.number().int().min(0).transform(toTenantMaxUsersPerGroup),
-});
-
 export const TenantConfigSchema = z.object({
     tenantId: z.string().min(1).transform(toTenantId),
     branding: BrandingConfigSchema,
-    features: FeatureConfigSchema,
     createdAt: z.string().datetime().transform(toISOString),
     updatedAt: z.string().datetime().transform(toISOString),
 });

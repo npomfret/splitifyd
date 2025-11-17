@@ -1,11 +1,7 @@
 import {
-    ApiSerializer,
-    toFeatureToggleAdvancedReporting,
-    toFeatureToggleCustomFields,
-    toFeatureToggleMultiCurrency,
-    toShowLandingPageFlag,
+    ApiSerializer,toShowLandingPageFlag,
     toShowMarketingContentFlag,
-    toShowPricingPageFlag,
+    toShowPricingPageFlag
 } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -24,9 +20,9 @@ describe('Config Endpoint Integration Tests', () => {
     const fetchConfigForTenant = (tenantId: string) =>
         fetch(configUrl, {
             headers: {
-                'x-tenant-id': tenantId,
-            },
-        });
+                'x-tenant-id': tenantId
+}
+});
 
     const db = getFirestore();
     const marketingTenantId = `marketing-hidden-${Date.now()}`;
@@ -47,25 +43,18 @@ describe('Config Endpoint Integration Tests', () => {
                     marketingFlags: {
                         showLandingPage: toShowLandingPageFlag(false),
                         showMarketingContent: toShowMarketingContentFlag(false),
-                        showPricingPage: toShowPricingPageFlag(false),
-                    },
-                },
-                features: {
-                    enableAdvancedReporting: toFeatureToggleAdvancedReporting(false),
-                    enableMultiCurrency: toFeatureToggleMultiCurrency(false),
-                    enableCustomFields: toFeatureToggleCustomFields(false),
-                    maxGroupsPerUser: 5,
-                    maxUsersPerGroup: 5,
-                },
+                        showPricingPage: toShowPricingPageFlag(false)
+}
+},
                 domains: {
                     primary: 'marketing-hidden.example.com',
                     aliases: [],
-                    normalized: ['marketing-hidden.example.com'],
-                },
+                    normalized: ['marketing-hidden.example.com']
+},
                 defaultTenant: false,
                 createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            });
+                updatedAt: Timestamp.now()
+});
         });
 
         afterAll(async () => {
@@ -314,8 +303,8 @@ describe('Config Endpoint Integration Tests', () => {
             const response = await fetch(configUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({}),
-            });
+                body: JSON.stringify({})
+});
             expect([404, 405]).toContain(response.status);
         });
 
@@ -323,8 +312,8 @@ describe('Config Endpoint Integration Tests', () => {
             const response = await fetch(configUrl, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({}),
-            });
+                body: JSON.stringify({})
+});
             expect([404, 405]).toContain(response.status);
         });
 
@@ -376,9 +365,9 @@ describe('Config Endpoint Integration Tests', () => {
         test('should include CORS headers', async () => {
             const response = await fetch(configUrl, {
                 headers: {
-                    Origin: 'http://localhost:3000',
-                },
-            });
+                    Origin: 'http://localhost:3000'
+}
+});
 
             expect(response.headers.get('Access-Control-Allow-Origin')).toBeTruthy();
         });
@@ -388,9 +377,9 @@ describe('Config Endpoint Integration Tests', () => {
                 method: 'OPTIONS',
                 headers: {
                     Origin: 'http://localhost:3000',
-                    'Access-Control-Request-Method': 'GET',
-                },
-            });
+                    'Access-Control-Request-Method': 'GET'
+}
+});
 
             expect(response.status).toBe(204);
             expect(response.headers.get('Access-Control-Allow-Origin')).toBeTruthy();

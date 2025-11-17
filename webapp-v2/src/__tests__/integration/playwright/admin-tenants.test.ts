@@ -141,52 +141,6 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         }
     });
 
-    test('should display feature flags section', async ({ systemAdminPage }) => {
-        const { page } = systemAdminPage;
-        const adminTenantsPage = new AdminTenantsPage(page);
-
-        await adminTenantsPage.navigate();
-        await adminTenantsPage.waitForTenantsLoaded();
-
-        // Get first tenant card
-        const cardText = await adminTenantsPage.getFirstTenantCardText();
-
-        // Should have Features section
-        expect(cardText).toContain('Features:');
-        expect(cardText).toContain('Multi-Currency:');
-        expect(cardText).toContain('Advanced Reporting:');
-    });
-
-    test('should display feature enabled/disabled status', async ({ systemAdminPage }) => {
-        const { page } = systemAdminPage;
-        const adminTenantsPage = new AdminTenantsPage(page);
-
-        await adminTenantsPage.navigate();
-        await adminTenantsPage.waitForTenantsLoaded();
-
-        // Get first tenant card
-        const cardText = await adminTenantsPage.getFirstTenantCardText();
-
-        // Each feature should show Enabled or Disabled
-        expect(cardText).toMatch(/Multi-Currency:.*?(Enabled|Disabled)/);
-        expect(cardText).toMatch(/Advanced Reporting:.*?(Enabled|Disabled)/);
-    });
-
-    test('should display max groups and max users limits', async ({ systemAdminPage }) => {
-        const { page } = systemAdminPage;
-        const adminTenantsPage = new AdminTenantsPage(page);
-
-        await adminTenantsPage.navigate();
-        await adminTenantsPage.waitForTenantsLoaded();
-
-        // Get first tenant card
-        const cardText = await adminTenantsPage.getFirstTenantCardText();
-
-        // Should display limits
-        expect(cardText).toContain('Max Groups:');
-        expect(cardText).toContain('Max Users per Group:');
-    });
-
     test('should display created and updated dates', async ({ systemAdminPage }) => {
         const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
@@ -242,16 +196,11 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         expect(tenantData).toHaveProperty('tenantId');
         expect(tenantData).toHaveProperty('isDefault');
         expect(tenantData).toHaveProperty('primaryDomain');
-        expect(tenantData).toHaveProperty('features');
-        expect(tenantData.features).toHaveProperty('multiCurrency');
-        expect(tenantData.features).toHaveProperty('advancedReporting');
 
         // Verify data types
         expect(typeof tenantData.appName).toBe('string');
         expect(typeof tenantData.tenantId).toBe('string');
         expect(typeof tenantData.isDefault).toBe('boolean');
-        expect(typeof tenantData.features.multiCurrency).toBe('boolean');
-        expect(typeof tenantData.features.advancedReporting).toBe('boolean');
     });
 
     test('should handle empty tenant list', async ({ systemAdminPage }) => {
@@ -317,33 +266,6 @@ test.describe('Admin Tenants Page - Data Extraction', () => {
         expect(count).toBe(secondCount);
     });
 
-    test('should extract multi-currency feature flag', async ({ systemAdminPage }) => {
-        const { page } = systemAdminPage;
-        const adminTenantsPage = new AdminTenantsPage(page);
-
-        await adminTenantsPage.navigate();
-        await adminTenantsPage.waitForTenantsLoaded();
-
-        const firstAppName = await adminTenantsPage.getFirstTenantAppNameText();
-        const tenantData = await adminTenantsPage.extractTenantData(firstAppName!);
-
-        // Feature flag should be a boolean
-        expect(typeof tenantData.features.multiCurrency).toBe('boolean');
-    });
-
-    test('should extract advanced reporting feature flag', async ({ systemAdminPage }) => {
-        const { page } = systemAdminPage;
-        const adminTenantsPage = new AdminTenantsPage(page);
-
-        await adminTenantsPage.navigate();
-        await adminTenantsPage.waitForTenantsLoaded();
-
-        const firstAppName = await adminTenantsPage.getFirstTenantAppNameText();
-        const tenantData = await adminTenantsPage.extractTenantData(firstAppName!);
-
-        // Feature flag should be a boolean
-        expect(typeof tenantData.features.advancedReporting).toBe('boolean');
-    });
 
     test('should extract default tenant status', async ({ systemAdminPage }) => {
         const { page } = systemAdminPage;

@@ -10,24 +10,17 @@ describe('TenantDocumentSchema', () => {
             logoUrl: 'https://acme.com/logo.svg',
             faviconUrl: 'https://acme.com/favicon.ico',
             primaryColor: '#FF5733',
-            secondaryColor: '#33FF57',
-        },
-        features: {
-            enableAdvancedReporting: true,
-            enableMultiCurrency: false,
-            enableCustomFields: true,
-            maxGroupsPerUser: 50,
-            maxUsersPerGroup: 100,
-        },
+            secondaryColor: '#33FF57'
+},
         domains: {
             primary: 'app.acme.com',
             aliases: ['acme.com', 'www.acme.com'],
-            normalized: ['app.acme.com', 'acme.com', 'www.acme.com'],
-        },
+            normalized: ['app.acme.com', 'acme.com', 'www.acme.com']
+},
         defaultTenant: false,
         createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-    };
+        updatedAt: Timestamp.now()
+};
 
     describe('valid documents', () => {
         it('should validate a complete tenant document', () => {
@@ -35,7 +28,6 @@ describe('TenantDocumentSchema', () => {
 
             expect(result.id).toBe('test-tenant-123');
             expect(result.branding.appName).toBe('Acme App');
-            expect(result.features.enableAdvancedReporting).toBe(true);
         });
 
         it('should apply branded type transformers', () => {
@@ -52,9 +44,9 @@ describe('TenantDocumentSchema', () => {
                 domains: {
                     primary: 'APP.ACME.COM',
                     aliases: ['ACME.COM'],
-                    normalized: ['APP.ACME.COM', 'ACME.COM'],
-                },
-            };
+                    normalized: ['APP.ACME.COM', 'ACME.COM']
+}
+};
 
             const result = TenantDocumentSchema.parse(dataWithMixedCase);
 
@@ -68,9 +60,9 @@ describe('TenantDocumentSchema', () => {
                 domains: {
                     primary: 'app.acme.com:8080',
                     aliases: ['acme.com:443'],
-                    normalized: ['app.acme.com:8080', 'acme.com:443'],
-                },
-            };
+                    normalized: ['app.acme.com:8080', 'acme.com:443']
+}
+};
 
             const result = TenantDocumentSchema.parse(dataWithPorts);
 
@@ -84,9 +76,9 @@ describe('TenantDocumentSchema', () => {
                 domains: {
                     primary: 'app.acme.com, proxy.internal',
                     aliases: [],
-                    normalized: ['app.acme.com'],
-                },
-            };
+                    normalized: ['app.acme.com']
+}
+};
 
             const result = TenantDocumentSchema.parse(dataWithForwarded);
 
@@ -106,22 +98,15 @@ describe('TenantDocumentSchema', () => {
                     secondaryColor: '#FFFFFF',
                     // No accentColor, themePalette, customCSS, marketingFlags
                 },
-                features: {
-                    enableAdvancedReporting: false,
-                    enableMultiCurrency: false,
-                    enableCustomFields: false,
-                    maxGroupsPerUser: 10,
-                    maxUsersPerGroup: 20,
-                },
                 domains: {
                     primary: 'minimal.com',
                     aliases: [],
-                    normalized: ['minimal.com'],
-                },
+                    normalized: ['minimal.com']
+},
                 // No defaultTenant
                 createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-            };
+                updatedAt: Timestamp.now()
+};
 
             const result = TenantDocumentSchema.parse(minimalData);
 
@@ -141,17 +126,16 @@ describe('TenantDocumentSchema', () => {
                         showLandingPage: true,
                         showMarketingContent: true,
                         showPricingPage: false,
-                        showBlogPage: true,
-                    },
-                },
-            };
+                        showBlogPage: true
+}
+}
+};
 
             const result = TenantDocumentSchema.parse(dataWithFlags);
 
             expect(result.branding.marketingFlags?.showLandingPage).toBe(true);
             expect(result.branding.marketingFlags?.showMarketingContent).toBe(true);
             expect(result.branding.marketingFlags?.showPricingPage).toBe(false);
-            expect(result.branding.marketingFlags?.showBlogPage).toBe(true);
         });
 
         it('should accept empty domain arrays', () => {
@@ -160,9 +144,9 @@ describe('TenantDocumentSchema', () => {
                 domains: {
                     primary: 'solo.com',
                     aliases: [],
-                    normalized: [],
-                },
-            };
+                    normalized: []
+}
+};
 
             const result = TenantDocumentSchema.parse(dataWithEmptyArrays);
 
@@ -181,8 +165,8 @@ describe('TenantDocumentSchema', () => {
         it('should reject tenant with empty id', () => {
             const dataWithEmptyId = {
                 ...validTenantData,
-                id: '',
-            };
+                id: ''
+};
 
             expect(() => TenantDocumentSchema.parse(dataWithEmptyId)).toThrow();
         });
@@ -197,17 +181,12 @@ describe('TenantDocumentSchema', () => {
             const { primaryColor, ...brandingWithoutPrimary } = validTenantData.branding;
             const dataWithIncompleteBranding = {
                 ...validTenantData,
-                branding: brandingWithoutPrimary,
-            };
+                branding: brandingWithoutPrimary
+};
 
             expect(() => TenantDocumentSchema.parse(dataWithIncompleteBranding)).toThrow();
         });
 
-        it('should reject tenant without features', () => {
-            const { features, ...dataWithoutFeatures } = validTenantData;
-
-            expect(() => TenantDocumentSchema.parse(dataWithoutFeatures)).toThrow();
-        });
 
         it('should reject tenant without domains', () => {
             const { domains, ...dataWithoutDomains } = validTenantData;
@@ -219,58 +198,25 @@ describe('TenantDocumentSchema', () => {
             const { primary, ...domainsWithoutPrimary } = validTenantData.domains;
             const dataWithIncompleteDomains = {
                 ...validTenantData,
-                domains: domainsWithoutPrimary,
-            };
+                domains: domainsWithoutPrimary
+};
 
             expect(() => TenantDocumentSchema.parse(dataWithIncompleteDomains)).toThrow();
         });
     });
 
     describe('type validation', () => {
-        it('should reject non-boolean feature flags', () => {
-            const dataWithInvalidFlag = {
-                ...validTenantData,
-                features: {
-                    ...validTenantData.features,
-                    enableAdvancedReporting: 'yes', // Should be boolean
-                },
-            };
 
-            expect(() => TenantDocumentSchema.parse(dataWithInvalidFlag)).toThrow();
-        });
 
-        it('should reject non-numeric feature limits', () => {
-            const dataWithInvalidLimit = {
-                ...validTenantData,
-                features: {
-                    ...validTenantData.features,
-                    maxGroupsPerUser: '50', // Should be number
-                },
-            };
-
-            expect(() => TenantDocumentSchema.parse(dataWithInvalidLimit)).toThrow();
-        });
-
-        it('should reject negative feature limits', () => {
-            const dataWithNegativeLimit = {
-                ...validTenantData,
-                features: {
-                    ...validTenantData.features,
-                    maxGroupsPerUser: -10,
-                },
-            };
-
-            expect(() => TenantDocumentSchema.parse(dataWithNegativeLimit)).toThrow();
-        });
 
         it('should reject non-array domain aliases', () => {
             const dataWithInvalidAliases = {
                 ...validTenantData,
                 domains: {
                     ...validTenantData.domains,
-                    aliases: 'not-an-array',
-                },
-            };
+                    aliases: 'not-an-array'
+}
+};
 
             expect(() => TenantDocumentSchema.parse(dataWithInvalidAliases)).toThrow();
         });
@@ -280,9 +226,9 @@ describe('TenantDocumentSchema', () => {
                 ...validTenantData,
                 branding: {
                     ...validTenantData.branding,
-                    logoUrl: '',
-                },
-            };
+                    logoUrl: ''
+}
+};
 
             expect(() => TenantDocumentSchema.parse(dataWithEmptyUrl)).toThrow();
         });
@@ -292,9 +238,9 @@ describe('TenantDocumentSchema', () => {
                 ...validTenantData,
                 branding: {
                     ...validTenantData.branding,
-                    primaryColor: '',
-                },
-            };
+                    primaryColor: ''
+}
+};
 
             expect(() => TenantDocumentSchema.parse(dataWithEmptyColor)).toThrow();
         });
@@ -304,8 +250,8 @@ describe('TenantDocumentSchema', () => {
         it('should reject documents with extra fields at top level', () => {
             const dataWithExtraFields = {
                 ...validTenantData,
-                unexpectedField: 'should fail',
-            };
+                unexpectedField: 'should fail'
+};
 
             expect(() => TenantDocumentSchema.parse(dataWithExtraFields)).toThrow();
         });
@@ -326,8 +272,8 @@ describe('TenantDocumentSchema', () => {
             const dataWithTimestamps = {
                 ...validTenantData,
                 createdAt: Timestamp.fromDate(new Date('2025-01-01T00:00:00.000Z')),
-                updatedAt: Timestamp.fromDate(new Date('2025-01-15T12:00:00.000Z')),
-            };
+                updatedAt: Timestamp.fromDate(new Date('2025-01-15T12:00:00.000Z'))
+};
 
             const result = TenantDocumentSchema.parse(dataWithTimestamps);
 
@@ -352,10 +298,9 @@ describe('UpdateTenantBrandingRequestSchema', () => {
                 marketingFlags: {
                     showLandingPage: false,
                     showMarketingContent: true,
-                    showPricingPage: false,
-                    showBlogPage: true,
-                },
-            };
+                    showPricingPage: false
+}
+};
 
             const result = UpdateTenantBrandingRequestSchema.parse(updateData);
 
@@ -366,8 +311,8 @@ describe('UpdateTenantBrandingRequestSchema', () => {
 
         it('should validate partial branding update with single field', () => {
             const updateData = {
-                appName: 'New Name',
-            };
+                appName: 'New Name'
+};
 
             const result = UpdateTenantBrandingRequestSchema.parse(updateData);
 
@@ -379,8 +324,8 @@ describe('UpdateTenantBrandingRequestSchema', () => {
         it('should validate partial branding update with colors only', () => {
             const updateData = {
                 primaryColor: '#FF0000',
-                secondaryColor: '#00FF00',
-            };
+                secondaryColor: '#00FF00'
+};
 
             const result = UpdateTenantBrandingRequestSchema.parse(updateData);
 
@@ -392,9 +337,9 @@ describe('UpdateTenantBrandingRequestSchema', () => {
         it('should validate partial marketing flags update', () => {
             const updateData = {
                 marketingFlags: {
-                    showLandingPage: true,
-                },
-            };
+                    showLandingPage: true
+}
+};
 
             const result = UpdateTenantBrandingRequestSchema.parse(updateData);
 
@@ -404,8 +349,8 @@ describe('UpdateTenantBrandingRequestSchema', () => {
 
         it('should accept empty customCSS', () => {
             const updateData = {
-                customCSS: '',
-            };
+                customCSS: ''
+};
 
             const result = UpdateTenantBrandingRequestSchema.parse(updateData);
 
@@ -424,24 +369,24 @@ describe('UpdateTenantBrandingRequestSchema', () => {
     describe('validation errors', () => {
         it('should reject empty string for required fields when provided', () => {
             const updateData = {
-                appName: '',
-            };
+                appName: ''
+};
 
             expect(() => UpdateTenantBrandingRequestSchema.parse(updateData)).toThrow();
         });
 
         it('should reject empty string for URLs', () => {
             const updateData = {
-                logoUrl: '',
-            };
+                logoUrl: ''
+};
 
             expect(() => UpdateTenantBrandingRequestSchema.parse(updateData)).toThrow();
         });
 
         it('should reject empty string for colors', () => {
             const updateData = {
-                primaryColor: '',
-            };
+                primaryColor: ''
+};
 
             expect(() => UpdateTenantBrandingRequestSchema.parse(updateData)).toThrow();
         });
@@ -449,9 +394,9 @@ describe('UpdateTenantBrandingRequestSchema', () => {
         it('should reject non-boolean marketing flags', () => {
             const updateData = {
                 marketingFlags: {
-                    showLandingPage: 'yes',
-                },
-            };
+                    showLandingPage: 'yes'
+}
+};
 
             expect(() => UpdateTenantBrandingRequestSchema.parse(updateData as any)).toThrow();
         });
@@ -459,8 +404,8 @@ describe('UpdateTenantBrandingRequestSchema', () => {
         it('should reject extra fields in strict mode', () => {
             const updateData = {
                 appName: 'Valid',
-                unexpectedField: 'should fail',
-            };
+                unexpectedField: 'should fail'
+};
 
             expect(() => UpdateTenantBrandingRequestSchema.parse(updateData)).toThrow();
         });
@@ -472,8 +417,8 @@ describe('UpdateTenantBrandingRequestSchema', () => {
                 marketingFlags: {
                     showLandingPage: true,
                     // Other flags can be omitted
-                },
-            };
+                }
+};
 
             const result = UpdateTenantBrandingRequestSchema.parse(updateData);
             expect(result.marketingFlags?.showLandingPage).toBe(true);
@@ -487,8 +432,8 @@ describe('UpdateTenantBrandingRequestSchema', () => {
                 logoUrl: 'https://brand.com/logo.svg',
                 faviconUrl: 'https://brand.com/favicon.ico',
                 primaryColor: '#AABBCC',
-                secondaryColor: '#DDEEFF',
-            };
+                secondaryColor: '#DDEEFF'
+};
 
             const result = UpdateTenantBrandingRequestSchema.parse(updateData);
 

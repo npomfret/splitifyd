@@ -1,30 +1,23 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import type { AppConfiguration, BrandingConfig } from '@splitifyd/shared';
-import {
-    toFeatureToggleAdvancedReporting,
-    toFeatureToggleCustomFields,
-    toFeatureToggleMultiCurrency,
-    toISOString,
+import {toISOString,
     toTenantAppName,
     toTenantFaviconUrl,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
-    toTenantSecondaryColor,
-    toTenantMaxGroupsPerUser,
-    toTenantMaxUsersPerGroup,
-} from '@splitifyd/shared';
+    toTenantSecondaryColor,} from '@splitifyd/shared';
 import { configStore } from '@/stores/config-store.ts';
 
 vi.mock('@/app/firebase-config', () => ({
     firebaseConfigManager: {
-        getConfig: vi.fn(),
-    },
+        getConfig: vi.fn()
+}
 }));
 
 vi.mock('@/utils/theme-bootstrap', () => ({
     syncThemeHash: vi.fn(),
-    registerThemeServiceWorker: vi.fn(),
+    registerThemeServiceWorker: vi.fn()
 }));
 
 const { firebaseConfigManager } = await import('@/app/firebase-config');
@@ -41,26 +34,19 @@ describe('configStore', () => {
             projectId: 'test',
             storageBucket: 'test',
             messagingSenderId: 'test',
-            appId: 'test',
-        },
+            appId: 'test'
+},
         environment: {},
         formDefaults: {},
         tenant: branding
             ? {
                 tenantId: toTenantId('tenant'),
                 branding,
-                features: {
-                    enableAdvancedReporting: toFeatureToggleAdvancedReporting(true),
-                    enableMultiCurrency: toFeatureToggleMultiCurrency(false),
-                    enableCustomFields: toFeatureToggleCustomFields(true),
-                    maxGroupsPerUser: toTenantMaxGroupsPerUser(10),
-                    maxUsersPerGroup: toTenantMaxUsersPerGroup(20),
-                },
                 createdAt: toISOString('2025-01-01T00:00:00.000Z'),
-                updatedAt: toISOString('2025-01-01T00:00:00.000Z'),
-            }
-            : undefined,
-    });
+                updatedAt: toISOString('2025-01-01T00:00:00.000Z')
+}
+            : undefined
+});
 
     beforeEach(() => {
         vi.mocked(firebaseConfigManager.getConfig).mockResolvedValue(baseConfig());
@@ -80,8 +66,8 @@ describe('configStore', () => {
             logoUrl: toTenantLogoUrl('https://logo.svg'),
             faviconUrl: toTenantFaviconUrl('https://favicon.ico'),
             primaryColor: toTenantPrimaryColor('#112233'),
-            secondaryColor: toTenantSecondaryColor('#445566'),
-        };
+            secondaryColor: toTenantSecondaryColor('#445566')
+};
 
         const config = baseConfig(branding);
         config.theme = { hash: 'abc123' } as AppConfiguration['theme'];

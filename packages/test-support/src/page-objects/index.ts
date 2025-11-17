@@ -19,4 +19,3 @@ export { SettingsPage } from './SettingsPage';
 export { SettlementFormPage } from './SettlementFormPage';
 export { ShareGroupModalPage } from './ShareGroupModalPage';
 export { TenantBrandingPage } from './TenantBrandingPage';
-export { UsersBrowserPage } from './UsersBrowserPage';

@@ -110,26 +110,8 @@ export const toShowLandingPageFlag = (value: boolean): ShowLandingPageFlag => va
 export type ShowPricingPageFlag = BrandedBoolean<'ShowPricingPageFlag'>;
 export const toShowPricingPageFlag = (value: boolean): ShowPricingPageFlag => value as ShowPricingPageFlag;
 
-export type ShowBlogPageFlag = BrandedBoolean<'ShowBlogPageFlag'>;
-export const toShowBlogPageFlag = (value: boolean): ShowBlogPageFlag => value as ShowBlogPageFlag;
-
 export type ShowMarketingContentFlag = BrandedBoolean<'ShowMarketingContentFlag'>;
 export const toShowMarketingContentFlag = (value: boolean): ShowMarketingContentFlag => value as ShowMarketingContentFlag;
-
-export type FeatureToggleAdvancedReporting = BrandedBoolean<'FeatureToggleAdvancedReporting'>;
-export const toFeatureToggleAdvancedReporting = (value: boolean): FeatureToggleAdvancedReporting => value as FeatureToggleAdvancedReporting;
-
-export type FeatureToggleMultiCurrency = BrandedBoolean<'FeatureToggleMultiCurrency'>;
-export const toFeatureToggleMultiCurrency = (value: boolean): FeatureToggleMultiCurrency => value as FeatureToggleMultiCurrency;
-
-export type FeatureToggleCustomFields = BrandedBoolean<'FeatureToggleCustomFields'>;
-export const toFeatureToggleCustomFields = (value: boolean): FeatureToggleCustomFields => value as FeatureToggleCustomFields;
-
-export type TenantMaxGroupsPerUser = BrandedNumber<'TenantMaxGroupsPerUser'>;
-export const toTenantMaxGroupsPerUser = (value: number): TenantMaxGroupsPerUser => value as TenantMaxGroupsPerUser;
-
-export type TenantMaxUsersPerGroup = BrandedNumber<'TenantMaxUsersPerGroup'>;
-export const toTenantMaxUsersPerGroup = (value: number): TenantMaxUsersPerGroup => value as TenantMaxUsersPerGroup;
 
 export type GroupName = Brand<string, 'GroupName'>;
 export const toGroupName = (value: string): GroupName => value as GroupName;
@@ -251,7 +233,6 @@ export interface BrandingMarketingFlags {
     showLandingPage?: ShowLandingPageFlag;
     showMarketingContent?: ShowMarketingContentFlag;
     showPricingPage?: ShowPricingPageFlag;
-    showBlogPage?: ShowBlogPageFlag;
 }
 
 /**
@@ -274,18 +255,9 @@ export interface BrandingConfig {
     marketingFlags?: BrandingMarketingFlags;
 }
 
-export interface FeatureConfig {
-    enableAdvancedReporting: FeatureToggleAdvancedReporting;
-    enableMultiCurrency: FeatureToggleMultiCurrency;
-    enableCustomFields: FeatureToggleCustomFields;
-    maxGroupsPerUser: TenantMaxGroupsPerUser;
-    maxUsersPerGroup: TenantMaxUsersPerGroup;
-}
-
 export interface TenantConfig {
     tenantId: TenantId;
     branding: BrandingConfig;
-    features: FeatureConfig;
     createdAt: ISOString;
     updatedAt: ISOString;
 }

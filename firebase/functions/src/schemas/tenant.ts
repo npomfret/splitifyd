@@ -1,8 +1,4 @@
 import {
-    toFeatureToggleAdvancedReporting,
-    toFeatureToggleCustomFields,
-    toFeatureToggleMultiCurrency,
-    toShowBlogPageFlag,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
@@ -19,8 +15,6 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
     toTenantThemePaletteName,
-    toTenantMaxGroupsPerUser,
-    toTenantMaxUsersPerGroup,
     TenantBrandingSchema,
 } from '@splitifyd/shared';
 import { z } from 'zod';
@@ -42,7 +36,6 @@ const BrandingMarketingFlagsSchema = z.object({
     showLandingPage: z.boolean().transform(toShowLandingPageFlag).optional(),
     showMarketingContent: z.boolean().transform(toShowMarketingContentFlag).optional(),
     showPricingPage: z.boolean().transform(toShowPricingPageFlag).optional(),
-    showBlogPage: z.boolean().transform(toShowBlogPageFlag).optional(),
 });
 
 const BrandingSchema = z.object({
@@ -59,14 +52,6 @@ const BrandingSchema = z.object({
     marketingFlags: BrandingMarketingFlagsSchema.optional(),
 });
 
-const FeatureSchema = z.object({
-    enableAdvancedReporting: z.boolean().transform(toFeatureToggleAdvancedReporting),
-    enableMultiCurrency: z.boolean().transform(toFeatureToggleMultiCurrency),
-    enableCustomFields: z.boolean().transform(toFeatureToggleCustomFields),
-    maxGroupsPerUser: z.number().int().min(0).transform(toTenantMaxGroupsPerUser),
-    maxUsersPerGroup: z.number().int().min(0).transform(toTenantMaxUsersPerGroup),
-});
-
 const DomainSchema = z.object({
     primary: DomainStringSchema,
     aliases: z.array(DomainStringSchema).default([]),
@@ -78,7 +63,6 @@ export const TenantDocumentSchema = z
         id: z.string().min(1).transform(toTenantId),
         branding: BrandingSchema,
         brandingTokens: TenantBrandingSchema.optional(),
-        features: FeatureSchema,
         domains: DomainSchema,
         defaultTenant: z.boolean().transform(toTenantDefaultFlag).optional(),
     })
@@ -91,7 +75,6 @@ export const AdminUpsertTenantRequestSchema = z.object({
     tenantId: z.string().min(1).transform(toTenantId),
     branding: BrandingSchema,
     brandingTokens: TenantBrandingSchema,
-    features: FeatureSchema,
     domains: DomainSchema,
     defaultTenant: z.boolean().transform(toTenantDefaultFlag).optional(),
 });
