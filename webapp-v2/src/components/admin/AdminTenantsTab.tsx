@@ -3,6 +3,7 @@ import { apiClient } from '../../app/apiClient';
 import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
 import { configStore } from '../../stores/config-store';
 import { logError } from '@/utils/browser-logger';
+import { TenantEditorModal } from '@/components/admin/TenantEditorModal';
 
 interface TenantBranding {
     appName: string;
@@ -40,6 +41,9 @@ export function AdminTenantsTab() {
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+    const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
 
     // Get current tenant ID from config
     const currentTenantId = configStore.config?.tenant?.tenantId;
@@ -68,9 +72,26 @@ export function AdminTenantsTab() {
         window.location.href = `${window.location.protocol}//${domain}`;
     };
 
-    const handleEditTenant = (tenantId: string) => {
-        // TODO: Implement tenant editing
-        alert(`Tenant editing not yet implemented for: ${tenantId}`);
+    const handleCreateTenant = () => {
+        setModalMode('create');
+        setSelectedTenant(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEditTenant = (tenant: Tenant) => {
+        setModalMode('edit');
+        setSelectedTenant(tenant);
+        setIsModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectedTenant(null);
+    };
+
+    const handleModalSave = () => {
+        // Refresh tenant list after save
+        loadTenants();
     };
 
     if (error) {
@@ -94,9 +115,14 @@ export function AdminTenantsTab() {
                         Total tenants: <span class="font-bold text-amber-700">{tenants.length}</span>
                     </p>
                 </div>
-                <Button onClick={loadTenants} variant="secondary" size="sm" className="!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50">
-                    Refresh
-                </Button>
+                <div class="flex gap-2">
+                    <Button onClick={handleCreateTenant} variant="primary" size="sm" data-testid="create-tenant-button">
+                        Create New Tenant
+                    </Button>
+                    <Button onClick={loadTenants} variant="secondary" size="sm" className="!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50">
+                        Refresh
+                    </Button>
+                </div>
             </div>
 
             <div class="space-y-4">
@@ -172,10 +198,11 @@ export function AdminTenantsTab() {
                                 </div>
                                 <div class="ml-4">
                                     <Button
-                                        onClick={() => handleEditTenant(tenant.tenant.tenantId)}
+                                        onClick={() => handleEditTenant(tenant)}
                                         variant="secondary"
                                         size="sm"
                                         className="!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50"
+                                        data-testid={`edit-tenant-${tenant.tenant.tenantId}`}
                                     >
                                         Edit
                                     </Button>
@@ -196,6 +223,15 @@ export function AdminTenantsTab() {
                     <p class="text-indigo-700 text-lg">No tenants found</p>
                 </Card>
             )}
+
+            {/* Tenant Editor Modal */}
+            <TenantEditorModal
+                open={isModalOpen}
+                onClose={handleModalClose}
+                onSave={handleModalSave}
+                tenant={selectedTenant || undefined}
+                mode={modalMode}
+            />
         </>
     );
 }

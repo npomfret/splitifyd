@@ -25,7 +25,7 @@ function loadTenantSeeds(): TenantSeed[] {
     // Map fixture names based on tenant ID
     const fixtureMap: Record<string, BrandingTokenFixtureKey> = {
         'localhost-tenant': 'localhost',
-        'partner-tenant': 'loopback',
+        'default-tenant': 'loopback',
     };
 
     return configs.map((config: any) => ({

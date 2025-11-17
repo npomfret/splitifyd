@@ -19,7 +19,7 @@
     "isDefault": true
   },
   {
-    "id": "partner-tenant",
+    "id": "default-tenant",
     "domains": ["127.0.0.1"],
     "branding": {
       "appName": "Partner Expenses",

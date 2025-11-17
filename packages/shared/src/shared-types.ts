@@ -1439,3 +1439,44 @@ export interface TenantDomainsResponse {
 export interface AddTenantDomainRequest {
     domain: TenantDomainName;
 }
+
+/**
+ * Admin upsert tenant request (create or update full tenant configuration)
+ * Used for POST /api/admin/tenants endpoint (system admin only)
+ */
+export interface AdminUpsertTenantRequest {
+    tenantId: string;
+    branding: {
+        appName: string;
+        logoUrl: string;
+        faviconUrl?: string;
+        primaryColor: string;
+        secondaryColor: string;
+        backgroundColor?: string;
+        headerBackgroundColor?: string;
+        accentColor?: string;
+        themePalette?: string;
+        customCSS?: string;
+        marketingFlags?: {
+            showLandingPage?: boolean;
+            showMarketingContent?: boolean;
+            showPricingPage?: boolean;
+        };
+    };
+    brandingTokens?: any; // Optional advanced branding tokens
+    domains: {
+        primary: string;
+        aliases: string[];
+        normalized: string[];
+    };
+    defaultTenant?: boolean;
+}
+
+/**
+ * Admin upsert tenant response
+ * Returned by POST /api/admin/tenants endpoint
+ */
+export interface AdminUpsertTenantResponse {
+    tenantId: string;
+    created: boolean;
+}

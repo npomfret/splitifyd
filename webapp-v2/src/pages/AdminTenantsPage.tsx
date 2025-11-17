@@ -7,6 +7,7 @@ import { SystemUserRoles } from '@splitifyd/shared';
 import { navigationService } from '@/services/navigation.service';
 import { configStore } from '../stores/config-store';
 import { logError } from '@/utils/browser-logger';
+import { TenantEditorModal } from '@/components/admin/TenantEditorModal';
 
 interface TenantBranding {
     appName: string;
@@ -45,6 +46,9 @@ export function AdminTenantsPage() {
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+    const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
 
     const user = authStore.user;
     const isSystemAdmin = user?.role === SystemUserRoles.SYSTEM_ADMIN;
@@ -82,9 +86,26 @@ export function AdminTenantsPage() {
         window.location.href = `${window.location.protocol}//${domain}`;
     };
 
-    const handleEditTenant = (tenantId: string) => {
-        // TODO: Implement tenant editing
-        alert(`Tenant editing not yet implemented for: ${tenantId}`);
+    const handleCreateTenant = () => {
+        setModalMode('create');
+        setSelectedTenant(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEditTenant = (tenant: Tenant) => {
+        setModalMode('edit');
+        setSelectedTenant(tenant);
+        setIsModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectedTenant(null);
+    };
+
+    const handleModalSave = () => {
+        // Refresh tenant list after save
+        loadTenants();
     };
 
     if (!isSystemAdmin) {
@@ -113,9 +134,14 @@ export function AdminTenantsPage() {
                             <p class="text-sm text-slate-300">
                                 Total tenants: <span class="font-semibold text-white">{tenants.length}</span>
                             </p>
-                            <Button onClick={loadTenants} variant="secondary" size="sm">
-                                Refresh
-                            </Button>
+                            <div class="flex gap-2">
+                                <Button onClick={handleCreateTenant} variant="primary" size="sm" data-testid="create-tenant-button">
+                                    Create New Tenant
+                                </Button>
+                                <Button onClick={loadTenants} variant="secondary" size="sm">
+                                    Refresh
+                                </Button>
+                            </div>
                         </div>
 
                         <div class="space-y-4">
@@ -191,9 +217,10 @@ export function AdminTenantsPage() {
                                             </div>
                                             <div class="ml-4">
                                                 <Button
-                                                    onClick={() => handleEditTenant(tenant.tenant.tenantId)}
+                                                    onClick={() => handleEditTenant(tenant)}
                                                     variant="secondary"
                                                     size="sm"
+                                                    data-testid={`edit-tenant-${tenant.tenant.tenantId}`}
                                                 >
                                                     Edit
                                                 </Button>
@@ -212,6 +239,15 @@ export function AdminTenantsPage() {
                     </>
                 )}
             </div>
+
+            {/* Tenant Editor Modal */}
+            <TenantEditorModal
+                open={isModalOpen}
+                onClose={handleModalClose}
+                onSave={handleModalSave}
+                tenant={selectedTenant || undefined}
+                mode={modalMode}
+            />
         </BaseLayout>
     );
 }

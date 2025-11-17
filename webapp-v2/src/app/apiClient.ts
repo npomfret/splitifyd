@@ -11,6 +11,8 @@ import type {
     AcceptPolicyRequest,
     ActivityFeedResponse,
     AddTenantDomainRequest,
+    AdminUpsertTenantRequest,
+    AdminUpsertTenantResponse,
     AppConfiguration,
     ChangeEmailRequest,
     CommentDTO,
@@ -1203,6 +1205,14 @@ class ApiClient {
             endpoint: '/admin/browser/tenants',
             method: 'GET',
             signal,
+        });
+    }
+
+    async adminUpsertTenant(data: AdminUpsertTenantRequest): Promise<AdminUpsertTenantResponse> {
+        return this.request({
+            endpoint: '/admin/tenants',
+            method: 'POST',
+            body: data,
         });
     }
 }

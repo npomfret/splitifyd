@@ -508,6 +508,19 @@ export const TenantDomainsResponseSchema = z.object({
     primaryDomain: z.string().min(1).transform((v: string) => v as any),
 });
 
+// Admin tenant list schemas
+export const AdminTenantItemSchema = z.object({
+    tenant: TenantConfigSchema,
+    primaryDomain: z.string().nullable(),
+    domains: z.array(z.string()),
+    isDefault: z.boolean(),
+});
+
+export const AdminTenantsListResponseSchema = z.object({
+    tenants: z.array(AdminTenantItemSchema),
+    count: z.number(),
+});
+
 export const responseSchemas = {
     '/config': AppConfigurationSchema,
     '/health': HealthCheckResponseSchema,
@@ -557,6 +570,8 @@ export const responseSchemas = {
     'GET /settings/tenant/domains': TenantDomainsResponseSchema,
     'PUT /settings/tenant/branding': MessageResponseSchema,
     'POST /settings/tenant/domains': MessageResponseSchema,
+    // Admin tenant endpoints
+    'GET /admin/browser/tenants': AdminTenantsListResponseSchema,
 } as const;
 
 // Schema for the currency-specific balance data used in GroupService.addComputedFields

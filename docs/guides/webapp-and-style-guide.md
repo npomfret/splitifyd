@@ -616,7 +616,7 @@ Each tenant ID maps to a branding token fixture in `packages/shared/src/fixtures
 // In publish-local-themes.ts
 const fixtureMap: Record<string, BrandingTokenFixtureKey> = {
   'localhost-tenant': 'localhost',    // Uses Aurora theme
-  'partner-tenant': 'loopback',       // Uses Brutalist theme
+  'default-tenant': 'loopback',       // Uses Brutalist theme
 };
 ```
 
