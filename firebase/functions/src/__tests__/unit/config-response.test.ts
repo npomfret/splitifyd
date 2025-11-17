@@ -1,16 +1,17 @@
-import {toTenantAppName,
+import {
+    toTenantAppName,
     toTenantFaviconUrl,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
-    toTenantSecondaryColor,toISOString,
+    toTenantSecondaryColor,
+    toISOString,
     toShowLandingPageFlag,
     toTenantDefaultFlag
 } from '@splitifyd/shared';
 import type { AppConfiguration, TenantConfig } from '@splitifyd/shared';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import * as clientConfig from '../../client-config';
-import { HARDCODED_FALLBACK_TENANT } from '../../services/tenant/TenantRegistryService';
 import { getEnhancedConfigResponse } from '../../utils/config-response';
 import type { TenantRequestContext } from '../../types/tenant';
 
@@ -64,22 +65,30 @@ describe('getEnhancedConfigResponse', () => {
         expect(forwarded?.tenantId).toBe(sourceTenant.tenantId);
     });
 
-    it('uses hardcoded fallback tenant when none provided', () => {
-        const result = getEnhancedConfigResponse();
-
-        expect(result).toBe(mockAppConfig);
-
-        const calls = vi.mocked(clientConfig.getTenantAwareAppConfig).mock.calls;
-        const forwarded = calls.length > 0 ? calls[calls.length - 1]![0] : undefined;
-        expect(forwarded).toBeDefined();
-        expect(forwarded?.tenantId).toBe(HARDCODED_FALLBACK_TENANT.tenant.tenantId);
-        expect(forwarded).not.toBe(HARDCODED_FALLBACK_TENANT.tenant);
+    it('throws when tenant context is missing', () => {
+        expect(() => getEnhancedConfigResponse()).toThrowError(/Tenant context is required for configuration/);
     });
 
     it('augments config with theme hash when artifact is present', () => {
-        const context: TenantRequestContext = {
+        const tenant = {
             tenantId: toTenantId('tenant-with-theme'),
-            config: HARDCODED_FALLBACK_TENANT.tenant,
+            branding: {
+                appName: toTenantAppName('With Theme'),
+                logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#111111'),
+                secondaryColor: toTenantSecondaryColor('#222222'),
+                marketingFlags: {
+                    showLandingPage: toShowLandingPageFlag(false)
+                }
+            },
+            createdAt: toISOString('2025-02-01T00:00:00.000Z'),
+            updatedAt: toISOString('2025-02-02T00:00:00.000Z')
+        } satisfies TenantConfig;
+
+        const context: TenantRequestContext = {
+            tenantId: tenant.tenantId,
+            config: tenant,
             domains: [],
             primaryDomain: null,
             isDefault: toTenantDefaultFlag(false),

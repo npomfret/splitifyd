@@ -7,6 +7,16 @@ import type {IFirestoreReader, IFirestoreWriter} from '../../../services/firesto
 import {ApiError} from '../../../utils/errors';
 import {StubAuthService} from '../mocks/StubAuthService';
 import {toDisplayName} from "@splitifyd/shared";
+import {
+    toTenantAppName,
+    toTenantDefaultFlag,
+    toTenantDomainName,
+    toTenantFaviconUrl,
+    toTenantId,
+    toTenantLogoUrl,
+    toTenantPrimaryColor,
+    toTenantSecondaryColor
+} from '@splitifyd/shared';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let db: TenantFirestoreTestDatabase;
@@ -174,5 +184,118 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             const afterUpdate = await firestoreReader.getGroupMember(groupId, userId);
             expect(afterUpdate?.groupDisplayName).toBe(currentName);
         });
+    });
+});
+
+describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
+    let db: TenantFirestoreTestDatabase;
+    let firestoreReader: IFirestoreReader;
+    let firestoreWriter: IFirestoreWriter;
+
+    beforeEach(() => {
+        db = new TenantFirestoreTestDatabase();
+
+        const applicationBuilder = new ComponentBuilder(new StubAuthService(), db);
+        firestoreWriter = applicationBuilder.buildFirestoreWriter();
+        firestoreReader = applicationBuilder.buildFirestoreReader();
+    });
+
+    const createTenantData = (appName: string, domain: string, isDefault: boolean) => ({
+        branding: {
+            appName: toTenantAppName(appName),
+            logoUrl: toTenantLogoUrl('/logo.svg'),
+            faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+            primaryColor: toTenantPrimaryColor('#000000'),
+            secondaryColor: toTenantSecondaryColor('#ffffff'),
+        },
+        domains: {
+            primary: toTenantDomainName(domain),
+            aliases: [],
+            normalized: [toTenantDomainName(domain)],
+        },
+        defaultTenant: toTenantDefaultFlag(isDefault),
+    });
+
+    it('should prevent removing default flag from default tenant', async () => {
+        const tenantId = 'test-tenant-1';
+
+        // Create a default tenant
+        await firestoreWriter.upsertTenant(tenantId, createTenantData('Test Tenant 1', 'test1.example.com', true));
+
+        // Try to remove the default flag
+        let caughtError: ApiError | undefined;
+        try {
+            await firestoreWriter.upsertTenant(tenantId, createTenantData('Test Tenant 1', 'test1.example.com', false));
+        } catch (error) {
+            caughtError = error as ApiError;
+        }
+
+        // Assert
+        expect(caughtError).toBeInstanceOf(ApiError);
+        expect(caughtError?.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
+        expect(caughtError?.code).toBe('CANNOT_REMOVE_DEFAULT_TENANT');
+        expect(caughtError?.message).toContain('Cannot remove default tenant flag');
+    });
+
+    it('should transfer default flag when setting another tenant as default', async () => {
+        const tenant1Id = 'test-tenant-1';
+        const tenant2Id = 'test-tenant-2';
+
+        // Create first tenant as default
+        await firestoreWriter.upsertTenant(tenant1Id, createTenantData('Test Tenant 1', 'test1.example.com', true));
+
+        // Verify tenant1 is default
+        const tenant1Before = await firestoreReader.getTenantById(toTenantId(tenant1Id));
+        expect(tenant1Before?.isDefault).toBe(true);
+
+        // Create second tenant and make it default
+        await firestoreWriter.upsertTenant(tenant2Id, createTenantData('Test Tenant 2', 'test2.example.com', true));
+
+        // Verify tenant2 is now default
+        const tenant2After = await firestoreReader.getTenantById(toTenantId(tenant2Id));
+        expect(tenant2After?.isDefault).toBe(true);
+
+        // Verify tenant1 is no longer default
+        const tenant1After = await firestoreReader.getTenantById(toTenantId(tenant1Id));
+        expect(tenant1After?.isDefault).toBe(false);
+    });
+
+    it('should allow creating a non-default tenant when a default already exists', async () => {
+        const tenant1Id = 'test-tenant-1';
+        const tenant2Id = 'test-tenant-2';
+
+        // Create default tenant
+        await firestoreWriter.upsertTenant(tenant1Id, createTenantData('Test Tenant 1', 'test1.example.com', true));
+
+        // Create non-default tenant (should not throw)
+        await firestoreWriter.upsertTenant(tenant2Id, createTenantData('Test Tenant 2', 'test2.example.com', false));
+
+        // Verify both tenants exist with correct default flags
+        const tenant1 = await firestoreReader.getTenantById(toTenantId(tenant1Id));
+        const tenant2 = await firestoreReader.getTenantById(toTenantId(tenant2Id));
+
+        expect(tenant1?.isDefault).toBe(true);
+        expect(tenant2?.isDefault).toBe(false);
+    });
+
+    it('should allow updating non-default tenant without affecting default tenant', async () => {
+        const tenant1Id = 'test-tenant-1';
+        const tenant2Id = 'test-tenant-2';
+
+        // Create default and non-default tenants
+        await firestoreWriter.upsertTenant(tenant1Id, createTenantData('Test Tenant 1', 'test1.example.com', true));
+        await firestoreWriter.upsertTenant(tenant2Id, createTenantData('Test Tenant 2', 'test2.example.com', false));
+
+        // Update non-default tenant (keeping it non-default)
+        await firestoreWriter.upsertTenant(tenant2Id, createTenantData('Updated Tenant 2', 'test2.example.com', false));
+
+        // Verify tenant1 is still default
+        const tenant1 = await firestoreReader.getTenantById(toTenantId(tenant1Id));
+        expect(tenant1?.isDefault).toBe(true);
+
+        // Verify tenant2 is updated but still not default
+        const tenant2 = await firestoreReader.getTenantById(toTenantId(tenant2Id));
+        expect(tenant2?.isDefault).toBe(false);
+        expect(tenant2?.tenant.branding.appName).toBe('Updated Tenant 2');
     });
 });

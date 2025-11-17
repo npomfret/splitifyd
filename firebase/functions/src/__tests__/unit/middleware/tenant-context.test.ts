@@ -55,7 +55,6 @@ describe('tenantContextMiddleware', () => {
 
         mockConfig = {
             allowOverrideHeader: vi.fn().mockReturnValue(true),
-            allowDefaultFallback: vi.fn().mockReturnValue(true)
 };
 
         mockRequest = {
@@ -185,22 +184,6 @@ describe('tenantContextMiddleware', () => {
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
                 expect.objectContaining({
                     allowOverride: false
-}),
-            );
-        });
-
-        it('should pass allowDefaultFallback from config', async () => {
-            vi.mocked(mockTenantRegistry.resolveTenant).mockResolvedValue(mockTenantContext);
-            vi.mocked(mockConfig.allowDefaultFallback).mockReturnValue(false);
-
-            mockRequest.headers = { host: 'app.example.com' };
-
-            const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
-            await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
-
-            expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    allowDefaultFallback: false
 }),
             );
         });

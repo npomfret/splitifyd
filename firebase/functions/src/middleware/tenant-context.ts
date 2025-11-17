@@ -4,7 +4,6 @@ import { TenantRegistryService } from '../services/tenant/TenantRegistryService'
 
 export interface TenantContextConfig {
     allowOverrideHeader: () => boolean;
-    allowDefaultFallback: () => boolean;
 }
 
 const extractHostHeader = (req: express.Request): string | null => {
@@ -75,7 +74,6 @@ export const tenantContextMiddleware =
                     host,
                     overrideTenantId,
                     allowOverride: config.allowOverrideHeader(),
-                    allowDefaultFallback: config.allowDefaultFallback(),
                 };
 
                 const resolution = await tenantRegistry.resolveTenant(options);

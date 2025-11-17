@@ -83,7 +83,6 @@ describe('TenantRegistryService', () => {
                 host: 'localhost:3000',
                 overrideTenantId: 'test-tenant',
                 allowOverride: true,
-                allowDefaultFallback: false,
             };
 
             const result = await service.resolveTenant(options);
@@ -99,7 +98,6 @@ describe('TenantRegistryService', () => {
                 host: 'localhost:3000',
                 overrideTenantId: 'test-tenant',
                 allowOverride: false,
-                allowDefaultFallback: false,
             };
 
             await expect(service.resolveTenant(options)).rejects.toThrow(ApiError);
@@ -116,7 +114,6 @@ describe('TenantRegistryService', () => {
                 host: 'localhost:3000',
                 overrideTenantId: 'nonexistent',
                 allowOverride: true,
-                allowDefaultFallback: false,
             };
 
             await expect(service.resolveTenant(options)).rejects.toThrow(ApiError);
@@ -135,7 +132,6 @@ describe('TenantRegistryService', () => {
                 host: 'app.example.com',
                 overrideTenantId: null,
                 allowOverride: false,
-                allowDefaultFallback: false,
             };
 
             const result = await service.resolveTenant(options);
@@ -153,7 +149,6 @@ describe('TenantRegistryService', () => {
                 host: 'APP.EXAMPLE.COM:8080',
                 overrideTenantId: null,
                 allowOverride: false,
-                allowDefaultFallback: false,
             };
 
             await service.resolveTenant(options);
@@ -168,7 +163,6 @@ describe('TenantRegistryService', () => {
                 host: 'app.example.com, proxy.internal',
                 overrideTenantId: null,
                 allowOverride: false,
-                allowDefaultFallback: false,
             };
 
             await service.resolveTenant(options);
@@ -177,8 +171,8 @@ describe('TenantRegistryService', () => {
         });
     });
 
-    describe('resolveTenant - default fallback', () => {
-        it('should fallback to default tenant when domain not found and fallback allowed', async () => {
+    describe('resolveTenant - default tenant', () => {
+        it('falls back to Firestore default tenant when domain not found', async () => {
             vi.mocked(mockFirestoreReader.getTenantByDomain).mockResolvedValue(null);
             vi.mocked(mockFirestoreReader.getDefaultTenant).mockResolvedValue(defaultTenantRecord);
 
@@ -186,7 +180,6 @@ describe('TenantRegistryService', () => {
                 host: 'unknown.example.com',
                 overrideTenantId: null,
                 allowOverride: false,
-                allowDefaultFallback: true,
             };
 
             const result = await service.resolveTenant(options);
@@ -197,12 +190,14 @@ describe('TenantRegistryService', () => {
             expect(mockFirestoreReader.getDefaultTenant).toHaveBeenCalled();
         });
 
-        it('should throw NOT_FOUND when no host and fallback not allowed', async () => {
+        it('throws when no tenant can be resolved and no default exists', async () => {
+            vi.mocked(mockFirestoreReader.getTenantByDomain).mockResolvedValue(null);
+            vi.mocked(mockFirestoreReader.getDefaultTenant).mockResolvedValue(null);
+
             const options: TenantResolutionOptions = {
                 host: null,
                 overrideTenantId: null,
                 allowOverride: false,
-                allowDefaultFallback: false,
             };
 
             await expect(service.resolveTenant(options)).rejects.toThrow(ApiError);
@@ -210,26 +205,6 @@ describe('TenantRegistryService', () => {
                 statusCode: HTTP_STATUS.NOT_FOUND,
                 code: 'TENANT_NOT_FOUND',
             });
-        });
-
-        it('should use hardcoded fallback when domain not found and no default tenant exists in Firestore', async () => {
-            vi.mocked(mockFirestoreReader.getTenantByDomain).mockResolvedValue(null);
-            vi.mocked(mockFirestoreReader.getDefaultTenant).mockResolvedValue(null);
-
-            const options: TenantResolutionOptions = {
-                host: 'unknown.example.com',
-                overrideTenantId: null,
-                allowOverride: false,
-                allowDefaultFallback: true,
-            };
-
-            const result = await service.resolveTenant(options);
-
-            expect(result.source).toBe('default');
-            expect(result.tenantId).toBe('system-fallback-tenant');
-            expect(result.config.branding.appName).toBe('Splitifyd');
-            // Hardcoded fallback has empty domains to avoid conflicts with database tenants
-            expect(result.domains).toEqual([]);
         });
     });
 
@@ -241,7 +216,6 @@ describe('TenantRegistryService', () => {
                 host: null,
                 overrideTenantId: 'test-tenant',
                 allowOverride: true,
-                allowDefaultFallback: false,
             };
 
             await service.resolveTenant(options);
@@ -258,7 +232,6 @@ describe('TenantRegistryService', () => {
                 host: 'app.example.com',
                 overrideTenantId: null,
                 allowOverride: false,
-                allowDefaultFallback: false,
             };
 
             await service.resolveTenant(options);
@@ -276,7 +249,6 @@ describe('TenantRegistryService', () => {
                 host: 'unknown1.example.com',
                 overrideTenantId: null,
                 allowOverride: false,
-                allowDefaultFallback: true,
             };
 
             await service.resolveTenant(options);
@@ -285,7 +257,6 @@ describe('TenantRegistryService', () => {
                 host: 'unknown2.example.com',
                 overrideTenantId: null,
                 allowOverride: false,
-                allowDefaultFallback: true,
             };
 
             await service.resolveTenant(options2);
@@ -302,7 +273,6 @@ describe('TenantRegistryService', () => {
                 host: null,
                 overrideTenantId: 'test-tenant',
                 allowOverride: true,
-                allowDefaultFallback: false,
             };
 
             await shortCacheService.resolveTenant(options);
@@ -322,7 +292,6 @@ describe('TenantRegistryService', () => {
                 host: null,
                 overrideTenantId: 'test-tenant',
                 allowOverride: true,
-                allowDefaultFallback: false,
             };
 
             await service.resolveTenant(options);
@@ -344,7 +313,6 @@ describe('TenantRegistryService', () => {
                 host: 'app.splitifyd.com',
                 overrideTenantId: 'test-tenant',
                 allowOverride: true,
-                allowDefaultFallback: false,
             };
 
             const result = await service.resolveTenant(options);
@@ -363,7 +331,6 @@ describe('TenantRegistryService', () => {
                 host: 'app.example.com',
                 overrideTenantId: null,
                 allowOverride: false,
-                allowDefaultFallback: true,
             };
 
             const result = await service.resolveTenant(options);
@@ -384,7 +351,6 @@ describe('TenantRegistryService', () => {
                 host: null,
                 overrideTenantId: 'test-tenant',
                 allowOverride: true,
-                allowDefaultFallback: false,
             };
 
             await expect(service.resolveTenant(options)).rejects.toThrow('Firestore connection failed');

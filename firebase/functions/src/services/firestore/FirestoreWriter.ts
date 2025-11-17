@@ -1321,6 +1321,42 @@ export class FirestoreWriter implements IFirestoreWriter {
                 const snapshot = await tenantRef.get();
                 const created = !snapshot.exists;
 
+                // Enforce default tenant rules
+                if (!created && snapshot.exists) {
+                    const existingData = snapshot.data();
+                    const isCurrentlyDefault = existingData?.defaultTenant === true;
+                    const newDefaultFlag = data.defaultTenant;
+
+                    // Cannot remove default flag without transferring it to another tenant
+                    if (isCurrentlyDefault && newDefaultFlag === false) {
+                        throw new ApiError(
+                            HTTP_STATUS.BAD_REQUEST,
+                            'CANNOT_REMOVE_DEFAULT_TENANT',
+                            'Cannot remove default tenant flag. A default tenant must always exist. Set another tenant as default first.'
+                        );
+                    }
+                }
+
+                // If setting this tenant as default, remove default flag from all other tenants
+                if (data.defaultTenant === true) {
+                    const tenantsSnapshot = await this.db
+                        .collection(FirestoreCollections.TENANTS)
+                        .where('defaultTenant', '==', true)
+                        .get();
+
+                    // Remove default flag from other tenants in a batch
+                    const batch = this.db.batch();
+                    tenantsSnapshot.docs.forEach((doc) => {
+                        if (doc.id !== tenantId) {
+                            batch.update(doc.ref, {
+                                defaultTenant: false,
+                                updatedAt: FieldValue.serverTimestamp(),
+                            });
+                        }
+                    });
+                    await batch.commit();
+                }
+
                 // Validate data before adding timestamps (follow pattern from createUser)
                 const tenantDocument = TenantDocumentSchema.parse({
                     id: tenantId,
@@ -1347,6 +1383,9 @@ export class FirestoreWriter implements IFirestoreWriter {
                 };
             } catch (error) {
                 logger.error('Failed to upsert tenant', error, { tenantId });
+                if (error instanceof ApiError) {
+                    throw error;
+                }
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'TENANT_UPSERT_FAILED', 'Unable to upsert tenant');
             }
         });

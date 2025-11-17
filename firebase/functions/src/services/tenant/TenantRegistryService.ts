@@ -3,17 +3,6 @@ import {
     TenantId,
     toTenantDomainName,
     toTenantId,
-    toTenantAppName,
-    toTenantLogoUrl,
-    toTenantFaviconUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-    toTenantBackgroundColor,
-    toTenantDefaultFlag,
-    toShowLandingPageFlag,
-    toShowMarketingContentFlag,
-    toShowPricingPageFlag,
-    toISOString,
 } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
@@ -26,7 +15,6 @@ export interface TenantResolutionOptions {
     host?: string | null;
     overrideTenantId?: string | null;
     allowOverride: boolean;
-    allowDefaultFallback: boolean;
 }
 
 interface CacheEntry {
@@ -36,36 +24,6 @@ interface CacheEntry {
 
 const DEFAULT_CACHE_TTL_MS = 1 * 1000; // 1 second for quick updates during development
 const DEFAULT_CACHE_KEY = '__default__';
-const FALLBACK_APP_NAME = process.env.FALLBACK_APP_NAME ?? 'Splitifyd';
-
-/**
- * Hardcoded fallback tenant that is always available.
- * This ensures the application can always run even if no tenants are configured in Firestore.
- * Used for development, testing, and as a safety fallback.
- */
-export const HARDCODED_FALLBACK_TENANT: TenantRegistryRecord = {
-    tenant: {
-        tenantId: toTenantId('system-fallback-tenant'),
-        branding: {
-            appName: toTenantAppName(FALLBACK_APP_NAME),
-            logoUrl: toTenantLogoUrl('/logo.svg'),
-            faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-            primaryColor: toTenantPrimaryColor('#6B7280'), // Bland grey
-            secondaryColor: toTenantSecondaryColor('#4B5563'), // Bland grey
-            backgroundColor: toTenantBackgroundColor('#F9FAFB'), // Very light grey background
-            marketingFlags: {
-                showLandingPage: toShowLandingPageFlag(true),
-                showMarketingContent: toShowMarketingContentFlag(true),
-                showPricingPage: toShowPricingPageFlag(true),
-            },
-        },
-        createdAt: toISOString('2025-01-01T00:00:00.000Z'),
-        updatedAt: toISOString('2025-01-01T00:00:00.000Z'),
-    },
-    primaryDomain: null,
-    domains: [], // Remove hardcoded domains so database tenants can match
-    isDefault: toTenantDefaultFlag(true),
-};
 
 export class TenantRegistryService {
     private readonly cacheByTenantId = new Map<string, CacheEntry>();
@@ -74,9 +32,9 @@ export class TenantRegistryService {
     constructor(private readonly firestoreReader: IFirestoreReader, private readonly cacheTtlMs: number = DEFAULT_CACHE_TTL_MS) {}
 
     async resolveTenant(options: TenantResolutionOptions): Promise<TenantRequestContext> {
-        const { host, overrideTenantId, allowOverride, allowDefaultFallback } = options;
+        const { host, overrideTenantId, allowOverride } = options;
 
-        logger.info('TenantRegistryService.resolveTenant', { host, overrideTenantId, allowOverride, allowDefaultFallback });
+        logger.info('TenantRegistryService.resolveTenant', { host, overrideTenantId, allowOverride });
 
         if (overrideTenantId) {
             if (!allowOverride) {
@@ -89,10 +47,7 @@ export class TenantRegistryService {
                 return this.toResolution(record, 'override');
             }
             // If override tenant doesn't exist and fallback is not allowed, throw error
-            if (!allowDefaultFallback) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_OVERRIDE_NOT_FOUND', 'Specified tenant override does not exist');
-            }
-            // Otherwise, fall through to default tenant resolution
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_OVERRIDE_NOT_FOUND', 'Specified tenant override does not exist');
         }
 
         if (host) {
@@ -106,13 +61,11 @@ export class TenantRegistryService {
             logger.info('No tenant found for domain', { domain: normalizedHost });
         }
 
-        if (allowDefaultFallback) {
-            logger.info('Attempting to get default tenant');
-            const record = await this.getDefaultTenant();
-            if (record) {
-                logger.info('Resolved to default tenant', { tenantId: record.tenant.tenantId });
-                return this.toResolution(record, 'default');
-            }
+        logger.info('Attempting to get default tenant');
+        const record = await this.getDefaultTenant();
+        if (record) {
+            logger.info('Resolved to default tenant', { tenantId: record.tenant.tenantId });
+            return this.toResolution(record, 'default');
         }
 
         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_NOT_FOUND', 'Unable to resolve tenant for request');
@@ -187,12 +140,11 @@ export class TenantRegistryService {
                 return record;
             }
 
-            // If no default tenant found in Firestore, use hardcoded fallback
-            logger.info('No default tenant in Firestore, using hardcoded fallback');
-            return HARDCODED_FALLBACK_TENANT;
+            logger.warn('No default tenant configured in Firestore');
+            return null;
         } catch (error) {
-            logger.error('tenant-registry:getDefaultTenant failed, using hardcoded fallback', error);
-            return HARDCODED_FALLBACK_TENANT;
+            logger.error('tenant-registry:getDefaultTenant failed', error);
+            throw error;
         }
     }
 

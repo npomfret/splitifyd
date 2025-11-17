@@ -107,9 +107,19 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         res.json(buildEnvPayload());
     };
 
-    const getConfig: RequestHandler = (req, res) => {
+    const getConfig: RequestHandler = async (req, res) => {
         // Get tenant configuration from request context (set by tenant identification middleware)
-        const tenantContext = (req as any).tenant;
+        // If not present (exempt route), resolve the default tenant
+        let tenantContext = (req as any).tenant;
+
+        if (!tenantContext) {
+            tenantContext = await tenantRegistryService.resolveTenant({
+                host: null,
+                overrideTenantId: null,
+                allowOverride: false,
+            });
+        }
+
         const config = getEnhancedConfigResponse(tenantContext);
 
         // Cache config: 60s in dev for quick tenant branding updates, 5min in prod for efficiency
@@ -330,12 +340,10 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
             }
 
             // Fetch tenant configuration from registry
-            // Allow default fallback for tests where tenant may not exist in database
             const tenantRecord = await tenantRegistryService.resolveTenant({
                 host: null,
                 overrideTenantId: tenantId,
                 allowOverride: true,
-                allowDefaultFallback: true,
             });
 
             res.json({
@@ -432,12 +440,10 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
                 return;
             }
 
-            // Allow default fallback for tests where tenant may not exist in database
             const tenantRecord = await tenantRegistryService.resolveTenant({
                 host: null,
                 overrideTenantId: tenantId,
                 allowOverride: true,
-                allowDefaultFallback: true,
             });
 
             res.json({

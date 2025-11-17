@@ -4,7 +4,6 @@ import { TenantRegistryService } from '../services/tenant/TenantRegistryService'
 
 export interface TenantIdentificationConfig {
     allowOverrideHeader: () => boolean;
-    allowDefaultFallback: () => boolean;
 }
 
 const EXEMPT_ROUTES = [
@@ -20,6 +19,7 @@ const EXEMPT_PATTERNS = [
     /^\/register$/,
     /^\/test-pool\//,
     /^\/test\/user\//,
+    /^\/admin\//,
 ];
 
 class TenantIdentification {
@@ -60,7 +60,6 @@ class TenantIdentification {
             host: this.extractHost(req),
             overrideTenantId,
             allowOverride: this.config.allowOverrideHeader(),
-            allowDefaultFallback: this.config.allowDefaultFallback(),
         };
     }
 

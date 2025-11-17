@@ -53,7 +53,6 @@ describe('TenantIdentification middleware', () => {
 
         config = {
             allowOverrideHeader: vi.fn().mockReturnValue(true),
-            allowDefaultFallback: vi.fn().mockReturnValue(true)
 };
 
         request = {
@@ -147,16 +146,6 @@ describe('TenantIdentification middleware', () => {
 
             expect(registry.resolveTenant).toHaveBeenCalledWith(
                 expect.objectContaining({ allowOverride: false }),
-            );
-        });
-
-        it('honours allowDefaultFallback flag', async () => {
-            vi.mocked(config.allowDefaultFallback).mockReturnValue(false);
-
-            await runMiddleware();
-
-            expect(registry.resolveTenant).toHaveBeenCalledWith(
-                expect.objectContaining({ allowDefaultFallback: false }),
             );
         });
     });

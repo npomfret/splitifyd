@@ -6,7 +6,8 @@ import {
     toShowPricingPageFlag,
 } from '@splitifyd/shared';
 import { getTenantAwareAppConfig } from '../client-config';
-import { HARDCODED_FALLBACK_TENANT } from '../services/tenant/TenantRegistryService';
+import { ApiError } from '../utils/errors';
+import { HTTP_STATUS } from '../constants';
 import type { TenantRequestContext } from '../types/tenant';
 
 const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
@@ -29,11 +30,14 @@ const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
 };
 
 export const getEnhancedConfigResponse = (context?: TenantRequestContext): AppConfiguration => {
-    const tenant = context?.config ?? HARDCODED_FALLBACK_TENANT.tenant;
-    const effectiveTenant = cloneTenantConfig(tenant);
+    if (!context) {
+        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_NOT_FOUND', 'Tenant context is required for configuration');
+    }
+
+    const effectiveTenant = cloneTenantConfig(context.config);
     const baseConfig = getTenantAwareAppConfig(effectiveTenant);
 
-    if (context?.themeArtifact) {
+    if (context.themeArtifact) {
         return {
             ...baseConfig,
             theme: {

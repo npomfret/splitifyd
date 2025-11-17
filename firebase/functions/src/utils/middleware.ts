@@ -21,7 +21,6 @@ const tenantRegistryService = applicationBuilder.buildTenantRegistryService();
 
 const tenantIdentificationConfig: TenantIdentificationConfig = {
     allowOverrideHeader: () => !getConfig().isProduction,
-    allowDefaultFallback: () => true, // Always allow fallback to hardcoded default tenant
 };
 
 /**
