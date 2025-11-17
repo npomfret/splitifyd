@@ -172,7 +172,33 @@ await loginPage.login(email, password);
 
 const dashboardPage = new DashboardPage(page);
 await dashboardPage.verifyWelcomeMessageVisible();
-await expect(dashboardPage.getSubmitButton()).toBeEnabled();
+await dashboardPage.verifySubmitButtonEnabled();
+```
+
+**CRITICAL RULE: Public Locator Methods Are PROHIBITED**
+
+Page Objects must NOT expose public locator getter methods (e.g., `getSubmitButton()`).
+Tests must interact with Page Objects through:
+1. **Action methods** - perform operations (click, fill, navigate)
+2. **Verification methods** - assert state (verify*, await expect() internally)
+
+**Why this rule exists:**
+- Prevents tight coupling between tests and DOM structure
+- Encapsulates selector logic within Page Objects
+- Makes tests more readable and declarative
+- Allows UI changes without touching test code
+
+```typescript
+// ❌ PROHIBITED - exposing locators to tests
+export class SomePage extends BasePage {
+    getSubmitButton(): Locator {  // PUBLIC getter - WRONG!
+        return this.page.getByRole('button', { name: 'Submit' });
+    }
+}
+
+// Test incorrectly depends on DOM details
+await expect(somePage.getSubmitButton()).toBeEnabled();
+await expect(somePage.getSubmitButton()).toHaveText('Submit');
 ```
 
 **Page Object Structure:**
@@ -180,29 +206,53 @@ await expect(dashboardPage.getSubmitButton()).toBeEnabled();
 export class SomePage extends BasePage {
     readonly url = '/some-path';
 
+    // ✅ Locator getters - PROTECTED (internal use only)
+    protected getSubmitButton(): Locator {
+        return this.page.getByRole('button', { name: 'Submit' });
+    }
+
+    protected getHeading(): Locator {
+        return this.page.getByRole('heading', { name: 'Welcome' });
+    }
+
+    // ✅ Navigation
     async navigate(): Promise<void> {
         await this.page.goto(this.url);
         await this.waitForNetworkIdle();
     }
 
-    // Locator getters (synchronous)
-    getSubmitButton(): Locator {
-        return this.page.getByRole('button', { name: 'Submit' });
-    }
-
-    // Action methods (async, return next page)
+    // ✅ Action methods (async, return next page if navigation occurs)
     async submitAndNavigate(): Promise<NextPage> {
         await this.clickButton(this.getSubmitButton(), { buttonName: 'Submit' });
         await expect(this.page).toHaveURL(/\/next/);
         return new NextPage(this.page);
     }
 
-    // Verification methods
+    async clickSubmit(): Promise<void> {
+        await this.clickButton(this.getSubmitButton(), { buttonName: 'Submit' });
+    }
+
+    // ✅ Verification methods - encapsulate all assertions
     async verifyPageLoaded(): Promise<void> {
         await expect(this.getHeading()).toBeVisible();
     }
+
+    async verifySubmitButtonEnabled(): Promise<void> {
+        await expect(this.getSubmitButton()).toBeEnabled();
+    }
+
+    async verifySubmitButtonDisabled(): Promise<void> {
+        await expect(this.getSubmitButton()).toBeDisabled();
+    }
+
+    async verifySubmitButtonText(expectedText: string): Promise<void> {
+        await expect(this.getSubmitButton()).toHaveText(expectedText);
+    }
 }
 ```
+
+**Exception:** In rare cases where a single locator is used in multiple different assertions
+within the SAME test, you may create a `private` helper that returns the locator. Never `public`.
 
 ### Selector Priority
 
@@ -334,6 +384,7 @@ export class CreateGroupModalPage extends BasePage {
 - ❌ `page.waitForTimeout()` - use condition-based waiting
 - ❌ `page.setContent()` - always navigate to real pages
 - ❌ Raw selectors in tests - use Page Objects
+- ❌ **Public locator getters in Page Objects** - use protected/private + verification methods
 - ❌ Conditional logic in tests (`if/else`, `try/catch` for control flow)
 - ❌ Skipped tests (`test.skip()`)
 - ❌ Console errors (except tests specifically asserting them)
@@ -361,11 +412,14 @@ export class CreateGroupModalPage extends BasePage {
 - Write deterministic tests (single path, no "ifs" or "ors")
 - Fail fast with clear error messages
 - Use semantic selectors
+- **Make Page Object locator methods protected/private**
+- **Use verification methods (verify*) instead of exposing locators**
 
 **DON'T:**
 - Create test data manually
 - Use `waitForTimeout()` or `sleep()`
 - Use raw selectors in tests
+- **Expose public locator getters in Page Objects**
 - Write conditional test logic
 - Skip or comment out tests
 - Test non-existent features
