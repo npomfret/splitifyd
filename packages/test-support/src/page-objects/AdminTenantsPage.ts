@@ -35,91 +35,91 @@ export class AdminTenantsPage extends BasePage {
     /**
      * Page Header and Title
      */
-    getPageTitle(): Locator {
+    protected getPageTitle(): Locator {
         return this.page.locator('h1:has-text("Tenant Management")');
     }
 
-    getPageDescription(): Locator {
+    protected getPageDescription(): Locator {
         return this.page.locator('text=View and manage all tenant configurations');
     }
 
     /**
      * Tenant Count and Refresh
      */
-    getTenantCount(): Locator {
+    protected getTenantCount(): Locator {
         return this.page.locator('text=/Total tenants:/');
     }
 
-    getRefreshButton(): Locator {
+    protected getRefreshButton(): Locator {
         return this.page.locator('button:has-text("Refresh")');
     }
 
     /**
      * Loading and Error States
      */
-    getLoadingSpinner(): Locator {
+    protected getLoadingSpinner(): Locator {
         return this.page.getByTestId('tenants-loading-spinner');
     }
 
-    getErrorAlert(): Locator {
+    protected getErrorAlert(): Locator {
         return this.page.locator('[role="alert"]');
     }
 
     /**
      * Access Denied Message
      */
-    getAccessDeniedMessage(): Locator {
+    protected getAccessDeniedMessage(): Locator {
         return this.page.locator('text=/you do not have permission/i');
     }
 
     /**
      * Empty State
      */
-    getEmptyStateMessage(): Locator {
+    protected getEmptyStateMessage(): Locator {
         return this.page.locator('text=No tenants found');
     }
 
     /**
      * Tenant Cards
      */
-    getTenantCards(): Locator {
+    protected getTenantCards(): Locator {
         return this.page.locator('[data-testid="tenant-card"], .space-y-4 > div.p-6');
     }
 
-    getTenantCardByName(appName: string): Locator {
+    protected getTenantCardByName(appName: string): Locator {
         return this.page.locator(`text=${appName}`).locator('..').locator('..');
     }
 
-    getTenantCardByTenantId(tenantId: string): Locator {
+    protected getTenantCardByTenantId(tenantId: string): Locator {
         return this.page.locator(`text=${tenantId}`).locator('..').locator('..');
     }
 
     /**
      * Tenant Card Elements - Generic selectors for first card
      */
-    getFirstTenantAppName(): Locator {
+    protected getFirstTenantAppName(): Locator {
         return this.getTenantCards().first().locator('h3');
     }
 
-    getDefaultBadge(): Locator {
+    protected getDefaultBadge(): Locator {
         return this.page.locator('text=Default').first();
     }
 
     /**
      * Tenant Details Getters
      */
-    getTenantIdText(tenantId: string): Locator {
+    protected getTenantIdText(tenantId: string): Locator {
         return this.page.locator(`text=${tenantId}`);
     }
 
-    getPrimaryDomainText(domain: string): Locator {
+    protected getPrimaryDomainText(domain: string): Locator {
         return this.page.locator(`text=${domain}`);
     }
 
     /**
      * Feature Status Getters
      */
-    getFeatureStatus(featureName: string): Locator {
+    protected getFeatureStatus(featureName: string): Locator {
         return this.page.locator(`text=${featureName}`).locator('..').locator('span').last();
     }
 
@@ -191,6 +191,55 @@ export class AdminTenantsPage extends BasePage {
         if (errorMessage) {
             await expect(alert).toContainText(errorMessage);
         }
+    }
+
+    async verifyPageTitleText(expectedText: string): Promise<void> {
+        await expect(this.getPageTitle()).toHaveText(expectedText);
+    }
+
+    async verifyPageDescriptionContainsText(text: string): Promise<void> {
+        await expect(this.getPageDescription()).toContainText(text);
+    }
+
+    async verifyTenantCountVisible(): Promise<void> {
+        await expect(this.getTenantCount()).toBeVisible();
+    }
+
+    async verifyTenantCountContainsText(text: string): Promise<void> {
+        await expect(this.getTenantCount()).toContainText(text);
+    }
+
+    async verifyRefreshButtonVisible(): Promise<void> {
+        await expect(this.getRefreshButton()).toBeVisible();
+    }
+
+    async verifyRefreshButtonEnabled(): Promise<void> {
+        await expect(this.getRefreshButton()).toBeEnabled();
+    }
+
+    async getDefaultBadgeCount(): Promise<number> {
+        return await this.getDefaultBadge().count();
+    }
+
+    /**
+     * Get first tenant card text content
+     */
+    async getFirstTenantCardText(): Promise<string | null> {
+        return await this.getTenantCards().first().textContent();
+    }
+
+    /**
+     * Verify first tenant app name is visible
+     */
+    async verifyFirstTenantAppNameVisible(): Promise<void> {
+        await expect(this.getFirstTenantAppName()).toBeVisible();
+    }
+
+    /**
+     * Get first tenant app name text
+     */
+    async getFirstTenantAppNameText(): Promise<string | null> {
+        return await this.getFirstTenantAppName().textContent();
     }
 
     /**

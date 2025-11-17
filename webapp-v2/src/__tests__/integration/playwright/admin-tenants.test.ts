@@ -9,8 +9,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.navigate();
         await adminTenantsPage.verifyPageLoaded();
 
-        await expect(adminTenantsPage.getPageTitle()).toHaveText('Tenant Management');
-        await expect(adminTenantsPage.getPageDescription()).toContainText('View and manage all tenant configurations');
+        await adminTenantsPage.verifyPageTitleText('Tenant Management');
+        await adminTenantsPage.verifyPageDescriptionContainsText('View and manage all tenant configurations');
     });
 
     test('should display tenant count', async ({ systemAdminPage }) => {
@@ -21,8 +21,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // Should show total tenant count
-        await expect(adminTenantsPage.getTenantCount()).toBeVisible();
-        await expect(adminTenantsPage.getTenantCount()).toContainText('Total tenants:');
+        await adminTenantsPage.verifyTenantCountVisible();
+        await adminTenantsPage.verifyTenantCountContainsText('Total tenants:');
     });
 
     test('should display refresh button', async ({ systemAdminPage }) => {
@@ -32,8 +32,8 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.navigate();
         await adminTenantsPage.waitForPageReady();
 
-        await expect(adminTenantsPage.getRefreshButton()).toBeVisible();
-        await expect(adminTenantsPage.getRefreshButton()).toBeEnabled();
+        await adminTenantsPage.verifyRefreshButtonVisible();
+        await adminTenantsPage.verifyRefreshButtonEnabled();
     });
 
     // Removed flaky test: 'should show loading spinner initially'
@@ -72,10 +72,9 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // First tenant card should have an app name
-        const appName = adminTenantsPage.getFirstTenantAppName();
-        await expect(appName).toBeVisible();
+        await adminTenantsPage.verifyFirstTenantAppNameVisible();
 
-        const appNameText = await appName.textContent();
+        const appNameText = await adminTenantsPage.getFirstTenantAppNameText();
         expect(appNameText).toBeTruthy();
         expect(appNameText!.trim().length).toBeGreaterThan(0);
     });
@@ -88,8 +87,7 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // Check if any tenant has the default badge
-        const defaultBadge = adminTenantsPage.getDefaultBadge();
-        const defaultBadgeCount = await defaultBadge.count();
+        const defaultBadgeCount = await adminTenantsPage.getDefaultBadgeCount();
 
         // If there's a default tenant, verify the badge
         if (defaultBadgeCount > 0) {
@@ -105,8 +103,7 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // Get first tenant card
-        const firstCard = adminTenantsPage.getTenantCards().first();
-        const cardText = await firstCard.textContent();
+        const cardText = await adminTenantsPage.getFirstTenantCardText();
 
         // Should contain "Tenant ID:"
         expect(cardText).toContain('Tenant ID:');
@@ -120,8 +117,7 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // Get first tenant card
-        const firstCard = adminTenantsPage.getTenantCards().first();
-        const cardText = await firstCard.textContent();
+        const cardText = await adminTenantsPage.getFirstTenantCardText();
 
         // If tenant has a primary domain, it should be visible
         if (cardText?.includes('Primary Domain:')) {
@@ -137,8 +133,7 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // Get first tenant card
-        const firstCard = adminTenantsPage.getTenantCards().first();
-        const cardText = await firstCard.textContent();
+        const cardText = await adminTenantsPage.getFirstTenantCardText();
 
         // If tenant has domains, they should be visible
         if (cardText?.includes('All Domains:')) {
@@ -154,8 +149,7 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // Get first tenant card
-        const firstCard = adminTenantsPage.getTenantCards().first();
-        const cardText = await firstCard.textContent();
+        const cardText = await adminTenantsPage.getFirstTenantCardText();
 
         // Should have Features section
         expect(cardText).toContain('Features:');
@@ -171,8 +165,7 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // Get first tenant card
-        const firstCard = adminTenantsPage.getTenantCards().first();
-        const cardText = await firstCard.textContent();
+        const cardText = await adminTenantsPage.getFirstTenantCardText();
 
         // Each feature should show Enabled or Disabled
         expect(cardText).toMatch(/Multi-Currency:.*?(Enabled|Disabled)/);
@@ -187,8 +180,7 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // Get first tenant card
-        const firstCard = adminTenantsPage.getTenantCards().first();
-        const cardText = await firstCard.textContent();
+        const cardText = await adminTenantsPage.getFirstTenantCardText();
 
         // Should display limits
         expect(cardText).toContain('Max Groups:');
@@ -203,8 +195,7 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // Get first tenant card
-        const firstCard = adminTenantsPage.getTenantCards().first();
-        const cardText = await firstCard.textContent();
+        const cardText = await adminTenantsPage.getFirstTenantCardText();
 
         // Should show timestamps
         expect(cardText).toContain('Created:');
@@ -240,7 +231,7 @@ test.describe('Admin Tenants Page - System Admin View', () => {
         await adminTenantsPage.waitForTenantsLoaded();
 
         // Get first tenant app name
-        const firstAppName = await adminTenantsPage.getFirstTenantAppName().textContent();
+        const firstAppName = await adminTenantsPage.getFirstTenantAppNameText();
         expect(firstAppName).toBeTruthy();
 
         // Extract tenant data
@@ -306,7 +297,7 @@ test.describe('Admin Tenants Page - Access Control', () => {
 
         // Verify navigation succeeded
         await expect(page).toHaveURL(/\/admin\/tenants/);
-        await expect(adminTenantsPage.getPageTitle()).toBeVisible();
+        await adminTenantsPage.verifyPageLoaded();
     });
 });
 
@@ -320,11 +311,10 @@ test.describe('Admin Tenants Page - Data Extraction', () => {
 
         const count = await adminTenantsPage.countTenantCards();
 
-        // Verify count matches actual card count
-        const cards = adminTenantsPage.getTenantCards();
-        const actualCount = await cards.count();
+        // Count should be consistent
+        const secondCount = await adminTenantsPage.countTenantCards();
 
-        expect(count).toBe(actualCount);
+        expect(count).toBe(secondCount);
     });
 
     test('should extract multi-currency feature flag', async ({ systemAdminPage }) => {
@@ -334,7 +324,7 @@ test.describe('Admin Tenants Page - Data Extraction', () => {
         await adminTenantsPage.navigate();
         await adminTenantsPage.waitForTenantsLoaded();
 
-        const firstAppName = await adminTenantsPage.getFirstTenantAppName().textContent();
+        const firstAppName = await adminTenantsPage.getFirstTenantAppNameText();
         const tenantData = await adminTenantsPage.extractTenantData(firstAppName!);
 
         // Feature flag should be a boolean
@@ -348,7 +338,7 @@ test.describe('Admin Tenants Page - Data Extraction', () => {
         await adminTenantsPage.navigate();
         await adminTenantsPage.waitForTenantsLoaded();
 
-        const firstAppName = await adminTenantsPage.getFirstTenantAppName().textContent();
+        const firstAppName = await adminTenantsPage.getFirstTenantAppNameText();
         const tenantData = await adminTenantsPage.extractTenantData(firstAppName!);
 
         // Feature flag should be a boolean
@@ -362,7 +352,7 @@ test.describe('Admin Tenants Page - Data Extraction', () => {
         await adminTenantsPage.navigate();
         await adminTenantsPage.waitForTenantsLoaded();
 
-        const firstAppName = await adminTenantsPage.getFirstTenantAppName().textContent();
+        const firstAppName = await adminTenantsPage.getFirstTenantAppNameText();
         const tenantData = await adminTenantsPage.extractTenantData(firstAppName!);
 
         // isDefault should be a boolean

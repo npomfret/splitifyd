@@ -33,11 +33,11 @@ export class ExpenseDetailPage extends BasePage {
         return this.page.getByTestId('expense-metadata-card');
     }
 
-    getErrorCard(): Locator {
+    protected getErrorCard(): Locator {
         return this.page.getByTestId('expense-error-card');
     }
 
-    getHeader(): Locator {
+    protected getHeader(): Locator {
         return this.page.getByTestId('expense-header');
     }
 
@@ -46,89 +46,89 @@ export class ExpenseDetailPage extends BasePage {
     /**
      * Get the edit button for the expense
      */
-    getEditButton(): Locator {
+    protected getEditButton(): Locator {
         return this.page.getByRole('button', { name: /edit/i });
     }
 
     /**
      * Get the copy button for the expense
      */
-    getCopyButton(): Locator {
+    protected getCopyButton(): Locator {
         return this.page.getByRole('button', { name: /copy/i });
     }
 
     /**
      * Get the delete button for the expense
      */
-    getDeleteButton(): Locator {
+    protected getDeleteButton(): Locator {
         return this.page.getByRole('button', { name: /delete/i });
     }
 
     /**
      * Get the discussion section (contains comments)
      */
-    getDiscussionSection(): Locator {
+    protected getDiscussionSection(): Locator {
         return this.getCommentsCard().locator('[data-testid="comments-section"]');
     }
 
     /**
      * Get the comment input textarea
      */
-    getCommentInput(): Locator {
+    protected getCommentInput(): Locator {
         return this.getDiscussionSection().getByRole('textbox', { name: /comment text/i });
     }
 
     /**
      * Get the send comment button
      */
-    getSendCommentButton(): Locator {
+    protected getSendCommentButton(): Locator {
         return this.getDiscussionSection().getByRole('button', { name: /send comment/i });
     }
 
     /**
      * Get all comment items in the comments list
      */
-    getCommentItems(): Locator {
+    protected getCommentItems(): Locator {
         return this.getDiscussionSection().locator('[data-testid="comment-item"]');
     }
 
     /**
      * Get a specific comment by its text content
      */
-    getCommentByText(text: string): Locator {
+    protected getCommentByText(text: string): Locator {
         return this.getDiscussionSection().getByText(text);
     }
 
     /**
      * Get the lock warning banner for locked expenses
      */
-    getLockWarningBanner(): Locator {
+    protected getLockWarningBanner(): Locator {
         return this.page.getByTestId('expense-lock-warning');
     }
 
     /**
      * Get the confirmation dialog
      */
-    getConfirmationDialog(): Locator {
+    protected getConfirmationDialog(): Locator {
         return this.page.getByTestId('confirmation-dialog');
     }
 
     /**
      * Get the expense amount display element
      */
-    getExpenseAmountElement(): Locator {
+    protected getExpenseAmountElement(): Locator {
         return this.page.getByTestId('expense-amount-section');
     }
 
-    getSplitBreakdownCard(): Locator {
+    protected getSplitBreakdownCard(): Locator {
         return this.getSplitCard();
     }
 
-    getReceiptSection(): Locator {
+    protected getReceiptSection(): Locator {
         return this.getReceiptCard();
     }
 
-    getMetadataSection(): Locator {
+    protected getMetadataSection(): Locator {
         return this.getMetadataCard();
     }
 
@@ -380,6 +380,13 @@ export class ExpenseDetailPage extends BasePage {
 
         // Verify banner contains detailed explanation
         await expect(warningBanner).toContainText('One or more participants have left the group');
+    }
+
+    /**
+     * Verify that the lock warning banner is NOT displayed
+     */
+    async verifyLockWarningBannerNotVisible(): Promise<void> {
+        await expect(this.getLockWarningBanner()).not.toBeVisible();
     }
 
     /**

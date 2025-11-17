@@ -26,7 +26,7 @@ export class LoginPage extends BasePage {
     /**
      * Main login form container - identified by the form element within the login layout
      */
-    getLoginFormContainer(): Locator {
+    protected getLoginFormContainer(): Locator {
         // Find the form that contains login-specific elements
         return this.page.locator('form').filter({
             has: this.page.locator('input[type="email"]'),
@@ -37,7 +37,7 @@ export class LoginPage extends BasePage {
      * Error message container within the login form
      * ErrorMessage component renders with role="alert"
      */
-    getErrorContainer(): Locator {
+    protected getErrorContainer(): Locator {
         return this.page.getByRole('alert');
     }
 
@@ -48,21 +48,21 @@ export class LoginPage extends BasePage {
     /**
      * Email input field within the login form
      */
-    getEmailInput(): Locator {
+    protected getEmailInput(): Locator {
         return this.getLoginFormContainer().locator('input[type="email"]');
     }
 
     /**
      * Password input field within the login form
      */
-    getPasswordInput(): Locator {
+    protected getPasswordInput(): Locator {
         return this.getLoginFormContainer().locator('input[type="password"]');
     }
 
     /**
      * Remember me checkbox within the login form
      */
-    getRememberMeCheckbox(): Locator {
+    protected getRememberMeCheckbox(): Locator {
         return this.getLoginFormContainer().getByTestId('remember-me-checkbox');
     }
 
@@ -73,21 +73,21 @@ export class LoginPage extends BasePage {
     /**
      * Primary submit button (Log In)
      */
-    getSubmitButton(): Locator {
+    protected getSubmitButton(): Locator {
         return this.getLoginFormContainer().getByRole('button', { name: translation.loginPage.submitButton });
     }
 
     /**
      * Forgot password link/button
      */
-    getForgotPasswordButton(): Locator {
+    protected getForgotPasswordButton(): Locator {
         return this.getLoginFormContainer().getByRole('button', { name: /forgot.?password/i });
     }
 
     /**
      * Sign up button/link to navigate to register page
      */
-    getSignUpButton(): Locator {
+    protected getSignUpButton(): Locator {
         return this.getLoginFormContainer().getByTestId('loginpage-signup-button');
     }
 
@@ -95,7 +95,7 @@ export class LoginPage extends BasePage {
      * Sign in heading - located in the Card parent (two levels up from form)
      * After AuthLayout migration to semantic tokens, the heading is in the Card, which is the form's grandparent
      */
-    getSignInHeading(): Locator {
+    protected getSignInHeading(): Locator {
         return this.getLoginFormContainer().locator('../..').getByRole('heading', { name: translation.loginPage.title });
     }
 

@@ -41,7 +41,7 @@ export class CreateGroupModalPage extends BasePage {
     /**
      * Modal dialog container - identified by dialog role and title
      */
-    getModalContainer(): Locator {
+    protected getModalContainer(): Locator {
         return this.page.locator('[role="dialog"]').filter({
             has: this.page.getByRole('heading', { name: translation.createGroupModal.title }),
         });
@@ -50,7 +50,7 @@ export class CreateGroupModalPage extends BasePage {
     /**
      * Modal backdrop (for click-outside-to-close detection)
      */
-    getModalBackdrop(): Locator {
+    protected getModalBackdrop(): Locator {
         return this.page.locator('[role="presentation"]').filter({
             has: this.page.locator('[role="dialog"]'),
         });
@@ -63,7 +63,7 @@ export class CreateGroupModalPage extends BasePage {
     /**
      * Modal title heading
      */
-    getModalTitle(): Locator {
+    protected getModalTitle(): Locator {
         return this.getModalContainer().getByRole('heading', { name: translation.createGroupModal.title });
     }
 
@@ -74,39 +74,40 @@ export class CreateGroupModalPage extends BasePage {
     /**
      * Group name input field
      */
-    getGroupNameInput(): Locator {
+    private getGroupNameInputInternal(): Locator {
         return this.getModalContainer().locator('input[name="name"]');
     }
 
-    getGroupDisplayNameInput(): Locator {
+    private getGroupDisplayNameInputInternal(): Locator {
         return this.getModalContainer().getByTestId('group-display-name-input');
     }
 
     /**
      * Group description textarea field
      */
-    getGroupDescriptionInput(): Locator {
+    private getGroupDescriptionInputInternal(): Locator {
         return this.getModalContainer().getByTestId('group-description-input');
     }
+
 
     /**
      * Group name help text
      */
-    getGroupNameHelpText(): Locator {
+    protected getGroupNameHelpText(): Locator {
         return this.getModalContainer().getByText(translation.createGroupModal.groupNameHelpText);
     }
 
     /**
      * Group description help text
      */
-    getGroupDescriptionHelpText(): Locator {
+    protected getGroupDescriptionHelpText(): Locator {
         return this.getModalContainer().getByText(translation.createGroupModal.groupDescriptionHelpText);
     }
 
     /**
      * Group display name help text
      */
-    getGroupDisplayNameHelpText(): Locator {
+    protected getGroupDisplayNameHelpText(): Locator {
         return this.getModalContainer().getByText(translation.createGroupModal.groupDisplayNameHelpText);
     }
 
@@ -117,21 +118,21 @@ export class CreateGroupModalPage extends BasePage {
     /**
      * Submit button (Create Group)
      */
-    getSubmitButton(): Locator {
+    protected getSubmitButton(): Locator {
         return this.getModalContainer().getByRole('button', { name: translation.createGroupModal.submitButton });
     }
 
     /**
      * Cancel button
      */
-    getCancelButton(): Locator {
+    protected getCancelButton(): Locator {
         return this.getModalContainer().getByRole('button', { name: translation.createGroupModal.cancelButton });
     }
 
     /**
      * Close button (X icon in header)
      */
-    getCloseButton(): Locator {
+    protected getCloseButton(): Locator {
         // The close button is in the header and has an SVG icon
         return this
             .getModalContainer()
@@ -149,14 +150,14 @@ export class CreateGroupModalPage extends BasePage {
     /**
      * Error message container within the modal (for API/server errors)
      */
-    getErrorContainer(): Locator {
+    protected getErrorContainer(): Locator {
         return this.getModalContainer().getByTestId('create-group-error-message');
     }
 
     /**
      * Validation error message for group name field
      */
-    getValidationError(): Locator {
+    protected getValidationError(): Locator {
         // Input component shows error with role="alert" adjacent to input
         return this.getModalContainer().locator('[role="alert"]').filter({
             hasText: /.+/, // Must have some text
@@ -168,7 +169,7 @@ export class CreateGroupModalPage extends BasePage {
      * scanning common alert patterns inside the modal. Useful when network
      * failures render messages outside the standard container.
      */
-    getErrorMessage(pattern?: string | RegExp): Locator {
+    protected getErrorMessage(pattern?: string | RegExp): Locator {
         const allErrors = this.page.locator(
             [
                 '[data-testid="create-group-error-message"]',
@@ -198,9 +199,9 @@ export class CreateGroupModalPage extends BasePage {
 
         // Wait for inputs to be editable (not just visible)
         // This ensures the modal is fully ready and stable
-        await expect(this.getGroupNameInput()).toBeEditable({ timeout });
-        await expect(this.getGroupDisplayNameInput()).toBeEditable({ timeout });
-        await expect(this.getGroupDescriptionInput()).toBeEditable({ timeout });
+        await expect(this.getGroupNameInputInternal()).toBeEditable({ timeout });
+        await expect(this.getGroupDisplayNameInputInternal()).toBeEditable({ timeout });
+        await expect(this.getGroupDescriptionInputInternal()).toBeEditable({ timeout });
 
         // Submit button should be visible and attached to DOM
         await expect(this.getSubmitButton()).toBeAttached({ timeout });
@@ -235,7 +236,7 @@ export class CreateGroupModalPage extends BasePage {
         }
 
         // Verify input is visible and enabled
-        const input = this.getGroupNameInput();
+        const input = this.getGroupNameInputInternal();
         try {
             await expect(input).toBeVisible({ timeout: 2000 });
             await expect(input).toBeEnabled({ timeout: 1000 });
@@ -272,7 +273,7 @@ export class CreateGroupModalPage extends BasePage {
             );
         }
 
-        const input = this.getGroupDescriptionInput();
+        const input = this.getGroupDescriptionInputInternal();
         await expect(input).toBeVisible();
         await expect(input).toBeEnabled();
         await input.click();
@@ -282,7 +283,7 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     async fillGroupDisplayName(displayName: string): Promise<void> {
-        const input = this.getGroupDisplayNameInput();
+        const input = this.getGroupDisplayNameInputInternal();
         await expect(input).toBeVisible();
         await expect(input).toBeEnabled();
         await input.click();
@@ -379,14 +380,37 @@ export class CreateGroupModalPage extends BasePage {
     // ============================================================================
 
     /**
+     * Check if modal is currently visible (non-throwing)
+     */
+    async isModalVisible(): Promise<boolean> {
+        return await this.getModalContainer().isVisible().catch(() => false);
+    }
+
+    /**
+     * Verify modal is visible
+     */
+    async verifyModalVisible(options?: { timeout?: number }): Promise<void> {
+        const { timeout } = options || {};
+        await expect(this.getModalContainer()).toBeVisible(timeout ? { timeout } : {});
+    }
+
+    /**
+     * Verify modal is not visible
+     */
+    async verifyModalNotVisible(options?: { timeout?: number }): Promise<void> {
+        const { timeout } = options || {};
+        await expect(this.getModalContainer()).not.toBeVisible(timeout ? { timeout } : {});
+    }
+
+    /**
      * Verify modal is open with correct initial state
      */
     async verifyModalOpen(): Promise<void> {
         await expect(this.getModalContainer()).toBeVisible();
         await expect(this.getModalTitle()).toBeVisible();
-        await expect(this.getGroupNameInput()).toBeVisible();
-        await expect(this.getGroupDisplayNameInput()).toBeVisible();
-        await expect(this.getGroupDescriptionInput()).toBeVisible();
+        await expect(this.getGroupNameInputInternal()).toBeVisible();
+        await expect(this.getGroupDisplayNameInputInternal()).toBeVisible();
+        await expect(this.getGroupDescriptionInputInternal()).toBeVisible();
         await expect(this.getSubmitButton()).toBeVisible();
         await expect(this.getCancelButton()).toBeVisible();
         await expect(this.getCloseButton()).toBeVisible();
@@ -403,10 +427,31 @@ export class CreateGroupModalPage extends BasePage {
      * Verify form is in initial empty state
      */
     async verifyFormEmpty(): Promise<void> {
-        await expect(this.getGroupNameInput()).toHaveValue('');
-        await expect(this.getGroupDisplayNameInput()).toBeVisible();
-        await expect(this.getGroupDescriptionInput()).toHaveValue('');
+        await expect(this.getGroupNameInputInternal()).toHaveValue('');
+        await expect(this.getGroupDisplayNameInputInternal()).toBeVisible();
+        await expect(this.getGroupDescriptionInputInternal()).toHaveValue('');
         await expect(this.getSubmitButton()).toBeDisabled();
+    }
+
+    /**
+     * Verify group name input has specific value
+     */
+    async verifyGroupNameValue(expectedValue: string): Promise<void> {
+        await expect(this.getGroupNameInputInternal()).toHaveValue(expectedValue);
+    }
+
+    /**
+     * Verify group display name input has specific value
+     */
+    async verifyGroupDisplayNameValue(expectedValue: string): Promise<void> {
+        await expect(this.getGroupDisplayNameInputInternal()).toHaveValue(expectedValue);
+    }
+
+    /**
+     * Verify group description input has specific value
+     */
+    async verifyGroupDescriptionValue(expectedValue: string): Promise<void> {
+        await expect(this.getGroupDescriptionInputInternal()).toHaveValue(expectedValue);
     }
 
     /**

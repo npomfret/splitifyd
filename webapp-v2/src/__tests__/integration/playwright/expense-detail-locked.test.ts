@@ -49,17 +49,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
 
         // Verify lock warning banner is displayed using page object
         const expenseDetailPage = new ExpenseDetailPage(page);
-        const warningBanner = expenseDetailPage.getLockWarningBanner();
-        await expect(warningBanner).toBeVisible();
-
-        // Verify warning banner contains the emoji
-        await expect(warningBanner).toContainText('⚠️');
-
-        // Verify warning banner contains the main message
-        await expect(warningBanner).toContainText(translationEn.pages.expenseDetailPage.cannotEdit);
-
-        // Verify warning banner contains the detailed message
-        await expect(warningBanner).toContainText(translationEn.pages.expenseDetailPage.containsDepartedMembers);
+        await expenseDetailPage.verifyLockWarningBanner();
     });
 
     test('should disable edit button when expense is locked', async ({ authenticatedPage }) => {
@@ -157,8 +147,7 @@ test.describe('Expense Detail - Locked Expense UI', () => {
 
         // Verify lock warning banner is NOT displayed using page object
         const expenseDetailPage = new ExpenseDetailPage(page);
-        const warningBanner = expenseDetailPage.getLockWarningBanner();
-        await expect(warningBanner).not.toBeVisible();
+        await expenseDetailPage.verifyLockWarningBannerNotVisible();
 
         // Find the edit button
         const editButton = page.getByRole('button', { name: translationEn.expenseComponents.expenseActions.edit });

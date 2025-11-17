@@ -42,7 +42,7 @@ export class ShareGroupModalPage extends BasePage {
     /**
      * Modal container
      */
-    getModalContainer(): Locator {
+    protected getModalContainer(): Locator {
         return this.page.locator('[role="dialog"]').filter({
             has: this.page.locator('#share-modal-title'),
         });
@@ -51,7 +51,7 @@ export class ShareGroupModalPage extends BasePage {
     /**
      * Modal backdrop
      */
-    getModalBackdrop(): Locator {
+    protected getModalBackdrop(): Locator {
         return this.page.locator('[role="presentation"]').filter({
             has: this.page.locator('[role="dialog"]'),
         });
@@ -60,7 +60,7 @@ export class ShareGroupModalPage extends BasePage {
     /**
      * Toast notification
      */
-    getToastNotification(): Locator {
+    protected getToastNotification(): Locator {
         return this.page.getByTestId('share-link-toast');
     }
 
@@ -71,49 +71,49 @@ export class ShareGroupModalPage extends BasePage {
     /**
      * Share link input field
      */
-    getShareLinkInput(): Locator {
+    protected getShareLinkInput(): Locator {
         return this.getModalContainer().getByTestId('share-link-input');
     }
 
     /**
      * Copy link button
      */
-    getCopyLinkButton(): Locator {
+    protected getCopyLinkButton(): Locator {
         return this.getModalContainer().getByTestId('copy-link-button');
     }
 
     /**
      * Generate new link button
      */
-    getGenerateNewLinkButton(): Locator {
+    protected getGenerateNewLinkButton(): Locator {
         return this.getModalContainer().getByTestId('generate-new-link-button');
     }
 
     /**
      * Close button (X icon)
      */
-    getCloseButton(): Locator {
+    protected getCloseButton(): Locator {
         return this.getModalContainer().getByTestId('close-share-modal-button');
     }
 
     /**
      * QR code canvas element
      */
-    getQRCode(): Locator {
+    protected getQRCode(): Locator {
         return this.getModalContainer().locator('canvas');
     }
 
     /**
      * Loading spinner
      */
-    getLoadingSpinner(): Locator {
+    protected getLoadingSpinner(): Locator {
         return this.getModalContainer().getByTestId('loading-spinner');
     }
 
     /**
      * Error message
      */
-    getErrorMessage(): Locator {
+    protected getErrorMessage(): Locator {
         return this.getModalContainer().getByTestId('share-group-error-message');
     }
 
@@ -187,7 +187,7 @@ export class ShareGroupModalPage extends BasePage {
         await this.clickButton(button, { buttonName: translation.shareGroupModal.generateNew });
     }
 
-    getExpirationOption(optionValue: '15m' | '1h' | '1d' | '5d'): Locator {
+    protected getExpirationOption(optionValue: '15m' | '1h' | '1d' | '5d'): Locator {
         return this.getModalContainer().getByTestId(`share-link-expiration-${optionValue}`);
     }
 
@@ -261,6 +261,13 @@ export class ShareGroupModalPage extends BasePage {
     async closeModal(): Promise<void> {
         await this.clickClose();
         await this.waitForModalToClose();
+    }
+
+    /**
+     * Verify modal is not visible
+     */
+    async verifyModalNotVisible(): Promise<void> {
+        await expect(this.getModalContainer()).not.toBeVisible();
     }
 
     /**

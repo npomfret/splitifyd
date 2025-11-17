@@ -14,15 +14,15 @@ export class HeaderPage extends BasePage {
     /**
      * User Menu Locators
      */
-    getUserMenuButton(): Locator {
+    protected getUserMenuButton(): Locator {
         return this.page.locator('[data-testid="user-menu-button"]');
     }
 
-    getUserDropdownMenu(): Locator {
+    protected getUserDropdownMenu(): Locator {
         return this.page.locator('[data-testid="user-dropdown-menu"]');
     }
 
-    getDashboardLink(): Locator {
+    protected getDashboardLink(): Locator {
         return this.page.locator('[data-testid="user-menu-dashboard-link"]');
     }
 

@@ -34,8 +34,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifyFormEmpty();
         await createGroupModal.verifyHelpTextDisplayed();
 
-        const displayNameInput = createGroupModal.getGroupDisplayNameInput();
-        await expect(displayNameInput).toHaveValue(user.displayName ?? '');
+        await createGroupModal.verifyGroupDisplayNameValue(user.displayName ?? '');
     });
 
     const formValidationCases = [
@@ -98,8 +97,8 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.fillGroupForm('Weekend Trip', 'Our annual hiking trip expenses');
 
         // Verify values
-        await expect(createGroupModal.getGroupNameInput()).toHaveValue('Weekend Trip');
-        await expect(createGroupModal.getGroupDescriptionInput()).toHaveValue('Our annual hiking trip expenses');
+        await createGroupModal.verifyGroupNameValue('Weekend Trip');
+        await createGroupModal.verifyGroupDescriptionValue('Our annual hiking trip expenses');
 
         // Submit should be enabled
         await createGroupModal.verifySubmitButtonState(true);
@@ -172,7 +171,7 @@ test.describe('Dashboard Create Group Functionality', () => {
         const createGroupModal2 = await dashboardPage.clickCreateGroup();
         await createGroupModal2.verifyModalOpen();
         await createGroupModal2.verifyFormEmpty();
-        await expect(createGroupModal2.getGroupDisplayNameInput()).toHaveValue(user.displayName ?? '');
+        await createGroupModal2.verifyGroupDisplayNameValue(user.displayName ?? '');
         await createGroupModal2.verifyNoValidationError();
     });
 
@@ -227,8 +226,8 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.fillGroupName('Quick Group');
 
         // Verify name is filled and description is empty
-        await expect(createGroupModal.getGroupNameInput()).toHaveValue('Quick Group');
-        await expect(createGroupModal.getGroupDescriptionInput()).toHaveValue('');
+        await createGroupModal.verifyGroupNameValue('Quick Group');
+        await createGroupModal.verifyGroupDescriptionValue('');
 
         // Submit should be enabled (description is optional)
         await createGroupModal.verifySubmitButtonState(true);
@@ -259,13 +258,13 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.fillGroupDescription('Beach vacation expenses');
 
         // Verify state persists
-        await expect(createGroupModal.getGroupNameInput()).toHaveValue('Summer Trip');
-        await expect(createGroupModal.getGroupDescriptionInput()).toHaveValue('Beach vacation expenses');
+        await createGroupModal.verifyGroupNameValue('Summer Trip');
+        await createGroupModal.verifyGroupDescriptionValue('Beach vacation expenses');
         await createGroupModal.verifySubmitButtonState(true);
 
         // State should persist
-        await expect(createGroupModal.getGroupNameInput()).toHaveValue('Summer Trip');
-        await expect(createGroupModal.getGroupDescriptionInput()).toHaveValue('Beach vacation expenses');
+        await createGroupModal.verifyGroupNameValue('Summer Trip');
+        await createGroupModal.verifyGroupDescriptionValue('Beach vacation expenses');
     });
 
     test('should handle multiple field updates correctly', async ({ authenticatedPage }) => {
@@ -293,19 +292,19 @@ test.describe('Dashboard Create Group Functionality', () => {
         await createGroupModal.verifySubmitButtonState(true);
 
         await createGroupModal.fillGroupName('Second Name');
-        await expect(createGroupModal.getGroupNameInput()).toHaveValue('Second Name');
+        await createGroupModal.verifyGroupNameValue('Second Name');
         await createGroupModal.verifySubmitButtonState(true);
 
         // Update description multiple times
         await createGroupModal.fillGroupDescription('First desc');
-        await expect(createGroupModal.getGroupDescriptionInput()).toHaveValue('First desc');
+        await createGroupModal.verifyGroupDescriptionValue('First desc');
 
         await createGroupModal.fillGroupDescription('Updated description');
-        await expect(createGroupModal.getGroupDescriptionInput()).toHaveValue('Updated description');
+        await createGroupModal.verifyGroupDescriptionValue('Updated description');
 
         // Final values should be latest
-        await expect(createGroupModal.getGroupNameInput()).toHaveValue('Second Name');
-        await expect(createGroupModal.getGroupDescriptionInput()).toHaveValue('Updated description');
+        await createGroupModal.verifyGroupNameValue('Second Name');
+        await createGroupModal.verifyGroupDescriptionValue('Updated description');
     });
 });
 

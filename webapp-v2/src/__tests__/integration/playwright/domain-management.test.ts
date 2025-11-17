@@ -233,7 +233,7 @@ test.describe('Domain Management Page - Add Domain Form', () => {
         await domainPage.fillNewDomain('newdomain.com');
 
         // Verify input value
-        await expect(domainPage.getNewDomainInput()).toHaveValue('newdomain.com');
+        await domainPage.verifyNewDomainInputValue('newdomain.com');
     });
 });
 
@@ -389,12 +389,11 @@ test.describe('Domain Management Page - DNS Instructions', () => {
         await domainPage.waitForPageReady();
 
         // DNS instructions should be visible
-        await expect(domainPage.getDnsInstructions()).toBeVisible();
+        await domainPage.verifyDnsInstructionsVisible();
 
         // Should show CNAME details within DNS instructions
-        const dnsSection = domainPage.getDnsInstructions();
-        await expect(dnsSection.locator('text=/CNAME/i').first()).toBeVisible();
-        await expect(dnsSection.locator('text=/localhost/i')).toBeVisible(); // primary domain in DNS value
+        await domainPage.verifyDnsInstructionsShowsCname();
+        await domainPage.verifyDnsInstructionsShowsPrimaryDomain();
     });
 
     test('should have copy DNS button', async ({ pageWithLogging: page }) => {
@@ -403,6 +402,6 @@ test.describe('Domain Management Page - DNS Instructions', () => {
         await domainPage.waitForPageReady();
 
         // Copy button should be visible
-        await expect(domainPage.getCopyDnsButton()).toBeVisible();
+        await domainPage.verifyCopyDnsButtonVisible();
     });
 });

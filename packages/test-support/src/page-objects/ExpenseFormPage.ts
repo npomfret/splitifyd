@@ -45,7 +45,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Page heading (Add Expense / Edit Expense / Copy Expense)
      */
-    getPageHeading(): Locator {
+    protected getPageHeading(): Locator {
         return this.page.getByRole('heading', { name: /add expense|edit expense|copy expense/i });
     }
 
@@ -131,42 +131,42 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Equal split container - find by the visible instruction text, then get parent
      */
-    getEqualSplitContainer(): Locator {
+    protected getEqualSplitContainer(): Locator {
         return this.page.getByText(/each person pays/i).locator('..');
     }
 
     /**
      * "Each person pays" instruction text for equal splits
      */
-    getEqualSplitInstructionText(): Locator {
+    protected getEqualSplitInstructionText(): Locator {
         return this.page.getByText(/each person pays/i);
     }
 
     /**
      * Exact split container - find by the visible instruction text, then get parent
      */
-    getExactSplitContainer(): Locator {
+    protected getExactSplitContainer(): Locator {
         return this.page.getByText(/enter exact amounts for each person/i).locator('..');
     }
 
     /**
      * "Enter exact amounts for each person:" instruction text for exact splits
      */
-    getExactSplitInstructionText(): Locator {
+    protected getExactSplitInstructionText(): Locator {
         return this.page.getByText(/enter exact amounts for each person/i);
     }
 
     /**
      * All split amount inputs for EXACT split type (scoped to exact split container)
      */
-    getExactSplitInputs(): Locator {
+    protected getExactSplitInputs(): Locator {
         return this.getExactSplitContainer().locator('input[type="text"][inputmode="decimal"]');
     }
 
     /**
      * Total text within exact split container (scoped to avoid false matches)
      */
-    getExactSplitTotalText(): Locator {
+    protected getExactSplitTotalText(): Locator {
         return this.getExactSplitContainer().getByText(/total/i);
     }
 
@@ -177,14 +177,14 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Submit button (Save/Create Expense)
      */
-    getSubmitButton(): Locator {
+    protected getSubmitButton(): Locator {
         return this.page.getByRole('button', { name: /save expense|create expense/i });
     }
 
     /**
      * Cancel button - uses data-testid as it's outside the form element
      */
-    getCancelButton(): Locator {
+    protected getCancelButton(): Locator {
         return this.page.getByTestId('expense-form-cancel');
     }
 
@@ -198,43 +198,43 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Update Expense button (edit mode)
      */
-    getUpdateExpenseButton(): Locator {
+    protected getUpdateExpenseButton(): Locator {
         return this.page.getByRole('button', { name: /update expense/i });
     }
 
     /**
      * Select all participants button.
      */
-    getSelectAllButton(): Locator {
+    protected getSelectAllButton(): Locator {
         return this.page.getByRole('button', { name: /select all/i });
     }
 
     /**
      * Convenience date buttons.
      */
-    getTodayButton(): Locator {
+    protected getTodayButton(): Locator {
         return this.page.getByRole('button', { name: 'Today' });
     }
 
-    getYesterdayButton(): Locator {
+    protected getYesterdayButton(): Locator {
         return this.page.getByRole('button', { name: 'Yesterday' });
     }
 
-    getLastNightButton(): Locator {
+    protected getLastNightButton(): Locator {
         return this.page.getByRole('button', { name: 'Last Night' });
     }
 
     /**
      * Date input field.
      */
-    getDateInput(): Locator {
+    protected getDateInput(): Locator {
         return this.getExpenseDetailsSection().locator('input[type="date"]').first();
     }
 
     /**
      * Clock icon button to open time picker.
      */
-    getClockIcon(): Locator {
+    protected getClockIcon(): Locator {
         return this
             .page
             .locator(
@@ -256,15 +256,15 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Time-related selectors.
      */
-    getTimeButton(): Locator {
+    protected getTimeButton(): Locator {
         return this.page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
     }
 
-    getTimeInput(): Locator {
+    protected getTimeInput(): Locator {
         return this.page.getByPlaceholder(/Enter time/i);
     }
 
-    getTimeSuggestion(time: string): Locator {
+    protected getTimeSuggestion(time: string): Locator {
         // Find the time input first, then locate the suggestion button near it
         // This ensures we're clicking suggestions from the correct dropdown
         const timeInput = this.getTimeInput();
@@ -276,7 +276,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Label input field (combobox).
      */
-    getLabelInput(): Locator {
+    protected getLabelInput(): Locator {
         return this.getExpenseDetailsSection().locator('input[aria-haspopup="listbox"]').first();
     }
 
@@ -290,19 +290,19 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Split Between heading.
      */
-    getSplitBetweenHeading(): Locator {
+    protected getSplitBetweenHeading(): Locator {
         return this.page.getByRole('heading', { name: /split between/i });
     }
 
     /**
      * Split options container/card.
      */
-    getSplitOptionsCard(): Locator {
+    protected getSplitOptionsCard(): Locator {
         const splitHeading = this.getSplitBetweenHeading();
         return splitHeading.locator('..').locator('..');
     }
 
-    getSplitOptionsFirstCheckbox(): Locator {
+    protected getSplitOptionsFirstCheckbox(): Locator {
         return this.getSplitOptionsCard().locator('input[type="checkbox"]').first();
     }
 
@@ -537,7 +537,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Access the submit button for validation assertions.
      */
-    getSaveButtonForValidation(): Locator {
+    protected getSaveButtonForValidation(): Locator {
         return this.getSubmitButton();
     }
 

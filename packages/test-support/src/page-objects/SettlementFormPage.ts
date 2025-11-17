@@ -19,7 +19,7 @@ export class SettlementFormPage extends BasePage {
         super(page);
     }
 
-    getModal(): Locator {
+    protected getModal(): Locator {
         return this.page.getByRole('dialog');
     }
 
@@ -47,31 +47,31 @@ export class SettlementFormPage extends BasePage {
         return this.getModal().getByRole('textbox', { name: /note/i });
     }
 
-    getRecordPaymentButton(): Locator {
+    protected getRecordPaymentButton(): Locator {
         return this.getModal().getByRole('button', { name: translation.settlementForm.recordSettlement });
     }
 
-    getUpdatePaymentButton(): Locator {
+    protected getUpdatePaymentButton(): Locator {
         return this.getModal().getByRole('button', { name: translation.settlementForm.updateSettlement });
     }
 
-    getCancelButton(): Locator {
+    protected getCancelButton(): Locator {
         return this.getModal().getByRole('button', { name: translation.common.cancel });
     }
 
-    getCloseButton(): Locator {
+    protected getCloseButton(): Locator {
         return this.getModal().locator('button[aria-label]').first();
     }
 
-    getWarningMessage(): Locator {
+    protected getWarningMessage(): Locator {
         return this.page.getByTestId('settlement-warning-message');
     }
 
-    getQuickSettleHeading(): Locator {
+    protected getQuickSettleHeading(): Locator {
         return this.getModal().getByText('Quick settle:');
     }
 
-    getQuickSettleShortcutButton(pattern: string | RegExp): Locator {
+    protected getQuickSettleShortcutButton(pattern: string | RegExp): Locator {
         return this.getModal().getByRole('button', { name: pattern });
     }
 
@@ -367,6 +367,20 @@ export class SettlementFormPage extends BasePage {
         }
 
         await this.waitForModalClosed();
+    }
+
+    async verifyModalVisible(options?: { timeout?: number }): Promise<void> {
+        const { timeout = TEST_TIMEOUTS.MODAL_TRANSITION } = options || {};
+        await expect(this.getModal()).toBeVisible({ timeout });
+    }
+
+    async verifyModalNotVisible(): Promise<void> {
+        await expect(this.getModal()).not.toBeVisible();
+    }
+
+    async verifyRecordSettlementMode(): Promise<void> {
+        await expect(this.getModal()).toBeVisible();
+        await expect(this.getModal().getByRole('heading', { name: /record settlement/i })).toBeVisible();
     }
 
     async verifyUpdateMode(): Promise<void> {

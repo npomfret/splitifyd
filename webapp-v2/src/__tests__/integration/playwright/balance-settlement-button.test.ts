@@ -51,8 +51,7 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         await groupDetailPage.verifyDebtRelationship(user.displayName, 'Alice', '$25.00');
 
         // Verify settlement button is visible
-        const settlementButton = groupDetailPage.getSettlementButtonForDebt(user.displayName, 'Alice');
-        await expect(settlementButton).toBeVisible();
+        await groupDetailPage.verifySettlementButtonVisible(user.displayName, 'Alice');
     });
 
     test('should not show settlement button when current user is owed money', async ({ authenticatedPage }) => {
@@ -103,8 +102,7 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         await groupDetailPage.verifyDebtRelationship('Bob', user.displayName, '$30.00');
 
         // Verify settlement button is NOT visible (current user is creditor, not debtor)
-        const settlementButton = groupDetailPage.getSettlementButtonForDebt('Bob', user.displayName);
-        await expect(settlementButton).not.toBeVisible();
+        await groupDetailPage.verifySettlementButtonNotVisible('Bob', user.displayName);
     });
 
     test('should open settlement form with pre-filled data when button is clicked', async ({ authenticatedPage }) => {
@@ -153,14 +151,13 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         await groupDetailPage.waitForGroupToLoad();
 
         // Click the settlement button
-        const settlementButton = groupDetailPage.getSettlementButtonForDebt(user.displayName, 'Charlie');
-        await settlementButton.click();
+        await groupDetailPage.clickSettlementButton(user.displayName, 'Charlie');
 
         // Verify settlement form modal is open
-        await expect(settlementFormPage.getModal()).toBeVisible();
+        await settlementFormPage.verifyModalVisible();
 
         // Verify form title says "Record Settlement" not "Record Payment"
-        await expect(settlementFormPage.getModal().getByRole('heading', { name: /record settlement/i })).toBeVisible();
+        await settlementFormPage.verifyRecordSettlementMode();
 
         // Verify the form is pre-filled with correct data
         // Note: Actual form field verification would require additional methods in SettlementFormPage
@@ -227,10 +224,7 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         await groupDetailPage.verifyDebtRelationship(user.displayName, 'Emma', '$20.00');
 
         // Verify both settlement buttons are visible
-        const davidButton = groupDetailPage.getSettlementButtonForDebt(user.displayName, 'David');
-        const emmaButton = groupDetailPage.getSettlementButtonForDebt(user.displayName, 'Emma');
-
-        await expect(davidButton).toBeVisible();
-        await expect(emmaButton).toBeVisible();
+        await groupDetailPage.verifySettlementButtonVisible(user.displayName, 'David');
+        await groupDetailPage.verifySettlementButtonVisible(user.displayName, 'Emma');
     });
 });

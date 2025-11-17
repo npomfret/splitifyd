@@ -54,53 +54,53 @@ export class SettingsPage extends BasePage {
     /**
      * Profile Information Locators
      */
-    getProfileDisplayName(): Locator {
+    protected getProfileDisplayName(): Locator {
         return this.page.locator('[data-testid="profile-display-name"]');
     }
 
-    getProfileEmail(): Locator {
+    protected getProfileEmail(): Locator {
         return this.page.locator('[data-testid="profile-email"]');
     }
 
-    getDisplayNameInput(): Locator {
+    protected getDisplayNameInput(): Locator {
         return this.page.locator('[data-testid="display-name-input"]');
     }
 
-    getSaveChangesButton(): Locator {
+    protected getSaveChangesButton(): Locator {
         return this.page.locator('[data-testid="save-changes-button"]');
     }
 
     /**
      * Password Change Locators
      */
-    getChangePasswordButton(): Locator {
+    protected getChangePasswordButton(): Locator {
         return this.page.locator('[data-testid="change-password-button"]');
     }
 
-    getCurrentPasswordInput(): Locator {
+    protected getCurrentPasswordInput(): Locator {
         return this.page.locator('[data-testid="current-password-input"]');
     }
 
-    getNewPasswordInput(): Locator {
+    protected getNewPasswordInput(): Locator {
         return this.page.locator('[data-testid="new-password-input"]');
     }
 
-    getConfirmPasswordInput(): Locator {
+    protected getConfirmPasswordInput(): Locator {
         return this.page.locator('[data-testid="confirm-password-input"]');
     }
 
-    getUpdatePasswordButton(): Locator {
+    protected getUpdatePasswordButton(): Locator {
         return this.page.locator('[data-testid="update-password-button"]');
     }
 
-    getCancelButton(): Locator {
+    protected getCancelButton(): Locator {
         return this.page.locator('[data-testid="cancel-password-button"]');
     }
 
     /**
      * Success/Error Message Locators
      */
-    getSuccessMessage(text?: string): Locator {
+    protected getSuccessMessage(text?: string): Locator {
         const alerts = this.page.getByRole('alert');
         if (text) {
             return alerts.filter({ hasText: text });

@@ -27,7 +27,7 @@ export class RegisterPage extends BasePage {
     /**
      * Main register form container - identified by the form element within the register layout
      */
-    getRegisterFormContainer(): Locator {
+    protected getRegisterFormContainer(): Locator {
         // Find the form that contains registration-specific elements
         return this.page.locator('form').filter({
             has: this.page.locator('input#fullname-input'),
@@ -38,7 +38,7 @@ export class RegisterPage extends BasePage {
      * Register page heading container - helps identify we're on the right page
      * The heading is in the Card parent, which is two levels up from the form
      */
-    getPageHeading(): Locator {
+    protected getPageHeading(): Locator {
         return this.getRegisterFormContainer().locator('../..').getByRole('heading', { name: translation.registerPage.title });
     }
 
@@ -46,7 +46,7 @@ export class RegisterPage extends BasePage {
      * Error message container within the register form
      * ErrorMessage component renders with role="alert"
      */
-    getErrorContainer(): Locator {
+    protected getErrorContainer(): Locator {
         return this.page.getByRole('alert');
     }
 
@@ -57,49 +57,49 @@ export class RegisterPage extends BasePage {
     /**
      * Full name input field within the register form
      */
-    getNameInput(): Locator {
+    protected getNameInput(): Locator {
         return this.getRegisterFormContainer().locator('input#fullname-input');
     }
 
     /**
      * Email input field within the register form
      */
-    getEmailInput(): Locator {
+    protected getEmailInput(): Locator {
         return this.getRegisterFormContainer().locator('input[type="email"]');
     }
 
     /**
      * Password input field within the register form
      */
-    getPasswordInput(): Locator {
+    protected getPasswordInput(): Locator {
         return this.getRegisterFormContainer().locator('input#password-input');
     }
 
     /**
      * Confirm password input field within the register form
      */
-    getConfirmPasswordInput(): Locator {
+    protected getConfirmPasswordInput(): Locator {
         return this.getRegisterFormContainer().locator('input#confirm-password-input');
     }
 
     /**
      * Terms of Service checkbox within the register form
      */
-    getTermsCheckbox(): Locator {
+    protected getTermsCheckbox(): Locator {
         return this.getRegisterFormContainer().getByTestId('terms-checkbox');
     }
 
     /**
      * Cookie Policy checkbox within the register form
      */
-    getCookiesCheckbox(): Locator {
+    protected getCookiesCheckbox(): Locator {
         return this.getRegisterFormContainer().getByTestId('cookies-checkbox');
     }
 
     /**
      * Privacy Policy checkbox within the register form
      */
-    getPrivacyCheckbox(): Locator {
+    protected getPrivacyCheckbox(): Locator {
         return this.getRegisterFormContainer().getByTestId('privacy-checkbox');
     }
 
@@ -110,35 +110,35 @@ export class RegisterPage extends BasePage {
     /**
      * Primary submit button (Create Account)
      */
-    getSubmitButton(): Locator {
+    protected getSubmitButton(): Locator {
         return this.getRegisterFormContainer().getByRole('button', { name: translation.registerPage.submitButton });
     }
 
     /**
      * Sign in button/link to navigate to login page
      */
-    getSignInButton(): Locator {
+    protected getSignInButton(): Locator {
         return this.getRegisterFormContainer().getByRole('button', { name: translation.registerPage.signIn });
     }
 
     /**
      * Terms of Service link
      */
-    getTermsLink(): Locator {
+    protected getTermsLink(): Locator {
         return this.getRegisterFormContainer().getByRole('link', { name: translation.registerPage.termsOfService });
     }
 
     /**
      * Cookie Policy link
      */
-    getCookiePolicyLink(): Locator {
+    protected getCookiePolicyLink(): Locator {
         return this.getRegisterFormContainer().getByRole('link', { name: translation.registerPage.cookiePolicy });
     }
 
     /**
      * Privacy Policy link
      */
-    getPrivacyPolicyLink(): Locator {
+    protected getPrivacyPolicyLink(): Locator {
         return this.getRegisterFormContainer().getByRole('link', { name: translation.registerPage.privacyPolicy });
     }
 

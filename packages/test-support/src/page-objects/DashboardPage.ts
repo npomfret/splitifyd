@@ -43,7 +43,7 @@ export class DashboardPage extends BasePage {
     /**
      * Groups container - found by the "Your Groups" heading
      */
-    getGroupsContainer(): Locator {
+    protected getGroupsContainer(): Locator {
         return this
             .page
             .locator('section, div')
@@ -63,7 +63,7 @@ export class DashboardPage extends BasePage {
     /**
      * Error message container within the dashboard
      */
-    getErrorContainer(): Locator {
+    protected getErrorContainer(): Locator {
         return this.getGroupsContainer().getByTestId('groups-load-error-message');
     }
 
@@ -74,21 +74,21 @@ export class DashboardPage extends BasePage {
     /**
      * "Your Groups" main heading
      */
-    getYourGroupsHeading(): Locator {
+    protected getYourGroupsHeading(): Locator {
         return this.page.getByRole('heading', { name: translation.dashboard.yourGroups });
     }
 
     /**
      * Welcome message heading (for new users)
      */
-    getWelcomeHeading(): Locator {
+    protected getWelcomeHeading(): Locator {
         return this.page.getByText('No groups yet');
     }
 
     /**
      * Error state heading
      */
-    getErrorHeading(): Locator {
+    protected getErrorHeading(): Locator {
         return this.page.getByTestId('groups-load-error-title');
     }
 
@@ -99,7 +99,7 @@ export class DashboardPage extends BasePage {
     /**
      * Groups grid/list container
      */
-    getGroupsGrid(): Locator {
+    protected getGroupsGrid(): Locator {
         // Use data-testid for specificity to avoid matching layout grids
         return this.getGroupsContainer().locator('[data-testid="groups-grid"]');
     }
@@ -107,7 +107,7 @@ export class DashboardPage extends BasePage {
     /**
      * Individual group cards
      */
-    getGroupCards(): Locator {
+    protected getGroupCards(): Locator {
         // GroupCards are wrapped in a relative div, so we need to go one level deeper
         return this.getGroupsGrid().locator('[data-testid="group-card"]');
     }
@@ -115,7 +115,7 @@ export class DashboardPage extends BasePage {
     /**
      * Get a specific group card by name
      */
-    getGroupCard(groupName: GroupName | string): Locator {
+    protected getGroupCard(groupName: GroupName | string): Locator {
         return this.getGroupCards().filter({
             has: this.page.getByText(groupName as string, { exact: true }),
         });
@@ -269,13 +269,20 @@ export class DashboardPage extends BasePage {
     }
 
     /**
-     * Empty state container when no groups exist
+     * Empty state container when no groups exist (internal use)
      */
-    getEmptyGroupsState(): Locator {
+    private getEmptyGroupsStateInternal(): Locator {
         return this.page.getByText('No groups yet').locator('..');
     }
 
-    getArchivedEmptyState(): Locator {
+    /**
+     * Get the empty groups state container for external assertions
+     */
+    getEmptyGroupsState(): Locator {
+        return this.getEmptyGroupsStateInternal();
+    }
+
+    protected getArchivedEmptyState(): Locator {
         return this.getGroupsContainer().getByTestId('archived-groups-empty-state');
     }
 
@@ -283,11 +290,11 @@ export class DashboardPage extends BasePage {
      * Loading spinner for groups
      * Uses role="status" for semantic loading indicators
      */
-    getGroupsLoadingSpinner(): Locator {
+    protected getGroupsLoadingSpinner(): Locator {
         return this.getGroupsContainer().getByRole('status');
     }
 
-    getGroupsFilterButton(filter: 'active' | 'archived'): Locator {
+    protected getGroupsFilterButton(filter: 'active' | 'archived'): Locator {
         const label = translation.dashboard.groupsFilter[filter];
         return this.getGroupsContainer().getByRole('button', { name: label, exact: true });
     }
@@ -299,14 +306,14 @@ export class DashboardPage extends BasePage {
     /**
      * Primary "Create Group" button (desktop version in groups header)
      */
-    getCreateGroupButton(): Locator {
+    protected getCreateGroupButton(): Locator {
         return this.getGroupsContainer().getByRole('button', { name: translation.dashboard.createGroup });
     }
 
     /**
      * "Try Again" button for error recovery
      */
-    getTryAgainButton(): Locator {
+    protected getTryAgainButton(): Locator {
         return this.getGroupsContainer().getByRole('button', { name: translation.dashboardComponents.groupsList.tryAgain });
     }
 
@@ -314,14 +321,14 @@ export class DashboardPage extends BasePage {
      * User menu button (profile/settings access)
      * Button displays user's display name
      */
-    getUserMenuButton(): Locator {
+    protected getUserMenuButton(): Locator {
         return this.page.getByTestId('user-menu-button');
     }
 
     /**
      * Group Card - Invite button (hover action)
      */
-    getGroupCardInviteButton(groupName: GroupName | string): Locator {
+    protected getGroupCardInviteButton(groupName: GroupName | string): Locator {
         return this.getGroupCard(groupName).locator('button[title*="Invite"], button[aria-label*="Invite"]');
     }
 
@@ -367,7 +374,7 @@ export class DashboardPage extends BasePage {
                 .isVisible()
                 .catch(() => false);
             const hasEmptyState = await this
-                .getEmptyGroupsState()
+                .getEmptyGroupsStateInternal()
                 .isVisible()
                 .catch(() => false);
             const hasErrorState = await this
@@ -414,11 +421,11 @@ export class DashboardPage extends BasePage {
         }
 
         const createGroupModal = await this.clickCreateGroup();
-        await expect(createGroupModal.getModalContainer()).toBeVisible({ timeout: 5000 });
+        await createGroupModal.verifyModalVisible({ timeout: 5000 });
         await createGroupModal.createGroup(name, description);
 
         // Wait for modal to close and navigation to occur
-        await expect(createGroupModal.getModalContainer()).not.toBeVisible({ timeout: 5000 });
+        await createGroupModal.verifyModalNotVisible({ timeout: 5000 });
 
         await this.expectUrl(GroupDetailPage.groupDetailUrlPattern());
 
@@ -447,7 +454,7 @@ export class DashboardPage extends BasePage {
         const modalPage = new CreateGroupModalPage(this.page);
 
         // Verify modal is NOT open before we click (establishes baseline state)
-        await expect(modalPage.getModalContainer()).not.toBeVisible();
+        await modalPage.verifyModalNotVisible();
 
         // Verify button exists and is visible before clicking
         await expect(button).toBeVisible({ timeout: 2000 });
@@ -469,7 +476,7 @@ export class DashboardPage extends BasePage {
                 (buttons) => buttons.map((b) => b.textContent?.trim()).filter(Boolean),
             );
             const dialogs = await this.page.locator('[role="dialog"]').count();
-            const modalVisible = await modalPage.getModalContainer().isVisible().catch(() => false);
+            const modalVisible = await modalPage.isModalVisible();
 
             throw new Error(
                 `Create Group modal failed to open after clicking button.\n`
@@ -614,11 +621,11 @@ export class DashboardPage extends BasePage {
     async waitForGroupsToLoad(timeout = TEST_TIMEOUTS.LOADING_COMPLETE): Promise<void> {
         try {
             await expect(this.getGroupsLoadingSpinner()).not.toBeVisible({ timeout });
-            await expect(this.getGroupCards().first().or(this.getEmptyGroupsState()).or(this.getArchivedEmptyState())).toBeVisible({ timeout });
+            await expect(this.getGroupCards().first().or(this.getEmptyGroupsStateInternal()).or(this.getArchivedEmptyState())).toBeVisible({ timeout });
         } catch (error) {
             const spinnerVisible = await this.getGroupsLoadingSpinner().isVisible();
             const groupsVisible = await this.getGroupCards().first().isVisible();
-            const emptyStateVisible = await this.getEmptyGroupsState().isVisible();
+            const emptyStateVisible = await this.getEmptyGroupsStateInternal().isVisible();
             const archivedEmptyStateVisible = await this.getArchivedEmptyState().isVisible();
             throw new Error(
                 `Groups failed to load within ${timeout}ms. `
@@ -659,7 +666,7 @@ export class DashboardPage extends BasePage {
      */
     async waitForWelcomeMessage(): Promise<void> {
         await expect(this.getWelcomeHeading()).toBeVisible();
-        await expect(this.getEmptyGroupsState()).toBeVisible();
+        await expect(this.getEmptyGroupsStateInternal()).toBeVisible();
     }
 
     /**
@@ -746,10 +753,17 @@ export class DashboardPage extends BasePage {
     }
 
     /**
+     * Verify error state is not displayed
+     */
+    async verifyErrorStateNotVisible(): Promise<void> {
+        await expect(this.getErrorContainer()).not.toBeVisible();
+    }
+
+    /**
      * Verify empty groups state for new users
      */
     async verifyEmptyGroupsState(): Promise<void> {
-        await expect(this.getEmptyGroupsState()).toBeVisible();
+        await expect(this.getEmptyGroupsStateInternal()).toBeVisible();
         await expect(this.getWelcomeHeading()).toBeVisible();
     }
 

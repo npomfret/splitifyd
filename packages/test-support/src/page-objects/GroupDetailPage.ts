@@ -143,14 +143,14 @@ export class GroupDetailPage extends BasePage {
     /**
      * Members section container - found by "Members" heading
      */
-    getMembersContainer(): Locator {
+    protected getMembersContainer(): Locator {
         return this.page.locator('[data-testid="members-container"]:visible').first();
     }
 
     /**
      * Expenses section container - found by "Expenses" or "Recent Expenses" heading
      */
-    getExpensesContainer(): Locator {
+    protected getExpensesContainer(): Locator {
         return this.page.getByTestId('expenses-list-card');
     }
 
@@ -160,14 +160,14 @@ export class GroupDetailPage extends BasePage {
      * Uses same selector pattern as e2e tests for consistency.
      * IMPORTANT: Finds ALL containers first, then filters to only visible ones to avoid hidden mobile versions.
      */
-    getBalanceContainer(): Locator {
+    protected getBalanceContainer(): Locator {
         return this.page.getByTestId('balance-summary-sidebar');
     }
 
     /**
      * Settlement section container - found by "Settlements" heading
      */
-    getSettlementContainer(): Locator {
+    protected getSettlementContainer(): Locator {
         return this.page.getByTestId('settlement-history-card');
     }
 
@@ -246,7 +246,7 @@ export class GroupDetailPage extends BasePage {
         return this.getSettlementContainer().locator('[data-testid="settlement-item"]');
     }
 
-    getIncludeDeletedSettlementsCheckbox(): Locator {
+    protected getIncludeDeletedSettlementsCheckbox(): Locator {
         return this.getSettlementContainer().locator('[data-testid="include-deleted-settlements-checkbox"]');
     }
 
@@ -268,14 +268,14 @@ export class GroupDetailPage extends BasePage {
     /**
      * Loading spinner
      */
-    getLoadingSpinner(): Locator {
+    protected getLoadingSpinner(): Locator {
         return this.page.getByTestId('loading-spinner');
     }
 
     /**
      * Error container - primary error display area
      */
-    getErrorContainer(): Locator {
+    protected getErrorContainer(): Locator {
         return this.page.locator('[data-testid="error-container"]');
     }
 
@@ -302,14 +302,14 @@ export class GroupDetailPage extends BasePage {
      * Group description - paragraph text that appears directly after the group name h1
      * within the GroupHeader component (has text-gray-600 class)
      */
-    getGroupDescription(): Locator {
+    protected getGroupDescription(): Locator {
         return this.page.locator('[data-testid="group-description"]');
     }
 
     /**
      * Member count display - finds count in the group header card
      */
-    getMemberCount(): Locator {
+    protected getMemberCount(): Locator {
         // Use the data-testid from GroupHeader component
         return this.page.locator('[data-testid="member-count"]');
     }
@@ -317,7 +317,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Expense count display - finds count near the Expenses heading
      */
-    getExpenseCount(): Locator {
+    protected getExpenseCount(): Locator {
         // Use the data-testid attribute for reliable selection
         return this.page.locator('[data-testid="expense-count"]');
     }
@@ -329,7 +329,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Add Expense button
      */
-    getAddExpenseButton(): Locator {
+    protected getAddExpenseButton(): Locator {
         return this.page.getByRole('button', { name: translation.group.actions.addExpense });
     }
 
@@ -337,11 +337,11 @@ export class GroupDetailPage extends BasePage {
      * Settings button (opens the Group Settings modal)
      * Uses .first() to handle duplicate buttons in sidebar and header
      */
-    getEditGroupButton(): Locator {
+    protected getEditGroupButton(): Locator {
         return this.page.getByRole('button', { name: translation.groupActions.settings }).first();
     }
 
-    getSecuritySettingsButton(): Locator {
+    protected getSecuritySettingsButton(): Locator {
         return this.getEditGroupButton();
     }
 
@@ -353,14 +353,14 @@ export class GroupDetailPage extends BasePage {
      * Share Group button (labeled as "Invite Others")
      * Uses .first() to handle duplicate buttons in sidebar and elsewhere
      */
-    getShareGroupButton(): Locator {
+    protected getShareGroupButton(): Locator {
         return this.page.getByRole('button', { name: translation.groupActions.inviteOthers }).first();
     }
 
     /**
      * Leave Group button
      */
-    getLeaveGroupButton(): Locator {
+    protected getLeaveGroupButton(): Locator {
         return this.page.getByRole('button', { name: translation.groupActions.leaveGroup });
     }
 
@@ -375,7 +375,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Settle Up button
      */
-    getSettleUpButton(): Locator {
+    protected getSettleUpButton(): Locator {
         return this.page.getByRole('button', { name: translation.group.actions.settleUp });
     }
 
@@ -399,7 +399,7 @@ export class GroupDetailPage extends BasePage {
         const settlementFormPage = createSettlementFormPage(this.page);
 
         if (options.ensureModalVisible ?? true) {
-            await expect(settlementFormPage.getModal()).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+            await settlementFormPage.verifyModalVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
         }
 
         if (options.waitForFormReady ?? true) {
@@ -418,7 +418,7 @@ export class GroupDetailPage extends BasePage {
      * Excludes action buttons like "Invite Others"
      * Note: Finds members within the first Members container (sidebar) to avoid mobile duplicates
      */
-    getMemberCards(): Locator {
+    protected getMemberCards(): Locator {
         // Members have data-testid="member-item" attribute
         // The members list is in a div.space-y-0.5 container within the Members section (updated for compact design)
         // Use .first() to get only the sidebar version (not the mobile duplicate)
@@ -429,7 +429,7 @@ export class GroupDetailPage extends BasePage {
      * Get specific member by name - searches within members container
      * Uses .first() to get only the sidebar version (not the mobile duplicate)
      */
-    getMemberCard(memberName: string): Locator {
+    protected getMemberCard(memberName: string): Locator {
         return this.getMembersContainer().locator('[data-testid="members-scroll-container"]').first().getByText(memberName, { exact: false });
     }
 
@@ -527,7 +527,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Locate a specific member entry by display name.
      */
-    getMemberItem(memberName: string): Locator {
+    protected getMemberItem(memberName: string): Locator {
         return this
             .getMembersContainer()
             .locator(`[data-testid="member-item"][data-member-name="${memberName}"]:visible`);
@@ -536,7 +536,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Get the remove member button for a given member.
      */
-    getRemoveMemberButton(memberName: string): Locator {
+    protected getRemoveMemberButton(memberName: string): Locator {
         return this.getMemberItem(memberName).locator('[data-testid="remove-member-button"]');
     }
 
@@ -547,18 +547,18 @@ export class GroupDetailPage extends BasePage {
     /**
      * Get all expense items - looks for articles or list items within expenses section
      */
-    getExpenseItems(): Locator {
+    protected getExpenseItems(): Locator {
         return this.getExpensesContainer().locator('[data-testid="expense-item"]');
     }
 
-    getIncludeDeletedExpensesCheckbox(): Locator {
+    protected getIncludeDeletedExpensesCheckbox(): Locator {
         return this.getExpensesContainer().locator('[data-testid="include-deleted-expenses-checkbox"]');
     }
 
     /**
      * Get specific expense by description - searches within expenses container
      */
-    getExpenseByDescription(description: string): Locator {
+    protected getExpenseByDescription(description: string): Locator {
         return this.getExpensesContainer().getByText(description);
     }
 
@@ -579,7 +579,7 @@ export class GroupDetailPage extends BasePage {
      * Empty expenses state - looks for "no expenses" message
      * Targets the <p> element specifically to avoid matching parent containers
      */
-    getEmptyExpensesState(): Locator {
+    protected getEmptyExpensesState(): Locator {
         return this
             .getExpensesContainer()
             .locator('p')
@@ -593,35 +593,35 @@ export class GroupDetailPage extends BasePage {
     /**
      * Get the comments section container
      */
-    getCommentsSection(): Locator {
+    protected getCommentsSection(): Locator {
         return this.page.getByTestId('comments-section');
     }
 
     /**
      * Get the comment input textarea
      */
-    getCommentInput(): Locator {
+    protected getCommentInput(): Locator {
         return this.getCommentsSection().getByRole('textbox', { name: /comment text/i });
     }
 
     /**
      * Get the send comment button
      */
-    getSendCommentButton(): Locator {
+    protected getSendCommentButton(): Locator {
         return this.getCommentsSection().getByRole('button', { name: /send comment/i });
     }
 
     /**
      * Get all comments currently rendered
      */
-    getCommentItems(): Locator {
+    protected getCommentItems(): Locator {
         return this.getCommentsSection().locator('[data-testid="comment-item"]');
     }
 
     /**
      * Get a comment locator by its text content
      */
-    getCommentByText(text: string): Locator {
+    protected getCommentByText(text: string): Locator {
         return this.getCommentsSection().getByText(text);
     }
 
@@ -712,28 +712,28 @@ export class GroupDetailPage extends BasePage {
     /**
      * Get balance summary heading
      */
-    getBalanceSummaryHeading(): Locator {
+    protected getBalanceSummaryHeading(): Locator {
         return this.getBalanceContainer().getByRole('heading');
     }
 
     /**
      * Get "All settled up" message - looks for the text within the balance container
      */
-    getSettledUpMessage(): Locator {
+    protected getSettledUpMessage(): Locator {
         return this.getBalanceContainer().getByText(translation.balanceSummary.allSettledUp);
     }
 
     /**
      * Get debt items - scoped within main balance container
      */
-    getDebtItems(): Locator {
+    protected getDebtItems(): Locator {
         return this.getBalanceContainer().locator('[data-testid="debt-item"]');
     }
 
     /**
      * Get debt entry describing a debtor → creditor relationship.
      */
-    getDebtInfo(debtorName: string, creditorName: string): Locator {
+    protected getDebtInfo(debtorName: string, creditorName: string): Locator {
         const balancesSection = this.getBalanceContainer();
         return balancesSection
             .getByText(`${debtorName} → ${creditorName}`)
@@ -744,7 +744,7 @@ export class GroupDetailPage extends BasePage {
      * Get settlement button for a specific debt item
      * The button appears within debt items where the current user is the payer
      */
-    getSettlementButtonForDebt(debtorName: string, creditorName: string): Locator {
+    protected getSettlementButtonForDebt(debtorName: string, creditorName: string): Locator {
         const balancesSection = this.getBalanceContainer();
         // Find the debt item containing the debtor and creditor names
         const debtItem = balancesSection.locator('[data-testid="debt-item"]').filter({
@@ -752,6 +752,42 @@ export class GroupDetailPage extends BasePage {
         });
         // Find the button with aria-label containing "Record settlement"
         return debtItem.locator('button[aria-label*="settlement"]');
+    }
+
+    /**
+     * Verify settlement button is visible for a specific debt
+     */
+    async verifySettlementButtonVisible(debtorName: string, creditorName: string): Promise<void> {
+        const settlementButton = this.getSettlementButtonForDebt(debtorName, creditorName);
+        await expect(settlementButton).toBeVisible();
+    }
+
+    /**
+     * Verify settlement button is not visible for a specific debt
+     */
+    async verifySettlementButtonNotVisible(debtorName: string, creditorName: string): Promise<void> {
+        const settlementButton = this.getSettlementButtonForDebt(debtorName, creditorName);
+        await expect(settlementButton).not.toBeVisible();
+    }
+
+    /**
+     * Click settlement button for a specific debt and return the settlement form page
+     */
+    async clickSettlementButton(debtorName: string, creditorName: string, options: {
+        expectedMemberCount?: number;
+        waitForFormReady?: boolean;
+    } = {}): Promise<SettlementFormPage> {
+        const settlementButton = this.getSettlementButtonForDebt(debtorName, creditorName);
+        await settlementButton.click();
+
+        const settlementFormPage = new SettlementFormPage(this.page);
+        await settlementFormPage.verifyModalVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+
+        if (options.waitForFormReady ?? true) {
+            await settlementFormPage.waitForReady({ expectedMemberCount: options.expectedMemberCount });
+        }
+
+        return settlementFormPage;
     }
 
     /**
@@ -1237,7 +1273,7 @@ export class GroupDetailPage extends BasePage {
             ?? ((page: Page) => new SettlementFormPage(page) as unknown as T);
 
         const settlementFormPage = createFormPage(this.page);
-        await expect(settlementFormPage.getModal()).toBeVisible();
+        await settlementFormPage.verifyModalVisible();
 
         if (options.waitForFormReady ?? true) {
             let expectedMemberCount = options.expectedMemberCount;
@@ -1527,7 +1563,7 @@ export class GroupDetailPage extends BasePage {
         const modalPage = new GroupSettingsModalPage(this.page);
 
         // Verify modal is NOT open before we click (establishes baseline state)
-        await expect(modalPage.getModalContainer()).not.toBeVisible();
+        await modalPage.verifyModalNotVisible();
 
         // Use clickButtonNoWait since opening a modal doesn't trigger navigation
         await this.clickButtonNoWait(button, { buttonName: translation.groupActions.settings });
@@ -1548,7 +1584,7 @@ export class GroupDetailPage extends BasePage {
         const modalPage = new ShareGroupModalPage(this.page);
 
         // Verify modal is NOT open before we click (establishes baseline state)
-        await expect(modalPage.getModalContainer()).not.toBeVisible();
+        await modalPage.verifyModalNotVisible();
 
         // Use clickButtonNoWait since opening a modal doesn't trigger navigation
         await this.clickButtonNoWait(button, { buttonName: translation.groupActions.inviteOthers });

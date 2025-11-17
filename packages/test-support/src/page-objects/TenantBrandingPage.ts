@@ -35,57 +35,57 @@ export class TenantBrandingPage extends BasePage {
     /**
      * Form Input Locators
      */
-    getAppNameInput(): Locator {
+    protected getAppNameInput(): Locator {
         return this.page.locator('[data-testid="app-name-input"]');
     }
 
-    getLogoUrlInput(): Locator {
+    protected getLogoUrlInput(): Locator {
         return this.page.locator('[data-testid="logo-url-input"]');
     }
 
-    getFaviconUrlInput(): Locator {
+    protected getFaviconUrlInput(): Locator {
         return this.page.locator('[data-testid="favicon-url-input"]');
     }
 
-    getPrimaryColorInput(): Locator {
+    protected getPrimaryColorInput(): Locator {
         return this.page.locator('[data-testid="primary-color-input"]');
     }
 
-    getSecondaryColorInput(): Locator {
+    protected getSecondaryColorInput(): Locator {
         return this.page.locator('[data-testid="secondary-color-input"]');
     }
 
-    getShowLandingPageCheckbox(): Locator {
+    protected getShowLandingPageCheckbox(): Locator {
         return this.page.locator('[data-testid="show-landing-page-checkbox"]');
     }
 
-    getShowMarketingContentCheckbox(): Locator {
+    protected getShowMarketingContentCheckbox(): Locator {
         return this.page.locator('[data-testid="show-marketing-content-checkbox"]');
     }
 
-    getShowPricingPageCheckbox(): Locator {
+    protected getShowPricingPageCheckbox(): Locator {
         return this.page.locator('[data-testid="show-pricing-page-checkbox"]');
     }
 
-    getSaveButton(): Locator {
+    protected getSaveButton(): Locator {
         return this.page.locator('[data-testid="save-branding-button"]');
     }
 
     /**
      * Access Denied Message
      */
-    getAccessDeniedMessage(): Locator {
+    protected getAccessDeniedMessage(): Locator {
         return this.page.locator('text=/you do not have permission/i');
     }
 
     /**
      * Success/Error Messages
      */
-    getSuccessMessage(): Locator {
+    protected getSuccessMessage(): Locator {
         return this.page.locator('text=/branding settings updated successfully/i');
     }
 
-    getNotImplementedMessage(): Locator {
+    protected getNotImplementedMessage(): Locator {
         return this.page.locator('text=/branding update not yet implemented/i');
     }
 

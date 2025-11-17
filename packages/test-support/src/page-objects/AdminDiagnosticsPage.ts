@@ -17,27 +17,27 @@ export class AdminDiagnosticsPage extends BasePage {
         await expect(this.page).toHaveURL(/\/admin\/diagnostics/);
     }
 
-    getTenantOverviewCard(): Locator {
+    protected getTenantOverviewCard(): Locator {
         return this.page.getByTestId('tenant-overview-card');
     }
 
-    getThemeArtifactCard(): Locator {
+    protected getThemeArtifactCard(): Locator {
         return this.page.getByTestId('theme-artifact-card');
     }
 
-    getBrandingTokensCard(): Locator {
+    protected getBrandingTokensCard(): Locator {
         return this.page.getByTestId('branding-tokens-card');
     }
 
-    getComputedVarsCard(): Locator {
+    protected getComputedVarsCard(): Locator {
         return this.page.getByTestId('computed-vars-card');
     }
 
-    getCopyThemeLinkButton(): Locator {
+    protected getCopyThemeLinkButton(): Locator {
         return this.page.getByTestId('copy-theme-link-button');
     }
 
-    getForceReloadButton(): Locator {
+    protected getForceReloadButton(): Locator {
         return this.page.getByTestId('force-reload-theme-button');
     }
 

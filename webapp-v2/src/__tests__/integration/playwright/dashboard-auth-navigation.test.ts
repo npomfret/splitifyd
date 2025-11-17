@@ -213,7 +213,7 @@ test.describe('Dashboard Error Handling', () => {
 
         // Verify successful recovery
         await dashboardPage.waitForGroupsToLoad();
-        await expect(dashboardPage.getErrorContainer()).not.toBeVisible();
+        await dashboardPage.verifyErrorStateNotVisible();
     });
 
     test('should handle network timeouts gracefully', async ({ authenticatedPage }) => {

@@ -23,21 +23,21 @@ export class LeaveGroupDialogPage extends BasePage {
     /**
      * Main dialog container
      */
-    getDialogContainer(): Locator {
+    protected getDialogContainer(): Locator {
         return this.page.getByTestId('leave-group-dialog');
     }
 
     /**
      * Inner confirmation dialog
      */
-    getConfirmationDialog(): Locator {
+    protected getConfirmationDialog(): Locator {
         return this.page.getByTestId('confirmation-dialog');
     }
 
     /**
      * Dialog backdrop
      */
-    getDialogBackdrop(): Locator {
+    protected getDialogBackdrop(): Locator {
         return this.getDialogContainer();
     }
 
@@ -48,42 +48,42 @@ export class LeaveGroupDialogPage extends BasePage {
     /**
      * Dialog title
      */
-    getDialogTitle(): Locator {
+    protected getDialogTitle(): Locator {
         return this.getConfirmationDialog().locator('h3');
     }
 
     /**
      * Dialog message
      */
-    getDialogMessage(): Locator {
+    protected getDialogMessage(): Locator {
         return this.getConfirmationDialog().getByTestId('confirm-dialog-message');
     }
 
     /**
      * Outstanding balance warning message
      */
-    getBalanceWarningMessage(): Locator {
+    protected getBalanceWarningMessage(): Locator {
         return this.getConfirmationDialog().getByTestId('balance-error-message');
     }
 
     /**
      * Confirm button
      */
-    getConfirmButton(): Locator {
+    protected getConfirmButton(): Locator {
         return this.getConfirmationDialog().getByTestId('confirm-button');
     }
 
     /**
      * Cancel button
      */
-    getCancelButton(): Locator {
+    protected getCancelButton(): Locator {
         return this.getConfirmationDialog().getByTestId('cancel-button');
     }
 
     /**
      * Warning icon (displayed when variant is warning)
      */
-    getWarningIcon(): Locator {
+    protected getWarningIcon(): Locator {
         return this.getConfirmationDialog().locator('svg').first();
     }
 

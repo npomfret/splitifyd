@@ -14,55 +14,55 @@ export class PolicyAcceptanceModalPage extends BasePage {
     // LOCATOR HELPERS
     // ============================================================================
 
-    getModalOverlay(): Locator {
+    protected getModalOverlay(): Locator {
         return this.page.getByTestId('policy-modal-overlay');
     }
 
-    getModalContainer(): Locator {
+    protected getModalContainer(): Locator {
         return this.page.getByTestId('policy-modal-card');
     }
 
-    getTitle(): Locator {
+    protected getTitle(): Locator {
         return this.page.getByTestId('policy-modal-title');
     }
 
-    getSubtitle(): Locator {
+    protected getSubtitle(): Locator {
         return this.page.getByTestId('policy-modal-subtitle');
     }
 
-    getProgressBar(): Locator {
+    protected getProgressBar(): Locator {
         return this.page.getByTestId('policy-progress-track');
     }
 
-    getPolicyCard(): Locator {
+    protected getPolicyCard(): Locator {
         return this.page.getByTestId('policy-card');
     }
 
-    getPolicyTitle(): Locator {
+    protected getPolicyTitle(): Locator {
         return this.page.getByTestId('current-policy-title');
     }
 
-    getAcceptedBadge(): Locator {
+    protected getAcceptedBadge(): Locator {
         return this.page.getByTestId('policy-accepted-badge');
     }
 
-    getPolicyContent(): Locator {
+    protected getPolicyContent(): Locator {
         return this.page.getByTestId('policy-content');
     }
 
-    getLoadingSpinner(): Locator {
+    protected getLoadingSpinner(): Locator {
         return this.page.getByTestId('policy-content-loading');
     }
 
-    getAcceptanceSection(): Locator {
+    protected getAcceptanceSection(): Locator {
         return this.page.getByTestId('policy-acceptance-section');
     }
 
-    getAcceptanceCheckbox(): Locator {
+    protected getAcceptanceCheckbox(): Locator {
         return this.page.getByTestId('policy-accept-checkbox');
     }
 
-    getAcceptanceLabel(): Locator {
+    protected getAcceptanceLabel(): Locator {
         return this.page.getByTestId('policy-accept-label');
     }
 

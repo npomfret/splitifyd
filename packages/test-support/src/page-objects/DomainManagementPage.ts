@@ -35,67 +35,67 @@ export class DomainManagementPage extends BasePage {
     /**
      * Access Denied Message
      */
-    getAccessDeniedMessage(): Locator {
+    protected getAccessDeniedMessage(): Locator {
         return this.page.locator('text=/you do not have permission/i');
     }
 
     /**
      * Domain List Locators
      */
-    getDomainList(): Locator {
+    protected getDomainList(): Locator {
         return this.page.locator('[data-testid="domain-list"]');
     }
 
-    getDomainItem(domain: string): Locator {
+    protected getDomainItem(domain: string): Locator {
         return this.page.locator(`[data-testid="domain-item-${domain}"]`);
     }
 
-    getPrimaryDomainBadge(): Locator {
+    protected getPrimaryDomainBadge(): Locator {
         return this.page.locator('[data-testid="primary-domain-badge"]');
     }
 
     /**
      * Add Domain Form Locators
      */
-    getAddDomainButton(): Locator {
+    protected getAddDomainButton(): Locator {
         return this.page.locator('[data-testid="add-domain-button"]');
     }
 
-    getNewDomainInput(): Locator {
+    protected getNewDomainInput(): Locator {
         return this.page.locator('[data-testid="new-domain-input"]');
     }
 
-    getSubmitDomainButton(): Locator {
+    protected getSubmitDomainButton(): Locator {
         return this.page.locator('[data-testid="submit-domain-button"]');
     }
 
-    getCancelDomainButton(): Locator {
+    protected getCancelDomainButton(): Locator {
         return this.page.locator('[data-testid="cancel-domain-button"]');
     }
 
     /**
      * DNS Instructions Locators
      */
-    getDnsInstructions(): Locator {
+    protected getDnsInstructions(): Locator {
         return this.page.locator('[data-testid="dns-instructions"]');
     }
 
-    getCopyDnsButton(): Locator {
+    protected getCopyDnsButton(): Locator {
         return this.page.locator('[data-testid="copy-dns-button"]');
     }
 
     /**
      * Success/Error Messages
      */
-    getSuccessMessage(): Locator {
+    protected getSuccessMessage(): Locator {
         return this.page.locator('text=/domain.*added successfully/i');
     }
 
-    getNotImplementedMessage(): Locator {
+    protected getNotImplementedMessage(): Locator {
         return this.page.locator('text=/domain addition not yet implemented/i');
     }
 
-    getErrorMessage(): Locator {
+    protected getErrorMessage(): Locator {
         return this.page.locator('[data-testid="error-message"]');
     }
 
@@ -125,6 +125,32 @@ export class DomainManagementPage extends BasePage {
     /**
      * Verification Methods
      */
+    async verifyNewDomainInputVisible(): Promise<void> {
+        await expect(this.getNewDomainInput()).toBeVisible();
+    }
+
+    async verifyNewDomainInputValue(value: string): Promise<void> {
+        await expect(this.getNewDomainInput()).toHaveValue(value);
+    }
+
+    async verifyCopyDnsButtonVisible(): Promise<void> {
+        await expect(this.getCopyDnsButton()).toBeVisible();
+    }
+
+    async verifyDnsInstructionsContains(text: string): Promise<void> {
+        await expect(this.getDnsInstructions()).toContainText(text);
+    }
+
+    async verifyDnsInstructionsShowsCname(): Promise<void> {
+        const dnsSection = this.getDnsInstructions();
+        await expect(dnsSection.locator('text=/CNAME/i').first()).toBeVisible();
+    }
+
+    async verifyDnsInstructionsShowsPrimaryDomain(): Promise<void> {
+        const dnsSection = this.getDnsInstructions();
+        await expect(dnsSection.locator('text=/localhost/i')).toBeVisible();
+    }
+
     async verifyAccessDenied(): Promise<void> {
         await expect(this.getAccessDeniedMessage()).toBeVisible();
     }

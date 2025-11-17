@@ -44,7 +44,7 @@ export class JoinGroupPage extends BasePage {
     // ELEMENT SELECTORS - Scoped to join group page
     // ============================================================================
 
-    getJoinGroupHeading(): Locator {
+    protected getJoinGroupHeading(): Locator {
         return this.page.getByRole('heading', { name: translation.joinGroupPage.title });
     }
 
@@ -52,39 +52,39 @@ export class JoinGroupPage extends BasePage {
      * Get the group name heading displayed in the group preview card.
      * The group name appears as a level 2 heading.
      */
-    getGroupNameHeading(): Locator {
+    protected getGroupNameHeading(): Locator {
         return this.page.getByRole('heading', { level: 2 });
     }
 
-    getJoinGroupButton(): Locator {
+    protected getJoinGroupButton(): Locator {
         return this.page.getByRole('button', { name: translation.joinGroupPage.joinGroup });
     }
 
-    getAlreadyMemberMessage(): Locator {
+    protected getAlreadyMemberMessage(): Locator {
         return this.page.getByText(translation.joinGroupPage.alreadyMember);
     }
 
-    getLoginButton(): Locator {
+    protected getLoginButton(): Locator {
         return this.page.getByRole('button', { name: /login|sign in/i });
     }
 
-    getRegisterButton(): Locator {
+    protected getRegisterButton(): Locator {
         return this.page.getByRole('button', { name: /register|sign up/i });
     }
 
-    getErrorMessage(): Locator {
+    protected getErrorMessage(): Locator {
         return this.page.locator('[data-testid="invalid-link-warning"], [data-testid="unable-join-warning"]');
     }
 
-    getPendingApprovalAlert(): Locator {
+    protected getPendingApprovalAlert(): Locator {
         return this.page.getByTestId('pending-approval-alert');
     }
 
-    getBackToDashboardButton(): Locator {
+    protected getBackToDashboardButton(): Locator {
         return this.page.getByRole('button', { name: /Go to dashboard/i });
     }
 
-    getOkButton(): Locator {
+    protected getOkButton(): Locator {
         return this.page.getByRole('button', { name: translation.joinGroupPage.goToGroup });
     }
 

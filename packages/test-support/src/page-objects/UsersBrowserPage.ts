@@ -35,86 +35,86 @@ export class UsersBrowserPage extends BasePage {
     /**
      * Page Header and Title
      */
-    getPageTitle(): Locator {
+    protected getPageTitle(): Locator {
         return this.page.locator('h1:has-text("Users Browser")');
     }
 
     /**
      * Tabs
      */
-    getAuthTab(): Locator {
+    protected getAuthTab(): Locator {
         return this.page.locator('button:has-text("Firebase Auth Users")');
     }
 
-    getFirestoreTab(): Locator {
+    protected getFirestoreTab(): Locator {
         return this.page.locator('button:has-text("Firestore Users")');
     }
 
     /**
      * Loading and Error States
      */
-    getLoadingSpinner(): Locator {
+    protected getLoadingSpinner(): Locator {
         return this.page.getByTestId('loading-spinner');
     }
 
-    getErrorAlert(): Locator {
+    protected getErrorAlert(): Locator {
         return this.page.locator('[role="alert"]');
     }
 
     /**
      * Access Denied Message
      */
-    getAccessDeniedMessage(): Locator {
+    protected getAccessDeniedMessage(): Locator {
         return this.page.locator('text=/you do not have permission/i');
     }
 
     /**
      * Auth Users Table
      */
-    getAuthTable(): Locator {
+    protected getAuthTable(): Locator {
         return this.page.locator('table').first();
     }
 
-    getAuthTableRows(): Locator {
+    protected getAuthTableRows(): Locator {
         return this.getAuthTable().locator('tbody tr');
     }
 
     /**
      * Get a specific user row by UID
      */
-    getUserRowByUid(uid: string): Locator {
+    protected getUserRowByUid(uid: string): Locator {
         return this.page.locator(`tr:has-text("${uid}")`);
     }
 
     /**
      * Get a specific user row by email
      */
-    getUserRowByEmail(email: string): Locator {
+    protected getUserRowByEmail(email: string): Locator {
         return this.page.locator(`tr:has-text("${email}")`);
     }
 
     /**
      * Status badges within a row
      */
-    getStatusBadge(row: Locator): Locator {
+    protected getStatusBadge(row: Locator): Locator {
         return row.locator('span.inline-flex.items-center.rounded-full');
     }
 
     /**
      * Disable/Enable buttons
      */
-    getDisableButton(row: Locator): Locator {
+    protected getDisableButton(row: Locator): Locator {
         return row.locator('button:has-text("Disable")');
     }
 
-    getEnableButton(row: Locator): Locator {
+    protected getEnableButton(row: Locator): Locator {
         return row.locator('button:has-text("Enable")');
     }
 
     /**
      * View JSON button
      */
-    getViewJsonButton(row: Locator): Locator {
+    protected getViewJsonButton(row: Locator): Locator {
         return row.locator('button:has-text("View JSON")');
     }
 

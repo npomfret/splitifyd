@@ -22,23 +22,23 @@ export class GroupSettingsModalPage extends BasePage {
     // CONTAINER & TAB HELPERS
     // ============================================================================
 
-    getModalContainer(): Locator {
+    protected getModalContainer(): Locator {
         return this.page.locator('[role="dialog"]').filter({
             has: this.page.getByTestId('group-settings-modal-title'),
         });
     }
 
-    getDeleteDialog(): Locator {
+    protected getDeleteDialog(): Locator {
         return this.page.getByTestId('delete-group-dialog');
     }
 
-    getModalBackdrop(): Locator {
+    protected getModalBackdrop(): Locator {
         return this.page.locator('[role="presentation"]').filter({
             has: this.page.locator('[role="dialog"]'),
         });
     }
 
-    getTabButton(tab: GroupSettingsTab): Locator {
+    protected getTabButton(tab: GroupSettingsTab): Locator {
         return this.getModalContainer().getByTestId(`group-settings-tab-${tab}`);
     }
 
@@ -119,11 +119,11 @@ export class GroupSettingsModalPage extends BasePage {
     // GENERAL TAB - FORM FIELD SELECTORS
     // ============================================================================
 
-    getGroupNameInput(): Locator {
+    protected getGroupNameInput(): Locator {
         return this.getModalContainer().getByTestId('group-name-input');
     }
 
-    getGroupDescriptionInput(): Locator {
+    protected getGroupDescriptionInput(): Locator {
         return this.getModalContainer().getByTestId('group-description-input');
     }
 
@@ -131,23 +131,23 @@ export class GroupSettingsModalPage extends BasePage {
     // GENERAL TAB - DISPLAY NAME SELECTORS
     // ============================================================================
 
-    getDisplayNameSection(): Locator {
+    protected getDisplayNameSection(): Locator {
         return this.getModalContainer().getByTestId('group-display-name-settings');
     }
 
-    getDisplayNameInput(): Locator {
+    protected getDisplayNameInput(): Locator {
         return this.getModalContainer().getByTestId('group-display-name-input');
     }
 
-    getDisplayNameSaveButton(): Locator {
+    protected getDisplayNameSaveButton(): Locator {
         return this.getModalContainer().getByTestId('group-display-name-save-button');
     }
 
-    getDisplayNameError(): Locator {
+    protected getDisplayNameError(): Locator {
         return this.getModalContainer().getByTestId('group-display-name-error');
     }
 
-    getDisplayNameSuccess(): Locator {
+    protected getDisplayNameSuccess(): Locator {
         return this.getModalContainer().getByTestId('group-display-name-success');
     }
 
@@ -155,23 +155,23 @@ export class GroupSettingsModalPage extends BasePage {
     // GENERAL TAB - BUTTON SELECTORS
     // ============================================================================
 
-    getSaveButton(): Locator {
+    protected getSaveButton(): Locator {
         return this.getModalContainer().getByTestId('save-changes-button');
     }
 
-    getCancelButton(): Locator {
+    protected getCancelButton(): Locator {
         return this.getModalContainer().getByTestId('cancel-edit-group-button');
     }
 
-    getDeleteButton(): Locator {
+    protected getDeleteButton(): Locator {
         return this.getModalContainer().getByTestId('delete-group-button');
     }
 
-    getCloseButton(): Locator {
+    protected getCloseButton(): Locator {
         return this.getModalContainer().getByTestId('close-group-settings-button');
     }
 
-    getFooterCloseButton(): Locator {
+    protected getFooterCloseButton(): Locator {
         return this.getModalContainer().getByTestId('group-settings-close-button');
     }
 
@@ -179,23 +179,23 @@ export class GroupSettingsModalPage extends BasePage {
     // SECURITY TAB - SELECTORS
     // ============================================================================
 
-    getPresetButton(preset: string): Locator {
+    protected getPresetButton(preset: string): Locator {
         return this.getModalContainer().getByTestId(`preset-button-${preset}`);
     }
 
-    getSecuritySaveButton(): Locator {
+    protected getSecuritySaveButton(): Locator {
         return this.getModalContainer().getByTestId('save-security-button');
     }
 
-    getPermissionSelect(key: string): Locator {
+    protected getPermissionSelect(key: string): Locator {
         return this.getModalContainer().getByTestId(`permission-select-${key}`);
     }
 
-    getPendingApproveButton(memberId: string): Locator {
+    protected getPendingApproveButton(memberId: string): Locator {
         return this.getModalContainer().getByTestId(`pending-approve-${memberId}`);
     }
 
-    getPendingRejectButton(memberId: string): Locator {
+    protected getPendingRejectButton(memberId: string): Locator {
         return this.getModalContainer().getByTestId(`pending-reject-${memberId}`);
     }
 
@@ -203,7 +203,7 @@ export class GroupSettingsModalPage extends BasePage {
     // ERROR MESSAGE SELECTORS
     // ============================================================================
 
-    getValidationError(): Locator {
+    protected getValidationError(): Locator {
         return this.getModalContainer().getByTestId('edit-group-validation-error');
     }
 
@@ -238,7 +238,7 @@ export class GroupSettingsModalPage extends BasePage {
         }
     }
 
-    getModal(): Locator {
+    protected getModal(): Locator {
         return this.getModalContainer();
     }
 
@@ -309,15 +309,15 @@ export class GroupSettingsModalPage extends BasePage {
         }
     }
 
-    getGeneralSuccessAlert(): Locator {
+    protected getGeneralSuccessAlert(): Locator {
         return this.getModalContainer().getByTestId('group-general-success');
     }
 
-    getSecuritySuccessAlert(): Locator {
+    protected getSecuritySuccessAlert(): Locator {
         return this.getModalContainer().getByTestId('security-permissions-success');
     }
 
-    getSecurityUnsavedBanner(): Locator {
+    protected getSecurityUnsavedBanner(): Locator {
         return this.getModalContainer().getByTestId('security-unsaved-banner');
     }
 
@@ -412,18 +412,18 @@ export class GroupSettingsModalPage extends BasePage {
         await input.dispatchEvent('input');
     }
 
-    getDeleteConfirmationInput(): Locator {
+    protected getDeleteConfirmationInput(): Locator {
         return this.getDeleteDialog().locator('input[type="text"]');
     }
 
-    getConfirmDeleteButton(): Locator {
+    protected getConfirmDeleteButton(): Locator {
         return this
             .getDeleteDialog()
             .getByRole('button', { name: /delete/i })
             .last();
     }
 
-    getCancelDeleteButton(): Locator {
+    protected getCancelDeleteButton(): Locator {
         return this.getDeleteDialog().getByRole('button', { name: /cancel/i });
     }
 
@@ -491,6 +491,10 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
     // VERIFICATION HELPERS
     // ============================================================================
+
+    async verifyModalNotVisible(): Promise<void> {
+        await expect(this.getModalContainer()).not.toBeVisible();
+    }
 
     async verifyModalOpen(): Promise<void> {
         await expect(this.getModalContainer()).toBeVisible();
