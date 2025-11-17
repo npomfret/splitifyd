@@ -1,4 +1,4 @@
-import { convertToISOString, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { convertToISOString, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { PolicyDocumentBuilder } from '@splitifyd/test-support';
 import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -15,7 +15,7 @@ import { PolicyService } from '../../../services/PolicyService';
  * - PolicyService.test.ts (original core tests)
  * - PolicyService.comprehensive.unit.test.ts (workflow tests)
  *
- * Uses SplitifydFirestoreTestDatabase with real FirestoreReader/Writer implementations
+ * Uses TenantFirestoreTestDatabase with real FirestoreReader/Writer implementations
  * for fast, reliable unit testing without Firebase dependencies.
  *
  * Test coverage includes:
@@ -29,11 +29,11 @@ import { PolicyService } from '../../../services/PolicyService';
  */
 describe('PolicyService - Consolidated Unit Tests', () => {
     let policyService: PolicyService;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
 
     beforeEach(() => {
         // Create stub database
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
 
         // Create real services using stub database
         // Create PolicyService with real services

@@ -1,5 +1,5 @@
 import { toGroupId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
@@ -11,13 +11,13 @@ import { GroupMemberService } from '../../../../services/GroupMemberService';
 
 describe('GroupCommentStrategy', () => {
     let strategy: GroupCommentStrategy;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
     let groupMemberService: GroupMemberService;
 
     beforeEach(() => {
         // Create stub database
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
 
         // Create real services using stub database
         firestoreReader = new FirestoreReader(db);

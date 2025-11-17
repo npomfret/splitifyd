@@ -72,5 +72,5 @@ describe('FirestoreReader Integration Tests (Firebase-Specific Behavior)', () =>
     // - Identical coverage for query logic, ordering, and basic pagination
     //
     // This integration test file now focuses only on Firebase-specific behavior
-    // that cannot be replicated with SplitifydFirestoreTestDatabase
+    // that cannot be replicated with TenantFirestoreTestDatabase
 });

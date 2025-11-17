@@ -6,7 +6,7 @@
  *
  * This file now only contains integration tests that verify actual Firebase optimistic
  * locking behavior with real Firestore transactions that cannot be replicated with
- * SplitifydFirestoreTestDatabase.
+ * TenantFirestoreTestDatabase.
  */
 
 import { beforeEach, describe, expect, test } from 'vitest';
@@ -58,7 +58,7 @@ describe('Expense Locking - Firebase Transaction Behavior', () => {
 
         // Test Firebase's optimistic locking with truly concurrent updates
         // This tests actual Firestore transaction behavior that cannot be replicated
-        // with SplitifydFirestoreTestDatabase
+        // with TenantFirestoreTestDatabase
         const lockingTestParticipants = [user1.uid];
         const updatePromises = [
             apiDriver.updateExpense(

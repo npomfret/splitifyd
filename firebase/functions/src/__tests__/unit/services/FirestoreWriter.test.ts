@@ -1,5 +1,5 @@
 import {toGroupId} from '@splitifyd/shared';
-import {GroupDTOBuilder, GroupMemberDocumentBuilder, SplitifydFirestoreTestDatabase} from '@splitifyd/test-support';
+import {GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase} from '@splitifyd/test-support';
 import {beforeEach, describe, expect, it} from 'vitest';
 import {HTTP_STATUS} from '../../../constants';
 import {ComponentBuilder} from '../../../services/ComponentBuilder';
@@ -9,12 +9,12 @@ import {StubAuthService} from '../mocks/StubAuthService';
 import {toDisplayName} from "@splitifyd/shared";
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let firestoreReader: IFirestoreReader;
     let firestoreWriter: IFirestoreWriter;
 
     beforeEach(() => {
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
 
         const applicationBuilder = new ComponentBuilder(new StubAuthService(), db);
         firestoreWriter = applicationBuilder.buildFirestoreWriter();

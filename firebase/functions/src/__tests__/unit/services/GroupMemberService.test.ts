@@ -1,6 +1,6 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, test } from 'vitest';
@@ -11,7 +11,7 @@ import { GroupMemberService } from '../../../services/GroupMemberService';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
 
     const testGroup = new GroupDTOBuilder()
@@ -23,7 +23,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
     beforeEach(async () => {
         // Create stub database
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
 
         // Create real services using stub database
         firestoreReader = new FirestoreReader(db);

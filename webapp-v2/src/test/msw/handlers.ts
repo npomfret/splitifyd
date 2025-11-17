@@ -202,7 +202,7 @@ export function appConfigHandler(options: HandlerOptions = {}): SerializedMswHan
             tenant: {
                 tenantId: 'system-fallback-tenant',
                 branding: {
-                    appName: 'Splitifyd',
+                    appName: 'Demo Expenses',
                     logoUrl: '/logo.svg',
                     faviconUrl: '/favicon.ico',
                     primaryColor: '#1a73e8',

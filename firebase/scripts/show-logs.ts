@@ -5,7 +5,7 @@ import { existsSync } from 'fs';
 import { join, resolve } from 'path';
 import { logger } from './logger';
 
-const DEFAULT_PROJECT = 'splitifyd';
+const DEFAULT_PROJECT = process.env.DEFAULT_FIREBASE_PROJECT ?? 'demo-expenses';
 let activeProject = process.env.GCLOUD_PROJECT ?? DEFAULT_PROJECT;
 const credentialsPath = resolve(join(__dirname, '../service-account-key.json'));
 

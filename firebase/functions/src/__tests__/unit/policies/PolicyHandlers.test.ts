@@ -1,4 +1,4 @@
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -409,7 +409,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create PolicyHandlers instance with PolicyService', () => {
-            const db = new SplitifydFirestoreTestDatabase();
+            const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(authService, db);
             const handlers = new PolicyHandlers(componentBuilder.buildPolicyService());

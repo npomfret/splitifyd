@@ -1,4 +1,4 @@
-import { PasswordChangeRequestBuilder, RegisteredUserBuilder, SplitifydFirestoreTestDatabase, UserUpdateBuilder } from '@splitifyd/test-support';
+import { PasswordChangeRequestBuilder, RegisteredUserBuilder, TenantFirestoreTestDatabase, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -230,7 +230,7 @@ describe('UserHandlers - Unit Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create UserHandlers instance with UserService', () => {
-            const db = new SplitifydFirestoreTestDatabase();
+            const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(authService, db);
             const handlers = new UserHandlers(componentBuilder.buildUserService());

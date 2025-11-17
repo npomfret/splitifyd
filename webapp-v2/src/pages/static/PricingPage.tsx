@@ -1,22 +1,24 @@
 import { useNavigation } from '@/hooks/useNavigation';
 import { useTranslation } from 'react-i18next';
 import { StaticPageLayout } from '../../components/StaticPageLayout';
+import { configStore } from '@/stores/config-store';
 
 export function PricingPage() {
     const { t } = useTranslation();
     const navigation = useNavigation();
+    const appName = configStore.appName;
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const canonical = `${baseUrl}/pricing`;
 
     const structuredData = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
-        name: `${t('pricing.title')} - Splitifyd`,
+        name: `${t('pricing.title')} - ${appName}`,
         description: t('pricing.description'),
         url: canonical,
         mainEntity: {
             '@type': 'Product',
-            name: 'Splitifyd',
+            name: appName,
             description: 'Split bills easily with friends and family. Track expenses and settle debts effortlessly.',
             offers: [
                 {

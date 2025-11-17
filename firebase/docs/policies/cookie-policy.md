@@ -1,4 +1,4 @@
-# Cookie Policy for Splitifyd
+# Cookie Policy for {{appName}}
 
 **Last Updated: 08 August 2025**
 

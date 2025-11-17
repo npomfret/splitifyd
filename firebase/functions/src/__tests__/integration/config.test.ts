@@ -1,8 +1,4 @@
-import {
-    ApiSerializer,toShowLandingPageFlag,
-    toShowMarketingContentFlag,
-    toShowPricingPageFlag
-} from '@splitifyd/shared';
+import { ApiSerializer } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
@@ -20,9 +16,9 @@ describe('Config Endpoint Integration Tests', () => {
     const fetchConfigForTenant = (tenantId: string) =>
         fetch(configUrl, {
             headers: {
-                'x-tenant-id': tenantId
-}
-});
+                'X-Tenant-ID': tenantId,
+            },
+        });
 
     const db = getFirestore();
     const marketingTenantId = `marketing-hidden-${Date.now()}`;
@@ -41,20 +37,22 @@ describe('Config Endpoint Integration Tests', () => {
                     primaryColor: '#112233',
                     secondaryColor: '#334455',
                     marketingFlags: {
-                        showLandingPage: toShowLandingPageFlag(false),
-                        showMarketingContent: toShowMarketingContentFlag(false),
-                        showPricingPage: toShowPricingPageFlag(false)
-}
-},
+                        showLandingPage: false,
+                        showMarketingContent: false,
+                        showPricingPage: false,
+                    },
+                },
                 domains: {
                     primary: 'marketing-hidden.example.com',
                     aliases: [],
-                    normalized: ['marketing-hidden.example.com']
-},
+                    normalized: ['marketing-hidden.example.com'],
+                },
                 defaultTenant: false,
                 createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now()
-});
+                updatedAt: Timestamp.now(),
+            });
+            // Wait for tenant to be fully persisted and cache to be cleared
+            await new Promise((resolve) => setTimeout(resolve, 1500));
         });
 
         afterAll(async () => {
@@ -78,6 +76,8 @@ describe('Config Endpoint Integration Tests', () => {
             expect(config.tenant).toBeDefined();
             expect(config.tenant.branding).toBeDefined();
             expect(config.tenant.branding.marketingFlags).toBeDefined();
+            // Verify custom tenant was used
+            expect(config.tenant.branding.appName).toBe('Hidden Marketing Tenant');
             expect(config.tenant.branding.marketingFlags.showMarketingContent).toBe(false);
         });
     });

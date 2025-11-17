@@ -1,4 +1,4 @@
-const CACHE_NAME = 'splitifyd-theme-v1';
+const CACHE_NAME = 'tenant-theme-v1';
 
 self.addEventListener('install', (event) => {
     event.waitUntil(self.skipWaiting());

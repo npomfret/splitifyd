@@ -48,7 +48,7 @@ function ensureFile(path: string, description: string): void {
 }
 
 function cloneRepository(): { tempRoot: string; cloneDir: string; } {
-    const tempRoot = mkdtempSync(join(tmpdir(), 'splitifyd-deploy-'));
+    const tempRoot = mkdtempSync(join(tmpdir(), 'app-deploy-'));
     const cloneDir = join(tempRoot, 'repo');
     run('git', ['clone', '--depth', '1', repoRoot, cloneDir]);
     return { tempRoot, cloneDir };

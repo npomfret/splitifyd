@@ -4,12 +4,13 @@
         <meta charset="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/src/assets/logo.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Splitifyd</title>
+        <title>App</title>
         <!-- Theme CSS MUST load before Tailwind to set CSS variables -->
         <link id="tenant-theme-stylesheet" rel="stylesheet" href="/api/theme.css" />
         <script id="tenant-theme-bootstrap">
             (function () {
-                var storageKey = 'splitifyd:theme-hash';
+                var hostKey = window.location.host || 'default';
+                var storageKey = 'tenant-theme:' + hostKey + ':hash';
                 var storedHash = '';
                 try {
                     storedHash = window.localStorage.getItem(storageKey) || '';
@@ -17,7 +18,7 @@
                     storedHash = '';
                 }
 
-                window.__splitifydTheme = {
+                window.__tenantTheme = {
                     storageKey: storageKey,
                     hash: storedHash,
                 };

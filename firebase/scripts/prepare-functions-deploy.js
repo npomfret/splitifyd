@@ -62,7 +62,7 @@ const filesToPrune = [
     '.env.prod.example',
     'integration-test-results.json',
     'package-lock.json',
-    'splitifyd-service-account-key.json',
+    'service-account-key.json',
     'test-integration-results.json',
     'tsconfig.build.json',
     'tsconfig.deploy.json',

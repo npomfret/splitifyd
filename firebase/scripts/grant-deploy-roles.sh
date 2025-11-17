@@ -2,9 +2,10 @@
 
 set -euo pipefail
 
-PROJECT_ID="splitifyd"
+PROJECT_ID="${PROJECT_ID:-demo-expenses}"
+PROJECT_NUMBER="${PROJECT_NUMBER:-000000000000}"
 DEFAULT_SA="firebase-adminsdk-fbsvc@${PROJECT_ID}.iam.gserviceaccount.com"
-COMPUTE_SA="501123495201-compute@developer.gserviceaccount.com"
+COMPUTE_SA="${COMPUTE_SA:-${PROJECT_NUMBER}-compute@developer.gserviceaccount.com}"
 
 SERVICE_ACCOUNT="${1:-$DEFAULT_SA}"
 

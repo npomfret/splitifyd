@@ -72,11 +72,15 @@ test.describe('Tenant theme smoke suite', () => {
             // Then set up localStorage via init script
             if (fixture.localStorageHash) {
                 await page.addInitScript((hash) => {
-                    localStorage.setItem('splitifyd:theme-hash', hash);
+                    const hostKey = window.location.host || 'default';
+                    const storageKey = `tenant-theme:${hostKey}:hash`;
+                    localStorage.setItem(storageKey, hash);
                 }, fixture.localStorageHash);
             } else {
                 await page.addInitScript(() => {
-                    localStorage.removeItem('splitifyd:theme-hash');
+                    const hostKey = window.location.host || 'default';
+                    const storageKey = `tenant-theme:${hostKey}:hash`;
+                    localStorage.removeItem(storageKey);
                 });
             }
 
@@ -108,7 +112,8 @@ test.describe('Tenant theme smoke suite', () => {
             // Navigate to login page to check more theme applications
             const loginButton = page.getByText('Login').first();
             await expect(loginButton).toBeVisible();
-            await loginButton.click();
+            // Wait for any theme-related transitions to complete before clicking
+            await loginButton.click({ timeout: 3000 });
             await page.waitForURL('/login');
 
             // Check the "Sign up" link text color on the login page

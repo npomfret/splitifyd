@@ -53,7 +53,7 @@
     "recent": "Recent",
     "settings": "Settings",
     "understood": "Understood",
-    "titleSuffix": " - Splitifyd",
+    "titleSuffix": " - {{appName}}",
     "placeholder": {
       "amount": "0.00",
       "search": "Search...",
@@ -68,7 +68,7 @@
       "subtitle": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.",
       "highlight": "It's 100% free, with no ads and no limits.",
       "focusMessage": "Focus on what matters, not on the math.",
-      "appScreenshotAlt": "Splitifyd App Screenshot"
+      "appScreenshotAlt": "{{appName}} App Screenshot"
     },
     "features": {
       "sectionTitle": "Everything You Need, Nothing You Don't",
@@ -160,7 +160,7 @@
   },
   "registerPage": {
     "title": "Create Account",
-    "description": "Create your Splitifyd account to start managing shared expenses",
+    "description": "Create your {{appName}} account to start managing shared expenses",
     "fullNameLabel": "Full Name",
     "fullNamePlaceholder": "Enter your full name",
     "passwordLabel": "Password",
@@ -215,9 +215,9 @@
     "defaultLoginButton": "Continue with Email"
   },
   "dashboard": {
-    "title": "Dashboard - Splitifyd",
-    "description": "Manage your groups and expenses with Splitifyd",
-    "welcomeMessage": "Welcome to Splitifyd, {{name}}!",
+    "title": "Dashboard - {{appName}}",
+    "description": "Manage your groups and expenses with {{appName}}",
+    "welcomeMessage": "Welcome to {{appName}}, {{name}}!",
     "welcomeDescription": "Get started by creating your first group to track and split expenses with friends.",
     "yourGroups": "Your Groups",
     "createGroup": "Create Group",
@@ -553,7 +553,7 @@
       "settings": "Settings"
     },
     "footer": {
-      "copyright": "© {{year}} Splitifyd. All rights reserved.",
+      "copyright": "© {{year}} {{appName}}. All rights reserved.",
       "privacy": "Privacy Policy",
       "terms": "Terms of Service",
       "cookies": "Cookie Policy"
@@ -593,7 +593,7 @@
       "accepted": "✓ Accepted",
       "loading": "Loading policy content...",
       "required": "Policy Acceptance Required",
-      "instruction": "Please read the policy above and click \"Accept\" to continue using Splitify.",
+      "instruction": "Please read the policy above and click \"Accept\" to continue using {{appName}}.",
       "checkbox": "I have read and accept this {{policy}}",
       "previousButton": "Previous",
       "nextButton": "Next",
@@ -605,7 +605,7 @@
   },
   "pricing": {
     "title": "Pricing (It's Free, Seriously)",
-    "description": "Simple, transparent pricing for Splitifyd. Split bills with friends for free.",
+    "description": "Simple, transparent pricing for {{appName}}. Split bills with friends for free.",
     "subtitle": "Choose Your Adventure",
     "plans": {
       "starter": {
@@ -669,8 +669,8 @@
     }
   },
   "seo": {
-    "titleSuffix": " | Splitifyd",
-    "siteName": "Splitifyd"
+    "titleSuffix": " | {{appName}}",
+    "siteName": "{{appName}}"
   },
   "expenseForm": {
     "description": "Description",
@@ -760,7 +760,7 @@
     "title": "No groups yet",
     "description": "Create your first group to start splitting expenses with friends, family, or roommates.",
     "createFirstGroup": "Create Your First Group",
-    "gettingStartedTitle": "Getting started with Splitifyd:",
+    "gettingStartedTitle": "Getting started with {{appName}}:",
     "step1Title": "1. Create a group",
     "step1Description": "Add friends, roommates, or travel companions",
     "step2Title": "2. Add expenses",
@@ -817,7 +817,7 @@
     "copyExpense": "Copy expense"
   },
   "header": {
-    "logoAlt": "Splitifyd",
+    "logoAlt": "{{appName}}",
     "login": "Login",
     "signUp": "Sign Up"
   },
@@ -835,7 +835,7 @@
     "browserUsers": "Users Browser"
   },
   "footer": {
-    "companyName": "Splitifyd",
+    "companyName": "{{appName}}",
     "companyDescription": "Split bills easily with friends and family.",
     "productSection": "Product",
     "pricing": "Pricing",
@@ -929,7 +929,7 @@
     }
   },
   "settingsPage": {
-    "title": "Settings - Splitifyd",
+    "title": "Settings - {{appName}}",
     "description": "Manage your account settings",
     "heroLabel": "Account",
     "accountSettingsHeader": "Account Settings",
@@ -937,7 +937,7 @@
     "profileSummaryTitle": "Profile overview",
     "profileSummaryDescription": "This information helps other members recognize you.",
     "profileInformationHeader": "Profile Information",
-    "profileInformationSubheader": "Update the details other members see across Splitifyd.",
+    "profileInformationSubheader": "Update the details other members see across {{appName}}.",
     "emailSectionTitle": "Email address",
     "emailSectionDescription": "Update the email you use to sign in and receive notifications.",
     "currentDisplayName": "Current display name:",
@@ -948,7 +948,7 @@
     "displayNameHelper": "Use your full name or a nickname that teammates will recognize.",
     "saveChangesButton": "Save Changes",
     "passwordHeader": "Password",
-    "passwordIntro": "Set a strong password to keep your Splitifyd account secure.",
+    "passwordIntro": "Set a strong password to keep your {{appName}} account secure.",
     "changePasswordButton": "Change Password",
     "changeEmailButton": "Change Email",
     "newEmailLabel": "New Email",
@@ -991,7 +991,7 @@
       "emailInvalid": "Enter a valid email address",
       "emailSameAsCurrent": "New email must be different from current email",
       "emailPasswordRequired": "Enter your current password to confirm this change",
-      "emailInUse": "That email is already linked to another Splitifyd account",
+      "emailInUse": "That email is already linked to another {{appName}} account",
       "emailChangeFailed": "Failed to change email. Please try again."
     }
   },
@@ -1145,7 +1145,7 @@
     "cancel": "Cancel",
     "welcome": "Welcome to {{groupName}}!",
     "joinSuccess": "You've successfully joined the group. Redirecting to group page...",
-    "joinedTitle": "Joined {{groupName}} - Splitifyd",
+    "joinedTitle": "Joined {{groupName}} - {{appName}}",
     "backToDashboard": "Back to Dashboard",
     "pendingApprovalTitle": "Awaiting approval",
     "pendingApprovalMessage": "Your request to join {{groupName}} has been sent to the group admins.",
@@ -1317,7 +1317,7 @@
       "acceptedIcon": "✓ Accepted",
       "loadingContent": "Loading policy content...",
       "acceptanceRequired": "Policy Acceptance Required",
-      "acceptanceInstructions": "Please read the policy above and click \"Accept\" to continue using Splitify.",
+      "acceptanceInstructions": "Please read the policy above and click \"Accept\" to continue using {{appName}}.",
       "acceptCheckbox": "I have read and accept this ",
       "previous": "Previous",
       "next": "Next",
@@ -1387,11 +1387,11 @@
   },
   "pages": {
     "addExpensePage": {
-      "errorTitle": "Error - Splitifyd",
+      "errorTitle": "Error - {{appName}}",
       "error": "Error",
       "noGroupMessage": "No group specified. Cannot add expense without a group.",
       "backToDashboard": "Back to Dashboard",
-      "loadingTitle": "Loading... - Splitifyd",
+      "loadingTitle": "Loading... - {{appName}}",
       "groupNotFound": "Group Not Found",
       "groupNotFoundMessage": "The group you're trying to add an expense to doesn't exist or you don't have access to it.",
       "backToGroup": "Back to Group",
@@ -1401,7 +1401,7 @@
       "copyExpenseAction": "Copy expense",
       "editExpenseAction": "Edit expense",
       "addExpenseAction": "Add a new expense",
-      "titleSuffix": " - Splitifyd",
+      "titleSuffix": " - {{appName}}",
       "titleIn": " in "
     },
     "expenseDetailPage": {
@@ -1440,11 +1440,11 @@
       "comments": "Comments",
       "paymentHistory": "Settlements",
       "toggleSection": "Toggle {{section}} section",
-      "titleSuffix": " - Splitifyd",
+      "titleSuffix": " - {{appName}}",
       "manageExpensesFor": "Manage expenses for "
     },
     "landingPage": {
-      "title": "Effortless Bill Splitting - Splitifyd",
+      "title": "Effortless Bill Splitting - {{appName}}",
       "description": "Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent. It's 100% free, with no ads and no limits.",
       "disclaimer": "This is a tool for tracking expenses, not for making payments.",
       "accountNote": " To save and manage your expenses, you'll need a free account.",
@@ -1478,7 +1478,7 @@
     }
   },
   "authLayout": {
-    "titleSuffix": " - Splitifyd"
+    "titleSuffix": " - {{appName}}"
   },
   "authProvider": {
     "authenticationError": "Authentication Error",
@@ -1569,17 +1569,17 @@
     },
     "cookiePolicy": {
       "title": "Cookie Policy",
-      "description": "Cookie Policy for Splitifyd - Learn about how we use cookies and similar technologies.",
+      "description": "Cookie Policy for {{appName}} - Learn about how we use cookies and similar technologies.",
       "loadError": "Error loading cookie policy"
     },
     "privacyPolicy": {
       "title": "Privacy Policy",
-      "description": "Privacy Policy for Splitifyd - Learn about how we collect, use, and protect your information.",
+      "description": "Privacy Policy for {{appName}} - Learn about how we collect, use, and protect your information.",
       "loadError": "Error loading privacy policy"
     },
     "termsOfService": {
       "title": "Terms of Service",
-      "description": "Terms of Service for Splitifyd - Read about our policies and user agreements.",
+      "description": "Terms of Service for {{appName}} - Read about our policies and user agreements.",
       "loadError": "Error loading terms"
     }
   }

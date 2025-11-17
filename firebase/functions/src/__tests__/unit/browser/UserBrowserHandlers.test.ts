@@ -1,4 +1,4 @@
-import { RegisteredUserBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { RegisteredUserBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import type { Request, Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UserBrowserHandlers } from '../../../browser/UserBrowserHandlers';
@@ -7,7 +7,7 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('UserBrowserHandlers - Unit Tests', () => {
     let handlers: UserBrowserHandlers;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let authService: StubAuthService;
     let componentBuilder: ComponentBuilder;
     let mockReq: Partial<Request>;
@@ -24,7 +24,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
     }
 
     beforeEach(() => {
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
         authService = new StubAuthService();
         componentBuilder = new ComponentBuilder(authService, db);
         handlers = new UserBrowserHandlers(authService, db);

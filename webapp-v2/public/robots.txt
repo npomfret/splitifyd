@@ -1,5 +1,4 @@
-# Splitifyd robots.txt
-# https://splitifyd.com
+# Default robots.txt
 # Last updated: 2025-01-07
 
 User-agent: *
@@ -38,4 +37,4 @@ Crawl-delay: 1
 
 # === SITEMAP ===
 # Uncomment when sitemap.xml is deployed
-# Sitemap: https://splitifyd.com/sitemap.xml
+# Sitemap: https://example.com/sitemap.xml

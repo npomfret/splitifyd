@@ -8,7 +8,7 @@
 
 import { MemberStatuses } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { ActivityFeedService } from '../../services/ActivityFeedService';
@@ -17,11 +17,11 @@ import { FirestoreWriter } from '../../services/firestore';
 import { GroupMemberService } from '../../services/GroupMemberService';
 
 describe('Archive Groups - FirestoreReader Status Filtering', () => {
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let reader: FirestoreReader;
 
     beforeEach(() => {
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
         reader = new FirestoreReader(db);
     });
 
@@ -145,13 +145,13 @@ describe('Archive Groups - FirestoreReader Status Filtering', () => {
 });
 
 describe('Archive Groups - GroupMemberService', () => {
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let reader: FirestoreReader;
     let writer: FirestoreWriter;
     let service: GroupMemberService;
 
     beforeEach(() => {
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
         reader = new FirestoreReader(db);
         writer = new FirestoreWriter(db);
         const activityFeedService = new ActivityFeedService(reader, writer);

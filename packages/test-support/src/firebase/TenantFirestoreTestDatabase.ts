@@ -5,10 +5,10 @@ type ExpenseId = string;
 type SettlementId = string;
 
 /**
- * Splitifyd-specific test database that extends StubFirestoreDatabase
+ * Tenant-aware test database that extends StubFirestoreDatabase
  * with application-specific seed methods for testing.
  */
-export class SplitifydFirestoreTestDatabase extends StubFirestoreDatabase {
+export class TenantFirestoreTestDatabase extends StubFirestoreDatabase {
     seedUser(userId: UserId, userData: Record<string, any> = {}) {
         const displayName = userData.displayName || `User ${userId}`;
         const defaultUser = {

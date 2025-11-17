@@ -1,5 +1,5 @@
 import { CreateGroupRequest, toGroupId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
@@ -11,13 +11,13 @@ import { StubAuthService } from './mocks/StubAuthService';
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let stubAuth: StubAuthService;
     let applicationBuilder: ComponentBuilder;
 
     beforeEach(() => {
         // Create stub database
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
         applicationBuilder = new ComponentBuilder(stubAuth, db);

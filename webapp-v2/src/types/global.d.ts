@@ -1,6 +1,6 @@
 declare global {
     interface Window {
-        __splitifydTheme?: {
+        __tenantTheme?: {
             storageKey: string;
             hash?: string | null;
         };

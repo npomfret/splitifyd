@@ -5,6 +5,7 @@ import { Alert, Button, Card, Stack, Typography } from '@/components/ui';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { useConfig } from '@/hooks/useConfig.ts';
 import { logError } from '@/utils/browser-logger';
+import { getThemeStorageKey } from '@/utils/theme-bootstrap';
 
 const TRACKED_VARS = [
     '--surface-base-rgb',
@@ -70,7 +71,11 @@ export function AdminDiagnosticsPage() {
 
     const handleForceReload = () => {
         try {
-            localStorage.removeItem('splitifyd:theme-hash');
+            const storageKey = getThemeStorageKey();
+            localStorage.removeItem(storageKey);
+            if (window.__tenantTheme) {
+                window.__tenantTheme.hash = null;
+            }
         } catch {
             // Ignore storage errors (private browsing / quota issues)
         }

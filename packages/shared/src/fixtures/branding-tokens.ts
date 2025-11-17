@@ -395,10 +395,10 @@ const baseSpacing = {
 } as const satisfies BrandingTokens['spacing'];
 
 const baseLegal = {
-    companyName: 'Splitifyd Labs',
-    supportEmail: 'support@splitifyd.test',
-    privacyPolicyUrl: 'https://splitifyd.test/legal/privacy',
-    termsOfServiceUrl: 'https://splitifyd.test/legal/terms',
+    companyName: 'Acme Labs',
+    supportEmail: 'support@example.test',
+    privacyPolicyUrl: 'https://example.test/legal/privacy',
+    termsOfServiceUrl: 'https://example.test/legal/terms',
 } as const satisfies BrandingTokens['legal'];
 
 // ============================================================================

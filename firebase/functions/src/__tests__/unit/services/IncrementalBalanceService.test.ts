@@ -1,6 +1,6 @@
 import { calculateEqualSplits } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
@@ -9,7 +9,7 @@ import { FirestoreWriter } from '../../../services/firestore';
 
 describe('IncrementalBalanceService - Unit Tests', () => {
     let service: IncrementalBalanceService;
-    let stubDb: SplitifydFirestoreTestDatabase;
+    let stubDb: TenantFirestoreTestDatabase;
 
     const groupId = toGroupId('test-group-id');
     const userId1 = 'user-1';
@@ -17,7 +17,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
     const userId3 = 'user-3';
 
     beforeEach(() => {
-        stubDb = new SplitifydFirestoreTestDatabase();
+        stubDb = new TenantFirestoreTestDatabase();
         service = new IncrementalBalanceService(new FirestoreWriter(stubDb));
     });
 

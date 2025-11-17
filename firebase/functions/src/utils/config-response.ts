@@ -1,17 +1,32 @@
-import { AppConfiguration, TenantConfig } from '@splitifyd/shared';
+import {
+    AppConfiguration,
+    TenantConfig,
+    toShowLandingPageFlag,
+    toShowMarketingContentFlag,
+    toShowPricingPageFlag,
+} from '@splitifyd/shared';
 import { getTenantAwareAppConfig } from '../client-config';
 import { HARDCODED_FALLBACK_TENANT } from '../services/tenant/TenantRegistryService';
 import type { TenantRequestContext } from '../types/tenant';
 
-const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => ({
-    tenantId: tenant.tenantId,
-    branding: {
-        ...tenant.branding,
-        marketingFlags: tenant.branding.marketingFlags ? { ...tenant.branding.marketingFlags } : undefined,
-    },
-    createdAt: tenant.createdAt,
-    updatedAt: tenant.updatedAt,
-});
+const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
+    const { marketingFlags, ...restOfBranding } = tenant.branding;
+    return {
+        tenantId: tenant.tenantId,
+        branding: {
+            ...restOfBranding,
+            marketingFlags: marketingFlags
+                ? { ...marketingFlags }
+                : {
+                      showLandingPage: toShowLandingPageFlag(true),
+                      showMarketingContent: toShowMarketingContentFlag(true),
+                      showPricingPage: toShowPricingPageFlag(true),
+                  },
+        },
+        createdAt: tenant.createdAt,
+        updatedAt: tenant.updatedAt,
+    };
+};
 
 export const getEnhancedConfigResponse = (context?: TenantRequestContext): AppConfiguration => {
     const tenant = context?.config ?? HARDCODED_FALLBACK_TENANT.tenant;

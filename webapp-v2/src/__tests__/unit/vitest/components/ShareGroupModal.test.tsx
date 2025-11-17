@@ -25,6 +25,10 @@ vi.mock('react-i18next', () => ({
         t: mockTranslate,
         i18n: { language: 'en' },
     }),
+    initReactI18next: {
+        type: '3rdParty',
+        init: vi.fn(),
+    },
 }));
 
 vi.mock('@/utils/dateUtils.ts', () => ({

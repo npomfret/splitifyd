@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { LoadingSpinner } from '@/components/ui';
 import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
 import { StaticPageLayout } from '../../components/StaticPageLayout';
+import { configStore } from '@/stores/config-store';
 
 export function CookiePolicyPage() {
     const { t } = useTranslation();
     const { policy, loading, error } = usePolicy('COOKIE_POLICY');
+    const appName = configStore.appName;
 
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const canonical = `${baseUrl}/cookies`;
@@ -17,13 +19,13 @@ export function CookiePolicyPage() {
     const structuredData = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
-        name: `${t('staticPages.cookiePolicy.title')} - Splitifyd`,
+        name: `${t('staticPages.cookiePolicy.title')} - ${appName}`,
         description: t('staticPages.cookiePolicy.description'),
         url: canonical,
         dateModified: lastUpdated,
         publisher: {
             '@type': 'Organization',
-            name: 'Splitifyd',
+            name: appName,
         },
     };
 

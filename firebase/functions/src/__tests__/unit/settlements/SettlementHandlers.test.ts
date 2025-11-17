@@ -1,4 +1,4 @@
-import {CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import {CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -832,7 +832,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create SettlementHandlers instance with SettlementService', () => {
-            const db = new SplitifydFirestoreTestDatabase();
+            const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(authService, db);
             const handlers = new SettlementHandlers(componentBuilder.buildSettlementService());

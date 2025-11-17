@@ -131,7 +131,7 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
     logger.info('═══════════════════════════════════════════════════════');
     logger.info('🎉✅ EMULATOR STARTUP COMPLETE! 🎉✅');
     logger.info('═══════════════════════════════════════════════════════');
-    logger.info('📍 The Splitifyd emulators are now fully operational');
+    logger.info('📍 The tenant emulators are now fully operational');
     logger.info('🌐 Firebase emulators are running and API functions are ready');
     logger.info('');
 

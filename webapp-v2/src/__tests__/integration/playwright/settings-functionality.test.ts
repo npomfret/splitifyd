@@ -426,13 +426,13 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         await expect(page.getByRole('heading', { name: 'Profile Information' })).toBeVisible();
 
         // 3. Verify profile information subheader
-        await expect(page.getByText('Update the details other members see across Splitifyd.')).toBeVisible();
+        await expect(page.getByText('Update the details other members see across Demo Expenses.')).toBeVisible();
 
         // 4. Verify password section header
         await expect(page.getByRole('heading', { name: 'Password' })).toBeVisible();
 
         // 5. Verify password intro text
-        await expect(page.getByText('Set a strong password to keep your Splitifyd account secure.')).toBeVisible();
+        await expect(page.getByText('Set a strong password to keep your Demo Expenses account secure.')).toBeVisible();
     });
 
     test('should display page hero label', async ({ authenticatedPage }) => {

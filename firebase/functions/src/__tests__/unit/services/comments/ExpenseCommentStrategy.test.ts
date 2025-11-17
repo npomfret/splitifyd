@@ -1,6 +1,6 @@
 import { toGroupId } from '@splitifyd/shared';
 import { toExpenseId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -14,7 +14,7 @@ import { ApiError } from '../../../../utils/errors';
 
 describe('ExpenseCommentStrategy', () => {
     let strategy: ExpenseCommentStrategy;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
 
     const toFirestoreExpenseDocument = (expense: ReturnType<ExpenseDTOBuilder['build']>) => {
         const { isLocked: _ignored, ...firestoreExpense } = expense;
@@ -23,7 +23,7 @@ describe('ExpenseCommentStrategy', () => {
 
     beforeEach(() => {
         // Create stub database
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
 
         // Create real services using stub database
         const firestoreReader = new FirestoreReader(db);
@@ -51,7 +51,7 @@ describe('ExpenseCommentStrategy', () => {
                 .withId(groupId)
                 .build();
 
-            // Seed data using SplitifydFirestoreTestDatabase
+            // Seed data using TenantFirestoreTestDatabase
             db.seedExpense(expenseId, toFirestoreExpenseDocument(testExpense));
             db.seedGroup(groupId, testGroup);
 

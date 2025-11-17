@@ -36,6 +36,7 @@ interface CacheEntry {
 
 const DEFAULT_CACHE_TTL_MS = 1 * 1000; // 1 second for quick updates during development
 const DEFAULT_CACHE_KEY = '__default__';
+const FALLBACK_APP_NAME = process.env.FALLBACK_APP_NAME ?? 'Splitifyd';
 
 /**
  * Hardcoded fallback tenant that is always available.
@@ -46,7 +47,7 @@ export const HARDCODED_FALLBACK_TENANT: TenantRegistryRecord = {
     tenant: {
         tenantId: toTenantId('system-fallback-tenant'),
         branding: {
-            appName: toTenantAppName('Splitifyd'),
+            appName: toTenantAppName(FALLBACK_APP_NAME),
             logoUrl: toTenantLogoUrl('/logo.svg'),
             faviconUrl: toTenantFaviconUrl('/favicon.ico'),
             primaryColor: toTenantPrimaryColor('#6B7280'), // Bland grey

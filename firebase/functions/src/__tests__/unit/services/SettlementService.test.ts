@@ -1,6 +1,6 @@
 import { Timestamp } from '@google-cloud/firestore';
 import { toGroupId, toSettlementId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -10,7 +10,7 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let stubAuth: StubAuthService;
 
     const seedUser = (userId: string, overrides: Record<string, any> = {}) => {
@@ -27,7 +27,7 @@ describe('SettlementService - Unit Tests', () => {
 
     beforeEach(() => {
         // Create stub database
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
         const applicationBuilder = new ComponentBuilder(stubAuth, db);

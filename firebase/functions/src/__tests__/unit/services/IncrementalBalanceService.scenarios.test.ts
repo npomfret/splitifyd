@@ -1,6 +1,6 @@
 import type { SimplifiedDebt } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
@@ -17,7 +17,7 @@ import { FirestoreWriter } from '../../../services/firestore';
  */
 describe('IncrementalBalanceService - Scenarios', () => {
     let service: IncrementalBalanceService;
-    let stubDb: SplitifydFirestoreTestDatabase;
+    let stubDb: TenantFirestoreTestDatabase;
     let writer: FirestoreWriter;
 
     const groupId = toGroupId('test-group-id');
@@ -25,7 +25,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
     const user2 = 'user-2';
 
     beforeEach(() => {
-        stubDb = new SplitifydFirestoreTestDatabase();
+        stubDb = new TenantFirestoreTestDatabase();
         writer = new FirestoreWriter(stubDb);
         service = new IncrementalBalanceService(writer);
     });

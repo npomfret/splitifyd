@@ -1,5 +1,5 @@
 import { toExpenseId, toGroupId } from '@splitifyd/shared';
-import { convertToISOString, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { convertToISOString, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -9,10 +9,10 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
 
     beforeEach(() => {
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
         const stubAuth = new StubAuthService();
         const applicationBuilder = new ComponentBuilder(stubAuth, db);
         expenseService = applicationBuilder.buildExpenseService();

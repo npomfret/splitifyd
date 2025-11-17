@@ -1,4 +1,4 @@
-# Terms and Conditions for Splitifyd
+# Terms and Conditions for {{appName}}
 
 **Last Updated: 08 August 2025**
 

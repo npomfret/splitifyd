@@ -7,23 +7,23 @@
  */
 
 import { toGroupId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreReader } from '../../services/firestore';
 
 describe('FirestoreReader Pagination Performance', () => {
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
     const testUserId = 'test-user';
 
     beforeEach(() => {
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
         firestoreReader = new FirestoreReader(db);
     });
 
     afterEach(() => {
-        // No cleanup needed for SplitifydFirestoreTestDatabase
+        // No cleanup needed for TenantFirestoreTestDatabase
     });
 
     describe('PaginatedResult Interface', () => {

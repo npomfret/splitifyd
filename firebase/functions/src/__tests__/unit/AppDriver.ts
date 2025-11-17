@@ -56,7 +56,7 @@ import {
 import { ExpenseId, SettlementId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import { SystemUserRoles } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@splitifyd/test-support';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { expect } from 'vitest';
@@ -98,7 +98,7 @@ export type AuthToken = UserId;
  * @see IApiClient for the complete list of supported operations
  */
 export class AppDriver {
-    private db = new SplitifydFirestoreTestDatabase();
+    private db = new TenantFirestoreTestDatabase();
     private authService = new StubAuthService();
     private routeDefinitions: RouteDefinition[];
 

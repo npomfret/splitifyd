@@ -3,10 +3,12 @@ import { usePolicy } from '@/hooks/usePolicy.ts';
 import { useTranslation } from 'react-i18next';
 import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
 import { StaticPageLayout } from '../../components/StaticPageLayout';
+import { configStore } from '@/stores/config-store';
 
 export function PrivacyPolicyPage() {
     const { t } = useTranslation();
     const { policy, loading, error } = usePolicy('PRIVACY_POLICY');
+    const appName = configStore.appName;
 
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const canonical = `${baseUrl}/privacy-policy`;
@@ -17,13 +19,13 @@ export function PrivacyPolicyPage() {
     const structuredData = {
         '@context': 'https://schema.org',
         '@type': 'WebPage',
-        name: `${t('staticPages.privacyPolicy.title')} - Splitifyd`,
+        name: `${t('staticPages.privacyPolicy.title')} - ${appName}`,
         description: t('staticPages.privacyPolicy.description'),
         url: canonical,
         dateModified: lastUpdated,
         publisher: {
             '@type': 'Organization',
-            name: 'Splitifyd',
+            name: appName,
         },
     };
 

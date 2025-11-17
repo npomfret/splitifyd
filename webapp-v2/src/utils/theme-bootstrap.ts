@@ -1,4 +1,21 @@
-const THEME_STORAGE_KEY = 'splitifyd:theme-hash';
+export const getThemeStorageKey = (): string => {
+    if (typeof window === 'undefined') {
+        return 'tenant-theme:default:hash';
+    }
+
+    if (window.__tenantTheme?.storageKey) {
+        return window.__tenantTheme.storageKey;
+    }
+
+    const hostKey = window.location.host || 'default';
+    const storageKey = `tenant-theme:${hostKey}:hash`;
+    window.__tenantTheme = {
+        storageKey,
+        hash: window.__tenantTheme?.hash ?? null,
+    };
+
+    return storageKey;
+};
 const THEME_LINK_ID = 'tenant-theme-stylesheet';
 
 const absoluteHref = (href: string): string => {
@@ -39,13 +56,13 @@ export function syncThemeHash(hash?: string | null): void {
     }
 
     try {
-        localStorage.setItem(THEME_STORAGE_KEY, normalizedHash);
+        localStorage.setItem(getThemeStorageKey(), normalizedHash);
     } catch {
         // Ignore storage failures (e.g., private mode)
     }
 
-    if (window.__splitifydTheme) {
-        window.__splitifydTheme.hash = normalizedHash;
+    if (window.__tenantTheme) {
+        window.__tenantTheme.hash = normalizedHash;
     }
 }
 

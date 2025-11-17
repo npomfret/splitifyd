@@ -1,7 +1,7 @@
 import { toGroupId } from '@splitifyd/shared';
 import type { CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
 import { toCommentId, toCommentText, toExpenseId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../../comments/validation';
@@ -13,11 +13,11 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('CommentService - Consolidated Tests', () => {
     let commentService: CommentService;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let stubAuth: StubAuthService;
 
     beforeEach(() => {
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
         const applicationBuilder = new ComponentBuilder(stubAuth, db);

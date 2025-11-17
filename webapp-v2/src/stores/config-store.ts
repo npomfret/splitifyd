@@ -1,11 +1,27 @@
 import { ReadonlySignal, signal } from '@preact/signals';
 import type { AppConfiguration, BrandingConfig } from '@splitifyd/shared';
+import i18n from '../i18n';
 import { firebaseConfigManager } from '../app/firebase-config';
 import { syncThemeHash } from '../utils/theme-bootstrap';
 
 const DEFAULT_THEME_COLOR = '#1a73e8';
-const DEFAULT_APP_TITLE = 'Splitifyd';
+const DEFAULT_APP_NAME = 'Splitifyd';
+const TITLE_PLACEHOLDERS = new Set(['splitifyd', 'splitify', 'app', 'app name']);
 const DEFAULT_FAVICON = '/src/assets/logo.svg';
+
+const setTranslationAppName = (appName: string): void => {
+    if (!i18n.options?.interpolation) {
+        return;
+    }
+
+    if (!i18n.options.interpolation.defaultVariables) {
+        i18n.options.interpolation.defaultVariables = {};
+    }
+
+    i18n.options.interpolation.defaultVariables.appName = appName;
+
+    i18n.emit('languageChanged', i18n.language);
+};
 
 const ensureMetaThemeColor = (): HTMLMetaElement | null => {
     if (typeof document === 'undefined') {
@@ -41,15 +57,10 @@ const applyDocumentTitle = (brandName?: string | null): void => {
     }
 
     const currentTitle = document.title?.trim();
-    if (brandName) {
-        if (!currentTitle || /splitifyd/i.test(currentTitle)) {
-            document.title = brandName;
-        }
-        return;
-    }
-
-    if (!currentTitle || /splitifyd/i.test(currentTitle)) {
-        document.title = DEFAULT_APP_TITLE;
+    const normalizedTitle = currentTitle?.toLowerCase();
+    const shouldOverride = !currentTitle || (normalizedTitle ? TITLE_PLACEHOLDERS.has(normalizedTitle) : false);
+    if (shouldOverride) {
+        document.title = brandName?.trim() || DEFAULT_APP_NAME;
     }
 };
 
@@ -78,6 +89,7 @@ interface ConfigStore {
     readonly config: AppConfiguration | null;
     readonly loading: boolean;
     readonly error: Error | null;
+    readonly appName: string;
 
     // Signal accessors for reactive components - return readonly signals
     readonly configSignal: ReadonlySignal<AppConfiguration | null>;
@@ -108,6 +120,10 @@ class ConfigStoreImpl implements ConfigStore {
     get error() {
         return this.#errorSignal.value;
     }
+    get appName() {
+        const brandingName = this.#configSignal.value?.tenant?.branding?.appName;
+        return brandingName?.trim() || DEFAULT_APP_NAME;
+    }
 
     // Signal accessors for reactive components - return readonly signals
     get configSignal(): ReadonlySignal<AppConfiguration | null> {
@@ -137,6 +153,7 @@ class ConfigStoreImpl implements ConfigStore {
             this.#configSignal.value = config;
             syncThemeHash(config.theme?.hash ?? null);
             updateBrandingMetadata(config.tenant?.branding ?? null);
+            setTranslationAppName(this.appName);
             this.#errorSignal.value = null;
             configLoaded = true;
         } catch (error) {
@@ -153,9 +170,15 @@ class ConfigStoreImpl implements ConfigStore {
         this.#configSignal.value = null;
         this.#loadingSignal.value = false;
         this.#errorSignal.value = null;
+        if (typeof document !== 'undefined') {
+            document.title = DEFAULT_APP_NAME;
+        }
         updateBrandingMetadata(null);
+        setTranslationAppName(DEFAULT_APP_NAME);
     }
 }
 
 // Export singleton instance
 export const configStore = new ConfigStoreImpl();
+
+setTranslationAppName(DEFAULT_APP_NAME);

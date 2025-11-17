@@ -35,7 +35,7 @@ export interface RouteDefinition {
 }
 
 /**
- * Centralized route configuration for the Splitifyd API.
+ * Centralized route configuration for the API.
  * This serves as the single source of truth for all routes in both production and testing.
  */
 const routeDefinitions: RouteDefinition[] = [

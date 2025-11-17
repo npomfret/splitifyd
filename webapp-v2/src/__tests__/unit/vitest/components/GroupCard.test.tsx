@@ -27,6 +27,10 @@ vi.mock('react-i18next', () => ({
             }
         },
     }),
+    initReactI18next: {
+        type: '3rdParty',
+        init: vi.fn(),
+    },
 }));
 
 const buildBaseGroup = (): GroupDTO =>

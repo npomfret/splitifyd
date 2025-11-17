@@ -1,6 +1,6 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toDisplayName, toGroupId, toISOString, toShareLinkToken, USER_COLORS } from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
-import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FirestoreCollections, HTTP_STATUS } from '../../../constants';
@@ -16,7 +16,7 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let firestoreReader: FirestoreReader;
     let groupMemberService: GroupMemberService;
     let activityFeedService: ActivityFeedService;
@@ -26,7 +26,7 @@ describe('GroupShareService', () => {
 
     beforeEach(() => {
         // Create stub database
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
 
         // Create real services using stub database
         firestoreReader = new FirestoreReader(db);

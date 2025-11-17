@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
@@ -481,7 +481,7 @@ describe('GroupHandlers - Unit Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create GroupHandlers instance with GroupService and FirestoreWriter', () => {
-            const db = new SplitifydFirestoreTestDatabase();
+            const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(authService, db);
 

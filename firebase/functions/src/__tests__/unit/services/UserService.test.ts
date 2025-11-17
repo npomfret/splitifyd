@@ -1,5 +1,5 @@
 import { DisplayName, toGroupId } from '@splitifyd/shared';
-import { GroupMemberDocumentBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -12,7 +12,7 @@ import {toDisplayName, toPassword} from "@splitifyd/shared";
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
-    let db: SplitifydFirestoreTestDatabase;
+    let db: TenantFirestoreTestDatabase;
     let stubAuth: StubAuthService;
 
     beforeAll(async () => {
@@ -22,7 +22,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     beforeEach(() => {
         // Create stub database
-        db = new SplitifydFirestoreTestDatabase();
+        db = new TenantFirestoreTestDatabase();
 
         // Create real services using stub database
         stubAuth = new StubAuthService();

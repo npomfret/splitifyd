@@ -58,9 +58,14 @@ test.describe('Site Quality - SEO', () => {
         if (!is404) {
             await waitForApp(page); // Wait for React to mount and set meta tags
 
+            const appName = await page.request
+                .get(`${EMULATOR_URL}/api/config`)
+                .then((response) => response.json())
+                .then((config) => config?.tenant?.branding?.appName ?? 'Splitifyd');
+
             // Title validation
             const pricingTitle = await page.title();
-            expect(pricingTitle).toContain('Splitifyd');
+            expect(pricingTitle).toContain(appName);
             expect(pricingTitle.length).toBeLessThan(60);
 
             // Meta description validation - wait for it to be added by React

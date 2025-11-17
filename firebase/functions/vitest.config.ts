@@ -9,7 +9,7 @@ export default defineConfig({
         setupFiles: ['./vitest.setup.ts'],
         silent: false,
         env: {
-            GCLOUD_PROJECT: 'splitifyd',
+            GCLOUD_PROJECT: process.env.GCLOUD_PROJECT ?? 'splitifyd',
             INSTANCE_MODE: 'test',
         },
         include: ['src/**/*.test.ts'],

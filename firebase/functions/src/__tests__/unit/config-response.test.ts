@@ -89,7 +89,7 @@ describe('getEnhancedConfigResponse', () => {
                 cssUrl: 'file:///tmp/theme.css',
                 tokensUrl: 'file:///tmp/tokens.json',
                 version: 1,
-                generatedAtEpochMs: 123456789, 
+                generatedAtEpochMs: 123456789,
                 generatedBy: 'tester'
 }
 };
@@ -99,5 +99,42 @@ describe('getEnhancedConfigResponse', () => {
         expect(result).not.toBe(mockAppConfig);
         expect(result.theme?.hash).toBe('abc123');
         expect(result.theme?.generatedAtEpochMs).toBe(123456789);
+    });
+
+    it('provides default marketingFlags when tenant has undefined marketingFlags', () => {
+        const tenantWithoutMarketingFlags: TenantConfig = {
+            tenantId: toTenantId('no-marketing-tenant'),
+            branding: {
+                appName: toTenantAppName('Test App'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#123456'),
+                secondaryColor: toTenantSecondaryColor('#654321'),
+                // marketingFlags intentionally omitted
+            },
+            createdAt: toISOString('2025-02-01T10:00:00.000Z'),
+            updatedAt: toISOString('2025-02-02T12:00:00.000Z')
+        };
+
+        const context: TenantRequestContext = {
+            tenantId: tenantWithoutMarketingFlags.tenantId,
+            config: tenantWithoutMarketingFlags,
+            domains: [],
+            primaryDomain: null,
+            isDefault: toTenantDefaultFlag(false),
+            source: 'override'
+        };
+
+        const result = getEnhancedConfigResponse(context);
+
+        expect(result).toBe(mockAppConfig);
+
+        const calls = vi.mocked(clientConfig.getTenantAwareAppConfig).mock.calls;
+        const forwarded = calls.length > 0 ? calls[calls.length - 1]![0] : undefined;
+        expect(forwarded).toBeDefined();
+        expect(forwarded?.branding.marketingFlags).toBeDefined();
+        expect(forwarded?.branding.marketingFlags?.showLandingPage).toBe(true);
+        expect(forwarded?.branding.marketingFlags?.showMarketingContent).toBe(true);
+        expect(forwarded?.branding.marketingFlags?.showPricingPage).toBe(true);
     });
 });

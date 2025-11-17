@@ -1,10 +1,10 @@
-# Privacy Policy for Splitifyd
+# Privacy Policy for {{appName}}
 
 **Last Updated: 08 August 2025**
 
 ## 1. Acceptance and Modification
 
-By accessing, using, or continuing to use Splitifyd ("Service"), you unconditionally accept this Privacy Policy and grant us an irrevocable, perpetual, worldwide license to collect, use, modify, display, reproduce, and distribute any data or content you provide. We may modify this Policy at any time without notice, and such modifications are effective immediately upon posting. Your continued use constitutes binding acceptance of all changes. You waive any right to receive specific notice of changes.
+By accessing, using, or continuing to use {{appName}} ("Service"), you unconditionally accept this Privacy Policy and grant us an irrevocable, perpetual, worldwide license to collect, use, modify, display, reproduce, and distribute any data or content you provide. We may modify this Policy at any time without notice, and such modifications are effective immediately upon posting. Your continued use constitutes binding acceptance of all changes. You waive any right to receive specific notice of changes.
 
 ## 2. Age Restriction and Capacity
 

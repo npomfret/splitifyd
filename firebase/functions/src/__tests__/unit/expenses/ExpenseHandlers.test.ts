@@ -1,5 +1,5 @@
 import type { UpdateExpenseRequest } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
@@ -429,7 +429,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('Static Factory Method', () => {
         it('should create ExpenseHandlers instance with ExpenseService', () => {
-            const db = new SplitifydFirestoreTestDatabase();
+            const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
             const componentBuilder = new ComponentBuilder(authService, db);
             const handlers = new ExpenseHandlers(componentBuilder.buildExpenseService());
