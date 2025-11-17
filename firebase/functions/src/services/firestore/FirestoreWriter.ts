@@ -16,7 +16,7 @@ import { normalizeDisplayNameForComparison } from '@splitifyd/shared';
 import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@splitifyd/shared';
 import { z } from 'zod';
 import { ALLOWED_POLICY_IDS, FirestoreCollections, HTTP_STATUS } from '../../constants';
-import { FieldValue, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
+import { FieldValue, type IDocumentReference, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { ApiError } from '../../utils/errors';
@@ -1317,70 +1317,77 @@ export class FirestoreWriter implements IFirestoreWriter {
     async upsertTenant(tenantId: string, data: TenantDocumentUpsertData): Promise<WriteResult & { created: boolean }> {
         return measureDb('FirestoreWriter.upsertTenant', async () => {
             try {
-                const tenantRef = this.db.collection(FirestoreCollections.TENANTS).doc(tenantId);
-                const snapshot = await tenantRef.get();
-                const created = !snapshot.exists;
+                return await this.db.runTransaction(async (transaction) => {
+                    const tenantRef = this.db.collection(FirestoreCollections.TENANTS).doc(tenantId);
 
-                // Enforce default tenant rules
-                if (!created && snapshot.exists) {
-                    const existingData = snapshot.data();
-                    const isCurrentlyDefault = existingData?.defaultTenant === true;
-                    const newDefaultFlag = data.defaultTenant;
+                    // All reads must happen first in a transaction
+                    const snapshot = await transaction.get(tenantRef);
+                    const created = !snapshot.exists;
 
-                    // Cannot remove default flag without transferring it to another tenant
-                    if (isCurrentlyDefault && newDefaultFlag === false) {
-                        throw new ApiError(
-                            HTTP_STATUS.BAD_REQUEST,
-                            'CANNOT_REMOVE_DEFAULT_TENANT',
-                            'Cannot remove default tenant flag. A default tenant must always exist. Set another tenant as default first.'
-                        );
-                    }
-                }
+                    // Enforce default tenant rules
+                    if (!created && snapshot.exists) {
+                        const existingData = snapshot.data();
+                        const isCurrentlyDefault = existingData?.defaultTenant === true;
+                        const newDefaultFlag = data.defaultTenant;
 
-                // If setting this tenant as default, remove default flag from all other tenants
-                if (data.defaultTenant === true) {
-                    const tenantsSnapshot = await this.db
-                        .collection(FirestoreCollections.TENANTS)
-                        .where('defaultTenant', '==', true)
-                        .get();
-
-                    // Remove default flag from other tenants in a batch
-                    const batch = this.db.batch();
-                    tenantsSnapshot.docs.forEach((doc) => {
-                        if (doc.id !== tenantId) {
-                            batch.update(doc.ref, {
-                                defaultTenant: false,
-                                updatedAt: FieldValue.serverTimestamp(),
-                            });
+                        // Cannot remove default flag without transferring it to another tenant
+                        if (isCurrentlyDefault && newDefaultFlag === false) {
+                            throw new ApiError(
+                                HTTP_STATUS.BAD_REQUEST,
+                                'CANNOT_REMOVE_DEFAULT_TENANT',
+                                'Cannot remove default tenant flag. A default tenant must always exist. Set another tenant as default first.'
+                            );
                         }
+                    }
+
+                    // If setting this tenant as default, read all current default tenants
+                    const otherDefaultTenantRefs: IDocumentReference[] = [];
+                    if (data.defaultTenant === true) {
+                        const tenantsSnapshot = await transaction.get(
+                            this.db.collection(FirestoreCollections.TENANTS).where('defaultTenant', '==', true)
+                        );
+                        tenantsSnapshot.docs.forEach((doc) => {
+                            if (doc.id !== tenantId) {
+                                otherDefaultTenantRefs.push(doc.ref);
+                            }
+                        });
+                    }
+
+                    // Validate data before adding timestamps (follow pattern from createUser)
+                    const tenantDocument = TenantDocumentSchema.parse({
+                        id: tenantId,
+                        ...data,
+                        createdAt: created ? Timestamp.now() : snapshot.data()!.createdAt,
+                        updatedAt: Timestamp.now(),
                     });
-                    await batch.commit();
-                }
 
-                // Validate data before adding timestamps (follow pattern from createUser)
-                const tenantDocument = TenantDocumentSchema.parse({
-                    id: tenantId,
-                    ...data,
-                    createdAt: created ? Timestamp.now() : snapshot.data()!.createdAt,
-                    updatedAt: Timestamp.now(),
+                    const sanitized = this.removeUndefinedValues(tenantDocument);
+
+                    // Replace validation timestamps with FieldValue.serverTimestamp() for the actual write
+                    const finalData = {
+                        ...sanitized,
+                        createdAt: created ? FieldValue.serverTimestamp() : snapshot.data()!.createdAt,
+                        updatedAt: FieldValue.serverTimestamp(),
+                    };
+
+                    // All writes must happen after all reads in a transaction
+                    // First, remove default flag from other tenants
+                    otherDefaultTenantRefs.forEach((ref) => {
+                        transaction.update(ref, {
+                            defaultTenant: false,
+                            updatedAt: FieldValue.serverTimestamp(),
+                        });
+                    });
+
+                    // Then, set the current tenant
+                    transaction.set(tenantRef, finalData, { merge: false });
+
+                    return {
+                        id: tenantId,
+                        success: true,
+                        created,
+                    };
                 });
-
-                const sanitized = this.removeUndefinedValues(tenantDocument);
-
-                // Replace validation timestamps with FieldValue.serverTimestamp() for the actual write
-                const finalData = {
-                    ...sanitized,
-                    createdAt: created ? FieldValue.serverTimestamp() : snapshot.data()!.createdAt,
-                    updatedAt: FieldValue.serverTimestamp(),
-                };
-
-                await tenantRef.set(finalData, { merge: false });
-
-                return {
-                    id: tenantId,
-                    success: true,
-                    created,
-                };
             } catch (error) {
                 logger.error('Failed to upsert tenant', error, { tenantId });
                 if (error instanceof ApiError) {

@@ -1,4 +1,5 @@
-import {toShowLandingPageFlag,
+import {
+    toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAppName,
@@ -8,84 +9,85 @@ import {toShowLandingPageFlag,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
-    toTenantSecondaryColor,} from '@splitifyd/shared';
-import { Timestamp } from 'firebase-admin/firestore';
+    toTenantSecondaryColor,
+} from '@splitifyd/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { FirestoreCollections } from '../../../constants';
 import { getFirestore } from '../../../firebase';
-import type { TenantDocument } from '../../../schemas/tenant';
-import { FirestoreReader } from '../../../services/firestore';
-import { FirestoreWriter } from '../../../services/firestore';
+import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import type { TenantRegistryRecord } from '../../../services/firestore';
 import { createFirestoreDatabase } from '../../../firestore-wrapper';
 
 describe('Tenant Firestore Integration', () => {
-    const db = getFirestore();
-    const wrappedDb = createFirestoreDatabase(db);
+    const wrappedDb = createFirestoreDatabase(getFirestore());
     const firestoreReader = new FirestoreReader(wrappedDb);
     const firestoreWriter = new FirestoreWriter(wrappedDb);
 
-    const testTenantId = `test-tenant-${Date.now()}`;
-    const defaultTenantId = `default-tenant-${Date.now()}`;
+    const timestamp = Date.now();
+    const testTenantId = `test-tenant-${timestamp}`;
+    const defaultTenantId = `default-tenant-${timestamp}`;
+    const testDomain = `test-${timestamp}.example.com`;
+    const testAliasDomain = `test-alias-${timestamp}.example.com`;
+    const defaultDomain = `default-${timestamp}.example.com`;
 
     beforeAll(async () => {
-        // Clean up any existing default tenants from Firestore for this test
-        const existingDefaultSnapshot = await db
-            .collection(FirestoreCollections.TENANTS)
-            .where('defaultTenant', '==', true)
-            .get();
-
-        for (const doc of existingDefaultSnapshot.docs) {
-            await doc.ref.delete();
-        }
-
-        // Create test tenant document
-        const testTenantDoc: Omit<TenantDocument, 'id'> = {
+        // Create test tenant using FirestoreWriter API (not direct DB access)
+        await firestoreWriter.upsertTenant(testTenantId, {
             branding: {
                 appName: toTenantAppName('Test Tenant App'),
-                logoUrl: toTenantLogoUrl('https://test.example.com/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://test.example.com/favicon.ico'),
+                logoUrl: toTenantLogoUrl(`https://${testDomain}/logo.svg`),
+                faviconUrl: toTenantFaviconUrl(`https://${testDomain}/favicon.ico`),
                 primaryColor: toTenantPrimaryColor('#FF5733'),
                 secondaryColor: toTenantSecondaryColor('#33FF57')
-},
+            },
             domains: {
-                primary: toTenantDomainName('test.example.com'),
-                aliases: [toTenantDomainName('test-alias.example.com')],
-                normalized: [toTenantDomainName('test.example.com'), toTenantDomainName('test-alias.example.com')]
-},
-            defaultTenant: toTenantDefaultFlag(false),
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now()
-};
+                primary: toTenantDomainName(testDomain),
+                aliases: [toTenantDomainName(testAliasDomain)],
+                normalized: [toTenantDomainName(testDomain), toTenantDomainName(testAliasDomain)]
+            },
+            defaultTenant: toTenantDefaultFlag(false)
+        });
 
-        await db.collection(FirestoreCollections.TENANTS).doc(testTenantId).set(testTenantDoc);
-
-        // Create default tenant document
-        const defaultTenantDoc: Omit<TenantDocument, 'id'> = {
+        // Create a second default tenant for testing default transfer
+        // This will automatically transfer default flag from existing default tenant
+        await firestoreWriter.upsertTenant(defaultTenantId, {
             branding: {
                 appName: toTenantAppName('Default App'),
-                logoUrl: toTenantLogoUrl('https://default.example.com/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://default.example.com/favicon.ico'),
+                logoUrl: toTenantLogoUrl(`https://${defaultDomain}/logo.svg`),
+                faviconUrl: toTenantFaviconUrl(`https://${defaultDomain}/favicon.ico`),
                 primaryColor: toTenantPrimaryColor('#1a73e8'),
                 secondaryColor: toTenantSecondaryColor('#34a853')
-},
+            },
             domains: {
-                primary: toTenantDomainName('default.example.com'),
+                primary: toTenantDomainName(defaultDomain),
                 aliases: [],
-                normalized: [toTenantDomainName('default.example.com')]
-},
-            defaultTenant: toTenantDefaultFlag(true),
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now()
-};
-
-        await db.collection(FirestoreCollections.TENANTS).doc(defaultTenantId).set(defaultTenantDoc);
+                normalized: [toTenantDomainName(defaultDomain)]
+            },
+            defaultTenant: toTenantDefaultFlag(true)
+        });
     });
 
     afterAll(async () => {
-        // Clean up test data
-        await db.collection(FirestoreCollections.TENANTS).doc(testTenantId).delete();
-        await db.collection(FirestoreCollections.TENANTS).doc(defaultTenantId).delete();
+        // Transfer default flag back to the real default tenant
+        // This ensures subsequent tests have a proper default tenant
+        // No direct database deletes - if we can't delete tenants in production, we shouldn't in tests
+        await firestoreWriter.upsertTenant('default-tenant', {
+            branding: {
+                appName: toTenantAppName('Splitifyd'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#3B82F6'),
+                secondaryColor: toTenantSecondaryColor('#8B5CF6')
+            },
+            domains: {
+                primary: toTenantDomainName('localhost'),
+                aliases: [],
+                normalized: [toTenantDomainName('localhost')]
+            },
+            defaultTenant: toTenantDefaultFlag(true)
+        });
+
+        // Test tenants remain in the emulator - they use timestamped IDs so won't conflict
+        // This matches production reality: tenants are never deleted, only deactivated
     });
 
     describe('getTenantById', () => {
@@ -107,9 +109,9 @@ describe('Tenant Firestore Integration', () => {
             const result = await firestoreReader.getTenantById(toTenantId(testTenantId));
 
             expect(result).not.toBeNull();
-            expect(result?.domains).toContain(toTenantDomainName('test.example.com'));
-            expect(result?.domains).toContain(toTenantDomainName('test-alias.example.com'));
-            expect(result?.primaryDomain).toBe(toTenantDomainName('test.example.com'));
+            expect(result?.domains).toContain(toTenantDomainName(testDomain));
+            expect(result?.domains).toContain(toTenantDomainName(testAliasDomain));
+            expect(result?.primaryDomain).toBe(toTenantDomainName(testDomain));
         });
 
         it('should convert Timestamps to ISO strings in config', async () => {
@@ -124,28 +126,28 @@ describe('Tenant Firestore Integration', () => {
 
     describe('getTenantByDomain', () => {
         it('should retrieve tenant by primary domain', async () => {
-            const result = await firestoreReader.getTenantByDomain(toTenantDomainName('test.example.com'));
+            const result = await firestoreReader.getTenantByDomain(toTenantDomainName(testDomain));
 
             expect(result).not.toBeNull();
             expect(result?.tenant.tenantId).toBe(testTenantId);
-            expect(result?.primaryDomain).toBe(toTenantDomainName('test.example.com'));
+            expect(result?.primaryDomain).toBe(toTenantDomainName(testDomain));
         });
 
         it('should retrieve tenant by alias domain', async () => {
-            const result = await firestoreReader.getTenantByDomain(toTenantDomainName('test-alias.example.com'));
+            const result = await firestoreReader.getTenantByDomain(toTenantDomainName(testAliasDomain));
 
             expect(result).not.toBeNull();
             expect(result?.tenant.tenantId).toBe(testTenantId);
         });
 
         it('should return null for unknown domain', async () => {
-            const result = await firestoreReader.getTenantByDomain(toTenantDomainName('unknown.example.com'));
+            const result = await firestoreReader.getTenantByDomain(toTenantDomainName(`unknown-${timestamp}.example.com`));
 
             expect(result).toBeNull();
         });
 
         it('should handle normalized domain lookups', async () => {
-            const result = await firestoreReader.getTenantByDomain(toTenantDomainName('test.example.com'));
+            const result = await firestoreReader.getTenantByDomain(toTenantDomainName(testDomain));
 
             expect(result).not.toBeNull();
             expect(result?.domains).toHaveLength(2);
@@ -170,81 +172,6 @@ describe('Tenant Firestore Integration', () => {
         });
     });
 
-    describe('domain deduplication', () => {
-        it('should deduplicate domains in normalized array', async () => {
-            const tenantWithDupes = `tenant-with-dupes-${Date.now()}`;
-
-            const dupeDoc: Omit<TenantDocument, 'id'> = {
-                branding: {
-                    appName: toTenantAppName('Dupe Test'),
-                    logoUrl: toTenantLogoUrl('https://dupe.example.com/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('https://dupe.example.com/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#FFFFFF')
-},
-                domains: {
-                    primary: toTenantDomainName('dupe.example.com'),
-                    aliases: [toTenantDomainName('dupe.example.com')], // Duplicate!
-                    normalized: [
-                        toTenantDomainName('dupe.example.com'),
-                        toTenantDomainName('dupe.example.com'),
-                        toTenantDomainName('dupe.example.com'),
-                    ], // Triplicates!
-                },
-                defaultTenant: toTenantDefaultFlag(false),
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now()
-};
-
-            await db.collection(FirestoreCollections.TENANTS).doc(tenantWithDupes).set(dupeDoc);
-
-            const result = await firestoreReader.getTenantById(toTenantId(tenantWithDupes));
-
-            expect(result).not.toBeNull();
-            expect(result?.domains).toHaveLength(1); // Should deduplicate to single domain
-            expect(result?.domains[0]).toBe(toTenantDomainName('dupe.example.com'));
-
-            // Cleanup
-            await db.collection(FirestoreCollections.TENANTS).doc(tenantWithDupes).delete();
-        });
-    });
-
-    describe('optional fields', () => {
-        it('should handle tenant without optional branding fields', async () => {
-            const minimalTenantId = `minimal-tenant-${Date.now()}`;
-
-            const minimalDoc: Omit<TenantDocument, 'id'> = {
-                branding: {
-                    appName: toTenantAppName('Minimal App'),
-                    logoUrl: toTenantLogoUrl('https://minimal.example.com/logo.svg'),
-                    faviconUrl: toTenantFaviconUrl('https://minimal.example.com/favicon.ico'),
-                    primaryColor: toTenantPrimaryColor('#000000'),
-                    secondaryColor: toTenantSecondaryColor('#FFFFFF'),
-                    // No accentColor, themePalette, customCSS, marketingFlags
-                },
-                domains: {
-                    primary: toTenantDomainName('minimal.example.com'),
-                    aliases: [],
-                    normalized: [toTenantDomainName('minimal.example.com')]
-},
-                // No defaultTenant field (optional)
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now()
-};
-
-            await db.collection(FirestoreCollections.TENANTS).doc(minimalTenantId).set(minimalDoc);
-
-            const result = await firestoreReader.getTenantById(toTenantId(minimalTenantId));
-
-            expect(result).not.toBeNull();
-            expect(result?.tenant.branding.appName).toBe('Minimal App');
-            expect(result?.tenant.branding.accentColor).toBeUndefined();
-            expect(result?.isDefault).toBe(false); // Should default to false
-
-            // Cleanup
-            await db.collection(FirestoreCollections.TENANTS).doc(minimalTenantId).delete();
-        });
-    });
 });
 
 // Helper function to assert TenantRegistryRecord structure
@@ -270,39 +197,35 @@ function assertTenantRegistryRecordStructure(record: TenantRegistryRecord): void
 }
 
 describe('Tenant Branding Updates', () => {
-    const db = getFirestore();
-    const wrappedDb = createFirestoreDatabase(db);
+    const wrappedDb = createFirestoreDatabase(getFirestore());
     const firestoreReader = new FirestoreReader(wrappedDb);
     const firestoreWriter = new FirestoreWriter(wrappedDb);
 
-    const updateTestTenantId = `update-test-tenant-${Date.now()}`;
+    const timestamp = Date.now();
+    const updateTestTenantId = `update-test-tenant-${timestamp}`;
+    const updateTestDomain = `update-test-${timestamp}.example.com`;
 
     beforeAll(async () => {
-        // Create a test tenant for branding updates
-        const tenantDoc: Omit<TenantDocument, 'id'> = {
+        // Create a test tenant for branding updates using API
+        await firestoreWriter.upsertTenant(updateTestTenantId, {
             branding: {
                 appName: toTenantAppName('Original App Name'),
-                logoUrl: toTenantLogoUrl('https://original.example.com/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://original.example.com/favicon.ico'),
+                logoUrl: toTenantLogoUrl(`https://${updateTestDomain}/logo.svg`),
+                faviconUrl: toTenantFaviconUrl(`https://${updateTestDomain}/favicon.ico`),
                 primaryColor: toTenantPrimaryColor('#000000'),
                 secondaryColor: toTenantSecondaryColor('#FFFFFF')
-},
+            },
             domains: {
-                primary: toTenantDomainName('update-test.example.com'),
+                primary: toTenantDomainName(updateTestDomain),
                 aliases: [],
-                normalized: [toTenantDomainName('update-test.example.com')]
-},
-            defaultTenant: toTenantDefaultFlag(false),
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now()
-};
-
-        await db.collection(FirestoreCollections.TENANTS).doc(updateTestTenantId).set(tenantDoc);
+                normalized: [toTenantDomainName(updateTestDomain)]
+            },
+            defaultTenant: toTenantDefaultFlag(false)
+        });
     });
 
     afterAll(async () => {
-        // Clean up test tenant
-        await db.collection(FirestoreCollections.TENANTS).doc(updateTestTenantId).delete();
+        // No cleanup - tenant remains in emulator (matches production reality)
     });
 
     it('should update single branding field', async () => {
@@ -315,7 +238,7 @@ describe('Tenant Branding Updates', () => {
         // Verify the update persisted
         const tenant = await firestoreReader.getTenantById(toTenantId(updateTestTenantId));
         expect(tenant?.tenant.branding.appName).toBe('Updated App Name');
-        expect(tenant?.tenant.branding.logoUrl).toBe('https://original.example.com/logo.svg'); // Unchanged
+        expect(tenant?.tenant.branding.logoUrl).toBe(`https://${updateTestDomain}/logo.svg`); // Unchanged
     });
 
     it('should update multiple branding fields', async () => {

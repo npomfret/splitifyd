@@ -60,17 +60,18 @@ describe('Public endpoints', () => {
         expect(text).toBe('');
     });
 
-    it('GET /config fails when no default tenant is configured', async () => {
+    it('GET /config returns default tenant when host does not match any tenant', async () => {
         const response = await fetch(`${baseUrl}/config`, {
             headers: { Host: 'nonexistent-host.example.com' },
         });
 
-        // Should fail with 404 when no tenant can be resolved
-        expect(response.status).toBe(404);
+        // Should succeed with default tenant fallback
+        expect(response.status).toBe(200);
 
-        const error = deserialize<{ error?: { code: string; message: string } }>(await response.text());
-        expect(error).toHaveProperty('error');
-        expect(error.error).toHaveProperty('code', 'TENANT_NOT_FOUND');
+        const config = deserialize<{ tenant?: { tenantId: string }; firebase: Record<string, unknown> }>(await response.text());
+        expect(config).toHaveProperty('firebase');
+        expect(config).toHaveProperty('tenant');
+        expect(config.tenant).toHaveProperty('tenantId', 'default-tenant');
     });
 
     it('GET /policies/:id/current is accessible without tenant headers', async () => {
