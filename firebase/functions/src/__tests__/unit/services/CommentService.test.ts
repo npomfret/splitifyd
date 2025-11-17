@@ -1,6 +1,6 @@
 import { toGroupId } from '@splitifyd/shared';
 import type { CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
-import { toCommentId, toExpenseId } from '@splitifyd/shared';
+import { toCommentId, toCommentText, toExpenseId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -103,7 +103,7 @@ describe('CommentService - Consolidated Tests', () => {
                 .build();
             db.seedGroupMember(testGroup.id, 'user-id', membershipDoc);
 
-            const result = await commentService.createGroupComment(testGroup.id, { text: 'New test comment', groupId: testGroup.id }, 'user-id');
+            const result = await commentService.createGroupComment(testGroup.id, { text: toCommentText('New test comment'), groupId: testGroup.id }, 'user-id');
 
             expect(result.id).toBeTruthy();
             expect(result.text).toBe('New test comment');
@@ -115,7 +115,7 @@ describe('CommentService - Consolidated Tests', () => {
             // Don't set up any group data
 
             await expect(
-                commentService.createGroupComment(toGroupId('nonexistent-group'), { text: 'Test comment', groupId: toGroupId('nonexistent-group') }, 'user-id'),
+                commentService.createGroupComment(toGroupId('nonexistent-group'), { text: toCommentText('Test comment'), groupId: toGroupId('nonexistent-group') }, 'user-id'),
             )
                 .rejects
                 .toThrow(ApiError);
@@ -176,7 +176,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const userId = 'user-123';
                 const targetId = toGroupId('group-456');
                 const commentData: CreateGroupCommentRequest = {
-                    text: 'Test comment',
+                    text: toCommentText('Test comment'),
                     groupId: targetId,
                 };
 
@@ -208,7 +208,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const userId = 'user-456';
                 const targetId = toGroupId('group-789');
                 const commentData: CreateGroupCommentRequest = {
-                    text: 'Comment without auth record',
+                    text: toCommentText('Comment without auth record'),
                     groupId: targetId,
                 };
 
@@ -233,7 +233,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const userId = 'non-member';
                 const targetId = toGroupId('group-123');
                 const commentData: CreateGroupCommentRequest = {
-                    text: 'Test comment',
+                    text: toCommentText('Test comment'),
                     groupId: targetId,
                 };
 
@@ -244,7 +244,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const userId = 'user-789';
                 const targetId = toGroupId('group-456');
                 const commentData: CreateGroupCommentRequest = {
-                    text: 'Test comment',
+                    text: toCommentText('Test comment'),
                     groupId: targetId,
                 };
 
@@ -319,7 +319,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const userId = 'user-123';
                 const targetId = toGroupId('group-456');
                 const commentData: CreateGroupCommentRequest = {
-                    text: 'Group comment',
+                    text: toCommentText('Group comment'),
                     groupId: targetId,
                 };
 
@@ -347,7 +347,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const targetId = toExpenseId('expense-456');
                 const groupId = toGroupId('group-789');
                 const commentData: CreateExpenseCommentRequest = {
-                    text: 'Expense comment',
+                    text: toCommentText('Expense comment'),
                     expenseId: targetId,
                 };
 
@@ -382,7 +382,7 @@ describe('CommentService - Consolidated Tests', () => {
                 const userId = 'user-123';
                 const targetId = toGroupId('group-456');
                 const commentData: CreateGroupCommentRequest = {
-                    text: 'Consistency test comment',
+                    text: toCommentText('Consistency test comment'),
                     groupId: targetId,
                 };
 

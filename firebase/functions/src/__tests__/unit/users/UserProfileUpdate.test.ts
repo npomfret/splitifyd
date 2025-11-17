@@ -1,6 +1,7 @@
 // Unit tests for user profile update functionality
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
+import { toPassword } from "@splitifyd/shared";
 
 describe('User Profile Update - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -49,7 +50,7 @@ describe('User Profile Update - Unit Tests', () => {
             const newEmail = `updated-${Date.now()}@test.local`;
 
             const updatedProfile = await appDriver.changeEmail({
-                currentPassword: 'ValidPass123!',
+                currentPassword: toPassword('ValidPass123!'),
                 newEmail,
             }, userId);
 
@@ -60,8 +61,8 @@ describe('User Profile Update - Unit Tests', () => {
         test('rejects invalid password', async () => {
             await expect(
                 appDriver.changeEmail({
-                    currentPassword: 'WrongPassword123!',
-                    newEmail: `another-${Date.now()}@test.local`,
+                    currentPassword: toPassword('WrongPassword123!'),
+                    newEmail: toPassword(`another-${Date.now()}@test.local`),
                 }, userId),
             )
                 .rejects
@@ -71,7 +72,7 @@ describe('User Profile Update - Unit Tests', () => {
         test('rejects unchanged email', async () => {
             await expect(
                 appDriver.changeEmail({
-                    currentPassword: 'ValidPass123!',
+                    currentPassword: toPassword('ValidPass123!'),
                     newEmail: 'user@test.local',
                 }, userId),
             )
@@ -85,7 +86,7 @@ describe('User Profile Update - Unit Tests', () => {
 
             await expect(
                 appDriver.changeEmail({
-                    currentPassword: 'ValidPass123!',
+                    currentPassword: toPassword('ValidPass123!'),
                     newEmail: takenEmail,
                 }, userId),
             )

@@ -645,7 +645,7 @@ export class AppDriver {
         return settlement;
     }
 
-    async createGroupComment(groupId: GroupId | string, text: CommentText, authToken: AuthToken): Promise<CommentDTO> {
+    async createGroupComment(groupId: GroupId | string, text: CommentText | string, authToken: AuthToken): Promise<CommentDTO> {
         const req = createStubRequest(authToken, { text }, { groupId });
         const res = await this.dispatchByHandler('createComment', req);
         return res.getJson() as CommentDTO;
@@ -665,7 +665,7 @@ export class AppDriver {
         return res.getJson() as ListCommentsResponse;
     }
 
-    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText, authToken: AuthToken): Promise<CommentDTO> {
+    async createExpenseComment(expenseId: ExpenseId | string, text: CommentText | string, authToken: AuthToken): Promise<CommentDTO> {
         const req = createStubRequest(authToken, { text }, { expenseId });
         const res = await this.dispatchByHandler('createCommentForExpense', req);
         return res.getJson() as CommentDTO;

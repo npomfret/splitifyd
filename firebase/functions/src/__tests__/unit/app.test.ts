@@ -17,6 +17,7 @@ import { toExpenseId } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from './AppDriver';
+import {toPassword} from "@splitifyd/shared";
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
@@ -3204,8 +3205,8 @@ describe('app tests', () => {
         });
 
         describe('changePassword', () => {
-            const VALID_CURRENT_PASSWORD = 'ValidPass123!';
-            const VALID_NEW_PASSWORD = 'NewSecurePass123!';
+            const VALID_CURRENT_PASSWORD = toPassword('ValidPass123!');
+            const VALID_NEW_PASSWORD = toPassword('NewSecurePass123!');
 
             it('should successfully change password with valid credentials', async () => {
                 const result = await appDriver.changePassword({
@@ -3219,7 +3220,7 @@ describe('app tests', () => {
             it('should reject when current password is incorrect', async () => {
                 await expect(
                     appDriver.changePassword({
-                        currentPassword: 'WrongPassword123!',
+                        currentPassword: toPassword('WrongPassword123!'),
                         newPassword: VALID_NEW_PASSWORD
 }, user1),
                 )
@@ -3242,7 +3243,7 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: 'Short1!'
+                        newPassword: toPassword('Short1!')
 }, user1),
                 )
                     .rejects
@@ -3272,7 +3273,7 @@ describe('app tests', () => {
             it('should reject when currentPassword is empty string', async () => {
                 await expect(
                     appDriver.changePassword({
-                        currentPassword: '',
+                        currentPassword: toPassword(''),
                         newPassword: VALID_NEW_PASSWORD
 }, user1),
                 )
@@ -3284,7 +3285,7 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: ''
+                        newPassword: toPassword('')
 }, user1),
                 )
                     .rejects
@@ -3293,7 +3294,7 @@ describe('app tests', () => {
         });
 
         describe('changeEmail', () => {
-            const CURRENT_PASSWORD = 'ValidPass123!';
+            const CURRENT_PASSWORD = toPassword('ValidPass123!');
             const NEW_EMAIL = 'newemail@example.com';
 
             it('should successfully change email with valid credentials', async () => {
@@ -3309,7 +3310,7 @@ describe('app tests', () => {
             it('should reject when current password is incorrect', async () => {
                 await expect(
                     appDriver.changeEmail({
-                        currentPassword: 'WrongPassword123!',
+                        currentPassword: toPassword('WrongPassword123!'),
                         newEmail: NEW_EMAIL
 }, user1),
                 )
@@ -3364,7 +3365,7 @@ describe('app tests', () => {
             it('should reject when currentPassword is empty string', async () => {
                 await expect(
                     appDriver.changeEmail({
-                        currentPassword: '',
+                        currentPassword: toPassword(''),
                         newEmail: NEW_EMAIL
 }, user1),
                 )

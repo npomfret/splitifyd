@@ -1,5 +1,5 @@
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { ActivityFeedItem, CommentDTO, ExpenseId, GroupId, ListCommentsResponse } from '@splitifyd/shared';
+import type { ActivityFeedItem, CommentDTO, CommentText, ExpenseId, GroupId, ListCommentsResponse } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
@@ -342,7 +342,7 @@ export class CommentsStoreImpl implements CommentsStore {
     /**
      * Add a new comment
      */
-    async addComment(text: string): Promise<void> {
+    async addComment(text: CommentText): Promise<void> {
         const target = this.#targetSignal.value;
         if (!target) {
             this.#errorSignal.value = 'No target selected for comment';

@@ -1,6 +1,7 @@
 import type { UpdateUserRequest } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
+import {Password, toPassword} from "@splitifyd/shared";
 
 /**
  * Builder for creating user update request objects for testing
@@ -29,8 +30,8 @@ export class UserUpdateBuilder {
         return this;
     }
 
-    withPassword(password: string): UserUpdateBuilder {
-        this.updateData.password = password;
+    withPassword(password: string |  Password): UserUpdateBuilder {
+        this.updateData.password = typeof password === "string" ? toPassword(password) : password;
         return this;
     }
 

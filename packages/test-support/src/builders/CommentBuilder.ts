@@ -1,6 +1,6 @@
-import type { CommentDTO, ISOString } from '@splitifyd/shared';
+import type { CommentDTO, CommentText, ISOString } from '@splitifyd/shared';
 import type { CommentId, UserId } from '@splitifyd/shared';
-import { toCommentId } from '@splitifyd/shared';
+import { toCommentId, toCommentText } from '@splitifyd/shared';
 import { convertToISOString, generateShortId, randomChoice, randomDate, randomString } from '../test-helpers';
 
 export class CommentBuilder {
@@ -8,7 +8,7 @@ export class CommentBuilder {
         id: toCommentId(`comment-${generateShortId()}`),
         authorId: `user-${generateShortId()}`,
         authorName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`,
-        text: `${randomChoice(['Great', 'Awesome', 'Thanks', 'Perfect', 'Nice', 'Cool'])} ${randomString(8)}!`,
+        text: toCommentText(`${randomChoice(['Great', 'Awesome', 'Thanks', 'Perfect', 'Nice', 'Cool'])} ${randomString(8)}!`),
         createdAt: convertToISOString(randomDate()),
         updatedAt: convertToISOString(randomDate()),
     };
@@ -24,8 +24,8 @@ export class CommentBuilder {
         return this;
     }
 
-    withText(text: string): this {
-        this.comment.text = text;
+    withText(text: CommentText | string): this {
+        this.comment.text = typeof text === "string" ? toCommentText(text) : text;
         return this;
     }
 

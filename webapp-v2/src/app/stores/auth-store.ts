@@ -2,7 +2,7 @@ import { USER_ID_KEY } from '@/constants.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { ClientUser, Email, UserId } from '@splitifyd/shared';
+import type { ClientUser, Email, Password, UserId } from '@splitifyd/shared';
 import { AuthErrors } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
@@ -28,8 +28,8 @@ interface AuthActions {
     register: (email: Email, password: string, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean, privacyPolicyAccepted: boolean) => Promise<void>;
     logout: () => Promise<void>;
     resetPassword: (email: Email) => Promise<void>;
-    updateUserProfile: (updates: { displayName?: string; }) => Promise<void>;
-    changeEmail: (payload: { currentPassword: string; newEmail: string; }) => Promise<void>;
+    updateUserProfile: (updates: { displayName?: DisplayName; }) => Promise<void>;
+    changeEmail: (payload: { currentPassword: Password; newEmail: Email; }) => Promise<void>;
     clearError: () => void;
     refreshAuthToken: () => Promise<string>;
 }
@@ -371,7 +371,7 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    async changeEmail(payload: { currentPassword: string; newEmail: string; }): Promise<void> {
+    async changeEmail(payload: { currentPassword: Password; newEmail: Email; }): Promise<void> {
         this.#errorSignal.value = null;
         this.#isUpdatingProfileSignal.value = true;
 

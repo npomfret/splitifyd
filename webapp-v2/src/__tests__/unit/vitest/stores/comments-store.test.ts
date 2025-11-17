@@ -47,7 +47,7 @@ import { apiClient } from '@/app/apiClient';
 import type { ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { CommentsStoreTarget } from '@/stores/comments-store';
-import type { CommentDTO, GroupId, ListCommentsResponse } from '@splitifyd/shared';
+import {CommentDTO, GroupId, ListCommentsResponse, toCommentText} from '@splitifyd/shared';
 import { toCommentId, toGroupId } from '@splitifyd/shared';
 import { toISOString } from '@splitifyd/shared';
 
@@ -60,7 +60,7 @@ function createComment(id: string, message: string): CommentDTO {
     const now = toISOString(new Date().toISOString());
     return {
         id: toCommentId(id),
-        text: message,
+        text: toCommentText(message),
         createdAt: now,
         updatedAt: now,
         authorId: `user-${id}`,

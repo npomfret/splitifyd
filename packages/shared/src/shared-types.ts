@@ -122,11 +122,18 @@ export const toShareLinkId = (value: string): ShareLinkId => value as ShareLinkI
 export type ShareLinkToken = Brand<string, 'ShareLinkToken'>;
 export const toShareLinkToken = (value: string): ShareLinkToken => value as ShareLinkToken;
 
-export type CommentText = string;
-export type UserId = string;
+export type CommentText = Brand<string, 'CommentText'>;
+export const toCommentText = (value: string): CommentText => value as CommentText;
+
+export type Password = Brand<string, 'Password'>;
+export const toPassword = (value: string): Password => value as Password;
+
+// export type DisplayName = Brand<string, 'CommentText'>;
+// export const toDisplayName = (value: string): CommentText => value as CommentText;
+
 export type DisplayName = string;
+export type UserId = string;
 export type Email = string;
-export type Password = string;
 export type CurrencyISOCode = string;
 export type PolicyId = string;
 export type VersionHash = string;
@@ -1101,7 +1108,7 @@ interface Comment {
 export interface CommentDTO extends Comment, BaseDTO<CommentId> {}
 
 interface BaseCreateCommentRequest {
-    text: string;
+    text: CommentText;
 }
 
 export interface CreateGroupCommentRequest extends BaseCreateCommentRequest {

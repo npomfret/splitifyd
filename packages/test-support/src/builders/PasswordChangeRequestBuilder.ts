@@ -1,4 +1,4 @@
-import type { PasswordChangeRequest } from '@splitifyd/shared';
+import {toPassword, type Password, type PasswordChangeRequest } from '@splitifyd/shared';
 
 /**
  * Builder for creating password change request objects for testing
@@ -7,13 +7,13 @@ import type { PasswordChangeRequest } from '@splitifyd/shared';
 export class PasswordChangeRequestBuilder {
     private changeData: Partial<PasswordChangeRequest> = {};
 
-    withCurrentPassword(currentPassword: string): PasswordChangeRequestBuilder {
-        this.changeData.currentPassword = currentPassword;
+    withCurrentPassword(currentPassword: Password | string): PasswordChangeRequestBuilder {
+        this.changeData.currentPassword = typeof currentPassword === "string" ? toPassword(currentPassword) : currentPassword;
         return this;
     }
 
-    withNewPassword(newPassword: string): PasswordChangeRequestBuilder {
-        this.changeData.newPassword = newPassword;
+    withNewPassword(newPassword: Password | string): PasswordChangeRequestBuilder {
+        this.changeData.newPassword = typeof newPassword === "string" ? toPassword(newPassword) : newPassword;;
         return this;
     }
 

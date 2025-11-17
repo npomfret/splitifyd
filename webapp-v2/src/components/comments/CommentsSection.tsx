@@ -1,7 +1,7 @@
 import { commentsStore } from '@/stores/comments-store.ts';
 import type { CommentsStoreTarget } from '@/stores/comments-store.ts';
 import { useComputed } from '@preact/signals';
-import type { ListCommentsResponse } from '@splitifyd/shared';
+import {toCommentText, type ListCommentsResponse } from '@splitifyd/shared';
 import { useEffect, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { CommentInput } from './CommentInput';
@@ -42,7 +42,7 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
     }, [targetKey]);
 
     const handleSubmit = async (text: string) => {
-        await commentsStore.addComment(text);
+        await commentsStore.addComment(toCommentText(text));
     };
 
     const handleLoadMore = async () => {

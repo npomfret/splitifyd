@@ -1,7 +1,7 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { logError } from '@/utils/browser-logger';
 import { Alert, Avatar, Button, Card, Form, Input } from '@/components/ui';
-import { SystemUserRoles } from '@splitifyd/shared';
+import { SystemUserRoles, toPassword } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
@@ -131,8 +131,8 @@ export function SettingsPage() {
 
         try {
             await apiClient.changePassword({
-                currentPassword: passwordData.currentPassword,
-                newPassword: passwordData.newPassword,
+                currentPassword: toPassword(passwordData.currentPassword),
+                newPassword: toPassword(passwordData.newPassword),
             });
 
             setSuccessMessage(t('settingsPage.successMessages.passwordChanged'));
@@ -200,7 +200,7 @@ export function SettingsPage() {
 
         try {
             await authStore.changeEmail({
-                currentPassword: emailData.currentPassword,
+                currentPassword: toPassword(emailData.currentPassword),
                 newEmail: trimmedEmail,
             });
 

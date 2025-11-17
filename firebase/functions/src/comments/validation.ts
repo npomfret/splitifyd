@@ -1,4 +1,4 @@
-import { CommentBodySchema, type CommentId, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsQuerySchema, toCommentId } from '@splitifyd/shared';
+import { CommentBodySchema, type CommentId, type CommentText, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsQuerySchema, toCommentId, toCommentText } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../constants';
 import { validateExpenseId } from '../expenses/validation';
 import { validateGroupId } from '../groups/validation';
@@ -27,10 +27,10 @@ const baseValidateComment = createRequestValidator({
     schema: CommentBodySchema,
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => ({
-        text: sanitizeInputString(value.text),
+        text: toCommentText(sanitizeInputString(value.text)),
     }),
     mapError: (error) => mapCommentError(error),
-}) as (body: unknown) => { text: string; };
+}) as (body: unknown) => { text: CommentText; };
 
 const mapPaginationError = createZodErrorMapper(
     {
