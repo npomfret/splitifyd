@@ -38,7 +38,7 @@ type ActivityFeedDetailsInput = {
     previousGroupName?: GroupName | string | null | undefined;
 };
 
-const CLEANUP_KEEP_COUNT = 10; // Keep last x items, cleanup happens async during reads
+const CLEANUP_KEEP_COUNT = 20; // Keep last 20 items; UI shows 8 at a time with pagination
 
 export class ActivityFeedService {
     constructor(
@@ -115,10 +115,58 @@ export class ActivityFeedService {
     }
 
     /**
-     * Record activity for users in a transaction (simplified - no pruning in transaction)
-     * Pruning happens asynchronously during reads to avoid transaction overhead
+     * Record activity for users (non-transactional, fire-and-forget)
+     * Call this AFTER the main transaction has committed
+     * Automatically triggers cleanup after writing
      */
-    recordActivityForUsers(
+    async recordActivityForUsers(
+        userIds: UserId[],
+        item: CreateActivityItemInput,
+    ): Promise<void> {
+        if (userIds.length === 0) {
+            return;
+        }
+
+        const details = item.details ?? {};
+
+        try {
+            // Write activity items using a batch for efficiency
+            const batch = this.firestoreWriter.createBatch();
+
+            for (const userId of userIds) {
+                const activityItem = {
+                    userId,
+                    groupId: item.groupId,
+                    groupName: item.groupName,
+                    eventType: item.eventType,
+                    action: item.action,
+                    actorId: item.actorId,
+                    actorName: item.actorName,
+                    timestamp: item.timestamp,
+                    details,
+                };
+                this.firestoreWriter.createActivityFeedItemInBatch(batch, userId, null, activityItem);
+            }
+
+            await batch.commit();
+
+            // Immediately cleanup old items (fire-and-forget, runs async)
+            this.cleanupAfterActivityWrite(userIds);
+        } catch (error) {
+            // Log but don't fail - activity feed is not critical
+            logger.warn('activity-feed-write-failed', {
+                userIds,
+                error: error instanceof Error ? { name: error.name, message: error.message } : error,
+            });
+        }
+    }
+
+    /**
+     * @deprecated Use recordActivityForUsers (non-transactional version)
+     * Legacy method for recording activity within a transaction
+     * Prefer calling recordActivityForUsers AFTER transaction commits
+     */
+    recordActivityForUsersInTransaction(
         transaction: ITransaction,
         userIds: UserId[],
         item: CreateActivityItemInput,
@@ -140,6 +188,21 @@ export class ActivityFeedService {
                 actorName: item.actorName,
                 timestamp: item.timestamp,
                 details,
+            });
+        }
+    }
+
+    /**
+     * Trigger cleanup after activity write (fire-and-forget)
+     * This is called automatically by recordActivityForUsers after the transaction commits
+     */
+    private cleanupAfterActivityWrite(userIds: UserId[]): void {
+        for (const userId of userIds) {
+            this.cleanupOldActivityItems(userId).catch((error) => {
+                logger.warn('activity-feed-cleanup-failed', {
+                    userId,
+                    error: error instanceof Error ? { name: error.name, message: error.message } : error,
+                });
             });
         }
     }
@@ -175,14 +238,42 @@ export class ActivityFeedService {
     /**
      * Async cleanup of old activity feed items (fire-and-forget)
      * Keeps the last CLEANUP_KEEP_COUNT items, deletes older ones
+     * Deletes fail silently to handle race conditions where parallel cleanups may delete the same items
      */
     private async cleanupOldActivityItems(userId: UserId): Promise<void> {
-        const items = await this.firestoreWriter.getActivityFeedItemsForUser(userId, CLEANUP_KEEP_COUNT + 10);
+        try {
+            // Loop until we're down to CLEANUP_KEEP_COUNT items
+            // Fetch in batches to avoid huge queries
+            const batchSize = 100;
+            let items = await this.firestoreWriter.getActivityFeedItemsForUser(userId, batchSize);
 
-        if (items.length > CLEANUP_KEEP_COUNT) {
-            const itemsToDelete = items.slice(CLEANUP_KEEP_COUNT);
-            const deletePromises = itemsToDelete.map((item: { id: string; }) => this.firestoreWriter.deleteActivityFeedItem(userId, item.id));
-            await Promise.all(deletePromises);
+            while (items.length > CLEANUP_KEEP_COUNT) {
+                const itemsToDelete = items.slice(CLEANUP_KEEP_COUNT);
+
+                // Use WriteBatch to delete up to 500 items efficiently in a single operation
+                // Split into chunks of 500 (Firestore batch limit)
+                const chunks: Array<{ id: string; }>[] = [];
+                for (let i = 0; i < itemsToDelete.length; i += 500) {
+                    chunks.push(itemsToDelete.slice(i, i + 500));
+                }
+
+                for (const chunk of chunks) {
+                    const batch = this.firestoreWriter.createBatch();
+                    for (const item of chunk) {
+                        this.firestoreWriter.deleteActivityFeedItemInBatch(batch, userId, item.id);
+                    }
+                    await batch.commit();
+                }
+
+                // Fetch again to see if there are more items to delete
+                items = await this.firestoreWriter.getActivityFeedItemsForUser(userId, batchSize);
+            }
+        } catch (error) {
+            // Silently ignore errors (document may have been already deleted by parallel cleanup)
+            logger.debug('activity-feed-cleanup-failed', {
+                userId,
+                error: error instanceof Error ? error.message : String(error),
+            });
         }
     }
 }

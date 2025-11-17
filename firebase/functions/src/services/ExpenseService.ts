@@ -208,6 +208,9 @@ export class ExpenseService {
 
         // Use transaction to create expense atomically and update balance
         let createdExpenseRef: IDocumentReference | undefined;
+        let activityItem: any = null;
+        let activityRecipients: UserId[] = [];
+
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // ===== READ PHASE: All reads must happen before any writes =====
@@ -249,8 +252,8 @@ export class ExpenseService {
             timer.endPhase();
 
             timer.startPhase('transaction:buildActivityItem');
-            // Record activity feed items
-            const activityItem = this.activityFeedService.buildGroupActivityItem({
+            // Build activity item - will be recorded AFTER transaction commits
+            activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId: expenseData.groupId,
                 groupName: groupInTx.name,
                 eventType: ActivityFeedEventTypes.EXPENSE_CREATED,
@@ -265,13 +268,17 @@ export class ExpenseService {
                     },
                 }),
             });
-            timer.endPhase();
-
-            timer.startPhase('transaction:recordActivityFeed');
-            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+            activityRecipients = memberIds;
             timer.endPhase();
         });
         timer.endPhase();
+
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
 
         // Ensure the expense was created successfully
         if (!createdExpenseRef) {
@@ -374,6 +381,10 @@ export class ExpenseService {
             updates.splitType = splitType;
         }
 
+        // Declare variables outside transaction for activity feed
+        let activityItem: any = null;
+        let activityRecipients: UserId[] = [];
+
         // Use transaction to update expense atomically with optimistic locking and balance update
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
@@ -413,8 +424,8 @@ export class ExpenseService {
             const newExpense: ExpenseDTO = { ...expense, ...updates };
             this.incrementalBalanceService.applyExpenseUpdated(transaction, expense.groupId, currentBalance, expense, newExpense, memberIds);
 
-            // Record activity feed items
-            const activityItem = this.activityFeedService.buildGroupActivityItem({
+            // Build activity item - will be recorded AFTER transaction commits
+            activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId: expense.groupId,
                 groupName: group.name,
                 eventType: ActivityFeedEventTypes.EXPENSE_UPDATED,
@@ -429,11 +440,17 @@ export class ExpenseService {
                     },
                 }),
             });
-
-            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+            activityRecipients = memberIds;
         });
 
         timer.endPhase();
+
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
 
         // Fetch and return the updated expense
         timer.startPhase('refetch');
@@ -553,6 +570,10 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
         }
 
+        // Declare variables outside transaction for activity feed
+        let activityItem: any = null;
+        let activityRecipients: UserId[] = [];
+
         try {
             // Use transaction to soft delete expense atomically and update balance
             timer.startPhase('transaction');
@@ -595,8 +616,8 @@ export class ExpenseService {
                 // Apply incremental balance update to remove this expense's contribution
                 this.incrementalBalanceService.applyExpenseDeleted(transaction, expense.groupId, currentBalance, expense, memberIds);
 
-                // Record activity feed items
-                const activityItem = this.activityFeedService.buildGroupActivityItem({
+                // Build activity item - will be recorded AFTER transaction commits
+                activityItem = this.activityFeedService.buildGroupActivityItem({
                     groupId: expense.groupId,
                     groupName: groupInTx.name,
                     eventType: ActivityFeedEventTypes.EXPENSE_DELETED,
@@ -611,10 +632,16 @@ export class ExpenseService {
                         },
                     }),
                 });
-
-                this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+                activityRecipients = memberIds;
             });
             timer.endPhase();
+
+            // Record activity feed AFTER transaction commits (fire-and-forget)
+            if (activityItem && activityRecipients.length > 0) {
+                await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                    // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+                });
+            }
 
             LoggerContext.setBusinessContext({ expenseId });
             logger.info('expense-deleted', {

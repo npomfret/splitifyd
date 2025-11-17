@@ -217,6 +217,21 @@ export interface IFirestoreWriter {
      */
     deleteActivityFeedItem(userId: UserId, documentId: string): Promise<void>;
 
+    /**
+     * Create a write batch for batching multiple operations
+     */
+    createBatch(): IWriteBatch;
+
+    /**
+     * Delete an activity feed item in a batch (for efficient bulk deletes)
+     */
+    deleteActivityFeedItemInBatch(batch: IWriteBatch, userId: UserId, documentId: string): void;
+
+    /**
+     * Create an activity feed item in a batch (for efficient bulk writes)
+     */
+    createActivityFeedItemInBatch(batch: IWriteBatch, userId: UserId, documentId: string | null, data: any): void;
+
     // ========================================================================
     // Utility Operations
     // ========================================================================

@@ -404,6 +404,10 @@ export class GroupService {
 
         // Update with optimistic locking and transaction retry logic
         timer.startPhase('transaction');
+        let memberIds: UserId[] = [];
+        let activityItem: any = null;
+        let activityRecipients: UserId[] = [];
+
         await this.groupTransactionManager.run(groupId, { preloadBalance: false }, async (context) => {
             const transaction = context.transaction;
             // IMPORTANT: All reads must happen before any writes in Firestore transactions
@@ -417,7 +421,7 @@ export class GroupService {
 
             // Read membership documents that need updating
             const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
-            const memberIds = membershipSnapshot
+            memberIds = membershipSnapshot
                 .docs
                 .map((doc) => (doc.data().uid as string | null | undefined) ?? null)
                 .filter((id): id is string => Boolean(id));
@@ -462,12 +466,13 @@ export class GroupService {
                 });
             });
 
+            // Build activity item - will be recorded AFTER transaction commits
             if (memberIds.length > 0) {
                 const detailPayload = updatedData.name !== group.name
                     ? this.activityFeedService.buildDetails({ previousGroupName: group.name })
                     : undefined;
 
-                const activityItem = this.activityFeedService.buildGroupActivityItem({
+                activityItem = this.activityFeedService.buildGroupActivityItem({
                     groupId,
                     groupName: updatedData.name,
                     eventType: ActivityFeedEventTypes.GROUP_UPDATED,
@@ -477,11 +482,17 @@ export class GroupService {
                     timestamp: now,
                     details: detailPayload,
                 });
-
-                this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+                activityRecipients = memberIds;
             }
         });
         timer.endPhase();
+
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
 
         // Set group context
         LoggerContext.setBusinessContext({ groupId });
@@ -561,6 +572,7 @@ export class GroupService {
 
         const now = toISOString(new Date().toISOString());
         let performedDeletion = false;
+        const activityItems: Array<{ item: any; recipients: UserId[]; }> = [];
 
         // Fetch existing activity items for all members (MUST be before transaction writes)
         await this.groupTransactionManager.run(groupId, { preloadBalance: false }, async (context) => {
@@ -609,7 +621,7 @@ export class GroupService {
                 });
             });
 
-            // Record MEMBER_LEFT activity for each member
+            // Build activity items - will be recorded AFTER transaction commits
             for (const memberId of memberIdsInTransaction) {
                 const memberDoc = membershipSnapshot.docs.find((doc) => (doc.data() as { uid?: string; }).uid === memberId);
                 const targetUserName = (memberDoc?.data() as { groupDisplayName?: string; })?.groupDisplayName?.trim();
@@ -635,12 +647,18 @@ export class GroupService {
                         },
                     }),
                 });
-
-                this.activityFeedService.recordActivityForUsers(transaction, [memberId], activityItem);
+                activityItems.push({ item: activityItem, recipients: [memberId] });
             }
 
             performedDeletion = true;
         });
+
+        // Record activity feeds AFTER transaction commits (fire-and-forget)
+        for (const { item, recipients } of activityItems) {
+            await this.activityFeedService.recordActivityForUsers(recipients, item).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
 
         LoggerContext.setBusinessContext({ groupId });
 

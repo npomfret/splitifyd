@@ -949,6 +949,27 @@ export class FirestoreWriter implements IFirestoreWriter {
         await docRef.delete();
     }
 
+    createBatch(): IWriteBatch {
+        return this.db.batch();
+    }
+
+    deleteActivityFeedItemInBatch(batch: IWriteBatch, userId: UserId, documentId: string): void {
+        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
+        const docRef = collectionRef.doc(documentId);
+        batch.delete(docRef);
+    }
+
+    createActivityFeedItemInBatch(batch: IWriteBatch, userId: UserId, documentId: string | null, data: any): void {
+        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
+        const docRef = documentId ? collectionRef.doc(documentId) : collectionRef.doc();
+        batch.set(docRef, {
+            ...data,
+            timestamp: FieldValue.serverTimestamp(),
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+        });
+    }
+
     // ========================================================================
     // Utility Operations
     // ========================================================================

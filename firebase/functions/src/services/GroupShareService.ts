@@ -428,6 +428,10 @@ export class GroupShareService {
         const now = toISOString(new Date().toISOString());
         timer.endPhase();
 
+        // Declare variables outside transaction for activity feed
+        let activityItem: any = null;
+        let activityRecipients: UserId[] = [];
+
         // Atomic transaction: check group exists and create member subcollection
         timer.startPhase('transaction');
         const result = await this.groupTransactionManager.run(groupId, { preloadBalance: false }, async (context) => {
@@ -463,7 +467,7 @@ export class GroupShareService {
 
             if (!requiresApproval) {
                 timer.startPhase('transaction:buildActivityRecipients');
-                const activityRecipients = new Set<string>();
+                const activityRecipientsSet = new Set<string>();
                 for (const doc of membershipsSnapshot.docs) {
                     const data = doc.data() as { uid?: string; memberStatus?: string; };
                     const uid = typeof data?.uid === 'string' ? data.uid : undefined;
@@ -473,17 +477,18 @@ export class GroupShareService {
                     if (data?.memberStatus && data.memberStatus !== MemberStatuses.ACTIVE) {
                         continue;
                     }
-                    activityRecipients.add(uid);
+                    activityRecipientsSet.add(uid);
                 }
 
-                activityRecipients.add(userId);
+                activityRecipientsSet.add(userId);
                 timer.endPhase();
 
-                if (activityRecipients.size > 0) {
+                // Build activity item - will be recorded AFTER transaction commits
+                if (activityRecipientsSet.size > 0) {
                     timer.startPhase('transaction:buildActivityItem');
                     const groupName = groupInTransaction.name;
 
-                    const activityItem = this.activityFeedService.buildGroupActivityItem({
+                    activityItem = this.activityFeedService.buildGroupActivityItem({
                         groupId,
                         groupName,
                         eventType: ActivityFeedEventTypes.MEMBER_JOINED,
@@ -498,10 +503,7 @@ export class GroupShareService {
                             },
                         }),
                     });
-                    timer.endPhase();
-
-                    timer.startPhase('transaction:recordActivityFeed');
-                    this.activityFeedService.recordActivityForUsers(transaction, Array.from(activityRecipients), activityItem);
+                    activityRecipients = Array.from(activityRecipientsSet);
                     timer.endPhase();
                 }
             }
@@ -513,6 +515,13 @@ export class GroupShareService {
         });
 
         timer.endPhase();
+
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
 
         logger.info('User joined group via share link', {
             groupId,

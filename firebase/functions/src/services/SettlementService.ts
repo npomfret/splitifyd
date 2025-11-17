@@ -166,6 +166,10 @@ export class SettlementService {
         // Get members for balance update
         timer.endPhase();
 
+        // Declare variables outside transaction for activity feed
+        let activityItem: any = null;
+        let activityRecipients: UserId[] = [];
+
         // Create settlement and update group balance atomically
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
@@ -203,8 +207,8 @@ export class SettlementService {
             timer.endPhase();
 
             timer.startPhase('transaction:buildActivityItem');
-            // Record activity feed items
-            const activityItem = this.activityFeedService.buildGroupActivityItem({
+            // Build activity item - will be recorded AFTER transaction commits
+            activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId: settlementData.groupId,
                 groupName: groupInTx.name,
                 eventType: ActivityFeedEventTypes.SETTLEMENT_CREATED,
@@ -219,13 +223,17 @@ export class SettlementService {
                     },
                 }),
             });
-            timer.endPhase();
-
-            timer.startPhase('transaction:recordActivityFeed');
-            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+            activityRecipients = memberIds;
             timer.endPhase();
         });
         timer.endPhase();
+
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
 
         // Update context with the created settlement ID
         LoggerContext.setBusinessContext({ settlementId });
@@ -328,6 +336,10 @@ export class SettlementService {
 
         const updatedNote = updateData.note === undefined ? settlement.note : updateData.note || undefined;
 
+        // Declare variables outside transaction for activity feed
+        let activityItem: any = null;
+        let activityRecipients: UserId[] = [];
+
         // Update with optimistic locking and balance update
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
@@ -370,8 +382,8 @@ export class SettlementService {
             }
             this.incrementalBalanceService.applySettlementUpdated(transaction, settlement.groupId, currentBalance, settlement, newSettlement, memberIds);
 
-            // Record activity feed items
-            const activityItem = this.activityFeedService.buildGroupActivityItem({
+            // Build activity item - will be recorded AFTER transaction commits
+            activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId: settlement.groupId,
                 groupName: groupInTx.name,
                 eventType: ActivityFeedEventTypes.SETTLEMENT_UPDATED,
@@ -386,10 +398,16 @@ export class SettlementService {
                     },
                 }),
             });
-
-            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+            activityRecipients = memberIds;
         });
         timer.endPhase();
+
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
 
         timer.startPhase('refetch');
         const updatedSettlement = await this.firestoreReader.getSettlement(settlementId);

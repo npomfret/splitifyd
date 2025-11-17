@@ -198,6 +198,9 @@ export class GroupMemberService {
 
             const actorDisplayName = targetMembership.groupDisplayName;
             const now = toISOString(new Date().toISOString());
+            let recipientIds: UserId[] = [];
+            let activityItem: any = null;
+            let activityRecipients: UserId[] = [];
 
             await this.runMembershipTransaction(groupId, async (context) => {
                 const transaction = context.transaction;
@@ -209,16 +212,16 @@ export class GroupMemberService {
                 }
 
                 const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
-                const activityRecipients = new Set<UserId>();
+                const activityRecipientsSet = new Set<UserId>();
                 for (const doc of membershipsSnapshot.docs) {
                     const data = doc.data() as { uid: UserId; memberStatus: string; };
                     if (data.memberStatus === MemberStatuses.ACTIVE) {
-                        activityRecipients.add(data.uid);
+                        activityRecipientsSet.add(data.uid);
                     }
                 }
-                activityRecipients.add(targetUserId);
+                activityRecipientsSet.add(targetUserId);
 
-                const recipientIds = Array.from(activityRecipients);
+                recipientIds = Array.from(activityRecipientsSet);
 
                 transaction.update(membershipRef, {
                     memberStatus: MemberStatuses.ACTIVE,
@@ -227,8 +230,9 @@ export class GroupMemberService {
 
                 await context.touchGroup();
 
+                // Build activity item - will be recorded AFTER transaction commits
                 if (recipientIds.length > 0) {
-                    const activityItem = this.activityFeedService.buildGroupActivityItem({
+                    activityItem = this.activityFeedService.buildGroupActivityItem({
                         groupId,
                         groupName: group.name,
                         eventType: ActivityFeedEventTypes.MEMBER_JOINED,
@@ -243,10 +247,16 @@ export class GroupMemberService {
                             },
                         }),
                     });
-
-                    this.activityFeedService.recordActivityForUsers(transaction, recipientIds, activityItem);
+                    activityRecipients = recipientIds;
                 }
             });
+
+            // Record activity feed AFTER transaction commits (fire-and-forget)
+            if (activityItem && activityRecipients.length > 0) {
+                await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                    // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+                });
+            }
 
             LoggerContext.setBusinessContext({ groupId });
             logger.info('group-member-approved', {
@@ -411,6 +421,8 @@ export class GroupMemberService {
         }
 
         const now = toISOString(new Date().toISOString());
+        let activityRecipients: UserId[] = [];
+        let activityItem: any = null;
 
         // Atomically update group, delete membership, clean up notifications, and emit activity
         timer.startPhase('transaction');
@@ -420,7 +432,7 @@ export class GroupMemberService {
             const memberIdsInTransaction = membershipsSnapshot.docs.map((doc) => (doc.data() as { uid: UserId; }).uid);
             const remainingMemberIds = memberIdsInTransaction.filter((uid) => uid !== targetUserId);
 
-            const activityRecipients = Array.from(new Set<UserId>([...remainingMemberIds, targetUserId]));
+            activityRecipients = Array.from(new Set<UserId>([...remainingMemberIds, targetUserId]));
 
             const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);
             const membershipRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, membershipDocId);
@@ -428,8 +440,9 @@ export class GroupMemberService {
 
             await context.touchGroup();
 
+            // Build activity item - will be recorded AFTER transaction commits
             if (activityRecipients.length > 0) {
-                const activityItem = this.activityFeedService.buildGroupActivityItem({
+                activityItem = this.activityFeedService.buildGroupActivityItem({
                     groupId,
                     groupName: group.name,
                     eventType: ActivityFeedEventTypes.MEMBER_LEFT,
@@ -444,11 +457,16 @@ export class GroupMemberService {
                         },
                     }),
                 });
-
-                this.activityFeedService.recordActivityForUsers(transaction, activityRecipients, activityItem);
             }
         });
         timer.endPhase();
+
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
 
         LoggerContext.setBusinessContext({ groupId });
         const logEvent = isLeaving ? 'member-left' : 'member-removed';

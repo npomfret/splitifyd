@@ -137,12 +137,17 @@ export class CommentService {
         const commentPreview = commentData.text.trim().slice(0, 120);
         timer.endPhase();
 
+        // Declare variables outside transaction for activity feed
+        let activityItem: any = null;
+        let activityRecipients: UserId[] = [];
+
         timer.startPhase('write');
         const commentId = await this.firestoreWriter.runTransaction(async (transaction) => {
             const commentRef = this.firestoreWriter.createGroupCommentInTransaction(transaction, groupId, commentCreateData);
             const activityCommentId = toCommentId(commentRef.id);
 
-            const activityItem = this.activityFeedService.buildGroupActivityItem({
+            // Build activity item - will be recorded AFTER transaction commits
+            activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId,
                 groupName: group.name,
                 eventType: ActivityFeedEventTypes.COMMENT_ADDED,
@@ -157,12 +162,20 @@ export class CommentService {
                     },
                 }),
             });
-
-            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+            activityRecipients = memberIds;
 
             return commentRef.id;
         });
+        timer.endPhase();
 
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
+
+        timer.startPhase('refetch');
         const createdComment = await this.firestoreReader.getGroupComment(groupId, toCommentId(commentId));
         if (!createdComment) {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
@@ -218,12 +231,17 @@ export class CommentService {
         const commentPreview = commentData.text.trim().slice(0, 120);
         timer.endPhase();
 
+        // Declare variables outside transaction for activity feed
+        let activityItem: any = null;
+        let activityRecipients: UserId[] = [];
+
         timer.startPhase('write');
         const commentId = await this.firestoreWriter.runTransaction(async (transaction) => {
             const commentRef = this.firestoreWriter.createExpenseCommentInTransaction(transaction, expenseId, commentCreateData);
             const activityCommentId = toCommentId(commentRef.id);
 
-            const activityItem = this.activityFeedService.buildGroupActivityItem({
+            // Build activity item - will be recorded AFTER transaction commits
+            activityItem = this.activityFeedService.buildGroupActivityItem({
                 groupId: expense.groupId,
                 groupName: group.name,
                 eventType: ActivityFeedEventTypes.COMMENT_ADDED,
@@ -242,12 +260,20 @@ export class CommentService {
                     },
                 }),
             });
-
-            this.activityFeedService.recordActivityForUsers(transaction, memberIds, activityItem);
+            activityRecipients = memberIds;
 
             return commentRef.id;
         });
+        timer.endPhase();
 
+        // Record activity feed AFTER transaction commits (fire-and-forget)
+        if (activityItem && activityRecipients.length > 0) {
+            await this.activityFeedService.recordActivityForUsers(activityRecipients, activityItem).catch(() => {
+                // Already logged in recordActivityForUsers, just catch to prevent unhandled rejection
+            });
+        }
+
+        timer.startPhase('refetch');
         const createdComment = await this.firestoreReader.getExpenseComment(expenseId, toCommentId(commentId));
         if (!createdComment) {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');

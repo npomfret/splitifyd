@@ -2936,31 +2936,18 @@ describe('app tests', () => {
 
             const participants = [user1, user2];
 
-            for (let i = 0; i < 12; i += 1) {
+            // Create 25 expenses - cleanup happens after each write
+            for (let i = 0; i < 25; i += 1) {
                 await appDriver.createExpense(new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
-                    .withAmount(25, 'USD')
                     .withPaidBy(user1)
                     .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(25, 'USD', participants))
                     .withDescription(`Activity Feed Expense ${i}`)
                     .build(), user1);
             }
 
-            // Before cleanup - items are NOT pruned in transactions anymore
-            const feedBeforeCleanup1 = await appDriver.getActivityFeedItems(user1);
-            const feedBeforeCleanup2 = await appDriver.getActivityFeedItems(user2);
-
-            // After creating 12 expenses + 1 group create + 1 member join = 14 items
-            // Cleanup happens async during getActivityFeed, keeping latest 20
-            expect(feedBeforeCleanup1.length).toBeGreaterThan(10); // More than 10 before cleanup
-            expect(feedBeforeCleanup2.length).toBeGreaterThan(10);
-
-            // Wait a bit for async cleanup to complete (fire-and-forget)
-            await new Promise((resolve) => setTimeout(resolve, 100));
-
-            // After cleanup - should have cleaned up items beyond 20
+            // After creating 25 expenses + 1 group create + 1 member join = 27 items
+            // Cleanup happens after each expense write, keeping at most 20
             const feedAfterCleanup1 = await appDriver.getActivityFeedItems(user1);
             const feedAfterCleanup2 = await appDriver.getActivityFeedItems(user2);
 
@@ -2972,7 +2959,8 @@ describe('app tests', () => {
                 .map((item) => item.details?.expenseDescription);
             const actionsUser1 = feedAfterCleanup1.map((item) => item.action);
 
-            expect(user1ExpenseDescriptions).toContain('Activity Feed Expense 11');
+            // Most recent expense should be present
+            expect(user1ExpenseDescriptions).toContain('Activity Feed Expense 24');
             expect(actionsUser1).toContain(ActivityFeedActions.CREATE);
         });
 
@@ -3060,6 +3048,37 @@ describe('app tests', () => {
 
             expect(eventTypes).toContain(ActivityFeedEventTypes.EXPENSE_CREATED);
             expect(eventTypes).toContain(ActivityFeedEventTypes.COMMENT_ADDED);
+        });
+
+        it('should delete oldest activity items when more than 20 exist, keeping at most 20', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            // Create 25 expenses to generate activity items (25 expenses + 1 group create + 1 member join = 27 items)
+            // Cleanup runs after each expense write
+            for (let i = 0; i < 25; i += 1) {
+                await appDriver.createExpense(new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withDescription(`Test Expense ${i}`)
+                    .build(), user1);
+            }
+
+            // Verify at most 20 items remain
+            const feed = await appDriver.getActivityFeed({ limit: 50 }, user1);
+            expect(feed.items.length).toBeLessThanOrEqual(20);
+
+            // Verify the most recent items are kept
+            const expenseDescriptions = feed.items
+                .filter((item) => item.eventType === ActivityFeedEventTypes.EXPENSE_CREATED)
+                .map((item) => item.details?.expenseDescription);
+
+            // Most recent expense should be present
+            expect(expenseDescriptions).toContain('Test Expense 24');
         });
     });
 
