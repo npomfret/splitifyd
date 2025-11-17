@@ -16,7 +16,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         appDriver.dispose();
     });
 
-    const seedUsers = (...users: Array<{ id: string; displayName: DisplayName; }>) => {
+    const seedUsers = (...users: Array<{ id: string; displayName: DisplayName | string; }>) => {
         for (const user of users) {
             appDriver.seedUser(user.id, { displayName: user.displayName, email: `${user.id}@test.local` });
         }

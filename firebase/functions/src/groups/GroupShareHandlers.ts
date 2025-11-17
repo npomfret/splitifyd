@@ -1,5 +1,5 @@
 import type { GenerateShareLinkRequest } from '@splitifyd/shared';
-import { toGroupId, toShareLinkToken } from '@splitifyd/shared';
+import { toDisplayName, toGroupId, toShareLinkToken } from '@splitifyd/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
@@ -75,7 +75,7 @@ export class GroupShareHandlers {
         }
 
         try {
-            const result = await this.groupShareService.joinGroupByLink(userId, toShareLinkToken(shareToken), groupDisplayName.trim());
+            const result = await this.groupShareService.joinGroupByLink(userId, toShareLinkToken(shareToken), toDisplayName(groupDisplayName.trim()));
             res.status(HTTP_STATUS.OK).json(result);
         } catch (error) {
             if (error instanceof ApiError) throw error;

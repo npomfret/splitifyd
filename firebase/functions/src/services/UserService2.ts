@@ -16,6 +16,7 @@ import { LoggerContext } from '../utils/logger-context';
 import { withMinimumDuration } from '../utils/timing';
 import type { IAuthService } from './auth';
 import type { FirestoreUserCreateData, IFirestoreReader, IFirestoreWriter } from './firestore';
+import {toDisplayName} from "@splitifyd/shared";
 
 const MIN_REGISTRATION_DURATION_MS = 600;
 const REGISTRATION_FAILURE_ERROR_CODE = 'REGISTRATION_FAILED';
@@ -140,7 +141,7 @@ export class UserService {
 
             // If member not found (e.g., user left the group), create phantom member
             if (!memberData) {
-                return createPhantomGroupMember(userId, userId.toString());
+                return createPhantomGroupMember(userId, toDisplayName(userId));
             }
 
             // Extract initials from display name
@@ -170,7 +171,7 @@ export class UserService {
         const memberData = await this.firestoreReader.getGroupMember(groupId, userId);
 
         if (!memberData) { // when does this happen? maybe when a user has left the group
-            return createPhantomGroupMember(userId, userId.toString());
+            return createPhantomGroupMember(userId, toDisplayName(userId));
         }
 
         const initials = memberData!

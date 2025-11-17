@@ -1,4 +1,4 @@
-import { DisplayName } from '@splitifyd/shared';
+import { DisplayName, toDisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
 
@@ -19,11 +19,11 @@ export class TestUserBuilder {
         this.user = {
             email: `test-${generateShortId()}@example.com`,
             password: 'passwordpass', // Default test password: 12 characters, no complexity required
-            displayName: `${randomChoice(['Test', 'Demo', 'Sample'])} ${randomChoice(['User', 'Person', 'Account'])}`,
+            displayName: toDisplayName(`${randomChoice(['Test', 'Demo', 'Sample'])} ${randomChoice(['User', 'Person', 'Account'])}`),
         };
     }
 
-    withEmail(email: Email): this {
+    withEmail(email: Email | string): this {
         this.user.email = email;
         return this;
     }

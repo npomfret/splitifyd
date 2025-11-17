@@ -4,6 +4,7 @@ import { DisplayName } from '@splitifyd/shared';
 import { ExpenseFormPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
+import {toDisplayName} from "@splitifyd/shared";
 
 type MemberSeed = {
     uid: string;
@@ -264,7 +265,7 @@ test.describe('Expense Form', () => {
             const { expenseFormPage } = await openExpenseFormForTest(
                 authenticatedPage,
                 'test-group-currency-display',
-                [{ uid: 'user-2', displayName: 'User 2' }],
+                [{ uid: 'user-2', displayName: toDisplayName('User 2') }],
             );
 
             await expenseFormPage.selectCurrency('USD');
@@ -1142,7 +1143,7 @@ test.describe('Expense Form', () => {
         test('should surface precision errors inline without crashing the form', async ({ authenticatedPage }) => {
             const groupId = 'test-group-precision-validation';
             const { expenseFormPage, page } = await openExpenseFormForTest(authenticatedPage, groupId, [
-                { uid: 'user-2', displayName: 'User 2' },
+                { uid: 'user-2', displayName: toDisplayName('User 2') },
             ]);
 
             await expenseFormPage.fillDescription('Invalid precision');
@@ -1172,7 +1173,7 @@ test.describe('Expense Form', () => {
         test('should require amount when cleared after entry', async ({ authenticatedPage }) => {
             const groupId = 'test-group-validation-amount-required';
             const { expenseFormPage, page, testUser } = await openExpenseFormForTest(authenticatedPage, groupId, [
-                { uid: 'user-2', displayName: 'User 2' },
+                { uid: 'user-2', displayName: toDisplayName('User 2') },
             ]);
 
             await expenseFormPage.fillDescription('Amount required');
@@ -1205,7 +1206,7 @@ test.describe('Expense Form', () => {
         test('should require currency selection before submitting', async ({ authenticatedPage }) => {
             const groupId = 'test-group-validation-currency-required';
             const { expenseFormPage, page, testUser } = await openExpenseFormForTest(authenticatedPage, groupId, [
-                { uid: 'user-2', displayName: 'User 2' },
+                { uid: 'user-2', displayName: toDisplayName('User 2') },
             ]);
 
             await expenseFormPage.fillDescription('Currency required');
@@ -1236,7 +1237,7 @@ test.describe('Expense Form', () => {
         test('should validate exact split totals without crashing', async ({ authenticatedPage }) => {
             const groupId = 'test-group-validation-splits';
             const { expenseFormPage, page, testUser } = await openExpenseFormForTest(authenticatedPage, groupId, [
-                { uid: 'user-2', displayName: 'User 2' },
+                { uid: 'user-2', displayName: toDisplayName('User 2') },
             ]);
 
             await expenseFormPage.fillDescription('Exact split mismatch');
@@ -1256,7 +1257,7 @@ test.describe('Expense Form', () => {
         test('should flag excessively large amounts inline', async ({ authenticatedPage }) => {
             const groupId = 'test-group-validation-amount-max';
             const { expenseFormPage, page, testUser } = await openExpenseFormForTest(authenticatedPage, groupId, [
-                { uid: 'user-2', displayName: 'User 2' },
+                { uid: 'user-2', displayName: toDisplayName('User 2') },
             ]);
 
             await expenseFormPage.fillDescription('Large amount');

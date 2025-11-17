@@ -2,6 +2,7 @@ import { type ClientUser, type SystemUserRole, SystemUserRoles } from '@splitify
 import { DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
+import {toDisplayName} from "@splitifyd/shared";
 
 /**
  * Builder for creating ClientUser objects for tests
@@ -15,7 +16,7 @@ export class ClientUserBuilder {
         this.user = {
             uid: `user-${randomId}`,
             email: `test-${randomId}@example.com`,
-            displayName: `${randomChoice(['Test', 'Demo', 'Sample'])} ${randomChoice(['User', 'Person', 'Account'])}`,
+            displayName: toDisplayName(`${randomChoice(['Test', 'Demo', 'Sample'])} ${randomChoice(['User', 'Person', 'Account'])}`),
             emailVerified: true,
             photoURL: null,
             role: SystemUserRoles.SYSTEM_USER,
@@ -27,13 +28,13 @@ export class ClientUserBuilder {
         return this;
     }
 
-    withEmail(email: Email): this {
+    withEmail(email: Email | string): this {
         this.user.email = email;
         return this;
     }
 
-    withDisplayName(displayName: DisplayName): this {
-        this.user.displayName = displayName;
+    withDisplayName(displayName: DisplayName | string): this {
+        this.user.displayName = typeof displayName === "string" ? toDisplayName(displayName) : displayName;
         return this;
     }
 

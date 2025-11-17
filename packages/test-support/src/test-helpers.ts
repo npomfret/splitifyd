@@ -1,7 +1,8 @@
 // Import currency utilities from shared package
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import {CurrencyISOCode, toPassword} from '@splitifyd/shared';
 import { Amount, getCurrencyDecimals, roundToCurrencyPrecision } from '@splitifyd/shared';
 import { ISOString, toISOString } from '@splitifyd/shared';
+import {toDisplayName} from "@splitifyd/shared";
 
 /**
  * Generates a short, readable UUID for test data
@@ -32,7 +33,7 @@ export function generateTestUserName(prefix: string = 'User'): string {
     return generateNewUserDetails(prefix).displayName;
 }
 
-export const DEFAULT_PASSWORD = 'passwordpass';
+export const DEFAULT_PASSWORD = toPassword('passwordpass');
 
 export function generateNewUserDetails(prefix = 'u') {
     const id = generateShortId();
@@ -40,7 +41,7 @@ export function generateNewUserDetails(prefix = 'u') {
     // TestUserBuilder imports from this file, so we can't import it here
     return {
         email: `${prefix}-${id}@example.com`,
-        displayName: `${prefix} ${id}`,
+        displayName: toDisplayName(`${prefix} ${id}`),
         password: DEFAULT_PASSWORD,
     };
 }

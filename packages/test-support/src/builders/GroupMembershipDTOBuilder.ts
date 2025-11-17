@@ -1,8 +1,9 @@
-import type { GroupId, GroupMembershipDTO, ISOString, MemberRole, MemberStatus, UserId, UserThemeColor } from '@splitifyd/shared';
+import type {DisplayName, GroupId, GroupMembershipDTO, ISOString, MemberRole, MemberStatus, UserId, UserThemeColor} from '@splitifyd/shared';
 import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
 import { convertToISOString, generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
+import {toDisplayName} from "@splitifyd/shared";
 
 /**
  * Builder for creating GroupMembershipDTO objects for tests
@@ -13,7 +14,7 @@ export class GroupMembershipDTOBuilder {
 
     constructor() {
         const uid = `user-${generateShortId()}`;
-        const displayName = randomChoice(['Alice Smith', 'Bob Johnson', 'Charlie Brown', 'Diana Prince', 'Eve Anderson']);
+        const displayName = toDisplayName(randomChoice(['Alice Smith', 'Bob Johnson', 'Charlie Brown', 'Diana Prince', 'Eve Anderson']));
 
         this.membership = {
             uid,
@@ -69,8 +70,8 @@ export class GroupMembershipDTOBuilder {
         return this;
     }
 
-    withGroupDisplayName(groupDisplayName: string): this {
-        this.membership.groupDisplayName = groupDisplayName;
+    withGroupDisplayName(groupDisplayName: DisplayName | string): this {
+        this.membership.groupDisplayName = typeof groupDisplayName === "string" ? toDisplayName(groupDisplayName) : groupDisplayName;
         return this;
     }
 

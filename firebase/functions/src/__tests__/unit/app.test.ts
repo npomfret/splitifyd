@@ -18,6 +18,7 @@ import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlemen
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from './AppDriver';
 import {toPassword} from "@splitifyd/shared";
+import {toDisplayName} from "@splitifyd/shared";
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
@@ -3132,9 +3133,9 @@ describe('app tests', () => {
 
         it('should register a new user through the registration workflow', async () => {
             const registrationResult = await appDriver.registerUser({
-                displayName: 'Registered User',
+                displayName: toDisplayName('Registered User'),
                 email: 'registered@example.com',
-                password: 'ValidPass123!',
+                password: toPassword('ValidPass123!'),
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
                 privacyPolicyAccepted: true
@@ -3153,13 +3154,13 @@ describe('app tests', () => {
         it('should reject registration when privacy policy is not accepted', async () => {
             await expect(
                 appDriver.registerUser({
-                    displayName: 'Privacy Reject',
+                    displayName: toDisplayName('Privacy Reject'),
                     email: 'privacy.reject@example.com',
-                    password: 'ValidPass123!',
+                    password: toPassword('ValidPass123!'),
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
                     privacyPolicyAccepted: false
-}),
+                }),
             )
                 .rejects
                 .toThrow(/Privacy Policy/);

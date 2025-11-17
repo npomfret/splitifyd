@@ -1,4 +1,5 @@
-import type { RegisteredUser } from '@splitifyd/shared';
+import type { DisplayName, RegisteredUser } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { generateShortId, randomBoolean, randomChoice, randomString, randomUrl } from '../test-helpers';
 
 /**
@@ -12,7 +13,7 @@ import { generateShortId, randomBoolean, randomChoice, randomString, randomUrl }
 export class RegisteredUserBuilder {
     private user: RegisteredUser = {
         uid: `user-${generateShortId()}`,
-        displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`,
+        displayName: toDisplayName(`${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`),
         email: `${randomString(6).toLowerCase()}@example.com`,
         photoURL: randomBoolean() ? randomUrl() : null,
         emailVerified: randomBoolean(),
@@ -24,8 +25,8 @@ export class RegisteredUserBuilder {
         return this;
     }
 
-    withDisplayName(name: string): RegisteredUserBuilder {
-        this.user.displayName = name;
+    withDisplayName(name: DisplayName | string): RegisteredUserBuilder {
+        this.user.displayName = typeof name === 'string' ? toDisplayName(name) : name;
         return this;
     }
 

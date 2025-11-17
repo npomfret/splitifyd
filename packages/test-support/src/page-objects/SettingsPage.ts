@@ -330,7 +330,7 @@ export class SettingsPage extends BasePage {
     /**
      * Profile Information Verification
      */
-    async verifyProfileInformation(displayName: DisplayName, email: Email): Promise<void> {
+    async verifyProfileInformation(displayName: DisplayName | string, email: Email | string): Promise<void> {
         await expect(this.getProfileDisplayName()).toContainText(displayName);
         await expect(this.getProfileEmail()).toContainText(email);
     }

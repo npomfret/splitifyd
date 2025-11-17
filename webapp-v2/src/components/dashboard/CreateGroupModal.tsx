@@ -3,7 +3,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { logInfo } from '@/utils/browser-logger';
 import { signal, useComputed } from '@preact/signals';
-import { CreateGroupRequest, GroupId, toGroupName } from '@splitifyd/shared';
+import { CreateGroupRequest, GroupId, toDisplayName, toGroupName } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, Tooltip } from '../ui';
@@ -155,7 +155,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             const trimmedDisplayName = groupDisplayNameSignal.value.trim();
             const groupData: CreateGroupRequest = {
                 name: toGroupName(trimmedGroupName),
-                groupDisplayName: trimmedDisplayName,
+                groupDisplayName: toDisplayName(trimmedDisplayName),
                 description: groupDescriptionSignal.value.trim() || undefined,
             };
 

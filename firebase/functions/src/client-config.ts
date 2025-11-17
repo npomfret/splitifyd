@@ -6,6 +6,7 @@ import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';
 import { validateAppConfiguration } from './middleware/config-validation';
 import { assertValidInstanceMode, type InstanceMode } from './shared/instance-mode';
+import {toDisplayName} from "@splitifyd/shared";
 
 // Cache for lazy-loaded configurations
 let cachedConfig: ClientConfig | null = null;
@@ -121,7 +122,7 @@ function buildConfig(): ClientConfig {
             previewLength: DOCUMENT_CONFIG.PREVIEW_LENGTH,
         },
         formDefaults: {
-            displayName: isProduction ? '' : 'test',
+            displayName: toDisplayName(isProduction ? '' : 'test'),
             email: env.DEV_FORM_EMAIL ?? '',
             password: env.DEV_FORM_PASSWORD ?? '',
         },

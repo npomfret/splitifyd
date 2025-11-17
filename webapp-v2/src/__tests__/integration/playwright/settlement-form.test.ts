@@ -5,6 +5,7 @@ import { toGroupId } from '@splitifyd/shared';
 import { GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementFormPage, ThemeBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
+import {toDisplayName} from "@splitifyd/shared";
 
 type MemberSeed = {
     uid: string;
@@ -19,7 +20,7 @@ async function expectNoGlobalError(settlementFormPage: SettlementFormPage): Prom
 async function openSettlementFormForTest(
     authenticatedPage: { page: Page; user: { uid: string; displayName: DisplayName; }; },
     groupId: GroupId,
-    additionalMembers: MemberSeed[] = [{ uid: 'user-2', displayName: 'User 2' }],
+    additionalMembers: MemberSeed[] = [{ uid: 'user-2', displayName: toDisplayName('User 2') }],
 ) {
     const { page, user: testUser } = authenticatedPage;
 

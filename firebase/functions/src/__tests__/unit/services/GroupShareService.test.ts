@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toGroupId, toISOString, toShareLinkToken, USER_COLORS } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toDisplayName, toGroupId, toISOString, toShareLinkToken, USER_COLORS } from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
 import { SplitifydFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
@@ -286,7 +286,7 @@ describe('GroupShareService', () => {
 
             seedUserProfile('joining-user', { displayName: 'Joining User' });
 
-            await expect(groupShareService.joinGroupByLink('joining-user', expiredToken, 'Joining User')).rejects.toMatchObject({
+            await expect(groupShareService.joinGroupByLink('joining-user', expiredToken, toDisplayName('Joining User'))).rejects.toMatchObject({
                 code: 'LINK_EXPIRED',
             });
         });
@@ -358,7 +358,7 @@ describe('GroupShareService', () => {
             });
 
             // Should succeed - we're at 49 members, adding 1 more = 50 (at cap, but still allowed)
-            const result = await groupShareService.joinGroupByLink(newUserId, linkId, 'New User');
+            const result = await groupShareService.joinGroupByLink(newUserId, linkId, toDisplayName('New User'));
             expect(result).toBeDefined();
         });
 
@@ -378,7 +378,7 @@ describe('GroupShareService', () => {
             // Should fail with GROUP_AT_CAPACITY
             let caughtError: ApiError | undefined;
             try {
-                await groupShareService.joinGroupByLink(newUserId, linkId, 'New User');
+                await groupShareService.joinGroupByLink(newUserId, linkId, toDisplayName('New User'));
             } catch (error) {
                 caughtError = error as ApiError;
             }
@@ -456,7 +456,7 @@ describe('GroupShareService', () => {
             db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
             // Set up new user with unique display name
-            const result = await groupShareService.joinGroupByLink(newUserId, linkId, 'New User');
+            const result = await groupShareService.joinGroupByLink(newUserId, linkId, toDisplayName('New User'));
 
             expect(result.groupId).toBe(groupId);
             expect(result.success).toBe(true);
@@ -472,7 +472,7 @@ describe('GroupShareService', () => {
             db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
             // Attempt to join with same display name should throw error
-            await expect(groupShareService.joinGroupByLink(newUserId, linkId, 'Test User')).rejects.toMatchObject({
+            await expect(groupShareService.joinGroupByLink(newUserId, linkId, toDisplayName('Test User'))).rejects.toMatchObject({
                 code: 'DISPLAY_NAME_CONFLICT',
                 message: expect.stringContaining('Test User'),
             });
@@ -488,7 +488,7 @@ describe('GroupShareService', () => {
             db.seedGroupMember(groupId, existingMember.uid, existingMember);
 
             // Attempt to join with "Test User" (different case) should throw error
-            await expect(groupShareService.joinGroupByLink(newUserId, linkId, 'Test User')).rejects.toMatchObject({
+            await expect(groupShareService.joinGroupByLink(newUserId, linkId, toDisplayName('Test User'))).rejects.toMatchObject({
                 code: 'DISPLAY_NAME_CONFLICT',
                 message: expect.stringContaining('Test User'),
             });
@@ -540,7 +540,7 @@ describe('GroupShareService', () => {
         });
 
         it('should mark joins as pending when admin approval is required', async () => {
-            const result = await groupShareService.joinGroupByLink(pendingUserId, linkId, 'Pending User');
+            const result = await groupShareService.joinGroupByLink(pendingUserId, linkId, toDisplayName('Pending User'));
             expect(result.success).toBe(false);
             expect(result.memberStatus).toBe(MemberStatuses.PENDING);
 
@@ -588,7 +588,7 @@ describe('GroupShareService', () => {
         });
 
         it('should activate members immediately when approval is automatic', async () => {
-            const result = await groupShareService.joinGroupByLink(joiningUserId, linkId, 'Joining User');
+            const result = await groupShareService.joinGroupByLink(joiningUserId, linkId, toDisplayName('Joining User'));
             expect(result.success).toBe(true);
             expect(result.memberStatus).toBe(MemberStatuses.ACTIVE);
 
@@ -635,7 +635,7 @@ describe('GroupShareService', () => {
 
             seedUserProfile(joiningUserId, { displayName: 'Joining User' });
 
-            await groupShareService.joinGroupByLink(joiningUserId, linkId, 'Joining User');
+            await groupShareService.joinGroupByLink(joiningUserId, linkId, toDisplayName('Joining User'));
 
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);
             expect(ownerFeed.items[0]).toMatchObject({
@@ -709,7 +709,7 @@ describe('GroupShareService', () => {
             seedUserProfile(joiningUserId, { displayName: 'New Joiner' });
 
             // Third user joins the group
-            await groupShareService.joinGroupByLink(joiningUserId, linkId, 'Joining User');
+            await groupShareService.joinGroupByLink(joiningUserId, linkId, toDisplayName('Joining User'));
 
             // CRITICAL: All three users should receive the activity feed event
             // This verifies that the transaction-based recipient fetching includes
@@ -790,7 +790,7 @@ describe('GroupShareService', () => {
             seedUserProfile(joiningUserId, { displayName: 'New Joiner' });
 
             // New user joins the group
-            await groupShareService.joinGroupByLink(joiningUserId, linkId, 'Joining User');
+            await groupShareService.joinGroupByLink(joiningUserId, linkId, toDisplayName('Joining User'));
 
             // Owner should receive notification (active member)
             const ownerFeed = await firestoreReader.getActivityFeedForUser(ownerId);

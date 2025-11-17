@@ -113,7 +113,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Get payer radio button by display name (scoped to Who Paid section)
      */
-    private getPayerRadio(displayName: DisplayName): Locator {
+    private getPayerRadio(displayName: DisplayName | string): Locator {
         return this.getWhoPaidSection().getByRole('radio', { name: displayName });
     }
 
@@ -390,7 +390,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Select who paid by display name (what user sees on screen)
      */
-    async selectPayer(displayName: DisplayName): Promise<void> {
+    async selectPayer(displayName: DisplayName | string): Promise<void> {
         const radioByUid = this.page.locator(`input[type="radio"][name="paidBy"][value="${displayName}"]`);
 
         if (await radioByUid.isVisible().catch(() => false)) {

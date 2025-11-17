@@ -4,7 +4,7 @@ import { createPhantomGroupMember } from '../../../utils/groupMembershipHelpers'
 describe('groupMembershipHelpers', () => {
     describe('createPhantomGroupMember', () => {
         it('applies a neutral gray theme for departed members', () => {
-            const phantom = createPhantomGroupMember('user-123', 'Test User');
+            const phantom = createPhantomGroupMember('user-123');
 
             expect(phantom.themeColor.light).toBe('#9CA3AF');
             expect(phantom.themeColor.dark).toBe('#6B7280');
@@ -14,7 +14,7 @@ describe('groupMembershipHelpers', () => {
         });
 
         it('emits ISO timestamps for theme assignment and join time', () => {
-            const phantom = createPhantomGroupMember('user-456', 'Solo');
+            const phantom = createPhantomGroupMember('user-456');
 
             expect(Number.isNaN(Date.parse(phantom.joinedAt))).toBe(false);
             expect(Number.isNaN(Date.parse(phantom.themeColor.assignedAt))).toBe(false);

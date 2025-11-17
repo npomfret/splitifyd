@@ -1,3 +1,5 @@
+import { DisplayName, toDisplayName } from '@splitifyd/shared';
+
 interface DisplayNameSource {
     displayName?: string | null;
     groupDisplayName?: string | null;
@@ -9,7 +11,7 @@ interface DisplayNameSource {
  * STRICT MODE: All members MUST have groupDisplayName set.
  * If it's missing, this indicates a data integrity issue that must be fixed.
  */
-export function getGroupDisplayName(source: DisplayNameSource | null | undefined): string {
+export function getGroupDisplayName(source: DisplayNameSource | null | undefined): DisplayName {
     if (!source) {
         throw new Error('Group member data is required');
     }
@@ -19,5 +21,5 @@ export function getGroupDisplayName(source: DisplayNameSource | null | undefined
         throw new Error('Expected groupDisplayName to be set. All group members must have a group display name.');
     }
 
-    return groupName;
+    return toDisplayName(groupName);
 }

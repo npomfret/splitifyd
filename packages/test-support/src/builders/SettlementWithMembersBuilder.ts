@@ -1,5 +1,5 @@
 import type { GroupMember, SettlementWithMembers, UserId } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
+import { Amount, toDisplayName } from '@splitifyd/shared';
 import { GroupId, ISOString } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toGroupId } from '@splitifyd/shared';
@@ -20,12 +20,12 @@ export class SettlementWithMembersBuilder {
         // Create default payer and payee members
         const payer = new GroupMemberBuilder()
             .withUid('payer-user')
-            .withDisplayName('Payer User')
+            .withDisplayName(toDisplayName('Payer User'))
             .build();
 
         const payee = new GroupMemberBuilder()
             .withUid('payee-user')
-            .withDisplayName('Payee User')
+            .withDisplayName(toDisplayName('Payee User'))
             .build();
 
         const { currency, amount } = randomValidCurrencyAmountPair(10, 500);
@@ -63,7 +63,7 @@ export class SettlementWithMembersBuilder {
     withPayerId(payerId: UserId): this {
         this.settlement.payer = new GroupMemberBuilder()
             .withUid(payerId)
-            .withDisplayName(`Payer ${payerId.slice(0, 4)}`)
+            .withDisplayName(toDisplayName(`Payer ${payerId.slice(0, 4)}`))
             .build();
         return this;
     }
@@ -76,7 +76,7 @@ export class SettlementWithMembersBuilder {
     withPayeeId(payeeId: UserId): this {
         this.settlement.payee = new GroupMemberBuilder()
             .withUid(payeeId)
-            .withDisplayName(`Payee ${payeeId.slice(0, 4)}`)
+            .withDisplayName(toDisplayName(`Payee ${payeeId.slice(0, 4)}`))
             .build();
         return this;
     }

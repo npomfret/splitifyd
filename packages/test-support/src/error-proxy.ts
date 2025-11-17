@@ -24,7 +24,7 @@ interface ProxyConfig {
  * User context extracted from the page at error time
  */
 interface UserContext {
-    displayName: DisplayName;
+    displayName: string;
     browserContextId: string;
 }
 

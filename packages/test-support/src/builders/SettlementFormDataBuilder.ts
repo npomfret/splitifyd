@@ -1,4 +1,5 @@
-import type { SettlementFormData } from '@splitifyd/shared';
+import type { DisplayName, SettlementFormData } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
@@ -13,21 +14,21 @@ export class SettlementFormDataBuilder {
         const { currency, amount } = randomValidCurrencyAmountPair(5, 200);
 
         this.settlement = {
-            payerName: '', // No default - must be explicitly set
-            payeeName: '', // No default - must be explicitly set
+            payerName: toDisplayName(''), // No default - must be explicitly set
+            payeeName: toDisplayName(''), // No default - must be explicitly set
             amount: amount.toString(),
             currency,
             note: `${randomChoice(['Payment', 'Settlement', 'Reimbursement', 'Cash back'])} ${randomString(4)}`,
         };
     }
 
-    withPayerName(payerName: string): this {
-        this.settlement.payerName = payerName;
+    withPayerName(payerName: DisplayName | string): this {
+        this.settlement.payerName = typeof payerName === 'string' ? toDisplayName(payerName) : payerName;
         return this;
     }
 
-    withPayeeName(payeeName: string): this {
-        this.settlement.payeeName = payeeName;
+    withPayeeName(payeeName: DisplayName | string): this {
+        this.settlement.payeeName = typeof payeeName === 'string' ? toDisplayName(payeeName) : payeeName;
         return this;
     }
 

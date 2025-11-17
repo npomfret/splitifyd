@@ -8,6 +8,7 @@ import { UserService } from '../../../services/UserService2';
 import { ApiError } from '../../../utils/errors';
 import { initializeI18n } from '../../../utils/i18n';
 import { StubAuthService } from '../mocks/StubAuthService';
+import {toDisplayName, toPassword} from "@splitifyd/shared";
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
@@ -448,7 +449,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         describe('updateProfile validation', () => {
             it('should validate displayName length', async () => {
                 const updateData = new UserUpdateBuilder()
-                    .withDisplayName('a'.repeat(101)) // Too long
+                    .withDisplayName(toDisplayName('a'.repeat(101))) // Too long
                     .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
@@ -456,7 +457,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             it('should validate displayName is not empty', async () => {
                 const updateData = new UserUpdateBuilder()
-                    .withDisplayName('')
+                    .withDisplayName(toDisplayName(''))
                     .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
@@ -464,7 +465,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             it('should validate displayName with only whitespace', async () => {
                 const updateData = new UserUpdateBuilder()
-                    .withDisplayName('   ')
+                    .withDisplayName(toDisplayName('   '))
                     .build();
 
                 await expect(validationUserService.updateProfile(testUserId, updateData)).rejects.toThrow(ApiError);
@@ -580,8 +581,8 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should validate email format', async () => {
                 const registrationData = {
                     email: 'invalid-email',
-                    password: 'ValidPassword1234!',
-                    displayName: 'Test User',
+                    password: toPassword('ValidPassword1234!'),
+                    displayName: toDisplayName('Test User'),
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
                     privacyPolicyAccepted: true,
@@ -593,8 +594,8 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should validate password strength during registration', async () => {
                 const registrationData = {
                     email: 'newuser@example.com',
-                    password: 'weak', // Weak password
-                    displayName: 'Test User',
+                    password: toPassword('weak'), // Weak password
+                    displayName: toDisplayName('Test User'),
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
                     privacyPolicyAccepted: true,
@@ -606,8 +607,8 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should require terms acceptance', async () => {
                 const registrationData = {
                     email: 'newuser@example.com',
-                    password: 'ValidPassword1234!',
-                    displayName: 'Test User',
+                    password: toPassword('ValidPassword1234!'),
+                    displayName: toDisplayName('Test User'),
                     termsAccepted: false,
                     cookiePolicyAccepted: true,
                     privacyPolicyAccepted: true,
@@ -619,8 +620,8 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should require cookie policy acceptance', async () => {
                 const registrationData = {
                     email: 'newuser@example.com',
-                    password: 'ValidPassword1234!',
-                    displayName: 'Test User',
+                    password: toPassword('ValidPassword1234!'),
+                    displayName: toDisplayName('Test User'),
                     termsAccepted: true,
                     cookiePolicyAccepted: false,
                     privacyPolicyAccepted: true,
@@ -632,8 +633,8 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should require privacy policy acceptance', async () => {
                 const registrationData = {
                     email: 'newuser@example.com',
-                    password: 'ValidPassword1234!',
-                    displayName: 'Test User',
+                    password: toPassword('ValidPassword1234!'),
+                    displayName: toDisplayName('Test User'),
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
                     privacyPolicyAccepted: false,
@@ -645,8 +646,8 @@ describe('UserService - Consolidated Unit Tests', () => {
             it('should validate displayName during registration', async () => {
                 const registrationData = {
                     email: 'newuser@example.com',
-                    password: 'ValidPassword1234!',
-                    displayName: '', // Empty display name
+                    password: toPassword('ValidPassword1234!'),
+                    displayName: toDisplayName(''), // Empty display name
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
                     privacyPolicyAccepted: true,
@@ -679,7 +680,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         describe('Display Name Validation', () => {
             it('should reject empty display names', () => {
                 expect(() => {
-                    const displayName: DisplayName = '';
+                    const displayName: DisplayName = toDisplayName('');
                     if (!displayName || displayName.trim().length === 0) {
                         throw new ApiError(400, 'INVALID_DISPLAY_NAME', 'Display name cannot be empty');
                     }

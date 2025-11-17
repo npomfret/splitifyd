@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { validateRegisterRequest } from '../../../auth/validation';
 import { HTTP_STATUS } from '../../../constants';
 import { ApiError } from '../../../utils/errors';
+import {toDisplayName, toPassword} from "@splitifyd/shared";
 
 /**
  * Registration Validation Unit Tests
@@ -435,8 +436,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         it('should return processed and normalized data for valid input', () => {
             const inputData = {
                 email: '  TEST@EXAMPLE.COM  ',
-                password: 'passwordpass',
-                displayName: '  Test User  ',
+                password: toPassword('passwordpass'),
+                displayName: toDisplayName('  Test User  '),
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
                 privacyPolicyAccepted: true,

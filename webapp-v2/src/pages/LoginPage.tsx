@@ -1,5 +1,6 @@
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
+import { toPassword } from '@splitifyd/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -86,7 +87,7 @@ export function LoginPage() {
         }
 
         try {
-            await authStore.login(trimmedEmail, password, rememberMe);
+            await authStore.login(trimmedEmail, toPassword(password), rememberMe);
             // Redirect will happen via useEffect when user state updates
         } catch (error) {
             logError('Login attempt failed', error, { email: trimmedEmail });

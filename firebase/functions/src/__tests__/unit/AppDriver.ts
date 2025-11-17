@@ -524,7 +524,7 @@ export class AppDriver {
         return res.getJson() as MessageResponse;
     }
 
-    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName, authToken: AuthToken): Promise<MessageResponse> {
+    async updateGroupMemberDisplayName(groupId: GroupId | string, displayName: DisplayName | string, authToken: AuthToken): Promise<MessageResponse> {
         const req = createStubRequest(authToken, { displayName }, { id: groupId });
         const res = await this.dispatchByHandler('updateGroupMemberDisplayName', req);
         return res.getJson() as MessageResponse;

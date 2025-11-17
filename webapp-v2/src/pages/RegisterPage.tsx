@@ -10,6 +10,7 @@ import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { logError } from '../utils/browser-logger';
+import {toDisplayName, toPassword} from "@splitifyd/shared";
 
 export function RegisterPage() {
     const { t } = useTranslation();
@@ -126,7 +127,7 @@ export function RegisterPage() {
         setLocalError(null);
 
         try {
-            await authStore.register(email.trim(), password, name.trim(), agreeToTerms, agreeToCookies, agreeToPrivacy);
+            await authStore.register(email.trim(), toPassword(password), toDisplayName(name.trim()), agreeToTerms, agreeToCookies, agreeToPrivacy);
             // Clear form data from sessionStorage on successful registration
             try {
                 sessionStorage.removeItem(STORAGE_KEYS.REGISTER_NAME);

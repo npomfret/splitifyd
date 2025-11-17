@@ -19,6 +19,7 @@ vi.mock('@/app/apiClient', () => {
 
 import { apiClient } from '@/app/apiClient';
 import { joinGroupStore } from '@/app/stores/join-group-store';
+import {toDisplayName} from "@splitifyd/shared";
 
 const mockedApiClient = apiClient as unknown as {
     joinGroupByLink: Mock;
@@ -39,7 +40,7 @@ describe('joinGroupStore', () => {
             memberStatus: 'active',
         });
 
-        const response = await joinGroupStore.joinGroup('share-link', 'John Doe');
+        const response = await joinGroupStore.joinGroup('share-link', toDisplayName('John Doe'));
 
         expect(response).not.toBeNull();
         expect(response?.groupId).toBe('group-123');
@@ -54,7 +55,7 @@ describe('joinGroupStore', () => {
             message: 'The name "John" is already in use by another member. Please choose a different name.',
         });
 
-        await expect(joinGroupStore.joinGroup('conflict-link', 'John')).rejects.toEqual({
+        await expect(joinGroupStore.joinGroup('conflict-link', toDisplayName('John'))).rejects.toEqual({
             code: 'DISPLAY_NAME_CONFLICT',
             message: 'The name "John" is already in use by another member. Please choose a different name.',
         });
@@ -68,7 +69,7 @@ describe('joinGroupStore', () => {
             message: 'expired',
         });
 
-        await joinGroupStore.joinGroup('expired-link', 'Jane Doe');
+        await joinGroupStore.joinGroup('expired-link', toDisplayName('Jane Doe'));
 
         expect(joinGroupStore.error).toBe('This invitation link is invalid or has expired');
         expect(joinGroupStore.joinSuccess).toBe(false);

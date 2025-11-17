@@ -10,7 +10,7 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { PooledTestUser } from '@splitifyd/shared';
+import { PooledTestUser, toPassword } from '@splitifyd/shared';
 import { ApiDriver, borrowTestUsers, generateTestEmail, TestUserBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 
 describe('Authentication and Registration - Integration Tests (Essential Firebase Behavior Only)', () => {
@@ -31,6 +31,7 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                 .build();
             const registeredUser = await apiDriver.register({
                 ...userData,
+                password: toPassword(userData.password),
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
                 privacyPolicyAccepted: true,
@@ -207,7 +208,7 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                     .build();
 
                 // First attempt with invalid password
-                const invalidData = { ...userData, password: '123' }; // Too weak
+                const invalidData = { ...userData, password: toPassword('123') }; // Too weak
 
                 await expect(apiDriver.register(invalidData)).rejects.toThrow(/400|password/i);
 

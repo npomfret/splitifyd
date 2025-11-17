@@ -1,4 +1,5 @@
 import type { Email } from '@splitifyd/shared';
+import { toDisplayName, toPassword } from '@splitifyd/shared';
 import { getFirestore } from '../firebase';
 import { createFirestoreDatabase, type IFirestoreDatabase } from '../firestore-wrapper';
 import type { IAuthService } from '../services/auth';
@@ -114,8 +115,8 @@ export class TestUserPoolService {
 
         const user = await this.userService.createUserDirect({
             email,
-            password: POOL_PASSWORD,
-            displayName: `pool user ${id}`,
+            password: toPassword(POOL_PASSWORD),
+            displayName: toDisplayName(`pool user ${id}`),
             termsAccepted: true,
             cookiePolicyAccepted: true,
             privacyPolicyAccepted: true,

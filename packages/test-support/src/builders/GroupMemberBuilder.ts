@@ -4,6 +4,7 @@ import { DisplayName } from '@splitifyd/shared';
 import type { ISOString } from '@splitifyd/shared';
 import { convertToISOString, generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
+import {toDisplayName} from "@splitifyd/shared";
 
 /**
  * Builder for creating GroupMember objects for tests
@@ -14,7 +15,7 @@ export class GroupMemberBuilder {
 
     constructor() {
         const uid = `user-${generateShortId()}`;
-        const displayName = randomChoice(['Alice Smith', 'Bob Johnson', 'Charlie Brown', 'Diana Prince', 'Eve Anderson']);
+        const displayName = toDisplayName(randomChoice(['Alice Smith', 'Bob Johnson', 'Charlie Brown', 'Diana Prince', 'Eve Anderson']));
 
         this.member = {
             // User identification
@@ -39,10 +40,11 @@ export class GroupMemberBuilder {
         return this;
     }
 
-    withDisplayName(displayName: DisplayName): this {
-        this.member.groupDisplayName = displayName;
+    withDisplayName(displayName: DisplayName | string): this {
+        const converted = typeof displayName === 'string' ? toDisplayName(displayName) : displayName;
+        this.member.groupDisplayName = converted;
         // Auto-update initials when display name changes
-        this.member.initials = this.generateInitials(displayName);
+        this.member.initials = this.generateInitials(converted);
         return this;
     }
 
@@ -91,8 +93,8 @@ export class GroupMemberBuilder {
         return this;
     }
 
-    withGroupDisplayName(groupDisplayName: string): this {
-        this.member.groupDisplayName = groupDisplayName;
+    withGroupDisplayName(groupDisplayName: DisplayName | string): this {
+        this.member.groupDisplayName = typeof groupDisplayName === "string" ? toDisplayName(groupDisplayName) : groupDisplayName;
         return this;
     }
 

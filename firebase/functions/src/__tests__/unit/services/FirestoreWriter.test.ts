@@ -6,6 +6,7 @@ import {ComponentBuilder} from '../../../services/ComponentBuilder';
 import type {IFirestoreReader, IFirestoreWriter} from '../../../services/firestore';
 import {ApiError} from '../../../utils/errors';
 import {StubAuthService} from '../mocks/StubAuthService';
+import {toDisplayName} from "@splitifyd/shared";
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let db: SplitifydFirestoreTestDatabase;
@@ -23,7 +24,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     describe('updateGroupMemberDisplayName', () => {
         const groupId = toGroupId('test-group');
         const userId = 'test-user';
-        const newDisplayName = 'Updated Display Name';
+        const newDisplayName = toDisplayName('Updated Display Name');
 
         beforeEach(() => {
             // Set up test group
@@ -86,7 +87,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
             // Act & Assert
             let caughtError: ApiError | undefined;
             try {
-                await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, '');
+                await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, toDisplayName(''));
             } catch (error) {
                 caughtError = error as ApiError;
             }
@@ -113,7 +114,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
         });
 
         it('should handle display names with special characters', async () => {
-            const specialName = 'O\'Brien-Smith (Admin)';
+            const specialName = toDisplayName('O\'Brien-Smith (Admin)');
 
             // Act
             await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, specialName);
@@ -124,7 +125,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
         });
 
         it('should handle display names at maximum length', async () => {
-            const maxLengthName = 'A'.repeat(50); // Assuming 50 is max length from validation
+            const maxLengthName = toDisplayName('A'.repeat(50)); // Assuming 50 is max length from validation
 
             // Act
             await firestoreWriter.updateGroupMemberDisplayName(groupId, userId, maxLengthName);
@@ -137,7 +138,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
         it('should throw DISPLAY_NAME_TAKEN when name is already in use by another member', async () => {
             // Set up second member with a different display name
             const otherUserId = 'other-user';
-            const takenName = 'Taken Display Name';
+            const takenName = toDisplayName('Taken Display Name');
             const otherMember = new GroupMemberDocumentBuilder()
                 .withUserId(otherUserId)
                 .withGroupId(groupId)
@@ -160,7 +161,7 @@ describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
         });
 
         it('should allow user to keep their current display name (idempotent)', async () => {
-            const currentName = 'Original Name';
+            const currentName = toDisplayName('Original Name');
 
             // Verify current name
             const beforeUpdate = await firestoreReader.getGroupMember(groupId, userId);

@@ -1,4 +1,4 @@
-import { AuthenticatedUser, SystemUserRoles } from '@splitifyd/shared';
+import { AuthenticatedUser, SystemUserRoles, toDisplayName } from '@splitifyd/shared';
 import { NextFunction, Request, Response } from 'express';
 import { getIdentityToolkitConfig } from '../client-config';
 import { AUTH } from '../constants';
@@ -65,7 +65,7 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         // Attach user information to request
         req.user = {
             uid: userRecord.uid,
-            displayName: userRecord.displayName,
+            displayName: toDisplayName(userRecord.displayName),
             role: userRole, // todo: what is this?
         };
 

@@ -1,30 +1,30 @@
-import type { UserRegistration } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
+import type {Password, UserRegistration } from '@splitifyd/shared';
+import { DisplayName, toDisplayName, toPassword } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { randomBoolean, randomChoice, randomEmail, randomString } from '../test-helpers';
 
 export class RegisterRequestBuilder {
     private request: UserRegistration = {
         email: randomEmail(),
-        password: `passwordpass`,
-        displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(6)}`,
+        password: toPassword(`passwordpass`),
+        displayName: toDisplayName(`${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(6)}`),
         termsAccepted: randomBoolean(),
         cookiePolicyAccepted: randomBoolean(),
         privacyPolicyAccepted: randomBoolean(),
     };
 
-    withEmail(email: Email): this {
+    withEmail(email: Email | string): this {
         this.request.email = email;
         return this;
     }
 
-    withPassword(password: string): this {
-        this.request.password = password;
+    withPassword(password: Password | string): this {
+        this.request.password = typeof password === "string" ? toPassword(password) : password;
         return this;
     }
 
-    withDisplayName(displayName: DisplayName): this {
-        this.request.displayName = displayName;
+    withDisplayName(displayName: DisplayName | string): this {
+        this.request.displayName = typeof displayName === "string" ? toDisplayName(displayName) : displayName;
         return this;
     }
 

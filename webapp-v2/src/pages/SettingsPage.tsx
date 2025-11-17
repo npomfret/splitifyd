@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
+import { toDisplayName } from '@splitifyd/shared';
 
 interface PasswordChangeData {
     currentPassword: string;
@@ -44,7 +45,7 @@ export function SettingsPage() {
     const [isEmailLoading, setIsEmailLoading] = useState(false);
 
     const user = authStore.user;
-    const resolvedDisplayName = user?.displayName?.trim() || user?.email?.split('@')[0] || '';
+    const resolvedDisplayName = toDisplayName(user?.displayName?.trim() || user?.email?.split('@')[0] || '');
     const membershipTheme = user ? themeStore.getThemeForUser(user.uid) : null;
     const shouldShowAvatar = Boolean(user && (user.photoURL || membershipTheme));
     const profileInitials = resolvedDisplayName
@@ -89,7 +90,7 @@ export function SettingsPage() {
 
         try {
             // Use the auth store's updateUserProfile method for real-time updates
-            await authStore.updateUserProfile({ displayName: displayName.trim() });
+            await authStore.updateUserProfile({ displayName: toDisplayName(displayName.trim()) });
             setOriginalDisplayName(displayName.trim());
             setSuccessMessage(t('settingsPage.successMessages.profileUpdated'));
             // No need for token refresh or page reload - UI updates automatically via signals

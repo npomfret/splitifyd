@@ -11,6 +11,7 @@ import { LoadingSpinner } from '@/components/ui';
 import { Input } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { useComputed } from '@preact/signals';
+import { toDisplayName } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -94,7 +95,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
         setNameError(null);
 
         try {
-            const joinedGroup = await joinGroupStore.joinGroup(actualLinkId, trimmedName);
+            const joinedGroup = await joinGroupStore.joinGroup(actualLinkId, toDisplayName(trimmedName));
             if (joinedGroup) {
                 setShowNamePrompt(false);
             }

@@ -1,6 +1,7 @@
-import type { CreateGroupRequest, GroupName } from '@splitifyd/shared';
+import type { CreateGroupRequest, DisplayName, GroupName } from '@splitifyd/shared';
 import { toGroupName } from '@splitifyd/shared';
 import { generateShortId, randomChoice, randomString } from '../test-helpers';
+import {toDisplayName} from "@splitifyd/shared";
 
 export class CreateGroupRequestBuilder {
     private group: CreateGroupRequest;
@@ -8,7 +9,7 @@ export class CreateGroupRequestBuilder {
     constructor() {
         this.group = {
             name: toGroupName(`${randomChoice(['Team', 'Group', 'Squad', 'Club', 'Circle'])} ${randomString(6)}`),
-            groupDisplayName: `Member ${generateShortId()}`,
+            groupDisplayName: toDisplayName(`Member ${generateShortId()}`),
             description: `${randomChoice(['Fun', 'Cool', 'Awesome', 'Great', 'Nice'])} group ${generateShortId()}`,
         };
     }
@@ -23,8 +24,8 @@ export class CreateGroupRequestBuilder {
         return this;
     }
 
-    withGroupDisplayName(displayName: string): this {
-        this.group.groupDisplayName = displayName;
+    withGroupDisplayName(displayName: DisplayName | string): this {
+        this.group.groupDisplayName = typeof displayName === "string" ? toDisplayName(displayName) : displayName;
         return this;
     }
 

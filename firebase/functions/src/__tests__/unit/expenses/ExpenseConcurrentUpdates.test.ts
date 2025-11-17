@@ -12,6 +12,7 @@ import { calculateEqualSplits, toGroupName } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
+import {toDisplayName} from "@splitifyd/shared";
 
 describe('Expense Concurrent Updates - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -33,7 +34,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         // Create group
         const group = await appDriver.createGroup({
             name: toGroupName('Concurrent Update Test Group'),
-            groupDisplayName: 'Owner Display',
+            groupDisplayName: toDisplayName('Owner Display'),
             description: 'Testing expense concurrent updates',
         }, userId);
 
@@ -89,7 +90,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         // Create group
         const group = await appDriver.createGroup({
             name: toGroupName('Transaction Conflict Test'),
-            groupDisplayName: 'Owner Display',
+            groupDisplayName: toDisplayName('Owner Display'),
         }, userId);
 
         // Create an expense
@@ -146,7 +147,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         // Create group and expense
         const group = await appDriver.createGroup({
             name: toGroupName('Access Control Test'),
-            groupDisplayName: 'Owner Display',
+            groupDisplayName: toDisplayName('Owner Display'),
         }, userId);
 
         const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()

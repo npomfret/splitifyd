@@ -39,6 +39,7 @@ import {
     SettlementId,
     SettlementWithMembers,
     ShareLinkResponse,
+    toDisplayName,
     toGroupName,
     type UpdateExpenseRequest,
     type UpdateGroupRequest,
@@ -267,7 +268,7 @@ export class ApiDriver {
 
     async createGroupWithMembers(name: string | GroupName, members: UserToken[], creatorToken: AuthToken): Promise<GroupDTO> {
         // Step 1: Create group with just the creator
-        const creatorDisplayName = `Owner ${Math.random().toString(36).slice(2, 8)}`;
+        const creatorDisplayName = toDisplayName(`Owner ${Math.random().toString(36).slice(2, 8)}`);
 
         const groupData: CreateGroupRequest = {
             name: typeof name === 'string' ? toGroupName(name) : name,

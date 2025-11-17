@@ -128,10 +128,9 @@ export const toCommentText = (value: string): CommentText => value as CommentTex
 export type Password = Brand<string, 'Password'>;
 export const toPassword = (value: string): Password => value as Password;
 
-// export type DisplayName = Brand<string, 'CommentText'>;
-// export const toDisplayName = (value: string): CommentText => value as CommentText;
+export type DisplayName = Brand<string, 'DisplayName'>;
+export const toDisplayName = (value: string): DisplayName => value as DisplayName;
 
-export type DisplayName = string;
 export type UserId = string;
 export type Email = string;
 export type CurrencyISOCode = string;
@@ -392,41 +391,41 @@ export interface ExpenseLabel {
 }
 
 export const PREDEFINED_EXPENSE_LABELS: ExpenseLabel[] = [
-    { name: 'food', displayName: 'Food & Dining', icon: '🍽️' },
-    { name: 'transport', displayName: 'Transportation', icon: '🚗' },
-    { name: 'utilities', displayName: 'Bills & Utilities', icon: '⚡' },
-    { name: 'entertainment', displayName: 'Entertainment', icon: '🎬' },
-    { name: 'shopping', displayName: 'Shopping', icon: '🛍️' },
-    { name: 'accommodation', displayName: 'Travel & Accommodation', icon: '✈️' },
-    { name: 'healthcare', displayName: 'Healthcare', icon: '🏥' },
-    { name: 'education', displayName: 'Education', icon: '📚' },
-    { name: 'Just the tip', displayName: 'Just the tip', icon: '😮' },
-    { name: 'bedroom_supplies', displayName: 'Bedroom Supplies', icon: '🍆' },
-    { name: 'pets', displayName: 'Pets & Animals', icon: '🐾' },
-    { name: 'alcohol', displayName: 'Drinks & Nightlife', icon: '🍺' },
-    { name: 'coffee', displayName: 'Coffee Addiction', icon: '☕' },
-    { name: 'tech', displayName: 'Gadgets & Electronics', icon: '💻' },
-    { name: 'gaming', displayName: 'Gaming', icon: '🎮' },
-    { name: 'home', displayName: 'Home & Garden', icon: '🏡' },
-    { name: 'subscriptions', displayName: 'Streaming & Subscriptions', icon: '📺' },
-    { name: 'gifts', displayName: 'Gifts & Generosity', icon: '🎁' },
-    { name: 'charity', displayName: 'Charity & Donations', icon: '🤝' },
-    { name: 'hobbies', displayName: 'Hobbies & Crafts', icon: '🎨' },
-    { name: 'sports', displayName: 'Sports & Fitness', icon: '🏋️' },
-    { name: 'beauty', displayName: 'Beauty & Personal Care', icon: '💅' },
-    { name: 'dating', displayName: 'Dating & Romance', icon: '💘' },
-    { name: 'therapy', displayName: 'Therapy & Self Care', icon: '🛋️' },
-    { name: 'kids', displayName: 'Children & Babysitting', icon: '🍼' },
-    { name: 'clubbing', displayName: 'Clubbing & Bad Decisions', icon: '💃' },
-    { name: 'lottery', displayName: 'Lottery Tickets & Regret', icon: '🎰' },
-    { name: 'junk_food', displayName: 'Midnight Snacks', icon: '🌭' },
-    { name: 'hangover', displayName: 'Hangover Recovery Supplies', icon: '🥤' },
-    { name: 'impulse', displayName: 'Impulse Purchases', icon: '🤷' },
-    { name: 'side_hustle', displayName: 'Side Hustle Expenses', icon: '💼' },
-    { name: 'bribery', displayName: 'Bribes (Totally Legal)', icon: '🤑' },
-    { name: 'lawsuits', displayName: 'Legal Trouble', icon: '⚖️' },
-    { name: 'weird_stuff', displayName: 'Weird Stuff Off the Internet', icon: '🦄' },
-    { name: 'other', displayName: 'Other', icon: '❓' },
+    { name: 'food', displayName: toDisplayName('Food & Dining'), icon: '🍽️' },
+    { name: 'transport', displayName: toDisplayName('Transportation'), icon: '🚗' },
+    { name: 'utilities', displayName: toDisplayName('Bills & Utilities'), icon: '⚡' },
+    { name: 'entertainment', displayName: toDisplayName('Entertainment'), icon: '🎬' },
+    { name: 'shopping', displayName: toDisplayName('Shopping'), icon: '🛍️' },
+    { name: 'accommodation', displayName: toDisplayName('Travel & Accommodation'), icon: '✈️' },
+    { name: 'healthcare', displayName: toDisplayName('Healthcare'), icon: '🏥' },
+    { name: 'education', displayName: toDisplayName('Education'), icon: '📚' },
+    { name: 'Just the tip', displayName: toDisplayName('Just the tip'), icon: '😮' },
+    { name: 'bedroom_supplies', displayName: toDisplayName('Bedroom Supplies'), icon: '🍆' },
+    { name: 'pets', displayName: toDisplayName('Pets & Animals'), icon: '🐾' },
+    { name: 'alcohol', displayName: toDisplayName('Drinks & Nightlife'), icon: '🍺' },
+    { name: 'coffee', displayName: toDisplayName('Coffee Addiction'), icon: '☕' },
+    { name: 'tech', displayName: toDisplayName('Gadgets & Electronics'), icon: '💻' },
+    { name: 'gaming', displayName: toDisplayName('Gaming'), icon: '🎮' },
+    { name: 'home', displayName: toDisplayName('Home & Garden'), icon: '🏡' },
+    { name: 'subscriptions', displayName: toDisplayName('Streaming & Subscriptions'), icon: '📺' },
+    { name: 'gifts', displayName: toDisplayName('Gifts & Generosity'), icon: '🎁' },
+    { name: 'charity', displayName: toDisplayName('Charity & Donations'), icon: '🤝' },
+    { name: 'hobbies', displayName: toDisplayName('Hobbies & Crafts'), icon: '🎨' },
+    { name: 'sports', displayName: toDisplayName('Sports & Fitness'), icon: '🏋️' },
+    { name: 'beauty', displayName: toDisplayName('Beauty & Personal Care'), icon: '💅' },
+    { name: 'dating', displayName: toDisplayName('Dating & Romance'), icon: '💘' },
+    { name: 'therapy', displayName: toDisplayName('Therapy & Self Care'), icon: '🛋️' },
+    { name: 'kids', displayName: toDisplayName('Children & Babysitting'), icon: '🍼' },
+    { name: 'clubbing', displayName: toDisplayName('Clubbing & Bad Decisions'), icon: '💃' },
+    { name: 'lottery', displayName: toDisplayName('Lottery Tickets & Regret'), icon: '🎰' },
+    { name: 'junk_food', displayName: toDisplayName('Midnight Snacks'), icon: '🌭' },
+    { name: 'hangover', displayName: toDisplayName('Hangover Recovery Supplies'), icon: '🥤' },
+    { name: 'impulse', displayName: toDisplayName('Impulse Purchases'), icon: '🤷' },
+    { name: 'side_hustle', displayName: toDisplayName('Side Hustle Expenses'), icon: '💼' },
+    { name: 'bribery', displayName: toDisplayName('Bribes (Totally Legal)'), icon: '🤑' },
+    { name: 'lawsuits', displayName: toDisplayName('Legal Trouble'), icon: '⚖️' },
+    { name: 'weird_stuff', displayName: toDisplayName('Weird Stuff Off the Internet'), icon: '🦄' },
+    { name: 'other', displayName: toDisplayName('Other'), icon: '❓' },
 ];
 
 // ========================================================================
@@ -505,7 +504,8 @@ export interface BaseUser {
 
 export interface UserRegistration extends BaseUser {
     email: Email;
-    password: string;
+    password: Password;
+    displayName: DisplayName;
     termsAccepted: boolean;
     cookiePolicyAccepted: boolean;
     privacyPolicyAccepted: boolean;
@@ -653,7 +653,7 @@ export interface GroupMembership {
     joinedAt: ISOString;
     invitedBy?: UserId; // UID of the user who created the share link that was used to join
     theme: UserThemeColor;
-    groupDisplayName: string; // Custom display name for this group (set on join, can be changed later)
+    groupDisplayName: DisplayName; // Custom display name for this group (set on join, can be changed later)
 }
 
 /**
@@ -689,7 +689,7 @@ export interface GroupMember {
     themeColor: UserThemeColor;
 
     // Group-specific customization
-    groupDisplayName: string; // Custom display name for this group (set on join, can be changed later)
+    groupDisplayName: DisplayName; // Custom display name for this group (set on join, can be changed later)
 
     // Group membership metadata (required for permissions)
     memberRole: MemberRole;
@@ -782,7 +782,7 @@ export const CreateGroupRequestSchema = z.object({
         minMessage: 'Enter a display name.',
         maxMessage: 'Display name must be 50 characters or fewer.',
         patternMessage: 'Display name can only use letters, numbers, spaces, hyphens, underscores, and periods.',
-    }),
+    }).transform(toDisplayName),
     description: z.string().trim().max(500).optional(),
 });
 
@@ -800,7 +800,8 @@ export const UpdateDisplayNameRequestSchema = z.object({
         .string()
         .min(1, 'Display name is required')
         .max(50, 'Display name must be 50 characters or less')
-        .trim(),
+        .trim()
+        .transform(toDisplayName),
 });
 
 // Metadata for real-time change tracking

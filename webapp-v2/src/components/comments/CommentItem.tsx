@@ -1,5 +1,6 @@
 import { getInitials } from '@/utils/avatar.ts';
 import type { CommentDTO } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { RelativeTime } from '../ui';
 
 interface CommentItemProps {
@@ -33,7 +34,7 @@ export function CommentItem({ comment, showAvatar = true, className = '' }: Comm
                         ? <img src={comment.authorAvatar} alt={comment.authorName} className='w-8 h-8 rounded-full object-cover' />
                         : (
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${getAvatarColor(comment.authorId)}`}>
-                                {getInitials(comment.authorName)}
+                                {getInitials(toDisplayName(comment.authorName))}
                             </div>
                         )}
                 </div>

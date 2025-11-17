@@ -1,6 +1,7 @@
-import { toISOString } from '@splitifyd/shared';
+import {DisplayName, toISOString} from '@splitifyd/shared';
 import type { GroupMember, GroupMembershipDTO, ISOString, UserId, UserThemeColor } from '@splitifyd/shared';
 import { TopLevelGroupMemberDocument } from '../types';
+import {toDisplayName} from "@splitifyd/shared";
 
 /**
  * Creates a top-level membership document from a subcollection membership document
@@ -28,7 +29,7 @@ export function createTopLevelMembershipDocument(memberDoc: GroupMembershipDTO |
  * fields that are no longer available and applies a neutral visual theme.
  *
  * @param userId - The UID of the departed user
- * @param displayName - The user's display name from their profile
+ * @param displayName - The user's display name from their profile (defaults to "Test User" if not provided)
  * @returns GroupMember object suitable for displaying in UI despite user departure
  *
  * Sentinel values used:
@@ -39,12 +40,11 @@ export function createTopLevelMembershipDocument(memberDoc: GroupMembershipDTO |
  * - invitedBy: undefined (historical data unavailable)
  * - groupDisplayName: derived from global displayName
  */
-export function createPhantomGroupMember(
-    userId: UserId,
-    displayName: string,
-): GroupMember {
+export function createPhantomGroupMember(userId: UserId, displayName: DisplayName | string = 'Test User'): GroupMember {
+    const convertedDisplayName = typeof displayName === 'string' ? toDisplayName(displayName) : displayName;
+
     // Generate initials from display name
-    const initials = displayName
+    const initials = convertedDisplayName
         .split(' ')
         .map((n) => n[0])
         .join('')
@@ -69,6 +69,6 @@ export function createPhantomGroupMember(
         memberStatus: 'active', // Last known status (can't use 'left' - not in enum)
         joinedAt: now, // Historical data unavailable
         invitedBy: undefined,
-        groupDisplayName: displayName, // Use global displayName for departed members
+        groupDisplayName: convertedDisplayName, // Use global displayName for departed members
     };
 }
