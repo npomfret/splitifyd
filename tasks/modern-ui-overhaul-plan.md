@@ -1,1383 +1,907 @@
 # Modern UI Overhaul & Dual-Tenant Theme Plan
 **Date:** 2025-11-15
-**Updated:** 2025-11-15 (Ambition Revision)
-**Scope:** Total visual redesign + multi-tenant showroom (localhost = "Slick Aurora", 127.0.0.1 = "Brutalist Baseline")
-**Constraints:** Zero tenants = zero legacy compatibility. Everything is on the table.
+**Updated:** 2025-11-17 (Reality Check - ~70% Complete)
+**Status:** Foundation complete, production-ready with minor fixes
 **Guiding Principle:** Build a design system so compelling that it becomes a competitive moat.
 
 ---
 
-## Vision
+## Executive Summary: Current State
+
+**🎉 The good news:** The dual-tenant theming system is **~70% implemented** and the foundation is **production-ready**. The Aurora (localhost) and Brutalist (127.0.0.1) themes exist, work end-to-end, and demonstrate the system's power.
+
+**📊 What's Complete:**
+- ✅ Full branding token schema with motion, gradients, assets, semantic colors
+- ✅ Aurora & Brutalist theme fixtures (comprehensive, 471 lines)
+- ✅ CSS artifact generation with all modern features (@supports, gradients, fonts, motion)
+- ✅ Theme delivery endpoint (`/api/theme.css`) with versioned caching
+- ✅ Hostname-based tenant switching (localhost ↔ 127.0.0.1)
+- ✅ Core component library (Typography, Button, Card, Surface, Modal, Input, Form, Alert)
+- ✅ Glassmorphism with `@supports` fallbacks
+- ✅ Extensive use of glass variants across pages
+- ✅ Zero hardcoded colors in components (all use semantic tokens)
+- ✅ Tailwind config with 20+ semantic color mappings
+
+**⚠️ Production Blockers (8-11 hours):**
+1. **Artifact storage** - Replace `file://` URLs with Cloud Storage (4-6 hours)
+2. **Font deployment** - Serve Space Grotesk & Geist Mono (2 hours)
+3. **E2E tests** - Verify theme switching works (2-3 hours)
+
+**🔮 Missing Enhancements (2-3 weeks):**
+- Motion hooks (`useMagneticHover`, `useScrollReveal`)
+- Advanced components (FloatingInput, GradientText, Sheet, Popover, Toast)
+- Framer Motion integration for spring physics
+- Admin branding editor UI
+- Comprehensive test suite (contrast, performance, a11y, visual regression)
+
+**📈 Recommendation:** Ship current state after fixing blockers, then iterate on enhancements.
+
+---
+
+## Vision (Unchanged)
 
 Transform Splitifyd from "functional expense tracker" to "the app people screenshot and share." The UI should feel like a premium consumer product, not enterprise software.
 
 ### Dual-Tenant Strategy
 
-**Boring Tenant (127.0.0.1) – "Brutalist Baseline"**
-- Intentionally stark: pure grayscale (`#18181b` → `#fafafa`), flat shadows, zero gradients
-- Single typeface (Inter), minimal border-radius (4px), no animations
-- **Purpose:** Proves semantic token isolation works, serves as regression test baseline, highlights the contrast
-- **Metaphor:** "Nokia 3310" – works perfectly, looks deliberately utilitarian
+**Brutalist Baseline (127.0.0.1)** ✅ **IMPLEMENTED**
+- Pure grayscale (#a1a1aa, #404040, #c8c8c8)
+- Zero animations (all motion durations = 0ms)
+- Minimal border radius (4px)
+- System fonts (Inter, Monaco)
+- **Purpose:** Regression test baseline, proves token isolation works
+- **Metaphor:** "Nokia 3310" – deliberately utilitarian
 
-**Slick Tenant (localhost) – "Aurora Premium"**
-- Cinematic glassmorphism: layered aurora backgrounds, depth-of-field blur, vibrant neon accents
-- Expressive typography: Space Grotesk (headings), Geist Mono (code/numbers), fluid scales via `clamp()`
-- Advanced motion: scroll-linked parallax, magnetic hover states, spring physics
-- **Purpose:** Design showcase, marketing asset, proof of white-label capability
-- **Metaphor:** "Notion meets Linear meets Stripe" – polished, delightful, aspirational
+**Aurora Premium (localhost)** ✅ **IMPLEMENTED**
+- Cinematic glassmorphism with teal/cyan accents (#34d399, #22d3ee)
+- Animated aurora background (24s loop on `body::before/after`)
+- Fluid typography via `clamp()`
+- Space Grotesk headings, Geist Mono code
+- Full motion system (320ms transitions, spring easing)
+- **Purpose:** Design showcase, marketing asset
+- **Metaphor:** "Notion meets Linear meets Stripe"
 
 ### Success Metrics
 
-1. **Design Quality:** Non-designers say "wow" when viewing localhost theme
-2. **Token Isolation:** Swapping `127.0.0.1` ↔ `localhost` changes 100% of visual styling with zero code changes
-3. **Performance:** Lighthouse 95+ on both themes, <150ms P95 for `/api/theme.css`
-4. **Accessibility:** WCAG 2.1 AA compliance on both themes (auto-checked in publish flow)
-5. **Developer Velocity:** New features use primitives only, zero ad-hoc CSS after Week 8
+| Metric | Target | Current Status |
+|--------|--------|----------------|
+| **Design Quality** | Non-designers say "wow" | ✅ Aurora theme is polished |
+| **Token Isolation** | 100% style change via hostname | ✅ Works perfectly |
+| **Performance** | <150ms P95 theme CSS load | ⚠️ Not measured yet |
+| **Accessibility** | WCAG 2.1 AA compliance | ⚠️ Not tested yet |
+| **Developer Velocity** | Zero ad-hoc CSS | ✅ All components use tokens |
 
 ---
 
-## Extended Token Schema (Motion, Assets, Advanced Semantics)
+## Current Implementation Status
 
-### 1. Motion Tokens (NEW)
-Add to `BrandingTokensSchema`:
+### ✅ Fully Implemented (Weeks 1-3 + partial 4-6)
+
+#### 1. Branding Token Schema
+**Location:** `/packages/shared/src/types/branding.ts` (324 lines)
+
+**Token Types:**
+- **Palette** - 11 base colors (primary, accent, success, warning, etc.)
+- **Typography** - Font families, sizes (xs-5xl), weights, line heights, letter spacing
+  - Fluid scales via `clamp()` (Aurora only)
+  - Eyebrow tracking (0.15rem for all-caps labels)
+- **Spacing** - 7-level scale (2xs-2xl)
+- **Border Radii** - 6 levels (none-full)
+- **Shadows** - 3 levels (sm, md, lg)
+- **Assets** - Logo, wordmark, favicon, heroIllustration, fonts (headingUrl, bodyUrl, monoUrl)
+- **Legal** - Company name, support email, privacy/terms URLs
+- **Semantic Colors:**
+  - Surface: base, raised, sunken, overlay, **glass, glassBorder, aurora, spotlight**
+  - Text: primary, secondary, muted, inverted, **hero, eyebrow, code**
+  - Interactive: primary (+hover/active), secondary, accent, destructive, **ghost, magnetic, glow**
+  - Border: subtle, default, strong, focus, warning, error
+  - Gradients: primary (2-color), accent (2-color), aurora (4-color), text (2-color)
+- **Motion:**
+  - Durations: instant (0-100ms), fast (0-200ms), base (0-400ms), slow (0-800ms), glacial (0-2000ms)
+  - Easing: standard, decelerate, accelerate, spring (cubic-bezier strings)
+  - Feature flags: enableParallax, enableMagneticHover, enableScrollReveal
+
+#### 2. Theme Fixtures
+**Location:** `/packages/shared/src/fixtures/branding-tokens.ts` (471 lines)
+
+**Aurora Theme (localhost):**
 ```typescript
-motion: z.object({
-  // Durations (ms)
-  duration: z.object({
-    instant: z.number().min(0).max(100),     // 50ms  - micro-feedback
-    fast: z.number().min(100).max(200),      // 150ms - hover states
-    base: z.number().min(200).max(400),      // 320ms - transitions
-    slow: z.number().min(400).max(800),      // 500ms - page loads
-    glacial: z.number().min(800).max(2000),  // 1200ms - cinematic reveals
-  }),
+// Colors
+primary: #4f46e5 (indigo)
+accent: #22d3ee (cyan)
+secondary: #ec4899 (pink)
+surfaces: #1a1d2e (base), #252944 (raised), #12141f (sunken)
+glass: rgba(25, 30, 50, 0.45) - highly transparent
+glassBorder: rgba(255, 255, 255, 0.1)
 
-  // Easing curves
-  easing: z.object({
-    standard: z.string(),    // cubic-bezier(0.22, 1, 0.36, 1)
-    decelerate: z.string(),  // cubic-bezier(0.05, 0.7, 0.1, 1)
-    accelerate: z.string(),  // cubic-bezier(0.3, 0, 0.8, 0.15)
-    spring: z.string(),      // cubic-bezier(0.34, 1.56, 0.64, 1)
-  }),
+// Typography
+headings: Space Grotesk, Inter, system-ui
+mono: Geist Mono, JetBrains Mono, SF Mono
+fluidScale: clamp(0.75rem, 0.9vw, 0.875rem) → clamp(2.5rem, 5vw, 3.75rem)
+letterSpacing.eyebrow: 0.15rem
 
-  // Feature flags
-  enableParallax: z.boolean(),
-  enableMagneticHover: z.boolean(),
-  enableScrollReveal: z.boolean(),
-})
+// Motion
+duration: instant=50ms, fast=150ms, base=320ms, slow=500ms, glacial=1200ms
+easing: cubic-bezier(0.22, 1, 0.36, 1) - natural ease-out
+enableParallax: true, enableMagneticHover: true, enableScrollReveal: true
 ```
 
-**Fixtures:**
-- **Brutalist:** All durations set to `0`, `enableParallax: false`, etc.
-- **Aurora:** Full motion suite enabled
-
-### 2. Advanced Semantic Colors (NEW)
-Extend `BrandingSemanticColorSchema`:
+**Brutalist Theme (127.0.0.1):**
 ```typescript
-surface: z.object({
-  // Existing: base, elevated, muted, overlay
-  glass: z.string(),           // rgba(9, 11, 25, 0.65) - glassmorphism base
-  glassBorder: z.string(),     // rgba(255, 255, 255, 0.07) - glass edges
-  aurora: z.string(),          // transparent - aurora layer base (gradients in CSS)
-  spotlight: z.string(),       // rgba(255, 255, 255, 0.02) - hover glow
-}),
+// Colors - ALL grayscale
+primary: #a1a1aa, secondary: #d4d4d8, accent: #a1a1aa
+surfaces: #c8c8c8 (base), #ececec (raised), #b8b8b8 (sunken)
+NO glass tokens (undefined)
+gradients: Solid pairs (["#404040", "#404040"])
 
-interactive: z.object({
-  // Existing: primary, secondary, accent, etc.
-  ghost: z.string(),           // transparent bg, subtle border
-  magnetic: z.string(),        // hover state for magnetic buttons
-  glow: z.string(),            // box-shadow color for focus/active
-}),
+// Typography
+fonts: Inter, system-ui (no fancy typefaces)
+mono: Monaco, Courier New
+NO fluid scales (fluidScale: undefined)
+letterSpacing: All 0rem
 
-gradient: z.object({
-  primary: z.array(z.string()).length(2),    // [start, end] for hero gradients
-  accent: z.array(z.string()).length(2),     // for CTA buttons
-  aurora: z.array(z.string()).length(4),     // multi-stop background gradient
-}),
-
-text: z.object({
-  // Existing: primary, muted, inverted
-  hero: z.string(),            // Extra-bold, high-contrast
-  eyebrow: z.string(),         // Uppercase labels
-  code: z.string(),            // Monospace elements
-  gradient: z.array(z.string()).length(2), // Text gradient (webkit-background-clip)
-}),
+// Motion
+ALL durations: 0ms (zero animations)
+easing: linear
+ALL feature flags: false
 ```
 
-### 3. Asset Tokens (NEW)
-```typescript
-assets: z.object({
-  heroIllustrationUrl: z.string().url().optional(),
-  logoUrl: z.string().url().optional(),
-  faviconUrl: z.string().url().optional(),
-
-  // Self-hosted fonts (Aurora theme only)
-  fonts: z.object({
-    headingUrl: z.string().url().optional(),  // Space Grotesk
-    bodyUrl: z.string().url().optional(),     // Inter
-    monoUrl: z.string().url().optional(),     // Geist Mono
-  }).optional(),
-}),
-```
-
-### 4. Typography Scale (Extended)
-```typescript
-typography: z.object({
-  // Existing: fontFamily, fontSize, fontWeight, lineHeight
-
-  // Fluid scales (clamp-based)
-  scale: z.object({
-    xs: z.string(),    // clamp(0.75rem, 0.9vw, 0.875rem)
-    sm: z.string(),    // clamp(0.875rem, 1vw, 1rem)
-    base: z.string(),  // clamp(1rem, 1.2vw, 1.125rem)
-    lg: z.string(),    // clamp(1.125rem, 1.5vw, 1.25rem)
-    xl: z.string(),    // clamp(1.25rem, 2vw, 1.5rem)
-    '2xl': z.string(), // clamp(1.5rem, 2.5vw, 1.875rem)
-    '3xl': z.string(), // clamp(1.875rem, 3vw, 2.25rem)
-    '4xl': z.string(), // clamp(2.25rem, 4vw, 3rem)
-    hero: z.string(),  // clamp(2.5rem, 5vw, 3.75rem) - landing page
-  }),
-
-  // Letter spacing
-  tracking: z.object({
-    tight: z.string(),   // -0.02em
-    normal: z.string(),  // 0
-    wide: z.string(),    // 0.025em
-    wider: z.string(),   // 0.05em
-    eyebrow: z.string(), // 0.4em - all-caps labels
-  }),
-})
-```
-
----
-
-## Theme Artifact Generator Enhancements
-
-### ThemeArtifactService Updates
-
-1. **Automatic `@supports` Fallbacks**
-   - Emit both modern and legacy styles for glassmorphism
-   - Example output:
-   ```css
-   .glass-panel {
-     background: rgba(9, 11, 25, 0.95); /* Fallback */
-   }
-
-   @supports (backdrop-filter: blur(1px)) {
-     .glass-panel {
-       backdrop-filter: blur(24px);
-       background: rgba(9, 11, 25, 0.65);
-     }
-   }
-   ```
-
-2. **RGB Variant Generation** (already implemented ✅)
-   - Continue emitting `--interactive-accent-rgb: 34 197 94` for Tailwind opacity utilities
-
-3. **Motion Media Queries**
-   - Auto-inject `prefers-reduced-motion` blocks based on `motion.enable*` flags:
-   ```css
-   @media (prefers-reduced-motion: reduce) {
-     * {
-       animation-duration: 0.01ms !important;
-       transition-duration: 0.01ms !important;
-     }
-   }
-   ```
-
-4. **Font Face Declarations**
-   - If `assets.fonts` provided, generate `@font-face` rules:
-   ```css
-   @font-face {
-     font-family: 'Space Grotesk';
-     src: url('...') format('woff2');
-     font-display: swap;
-   }
-   ```
-
-5. **Gradient Utilities**
-   - Generate CSS custom properties for gradients:
-   ```css
-   --gradient-primary: linear-gradient(135deg, #4f46e5, #ec4899);
-   --gradient-aurora: radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.4), transparent 55%),
-                      radial-gradient(circle at 80% 0%, rgba(236, 72, 153, 0.35), transparent 60%);
-   ```
-
----
-
-## Component Inventory & Redesign Spec
-
-### Core Primitives (Week 3-4)
-
-#### 1. Typography System
-**New Components:**
-- `<Heading variant="hero" | "h1" | "h2" | "h3" | "h4">` - Fluid scale + gradient support
-- `<Text variant="body" | "muted" | "eyebrow" | "code">` - Semantic text
-- `<GradientText>` - Webkit background-clip gradient text
-- `<Eyebrow>` - Uppercase, tracked, muted (e.g., "STEP 1 OF 3")
-
-**Props:**
-```typescript
-interface TypographyProps {
-  as?: 'h1' | 'h2' | 'p' | 'span';
-  variant?: 'hero' | 'h1' | 'h2' | 'body' | 'muted' | 'eyebrow' | 'code';
-  gradient?: boolean; // Apply text gradient
-  align?: 'left' | 'center' | 'right';
-  clamp?: boolean; // Use fluid typography
-}
-```
-
-#### 2. Surface/Card System
-**Enhanced Card Component:**
-```typescript
-interface CardProps {
-  variant: 'flat' | 'elevated' | 'glass' | 'aurora';
-  hover?: 'lift' | 'glow' | 'magnetic' | 'none';
-  border?: 'default' | 'gradient' | 'none';
-  padding?: 'sm' | 'md' | 'lg' | 'xl';
-}
-```
-
-**Implementations:**
-- `variant="flat"` → Brutalist theme (no blur, solid bg)
-- `variant="glass"` → Aurora theme (backdrop-filter, border glow)
-- `variant="aurora"` → Aurora theme only (animated gradient overlay)
-- `hover="magnetic"` → Aurora theme only (cursor follows card, subtle transform)
-
-#### 3. Button System (Extend Existing)
-**New Variants:**
-```typescript
-type ButtonVariant =
-  | 'primary'    // Solid, high-contrast
-  | 'secondary'  // Outline
-  | 'ghost'      // Transparent, subtle hover
-  | 'magnetic'   // Aurora only: follows cursor
-  | 'gradient'   // Aurora only: animated gradient bg
-  | 'danger'     // Destructive actions
-```
-
-**Motion Props:**
-```typescript
-interface ButtonProps {
-  loading?: boolean;           // Show spinner
-  magneticStrength?: number;   // 0-1, Aurora only
-  glowOnHover?: boolean;       // Add box-shadow glow
-  pulseOnFocus?: boolean;      // Subtle scale animation
-}
-```
-
-#### 4. Input System (Floating Labels)
-**New Pattern:**
-```tsx
-<FloatingInput
-  label="Email address"
-  type="email"
-  helperText="We'll never share your email"
-  error={errors.email}
-  icon={<MailIcon />}
-/>
-```
-
-**Visual Behavior:**
-- Label starts inside input (placeholder position)
-- On focus/fill: label animates up and scales down
-- Aurora theme: adds glow ring, glass bg
-- Brutalist theme: simple border color change
-
-#### 5. Modal/Dialog System
-**New Components:**
-- `<Modal>` - Full-screen overlay with glass backdrop
-- `<Sheet>` - Slide-in panel (bottom on mobile, right on desktop)
-- `<Popover>` - Floating, positioned element
-- `<Toast>` - Notification system with queue
-
-**Features:**
-- Focus trap (tab cycling)
-- Escape key dismissal
-- Backdrop click dismissal (opt-in)
-- Stacking context management
-- Aurora theme: animated entrance (scale + fade), glass background
-- Brutalist theme: instant appearance, solid background
-
-#### 6. Loading States
-**New Components:**
-- `<Spinner variant="default" | "accent" | "gradient">` - Rotating circle
-- `<Skeleton>` - Placeholder blocks with shimmer (Aurora) or pulse (Brutalist)
-- `<ProgressBar>` - Linear progress with gradient fill (Aurora)
-
-#### 7. Status & Feedback
-**Enhanced Components:**
-- `<Badge>` - Count/status indicators
-- `<Chip>` - Removable tags with optional icon
-- `<Alert variant="info" | "success" | "warning" | "error">` - System messages
-- `<StatusDot>` - Online/offline indicators with pulse animation
-
-### Layout Components (Week 4-5)
-
-#### 1. Global Shell
-**New Architecture:**
-```tsx
-<AppShell
-  header={<Header />}
-  sidebar={<Sidebar />}
-  footer={<Footer />}
-  aurora={tenantId === 'localhost'} // Enable aurora bg
->
-  <Routes />
-</AppShell>
-```
-
-**Aurora Background:**
-- Two `::before`/`::after` pseudo-elements on `<body>`
-- Animated radial gradients (24s loop)
-- `blur(25px)` for atmospheric effect
-- `pointer-events: none`, `z-index: -1`
-- Only rendered for Aurora theme (conditional CSS class)
-
-#### 2. Page Templates
-**New Layouts:**
-- `<AuthLayout>` - Split panel (left: hero visual, right: form)
-- `<DashboardLayout>` - Header + sidebar + main content area
-- `<SettingsLayout>` - Vertical nav + scrollable content
-- `<LandingLayout>` - Full-width hero, sections, footer
-
-#### 3. Responsive Primitives
-**Utility Components:**
-- `<Stack direction="row" | "column" gap={...}>` - Flex container
-- `<Grid cols={...} gap={...}>` - Auto-fit grid
-- `<Container maxWidth="sm" | "md" | "lg" | "xl">` - Centered, constrained width
-- `<Spacer size="sm" | "md" | "lg" | "xl">` - Vertical/horizontal spacing
-
-### Compound Components (Week 5-6)
-
-#### 1. Form System
-```tsx
-<Form onSubmit={handleSubmit}>
-  <FormField
-    label="Full name"
-    name="name"
-    component={FloatingInput}
-    validation={required()}
-  />
-
-  <FormField
-    label="Country"
-    name="country"
-    component={Select}
-    options={countries}
-  />
-
-  <FormActions>
-    <Button variant="ghost" onClick={onCancel}>Cancel</Button>
-    <Button variant="primary" type="submit">Save</Button>
-  </FormActions>
-</Form>
-```
-
-#### 2. Data Display
-**Table Component:**
-```tsx
-<Table
-  data={expenses}
-  columns={[
-    { key: 'description', header: 'Description', sortable: true },
-    { key: 'amount', header: 'Amount', align: 'right', format: 'currency' },
-    { key: 'date', header: 'Date', format: 'date' },
-    { key: 'actions', header: '', render: ActionsCell },
-  ]}
-  onRowClick={handleRowClick}
-  variant="glass" // Aurora theme
-/>
-```
-
-**Empty States:**
-```tsx
-<EmptyState
-  icon={<ReceiptIcon />}
-  title="No expenses yet"
-  description="Create your first expense to get started"
-  action={<Button onClick={handleCreate}>Add Expense</Button>}
-  illustration={tokens.assets.heroIllustrationUrl} // Aurora only
-/>
-```
-
-#### 3. Navigation
-**Enhanced Sidebar:**
-- Collapsible sections
-- Active state with glow (Aurora) or solid bg (Brutalist)
-- Icon + label, icon-only when collapsed
-- Magnetic hover on Aurora theme
-
-**Breadcrumbs:**
-```tsx
-<Breadcrumbs
-  items={[
-    { label: 'Groups', href: '/groups' },
-    { label: 'Weekend Trip', href: '/groups/123' },
-    { label: 'Expenses', href: '/groups/123/expenses' },
-  ]}
-  separator={<ChevronRight />}
-/>
-```
-
----
-
-## Page Redesigns (Detailed Specs)
-
-### 1. Landing Page (Week 6)
-
-**Hero Section:**
-- **Aurora Theme:**
-  - Full-viewport height
-  - Animated gradient background (using `--gradient-aurora`)
-  - Frosted glass card containing:
-    - Eyebrow text: "EXPENSE SPLITTING MADE SIMPLE"
-    - Hero heading with gradient text: "Split Bills with Friends"
-    - Subtitle with muted text
-    - CTA buttons: "Get Started" (gradient variant) + "View Demo" (ghost variant)
-  - Parallax scroll effect (hero moves slower than page)
-  - Floating illustration/screenshot with subtle animation
-
-- **Brutalist Theme:**
-  - Same structure, zero animations
-  - Solid white background
-  - Black text, gray subtitle
-  - Flat buttons (primary solid, secondary outline)
-
-**Features Grid:**
-- 3-column auto-fit grid
-- Each feature card:
-  - Icon in colored circle (Aurora: gradient bg, Brutalist: solid gray)
-  - Heading + description
-  - Aurora: glass card with hover lift
-  - Brutalist: simple border, no hover effect
-
-**CTA Section:**
-- Full-width gradient background (Aurora) or solid color (Brutalist)
-- Large heading + button
-- Email signup form with floating label input
-
-### 2. Auth Flow (Week 6)
-
-**Login/Register Pages:**
-- Split layout (50/50 on desktop, stacked on mobile)
-- **Left Panel (Hero):**
-  - Aurora: Animated gradient background, floating illustrations
-  - Brutalist: Solid color, static logo
-  - Testimonial quote (optional)
-
-- **Right Panel (Form):**
-  - Centered form with floating label inputs
-  - Social auth buttons (Google, etc.) with icons
-  - Footer links (Privacy, Terms)
-  - Aurora: Glass form container
-  - Brutalist: Simple white background
-
-**Password Reset Flow:**
-- Single-column centered layout
-- Email input → Success message → Check inbox
-- Aurora: Animated checkmark on success
-- Brutalist: Static checkmark
-
-### 3. Dashboard (Week 7)
-
-**Top Section:**
-- Welcome message: "Welcome back, Alice" (hero text variant)
-- Quick stats grid:
-  - Total balance (positive = green, negative = red)
-  - Active groups count
-  - Pending settlements count
-  - Aurora: Glass cards with gradient accents, sparkline charts (placeholder)
-  - Brutalist: Flat cards, numbers only
-
-**Groups List:**
-- Card-based layout (not table)
-- Each group card:
-  - Group name (heading)
-  - Member avatars (overlapping circles)
-  - Balance summary
-  - "View Details" button
-  - Aurora: Glass card, magnetic hover, member count badge with glow
-  - Brutalist: Border card, simple hover (bg color change)
-
-**Empty State:**
-- Centered illustration (Aurora: custom SVG from assets, Brutalist: simple icon)
-- "Create your first group" CTA
-
-### 4. Group Detail Page (Week 7)
-
-**Header:**
-- Group name (hero variant)
-- Member avatars with "Invite" button
-- Tab navigation: Expenses | Balances | Settings
-- Aurora: Glass header with blur, gradient underline on active tab
-- Brutalist: Solid header, simple border on active tab
-
-**Expenses Tab:**
-- Table with columns: Description, Paid By, Amount, Date, Actions
-- Filters: Date range, member, category
-- "Add Expense" FAB (floating action button)
-- Aurora: Glass table, hover row highlight, FAB with glow
-- Brutalist: Border table, simple hover, standard button
-
-**Balances Tab:**
-- Settlement graph (who owes whom)
-- "Settle Up" action per debt
-- Aurora: Animated graph with gradient lines, glass cards
-- Brutalist: Static graph, flat cards
-
-### 5. Add/Edit Expense (Week 7)
-
-**Form Layout:**
-- Stepped form (if complex) or single page
-- Fields:
-  - Description (floating input)
-  - Amount (floating input with currency symbol)
-  - Category (select with icons)
-  - Paid by (member select)
-  - Split (custom component: checkboxes + amount inputs)
-  - Date (date picker)
-  - Receipt upload (drag-drop zone)
-
-- Aurora: Glass form container, animated step progress, file upload with preview thumbnails
-- Brutalist: Simple form, numbered steps, basic file input
-
-**Split Editor:**
-- Visual representation of split:
-  - Member avatars
-  - Percentage/amount sliders
-  - "Split Equally" quick action
-  - Real-time total validation
-
-- Aurora: Magnetic sliders, glow on active member
-- Brutalist: Standard range inputs
-
-### 6. Settings/Admin Pages (Week 8)
-
-**Settings Layout:**
-- Vertical sidebar nav (Account, Security, Preferences, Billing)
-- Main content area with forms
-- Aurora: Glass sidebar, smooth tab transitions
-- Brutalist: Border sidebar, instant tab switch
-
-**Tenant Branding Admin (Aurora Only):**
-- Live preview iframe showing current theme
-- Token editor (color pickers, font selectors)
-- "Publish Theme" button
-- Artifact history table with rollback action
-- WCAG contrast checker (visual feedback)
-
-**Theme Diagnostics Panel (Dev Mode):**
-- Shows current tenant ID, theme hash
-- Displays all CSS variables (collapsible tree)
-- "Copy theme CSS URL" button
-- "Force Reload Theme" button
-- Token JSON viewer
-
----
-
-## Motion & Micro-interactions (Advanced)
-
-### 1. Scroll-Linked Animations
-
-**IntersectionObserver Hook:**
-```typescript
-export function useScrollReveal(options?: IntersectionObserverInit) {
-  const ref = useRef<HTMLElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    if (!ref.current || !motion.enableScrollReveal) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.unobserve(entry.target);
-        }
-      },
-      { threshold: 0.25, ...options }
-    );
-
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-
-  return { ref, isVisible };
-}
-```
-
-**Usage:**
-```tsx
-function FeatureCard({ title, description }: Props) {
-  const { ref, isVisible } = useScrollReveal();
-
-  return (
-    <Card
-      ref={ref}
-      className={cn('fade-up', isVisible && 'is-visible')}
-    >
-      {/* content */}
-    </Card>
-  );
-}
-```
-
-### 2. Magnetic Hover (Aurora Only)
-
-**Concept:** Buttons/cards subtly "follow" cursor when hovering nearby
-
-```typescript
-export function useMagneticHover(strength: number = 0.3) {
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (!ref.current || !motion.enableMagneticHover) return;
-
-    const element = ref.current;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = element.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-
-      const deltaX = (e.clientX - centerX) * strength;
-      const deltaY = (e.clientY - centerY) * strength;
-
-      element.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-    };
-
-    const handleMouseLeave = () => {
-      element.style.transform = 'translate(0, 0)';
-    };
-
-    element.addEventListener('mousemove', handleMouseMove);
-    element.addEventListener('mouseleave', handleMouseLeave);
-
-    return () => {
-      element.removeEventListener('mousemove', handleMouseMove);
-      element.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, [strength]);
-
-  return ref;
-}
-```
-
-### 3. Staggered List Animations
-
-**Concept:** Items in a list animate in sequence (not all at once)
-
-```tsx
-function ExpenseList({ expenses }: Props) {
-  const { ref, isVisible } = useScrollReveal();
-
-  return (
-    <div ref={ref}>
-      {expenses.map((expense, i) => (
-        <ExpenseCard
-          key={expense.id}
-          {...expense}
-          className="fade-up"
-          style={{
-            transitionDelay: isVisible ? `${i * 100}ms` : '0ms'
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-```
-
-### 4. Spring Physics (Aurora Only)
-
-Use `framer-motion` for advanced animations:
-```tsx
-import { motion } from 'framer-motion';
-
-function Modal({ isOpen, onClose, children }: Props) {
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="modal-backdrop"
-            onClick={onClose}
-          />
-
-          {/* Modal */}
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{
-              type: 'spring',
-              stiffness: 300,
-              damping: 30
-            }}
-            className="modal-content"
-          >
-            {children}
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
-```
-
----
-
-## Migration Strategy (Automated)
-
-### Codemod for Color Migration
-
-**Script:** `scripts/codemods/migrate-colors.ts`
-
-```typescript
-import type { Transform } from 'jscodeshift';
-
-const transform: Transform = (file, api) => {
-  const j = api.jscodeshift;
-  const root = j(file.source);
-
-  // Map old Tailwind classes to semantic tokens
-  const colorMap = {
-    'bg-blue-600': 'bg-interactive-primary',
-    'bg-blue-500': 'bg-interactive-primary',
-    'text-blue-600': 'text-interactive-primary',
-    'bg-gray-50': 'bg-surface-muted',
-    'bg-white': 'bg-surface-base',
-    'text-gray-900': 'text-text-primary',
-    'text-gray-600': 'text-text-muted',
-    'border-gray-200': 'border-border-default',
-    // ... more mappings
-  };
-
-  // Replace className strings
-  root.find(j.JSXAttribute, {
-    name: { name: 'className' }
-  }).forEach(path => {
-    const value = path.node.value;
-
-    if (value?.type === 'StringLiteral') {
-      let updated = value.value;
-
-      Object.entries(colorMap).forEach(([old, new_]) => {
-        updated = updated.replace(new RegExp(`\\b${old}\\b`, 'g'), new_);
-      });
-
-      if (updated !== value.value) {
-        value.value = updated;
-      }
-    }
-  });
-
-  return root.toSource();
-};
-
-export default transform;
-```
-
-**Usage:**
-```bash
-npx jscodeshift -t scripts/codemods/migrate-colors.ts webapp-v2/src/pages/**/*.tsx
-```
-
-### ESLint Auto-Fix Rules
-
-**Custom Rule:** Ban non-semantic colors
-
-```javascript
-// .eslintrc.js
-module.exports = {
-  rules: {
-    'no-hardcoded-colors': ['error', {
-      bannedClasses: [
-        'bg-blue-*', 'bg-gray-*', 'bg-red-*',
-        'text-blue-*', 'text-gray-*',
-        'border-blue-*', 'border-gray-*'
-      ],
-      suggestedReplacement: 'Use semantic tokens (bg-interactive-primary, text-text-muted, etc.)'
-    }]
+#### 3. Theme Artifact Service
+**Location:** `/firebase/functions/src/services/tenant/ThemeArtifactService.ts` (443 lines)
+
+**CSS Generation Features:**
+- ✅ Root CSS variables (flattened token tree as `--kebab-case`)
+- ✅ RGB variants (`--interactive-primary-rgb: 34 211 153`) for Tailwind opacity
+- ✅ Gradient CSS variables (`--gradient-primary`, `--gradient-aurora`, `--gradient-text`)
+- ✅ Fluid typography variables (`--fluid-xs` → `--fluid-hero`)
+- ✅ `@font-face` declarations (from `assets.fonts`)
+- ✅ Aurora background animation (only if `motion.enableParallax === true`)
+  ```css
+  body::before, body::after {
+    /* Layered radial gradients with 24s animation loop */
   }
-};
+  @keyframes aurora { /* translateY + opacity shifts */ }
+  ```
+- ✅ Glassmorphism with `@supports` fallback:
+  ```css
+  .glass-panel { background: rgba(9, 11, 25, 0.95); /* Fallback */ }
+  @supports (backdrop-filter: blur(1px)) {
+    .glass-panel {
+      backdrop-filter: blur(24px);
+      background: rgba(9, 11, 25, 0.65);
+    }
+  }
+  ```
+- ✅ `prefers-reduced-motion` handling (auto-generated if motion enabled)
+
+#### 4. Theme Delivery System
+**Location:** `/firebase/functions/src/theme/ThemeHandlers.ts` (63 lines)
+
+**How it works:**
+1. Tenant identification middleware extracts hostname from request
+2. Looks up tenant config (localhost → Aurora, 127.0.0.1 → Brutalist)
+3. Fetches theme artifact from Firestore (`brandingTokens.artifact`)
+4. Reads CSS from storage (currently `file://` URLs - **BLOCKER**)
+5. Returns with versioning headers:
+   - `Cache-Control: public, max-age=31536000, immutable` (if `?v=hash`)
+   - `ETag: "{hash}"`
+   - `Content-Type: text/css; charset=utf-8`
+
+**Client-Side Bootstrap:**
+**Location:** `/webapp-v2/src/utils/theme-bootstrap.ts`
+- Injects `<link rel="stylesheet" href="/api/theme.css?v={hash}">`
+- Syncs hash changes with `syncThemeHash()`
+- Stores hash in localStorage (`splitifyd:theme-hash`)
+
+#### 5. Component Library
+**Location:** `/webapp-v2/src/components/ui/`
+
+**Implemented Components:**
+- **Typography** - Variants: body, bodyStrong, caption, button, eyebrow, heading, display
+- **Surface** - Variants: base, muted, inverted, **glass** ✅
+- **Card** - Built on Surface, includes glass variant ✅
+- **Button** - Variants: primary, secondary, ghost, danger
+  - Primary uses `bg-[image:var(--gradient-primary)]` ✅
+  - Hover: `transform: translateY(-2px) scale(1.01)`
+  - Glow: `box-shadow: 0 0 20px rgba(var(--interactive-primary-rgb), 0.4)`
+- **Modal** - Glass backdrop via `glass-panel` class ✅
+- **Input** - Standard form input with focus states
+- **Form** - Form wrapper with validation
+- **Alert** - Status messages (info, success, warning, error)
+- **LoadingSpinner** - Basic spinner
+- **Avatar** - User avatar component
+- **Pagination** - Page navigation
+- **Stack** - Flex container utility
+- **Container** - Width-constrained wrapper
+
+**Where glassmorphism is used:**
+- `Card variant="glass"` in:
+  - AuthLayout (form container)
+  - GroupHeader, ExpensesList, BalanceSummary
+  - ExpenseForm sections
+  - DashboardGroupCard (interactive glass)
+  - ActivityFeedCard
+
+#### 6. Tailwind Configuration
+**Location:** `/webapp-v2/tailwind.config.js`
+
+**Semantic color mappings:**
+```javascript
+'surface-base': 'rgb(var(--surface-base-rgb, 255 255 255) / <alpha-value>)',
+'text-primary': 'rgb(var(--text-primary-rgb, 15 23 42) / <alpha-value>)',
+'interactive-primary': 'rgb(var(--interactive-primary-rgb, 37 99 235) / <alpha-value>)',
+// ... 20+ semantic mappings
 ```
+
+**Extended spacing, border radius, shadows all via CSS variables**
+
+### ⚠️ Missing/Incomplete
+
+#### Motion Features (Not Implemented)
+- `useMagneticHover()` hook - Buttons follow cursor
+- `useScrollReveal()` hook - Fade-in on scroll (IntersectionObserver)
+- Staggered list animations
+- Framer Motion integration (intentionally skipped to save 50KB)
+
+#### Advanced Components (Not Implemented)
+- **GradientText** - webkit-background-clip gradient text
+- **Eyebrow** - Specialized uppercase label component
+- **FloatingInput** - Animated label that floats up on focus
+- **Select/Checkbox/Radio/Switch** - Form primitives
+- **FormField** - Compound wrapper with validation
+- **Sheet** - Slide-in panel
+- **Popover** - Floating positioned element
+- **Toast** - Notification queue system
+- **Spinner variants** - accent, gradient
+- **ProgressBar** - Linear progress
+- **StatusDot** - Pulse indicator
+- **Chip** - Removable tags
+- **EmptyState** - With illustrations
+- **Table** - Dedicated data table component
+- **Breadcrumbs** - Navigation trail
+
+#### Layout Templates (Partially Implemented)
+- AuthLayout exists but basic (not split hero pattern)
+- DashboardLayout referenced but not dedicated component
+- SettingsLayout - not found
+- LandingLayout - not found
+- AppShell with conditional aurora background - not found
+
+#### Testing & Tooling (Not Implemented)
+- Theme contrast Playwright tests
+- Performance budget tests
+- Accessibility tests (axe-core)
+- Visual regression tests (Percy)
+- Color migration codemod
+- ESLint no-hardcoded-colors rule
+
+#### Admin Features (Basic Implementation)
+- TenantBrandingPage exists but basic
+- ThemeDebug panel exists but minimal
+- No live preview iframe
+- No token editor UI
+- No WCAG contrast checker
+- No artifact history/rollback
 
 ---
 
-## Testing Strategy (Comprehensive)
+## Production Blockers (Critical Path)
 
-### 1. Theme Contrast Tests (Playwright)
+### 🔥 Blocker 1: Artifact Storage (4-6 hours)
+**Problem:** Theme CSS stored as `file://` URLs, not web-accessible
+**Current:** `file:///tmp/theme-artifacts/{tenantId}/{hash}/theme.css`
+**Needed:** Cloud Storage integration
 
-**File:** `e2e-tests/src/__tests__/smoke/theme-contrast.test.ts`
-
+**Solution:**
 ```typescript
+// firebase/functions/src/services/storage/CloudThemeArtifactStorage.ts
+export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
+  async save(tenantId: string, hash: string, css: string, tokens: object): Promise<ArtifactUrls> {
+    const bucket = admin.storage().bucket();
+    const cssPath = `theme-artifacts/${tenantId}/${hash}/theme.css`;
+    const tokensPath = `theme-artifacts/${tenantId}/${hash}/tokens.json`;
+
+    await bucket.file(cssPath).save(css, { contentType: 'text/css' });
+    await bucket.file(tokensPath).save(JSON.stringify(tokens), { contentType: 'application/json' });
+
+    const [cssUrl] = await bucket.file(cssPath).getSignedUrl({ action: 'read', expires: '03-01-2500' });
+    const [tokensUrl] = await bucket.file(tokensPath).getSignedUrl({ action: 'read', expires: '03-01-2500' });
+
+    return { cssUrl, tokensUrl };
+  }
+}
+```
+
+**Files to modify:**
+- Create: `/firebase/functions/src/services/storage/CloudThemeArtifactStorage.ts`
+- Update: `/firebase/functions/src/services/tenant/TenantService.ts` (use CloudStorage instead of LocalStorage)
+- Update: `/firebase/functions/src/theme/ThemeHandlers.ts` (handle HTTPS URLs)
+
+**Acceptance:**
+- `curl http://localhost:5001/.../api/theme.css` returns CSS from Cloud Storage
+- URLs are HTTPS, not `file://`
+
+### 🔥 Blocker 2: Font Deployment (2 hours)
+**Problem:** Space Grotesk & Geist Mono referenced but not served
+**Current:** Aurora theme expects fonts at `/fonts/space-grotesk.woff2`, etc.
+**Needed:** Download fonts, add to `webapp-v2/public/fonts/`
+
+**Solution:**
+1. Download Space Grotesk from [Google Fonts](https://fonts.google.com/specimen/Space+Grotesk)
+2. Download Geist Mono from [Vercel](https://vercel.com/font)
+3. Place woff2 files in `/webapp-v2/public/fonts/`
+4. Update Aurora fixture to point to `/fonts/space-grotesk-variable.woff2`
+5. Republish theme
+
+**Files to modify:**
+- Add: `/webapp-v2/public/fonts/space-grotesk-variable.woff2`
+- Add: `/webapp-v2/public/fonts/geist-mono-variable.woff2`
+- Update: `/packages/shared/src/fixtures/branding-tokens.ts` (fix font URLs)
+- Run: `npm run publish-themes` in firebase package
+
+**Acceptance:**
+- Aurora theme loads custom fonts (inspect Network tab)
+- Headings use Space Grotesk
+- Monospace elements use Geist Mono
+
+### 🔥 Blocker 3: E2E Theme Tests (2-3 hours)
+**Problem:** No automated tests verifying theme switching works
+**Needed:** Playwright tests that check Aurora vs Brutalist
+
+**Solution:**
+```typescript
+// e2e-tests/src/__tests__/smoke/theme-switching.test.ts
 import { test, expect } from '@playwright/test';
 
-test.describe('Theme Contrast (Aurora vs Brutalist)', () => {
-  test('Aurora theme has vibrant accents', async ({ page }) => {
+test.describe('Theme Switching', () => {
+  test('localhost loads Aurora theme', async ({ page }) => {
     await page.goto('http://localhost:5173');
 
-    // Check CTA button background (should be gradient or teal)
-    const cta = page.getByRole('button', { name: /get started/i });
-    const bg = await cta.evaluate(el => getComputedStyle(el).backgroundColor);
+    // Check for aurora-specific color
+    const button = page.getByRole('button').first();
+    const bg = await button.evaluate(el => getComputedStyle(el).backgroundColor);
 
-    // Should be teal (#22d3ee → rgb(34, 211, 238))
-    expect(bg).toMatch(/rgb\(\s*34,\s*211,\s*238\)/);
+    // Should be teal/cyan, not grayscale
+    expect(bg).not.toMatch(/rgb\(\s*161,\s*161,\s*170\)/);
   });
 
-  test('Brutalist theme is grayscale', async ({ page }) => {
+  test('127.0.0.1 loads Brutalist theme', async ({ page }) => {
     await page.goto('http://127.0.0.1:5173');
 
-    const cta = page.getByRole('button', { name: /get started/i });
-    const bg = await cta.evaluate(el => getComputedStyle(el).backgroundColor);
+    const button = page.getByRole('button').first();
+    const bg = await button.evaluate(el => getComputedStyle(el).backgroundColor);
 
-    // Should be gray (#a1a1aa → rgb(161, 161, 170))
+    // Should be grayscale
     expect(bg).toMatch(/rgb\(\s*161,\s*161,\s*170\)/);
   });
 
-  test('Aurora theme has glassmorphism', async ({ page }) => {
+  test('Aurora has glassmorphism', async ({ page }) => {
     await page.goto('http://localhost:5173');
 
-    const heroCard = page.locator('.glass-panel').first();
-    const backdropFilter = await heroCard.evaluate(el =>
+    const glassCard = page.locator('.glass-panel').first();
+    const backdropFilter = await glassCard.evaluate(el =>
       getComputedStyle(el).backdropFilter
     );
 
     expect(backdropFilter).toContain('blur');
   });
 
-  test('Brutalist theme has no blur effects', async ({ page }) => {
+  test('Brutalist has no blur', async ({ page }) => {
     await page.goto('http://127.0.0.1:5173');
 
     const cards = page.locator('[class*="card"]');
     const count = await cards.count();
 
     for (let i = 0; i < count; i++) {
-      const card = cards.nth(i);
-      const backdropFilter = await card.evaluate(el =>
+      const backdropFilter = await cards.nth(i).evaluate(el =>
         getComputedStyle(el).backdropFilter
       );
-
       expect(backdropFilter).toBe('none');
     }
   });
 });
 ```
 
-### 2. Performance Budgets
+**Files to create:**
+- `/e2e-tests/src/__tests__/smoke/theme-switching.test.ts`
 
-**File:** `e2e-tests/src/__tests__/performance/theme-load.test.ts`
+**Acceptance:**
+- All tests pass
+- CI runs tests on PR
 
+---
+
+## Remaining Work Plan (2-3 Weeks)
+
+### Phase 1: Production Readiness (1 week)
+**Goal:** Fix blockers, ship to production
+
+**Week 1 Tasks:**
+- [ ] Day 1-2: Implement CloudThemeArtifactStorage (4-6 hours)
+  - Create CloudStorage service
+  - Update TenantService to use Cloud Storage
+  - Test artifact upload/download
+  - Verify HTTPS URLs work
+
+- [ ] Day 2-3: Deploy fonts (2 hours)
+  - Download Space Grotesk & Geist Mono
+  - Add to `/webapp-v2/public/fonts/`
+  - Update Aurora fixture
+  - Republish themes
+  - Verify fonts load in browser
+
+- [ ] Day 3-4: Write E2E tests (2-3 hours)
+  - Theme switching tests
+  - Glassmorphism verification
+  - Color contrast checks
+  - Add to CI pipeline
+
+- [ ] Day 4-5: Performance audit (2-3 hours)
+  - Measure theme CSS load time
+  - Run Lighthouse on both themes
+  - Optimize CSS size if needed
+  - Add performance budgets to CI
+
+**Acceptance:**
+- ✅ Theme CSS served from Cloud Storage
+- ✅ Custom fonts load correctly
+- ✅ All E2E tests pass
+- ✅ Lighthouse score 90+ on both themes
+- ✅ **Ready to ship to production**
+
+### Phase 2: Motion Enhancement (1 week)
+**Goal:** Add polish with motion hooks
+
+**Implementation Reference:** See `/docs/modern_ui_ux_guide.md` for patterns
+
+**Week 2 Tasks:**
+- [ ] Day 1-2: `useScrollReveal` hook (2-3 hours)
+  ```typescript
+  // webapp-v2/src/hooks/useScrollReveal.ts
+  export function useScrollReveal(options?: IntersectionObserverInit) {
+    const ref = useRef<HTMLElement>(null);
+    const [isVisible, setIsVisible] = useState(false);
+    const { motion } = useThemeConfig();
+
+    useEffect(() => {
+      if (!ref.current || !motion.enableScrollReveal) return;
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.unobserve(entry.target);
+          }
+        },
+        { threshold: 0.25, ...options }
+      );
+
+      observer.observe(ref.current);
+      return () => observer.disconnect();
+    }, [motion.enableScrollReveal]);
+
+    return { ref, isVisible };
+  }
+  ```
+  - Implement IntersectionObserver hook
+  - Add `.fade-up` CSS utility
+  - Test on landing page
+  - Verify disabled on Brutalist
+
+- [ ] Day 2-3: `useMagneticHover` hook (2-3 hours)
+  ```typescript
+  // webapp-v2/src/hooks/useMagneticHover.ts
+  export function useMagneticHover(strength: number = 0.3) {
+    const ref = useRef<HTMLElement>(null);
+    const { motion } = useThemeConfig();
+
+    useEffect(() => {
+      if (!ref.current || !motion.enableMagneticHover) return;
+
+      const element = ref.current;
+      const handleMouseMove = (e: MouseEvent) => {
+        const rect = element.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const deltaX = (e.clientX - centerX) * strength;
+        const deltaY = (e.clientY - centerY) * strength;
+        element.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+      };
+
+      const handleMouseLeave = () => {
+        element.style.transform = 'translate(0, 0)';
+      };
+
+      element.addEventListener('mousemove', handleMouseMove);
+      element.addEventListener('mouseleave', handleMouseLeave);
+
+      return () => {
+        element.removeEventListener('mousemove', handleMouseMove);
+        element.removeEventListener('mouseleave', handleMouseLeave);
+      };
+    }, [strength, motion.enableMagneticHover]);
+
+    return ref;
+  }
+  ```
+  - Implement magnetic hover hook
+  - Add to Button component (optional prop)
+  - Add to Card component
+  - Test performance (should be 60fps)
+
+- [ ] Day 3-4: Staggered animations (1-2 hours)
+  - Add transition-delay utilities
+  - Update ExpensesList with staggered fade-in
+  - Update GroupCard grid with stagger
+
+- [ ] Day 4-5: Framer Motion modals (2-3 hours)
+  - Install framer-motion (feature-flagged)
+  - Wrap Modal with `<AnimatePresence>`
+  - Add spring physics to entrance
+  - Test bundle size impact
+
+**Acceptance:**
+- ✅ Scroll reveal works on Aurora, disabled on Brutalist
+- ✅ Magnetic hover feels smooth (60fps)
+- ✅ Staggered animations on lists
+- ✅ Modal entrance has spring physics
+- ✅ `prefers-reduced-motion` disables all animations
+
+### Phase 3: Advanced Components (1 week)
+**Goal:** Fill gaps in component library
+
+**Week 3 Tasks:**
+- [ ] Day 1: GradientText component (30 minutes)
+  ```tsx
+  export function GradientText({ children, gradient = 'primary', ...props }: Props) {
+    return (
+      <span
+        className="bg-clip-text text-transparent"
+        style={{ backgroundImage: `var(--gradient-${gradient})` }}
+        {...props}
+      >
+        {children}
+      </span>
+    );
+  }
+  ```
+
+- [ ] Day 1-2: FloatingInput component (2-3 hours)
+  - Implement animated label pattern
+  - Add focus/blur transitions
+  - Test accessibility (screen readers)
+  - Update auth forms to use it
+
+- [ ] Day 2-3: EmptyState component (1-2 hours)
+  - Support illustration URL from tokens
+  - Add icon/title/description/action slots
+  - Use in GroupsList, ExpensesList
+
+- [ ] Day 3-4: Select/Checkbox/Radio/Switch (3-4 hours)
+  - Build accessible form primitives
+  - Match design system styling
+  - Add to component showcase
+
+- [ ] Day 4-5: Toast notification system (2-3 hours)
+  - Queue-based notifications
+  - Auto-dismiss with configurable timeout
+  - Slide-in animation
+  - Test with multiple toasts
+
+**Acceptance:**
+- ✅ All new components use semantic tokens
+- ✅ Accessibility tests pass (keyboard nav, screen readers)
+- ✅ Components documented in showcase
+
+---
+
+## Enhancement Roadmap (Post-Launch)
+
+### High Priority (Nice to Have)
+1. **Admin Branding Editor** (4-5 hours)
+   - Live preview iframe
+   - Color picker for tokens
+   - Font selector
+   - Publish button
+   - Artifact history table
+
+2. **Performance Monitoring** (2-3 hours)
+   - Client-side instrumentation for theme CSS load time
+   - Server-side logging for cache hit rates
+   - Lighthouse CI integration
+
+3. **Visual Regression Tests** (3-4 hours)
+   - Percy or Chromatic setup
+   - Snapshot Aurora vs Brutalist on key pages
+   - Add to CI pipeline
+
+### Medium Priority (Future)
+4. **Migration Codemod** (2-3 hours)
+   - JSCodeshift transform for color classes
+   - Map `bg-blue-600` → `bg-interactive-primary`
+   - Run on codebase to catch stragglers
+
+5. **ESLint Rules** (1-2 hours)
+   - Ban hardcoded colors outside `:root`
+   - Suggest semantic tokens
+   - Auto-fix where possible
+
+6. **Component Showcase Page** (2-3 hours)
+   - Storybook-style page showing all primitives
+   - Side-by-side Aurora vs Brutalist
+   - Interactive props
+
+### Lower Priority (Backlog)
+7. **Landing Page Redesign** (4-5 hours)
+   - Hero with gradient text
+   - Features grid with glass cards
+   - CTA section with floating input
+   - Scroll reveal animations
+
+8. **Advanced Table Component** (3-4 hours)
+   - Sortable columns
+   - Filtering
+   - Pagination
+   - Glass variant for Aurora
+
+9. **Theme Diagnostics Panel** (2-3 hours)
+   - Show current tenant ID + hash
+   - Display all CSS variables
+   - Copy theme CSS URL
+   - Force reload theme
+
+---
+
+## Modern UI/UX Guide Integration
+
+**Reference Document:** `/docs/modern_ui_ux_guide.md`
+
+This guide provides battle-tested patterns for implementing the remaining features. Key sections to reference:
+
+### For Motion Features (Phase 2)
+- **Section 4.1:** Scroll-Linked Animations
+  - IntersectionObserver implementation
+  - `.fade-up` utility class pattern
+  - `prefers-reduced-motion` handling
+
+- **Section 4.2:** Interaction States
+  - Consistent transition timing (320ms)
+  - Easing curve selection
+  - Hover transforms (`translateY(-2px)`)
+
+### For Component Development (Phase 3)
+- **Section 2.1:** Glassmorphism with Restraint
+  - When to use glass variant
+  - `pointer-events: none` gotcha
+  - `@supports` fallback pattern
+
+- **Section 5.2:** Forms
+  - Floating label pattern
+  - Autoresize textareas
+  - Button row alignment
+
+- **Section 5.4:** Chat/Terminal Surfaces
+  - Auto-scroll behavior
+  - Enter-to-submit pattern
+  - Visual distinction between authors
+
+### For Testing (Phase 1)
+- **Section 6.1:** Motion and Accessibility
+  - Testing `prefers-reduced-motion`
+  - Runtime preference changes
+
+- **Section 6.4:** HTMX and Partial Updates
+  - Re-running initialization after DOM updates
+  - Idempotent component setup
+
+### Anti-Patterns to Avoid
+- **Section 7.1:** Inline styles ban
+- **Section 7.2:** Pointer-blocking pseudo-elements
+- **Section 7.3:** Scroll event listeners (use IntersectionObserver)
+- **Section 7.4:** Token drift
+- **Section 7.7:** Animating expensive properties
+
+### Implementation Checklist
+**Section 8:** Use for Phase 1-3 acceptance criteria
+- Foundation, layout, glassmorphism, motion, components, accessibility, performance
+
+---
+
+## Testing Strategy
+
+### Phase 1: Production Tests
 ```typescript
-test('Theme CSS loads within budget', async ({ page }) => {
-  const startTime = Date.now();
-
+// e2e-tests/src/__tests__/smoke/theme-switching.test.ts
+test('Aurora theme has vibrant accents', async ({ page }) => {
   await page.goto('http://localhost:5173');
+  const cta = page.getByRole('button').first();
+  const bg = await cta.evaluate(el => getComputedStyle(el).backgroundColor);
+  expect(bg).not.toMatch(/rgb\(\s*161,\s*161,\s*170\)/); // Not grayscale
+});
 
-  // Wait for theme CSS to load
-  await page.waitForLoadState('networkidle');
+test('Brutalist theme is grayscale', async ({ page }) => {
+  await page.goto('http://127.0.0.1:5173');
+  const cta = page.getByRole('button').first();
+  const bg = await cta.evaluate(el => getComputedStyle(el).backgroundColor);
+  expect(bg).toMatch(/rgb\(\s*161,\s*161,\s*170\)/); // Grayscale
+});
 
-  const themeCssRequest = page.waitForResponse(
-    resp => resp.url().includes('/api/theme.css')
+test('Aurora has glassmorphism', async ({ page }) => {
+  await page.goto('http://localhost:5173');
+  const glassCard = page.locator('.glass-panel').first();
+  const backdropFilter = await glassCard.evaluate(el =>
+    getComputedStyle(el).backdropFilter
   );
-
-  const response = await themeCssRequest;
-  const loadTime = Date.now() - startTime;
-
-  // P95 budget: <150ms
-  expect(loadTime).toBeLessThan(150);
-
-  // Size budget: <50KB
-  const cssText = await response.text();
-  const sizeKB = new Blob([cssText]).size / 1024;
-  expect(sizeKB).toBeLessThan(50);
+  expect(backdropFilter).toContain('blur');
 });
 ```
 
-### 3. Accessibility Tests (axe-core)
+### Phase 2: Motion Tests
+```typescript
+test('Scroll reveal triggers on Aurora', async ({ page }) => {
+  await page.goto('http://localhost:5173/dashboard');
 
+  const card = page.locator('[data-animate]').first();
+  const initialOpacity = await card.evaluate(el => getComputedStyle(el).opacity);
+  expect(initialOpacity).toBe('0');
+
+  await page.mouse.wheel(0, 500);
+  await page.waitForTimeout(1000);
+
+  const finalOpacity = await card.evaluate(el => getComputedStyle(el).opacity);
+  expect(finalOpacity).toBe('1');
+});
+
+test('prefers-reduced-motion disables animations', async ({ page, context }) => {
+  await context.addInitScript(() => {
+    Object.defineProperty(window, 'matchMedia', {
+      value: (query: string) => ({
+        matches: query === '(prefers-reduced-motion: reduce)',
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }),
+    });
+  });
+
+  await page.goto('http://localhost:5173');
+  const card = page.locator('.fade-up').first();
+  const transition = await card.evaluate(el => getComputedStyle(el).transition);
+  expect(transition).toBe('none');
+});
+```
+
+### Phase 3: Accessibility Tests
 ```typescript
 import { injectAxe, checkA11y } from 'axe-playwright';
 
 test('Aurora theme meets WCAG AA', async ({ page }) => {
   await page.goto('http://localhost:5173');
   await injectAxe(page);
-
-  await checkA11y(page, undefined, {
-    detailedReport: true,
-    detailedReportOptions: { html: true },
-  });
+  await checkA11y(page);
 });
 
 test('Brutalist theme meets WCAG AA', async ({ page }) => {
   await page.goto('http://127.0.0.1:5173');
   await injectAxe(page);
-
   await checkA11y(page);
 });
 ```
 
-### 4. Visual Regression (Percy/Chromatic)
-
-**Config:** `percy.config.yml`
-
-```yaml
-version: 2
-static:
-  include: '/**/*.html'
-
-snapshots:
-  widths: [375, 768, 1280]
-
-  # Snapshot both themes
-  pages:
-    - name: 'Landing - Aurora'
-      url: 'http://localhost:5173'
-
-    - name: 'Landing - Brutalist'
-      url: 'http://127.0.0.1:5173'
-
-    - name: 'Dashboard - Aurora'
-      url: 'http://localhost:5173/dashboard'
-
-    - name: 'Dashboard - Brutalist'
-      url: 'http://127.0.0.1:5173/dashboard'
-```
-
-**Script:**
-```bash
-npx percy snapshot e2e-tests/percy.config.yml
-```
-
----
-
-## Execution Timeline (Revised, 10 Weeks)
-
-### Week 1: Schema Extensions & Fixtures
-**Deliverables:**
-- [ ] Extend `BrandingTokensSchema` with motion, gradients, assets, advanced semantics
-- [ ] Create three fixture files:
-  - `branding-tokens-localhost.ts` (Aurora theme, full spec)
-  - `branding-tokens-loopback.ts` (Brutalist theme, minimal spec)
-  - `branding-tokens-default.ts` (Fallback, same as Brutalist)
-- [ ] Update `ThemeArtifactService` to handle new token types
-- [ ] Add unit tests for extended schema validation
-
-**Acceptance:**
-- `npm run build` passes with new schema
-- Fixture files pass Zod validation
-- Schema includes all tokens referenced in this doc
-
-### Week 2: Artifact Generator Enhancements
-**Deliverables:**
-- [ ] Implement `@supports` fallback generation for glassmorphism
-- [ ] Add gradient CSS variable generation
-- [ ] Add `@font-face` generation from `assets.fonts`
-- [ ] Add `prefers-reduced-motion` blocks based on motion flags
-- [ ] Extend unit tests to cover new CSS generation paths
-
-**Acceptance:**
-- Generated CSS includes both modern and fallback styles
-- Brutalist theme CSS has zero animations (motion durations = 0)
-- Aurora theme CSS includes all gradients, fonts, motion
-
-### Week 3: Seed Themes & Verify Delivery
-**Deliverables:**
-- [ ] Update `firebase/scripts/publish-local-themes.ts` to publish both themes
-- [ ] Verify `/api/theme.css` serves correct CSS for each hostname:
-  - `localhost` → Aurora CSS
-  - `127.0.0.1` → Brutalist CSS
-  - Other → Default CSS
-- [ ] Manual browser test: open both URLs, compare visual styling
-- [ ] Screenshot both themes for reference
-
-**Acceptance:**
-- `curl -H "Host: localhost" http://localhost:5001/.../api/theme.css` returns Aurora CSS
-- `curl -H "Host: 127.0.0.1" ...` returns Brutalist CSS
-- Visual inspection confirms themes are distinct
-
-### Week 4: Core Primitives (Typography, Surface, Button)
-**Deliverables:**
-- [ ] Build `Typography` components (Heading, Text, GradientText, Eyebrow)
-- [ ] Rebuild `Card` component with glass/aurora/flat variants
-- [ ] Extend `Button` component with ghost/magnetic/gradient variants
-- [ ] Build `Spinner`, `Skeleton`, `ProgressBar` loading states
-- [ ] Create Storybook-style `ComponentShowcase` page for manual testing
-
-**Acceptance:**
-- Components render correctly on both themes (localhost vs 127.0.0.1)
-- No hardcoded colors in component code
-- Showcase page displays all variants side-by-side
-
-### Week 5: Input, Form, Modal System
-**Deliverables:**
-- [ ] Build `FloatingInput` component with label animation
-- [ ] Build `Select`, `Checkbox`, `Radio`, `Switch` form controls
-- [ ] Build `FormField` wrapper with validation/error display
-- [ ] Build `Modal`, `Sheet`, `Popover`, `Toast` components
-- [ ] Add focus trap, keyboard nav, ESC dismissal
-
-**Acceptance:**
-- All form controls work on both themes
-- Modals have glass background on Aurora, solid on Brutalist
-- Focus management works (tab cycling, ESC key)
-- Accessibility audit passes (axe-core)
-
-### Week 6: Layout System & Global Shell
-**Deliverables:**
-- [ ] Build `AppShell` component with aurora background flag
-- [ ] Implement aurora background animation (::before/::after pseudo-elements)
-- [ ] Build `Stack`, `Grid`, `Container`, `Spacer` layout primitives
-- [ ] Build `AuthLayout`, `DashboardLayout`, `SettingsLayout` templates
-- [ ] Add theme badge component (shows tenant ID + hash)
-
-**Acceptance:**
-- Aurora background animates smoothly (24s loop)
-- Brutalist theme has no background animation
-- Layout primitives work responsively (mobile → desktop)
-- Theme badge visible in dev mode, hidden in prod
-
-### Week 7: Page Redesigns (Landing, Auth, Dashboard)
-**Deliverables:**
-- [ ] Redesign landing page (hero, features, CTA sections)
-- [ ] Redesign auth pages (login, register, password reset)
-- [ ] Redesign dashboard page (stats, groups list, empty state)
-- [ ] Migrate all hardcoded colors to semantic tokens
-- [ ] Add scroll reveal animations (Aurora only)
-
-**Acceptance:**
-- Pages look distinct on Aurora vs Brutalist
-- Zero hardcoded colors (`npm run lint` passes)
-- Scroll animations work on Aurora, disabled on Brutalist
-- Playwright tests pass for both themes
-
-### Week 8: Page Redesigns (Group Detail, Expenses, Settings)
-**Deliverables:**
-- [ ] Redesign group detail page (header, tabs, expenses table, balances)
-- [ ] Redesign add/edit expense form (floating inputs, split editor)
-- [ ] Redesign settings pages (vertical nav, forms)
-- [ ] Build tenant branding admin page (token editor, preview, publish)
-- [ ] Build theme diagnostics panel (dev mode)
-
-**Acceptance:**
-- All pages migrated to semantic tokens
-- Admin pages include live preview + publish flow
-- Diagnostics panel shows correct tenant/hash
-
-### Week 9: Motion & Micro-interactions
-**Deliverables:**
-- [ ] Implement `useScrollReveal` hook (IntersectionObserver)
-- [ ] Implement `useMagneticHover` hook (cursor tracking)
-- [ ] Add staggered list animations (sequential fade-in)
-- [ ] Add spring physics to modals (framer-motion)
-- [ ] Ensure `prefers-reduced-motion` disables all animations
-
-**Acceptance:**
-- Scroll reveals trigger correctly (25% threshold)
-- Magnetic hover works on Aurora (disabled on Brutalist)
-- `prefers-reduced-motion` media query respected
-- No jank on scroll (60fps maintained)
-
-### Week 10: Testing, Performance, Polish
-**Deliverables:**
-- [ ] Write theme contrast Playwright tests (Aurora vs Brutalist)
-- [ ] Write performance budget tests (theme CSS load time, size)
-- [ ] Write accessibility tests (axe-core, WCAG AA)
-- [ ] Set up visual regression tests (Percy/Chromatic)
-- [ ] Write migration codemod for remaining pages
-- [ ] Run full codemod pass, verify all pages migrated
-- [ ] Final QA: test all pages on both themes
-
-**Acceptance:**
-- All Playwright tests pass (contrast, performance, a11y)
-- Lighthouse score 95+ on both themes
-- Zero hardcoded colors in codebase (`rg 'bg-blue-|text-gray-'` returns nothing)
-- Visual regression baselines captured
-
----
-
-## Performance Budgets & Monitoring
-
-### Critical Metrics
-
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **Theme CSS Load (P50)** | <100ms | Server-side timing header |
-| **Theme CSS Load (P95)** | <150ms | Server-side timing header |
-| **Theme CSS Size** | <50KB gzipped | Artifact size check |
-| **Lighthouse Performance** | 95+ | CI/manual audit |
-| **First Contentful Paint** | <1.5s | Lighthouse |
-| **Time to Interactive** | <3.5s | Lighthouse |
-| **Cumulative Layout Shift** | <0.1 | Lighthouse |
-| **Scroll Jank** | 60fps | Chrome DevTools perf profiler |
-
-### Monitoring Setup
-
-**Client-Side Instrumentation:**
+### Performance Budget Tests
 ```typescript
-// Track theme CSS load time
-const themeLoadStart = performance.now();
+test('Theme CSS loads within budget', async ({ page }) => {
+  await page.goto('http://localhost:5173');
 
-document.querySelector('link[href*="/api/theme.css"]')
-  ?.addEventListener('load', () => {
-    const duration = performance.now() - themeLoadStart;
+  const themeCssRequest = await page.waitForResponse(
+    resp => resp.url().includes('/api/theme.css')
+  );
 
-    analytics.track('theme_css_loaded', {
-      tenant_id: configStore.tenantId,
-      theme_hash: configStore.themeHash,
-      duration_ms: duration,
-      size_kb: /* from response headers */,
-    });
-  });
-```
+  const cssText = await themeCssRequest.text();
+  const sizeKB = new Blob([cssText]).size / 1024;
 
-**Server-Side Logging:**
-```typescript
-// In /api/theme.css endpoint
-const startTime = Date.now();
+  expect(sizeKB).toBeLessThan(50); // <50KB budget
+});
 
-// ... generate/fetch CSS ...
-
-const duration = Date.now() - startTime;
-
-logger.info('theme_css_served', {
-  tenant_id,
-  hash,
-  duration_ms: duration,
-  cache_hit: cacheHit,
-  size_bytes: cssText.length,
+test('Lighthouse performance score', async ({ page }) => {
+  await page.goto('http://localhost:5173');
+  const result = await lighthouse(page.url());
+  expect(result.lhr.categories.performance.score).toBeGreaterThan(0.90);
 });
 ```
 
 ---
 
-## Rollback & Risk Mitigation
+## Success Criteria (Updated)
 
-### Phase Rollback Strategy
+### Phase 1: Production Ready
+- [x] Branding token schema with all types (motion, gradients, assets)
+- [x] Aurora & Brutalist fixtures fully defined
+- [x] CSS artifact generation with all modern features
+- [x] Theme delivery endpoint with versioned caching
+- [x] Hostname-based theme switching works
+- [x] Core component library uses semantic tokens
+- [x] Glassmorphism with fallbacks
+- [ ] **Cloud Storage for artifacts (BLOCKER)**
+- [ ] **Custom fonts deployed (BLOCKER)**
+- [ ] **E2E tests pass (BLOCKER)**
+- [ ] **Lighthouse score 90+ (BLOCKER)**
 
-**Week 1-3 (Tokens & Delivery):**
-- **Risk:** Schema changes break existing tenant data
-- **Mitigation:** Write migration script to backfill new tokens with defaults
-- **Rollback:** Revert schema changes, re-run publish script
+### Phase 2: Motion Polish
+- [ ] `useScrollReveal` hook implemented
+- [ ] `useMagneticHover` hook implemented
+- [ ] Staggered list animations
+- [ ] Framer Motion modal entrance
+- [ ] `prefers-reduced-motion` respected everywhere
+- [ ] 60fps on scroll (no jank)
 
-**Week 4-6 (Components):**
-- **Risk:** New components don't work on both themes
-- **Mitigation:** Test every component on both hostnames before merging
-- **Rollback:** Revert component changes, keep old primitives
+### Phase 3: Component Completeness
+- [ ] GradientText component
+- [ ] FloatingInput component
+- [ ] EmptyState component
+- [ ] Select/Checkbox/Radio/Switch primitives
+- [ ] Toast notification system
+- [ ] All components accessible (axe-core passes)
 
-**Week 7-8 (Pages):**
-- **Risk:** Page migrations break existing functionality
-- **Mitigation:** Migrate one page at a time, run full E2E suite after each
-- **Rollback:** Revert page-by-page, preserve old page code in git history
-
-**Week 9-10 (Motion & Polish):**
-- **Risk:** Animations cause performance regressions
-- **Mitigation:** Lighthouse audit on every PR, block merge if score drops
-- **Rollback:** Feature-flag animations, disable via tenant config
-
-### Emergency Rollback (Nuclear Option)
-
-**Scenario:** Everything is broken, need to revert entire redesign
-
-**Steps:**
-1. **Disable new themes:**
-   ```typescript
-   // In /api/theme.css
-   if (process.env.EMERGENCY_DISABLE_THEMES === 'true') {
-     return res.send(DEFAULT_FALLBACK_CSS);
-   }
-   ```
-
-2. **Revert frontend changes:**
-   ```bash
-   git revert <redesign-merge-commit>
-   git push
-   ```
-
-3. **Redeploy:**
-   ```bash
-   npm run deploy
-   ```
-
-**Time to restore:** ~15 minutes
-**User impact:** Revert to old UI, no data loss
+### Post-Launch: Monitoring & Tools
+- [ ] Performance monitoring in production
+- [ ] Visual regression tests
+- [ ] Admin branding editor
+- [ ] Component showcase page
+- [ ] Migration codemod
+- [ ] ESLint rules for token usage
 
 ---
 
-## Open Questions & Decisions
+## File Manifest (Key Locations)
 
-### 1. Typography Assets (Self-Host vs CDN)
+### Core System
+| File | Purpose | Status |
+|------|---------|--------|
+| `/packages/shared/src/types/branding.ts` | Schema definition (324 lines) | ✅ Complete |
+| `/packages/shared/src/fixtures/branding-tokens.ts` | Aurora & Brutalist tokens (471 lines) | ✅ Complete |
+| `/firebase/functions/src/services/tenant/ThemeArtifactService.ts` | CSS generation (443 lines) | ✅ Complete |
+| `/firebase/functions/src/services/storage/ThemeArtifactStorage.ts` | Artifact persistence (67 lines) | ⚠️ File-based only |
+| `/firebase/functions/src/theme/ThemeHandlers.ts` | CSS delivery endpoint (63 lines) | ✅ Complete |
+| `/firebase/functions/src/middleware/tenant-identification.ts` | Host-based routing (92 lines) | ✅ Complete |
+| `/webapp-v2/src/utils/theme-bootstrap.ts` | Client-side theme loading (72 lines) | ✅ Complete |
+| `/webapp-v2/tailwind.config.js` | Semantic color mappings (68 lines) | ✅ Complete |
 
-**Options:**
-- **Self-host:** Download Space Grotesk + Geist Mono, serve from `/public/fonts`
-  - **Pros:** No third-party dependency, GDPR-friendly, offline support
-  - **Cons:** ~200KB payload, need to manage updates
+### Components
+| File | Purpose | Status |
+|------|---------|--------|
+| `/webapp-v2/src/components/ui/Button.tsx` | CTA & actions | ✅ Mostly complete |
+| `/webapp-v2/src/components/ui/Card.tsx` | Content container | ✅ Complete |
+| `/webapp-v2/src/components/ui/Surface.tsx` | Layout primitive | ✅ Complete |
+| `/webapp-v2/src/components/ui/Modal.tsx` | Dialogs | ✅ Complete |
+| `/webapp-v2/src/components/ui/Typography.tsx` | Text hierarchy | ✅ Complete |
+| `/webapp-v2/src/components/ui/Input.tsx` | Form inputs | ✅ Complete |
 
-- **CDN:** Use Google Fonts or Fontshare
-  - **Pros:** Zero bundle size, automatic updates, global CDN
-  - **Cons:** External dependency, privacy concerns, China blocks Google
+### Tests (To Be Created)
+| File | Purpose | Status |
+|------|---------|--------|
+| `/e2e-tests/src/__tests__/smoke/theme-switching.test.ts` | Theme contrast tests | ❌ Missing |
+| `/e2e-tests/src/__tests__/performance/theme-load.test.ts` | Performance budgets | ❌ Missing |
+| `/e2e-tests/src/__tests__/a11y/wcag-compliance.test.ts` | Accessibility tests | ❌ Missing |
 
-**Recommendation:** Self-host for Aurora, use system fonts for Brutalist
-**Action:** Download fonts during Week 4, add to `assets.fonts` in fixture
-
-### 2. Illustrations & Icons
-
-**Questions:**
-- Should Aurora theme have custom illustrations (hero section, empty states)?
-- Budget for commissioning art, or use open-source (unDraw, Storyset)?
-- Icon library: Continue with Lucide, or switch to custom set?
-
-**Recommendation:**
-- Use unDraw illustrations (MIT license, customizable colors)
-- Stick with Lucide icons (already integrated, 1000+ icons)
-- Budget 1 day for illustration sourcing + color customization
-
-### 3. Animation Library
-
-**Options:**
-- **CSS-only:** Use CSS transitions/animations, IntersectionObserver for scroll
-  - **Pros:** Zero JS overhead, simple, performant
-  - **Cons:** Limited control, no spring physics
-
-- **Framer Motion:** React animation library with spring physics
-  - **Pros:** Advanced animations, spring easing, gesture support
-  - **Cons:** 50KB bundle size, learning curve
-
-**Recommendation:** Hybrid approach
-- Use CSS for simple transitions (hover, focus)
-- Use Framer Motion for complex animations (modals, page transitions)
-- Feature-flag Framer Motion (only load on Aurora theme)
-
-### 4. Mobile Strategy
-
-**Questions:**
-- Should Aurora theme simplify on mobile (reduce blur, disable parallax)?
-- Performance budget for low-end Android devices?
-
-**Recommendation:**
-- Add `@media (max-width: 768px)` simplifications:
-  - Reduce blur from 24px → 12px
-  - Disable parallax (`enableParallax: false` on mobile)
-  - Reduce aurora gradient complexity (2 stops instead of 4)
-- Test on real devices (iPhone SE, Pixel 4a)
-
-### 5. Theme Switching UI (Demo Mode)
-
-**Question:** Should we add a visible theme toggle for demos/screenshots?
-
-**Options:**
-- **No toggle:** Host-based only (localhost vs 127.0.0.1)
-  - Simple, no UI clutter
-
-- **Dev-only toggle:** Hidden `?theme=aurora|brutalist` query param
-  - Useful for QA, hidden from users
-
-- **Public toggle:** Button in header to switch themes
-  - Great for demos, marketing screenshots
-  - Risk: confusing for real users
-
-**Recommendation:** Dev-only query param
-**Implementation:**
-```typescript
-// In theme loader
-const themeOverride = new URLSearchParams(location.search).get('theme');
-const tenantId = themeOverride || configStore.tenantId;
-```
-
----
-
-## Success Criteria (Final Gate)
-
-Before shipping to production, all of these must be true:
-
-### Functional
-- [ ] Both themes (Aurora, Brutalist) render correctly on all pages
-- [ ] Swapping hostnames (localhost ↔ 127.0.0.1) changes theme with zero code changes
-- [ ] All forms, modals, navigation work identically on both themes
-- [ ] No console errors or warnings on either theme
-
-### Visual
-- [ ] Aurora theme has glassmorphism, gradients, animations
-- [ ] Brutalist theme is pure grayscale, zero animations
-- [ ] Non-designers say "wow" when viewing Aurora theme
-- [ ] Both themes feel intentional (not broken or incomplete)
-
-### Technical
-- [ ] Zero hardcoded colors in codebase (`npm run lint` passes)
-- [ ] All components use semantic tokens only
-- [ ] Theme CSS loads in <150ms (P95)
-- [ ] Theme CSS size <50KB gzipped
-- [ ] Lighthouse score 95+ on both themes
-
-### Accessibility
-- [ ] WCAG 2.1 AA compliance (axe-core passes)
-- [ ] Keyboard navigation works (tab, enter, ESC)
-- [ ] Screen reader friendly (semantic HTML, ARIA labels)
-- [ ] `prefers-reduced-motion` respected
-
-### Testing
-- [ ] 100% of Playwright E2E tests pass on both themes
-- [ ] Theme contrast tests pass (color assertions)
-- [ ] Performance budget tests pass
-- [ ] Visual regression baselines captured (Percy)
-
-### Documentation
-- [ ] Component showcase page complete (all primitives visible)
-- [ ] Theme diagnostics panel complete (dev mode)
-- [ ] Admin branding page complete (token editor, publish)
-- [ ] Migration guide written (for future component authors)
-
----
-
-## Post-Launch (Maintenance Mode)
-
-### Ongoing Responsibilities
-
-1. **Theme Monitoring:**
-   - Weekly review of theme load metrics (P95, error rate)
-   - Monthly Lighthouse audits
-   - Quarterly visual regression checks
-
-2. **Component Library Expansion:**
-   - Add new primitives as needed (Calendar, DatePicker, etc.)
-   - Ensure all new components use semantic tokens
-   - Update showcase page with new additions
-
-3. **Performance Optimization:**
-   - Monitor theme CSS size (watch for bloat)
-   - Optimize generated CSS (merge duplicate rules)
-   - Consider critical CSS inlining for faster FCP
-
-4. **Accessibility Audits:**
-   - Run axe-core on new pages before launch
-   - User testing with screen reader users
-   - Color contrast checks on new token additions
+### Configuration
+| File | Purpose | Status |
+|------|---------|--------|
+| `/firebase/scripts/tenant-configs.json` | Tenant seed definitions | ✅ Complete |
+| `/firebase/scripts/publish-local-themes.ts` | Theme publishing | ✅ Complete |
 
 ---
 
 ## Conclusion
 
-This plan transforms Splitifyd from a functional app into a design showcase. The dual-tenant strategy proves the white-label system works while simultaneously creating a marketing asset (Aurora theme) and a regression baseline (Brutalist theme).
+**The dual-tenant theming system is ~70% complete and architecturally sound.** The foundation (schema, fixtures, CSS generation, delivery) is production-ready. The component library is good and covers 95% of common UI patterns.
 
-**Ambition Level:** 🔥🔥🔥🔥 (Very High)
-**Risk Level:** 🟡 (Medium - mitigated by phased approach)
-**Effort:** ~10 weeks (1 full-time developer)
-**Impact:** Game-changing (differentiation, marketability, technical foundation)
+**Critical path to production:** Fix 3 blockers (8-11 hours), then ship.
 
-By Week 10, Splitifyd will have:
-- A world-class design system
-- Bulletproof theming architecture
-- Two complete theme implementations
-- Automated migration tooling
-- Comprehensive test coverage
-- Performance budgets enforced
-- WCAG AA compliance
+**After production:** Iteratively add motion enhancements (1 week), advanced components (1 week), and admin tooling (backlog).
 
-**This is not just a redesign. This is a platform rewrite disguised as a visual refresh.**
+**This is not just a redesign. This is a proven theming architecture that works.** The dual-tenant strategy successfully demonstrates white-label capability while creating a polished marketing asset (Aurora) and a regression baseline (Brutalist).
 
-Let's build something people will want to copy. 🚀
+Reference `/docs/modern_ui_ux_guide.md` for implementation patterns. Reference `/docs/branding/SYSTEM_AUDIT_2025-11-17.md` for detailed current state analysis.
+
+**Let's ship it.** 🚀
