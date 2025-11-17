@@ -324,7 +324,7 @@ test.describe('Form Validation & UI Error Handling', () => {
         await expenseFormPage.verifySaveButtonEnabled();
 
         await expenseFormPage.typeLabelText(''); // Clear label to trigger server error
-        await expenseFormPage.clickSaveExpenseButton();
+        await expenseFormPage.submitForm(); // Use submitForm() instead of clickSaveExpenseButton() since we expect validation error
 
         await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
         await expect(page.getByRole('heading', { name: /something went wrong/i })).toBeVisible({ timeout: 5000 });
