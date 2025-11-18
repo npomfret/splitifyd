@@ -28,7 +28,7 @@ const requiredVars: readonly string[] = isProduction
 // Optional staging variables with defaults
 const optionalVars: Record<string, string> = {
     FUNCTIONS_SOURCE: 'functions',
-    FUNCTIONS_PREDEPLOY: 'npm --prefix \\"$RESOURCE_DIR\\" run build',
+    FUNCTIONS_PREDEPLOY: '',
 };
 
 if (isProduction && !process.env.FUNCTIONS_SOURCE) {
@@ -75,7 +75,13 @@ Object.entries(optionalVars).forEach(([varName, defaultValue]) => {
     configContent = configContent.replace(new RegExp(placeholder, 'g'), value);
 });
 
-fs.writeFileSync(configPath, configContent);
+// Parse the config to handle empty predeploy array
+const config = JSON.parse(configContent);
+if (config.functions?.[0]?.predeploy?.[0] === '') {
+    config.functions[0].predeploy = [];
+}
+
+fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
 if (isProduction) {
     logger.info('🔥 Firebase configuration generated for production', {
