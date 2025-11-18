@@ -2,9 +2,9 @@ import type { GroupMember, MemberRole, MemberStatus, UserThemeColor } from '@spl
 import { MemberRoles, MemberStatuses, UserId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { ISOString } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { convertToISOString, generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
-import {toDisplayName} from "@splitifyd/shared";
 
 /**
  * Builder for creating GroupMember objects for tests
@@ -94,7 +94,7 @@ export class GroupMemberBuilder {
     }
 
     withGroupDisplayName(groupDisplayName: DisplayName | string): this {
-        this.member.groupDisplayName = typeof groupDisplayName === "string" ? toDisplayName(groupDisplayName) : groupDisplayName;
+        this.member.groupDisplayName = typeof groupDisplayName === 'string' ? toDisplayName(groupDisplayName) : groupDisplayName;
         return this;
     }
 

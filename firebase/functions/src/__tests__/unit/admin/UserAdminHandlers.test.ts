@@ -1,13 +1,13 @@
-import { RegisteredUserBuilder } from '@splitifyd/test-support';
 import { SystemUserRoles, toDisplayName } from '@splitifyd/shared';
+import { RegisteredUserBuilder } from '@splitifyd/test-support';
 import type { Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UserAdminHandlers } from '../../../admin/UserAdminHandlers';
 import type { AuthenticatedRequest } from '../../../auth/middleware';
 import { HTTP_STATUS } from '../../../constants';
+import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWriter';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
-import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWriter';
 
 describe('UserAdminHandlers - Unit Tests', () => {
     let handlers: UserAdminHandlers;

@@ -20,7 +20,7 @@ export const CssColorSchema = z
     .string()
     .refine(
         (value) => HEX_COLOR_PATTERN.test(value) || RGBA_COLOR_PATTERN.test(value),
-        'Expected hex color (#RRGGBB) or rgba(r, g, b, a)'
+        'Expected hex color (#RRGGBB) or rgba(r, g, b, a)',
     )
     .transform((value) => value as CssColor);
 
@@ -94,17 +94,19 @@ const TypographySemanticSchema = z.object({
 });
 
 // New: Fluid Typography Scale (clamp-based)
-const FluidTypographyScaleSchema = z.object({
-    xs: z.string().optional(),    // clamp(0.75rem, 0.9vw, 0.875rem)
-    sm: z.string().optional(),    // clamp(0.875rem, 1vw, 1rem)
-    base: z.string().optional(),  // clamp(1rem, 1.2vw, 1.125rem)
-    lg: z.string().optional(),    // clamp(1.125rem, 1.5vw, 1.25rem)
-    xl: z.string().optional(),    // clamp(1.25rem, 2vw, 1.5rem)
-    '2xl': z.string().optional(), // clamp(1.5rem, 2.5vw, 1.875rem)
-    '3xl': z.string().optional(), // clamp(1.875rem, 3vw, 2.25rem)
-    '4xl': z.string().optional(), // clamp(2.25rem, 4vw, 3rem)
-    hero: z.string().optional(),  // clamp(2.5rem, 5vw, 3.75rem)
-}).optional();
+const FluidTypographyScaleSchema = z
+    .object({
+        xs: z.string().optional(), // clamp(0.75rem, 0.9vw, 0.875rem)
+        sm: z.string().optional(), // clamp(0.875rem, 1vw, 1rem)
+        base: z.string().optional(), // clamp(1rem, 1.2vw, 1.125rem)
+        lg: z.string().optional(), // clamp(1.125rem, 1.5vw, 1.25rem)
+        xl: z.string().optional(), // clamp(1.25rem, 2vw, 1.5rem)
+        '2xl': z.string().optional(), // clamp(1.5rem, 2.5vw, 1.875rem)
+        '3xl': z.string().optional(), // clamp(1.875rem, 3vw, 2.25rem)
+        '4xl': z.string().optional(), // clamp(2.25rem, 4vw, 3rem)
+        hero: z.string().optional(), // clamp(2.5rem, 5vw, 3.75rem)
+    })
+    .optional();
 
 const BrandingTypographySchema = z.object({
     fontFamily: z.object({
@@ -160,37 +162,45 @@ const BrandingAssetsSchema = z.object({
     heroIllustrationUrl: z.string().min(1).optional(),
     backgroundTextureUrl: z.string().min(1).optional(),
     // New for self-hosted fonts
-    fonts: z.object({
-        headingUrl: z.string().min(1).optional(), // Space Grotesk, etc.
-        bodyUrl: z.string().min(1).optional(),    // Inter, etc.
-        monoUrl: z.string().min(1).optional(),    // Geist Mono, etc.
-    }).optional(),
+    fonts: z
+        .object({
+            headingUrl: z.string().min(1).optional(), // Space Grotesk, etc.
+            bodyUrl: z.string().min(1).optional(), // Inter, etc.
+            monoUrl: z.string().min(1).optional(), // Geist Mono, etc.
+        })
+        .optional(),
 });
 
 // New: Motion Tokens
-const BrandingMotionSchema = z.object({
-    // Durations (ms) - allow 0 for no motion
-    duration: z.object({
-        instant: z.number().min(0).max(100).optional(),     // 0-50ms
-        fast: z.number().min(0).max(200).optional(),        // 0-150ms
-        base: z.number().min(0).max(400).optional(),        // 0-320ms
-        slow: z.number().min(0).max(800).optional(),        // 0-500ms
-        glacial: z.number().min(0).max(2000).optional(),    // 0-1200ms
-    }).optional(),
+const BrandingMotionSchema = z
+    .object({
+        // Durations (ms) - allow 0 for no motion
+        duration: z
+            .object({
+                instant: z.number().min(0).max(100).optional(), // 0-50ms
+                fast: z.number().min(0).max(200).optional(), // 0-150ms
+                base: z.number().min(0).max(400).optional(), // 0-320ms
+                slow: z.number().min(0).max(800).optional(), // 0-500ms
+                glacial: z.number().min(0).max(2000).optional(), // 0-1200ms
+            })
+            .optional(),
 
-    // Easing curves (cubic-bezier values as strings)
-    easing: z.object({
-        standard: z.string().optional(),    // cubic-bezier(0.22, 1, 0.36, 1)
-        decelerate: z.string().optional(),  // cubic-bezier(0.05, 0.7, 0.1, 1)
-        accelerate: z.string().optional(),  // cubic-bezier(0.3, 0, 0.8, 0.15)
-        spring: z.string().optional(),      // cubic-bezier(0.34, 1.56, 0.64, 1)
-    }).optional(),
+        // Easing curves (cubic-bezier values as strings)
+        easing: z
+            .object({
+                standard: z.string().optional(), // cubic-bezier(0.22, 1, 0.36, 1)
+                decelerate: z.string().optional(), // cubic-bezier(0.05, 0.7, 0.1, 1)
+                accelerate: z.string().optional(), // cubic-bezier(0.3, 0, 0.8, 0.15)
+                spring: z.string().optional(), // cubic-bezier(0.34, 1.56, 0.64, 1)
+            })
+            .optional(),
 
-    // Feature flags
-    enableParallax: z.boolean().optional(),
-    enableMagneticHover: z.boolean().optional(),
-    enableScrollReveal: z.boolean().optional(),
-}).optional();
+        // Feature flags
+        enableParallax: z.boolean().optional(),
+        enableMagneticHover: z.boolean().optional(),
+        enableScrollReveal: z.boolean().optional(),
+    })
+    .optional();
 
 const BrandingLegalSchema = z.object({
     companyName: z.string().min(1),
@@ -259,12 +269,14 @@ const BrandingSemanticColorSchema = z.object({
         info: CssColorSchema,
     }),
     // New gradient system
-    gradient: z.object({
-        primary: z.array(CssColorSchema).length(2).optional(),
-        accent: z.array(CssColorSchema).length(2).optional(),
-        aurora: z.array(CssColorSchema).min(2).max(4).optional(),
-        text: z.array(CssColorSchema).length(2).optional(),
-    }).optional(),
+    gradient: z
+        .object({
+            primary: z.array(CssColorSchema).length(2).optional(),
+            accent: z.array(CssColorSchema).length(2).optional(),
+            aurora: z.array(CssColorSchema).min(2).max(4).optional(),
+            text: z.array(CssColorSchema).length(2).optional(),
+        })
+        .optional(),
 });
 
 const BrandingSemanticSchema = z.object({

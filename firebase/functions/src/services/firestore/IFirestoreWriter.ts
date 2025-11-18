@@ -165,7 +165,7 @@ export interface IFirestoreWriter {
     /**
      * Create or update a tenant document (admin use only)
      */
-    upsertTenant(tenantId: string, data: TenantDocumentUpsertData): Promise<WriteResult & { created: boolean }>;
+    upsertTenant(tenantId: string, data: TenantDocumentUpsertData): Promise<WriteResult & { created: boolean; }>;
 
     updateTenantThemeArtifact(tenantId: string, artifact: BrandingArtifactMetadata): Promise<WriteResult>;
 

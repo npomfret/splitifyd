@@ -7,10 +7,10 @@ import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
 import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
-import { generateBillSplitterUser, createDefaultTenant } from './test-data-generator';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
+import { createDefaultTenant, generateBillSplitterUser } from './test-data-generator';
 
 async function runSeedPoliciesStep(): Promise<void> {
     logger.info('');

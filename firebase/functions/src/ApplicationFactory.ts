@@ -25,13 +25,13 @@ import { GroupSecurityHandlers } from './groups/GroupSecurityHandlers';
 import { GroupShareHandlers } from './groups/GroupShareHandlers';
 import { PolicyHandlers } from './policies/PolicyHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
-import { SettlementHandlers } from './settlements/SettlementHandlers';
-import { UserHandlers } from './user/UserHandlers';
-import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
+import { createThemeArtifactStorage } from './services/storage/ThemeArtifactStorage';
 import { TenantAdminService } from './services/tenant/TenantAdminService';
 import { ThemeArtifactService } from './services/tenant/ThemeArtifactService';
-import { createThemeArtifactStorage } from './services/storage/ThemeArtifactStorage';
+import { SettlementHandlers } from './settlements/SettlementHandlers';
+import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
+import { UserHandlers } from './user/UserHandlers';
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.
@@ -333,8 +333,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
                 res.status(400).json({
                     error: {
                         code: 'MISSING_TENANT_ID',
-                        message: 'Tenant ID not found in request context'
-                    }
+                        message: 'Tenant ID not found in request context',
+                    },
                 });
                 return;
             }
@@ -357,8 +357,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
             res.status(500).json({
                 error: {
                     code: 'INTERNAL_ERROR',
-                    message: 'Failed to retrieve tenant settings'
-                }
+                    message: 'Failed to retrieve tenant settings',
+                },
             });
         }
     };
@@ -434,8 +434,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
                 res.status(400).json({
                     error: {
                         code: 'MISSING_TENANT_ID',
-                        message: 'Tenant ID not found in request context'
-                    }
+                        message: 'Tenant ID not found in request context',
+                    },
                 });
                 return;
             }
@@ -455,8 +455,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
             res.status(500).json({
                 error: {
                     code: 'INTERNAL_ERROR',
-                    message: 'Failed to list tenant domains'
-                }
+                    message: 'Failed to list tenant domains',
+                },
             });
         }
     };
@@ -467,8 +467,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         res.status(501).json({
             error: {
                 code: 'NOT_IMPLEMENTED',
-                message: 'Tenant domain addition not yet implemented'
-            }
+                message: 'Tenant domain addition not yet implemented',
+            },
         });
     };
 

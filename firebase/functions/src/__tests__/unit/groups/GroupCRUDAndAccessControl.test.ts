@@ -49,9 +49,12 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
         test('should require valid group data for creation', async () => {
             // Empty name should fail
             await expect(
-                appDriver.createGroup(new CreateGroupRequestBuilder()
-                    .withName('')
-                    .build(), userIds[0]),
+                appDriver.createGroup(
+                    new CreateGroupRequestBuilder()
+                        .withName('')
+                        .build(),
+                    userIds[0],
+                ),
             )
                 .rejects
                 .toThrow(/required|invalid|name/i);
@@ -86,10 +89,13 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
 
         test('should prevent unauthorized access to groups', async () => {
             // Create private group for user 0 only
-            const privateGroup = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName(`Private Group ${uuidv4()}`)
-                .withGroupDisplayName('Owner Display')
-                .build(), userIds[0]);
+            const privateGroup = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName(`Private Group ${uuidv4()}`)
+                    .withGroupDisplayName('Owner Display')
+                    .build(),
+                userIds[0],
+            );
 
             // User 1 should not be able to access
             await expect(appDriver.getGroupFullDetails(privateGroup.id, {}, userIds[1])).rejects.toThrow(
@@ -104,9 +110,12 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
 
     describe('Group Update Operations', () => {
         test('should allow group owner to update group settings', async () => {
-            const testGroup = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Update Test Group')
-                .build(), userIds[0]);
+            const testGroup = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Update Test Group')
+                    .build(),
+                userIds[0],
+            );
 
             // Add second user as member
             await appDriver.addMembersToGroup(testGroup.id, userIds[0], [userIds[1]]);
@@ -127,9 +136,13 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
 
             // Non-member should not be able to modify group
             await expect(
-                appDriver.updateGroup(testGroup.id, new GroupUpdateBuilder()
-                    .withName('Hacked Name')
-                    .build(), userIds[2]),
+                appDriver.updateGroup(
+                    testGroup.id,
+                    new GroupUpdateBuilder()
+                        .withName('Hacked Name')
+                        .build(),
+                    userIds[2],
+                ),
             )
                 .rejects
                 .toThrow(/not.*found|not.*member|access.*denied/i);
@@ -149,24 +162,35 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
     describe('Permission System and Role Management', () => {
         test('should enforce authorization for group updates', async () => {
             // Create group with users 0 and 1
-            const roleTestGroup = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Role Test Group')
-                .build(), userIds[0]);
+            const roleTestGroup = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Role Test Group')
+                    .build(),
+                userIds[0],
+            );
             await appDriver.addMembersToGroup(roleTestGroup.id, userIds[0], [userIds[1]]);
 
             // Admin (owner) can update group
-            await appDriver.updateGroup(roleTestGroup.id, new GroupUpdateBuilder()
-                .withName('Updated by Admin')
-                .build(), userIds[0]);
+            await appDriver.updateGroup(
+                roleTestGroup.id,
+                new GroupUpdateBuilder()
+                    .withName('Updated by Admin')
+                    .build(),
+                userIds[0],
+            );
 
             const updatedGroup = await appDriver.getGroupFullDetails(roleTestGroup.id, {}, userIds[0]);
             expect(updatedGroup.group.name).toBe('Updated by Admin');
 
             // Member cannot update group settings (depends on group permissions)
             await expect(
-                appDriver.updateGroup(roleTestGroup.id, new GroupUpdateBuilder()
-                    .withName('Hacked by Member')
-                    .build(), userIds[1]),
+                appDriver.updateGroup(
+                    roleTestGroup.id,
+                    new GroupUpdateBuilder()
+                        .withName('Hacked by Member')
+                        .build(),
+                    userIds[1],
+                ),
             )
                 .rejects
                 .toThrow(/forbidden|unauthorized|only.*owner|only.*admin|permission.*denied|access.*denied/i);
@@ -193,9 +217,13 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
             );
 
             await expect(
-                appDriver.updateGroup(testGroup.id, new GroupUpdateBuilder()
-                    .withName('New Name')
-                    .build(), nonExistentUser),
+                appDriver.updateGroup(
+                    testGroup.id,
+                    new GroupUpdateBuilder()
+                        .withName('New Name')
+                        .build(),
+                    nonExistentUser,
+                ),
             )
                 .rejects
                 .toThrow(/not.*found|user.*not.*exist|not.*member|access.*denied/i);

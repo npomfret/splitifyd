@@ -1,13 +1,13 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
-import { logError } from '@/utils/browser-logger';
 import { Alert, Avatar, Button, Card, Form, Input } from '@/components/ui';
+import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles, toPassword } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { toDisplayName } from '@splitifyd/shared';
 
 interface PasswordChangeData {
     currentPassword: string;

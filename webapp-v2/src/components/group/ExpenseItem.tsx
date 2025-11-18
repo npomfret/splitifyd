@@ -35,7 +35,9 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
     return (
         <div
-            className={`border border-border-default/50 rounded-lg px-4 py-3 cursor-pointer hover:border-interactive-primary/40 hover:bg-surface-base/30 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md relative group ${isDeleted ? 'opacity-60 bg-surface-muted' : 'bg-surface-base/20'}`}
+            className={`border border-border-default/50 rounded-lg px-4 py-3 cursor-pointer hover:border-interactive-primary/40 hover:bg-surface-base/30 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md relative group ${
+                isDeleted ? 'opacity-60 bg-surface-muted' : 'bg-surface-base/20'
+            }`}
             onClick={() => onClick?.(expense)}
             data-testid='expense-item'
         >

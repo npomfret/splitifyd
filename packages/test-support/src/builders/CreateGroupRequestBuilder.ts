@@ -1,7 +1,7 @@
 import type { CreateGroupRequest, DisplayName, GroupName } from '@splitifyd/shared';
 import { toGroupName } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { generateShortId, randomChoice, randomString } from '../test-helpers';
-import {toDisplayName} from "@splitifyd/shared";
 
 export class CreateGroupRequestBuilder {
     private group: CreateGroupRequest;
@@ -25,7 +25,7 @@ export class CreateGroupRequestBuilder {
     }
 
     withGroupDisplayName(displayName: DisplayName | string): this {
-        this.group.groupDisplayName = typeof displayName === "string" ? toDisplayName(displayName) : displayName;
+        this.group.groupDisplayName = typeof displayName === 'string' ? toDisplayName(displayName) : displayName;
         return this;
     }
 

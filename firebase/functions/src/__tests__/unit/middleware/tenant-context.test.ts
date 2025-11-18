@@ -1,4 +1,6 @@
-import {toISOString,
+import {
+    type TenantConfig,
+    toISOString,
     toTenantAppName,
     toTenantDefaultFlag,
     toTenantDomainName,
@@ -6,12 +8,12 @@ import {toISOString,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
-    toTenantSecondaryColor,type TenantConfig
+    toTenantSecondaryColor,
 } from '@splitifyd/shared';
 import express from 'express';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
-import { tenantContextMiddleware, type TenantContextConfig } from '../../../middleware/tenant-context';
+import { type TenantContextConfig, tenantContextMiddleware } from '../../../middleware/tenant-context';
 import { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
 import type { TenantRequestContext } from '../../../types/tenant';
 import { ApiError } from '../../../utils/errors';
@@ -32,37 +34,37 @@ describe('tenantContextMiddleware', () => {
                 logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
                 faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
                 primaryColor: toTenantPrimaryColor('#0066CC'),
-                secondaryColor: toTenantSecondaryColor('#FF6600')
-},
+                secondaryColor: toTenantSecondaryColor('#FF6600'),
+            },
             features: {
-                enableAdvancedReporting:(false),
-                maxGroupsPerUser:(10),
-                maxUsersPerGroup:(20)
-},
+                enableAdvancedReporting: (false),
+                maxGroupsPerUser: (10),
+                maxUsersPerGroup: (20),
+            },
             createdAt: toISOString('2025-01-15T10:00:00.000Z'),
-            updatedAt: toISOString('2025-01-20T14:30:00.000Z')
-} as TenantConfig,
+            updatedAt: toISOString('2025-01-20T14:30:00.000Z'),
+        } as TenantConfig,
         primaryDomain: toTenantDomainName('app.example.com'),
         domains: [toTenantDomainName('app.example.com')],
         isDefault: toTenantDefaultFlag(false),
-        source: 'domain'
-};
+        source: 'domain',
+    };
 
     beforeEach(() => {
         mockTenantRegistry = {
-            resolveTenant: vi.fn()
-} as unknown as TenantRegistryService;
+            resolveTenant: vi.fn(),
+        } as unknown as TenantRegistryService;
 
         mockConfig = {
             allowOverrideHeader: vi.fn().mockReturnValue(true),
-};
+        };
 
         mockRequest = {
             method: 'GET',
             headers: {},
             get: vi.fn(),
-            hostname: ''
-};
+            hostname: '',
+        };
 
         mockResponse = {};
 
@@ -93,8 +95,8 @@ describe('tenantContextMiddleware', () => {
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    host: 'app.example.com'
-}),
+                    host: 'app.example.com',
+                }),
             );
         });
 
@@ -103,16 +105,16 @@ describe('tenantContextMiddleware', () => {
 
             mockRequest.headers = {
                 'x-forwarded-host': 'proxy.example.com',
-                host: 'internal.example.com'
-};
+                host: 'internal.example.com',
+            };
 
             const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    host: 'proxy.example.com'
-}),
+                    host: 'proxy.example.com',
+                }),
             );
         });
 
@@ -122,16 +124,16 @@ describe('tenantContextMiddleware', () => {
             mockRequest = {
                 ...mockRequest,
                 headers: {},
-                hostname: 'fallback.example.com'
-};
+                hostname: 'fallback.example.com',
+            };
 
             const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    host: 'fallback.example.com'
-}),
+                    host: 'fallback.example.com',
+                }),
             );
         });
 
@@ -141,16 +143,16 @@ describe('tenantContextMiddleware', () => {
             mockRequest = {
                 ...mockRequest,
                 headers: {},
-                hostname: ''
-};
+                hostname: '',
+            };
 
             const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    host: null
-}),
+                    host: null,
+                }),
             );
         });
 
@@ -165,8 +167,8 @@ describe('tenantContextMiddleware', () => {
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    overrideTenantId: 'override-tenant'
-}),
+                    overrideTenantId: 'override-tenant',
+                }),
             );
         });
     });
@@ -183,8 +185,8 @@ describe('tenantContextMiddleware', () => {
 
             expect(mockTenantRegistry.resolveTenant).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    allowOverride: false
-}),
+                    allowOverride: false,
+                }),
             );
         });
     });
@@ -210,8 +212,8 @@ describe('tenantContextMiddleware', () => {
                     ...mockRequest,
                     method: 'GET',
                     path: route,
-                    headers: { host: 'app.example.com' }
-};
+                    headers: { host: 'app.example.com' },
+                };
 
                 const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
                 await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
@@ -238,8 +240,8 @@ describe('tenantContextMiddleware', () => {
                     ...mockRequest,
                     method: 'GET',
                     path: route,
-                    headers: { host: 'app.example.com' }
-};
+                    headers: { host: 'app.example.com' },
+                };
 
                 const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
                 await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
@@ -257,8 +259,8 @@ describe('tenantContextMiddleware', () => {
                 ...mockRequest,
                 method: 'GET',
                 path: '/api/groups',
-                headers: { host: 'app.example.com' }
-};
+                headers: { host: 'app.example.com' },
+            };
 
             const middleware = tenantContextMiddleware(mockTenantRegistry, mockConfig);
             await middleware(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
@@ -299,8 +301,8 @@ describe('tenantContextMiddleware', () => {
         it('should preserve source from resolution', async () => {
             const overrideContext: TenantRequestContext = {
                 ...mockTenantContext,
-                source: 'override'
-};
+                source: 'override',
+            };
 
             vi.mocked(mockTenantRegistry.resolveTenant).mockResolvedValue(overrideContext);
 
@@ -316,8 +318,8 @@ describe('tenantContextMiddleware', () => {
             const defaultContext: TenantRequestContext = {
                 ...mockTenantContext,
                 source: 'default',
-                isDefault: toTenantDefaultFlag(true)
-};
+                isDefault: toTenantDefaultFlag(true),
+            };
 
             vi.mocked(mockTenantRegistry.resolveTenant).mockResolvedValue(defaultContext);
 

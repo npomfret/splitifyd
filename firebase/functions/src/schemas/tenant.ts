@@ -1,21 +1,21 @@
 import {
+    TenantBrandingSchema,
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAccentColor,
     toTenantAppName,
     toTenantBackgroundColor,
-    toTenantHeaderBackgroundColor,
     toTenantCustomCss,
     toTenantDefaultFlag,
     toTenantDomainName,
     toTenantFaviconUrl,
+    toTenantHeaderBackgroundColor,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
     toTenantThemePaletteName,
-    TenantBrandingSchema,
 } from '@splitifyd/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema } from './common';
@@ -89,16 +89,18 @@ export const PublishTenantThemeRequestSchema = z.object({
  * Schema for updating tenant branding (partial update)
  * Used for PUT /settings/tenant/branding endpoint
  */
-export const UpdateTenantBrandingRequestSchema = z.object({
-    appName: z.string().min(1).transform(toTenantAppName).optional(),
-    logoUrl: z.string().min(1).transform(toTenantLogoUrl).optional(),
-    faviconUrl: z.string().min(1).transform(toTenantFaviconUrl).optional(),
-    primaryColor: z.string().min(1).transform(toTenantPrimaryColor).optional(),
-    secondaryColor: z.string().min(1).transform(toTenantSecondaryColor).optional(),
-    backgroundColor: z.string().min(1).transform(toTenantBackgroundColor).optional(),
-    headerBackgroundColor: z.string().min(1).transform(toTenantHeaderBackgroundColor).optional(),
-    accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),
-    themePalette: z.string().min(1).transform(toTenantThemePaletteName).optional(),
-    customCSS: z.string().transform(toTenantCustomCss).optional(),
-    marketingFlags: BrandingMarketingFlagsSchema.partial().optional(),
-}).strict();
+export const UpdateTenantBrandingRequestSchema = z
+    .object({
+        appName: z.string().min(1).transform(toTenantAppName).optional(),
+        logoUrl: z.string().min(1).transform(toTenantLogoUrl).optional(),
+        faviconUrl: z.string().min(1).transform(toTenantFaviconUrl).optional(),
+        primaryColor: z.string().min(1).transform(toTenantPrimaryColor).optional(),
+        secondaryColor: z.string().min(1).transform(toTenantSecondaryColor).optional(),
+        backgroundColor: z.string().min(1).transform(toTenantBackgroundColor).optional(),
+        headerBackgroundColor: z.string().min(1).transform(toTenantHeaderBackgroundColor).optional(),
+        accentColor: z.string().min(1).transform(toTenantAccentColor).optional(),
+        themePalette: z.string().min(1).transform(toTenantThemePaletteName).optional(),
+        customCSS: z.string().transform(toTenantCustomCss).optional(),
+        marketingFlags: BrandingMarketingFlagsSchema.partial().optional(),
+    })
+    .strict();

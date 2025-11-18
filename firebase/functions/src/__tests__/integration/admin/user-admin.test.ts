@@ -94,8 +94,10 @@ describe('Admin User Management - Integration Tests', () => {
     describe('PUT /admin/users/:uid - Validation', () => {
         it('should reject request with non-boolean disabled field', async () => {
             await expect(
-                apiDriver.updateUser(targetUser.uid, { disabled: 'true' as any }, adminUser.token)
-            ).rejects.toThrow();
+                apiDriver.updateUser(targetUser.uid, { disabled: 'true' as any }, adminUser.token),
+            )
+                .rejects
+                .toThrow();
         });
 
         it('should reject request with extra fields', async () => {

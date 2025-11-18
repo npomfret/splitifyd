@@ -303,8 +303,8 @@ describe('Config Endpoint Integration Tests', () => {
             const response = await fetch(configUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-});
+                body: JSON.stringify({}),
+            });
             expect([404, 405]).toContain(response.status);
         });
 
@@ -312,8 +312,8 @@ describe('Config Endpoint Integration Tests', () => {
             const response = await fetch(configUrl, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({})
-});
+                body: JSON.stringify({}),
+            });
             expect([404, 405]).toContain(response.status);
         });
 
@@ -365,9 +365,9 @@ describe('Config Endpoint Integration Tests', () => {
         test('should include CORS headers', async () => {
             const response = await fetch(configUrl, {
                 headers: {
-                    Origin: 'http://localhost:3000'
-}
-});
+                    Origin: 'http://localhost:3000',
+                },
+            });
 
             expect(response.headers.get('Access-Control-Allow-Origin')).toBeTruthy();
         });
@@ -377,9 +377,9 @@ describe('Config Endpoint Integration Tests', () => {
                 method: 'OPTIONS',
                 headers: {
                     Origin: 'http://localhost:3000',
-                    'Access-Control-Request-Method': 'GET'
-}
-});
+                    'Access-Control-Request-Method': 'GET',
+                },
+            });
 
             expect(response.status).toBe(204);
             expect(response.headers.get('Access-Control-Allow-Origin')).toBeTruthy();

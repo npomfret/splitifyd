@@ -1,7 +1,7 @@
 import { useNavigation } from '@/hooks/useNavigation';
+import { configStore } from '@/stores/config-store';
 import { useTranslation } from 'react-i18next';
 import { StaticPageLayout } from '../../components/StaticPageLayout';
-import { configStore } from '@/stores/config-store';
 
 export function PricingPage() {
     const { t } = useTranslation();
@@ -68,14 +68,19 @@ export function PricingPage() {
                             ))}
                         </ul>
 
-                        <button onClick={() => navigation.goToRegister()} class='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'>
+                        <button
+                            onClick={() => navigation.goToRegister()}
+                            class='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'
+                        >
                             {t('pricing.plans.starter.button')}
                         </button>
                     </div>
 
                     {/* I'm Basically a Pro Plan */}
                     <div class='border-2 border-interactive-primary rounded-lg p-6 relative bg-surface-base'>
-                        <div class='absolute -top-3 left-1/2 transform -translate-x-1/2 bg-interactive-secondary text-interactive-secondary-foreground px-3 py-1 rounded text-sm'>{t('pricing.plans.pro.badge')}</div>
+                        <div class='absolute -top-3 left-1/2 transform -translate-x-1/2 bg-interactive-secondary text-interactive-secondary-foreground px-3 py-1 rounded text-sm'>
+                            {t('pricing.plans.pro.badge')}
+                        </div>
                         <div class='text-center'>
                             <h3 class='text-xl font-bold text-text-primary mb-2'>{t('pricing.plans.pro.title')}</h3>
                             <div class='mb-4'>
@@ -100,7 +105,10 @@ export function PricingPage() {
                             ))}
                         </ul>
 
-                        <button onClick={() => navigation.goToRegister()} class='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'>
+                        <button
+                            onClick={() => navigation.goToRegister()}
+                            class='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'
+                        >
                             {t('pricing.plans.pro.button')}
                         </button>
                     </div>
@@ -131,7 +139,10 @@ export function PricingPage() {
                             ))}
                         </ul>
 
-                        <button onClick={() => navigation.goToRegister()} class='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'>
+                        <button
+                            onClick={() => navigation.goToRegister()}
+                            class='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'
+                        >
                             {t('pricing.plans.philanthropist.button')}
                         </button>
                     </div>

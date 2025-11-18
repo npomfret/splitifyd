@@ -1,4 +1,5 @@
 import {
+    type TenantConfig,
     toISOString,
     toTenantAppName,
     toTenantDefaultFlag,
@@ -8,9 +9,8 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    type TenantConfig,
 } from '@splitifyd/shared';
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import type { TenantRegistryRecord } from '../../../services/firestore';
 import type { IFirestoreReader } from '../../../services/firestore';

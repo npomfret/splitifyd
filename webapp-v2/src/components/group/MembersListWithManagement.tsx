@@ -140,7 +140,10 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
 
     const membersList = (
         <>
-            <div className='space-y-0.5 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong' data-testid='members-scroll-container'>
+            <div
+                className='space-y-0.5 max-h-[300px] overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong'
+                data-testid='members-scroll-container'
+            >
                 {members.value.map((member) => {
                     const memberTheme = member.themeColor;
                     return (

@@ -36,15 +36,33 @@ export function GroupActions({
     const { t } = useTranslation();
     const commonButtons = (
         <>
-            <button onClick={onAddExpense} className={`bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-4 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hover:shadow-lg hover:scale-[1.02] flex items-center justify-center ${variant === 'vertical' ? 'w-full' : ''}`} data-testid='add-expense-button'>
+            <button
+                onClick={onAddExpense}
+                className={`bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-4 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hover:shadow-lg hover:scale-[1.02] flex items-center justify-center ${
+                    variant === 'vertical' ? 'w-full' : ''
+                }`}
+                data-testid='add-expense-button'
+            >
                 <PlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.addExpense')}
             </button>
-            <button onClick={onSettleUp} className={`bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-4 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hover:shadow-lg hover:scale-[1.02] flex items-center justify-center ${variant === 'vertical' ? 'w-full' : ''}`} data-testid='settle-up-button'>
+            <button
+                onClick={onSettleUp}
+                className={`bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-4 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hover:shadow-lg hover:scale-[1.02] flex items-center justify-center ${
+                    variant === 'vertical' ? 'w-full' : ''
+                }`}
+                data-testid='settle-up-button'
+            >
                 <BanknotesIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.settleUp')}
             </button>
-            <button onClick={onShare} className={`bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-4 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hover:shadow-lg hover:scale-[1.02] flex items-center justify-center ${variant === 'vertical' ? 'w-full' : ''}`} data-testid='invite-others-button'>
+            <button
+                onClick={onShare}
+                className={`bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-4 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hover:shadow-lg hover:scale-[1.02] flex items-center justify-center ${
+                    variant === 'vertical' ? 'w-full' : ''
+                }`}
+                data-testid='invite-others-button'
+            >
                 <UserPlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.inviteOthers')}
             </button>
@@ -53,7 +71,13 @@ export function GroupActions({
 
     const settingsButton = showSettingsButton && onSettings
         ? (
-            <button onClick={onSettings} className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center ${variant === 'vertical' ? 'w-full' : ''}`} data-testid='group-settings-button'>
+            <button
+                onClick={onSettings}
+                className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center ${
+                    variant === 'vertical' ? 'w-full' : ''
+                }`}
+                data-testid='group-settings-button'
+            >
                 <CogIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.settings')}
             </button>
@@ -65,7 +89,9 @@ export function GroupActions({
             <button
                 onClick={onArchive}
                 disabled={membershipActionDisabled}
-                className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${variant === 'vertical' ? 'w-full' : ''}`}
+                className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${
+                    variant === 'vertical' ? 'w-full' : ''
+                }`}
                 data-testid='archive-group-button'
             >
                 <ArchiveBoxArrowDownIcon className='h-4 w-4 mr-2' aria-hidden='true' />
@@ -79,7 +105,9 @@ export function GroupActions({
             <button
                 onClick={onUnarchive}
                 disabled={membershipActionDisabled}
-                className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${variant === 'vertical' ? 'w-full' : ''}`}
+                className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${
+                    variant === 'vertical' ? 'w-full' : ''
+                }`}
                 data-testid='unarchive-group-button'
             >
                 <ArrowPathIcon className='h-4 w-4 mr-2' aria-hidden='true' />
@@ -90,7 +118,13 @@ export function GroupActions({
 
     const leaveGroupButton = onLeaveGroup && canLeaveGroup
         ? (
-            <button onClick={onLeaveGroup} className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center ${variant === 'vertical' ? 'w-full' : ''}`} data-testid='leave-group-button'>
+            <button
+                onClick={onLeaveGroup}
+                className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center ${
+                    variant === 'vertical' ? 'w-full' : ''
+                }`}
+                data-testid='leave-group-button'
+            >
                 <ArrowLeftStartOnRectangleIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.leaveGroup')}
             </button>

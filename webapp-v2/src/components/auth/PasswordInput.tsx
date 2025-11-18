@@ -1,7 +1,7 @@
+import { cx } from '@/utils/cx.ts';
 import { signal } from '@preact/signals';
 import { useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { cx } from '@/utils/cx.ts';
 import { Tooltip } from '../ui';
 
 interface PasswordInputProps {

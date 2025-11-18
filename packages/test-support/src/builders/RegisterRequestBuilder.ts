@@ -1,4 +1,4 @@
-import type {Password, UserRegistration } from '@splitifyd/shared';
+import type { Password, UserRegistration } from '@splitifyd/shared';
 import { DisplayName, toDisplayName, toPassword } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
 import { randomBoolean, randomChoice, randomEmail, randomString } from '../test-helpers';
@@ -19,12 +19,12 @@ export class RegisterRequestBuilder {
     }
 
     withPassword(password: Password | string): this {
-        this.request.password = typeof password === "string" ? toPassword(password) : password;
+        this.request.password = typeof password === 'string' ? toPassword(password) : password;
         return this;
     }
 
     withDisplayName(displayName: DisplayName | string): this {
-        this.request.displayName = typeof displayName === "string" ? toDisplayName(displayName) : displayName;
+        this.request.displayName = typeof displayName === 'string' ? toDisplayName(displayName) : displayName;
         return this;
     }
 

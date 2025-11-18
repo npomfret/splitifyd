@@ -37,8 +37,8 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
 
     // Get shareToken from URL query parameters if not provided as prop
     // Support both 'shareToken' (new) and 'linkId' (legacy) query parameters for backwards compatibility
-    const actualLinkId = linkId ?? (typeof window !== 'undefined' ?
-        (new URLSearchParams(window.location.search).get('shareToken') ?? new URLSearchParams(window.location.search).get('linkId'))
+    const actualLinkId = linkId ?? (typeof window !== 'undefined'
+        ? (new URLSearchParams(window.location.search).get('shareToken') ?? new URLSearchParams(window.location.search).get('linkId'))
         : null);
 
     useEffect(() => {

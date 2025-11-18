@@ -136,9 +136,12 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Old Name')
-                .build(), userId);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Old Name')
+                    .build(),
+                userId,
+            );
 
             const updateRequest = new GroupUpdateBuilder()
                 .withName('New Name')
@@ -155,10 +158,13 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Test Group')
-                .withDescription('Old description')
-                .build(), userId);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Test Group')
+                    .withDescription('Old description')
+                    .build(),
+                userId,
+            );
 
             const updateRequest = new GroupUpdateBuilder()
                 .withDescription('New description')
@@ -175,10 +181,13 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Old Name')
-                .withDescription('Old description')
-                .build(), userId);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Old Name')
+                    .withDescription('Old description')
+                    .build(),
+                userId,
+            );
 
             const updateRequest = new GroupUpdateBuilder()
                 .withName('New Name')
@@ -285,12 +294,18 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'test-user';
             appDriver.seedUser(userId, { displayName: 'Test User' });
 
-            await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Group 1')
-                .build(), userId);
-            await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Group 2')
-                .build(), userId);
+            await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Group 1')
+                    .build(),
+                userId,
+            );
+            await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Group 2')
+                    .build(),
+                userId,
+            );
 
             const result = await appDriver.listGroups({}, userId);
 
@@ -373,10 +388,13 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'details-owner';
             appDriver.seedUser(userId, { displayName: 'Owner User', email: 'owner@example.com' });
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Adventure Squad')
-                .withGroupDisplayName('Owner User')
-                .build(), userId);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Adventure Squad')
+                    .withGroupDisplayName('Owner User')
+                    .build(),
+                userId,
+            );
 
             const expenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
@@ -435,9 +453,12 @@ describe('GroupHandlers - Unit Tests', () => {
             const ownerId = 'include-deleted-owner';
             appDriver.seedUser(ownerId, { displayName: 'Owner User' });
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Include Deleted Expenses Group')
-                .build(), ownerId);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Include Deleted Expenses Group')
+                    .build(),
+                ownerId,
+            );
 
             const activeExpenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)

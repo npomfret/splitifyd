@@ -114,7 +114,9 @@ export function DashboardPage() {
                                             disabled={filterLoading}
                                             onClick={() => changeGroupFilter(false)}
                                             class={`px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none ${
-                                                !showArchived ? 'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-sm' : 'bg-surface-base text-text-muted hover:bg-surface-muted'
+                                                !showArchived
+                                                    ? 'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-sm'
+                                                    : 'bg-surface-base text-text-muted hover:bg-surface-muted'
                                             }`}
                                         >
                                             {t('dashboard.groupsFilter.active')}
@@ -125,7 +127,9 @@ export function DashboardPage() {
                                             disabled={filterLoading}
                                             onClick={() => changeGroupFilter(true)}
                                             class={`px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none border-l border-border-default ${
-                                                showArchived ? 'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-sm' : 'bg-surface-base text-text-muted hover:bg-surface-muted'
+                                                showArchived
+                                                    ? 'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-sm'
+                                                    : 'bg-surface-base text-text-muted hover:bg-surface-muted'
                                             }`}
                                         >
                                             {t('dashboard.groupsFilter.archived')}

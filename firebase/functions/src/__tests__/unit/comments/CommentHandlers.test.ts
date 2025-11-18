@@ -129,11 +129,14 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(userId)
-                .withParticipants([userId])
-                .build(), userId);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
 
             const result = await appDriver.createExpenseComment(expense.id, 'This is an expense comment', userId);
 
@@ -153,11 +156,14 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(creatorId)
-                .withParticipants([creatorId])
-                .build(), creatorId);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(creatorId)
+                    .withParticipants([creatorId])
+                    .build(),
+                creatorId,
+            );
 
             await expect(appDriver.createExpenseComment(expense.id, 'Test comment', userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -273,7 +279,7 @@ describe('CommentHandlers - Unit Tests', () => {
                 await sleep(2);
             }
 
-            const firstPage = await appDriver.listGroupComments(group.id, {limit: 2}, userId);
+            const firstPage = await appDriver.listGroupComments(group.id, { limit: 2 }, userId);
             expect(firstPage.comments).toHaveLength(2);
             expect(firstPage.comments.map((c) => c.id)).toEqual([created[4].id, created[3].id]);
             expect(firstPage.hasMore).toBe(true);
@@ -306,10 +312,10 @@ describe('CommentHandlers - Unit Tests', () => {
 
             await appDriver.createGroupComment(group.id, 'Validation comment', userId);
 
-            const limitResult = await appDriver.listGroupComments(group.id, {limit: 0}, userId);
+            const limitResult = await appDriver.listGroupComments(group.id, { limit: 0 }, userId);
             expect(limitResult.comments.length).toBeGreaterThanOrEqual(1);
 
-            const cursorResult = await appDriver.listGroupComments(group.id, {cursor: 'invalid-cursor'}, userId);
+            const cursorResult = await appDriver.listGroupComments(group.id, { cursor: 'invalid-cursor' }, userId);
             expect(cursorResult.comments.length).toBeGreaterThanOrEqual(1);
         });
     });
@@ -321,11 +327,14 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(userId)
-                .withParticipants([userId])
-                .build(), userId);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
 
             const result = await appDriver.listExpenseComments(expense.id, {}, userId);
 
@@ -341,11 +350,14 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(userId)
-                .withParticipants([userId])
-                .build(), userId);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
 
             const result = await appDriver.listExpenseComments(expense.id, {}, userId);
 
@@ -362,11 +374,14 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(creatorId)
-                .withParticipants([creatorId])
-                .build(), creatorId);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(creatorId)
+                    .withParticipants([creatorId])
+                    .build(),
+                creatorId,
+            );
 
             await expect(appDriver.listExpenseComments(expense.id, {}, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -394,11 +409,14 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(userId)
-                .withParticipants([userId])
-                .build(), userId);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
 
             const first = await appDriver.createExpenseComment(expense.id, 'Expense comment 1', userId);
             await sleep(2);
@@ -423,11 +441,14 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(userId)
-                .withParticipants([userId])
-                .build(), userId);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
 
             const created: CommentDTO[] = [];
             for (let i = 1; i <= 4; i++) {
@@ -435,7 +456,7 @@ describe('CommentHandlers - Unit Tests', () => {
                 await sleep(2);
             }
 
-            const firstPage = await appDriver.listExpenseComments(expense.id, {limit: 2}, userId);
+            const firstPage = await appDriver.listExpenseComments(expense.id, { limit: 2 }, userId);
             expect(firstPage.comments).toHaveLength(2);
             expect(firstPage.comments.map((c) => c.id)).toEqual([created[3].id, created[2].id]);
             expect(firstPage.hasMore).toBe(true);
@@ -457,18 +478,21 @@ describe('CommentHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(userId)
-                .withParticipants([userId])
-                .build(), userId);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId,
+            );
 
             await appDriver.createExpenseComment(expense.id, 'Expense validation comment', userId);
 
-            const limitResult = await appDriver.listExpenseComments(expense.id, {limit: 0}, userId);
+            const limitResult = await appDriver.listExpenseComments(expense.id, { limit: 0 }, userId);
             expect(limitResult.comments.length).toBeGreaterThanOrEqual(1);
 
-            const cursorResult = await appDriver.listExpenseComments(expense.id, {cursor: 'invalid-cursor'}, userId);
+            const cursorResult = await appDriver.listExpenseComments(expense.id, { cursor: 'invalid-cursor' }, userId);
             expect(cursorResult.comments.length).toBeGreaterThanOrEqual(1);
         });
     });

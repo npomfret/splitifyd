@@ -1,9 +1,9 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { describe, it, expect } from 'vitest';
-import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { describe, expect, it } from 'vitest';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

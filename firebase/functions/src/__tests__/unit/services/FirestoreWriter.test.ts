@@ -1,22 +1,13 @@
-import {toGroupId} from '@splitifyd/shared';
-import {GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase} from '@splitifyd/test-support';
-import {beforeEach, describe, expect, it} from 'vitest';
-import {HTTP_STATUS} from '../../../constants';
-import {ComponentBuilder} from '../../../services/ComponentBuilder';
-import type {IFirestoreReader, IFirestoreWriter} from '../../../services/firestore';
-import {ApiError} from '../../../utils/errors';
-import {StubAuthService} from '../mocks/StubAuthService';
-import {toDisplayName} from "@splitifyd/shared";
-import {
-    toTenantAppName,
-    toTenantDefaultFlag,
-    toTenantDomainName,
-    toTenantFaviconUrl,
-    toTenantId,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor
-} from '@splitifyd/shared';
+import { toGroupId } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
+import { toTenantAppName, toTenantDefaultFlag, toTenantDomainName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@splitifyd/shared';
+import { GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { HTTP_STATUS } from '../../../constants';
+import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import type { IFirestoreReader, IFirestoreWriter } from '../../../services/firestore';
+import { ApiError } from '../../../utils/errors';
+import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('FirestoreWriter.updateGroupMemberDisplayName', () => {
     let db: TenantFirestoreTestDatabase;

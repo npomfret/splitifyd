@@ -1,9 +1,9 @@
-import { usePolicy } from '@/hooks/usePolicy.ts';
-import { useTranslation } from 'react-i18next';
 import { LoadingSpinner } from '@/components/ui';
+import { usePolicy } from '@/hooks/usePolicy.ts';
+import { configStore } from '@/stores/config-store';
+import { useTranslation } from 'react-i18next';
 import { PolicyRenderer } from '../../components/policy/PolicyRenderer';
 import { StaticPageLayout } from '../../components/StaticPageLayout';
-import { configStore } from '@/stores/config-store';
 
 export function CookiePolicyPage() {
     const { t } = useTranslation();

@@ -1,8 +1,8 @@
+import crypto from 'crypto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import crypto from 'crypto';
-import { logger } from '../../logger';
 import { isEmulator } from '../../firebase';
+import { logger } from '../../logger';
 
 export interface ThemeArtifactPayload {
     tenantId: string;

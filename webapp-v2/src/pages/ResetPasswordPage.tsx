@@ -1,3 +1,4 @@
+import { Button, Card, Stack, Typography } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
@@ -7,7 +8,6 @@ import { AuthForm } from '../components/auth/AuthForm';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { EmailInput } from '../components/auth/EmailInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
-import { Button, Card, Stack, Typography } from '@/components/ui';
 
 const emailSignal = signal('');
 

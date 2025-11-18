@@ -1,8 +1,8 @@
 import type { BrandingTokens, PooledTestUser } from '@splitifyd/shared';
-import { describe, it, expect, beforeAll } from 'vitest';
 import { ApiDriver, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
-import { getAuth, getFirestore } from '../../../firebase';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
+import { getAuth, getFirestore } from '../../../firebase';
 
 describe('Admin Tenant Theme Publishing', () => {
     const apiDriver = new ApiDriver();
@@ -23,13 +23,13 @@ describe('Admin Tenant Theme Publishing', () => {
             success: '#22c55e',
             warning: '#eab308',
             danger: '#ef4444',
-            info: '#38bdf8'
-},
+            info: '#38bdf8',
+        },
         typography: {
             fontFamily: {
                 sans: 'Inter, system-ui, sans-serif',
-                mono: 'Fira Code, monospace'
-},
+                mono: 'Fira Code, monospace',
+            },
             sizes: {
                 xs: '0.75rem',
                 sm: '0.875rem',
@@ -39,24 +39,24 @@ describe('Admin Tenant Theme Publishing', () => {
                 '2xl': '1.5rem',
                 '3xl': '1.875rem',
                 '4xl': '2.25rem',
-                '5xl': '3rem'
-},
+                '5xl': '3rem',
+            },
             weights: {
                 regular: 400,
                 medium: 500,
                 semibold: 600,
-                bold: 700
-},
+                bold: 700,
+            },
             lineHeights: {
                 compact: '1.25rem',
                 standard: '1.5rem',
-                spacious: '1.75rem'
-},
+                spacious: '1.75rem',
+            },
             letterSpacing: {
                 tight: '-0.01rem',
                 normal: '0rem',
-                wide: '0.05rem'
-},
+                wide: '0.05rem',
+            },
             semantics: {
                 body: 'md',
                 bodyStrong: 'md',
@@ -64,9 +64,9 @@ describe('Admin Tenant Theme Publishing', () => {
                 button: 'md',
                 eyebrow: 'xs',
                 heading: 'xl',
-                display: '3xl'
-}
-},
+                display: '3xl',
+            },
+        },
         spacing: {
             '2xs': '0.25rem',
             xs: '0.5rem',
@@ -74,31 +74,31 @@ describe('Admin Tenant Theme Publishing', () => {
             md: '1rem',
             lg: '1.5rem',
             xl: '2rem',
-            '2xl': '3rem'
-},
+            '2xl': '3rem',
+        },
         radii: {
             none: '0rem',
             sm: '0.125rem',
             md: '0.25rem',
             lg: '0.5rem',
             pill: '9999px',
-            full: '50rem'
-},
+            full: '50rem',
+        },
         shadows: {
             sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
             md: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
-},
+            lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+        },
         assets: {
             logoUrl: 'https://example.com/logo.svg',
-            faviconUrl: 'https://example.com/favicon.ico'
-},
+            faviconUrl: 'https://example.com/favicon.ico',
+        },
         legal: {
             companyName: 'Test Company',
             supportEmail: 'support@example.com',
             privacyPolicyUrl: 'https://example.com/privacy',
-            termsOfServiceUrl: 'https://example.com/terms'
-},
+            termsOfServiceUrl: 'https://example.com/terms',
+        },
         semantics: {
             colors: {
                 surface: {
@@ -106,15 +106,15 @@ describe('Admin Tenant Theme Publishing', () => {
                     raised: '#f9f9f9',
                     sunken: '#f0f0f0',
                     overlay: '#000000',
-                    warning: '#fffacd'
-},
+                    warning: '#fffacd',
+                },
                 text: {
                     primary: '#000000',
                     secondary: '#666666',
                     muted: '#999999',
                     inverted: '#ffffff',
-                    accent: '#0066cc'
-},
+                    accent: '#0066cc',
+                },
                 interactive: {
                     primary: '#0066cc',
                     primaryHover: '#0052a3',
@@ -128,28 +128,28 @@ describe('Admin Tenant Theme Publishing', () => {
                     destructive: '#dc3545',
                     destructiveHover: '#c82333',
                     destructiveActive: '#bd2130',
-                    destructiveForeground: '#ffffff'
-},
+                    destructiveForeground: '#ffffff',
+                },
                 border: {
                     subtle: '#f0f0f0',
                     default: '#d0d0d0',
                     strong: '#999999',
                     focus: '#0066cc',
-                    warning: '#ffd700'
-},
+                    warning: '#ffd700',
+                },
                 status: {
                     success: '#28a745',
                     warning: '#ffc107',
                     danger: '#dc3545',
-                    info: '#17a2b8'
-}
-},
+                    info: '#17a2b8',
+                },
+            },
             spacing: {
                 pagePadding: '1rem',
                 sectionGap: '2rem',
                 cardPadding: '1.5rem',
-                componentGap: '0.5rem'
-},
+                componentGap: '0.5rem',
+            },
             typography: {
                 body: 'md',
                 bodyStrong: 'md',
@@ -157,10 +157,10 @@ describe('Admin Tenant Theme Publishing', () => {
                 button: 'md',
                 eyebrow: 'xs',
                 heading: 'xl',
-                display: '3xl'
-}
-}
-};
+                display: '3xl',
+            },
+        },
+    };
 
     beforeAll(async () => {
         adminUser = await apiDriver.getDefaultAdminUser();
@@ -176,18 +176,18 @@ describe('Admin Tenant Theme Publishing', () => {
                 primaryColor: '#2563eb',
                 secondaryColor: '#7c3aed',
                 accentColor: '#f97316',
-                themePalette: 'default'
-},
+                themePalette: 'default',
+            },
             brandingTokens: {
-                tokens: mockTokens
-},
+                tokens: mockTokens,
+            },
             domains: {
                 primary: 'theme.example.com',
                 aliases: [],
-                normalized: ['theme.example.com']
-},
-            defaultTenant: false
-};
+                normalized: ['theme.example.com'],
+            },
+            defaultTenant: false,
+        };
 
         await apiDriver.adminUpsertTenant(adminUser.token, tenantData);
     };
@@ -204,8 +204,8 @@ describe('Admin Tenant Theme Publishing', () => {
             tokensUrl: expect.any(String),
             version: 1,
             generatedAtEpochMs: expect.any(Number),
-            generatedBy: adminUser.uid
-});
+            generatedBy: adminUser.uid,
+        });
 
         // Verify hash is 64-character hex string (SHA-256)
         expect(result.artifact.hash).toMatch(/^[a-f0-9]{64}$/);
@@ -232,8 +232,8 @@ describe('Admin Tenant Theme Publishing', () => {
             tokensUrl: result.artifact.tokensUrl,
             version: 1,
             generatedAtEpochMs: result.artifact.generatedAtEpochMs,
-            generatedBy: adminUser.uid
-});
+            generatedBy: adminUser.uid,
+        });
     });
 
     it('should increment version on subsequent publishes', async () => {
@@ -314,7 +314,7 @@ describe('Admin Tenant Theme Publishing', () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token: customToken, returnSecureToken: true }),
-            }
+            },
         );
         const tokenData = await tokenResponse.json();
         const idToken = tokenData.idToken;

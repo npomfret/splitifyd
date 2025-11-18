@@ -1,5 +1,5 @@
-import type { Locator, Page } from '@playwright/test';
 import { appConfigHandler, firebaseInitConfigHandler } from '@/test/msw/handlers';
+import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 type ThemeCssVars = {

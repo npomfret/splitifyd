@@ -30,5 +30,4 @@ export class RemoveMemberDialogPage extends BasePage {
         await expect(this.confirmButton).toBeVisible({ timeout: 2000 });
         await this.clickButton(this.confirmButton, { buttonName: 'Confirm Remove' });
     }
-
 }

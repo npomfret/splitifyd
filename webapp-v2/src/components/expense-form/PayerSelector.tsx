@@ -33,7 +33,11 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                             key={member.uid}
                             className={`
                 flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors bg-surface-raised/50 backdrop-blur-sm
-                ${paidBy === member.uid ? 'border-interactive-primary bg-interactive-primary/5 ring-2 ring-interactive-primary/30' : 'border-border-default hover:bg-surface-muted/60 hover:border-interactive-primary/40'}
+                ${
+                                paidBy === member.uid
+                                    ? 'border-interactive-primary bg-interactive-primary/5 ring-2 ring-interactive-primary/30'
+                                    : 'border-border-default hover:bg-surface-muted/60 hover:border-interactive-primary/40'
+                            }
               `}
                         >
                             <input

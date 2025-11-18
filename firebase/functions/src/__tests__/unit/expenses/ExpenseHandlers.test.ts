@@ -491,19 +491,25 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(user1)
-                .withParticipants([user1, user2, user3])
-                .withDescription('First Test Expense')
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2, user3])
+                    .withDescription('First Test Expense')
+                    .build(),
+                user1,
+            );
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(user2)
-                .withParticipants([user1, user2, user3])
-                .withDescription('Second Test Expense')
-                .build(), user2);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(user2)
+                    .withParticipants([user1, user2, user3])
+                    .withDescription('Second Test Expense')
+                    .build(),
+                user2,
+            );
 
             const expenses = await appDriver.getGroupExpenses(group.id, {}, user1);
             expect(expenses.expenses.length).toBeGreaterThanOrEqual(2);
@@ -641,8 +647,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 participants: [admin, member1],
                 splitType: 'equal' as const,
                 splits: [
-                    {uid: admin, amount: '75.00'},
-                    {uid: member1, amount: '75.00'},
+                    { uid: admin, amount: '75.00' },
+                    { uid: member1, amount: '75.00' },
                 ],
             }, admin);
 
@@ -654,8 +660,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 participants: [admin, member1],
                 splitType: 'equal' as const,
                 splits: [
-                    {uid: admin, amount: '60.00'},
-                    {uid: member1, amount: '60.00'},
+                    { uid: admin, amount: '60.00' },
+                    { uid: member1, amount: '60.00' },
                 ],
             }, member2);
 
@@ -704,19 +710,25 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
-            const expense1 = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(user1)
-                .withParticipants([user1])
-                .withAmount(100, 'USD')
-                .build(), user1);
+            const expense1 = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(user1)
+                    .withParticipants([user1])
+                    .withAmount(100, 'USD')
+                    .build(),
+                user1,
+            );
 
-            const expense2 = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(user1)
-                .withParticipants([user1])
-                .withAmount(100, 'USD')
-                .build(), user1);
+            const expense2 = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(user1)
+                    .withParticipants([user1])
+                    .withAmount(100, 'USD')
+                    .build(),
+                user1,
+            );
 
             // Verify both expenses are visible before deletion
             const beforeDeletion = await appDriver.getGroupExpenses(group.id, {}, user1);
@@ -750,11 +762,14 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(user1)
-                .withParticipants([user1, user2, user3])
-                .build(), user1);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2, user3])
+                    .build(),
+                user1,
+            );
 
             const fullDetails = await appDriver.getExpenseFullDetails(expense.id, user1);
 
@@ -787,18 +802,21 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
-            const complexExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(user2)
-                .withParticipants([user1, user2, user3])
-                .withSplitType('exact')
-                .withSplits([
-                    {uid: user1, amount: '30'},
-                    {uid: user2, amount: '40'},
-                    {uid: user3, amount: '30'},
-                ])
-                .build(), user1);
+            const complexExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user2)
+                    .withParticipants([user1, user2, user3])
+                    .withSplitType('exact')
+                    .withSplits([
+                        { uid: user1, amount: '30' },
+                        { uid: user2, amount: '40' },
+                        { uid: user3, amount: '30' },
+                    ])
+                    .build(),
+                user1,
+            );
 
             const fullDetails = await appDriver.getExpenseFullDetails(complexExpense.id, user2);
 
@@ -821,11 +839,14 @@ describe('ExpenseHandlers - Unit Tests', () => {
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(user1)
-                .withParticipants([user1])
-                .build(), user1);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(user1)
+                    .withParticipants([user1])
+                    .build(),
+                user1,
+            );
 
             const fullDetailsForNonParticipant = await appDriver.getExpenseFullDetails(expense.id, user2);
             expect(fullDetailsForNonParticipant.expense.id).toBe(expense.id);
@@ -850,13 +871,16 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             // Create expense with all 3 participants (user1 pays, user2 and user3 owe money)
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(90, 'USD')
-                .withPaidBy(user1)
-                .withParticipants([user1, user2, user3])
-                .withSplitType('equal')
-                .build(), user1);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(90, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2, user3])
+                    .withSplitType('equal')
+                    .build(),
+                user1,
+            );
 
             // User2 settles their debt with user1 so they can leave
             await appDriver.createSettlement({

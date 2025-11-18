@@ -1,14 +1,8 @@
-import {
-    AppConfiguration,
-    TenantConfig,
-    toShowLandingPageFlag,
-    toShowMarketingContentFlag,
-    toShowPricingPageFlag,
-} from '@splitifyd/shared';
+import { AppConfiguration, TenantConfig, toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '@splitifyd/shared';
 import { getTenantAwareAppConfig } from '../client-config';
-import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import type { TenantRequestContext } from '../types/tenant';
+import { ApiError } from '../utils/errors';
 
 const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
     const { marketingFlags, ...restOfBranding } = tenant.branding;
@@ -19,10 +13,10 @@ const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
             marketingFlags: marketingFlags
                 ? { ...marketingFlags }
                 : {
-                      showLandingPage: toShowLandingPageFlag(true),
-                      showMarketingContent: toShowMarketingContentFlag(true),
-                      showPricingPage: toShowPricingPageFlag(true),
-                  },
+                    showLandingPage: toShowLandingPageFlag(true),
+                    showMarketingContent: toShowMarketingContentFlag(true),
+                    showPricingPage: toShowPricingPageFlag(true),
+                },
         },
         createdAt: tenant.createdAt,
         updatedAt: tenant.updatedAt,

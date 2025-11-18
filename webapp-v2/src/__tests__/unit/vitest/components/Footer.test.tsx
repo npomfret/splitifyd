@@ -2,7 +2,7 @@ import { Footer } from '@/components/layout/Footer';
 import type { AppConfiguration } from '@splitifyd/shared';
 import { AppConfigurationBuilder } from '@splitifyd/test-support';
 import { render, screen } from '@testing-library/preact';
-import { describe, expect, it, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({

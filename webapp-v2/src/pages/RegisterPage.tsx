@@ -1,6 +1,7 @@
-import { STORAGE_KEYS } from '@/constants.ts';
 import { Input } from '@/components/ui';
+import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
+import { toDisplayName, toPassword } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -10,7 +11,6 @@ import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { logError } from '../utils/browser-logger';
-import {toDisplayName, toPassword} from "@splitifyd/shared";
 
 export function RegisterPage() {
     const { t } = useTranslation();

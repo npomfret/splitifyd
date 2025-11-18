@@ -3,10 +3,10 @@ import { ClientUser, GroupId, GroupMembershipDTO, toGroupId, toGroupName } from 
 import { MemberStatuses, UserId } from '@splitifyd/shared';
 import type { GroupName } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, GroupMembershipDTOBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
-import {toDisplayName} from "@splitifyd/shared";
 
 interface PendingEntry {
     uid: string;

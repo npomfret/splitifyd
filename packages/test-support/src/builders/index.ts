@@ -1,5 +1,5 @@
 export { ActivityFeedItemBuilder } from './activity/ActivityFeedItemBuilder';
-export { AppConfigurationBuilder, type TenantOverrides, type TenantBrandingOverrides, type TenantBrandingFlagsOverrides } from './AppConfigurationBuilder';
+export { AppConfigurationBuilder, type TenantBrandingFlagsOverrides, type TenantBrandingOverrides, type TenantOverrides } from './AppConfigurationBuilder';
 export { AuthUserRecordBuilder } from './AuthUserRecordBuilder';
 export { ClientUserBuilder } from './ClientUserBuilder';
 export { CommentBuilder } from './CommentBuilder';

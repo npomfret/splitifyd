@@ -34,14 +34,14 @@ describe('PolicyHandlers - Unit Tests', () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            await expect(appDriver.createPolicy({policyName: '', text: 'Some policy text'} as any, userId)).rejects.toThrow();
+            await expect(appDriver.createPolicy({ policyName: '', text: 'Some policy text' } as any, userId)).rejects.toThrow();
         });
 
         it('should reject creation with missing text', async () => {
             const userId = 'admin-user';
             appDriver.seedAdminUser(userId, {});
 
-            await expect(appDriver.createPolicy({policyName: 'Privacy Policy', text: ''} as any, userId)).rejects.toThrow();
+            await expect(appDriver.createPolicy({ policyName: 'Privacy Policy', text: '' } as any, userId)).rejects.toThrow();
         });
 
         it('should reject creation when policy already exists', async () => {

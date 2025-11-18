@@ -1,4 +1,4 @@
-import {toPassword, UserRegistration} from '@splitifyd/shared';
+import { toPassword, UserRegistration } from '@splitifyd/shared';
 import { DisplayName, toDisplayName } from '@splitifyd/shared';
 import type { Email, Password } from '@splitifyd/shared';
 import { generateNewUserDetails } from '../test-helpers';
@@ -23,7 +23,7 @@ export class UserRegistrationBuilder {
     }
 
     withPassword(password: Password | string): this {
-        this.userRegistration.password =  typeof  password === "string" ? toPassword(password) : password;
+        this.userRegistration.password = typeof password === 'string' ? toPassword(password) : password;
         return this;
     }
 

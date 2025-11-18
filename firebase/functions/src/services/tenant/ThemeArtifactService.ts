@@ -285,7 +285,7 @@ export class ThemeArtifactService {
                 `  src: url('${fonts.headingUrl}') format('woff2');`,
                 `  font-display: swap;`,
                 `  font-weight: 400 700;`,
-                `}`
+                `}`,
             );
         }
 
@@ -297,7 +297,7 @@ export class ThemeArtifactService {
                 `  src: url('${fonts.bodyUrl}') format('woff2');`,
                 `  font-display: swap;`,
                 `  font-weight: 400 700;`,
-                `}`
+                `}`,
             );
         }
 
@@ -309,7 +309,7 @@ export class ThemeArtifactService {
                 `  src: url('${fonts.monoUrl}') format('woff2');`,
                 `  font-display: swap;`,
                 `  font-weight: 400 700;`,
-                `}`
+                `}`,
             );
         }
 
@@ -330,7 +330,8 @@ export class ThemeArtifactService {
                 '.glass-panel {',
                 `  background: ${tokens.semantics.colors.surface.raised};`,
                 '}',
-            ].join('\n');
+            ]
+                .join('\n');
         }
 
         // For glassmorphic themes, provide fallback and modern styling
@@ -347,7 +348,8 @@ export class ThemeArtifactService {
             '    -webkit-backdrop-filter: blur(24px);',
             '  }',
             '}',
-        ].join('\n');
+        ]
+            .join('\n');
     }
 
     /**
@@ -400,7 +402,9 @@ export class ThemeArtifactService {
             '  position: relative;',
             '  z-index: 1;',
             '}',
-        ].filter(Boolean).join('\n');
+        ]
+            .filter(Boolean)
+            .join('\n');
     }
 
     /**
@@ -415,8 +419,7 @@ export class ThemeArtifactService {
         }
 
         // Check if any motion features are enabled
-        const hasMotion =
-            motion.enableParallax || motion.enableMagneticHover || motion.enableScrollReveal;
+        const hasMotion = motion.enableParallax || motion.enableMagneticHover || motion.enableScrollReveal;
 
         if (!hasMotion) {
             return null;
@@ -437,6 +440,7 @@ export class ThemeArtifactService {
             '    scroll-behavior: auto !important;',
             '  }',
             '}',
-        ].join('\n');
+        ]
+            .join('\n');
     }
 }

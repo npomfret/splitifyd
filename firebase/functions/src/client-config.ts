@@ -1,12 +1,12 @@
 import { AppConfiguration, EnvironmentConfig, FirebaseConfig, TenantConfig } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { z } from 'zod';
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';
 import { validateAppConfiguration } from './middleware/config-validation';
 import { assertValidInstanceMode, type InstanceMode } from './shared/instance-mode';
-import {toDisplayName} from "@splitifyd/shared";
 
 // Cache for lazy-loaded configurations
 let cachedConfig: ClientConfig | null = null;

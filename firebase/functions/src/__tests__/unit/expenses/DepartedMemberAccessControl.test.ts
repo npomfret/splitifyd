@@ -41,21 +41,27 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense with both participants
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // User 1 settles their balance and leaves
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(50, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(50, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // User 1 tries to view the expense - should be denied
@@ -70,21 +76,27 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // User 1 settles and leaves
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(50, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(50, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // User 1 tries to view full details - should be denied
@@ -99,21 +111,27 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // User 1 settles and leaves
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(50, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(50, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // User 1 tries to list group expenses - should be denied
@@ -128,13 +146,16 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // User 1 can view BEFORE leaving
             const expenseBeforeLeaving = await appDriver.getExpense(expense.id, userIds[1]);
@@ -142,12 +163,15 @@ describe('Departed Member Access Control - Unit Tests', () => {
             expect(expenseBeforeLeaving.amount).toBe('100');
 
             // User 1 settles and leaves
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(50, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(50, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // Now cannot view
@@ -162,21 +186,27 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // User 1 creates an expense (they are the creator and payer)
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[1])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[1]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[1])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[1],
+            );
 
             // User 0 settles their debt ($50 owed to user 1)
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[0])
-                .withPayeeId(userIds[1])
-                .withAmount(50, 'USD')
-                .build(), userIds[0]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[0])
+                    .withPayeeId(userIds[1])
+                    .withAmount(50, 'USD')
+                    .build(),
+                userIds[0],
+            );
 
             // User 1 leaves (now they can leave - balance is settled)
             await appDriver.leaveGroup(group.id, userIds[1]);
@@ -195,21 +225,27 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense so there's a balance
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // User 1 (payer) creates settlement and leaves
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(50, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(50, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // User 1 tries to access group (which includes settlements) - should be denied
@@ -224,21 +260,27 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1], userIds[2]]);
 
             // Create expense: user 2 pays, user 1 participates (so user 1 owes user 2)
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[2])
-                .withParticipants([userIds[1], userIds[2]])
-                .withSplitType('equal')
-                .build(), userIds[2]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[2])
+                    .withParticipants([userIds[1], userIds[2]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[2],
+            );
 
             // User 1 pays user 2 (user 2 is payee)
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[2])
-                .withAmount(50, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[2])
+                    .withAmount(50, 'USD')
+                    .build(),
+                userIds[1],
+            );
 
             // User 2 (payee) leaves
             await appDriver.leaveGroup(group.id, userIds[2]);
@@ -271,21 +313,27 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create some balances
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // User 1 settles and leaves
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(50, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(50, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // User 1 tries to view balances - should be denied
@@ -319,21 +367,27 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense but DON'T settle (user 1 still owes money)
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Note: We can't actually leave with outstanding balance, so settle first
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(50, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(50, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // User 1 tries to view group - should be denied
@@ -350,21 +404,27 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // User 1 settles and leaves
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(50, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(50, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // Test ALL endpoints consistently deny access
@@ -381,21 +441,27 @@ describe('Departed Member Access Control - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1], userIds[2]]);
 
             // Create expense with all 3
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(90, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1], userIds[2]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(90, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1], userIds[2]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // User 1 settles and leaves
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(30, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(30, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // User 0 and User 2 can still access everything

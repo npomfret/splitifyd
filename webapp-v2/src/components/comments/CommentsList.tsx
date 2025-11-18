@@ -17,12 +17,12 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
     const { t } = useTranslation();
     if (loading && comments.length === 0) {
         return (
-                <div className='flex items-center justify-center py-8'>
-                    <div className='text-center'>
-                        <LoadingSpinner size='md' />
-                        <p className='text-sm text-text-muted dark:text-text-muted/80 mt-2'>{t('comments.commentsList.loading')}</p>
-                    </div>
+            <div className='flex items-center justify-center py-8'>
+                <div className='text-center'>
+                    <LoadingSpinner size='md' />
+                    <p className='text-sm text-text-muted dark:text-text-muted/80 mt-2'>{t('comments.commentsList.loading')}</p>
                 </div>
+            </div>
         );
     }
 
@@ -37,12 +37,13 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
     }
 
     return (
-        <div className={`overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong ${className}`} style={{ maxHeight }}>
+        <div
+            className={`overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-thumb-border-default scrollbar-track-transparent hover:scrollbar-thumb-border-strong ${className}`}
+            style={{ maxHeight }}
+        >
             <div className='space-y-4 px-1'>
                 {comments
-                    .map((comment) => (
-                        <CommentItem key={comment.id} comment={comment} className='pb-4 border-b border-border-default dark:border-border-strong last:border-0' />
-                    ))}
+                    .map((comment) => <CommentItem key={comment.id} comment={comment} className='pb-4 border-b border-border-default dark:border-border-strong last:border-0' />)}
             </div>
 
             {hasMore && (

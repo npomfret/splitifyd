@@ -1,4 +1,5 @@
 import { Alert, Button, Card, Form, Input, LoadingSpinner } from '@/components/ui';
+import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles } from '@splitifyd/shared';
 import type { TenantSettingsResponse, UpdateTenantBrandingRequest } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
@@ -6,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
-import { logError } from '@/utils/browser-logger';
 
 /**
  * Tenant Branding Editor Page
@@ -154,14 +154,14 @@ export function TenantBrandingPage() {
     }
 
     const hasChanges = tenantSettings && (
-        appName !== tenantSettings.config.branding.appName ||
-        logoUrl !== tenantSettings.config.branding.logoUrl ||
-        faviconUrl !== tenantSettings.config.branding.faviconUrl ||
-        primaryColor !== tenantSettings.config.branding.primaryColor ||
-        secondaryColor !== tenantSettings.config.branding.secondaryColor ||
-        showLandingPage !== (tenantSettings.config.branding.marketingFlags?.showLandingPage ?? true) ||
-        showMarketingContent !== (tenantSettings.config.branding.marketingFlags?.showMarketingContent ?? true) ||
-        showPricingPage !== (tenantSettings.config.branding.marketingFlags?.showPricingPage ?? false)
+        appName !== tenantSettings.config.branding.appName
+        || logoUrl !== tenantSettings.config.branding.logoUrl
+        || faviconUrl !== tenantSettings.config.branding.faviconUrl
+        || primaryColor !== tenantSettings.config.branding.primaryColor
+        || secondaryColor !== tenantSettings.config.branding.secondaryColor
+        || showLandingPage !== (tenantSettings.config.branding.marketingFlags?.showLandingPage ?? true)
+        || showMarketingContent !== (tenantSettings.config.branding.marketingFlags?.showMarketingContent ?? true)
+        || showPricingPage !== (tenantSettings.config.branding.marketingFlags?.showPricingPage ?? false)
     );
 
     return (
@@ -379,8 +379,8 @@ export function TenantBrandingPage() {
                                         <div class='flex-1'>
                                             <p class='text-sm font-medium text-text-primary'>Pricing Page</p>
                                             <p class='text-xs text-text-muted'>Show /pricing route</p>
-                                    </div>
-                                </label>
+                                        </div>
+                                    </label>
                                 </div>
                             </div>
                         </Card>

@@ -20,7 +20,7 @@ export function CommentItem({ comment, showAvatar = true, className = '' }: Comm
             'bg-interactive-secondary/60',
             'bg-semantic-error/60',
             'bg-interactive-secondary',
-            'bg-semantic-error'
+            'bg-semantic-error',
         ];
         const index = authorId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
         return colors[index];

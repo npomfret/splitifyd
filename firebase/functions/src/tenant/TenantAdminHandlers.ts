@@ -1,9 +1,9 @@
 import type { RequestHandler } from 'express';
+import type { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { AdminUpsertTenantRequestSchema, PublishTenantThemeRequestSchema } from '../schemas/tenant';
 import { TenantAdminService } from '../services/tenant/TenantAdminService';
 import { ApiError } from '../utils/errors';
-import type { AuthenticatedRequest } from '../auth/middleware';
 
 export class TenantAdminHandlers {
     constructor(private readonly tenantAdminService: TenantAdminService) {}

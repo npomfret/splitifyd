@@ -13,18 +13,7 @@
  * - Real-time subscription management
  */
 
-import type {
-    ActivityFeedItem,
-    CommentId,
-    ExpenseId,
-    ISOString,
-    MemberStatus,
-    TenantConfig,
-    TenantDomainName,
-    TenantId,
-    TenantDefaultFlag,
-    UserId,
-} from '@splitifyd/shared';
+import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId, UserId } from '@splitifyd/shared';
 import type { IDocumentReference, IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 

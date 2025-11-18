@@ -6,6 +6,7 @@ import { formatCurrency } from '@/utils/currency';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
+import { useComputed } from '@preact/signals';
 import {
     amountToSmallestUnit,
     CreateSettlementRequest,
@@ -19,7 +20,6 @@ import {
     UserId,
     ZERO,
 } from '@splitifyd/shared';
-import { useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip } from '../ui';
@@ -433,42 +433,42 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 const payeeMember = members.find((m: GroupMember) => m.uid === debt.to.uid);
                                 if (!payeeMember) return null;
 
-                                    return (
-                                        <button
-                                            key={`${debt.to.uid}-${debt.currency}`}
-                                            type='button'
-                                            onClick={() => {
-                                                setPayerId(debt.from.uid);
-                                                setPayeeId(debt.to.uid);
-                                                setAmount(debt.amount);
-                                                setCurrency(debt.currency);
-                                                setDate(new Date().toISOString().split('T')[0]);
-                                                setNote('');
-                                                recalculatePrecisionError(debt.amount, debt.currency);
-                                            }}
-                                            class='inline-flex items-center justify-start gap-2 px-4 py-2 bg-interactive-primary/10 border border-border-default rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted hover:border-interactive-primary transition-colors focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary w-full sm:w-[280px]'
-                                            title={`${formatCurrency(debt.amount, debt.currency)} → ${getGroupDisplayName(payeeMember)}`}
+                                return (
+                                    <button
+                                        key={`${debt.to.uid}-${debt.currency}`}
+                                        type='button'
+                                        onClick={() => {
+                                            setPayerId(debt.from.uid);
+                                            setPayeeId(debt.to.uid);
+                                            setAmount(debt.amount);
+                                            setCurrency(debt.currency);
+                                            setDate(new Date().toISOString().split('T')[0]);
+                                            setNote('');
+                                            recalculatePrecisionError(debt.amount, debt.currency);
+                                        }}
+                                        class='inline-flex items-center justify-start gap-2 px-4 py-2 bg-interactive-primary/10 border border-border-default rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted hover:border-interactive-primary transition-colors focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary w-full sm:w-[280px]'
+                                        title={`${formatCurrency(debt.amount, debt.currency)} → ${getGroupDisplayName(payeeMember)}`}
+                                    >
+                                        {/* Avatar */}
+                                        <div
+                                            class='w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white'
+                                            style={{ backgroundColor: payeeMember.themeColor?.light || '#6366f1' }}
                                         >
-                                            {/* Avatar */}
-                                            <div
-                                                class='w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white'
-                                                style={{ backgroundColor: payeeMember.themeColor?.light || '#6366f1' }}
-                                            >
-                                                {getGroupDisplayName(payeeMember).charAt(0).toUpperCase()}
-                                            </div>
-                                            {/* Amount and Name */}
-                                            <CurrencyAmount
-                                                amount={debt.amount}
-                                                currency={debt.currency}
-                                                displayOptions={{ includeCurrencyCode: false }}
-                                                className='font-semibold text-text-primary whitespace-nowrap'
-                                            />
-                                            <span class='text-text-muted'>→</span>
-                                            <span class='text-text-primary truncate max-w-[120px] whitespace-nowrap'>
-                                                {getGroupDisplayName(payeeMember)}
-                                            </span>
-                                        </button>
-                                    );
+                                            {getGroupDisplayName(payeeMember).charAt(0).toUpperCase()}
+                                        </div>
+                                        {/* Amount and Name */}
+                                        <CurrencyAmount
+                                            amount={debt.amount}
+                                            currency={debt.currency}
+                                            displayOptions={{ includeCurrencyCode: false }}
+                                            className='font-semibold text-text-primary whitespace-nowrap'
+                                        />
+                                        <span class='text-text-muted'>→</span>
+                                        <span class='text-text-primary truncate max-w-[120px] whitespace-nowrap'>
+                                            {getGroupDisplayName(payeeMember)}
+                                        </span>
+                                    </button>
+                                );
                             })}
                         </div>
                     </div>

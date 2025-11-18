@@ -54,5 +54,4 @@ export class GroupDetailCollectionManager<T> {
         this.loadingSignal.value = false;
         this.cursor = null;
     }
-
 }

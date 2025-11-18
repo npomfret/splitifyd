@@ -73,7 +73,8 @@ export function registerThemeServiceWorker(): void {
     }
 
     const register = () => {
-        navigator.serviceWorker
+        navigator
+            .serviceWorker
             .register('/theme-sw.js', { scope: '/' })
             .catch(() => {
                 // Ignore registration failures; theme CSS still loads via network.

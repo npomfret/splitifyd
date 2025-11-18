@@ -10,7 +10,7 @@
  * for migration guidance.
  */
 
-import type { CommentId, TenantConfig, TenantDomainName, TenantId, TenantDefaultFlag } from '@splitifyd/shared';
+import type { CommentId, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId } from '@splitifyd/shared';
 // Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
 // FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
 import {
@@ -43,7 +43,7 @@ import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelper
 import { ApiError } from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
-import { toCommentId, toExpenseId, toGroupId, toGroupName, toSettlementId, toShareLinkId, ShareLinkId, toTenantDefaultFlag, toISOString } from '@splitifyd/shared';
+import { ShareLinkId, toCommentId, toExpenseId, toGroupId, toGroupName, toISOString, toSettlementId, toShareLinkId, toTenantDefaultFlag } from '@splitifyd/shared';
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,
@@ -56,10 +56,10 @@ import {
     PolicyDocumentSchema,
     SettlementDocumentSchema,
     ShareLinkDocumentSchema,
+    TenantDocumentSchema,
     TopLevelGroupMemberSchema,
     type UserDocument,
     UserDocumentSchema,
-    TenantDocumentSchema,
 } from '../../schemas';
 import type { TopLevelGroupMemberDocument } from '../../types';
 import { newTopLevelMembershipDocId } from '../../utils/idGenerator';
@@ -1556,7 +1556,8 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getTenantByDomain(domain: TenantDomainName): Promise<TenantRegistryRecord | null> {
         try {
-            const query = await this.db
+            const query = await this
+                .db
                 .collection(FirestoreCollections.TENANTS)
                 .where('domains.normalized', 'array-contains', domain)
                 .limit(1)
@@ -1575,7 +1576,8 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getDefaultTenant(): Promise<TenantRegistryRecord | null> {
         try {
-            const query = await this.db
+            const query = await this
+                .db
                 .collection(FirestoreCollections.TENANTS)
                 .where('defaultTenant', '==', true)
                 .limit(1)

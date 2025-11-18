@@ -14,10 +14,10 @@ import { GroupService } from './GroupService';
 import { GroupShareService } from './GroupShareService';
 import { PolicyService } from './PolicyService';
 import { SettlementService } from './SettlementService';
+import { TenantRegistryService } from './tenant/TenantRegistryService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import { UserPolicyService } from './UserPolicyService';
 import { UserService } from './UserService2';
-import { TenantRegistryService } from './tenant/TenantRegistryService';
 
 export class ComponentBuilder {
     // Base infrastructure - created once

@@ -1,4 +1,16 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, COLOR_PATTERNS, MAX_GROUP_MEMBERS, MemberStatuses, PermissionLevels, toDisplayName, toGroupId, toISOString, toShareLinkToken, USER_COLORS } from '@splitifyd/shared';
+import {
+    ActivityFeedActions,
+    ActivityFeedEventTypes,
+    COLOR_PATTERNS,
+    MAX_GROUP_MEMBERS,
+    MemberStatuses,
+    PermissionLevels,
+    toDisplayName,
+    toGroupId,
+    toISOString,
+    toShareLinkToken,
+    USER_COLORS,
+} from '@splitifyd/shared';
 import type { GroupId } from '@splitifyd/shared';
 import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';

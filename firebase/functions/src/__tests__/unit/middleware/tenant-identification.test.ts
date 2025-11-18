@@ -1,4 +1,6 @@
-import {toISOString,
+import {
+    type TenantConfig,
+    toISOString,
     toTenantAppName,
     toTenantDefaultFlag,
     toTenantDomainName,
@@ -6,13 +8,13 @@ import {toISOString,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
-    toTenantSecondaryColor,type TenantConfig
+    toTenantSecondaryColor,
 } from '@splitifyd/shared';
 import express from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { TenantRequestContext } from '../../../types/tenant';
-import { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
 import { TenantIdentification, type TenantIdentificationConfig } from '../../../middleware/tenant-identification';
+import { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
+import type { TenantRequestContext } from '../../../types/tenant';
 
 describe('TenantIdentification middleware', () => {
     let registry: TenantRegistryService;
@@ -30,38 +32,38 @@ describe('TenantIdentification middleware', () => {
                 logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
                 faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
                 primaryColor: toTenantPrimaryColor('#0066CC'),
-                secondaryColor: toTenantSecondaryColor('#FF6600')
-},
+                secondaryColor: toTenantSecondaryColor('#FF6600'),
+            },
             features: {
-                enableAdvancedReporting:(false),
-                maxGroupsPerUser:(25),
-                maxUsersPerGroup:(50)
-},
+                enableAdvancedReporting: (false),
+                maxGroupsPerUser: (25),
+                maxUsersPerGroup: (50),
+            },
             createdAt: toISOString('2025-01-01T00:00:00.000Z'),
-            updatedAt: toISOString('2025-01-02T12:00:00.000Z')
-} as TenantConfig,
+            updatedAt: toISOString('2025-01-02T12:00:00.000Z'),
+        } as TenantConfig,
         primaryDomain: toTenantDomainName('app.example.com'),
         domains: [toTenantDomainName('app.example.com')],
         isDefault: toTenantDefaultFlag(false),
-        source: 'domain'
-};
+        source: 'domain',
+    };
 
     beforeEach(() => {
         registry = {
-            resolveTenant: vi.fn()
-} as unknown as TenantRegistryService;
+            resolveTenant: vi.fn(),
+        } as unknown as TenantRegistryService;
 
         config = {
             allowOverrideHeader: vi.fn().mockReturnValue(true),
-};
+        };
 
         request = {
             method: 'GET',
             path: '/secure-route',
             headers: { host: 'app.example.com' },
             get: vi.fn(),
-            hostname: 'app.example.com'
-};
+            hostname: 'app.example.com',
+        };
 
         response = {};
         next = vi.fn();
@@ -84,13 +86,13 @@ describe('TenantIdentification middleware', () => {
         });
 
         it('extracts host from x-forwarded-host before host header', async () => {
-        request = {
-            ...request,
-            headers: {
-                'x-forwarded-host': 'proxy.example.com',
-                host: 'internal.example.com'
-}
-};
+            request = {
+                ...request,
+                headers: {
+                    'x-forwarded-host': 'proxy.example.com',
+                    host: 'internal.example.com',
+                },
+            };
 
             await runMiddleware();
 
@@ -100,11 +102,11 @@ describe('TenantIdentification middleware', () => {
         });
 
         it('falls back to hostname when headers missing', async () => {
-        request = {
-            ...request,
-            headers: {},
-            hostname: 'fallback.example.com'
-};
+            request = {
+                ...request,
+                headers: {},
+                hostname: 'fallback.example.com',
+            };
 
             await runMiddleware();
 
@@ -114,11 +116,11 @@ describe('TenantIdentification middleware', () => {
         });
 
         it('passes null host when no host available', async () => {
-        request = {
-            ...request,
-            headers: {},
-            hostname: ''
-};
+            request = {
+                ...request,
+                headers: {},
+                hostname: '',
+            };
 
             await runMiddleware();
 
@@ -166,8 +168,8 @@ describe('TenantIdentification middleware', () => {
         it.each(exemptPaths)('skips tenant resolution for %s', async (path) => {
             request = {
                 ...request,
-                path
-};
+                path,
+            };
 
             await runMiddleware();
 
@@ -178,8 +180,8 @@ describe('TenantIdentification middleware', () => {
         it('skips OPTIONS requests', async () => {
             request = {
                 ...request,
-                method: 'OPTIONS'
-};
+                method: 'OPTIONS',
+            };
 
             await runMiddleware();
 

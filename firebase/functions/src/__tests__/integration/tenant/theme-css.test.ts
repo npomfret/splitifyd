@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { ApiDriver } from '@splitifyd/test-support';
 import type { PooledTestUser } from '@splitifyd/shared';
 import { brandingTokenFixtures } from '@splitifyd/shared';
-import { getFirestore } from '../../../firebase';
+import { ApiDriver } from '@splitifyd/test-support';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
+import { getFirestore } from '../../../firebase';
 
 const buildTenantPayload = (tenantId: string) => {
     const tokens = brandingTokenFixtures.localhost;
@@ -16,18 +16,18 @@ const buildTenantPayload = (tenantId: string) => {
             primaryColor: tokens.palette.primary,
             secondaryColor: tokens.palette.secondary,
             accentColor: tokens.palette.accent,
-            themePalette: 'default'
-},
+            themePalette: 'default',
+        },
         brandingTokens: {
-            tokens
-},
+            tokens,
+        },
         domains: {
             primary: `${tenantId}.local.test`,
             aliases: [],
-            normalized: [`${tenantId}.local.test`]
-},
-        defaultTenant: false
-};
+            normalized: [`${tenantId}.local.test`],
+        },
+        defaultTenant: false,
+    };
 };
 
 describe('Theme CSS delivery', () => {
@@ -52,8 +52,8 @@ describe('Theme CSS delivery', () => {
         try {
             response = await apiDriver.fetchThemeCss({
                 tenantId,
-                version: publishResult.artifact.hash
-});
+                version: publishResult.artifact.hash,
+            });
         } catch (error: any) {
             console.error('theme-css-response-body', error.body);
             throw error;

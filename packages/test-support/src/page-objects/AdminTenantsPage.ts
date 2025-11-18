@@ -116,7 +116,6 @@ export class AdminTenantsPage extends BasePage {
         return this.page.locator(`text=${domain}`);
     }
 
-
     /**
      * Actions
      */
@@ -156,7 +155,6 @@ export class AdminTenantsPage extends BasePage {
     async verifyDefaultBadgeVisible(): Promise<void> {
         await expect(this.getDefaultBadge()).toBeVisible();
     }
-
 
     async verifyLoadingSpinnerVisible(): Promise<void> {
         await expect(this.getLoadingSpinner()).toBeVisible();

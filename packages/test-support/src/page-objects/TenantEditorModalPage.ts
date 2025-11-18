@@ -203,7 +203,7 @@ export class TenantEditorModalPage extends BasePage {
                 const input = document.querySelector(`[data-testid="${testId}"]`) as HTMLInputElement;
                 return input?.value === value;
             },
-            { testId: fieldTestId, value: expectedValue }
+            { testId: fieldTestId, value: expectedValue },
         );
     }
 

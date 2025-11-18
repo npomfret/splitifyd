@@ -1,4 +1,4 @@
-import type {CommentText, Email, GroupName, ISOString, ShareLinkToken, UserId} from '@splitifyd/shared';
+import type { CommentText, Email, GroupName, ISOString, ShareLinkToken, UserId } from '@splitifyd/shared';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -50,9 +50,9 @@ import {
     UserRegistration,
     UserToken,
 } from '@splitifyd/shared';
-import {UserRegistrationBuilder} from './builders';
-import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
-import {Matcher, PollOptions, pollUntil} from './Polling';
+import { UserRegistrationBuilder } from './builders';
+import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
+import { Matcher, PollOptions, pollUntil } from './Polling';
 
 const randomLetters = (min: number, max: number): string => {
     const length = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -471,7 +471,7 @@ export class ApiDriver {
     /**
      * Update user account status (admin-only)
      */
-    async updateUser(uid: string, updates: { disabled: boolean }, token: AuthToken): Promise<any> {
+    async updateUser(uid: string, updates: { disabled: boolean; }, token: AuthToken): Promise<any> {
         return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token);
     }
 
@@ -611,7 +611,7 @@ export class ApiDriver {
         return this.apiRequest('/admin/tenants', 'POST', tenantData, token);
     }
 
-    async publishTenantTheme(token: AuthToken, payload: { tenantId: string }): Promise<any> {
+    async publishTenantTheme(token: AuthToken, payload: { tenantId: string; }): Promise<any> {
         return this.apiRequest('/admin/tenants/publish', 'POST', payload, token);
     }
 

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Alert, Button, Card, Stack, Typography } from '@/components/ui';
 import { useConfig } from '@/hooks/useConfig.ts';
 import { logError } from '@/utils/browser-logger';
 import { getThemeStorageKey } from '@/utils/theme-bootstrap';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
 const TRACKED_VARS = [
     '--surface-base-rgb',
@@ -116,7 +116,13 @@ export function AdminDiagnosticsTab() {
                             <Typography variant='caption' className='text-indigo-600 ml-3'>Hash + CSS delivery helpers</Typography>
                         </div>
                         <div class='flex flex-wrap gap-3'>
-                            <Button variant='secondary' size='sm' onClick={handleCopyThemeLink} data-testid='copy-theme-link-button' className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'>
+                            <Button
+                                variant='secondary'
+                                size='sm'
+                                onClick={handleCopyThemeLink}
+                                data-testid='copy-theme-link-button'
+                                className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'
+                            >
                                 Copy Theme Link
                             </Button>
                             <Button variant='ghost' size='sm' onClick={handleForceReload} data-testid='force-reload-theme-button' className='!text-gray-800 hover:!bg-gray-100'>

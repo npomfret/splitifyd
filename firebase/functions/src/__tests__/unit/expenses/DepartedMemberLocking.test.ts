@@ -41,13 +41,16 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1], userIds[2]]);
 
             // Create expense with all current members
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(90, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1], userIds[2]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(90, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1], userIds[2]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Get expense details
             const fetchedExpense = await appDriver.getExpense(expense.id, userIds[0]);
@@ -64,21 +67,27 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[2]]);
 
             // Create expense with all participants
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(90, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1], userIds[2]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(90, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1], userIds[2]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Settle user 1's balance (they owe $30)
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(30, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(30, 'USD')
+                    .build(),
+                userIds[1],
+            );
 
             // User 1 leaves the group
             await appDriver.leaveGroup(group.id, userIds[1]);
@@ -98,31 +107,40 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[2]]);
 
             // Create two expenses
-            const lockedExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withDescription('Will be locked')
-                .withAmount(60, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const lockedExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withDescription('Will be locked')
+                    .withAmount(60, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
-            const unlockedExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withDescription('Will remain unlocked')
-                .withAmount(90, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[2]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const unlockedExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withDescription('Will remain unlocked')
+                    .withAmount(90, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[2]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Settle and remove user 1 (they owe $30)
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(30, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(30, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // List expenses
@@ -145,21 +163,27 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(60, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(60, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Settle and remove user 1 (they owe $30)
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(30, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(30, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // Get full details
@@ -179,21 +203,27 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[2]]);
 
             // Create expense
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(90, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1], userIds[2]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(90, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1], userIds[2]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Settle and remove user 1 (they owe $30)
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(30, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(30, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // Attempt to update expense - should fail
@@ -216,13 +246,16 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[2]]);
 
             // Create expense
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(90, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1], userIds[2]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(90, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1], userIds[2]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Update should succeed (no one has left)
             const updateData = new ExpenseUpdateBuilder()
@@ -292,20 +325,26 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense so there's a balance
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(60, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(60, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Create settlement
-            const settlement = await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .build(), userIds[1]);
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .build(),
+                userIds[1],
+            );
 
             // Get settlements list
             const fullDetails = await appDriver.getGroupFullDetails(group.id, {}, userIds[0]);
@@ -325,21 +364,27 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(60, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(60, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Create settlement (user 1 owes $30, settle it fully)
-            const settlement = await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(30, 'USD')
-                .build(), userIds[1]);
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(30, 'USD')
+                    .build(),
+                userIds[1],
+            );
 
             // User 1 (payer) leaves
             await appDriver.leaveGroup(group.id, userIds[1]);
@@ -364,21 +409,27 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[3]]);
 
             // Create expense so user 1 owes user 3 money
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(60, 'USD')
-                .withPaidBy(userIds[3])
-                .withParticipants([userIds[1], userIds[3]])
-                .withSplitType('equal')
-                .build(), userIds[3]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(60, 'USD')
+                    .withPaidBy(userIds[3])
+                    .withParticipants([userIds[1], userIds[3]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[3],
+            );
 
             // Create settlement: user 1 pays user 3 (user 3 is payee)
-            const settlement = await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[3])
-                .withAmount(30, 'USD')
-                .build(), userIds[1]);
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[3])
+                    .withAmount(30, 'USD')
+                    .build(),
+                userIds[1],
+            );
 
             // User 3 (payee) leaves
             await appDriver.leaveGroup(group.id, userIds[3]);
@@ -403,21 +454,27 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(60, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(60, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Create settlement (user 1 owes $30, settle it fully)
-            const settlement = await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(30, 'USD')
-                .build(), userIds[1]);
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(30, 'USD')
+                    .build(),
+                userIds[1],
+            );
 
             // User 1 (payer) leaves
             await appDriver.leaveGroup(group.id, userIds[1]);
@@ -440,21 +497,27 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[3]]);
 
             // Create expense so user 1 owes user 3 money
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(60, 'USD')
-                .withPaidBy(userIds[3])
-                .withParticipants([userIds[1], userIds[3]])
-                .withSplitType('equal')
-                .build(), userIds[3]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(60, 'USD')
+                    .withPaidBy(userIds[3])
+                    .withParticipants([userIds[1], userIds[3]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[3],
+            );
 
             // Create settlement: user 1 pays user 3 (user 3 is payee who will leave)
-            const settlement = await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[3])
-                .withAmount(30, 'USD')
-                .build(), userIds[1]);
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[3])
+                    .withAmount(30, 'USD')
+                    .build(),
+                userIds[1],
+            );
 
             // User 3 (payee) leaves
             await appDriver.leaveGroup(group.id, userIds[3]);
@@ -476,21 +539,27 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[2]]);
 
             // Create expense
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Create settlement
-            const settlement = await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withAmount(40, 'USD')
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .build(), userIds[1]);
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withAmount(40, 'USD')
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .build(),
+                userIds[1],
+            );
 
             // Update should succeed (no one has left) - update as creator (user 1)
             const updateData = new SettlementUpdateBuilder()
@@ -517,11 +586,14 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
 
             // Attempt to create settlement with departed payer - should fail
             await expect(
-                appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                    .withGroupId(group.id)
-                    .withPayerId(userIds[1]) // departed member
-                    .withPayeeId(userIds[0])
-                    .build(), userIds[0]),
+                appDriver.createSettlement(
+                    new CreateSettlementRequestBuilder()
+                        .withGroupId(group.id)
+                        .withPayerId(userIds[1]) // departed member
+                        .withPayeeId(userIds[0])
+                        .build(),
+                    userIds[0],
+                ),
             )
                 .rejects
                 .toThrow(/not.*member|departed|left.*group|cannot.*create.*settlement/i);
@@ -538,11 +610,14 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
 
             // Attempt to create settlement with departed payee - should fail
             await expect(
-                appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                    .withGroupId(group.id)
-                    .withPayerId(userIds[1])
-                    .withPayeeId(userIds[2]) // departed member
-                    .build(), userIds[1]),
+                appDriver.createSettlement(
+                    new CreateSettlementRequestBuilder()
+                        .withGroupId(group.id)
+                        .withPayerId(userIds[1])
+                        .withPayeeId(userIds[2]) // departed member
+                        .build(),
+                    userIds[1],
+                ),
             )
                 .rejects
                 .toThrow(/not.*member|departed|left.*group|cannot.*create.*settlement/i);
@@ -558,28 +633,37 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[3]]);
 
             // Create expense with all 4 participants
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants(userIds)
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants(userIds)
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Settle balances for users 1 and 2 (each owes $25)
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(25, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(25, 'USD')
+                    .build(),
+                userIds[1],
+            );
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[2])
-                .withPayeeId(userIds[0])
-                .withAmount(25, 'USD')
-                .build(), userIds[2]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[2])
+                    .withPayeeId(userIds[0])
+                    .withAmount(25, 'USD')
+                    .build(),
+                userIds[2],
+            );
 
             // Users 1 and 2 leave
             await appDriver.leaveGroup(group.id, userIds[1]);
@@ -591,11 +675,15 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
 
             // Should still prevent edits
             await expect(
-                appDriver.updateExpense(expense.id, new ExpenseUpdateBuilder()
-                    .withAmount(150, 'USD')
-                    .withParticipants(userIds)
-                    .withSplits(calculateEqualSplits(150, 'USD', userIds))
-                    .build(), userIds[0]),
+                appDriver.updateExpense(
+                    expense.id,
+                    new ExpenseUpdateBuilder()
+                        .withAmount(150, 'USD')
+                        .withParticipants(userIds)
+                        .withSplits(calculateEqualSplits(150, 'USD', userIds))
+                        .build(),
+                    userIds[0],
+                ),
             )
                 .rejects
                 .toThrow(/expense.*locked|cannot.*edit.*locked|cannot.*edit.*expense|participants.*left/i);
@@ -607,25 +695,31 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
             await addMembersToGroup(group.id, userIds[0], [userIds[1]]);
 
             // Create expense
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(60, 'USD')
-                .withPaidBy(userIds[0])
-                .withParticipants([userIds[0], userIds[1]])
-                .withSplitType('equal')
-                .build(), userIds[0]);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(60, 'USD')
+                    .withPaidBy(userIds[0])
+                    .withParticipants([userIds[0], userIds[1]])
+                    .withSplitType('equal')
+                    .build(),
+                userIds[0],
+            );
 
             // Initial read - should NOT be locked
             const beforeLeave = await appDriver.getExpense(expense.id, userIds[0]);
             expect(beforeLeave.isLocked).toBe(false);
 
             // User 1 settles and leaves (they owe $30)
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(userIds[1])
-                .withPayeeId(userIds[0])
-                .withAmount(30, 'USD')
-                .build(), userIds[1]);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(userIds[1])
+                    .withPayeeId(userIds[0])
+                    .withAmount(30, 'USD')
+                    .build(),
+                userIds[1],
+            );
             await appDriver.leaveGroup(group.id, userIds[1]);
 
             // Second read - should NOW be locked

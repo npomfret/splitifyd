@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { BaseLayout } from '../components/layout/BaseLayout';
 import { Alert, Button, Card, Stack, Typography } from '@/components/ui';
-import { SystemUserRoles } from '@splitifyd/shared';
 import { useConfig } from '@/hooks/useConfig.ts';
 import { logError } from '@/utils/browser-logger';
 import { getThemeStorageKey } from '@/utils/theme-bootstrap';
+import { SystemUserRoles } from '@splitifyd/shared';
+import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { BaseLayout } from '../components/layout/BaseLayout';
 
 const TRACKED_VARS = [
     '--surface-base-rgb',

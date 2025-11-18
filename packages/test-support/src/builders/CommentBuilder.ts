@@ -25,7 +25,7 @@ export class CommentBuilder {
     }
 
     withText(text: CommentText | string): this {
-        this.comment.text = typeof text === "string" ? toCommentText(text) : text;
+        this.comment.text = typeof text === 'string' ? toCommentText(text) : text;
         return this;
     }
 

@@ -323,9 +323,7 @@ test.describe('Domain Management Page - Add Domain Submission', () => {
         await domainPage.submitNewDomain();
 
         // Wait for the request to complete
-        await page.waitForResponse((response) =>
-            response.url().includes('/api/settings/tenant/domains') && response.request().method() === 'POST'
-        );
+        await page.waitForResponse((response) => response.url().includes('/api/settings/tenant/domains') && response.request().method() === 'POST');
 
         // Verify the request body contains the domain
         expect(capturedRequestBody).toBeTruthy();

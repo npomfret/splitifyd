@@ -1,19 +1,19 @@
 import {
+    toISOString,
+    toShowLandingPageFlag,
     toTenantAppName,
+    toTenantDefaultFlag,
     toTenantFaviconUrl,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toISOString,
-    toShowLandingPageFlag,
-    toTenantDefaultFlag
 } from '@splitifyd/shared';
 import type { AppConfiguration, TenantConfig } from '@splitifyd/shared';
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as clientConfig from '../../client-config';
-import { getEnhancedConfigResponse } from '../../utils/config-response';
 import type { TenantRequestContext } from '../../types/tenant';
+import { getEnhancedConfigResponse } from '../../utils/config-response';
 
 describe('getEnhancedConfigResponse', () => {
     const mockAppConfig = { firebase: {}, environment: {}, formDefaults: {} } as unknown as AppConfiguration;
@@ -36,12 +36,12 @@ describe('getEnhancedConfigResponse', () => {
                 primaryColor: toTenantPrimaryColor('#123456'),
                 secondaryColor: toTenantSecondaryColor('#654321'),
                 marketingFlags: {
-                    showLandingPage: toShowLandingPageFlag(true)
-}
-},
+                    showLandingPage: toShowLandingPageFlag(true),
+                },
+            },
             createdAt: toISOString('2025-02-01T10:00:00.000Z'),
-            updatedAt: toISOString('2025-02-02T12:00:00.000Z')
-};
+            updatedAt: toISOString('2025-02-02T12:00:00.000Z'),
+        };
 
         const context: TenantRequestContext = {
             tenantId: sourceTenant.tenantId,
@@ -49,8 +49,8 @@ describe('getEnhancedConfigResponse', () => {
             domains: [],
             primaryDomain: null,
             isDefault: toTenantDefaultFlag(false),
-            source: 'override'
-};
+            source: 'override',
+        };
 
         const result = getEnhancedConfigResponse(context);
 
@@ -79,11 +79,11 @@ describe('getEnhancedConfigResponse', () => {
                 primaryColor: toTenantPrimaryColor('#111111'),
                 secondaryColor: toTenantSecondaryColor('#222222'),
                 marketingFlags: {
-                    showLandingPage: toShowLandingPageFlag(false)
-                }
+                    showLandingPage: toShowLandingPageFlag(false),
+                },
             },
             createdAt: toISOString('2025-02-01T00:00:00.000Z'),
-            updatedAt: toISOString('2025-02-02T00:00:00.000Z')
+            updatedAt: toISOString('2025-02-02T00:00:00.000Z'),
         } satisfies TenantConfig;
 
         const context: TenantRequestContext = {
@@ -99,9 +99,9 @@ describe('getEnhancedConfigResponse', () => {
                 tokensUrl: 'file:///tmp/tokens.json',
                 version: 1,
                 generatedAtEpochMs: 123456789,
-                generatedBy: 'tester'
-}
-};
+                generatedBy: 'tester',
+            },
+        };
 
         const result = getEnhancedConfigResponse(context);
 
@@ -122,7 +122,7 @@ describe('getEnhancedConfigResponse', () => {
                 // marketingFlags intentionally omitted
             },
             createdAt: toISOString('2025-02-01T10:00:00.000Z'),
-            updatedAt: toISOString('2025-02-02T12:00:00.000Z')
+            updatedAt: toISOString('2025-02-02T12:00:00.000Z'),
         };
 
         const context: TenantRequestContext = {
@@ -131,7 +131,7 @@ describe('getEnhancedConfigResponse', () => {
             domains: [],
             primaryDomain: null,
             isDefault: toTenantDefaultFlag(false),
-            source: 'override'
+            source: 'override',
         };
 
         const result = getEnhancedConfigResponse(context);

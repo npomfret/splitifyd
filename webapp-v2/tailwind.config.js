@@ -25,7 +25,6 @@ export default {
                 'border-strong': 'rgb(var(--border-strong-rgb, 148 163 184) / <alpha-value>)',
                 'border-warning': 'rgb(var(--border-warning-rgb, 250 204 21) / <alpha-value>)',
                 'border-error': 'rgb(var(--border-error-rgb, 248 180 180) / <alpha-value>)',
-
             },
             spacing: {
                 xs: 'var(--spacing-xs, 0.25rem)',

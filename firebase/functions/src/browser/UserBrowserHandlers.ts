@@ -1,3 +1,4 @@
+import { SystemUserRoles } from '@splitifyd/shared';
 import type { Request, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { FirestoreCollections } from '../constants';
@@ -5,7 +6,6 @@ import { type IDocumentSnapshot, type IFirestoreDatabase, Timestamp } from '../f
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
-import { SystemUserRoles } from '@splitifyd/shared';
 
 interface ListAuthQuery {
     limit: number;

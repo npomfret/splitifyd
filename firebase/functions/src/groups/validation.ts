@@ -11,12 +11,12 @@ import {
     UpdateGroupRequestSchema,
 } from '@splitifyd/shared';
 import { toGroupId, toGroupName } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { sanitizeString } from '../utils/security';
 import { parseWithApiError } from '../utils/validation';
-import {toDisplayName} from "@splitifyd/shared";
 
 /**
  * Validate create group request

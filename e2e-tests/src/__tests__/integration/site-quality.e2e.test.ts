@@ -58,7 +58,8 @@ test.describe('Site Quality - SEO', () => {
         if (!is404) {
             await waitForApp(page); // Wait for React to mount and set meta tags
 
-            const appName = await page.request
+            const appName = await page
+                .request
                 .get(`${EMULATOR_URL}/api/config`)
                 .then((response) => response.json())
                 .then((config) => config?.tenant?.branding?.appName ?? 'Splitifyd');

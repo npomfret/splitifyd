@@ -1,10 +1,10 @@
 import type { Page } from '@playwright/test';
 import type { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { ExpenseFormPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
-import {toDisplayName} from "@splitifyd/shared";
 
 type MemberSeed = {
     uid: string;

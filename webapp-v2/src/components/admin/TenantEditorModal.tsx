@@ -1,8 +1,8 @@
-import { Alert, Button, Card, Input, Modal } from '@/components/ui';
 import { apiClient } from '@/app/apiClient';
+import { Alert, Button, Card, Input, Modal } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUpsertTenantRequest } from '@splitifyd/shared';
-import { useState, useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 
 interface TenantData {
     tenantId: string;
@@ -158,9 +158,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
 
         try {
             // Compute normalized domains (primary + aliases)
-            const allDomains = [formData.primaryDomain, ...formData.domainAliases].map(d =>
-                d.trim().toLowerCase().replace(/:\d+$/, '')
-            );
+            const allDomains = [formData.primaryDomain, ...formData.domainAliases].map(d => d.trim().toLowerCase().replace(/:\d+$/, ''));
 
             const requestData: AdminUpsertTenantRequest = {
                 tenantId: formData.tenantId,
@@ -241,8 +239,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                         <p class='mt-1 text-sm text-text-muted'>
                             {mode === 'create'
                                 ? 'Configure a new tenant with branding, features, and domains'
-                                : 'Update tenant configuration'
-                            }
+                                : 'Update tenant configuration'}
                         </p>
                     </div>
                     <button
@@ -260,14 +257,10 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 <div class='flex-1 overflow-y-auto px-6 py-6'>
                     <div class='space-y-6'>
                         {/* Success Message */}
-                        {successMessage && (
-                            <Alert type='success' message={successMessage} />
-                        )}
+                        {successMessage && <Alert type='success' message={successMessage} />}
 
                         {/* Error Message */}
-                        {errorMessage && (
-                            <Alert type='error' message={errorMessage} />
-                        )}
+                        {errorMessage && <Alert type='error' message={errorMessage} />}
 
                         {/* Tenant ID */}
                         <Card padding='md'>
@@ -282,9 +275,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     required
                                     data-testid='tenant-id-input'
                                 />
-                                {mode === 'edit' && (
-                                    <p class='text-xs text-text-muted'>Tenant ID cannot be changed after creation</p>
-                                )}
+                                {mode === 'edit' && <p class='text-xs text-text-muted'>Tenant ID cannot be changed after creation</p>}
                             </div>
                         </Card>
 
@@ -443,7 +434,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                                 <div key={index} class='flex items-center gap-2 rounded-md border border-border-default bg-surface-muted px-3 py-2'>
                                                     <span class='flex-1 text-sm text-text-primary'>{alias}</span>
                                                     <button
-                                                        onClick={() => handleRemoveAlias(index)}
+                                                        onClick={() =>
+                                                            handleRemoveAlias(index)}
                                                         disabled={isSaving}
                                                         class='text-text-muted hover:text-error-primary'
                                                         data-testid={`remove-alias-${index}`}

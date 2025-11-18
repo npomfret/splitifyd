@@ -75,12 +75,12 @@ export function initializeFirebase(env: ScriptEnvironment): void {
             const projectId = process.env.GCLOUD_PROJECT ?? process.env.PROJECT_ID;
             const appOptions: admin.AppOptions = projectId
                 ? {
-                      credential,
-                      projectId,
-                  }
+                    credential,
+                    projectId,
+                }
                 : {
-                      credential,
-                  };
+                    credential,
+                };
 
             admin.initializeApp(appOptions);
         } else {

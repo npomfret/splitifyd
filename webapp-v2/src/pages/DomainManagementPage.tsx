@@ -99,20 +99,20 @@ export function DomainManagementPage() {
             // Reload domains
             const domainsData = await apiClient.getTenantDomains();
             setDomains(domainsData);
-            } catch (error: any) {
-                if (error.code === 'NOT_IMPLEMENTED') {
-                    setErrorMessage('Domain addition not yet implemented on the backend');
-                } else {
-                    setErrorMessage(error.message || 'Failed to add domain');
-                }
-                logError('domainManagement.addDomainFailed', error, {
-                    userId: user?.uid,
-                    domain: newDomain.trim(),
-                });
-            } finally {
-                setIsAdding(false);
+        } catch (error: any) {
+            if (error.code === 'NOT_IMPLEMENTED') {
+                setErrorMessage('Domain addition not yet implemented on the backend');
+            } else {
+                setErrorMessage(error.message || 'Failed to add domain');
             }
-        };
+            logError('domainManagement.addDomainFailed', error, {
+                userId: user?.uid,
+                domain: newDomain.trim(),
+            });
+        } finally {
+            setIsAdding(false);
+        }
+    };
 
     const handleCopyDnsInstructions = async () => {
         const dnsText = `CNAME Record Configuration:
@@ -306,10 +306,18 @@ After adding this CNAME record, domain verification may take up to 24 hours.`;
                                         <p class='text-sm font-medium text-text-primary'>CNAME Record</p>
                                         <div class='rounded bg-interactive-primary/10 px-3 py-2 font-mono text-sm text-text-primary'>
                                             <div class='space-y-1'>
-                                                <div><span class='text-text-muted'>Type:</span> CNAME</div>
-                                                <div><span class='text-text-muted'>Name:</span> @ (or your domain)</div>
-                                                <div><span class='text-text-muted'>Value:</span> {domains?.primaryDomain || 'your-primary-domain'}</div>
-                                                <div><span class='text-text-muted'>TTL:</span> 3600</div>
+                                                <div>
+                                                    <span class='text-text-muted'>Type:</span> CNAME
+                                                </div>
+                                                <div>
+                                                    <span class='text-text-muted'>Name:</span> @ (or your domain)
+                                                </div>
+                                                <div>
+                                                    <span class='text-text-muted'>Value:</span> {domains?.primaryDomain || 'your-primary-domain'}
+                                                </div>
+                                                <div>
+                                                    <span class='text-text-muted'>TTL:</span> 3600
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

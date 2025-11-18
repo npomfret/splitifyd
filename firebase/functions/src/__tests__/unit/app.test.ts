@@ -9,16 +9,16 @@ import {
     smallestUnitToAmountString,
     SystemUserRoles,
     toGroupName,
-    UserBalance
+    UserBalance,
 } from '@splitifyd/shared';
 import type { UserId } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
 import { toExpenseId } from '@splitifyd/shared';
+import { toPassword } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from './AppDriver';
-import {toPassword} from "@splitifyd/shared";
-import {toDisplayName} from "@splitifyd/shared";
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
@@ -72,14 +72,17 @@ describe('app tests', () => {
 
             const participants = [user1, user2];
 
-            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(100, 'EUR')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(100, 'EUR', participants))
-                .build(), user1);
+            const createdExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, 'EUR')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'EUR', participants))
+                    .build(),
+                user1,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -88,13 +91,17 @@ describe('app tests', () => {
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('50.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-50.00');
 
-            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
-                .minimal()
-                .withAmount(150.5, 'EUR')
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
-                .build(), user1);
+            await appDriver.updateExpense(
+                createdExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withAmount(150.5, 'EUR')
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
+                    .build(),
+                user1,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -105,12 +112,15 @@ describe('app tests', () => {
             expect((groupDetails.balances.balancesByCurrency!.EUR)![user2].owes[user1]).toBe('75.25');
             expect((groupDetails.balances.balancesByCurrency!.EUR)![user2].netBalance).toBe('-75.25');
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(50.25, 'EUR')
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(50.25, 'EUR')
+                    .build(),
+                user2,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -140,15 +150,18 @@ describe('app tests', () => {
             const createdExpenseIds: string[] = [];
             for (let index = 0; index < 5; index += 1) {
                 const amount = 50 + index;
-                const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withDescription(`Paginated expense ${index}`)
-                    .withAmount(amount, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(amount, 'USD', participants))
-                    .build(), user1);
+                const expense = await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withDescription(`Paginated expense ${index}`)
+                        .withAmount(amount, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(amount, 'USD', participants))
+                        .build(),
+                    user1,
+                );
 
                 createdExpenseIds.push(expense.id);
             }
@@ -156,12 +169,15 @@ describe('app tests', () => {
             const settlementAmounts = [40, 30, 20, 10];
             const createdSettlementIds: string[] = [];
             for (const amount of settlementAmounts) {
-                const settlement = await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                    .withGroupId(groupId)
-                    .withPayerId(user2)
-                    .withPayeeId(user1)
-                    .withAmount(amount, 'USD')
-                    .build(), user2);
+                const settlement = await appDriver.createSettlement(
+                    new CreateSettlementRequestBuilder()
+                        .withGroupId(groupId)
+                        .withPayerId(user2)
+                        .withPayeeId(user1)
+                        .withAmount(amount, 'USD')
+                        .build(),
+                    user2,
+                );
 
                 createdSettlementIds.push(settlement.id);
             }
@@ -170,8 +186,8 @@ describe('app tests', () => {
 
             const firstPage = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: 2,
-                settlementLimit: 2
-}, user1);
+                settlementLimit: 2,
+            }, user1);
 
             expect(firstPage.expenses.expenses).toHaveLength(2);
             expect(firstPage.expenses.hasMore).toBe(true);
@@ -185,8 +201,8 @@ describe('app tests', () => {
                 expenseLimit: 2,
                 expenseCursor: firstPage.expenses.nextCursor,
                 settlementLimit: 2,
-                settlementCursor: firstPage.settlements.nextCursor
-}, user1);
+                settlementCursor: firstPage.settlements.nextCursor,
+            }, user1);
 
             expect(secondPage.expenses.expenses.length).toBeGreaterThanOrEqual(1);
 
@@ -199,8 +215,8 @@ describe('app tests', () => {
             while (settlementCursor) {
                 const nextPage = await appDriver.getGroupFullDetails(groupId, {
                     settlementLimit: 2,
-                    settlementCursor
-}, user1);
+                    settlementCursor,
+                }, user1);
 
                 seenSettlementIds.push(...nextPage.settlements.settlements.map((settlement) => settlement.id));
                 settlementCursor = nextPage.settlements.nextCursor;
@@ -208,8 +224,8 @@ describe('app tests', () => {
 
             const thirdPage = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: 2,
-                expenseCursor: secondPage.expenses.nextCursor
-}, user1);
+                expenseCursor: secondPage.expenses.nextCursor,
+            }, user1);
 
             expect(secondPage.expenses.expenses).toHaveLength(2);
             expect(secondPage.expenses.hasMore).toBe(true);
@@ -241,14 +257,17 @@ describe('app tests', () => {
             const participants = [user1, user2, user3];
 
             const kwdSplits = calculateEqualSplits(12.345, 'KWD', participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(12.345, 'KWD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(kwdSplits)
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(12.345, 'KWD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(kwdSplits)
+                    .build(),
+                user1,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -263,14 +282,17 @@ describe('app tests', () => {
             expect(kwdBalances![user3].netBalance).toBe(`-${amountFor(kwdSplits, user3)}`);
 
             const jpySplits = calculateEqualSplits(303, 'JPY', participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(303, 'JPY')
-                .withPaidBy(user2)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(jpySplits)
-                .build(), user2);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(303, 'JPY')
+                    .withPaidBy(user2)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(jpySplits)
+                    .build(),
+                user2,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -285,14 +307,17 @@ describe('app tests', () => {
             expect(jpyBalances![user3].netBalance).toBe(`-${amountFor(jpySplits, user3)}`);
 
             const gbpSplits = calculateEqualSplits(45.67, 'GBP', participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(45.67, 'GBP')
-                .withPaidBy(user3)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(gbpSplits)
-                .build(), user3);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(45.67, 'GBP')
+                    .withPaidBy(user3)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(gbpSplits)
+                    .build(),
+                user3,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -326,14 +351,17 @@ describe('app tests', () => {
                 { uid: user3, amount: '75.10' },
             ];
 
-            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(275.25, 'USD')
-                .withPaidBy(user2)
-                .withParticipants(participants)
-                .withSplitType('exact')
-                .withSplits(exactSplits)
-                .build(), user2);
+            const createdExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(275.25, 'USD')
+                    .withPaidBy(user2)
+                    .withParticipants(participants)
+                    .withSplitType('exact')
+                    .withSplits(exactSplits)
+                    .build(),
+                user2,
+            );
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -368,15 +396,18 @@ describe('app tests', () => {
             const participants = [user1, user2, user3];
 
             const percentageSplits = calculatePercentageSplits(200, 'EUR', participants);
-            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withDescription('Team Outing EUR')
-                .withAmount(200, 'EUR')
-                .withPaidBy(user3)
-                .withParticipants(participants)
-                .withSplitType('percentage')
-                .withSplits(percentageSplits)
-                .build(), user3);
+            const createdExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Team Outing EUR')
+                    .withAmount(200, 'EUR')
+                    .withPaidBy(user3)
+                    .withParticipants(participants)
+                    .withSplitType('percentage')
+                    .withSplits(percentageSplits)
+                    .build(),
+                user3,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user3);
 
@@ -399,15 +430,19 @@ describe('app tests', () => {
 
             const updatedParticipants = [user1, user2];
             const updatedSplits = calculateEqualSplits(303, 'JPY', updatedParticipants);
-            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
-                .minimal()
-                .withDescription('Team Outing JPY')
-                .withAmount(303, 'JPY')
-                .withPaidBy(user1)
-                .withParticipants(updatedParticipants)
-                .withSplitType('equal')
-                .withSplits(updatedSplits)
-                .build(), user1);
+            await appDriver.updateExpense(
+                createdExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withDescription('Team Outing JPY')
+                    .withAmount(303, 'JPY')
+                    .withPaidBy(user1)
+                    .withParticipants(updatedParticipants)
+                    .withSplitType('equal')
+                    .withSplits(updatedSplits)
+                    .build(),
+                user1,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -487,15 +522,18 @@ describe('app tests', () => {
 
             const participants = [user1, user2, user3];
             const usdSplits = calculateEqualSplits(90, 'USD', participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withDescription('Beach house deposit')
-                .withAmount(90, 'USD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(usdSplits)
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Beach house deposit')
+                    .withAmount(90, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(usdSplits)
+                    .build(),
+                user1,
+            );
 
             const listResponseUser1 = await appDriver.listGroups({}, user1);
             expect(listResponseUser1.count).toBe(1);
@@ -540,14 +578,17 @@ describe('app tests', () => {
             const participants = [user1, user2];
 
             const firstExpenseSplits = calculateEqualSplits(120, 'USD', participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(120, 'USD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(firstExpenseSplits)
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(120, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(firstExpenseSplits)
+                    .build(),
+                user1,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -556,13 +597,16 @@ describe('app tests', () => {
             expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBe('60.00');
             expect(groupDetails.balances.balancesByCurrency!.USD![user2].netBalance).toBe('-60.00');
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(10, 'USD')
-                .withCurrency('USD')
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(10, 'USD')
+                    .withCurrency('USD')
+                    .build(),
+                user2,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -573,12 +617,15 @@ describe('app tests', () => {
             expect(groupDetails.settlements.settlements).toHaveLength(1);
             expect(groupDetails.settlements.settlements[0].amount).toBe('10');
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(50, 'USD')
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(50, 'USD')
+                    .build(),
+                user2,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -608,29 +655,35 @@ describe('app tests', () => {
             const participants = [user1, user2];
             const metadataSplits = calculateEqualSplits(80, 'USD', participants);
 
-            const metadataExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withDescription('Hotel booking with receipt')
-                .withAmount(80, 'USD')
-                .withPaidBy(user1)
-                .withLabel('Travel')
-                .withDate('2024-06-15T12:30:00.000Z')
-                .withReceiptUrl('https://example.com/receipts/hotel.jpg')
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(metadataSplits)
-                .build(), user1);
+            const metadataExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Hotel booking with receipt')
+                    .withAmount(80, 'USD')
+                    .withPaidBy(user1)
+                    .withLabel('Travel')
+                    .withDate('2024-06-15T12:30:00.000Z')
+                    .withReceiptUrl('https://example.com/receipts/hotel.jpg')
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(metadataSplits)
+                    .build(),
+                user1,
+            );
 
             const secondarySplits = calculateEqualSplits(50, 'USD', participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withDescription('Fuel stop')
-                .withAmount(50, 'USD')
-                .withPaidBy(user2)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(secondarySplits)
-                .build(), user2);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Fuel stop')
+                    .withAmount(50, 'USD')
+                    .withPaidBy(user2)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(secondarySplits)
+                    .build(),
+                user2,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -716,9 +769,12 @@ describe('app tests', () => {
         });
 
         it('should let members update their own group display name', async () => {
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Design Team')
-                .build(), user1);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Design Team')
+                    .build(),
+                user1,
+            );
 
             const groupId = group.id;
 
@@ -738,9 +794,12 @@ describe('app tests', () => {
         });
 
         it('should handle group previews, updates, member management, and deletion', async () => {
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Adventure Squad')
-                .build(), user1);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Adventure Squad')
+                    .build(),
+                user1,
+            );
 
             const groupId = group.id;
 
@@ -760,8 +819,8 @@ describe('app tests', () => {
 
             await appDriver.updateGroup(groupId, {
                 name: toGroupName('Adventure Squad+'),
-                description: 'Updated itinerary for the squad'
-}, user1);
+                description: 'Updated itinerary for the squad',
+            }, user1);
             await appDriver.updateGroupMemberDisplayName(groupId, 'Squad Leader', user1);
 
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
@@ -798,22 +857,28 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(100, 'USD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(100, 'USD', participants))
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'USD', participants))
+                    .build(),
+                user1,
+            );
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(30.00, 'USD')
-                .withNote('Initial payment')
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(30.00, 'USD')
+                    .withNote('Initial payment')
+                    .build(),
+                user2,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = groupDetails.settlements.settlements[0].id;
@@ -822,8 +887,8 @@ describe('app tests', () => {
 
             await appDriver.updateSettlement(settlementId, {
                 amount: '50.00',
-                note: 'Adjusted amount'
-}, user2);
+                note: 'Adjusted amount',
+            }, user2);
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBeUndefined();
@@ -843,15 +908,18 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withDescription('Lunch at cafe')
-                .withAmount(60, 'USD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(60, 'USD', participants))
-                .build(), user1);
+            const createdExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Lunch at cafe')
+                    .withAmount(60, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(60, 'USD', participants))
+                    .build(),
+                user1,
+            );
 
             const groupCommentResponse = await appDriver.createGroupComment(groupId, 'Welcome to the group!', user1);
             expect(groupCommentResponse.text).toBe('Welcome to the group!');
@@ -894,14 +962,17 @@ describe('app tests', () => {
 
             const participants = [user1, user2];
 
-            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(100, 'EUR')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(100, 'EUR', participants))
-                .build(), user1);
+            const createdExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, 'EUR')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'EUR', participants))
+                    .build(),
+                user1,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -910,13 +981,17 @@ describe('app tests', () => {
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('50.00');
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-50.00');
 
-            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
-                .minimal()
-                .withAmount(150.5, 'EUR')
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
-                .build(), user1);
+            await appDriver.updateExpense(
+                createdExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withAmount(150.5, 'EUR')
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
+                    .build(),
+                user1,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -928,12 +1003,15 @@ describe('app tests', () => {
             expect(eurBalancesAfterUpdate![user2].owes[user1]).toBe('75.25');
             expect(eurBalancesAfterUpdate![user2].netBalance).toBe('-75.25');
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(50.25, 'EUR')
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(50.25, 'EUR')
+                    .build(),
+                user2,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = groupDetails.settlements.settlements[0].id;
@@ -977,8 +1055,8 @@ describe('app tests', () => {
                 splits: [
                     { ...baseExpense.splits[0], amount: '80.00' },
                     { ...baseExpense.splits[1], amount: '30.00' },
-                ]
-};
+                ],
+            };
 
             await expect(appDriver.createExpense(invalidExpense, user1))
                 .rejects
@@ -1007,9 +1085,9 @@ describe('app tests', () => {
                 amount: '12.34',
                 splits: baseExpense.splits.map((split) => ({
                     ...split,
-                    amount: '6.17'
-}))
-};
+                    amount: '6.17',
+                })),
+            };
 
             await expect(appDriver.createExpense(invalidExpense, user1))
                 .rejects
@@ -1049,15 +1127,18 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user4); // user4 is group member but not expense participant
 
             const participants = [user1, user2];
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withDescription('Confidential dinner')
-                .withAmount(50, 'USD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(50, 'USD', participants))
-                .build(), user1);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Confidential dinner')
+                    .withAmount(50, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(50, 'USD', participants))
+                    .build(),
+                user1,
+            );
 
             // user4 is a group member but NOT an expense participant - should still access
             const fullDetails = await appDriver.getExpenseFullDetails(expense.id, user4);
@@ -1109,29 +1190,35 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(120, 'USD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(120, 'USD', participants))
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(120, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(120, 'USD', participants))
+                    .build(),
+                user1,
+            );
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(60.00, 'USD')
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(60.00, 'USD')
+                    .build(),
+                user2,
+            );
 
             const details = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = details.settlements.settlements[0].id;
 
             await expect(appDriver.updateSettlement(settlementId, {
                 amount: '20.123',
-                currency: 'USD'
-}, user2))
+                currency: 'USD',
+            }, user2))
                 .rejects
                 .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
@@ -1157,14 +1244,17 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(30, 'USD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(30, 'USD', participants))
-                .build(), user1);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(30, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(30, 'USD', participants))
+                    .build(),
+                user1,
+            );
 
             await expect(appDriver.createExpenseComment(expense.id, '', user1))
                 .rejects
@@ -1216,26 +1306,33 @@ describe('app tests', () => {
             const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            const baseExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withDescription('Original expense')
-                .withAmount(60, 'USD')
-                .withPaidBy(user1)
-                .withParticipants([user1, user2])
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(60, 'USD', [user1, user2]))
-                .build(), user1);
+            const baseExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Original expense')
+                    .withAmount(60, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(60, 'USD', [user1, user2]))
+                    .build(),
+                user1,
+            );
 
             const updatedParticipants = [user1, user2, user4];
             const updatedSplits = calculateEqualSplits(90, 'USD', updatedParticipants);
 
-            await expect(appDriver.updateExpense(baseExpense.id, ExpenseUpdateBuilder
-                .minimal()
-                .withAmount(90, 'USD')
-                .withParticipants(updatedParticipants)
-                .withSplits(updatedSplits)
-                .withSplitType('equal')
-                .build(), user1))
+            await expect(appDriver.updateExpense(
+                baseExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withAmount(90, 'USD')
+                    .withParticipants(updatedParticipants)
+                    .withSplits(updatedSplits)
+                    .withSplitType('equal')
+                    .build(),
+                user1,
+            ))
                 .rejects
                 .toMatchObject({ code: 'INVALID_PARTICIPANT' });
         });
@@ -1248,28 +1345,34 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(80, 'USD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(80, 'USD', participants))
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(80, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(80, 'USD', participants))
+                    .build(),
+                user1,
+            );
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(40.00, 'USD')
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(40.00, 'USD')
+                    .build(),
+                user2,
+            );
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = groupDetails.settlements.settlements[0].id;
 
             await expect(appDriver.updateSettlement(settlementId, {
-                amount: '45.00'
-}, user1))
+                amount: '45.00',
+            }, user1))
                 .rejects
                 .toMatchObject({ code: 'NOT_SETTLEMENT_CREATOR' });
         });
@@ -1328,14 +1431,17 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(50, 'USD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(50, 'USD', participants))
-                .build(), user1);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(50, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(50, 'USD', participants))
+                    .build(),
+                user1,
+            );
 
             const response = await appDriver.createExpenseComment(expense.id, '<script>alert(1)</script>Thanks', user1);
             expect(response.text).toBe('Thanks');
@@ -1365,24 +1471,30 @@ describe('app tests', () => {
             const CURRENCY = 'USD';
 
             const testCase1Splits = calculateEqualSplits('0.10', CURRENCY, participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(0.10, CURRENCY)
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(testCase1Splits)
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(0.10, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(testCase1Splits)
+                    .build(),
+                user1,
+            );
 
             const testCase2Splits = calculateEqualSplits('0.20', CURRENCY, participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(0.20, CURRENCY)
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(testCase2Splits)
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(0.20, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(testCase2Splits)
+                    .build(),
+                user1,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             let usdBalances = groupDetails.balances.balancesByCurrency?.USD;
@@ -1395,14 +1507,17 @@ describe('app tests', () => {
             expect(actualUser1NetAfterTwo, 'After 0.10 + 0.20, user1 net should be exactly 15 cents (not 15.000000000000002)').toBe(expectedAfterTwoExpenses / 2);
 
             const testCase3Splits = calculateEqualSplits('0.70', CURRENCY, participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(0.70, CURRENCY)
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(testCase3Splits)
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(0.70, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(testCase3Splits)
+                    .build(),
+                user1,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             usdBalances = groupDetails.balances.balancesByCurrency?.USD;
@@ -1416,14 +1531,17 @@ describe('app tests', () => {
 
             for (let i = 0; i < 100; i++) {
                 const splits = calculateEqualSplits('0.10', CURRENCY, participants);
-                await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(0.10, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(splits)
-                    .build(), user1);
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(0.10, CURRENCY)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                    user1,
+                );
             }
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
@@ -1454,19 +1572,22 @@ describe('app tests', () => {
 
             for (let i = 0; i < NUM_OPERATIONS; i++) {
                 const splits = calculateEqualSplits(SMALL_AMOUNT, CURRENCY, participants);
-                await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(SMALL_AMOUNT, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(splits)
-                    .build(), user1);
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(SMALL_AMOUNT, CURRENCY)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                    user1,
+                );
             }
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {
-                expenseLimit: NUM_OPERATIONS
-}, user1);
+                expenseLimit: NUM_OPERATIONS,
+            }, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances, 'USD balances should exist after many small operations').toBeDefined();
@@ -1494,14 +1615,17 @@ describe('app tests', () => {
             const participants = [user1, user2];
             const splits = calculateEqualSplits(LARGE_AMOUNT, CURRENCY, participants);
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(LARGE_AMOUNT, CURRENCY)
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(splits)
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(LARGE_AMOUNT, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(),
+                user1,
+            );
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
@@ -1529,55 +1653,70 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(EXPENSE_AMOUNT, CURRENCY)
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(EXPENSE_AMOUNT, CURRENCY, participants))
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(EXPENSE_AMOUNT, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(EXPENSE_AMOUNT, CURRENCY, participants))
+                    .build(),
+                user1,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('50.00');
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(FIRST_SETTLEMENT, CURRENCY)
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(FIRST_SETTLEMENT, CURRENCY)
+                    .build(),
+                user2,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('40.00');
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(SECOND_SETTLEMENT, CURRENCY)
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(SECOND_SETTLEMENT, CURRENCY)
+                    .build(),
+                user2,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('25.00');
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(THIRD_SETTLEMENT, CURRENCY)
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(THIRD_SETTLEMENT, CURRENCY)
+                    .build(),
+                user2,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             let eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
             expect(eurBalances![user2].owes[user1]).toBe('12.50');
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(FOURTH_SETTLEMENT, CURRENCY)
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(FOURTH_SETTLEMENT, CURRENCY)
+                    .build(),
+                user2,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
@@ -1602,32 +1741,41 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(CIRCULAR_AMOUNT, CURRENCY)
-                .withPaidBy(user1)
-                .withParticipants([user1, user2])
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user1, user2]))
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(CIRCULAR_AMOUNT, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user1, user2]))
+                    .build(),
+                user1,
+            );
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(CIRCULAR_AMOUNT, CURRENCY)
-                .withPaidBy(user2)
-                .withParticipants([user2, user3])
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user2, user3]))
-                .build(), user2);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(CIRCULAR_AMOUNT, CURRENCY)
+                    .withPaidBy(user2)
+                    .withParticipants([user2, user3])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user2, user3]))
+                    .build(),
+                user2,
+            );
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(CIRCULAR_AMOUNT, CURRENCY)
-                .withPaidBy(user3)
-                .withParticipants([user3, user1])
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user3, user1]))
-                .build(), user3);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(CIRCULAR_AMOUNT, CURRENCY)
+                    .withPaidBy(user3)
+                    .withParticipants([user3, user1])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(CIRCULAR_AMOUNT, CURRENCY, [user3, user1]))
+                    .build(),
+                user3,
+            );
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
@@ -1652,48 +1800,63 @@ describe('app tests', () => {
             const participants = [user1, user2, user3];
 
             const usdExpense1Splits = calculateEqualSplits(150, 'USD', participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(150, 'USD')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(usdExpense1Splits)
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(150, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(usdExpense1Splits)
+                    .build(),
+                user1,
+            );
 
             const eurExpense1Splits = calculateEqualSplits(200, 'EUR', participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(200, 'EUR')
-                .withPaidBy(user2)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(eurExpense1Splits)
-                .build(), user2);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(200, 'EUR')
+                    .withPaidBy(user2)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(eurExpense1Splits)
+                    .build(),
+                user2,
+            );
 
             const gbpExpense1Splits = calculateEqualSplits(75.50, 'GBP', participants);
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(75.50, 'GBP')
-                .withPaidBy(user3)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(gbpExpense1Splits)
-                .build(), user3);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(75.50, 'GBP')
+                    .withPaidBy(user3)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(gbpExpense1Splits)
+                    .build(),
+                user3,
+            );
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(50.00, 'USD')
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(50.00, 'USD')
+                    .build(),
+                user2,
+            );
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId(user3)
-                .withPayeeId(user2)
-                .withAmount(66.67, 'EUR')
-                .build(), user3);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(user3)
+                    .withPayeeId(user2)
+                    .withAmount(66.67, 'EUR')
+                    .build(),
+                user3,
+            );
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
@@ -1731,19 +1894,22 @@ describe('app tests', () => {
                 const payer = payers[i % payers.length];
                 const splits = calculateEqualSplits(amount, 'USD', participants);
 
-                await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(amount, 'USD')
-                    .withPaidBy(payer)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(splits)
-                    .build(), payer);
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(amount, 'USD')
+                        .withPaidBy(payer)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                    payer,
+                );
             }
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {
-                expenseLimit: OPERATIONS_COUNT
-}, user1);
+                expenseLimit: OPERATIONS_COUNT,
+            }, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
 
             expect(usdBalances).toBeDefined();
@@ -1767,14 +1933,17 @@ describe('app tests', () => {
             expect(splits[1].amount).toBe('33');
             expect(splits[2].amount).toBe('34'); // Gets 1 yen remainder
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'JPY')
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(splits)
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'JPY')
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(splits)
+                    .build(),
+                user1,
+            );
 
             const groupDetails = await appDriver.getGroupFullDetails(group.id, {}, user1);
             const jpyBalances = groupDetails.balances.balancesByCurrency?.JPY;
@@ -1804,14 +1973,17 @@ describe('app tests', () => {
             const participants = [user1, user2, user3];
 
             const equalSplits = calculateEqualSplits(AMOUNT, CURRENCY, participants, 0);
-            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(AMOUNT, CURRENCY)
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(equalSplits)
-                .build(), user1);
+            const createdExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(AMOUNT, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(equalSplits)
+                    .build(),
+                user1,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             let eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
@@ -1822,13 +1994,17 @@ describe('app tests', () => {
             const balanceAfterEqual = amountToSmallestUnit(eurBalances![user1].netBalance, CURRENCY);
 
             const percentageSplits = calculatePercentageSplits(AMOUNT, CURRENCY, participants, 0);
-            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
-                .minimal()
-                .withAmount(AMOUNT, CURRENCY)
-                .withParticipants(participants)
-                .withSplitType('percentage')
-                .withSplits(percentageSplits)
-                .build(), user1);
+            await appDriver.updateExpense(
+                createdExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withAmount(AMOUNT, CURRENCY)
+                    .withParticipants(participants)
+                    .withSplitType('percentage')
+                    .withSplits(percentageSplits)
+                    .build(),
+                user1,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
@@ -1841,15 +2017,19 @@ describe('app tests', () => {
 
             const exactSplits = percentageSplits.map(split => ({
                 uid: split.uid,
-                amount: split.amount
-}));
-            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
-                .minimal()
-                .withAmount(AMOUNT, CURRENCY)
-                .withParticipants(participants)
-                .withSplitType('exact')
-                .withSplits(exactSplits)
-                .build(), user1);
+                amount: split.amount,
+            }));
+            await appDriver.updateExpense(
+                createdExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withAmount(AMOUNT, CURRENCY)
+                    .withParticipants(participants)
+                    .withSplitType('exact')
+                    .withSplits(exactSplits)
+                    .build(),
+                user1,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
@@ -1861,13 +2041,17 @@ describe('app tests', () => {
             expect(balanceAfterExact, 'Balance after percentage → exact conversion should be exactly the same (zero-tolerance)').toBe(balanceAfterPercentage);
 
             const finalEqualSplits = calculateEqualSplits(AMOUNT, CURRENCY, participants, 0);
-            await appDriver.updateExpense(createdExpense.id, ExpenseUpdateBuilder
-                .minimal()
-                .withAmount(AMOUNT, CURRENCY)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(finalEqualSplits)
-                .build(), user1);
+            await appDriver.updateExpense(
+                createdExpense.id,
+                ExpenseUpdateBuilder
+                    .minimal()
+                    .withAmount(AMOUNT, CURRENCY)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(finalEqualSplits)
+                    .build(),
+                user1,
+            );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
@@ -1891,14 +2075,17 @@ describe('app tests', () => {
 
             const participants = [user1, user2, user3];
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(150, CURRENCY)
-                .withPaidBy(user1)
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(150, CURRENCY, participants))
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(150, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(150, CURRENCY, participants))
+                    .build(),
+                user1,
+            );
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
@@ -1910,8 +2097,8 @@ describe('app tests', () => {
                 .rejects
                 .toMatchObject({
                     code: 'INVALID_INPUT',
-                    details: { message: 'Cannot remove member with outstanding balance' }
-});
+                    details: { message: 'Cannot remove member with outstanding balance' },
+                });
         });
 
         it('should allow removal of member with zero balance', async () => {
@@ -1924,14 +2111,17 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(groupId)
-                .withAmount(100, CURRENCY)
-                .withPaidBy(user1)
-                .withParticipants([user1, user2])
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(100, CURRENCY, [user1, user2]))
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(100, CURRENCY)
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, CURRENCY, [user1, user2]))
+                    .build(),
+                user1,
+            );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
@@ -1970,7 +2160,7 @@ describe('app tests', () => {
                 expect(groups.groups).toHaveLength(0);
 
                 // Archived filter should return the group
-                const archivedGroups = await appDriver.listGroups({statusFilter: 'archived'}, user2);
+                const archivedGroups = await appDriver.listGroups({ statusFilter: 'archived' }, user2);
                 expect(archivedGroups.groups).toHaveLength(1);
                 expect(archivedGroups.groups[0].id).toBe(groupId);
 
@@ -1983,7 +2173,7 @@ describe('app tests', () => {
                 expect(groups.groups).toHaveLength(1);
                 expect(groups.groups[0].id).toBe(groupId);
 
-                const archivedGroupsAfterUnarchive = await appDriver.listGroups({statusFilter: 'archived'}, user2);
+                const archivedGroupsAfterUnarchive = await appDriver.listGroups({ statusFilter: 'archived' }, user2);
                 expect(archivedGroupsAfterUnarchive.groups).toHaveLength(0);
             });
 
@@ -2157,14 +2347,17 @@ describe('app tests', () => {
                 const singleParticipant = [user1];
                 const splits = calculateEqualSplits(100, 'USD', singleParticipant);
 
-                const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(100, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(singleParticipant)
-                    .withSplitType('equal')
-                    .withSplits(splits)
-                    .build(), user1);
+                const expense = await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(100, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(singleParticipant)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                    user1,
+                );
 
                 expect(expense.id).toBeDefined();
 
@@ -2191,14 +2384,17 @@ describe('app tests', () => {
                 const participants = [user1, user2];
                 const splits = calculateEqualSplits(LARGE_AMOUNT, CURRENCY, participants);
 
-                const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(LARGE_AMOUNT, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(splits)
-                    .build(), user1);
+                const expense = await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(LARGE_AMOUNT, CURRENCY)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                    user1,
+                );
 
                 expect(expense.amount).toBe(String(LARGE_AMOUNT));
 
@@ -2221,14 +2417,17 @@ describe('app tests', () => {
                 const participants = [user1, user2];
                 const splits = calculateEqualSplits(MIN_AMOUNT, CURRENCY, participants);
 
-                const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(MIN_AMOUNT, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(splits)
-                    .build(), user1);
+                const expense = await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(MIN_AMOUNT, CURRENCY)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                    user1,
+                );
 
                 expect(expense.amount).toBe(String(MIN_AMOUNT));
 
@@ -2243,10 +2442,13 @@ describe('app tests', () => {
                 const longDescription = 'x'.repeat(10000);
 
                 await expect(
-                    appDriver.createGroup(new CreateGroupRequestBuilder()
-                        .withName('Test Group')
-                        .withDescription(longDescription)
-                        .build(), user1),
+                    appDriver.createGroup(
+                        new CreateGroupRequestBuilder()
+                            .withName('Test Group')
+                            .withDescription(longDescription)
+                            .build(),
+                        user1,
+                    ),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_INPUT' });
@@ -2260,15 +2462,18 @@ describe('app tests', () => {
                 const participants = [user1];
 
                 await expect(
-                    appDriver.createExpense(new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withDescription(longDescription)
-                        .withAmount(100, 'USD')
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(100, 'USD', participants))
-                        .build(), user1),
+                    appDriver.createExpense(
+                        new CreateExpenseRequestBuilder()
+                            .withGroupId(groupId)
+                            .withDescription(longDescription)
+                            .withAmount(100, 'USD')
+                            .withPaidBy(user1)
+                            .withParticipants(participants)
+                            .withSplitType('equal')
+                            .withSplits(calculateEqualSplits(100, 'USD', participants))
+                            .build(),
+                        user1,
+                    ),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_DESCRIPTION' });
@@ -2296,14 +2501,17 @@ describe('app tests', () => {
                 const CURRENCY = 'USD';
                 const splits = calculateEqualSplits(AMOUNT, CURRENCY, manyUsers);
 
-                const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(AMOUNT, CURRENCY)
-                    .withPaidBy(user1)
-                    .withParticipants(manyUsers)
-                    .withSplitType('equal')
-                    .withSplits(splits)
-                    .build(), user1);
+                const expense = await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(AMOUNT, CURRENCY)
+                        .withPaidBy(user1)
+                        .withParticipants(manyUsers)
+                        .withSplitType('equal')
+                        .withSplits(splits)
+                        .build(),
+                    user1,
+                );
 
                 expect(expense.id).toBeDefined();
 
@@ -2325,14 +2533,17 @@ describe('app tests', () => {
 
                 const participants = [user1];
                 await expect(
-                    appDriver.createExpense(new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(100, 'USD')
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(100, 'USD', participants))
-                        .build(), user1),
+                    appDriver.createExpense(
+                        new CreateExpenseRequestBuilder()
+                            .withGroupId(groupId)
+                            .withAmount(100, 'USD')
+                            .withPaidBy(user1)
+                            .withParticipants(participants)
+                            .withSplitType('equal')
+                            .withSplits(calculateEqualSplits(100, 'USD', participants))
+                            .build(),
+                        user1,
+                    ),
                 )
                     .rejects
                     .toMatchObject({ code: 'NOT_FOUND' });
@@ -2366,14 +2577,17 @@ describe('app tests', () => {
 
                 const participants = [user1];
                 await expect(
-                    appDriver.createExpense(new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(0, 'USD')
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits([{uid: user1, amount: '0.00'}])
-                        .build(), user1),
+                    appDriver.createExpense(
+                        new CreateExpenseRequestBuilder()
+                            .withGroupId(groupId)
+                            .withAmount(0, 'USD')
+                            .withPaidBy(user1)
+                            .withParticipants(participants)
+                            .withSplitType('equal')
+                            .withSplits([{ uid: user1, amount: '0.00' }])
+                            .build(),
+                        user1,
+                    ),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_AMOUNT' });
@@ -2385,14 +2599,17 @@ describe('app tests', () => {
 
                 const participants = [user1];
                 await expect(
-                    appDriver.createExpense(new CreateExpenseRequestBuilder()
-                        .withGroupId(groupId)
-                        .withAmount(-100, 'USD')
-                        .withPaidBy(user1)
-                        .withParticipants(participants)
-                        .withSplitType('equal')
-                        .withSplits([{uid: user1, amount: '-100.00'}])
-                        .build(), user1),
+                    appDriver.createExpense(
+                        new CreateExpenseRequestBuilder()
+                            .withGroupId(groupId)
+                            .withAmount(-100, 'USD')
+                            .withPaidBy(user1)
+                            .withParticipants(participants)
+                            .withSplitType('equal')
+                            .withSplits([{ uid: user1, amount: '-100.00' }])
+                            .build(),
+                        user1,
+                    ),
                 )
                     .rejects
                     .toMatchObject({ code: 'INVALID_AMOUNT' });
@@ -2405,22 +2622,28 @@ describe('app tests', () => {
                 await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 const participants = [user1, user2];
-                await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(100, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', participants))
-                    .build(), user1);
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(100, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(100, 'USD', participants))
+                        .build(),
+                    user1,
+                );
 
                 await expect(
-                    appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                        .withGroupId(groupId)
-                        .withPayerId(user2)
-                        .withPayeeId(user1)
-                        .withAmount(0.00, 'USD')
-                        .build(), user2),
+                    appDriver.createSettlement(
+                        new CreateSettlementRequestBuilder()
+                            .withGroupId(groupId)
+                            .withPayerId(user2)
+                            .withPayeeId(user1)
+                            .withAmount(0.00, 'USD')
+                            .build(),
+                        user2,
+                    ),
                 )
                     .rejects
                     .toMatchObject({ code: 'VALIDATION_ERROR' });
@@ -2433,22 +2656,28 @@ describe('app tests', () => {
                 await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 const participants = [user1, user2];
-                await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(groupId)
-                    .withAmount(100, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', participants))
-                    .build(), user1);
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withAmount(100, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(100, 'USD', participants))
+                        .build(),
+                    user1,
+                );
 
                 await expect(
-                    appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                        .withGroupId(groupId)
-                        .withPayerId(user2)
-                        .withPayeeId(user1)
-                        .withAmount('-25.00', 'USD')
-                        .build(), user2),
+                    appDriver.createSettlement(
+                        new CreateSettlementRequestBuilder()
+                            .withGroupId(groupId)
+                            .withPayerId(user2)
+                            .withPayeeId(user1)
+                            .withAmount('-25.00', 'USD')
+                            .build(),
+                        user2,
+                    ),
                 )
                     .rejects
                     .toMatchObject({ code: 'VALIDATION_ERROR' });
@@ -2465,11 +2694,11 @@ describe('app tests', () => {
             it('should accept a single policy', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 const result = await appDriver.acceptMultiplePolicies([
-                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
                 ], user1);
 
                 expect(result.success).toBe(true);
@@ -2482,23 +2711,23 @@ describe('app tests', () => {
             it('should accept multiple policies at once', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
-                    text: 'Privacy Policy v1'
-}, user1);
+                    text: 'Privacy Policy v1',
+                }, user1);
 
                 const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
-                    text: 'Cookie Policy v1'
-}, user1);
+                    text: 'Cookie Policy v1',
+                }, user1);
 
                 const result = await appDriver.acceptMultiplePolicies([
-                    {policyId: policy1.id, versionHash: policy1.versionHash},
-                    {policyId: policy2.id, versionHash: policy2.versionHash},
-                    {policyId: policy3.id, versionHash: policy3.versionHash},
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    { policyId: policy2.id, versionHash: policy2.versionHash },
+                    { policyId: policy3.id, versionHash: policy3.versionHash },
                 ], user1);
 
                 expect(result.success).toBe(true);
@@ -2511,11 +2740,11 @@ describe('app tests', () => {
             it('should persist policy acceptance in user document', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies([
-                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
                 ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
@@ -2536,7 +2765,7 @@ describe('app tests', () => {
             it('should reject when policyId is missing', async () => {
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        {policyId: '', versionHash: 'some-hash'},
+                        { policyId: '', versionHash: 'some-hash' },
                     ], user1),
                 )
                     .rejects
@@ -2546,7 +2775,7 @@ describe('app tests', () => {
             it('should reject when versionHash is missing', async () => {
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        {policyId: 'some-policy', versionHash: ''},
+                        { policyId: 'some-policy', versionHash: '' },
                     ], user1),
                 )
                     .rejects
@@ -2556,7 +2785,7 @@ describe('app tests', () => {
             it('should reject when policy does not exist', async () => {
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        {policyId: 'non-existent-policy', versionHash: 'some-hash'},
+                        { policyId: 'non-existent-policy', versionHash: 'some-hash' },
                     ], user1),
                 )
                     .rejects
@@ -2566,12 +2795,12 @@ describe('app tests', () => {
             it('should reject when version hash is invalid for existing policy', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        {policyId: policy1.id, versionHash: 'invalid-version-hash'},
+                        { policyId: policy1.id, versionHash: 'invalid-version-hash' },
                     ], user1),
                 )
                     .rejects
@@ -2581,13 +2810,13 @@ describe('app tests', () => {
             it('should reject entire batch if any policy is invalid', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        {policyId: policy1.id, versionHash: policy1.versionHash},
-                        {policyId: 'non-existent', versionHash: 'some-hash'},
+                        { policyId: policy1.id, versionHash: policy1.versionHash },
+                        { policyId: 'non-existent', versionHash: 'some-hash' },
                     ], user1),
                 )
                     .rejects
@@ -2602,13 +2831,13 @@ describe('app tests', () => {
             it('should show all policies as pending when user has not accepted any', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
-                    text: 'Privacy Policy v1'
-}, user1);
+                    text: 'Privacy Policy v1',
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2630,17 +2859,17 @@ describe('app tests', () => {
             it('should show no pending policies when user has accepted current versions', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
-                    text: 'Privacy Policy v1'
-}, user1);
+                    text: 'Privacy Policy v1',
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies([
-                    {policyId: policy1.id, versionHash: policy1.versionHash},
-                    {policyId: policy2.id, versionHash: policy2.versionHash},
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    { policyId: policy2.id, versionHash: policy2.versionHash },
                 ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
@@ -2658,19 +2887,19 @@ describe('app tests', () => {
             it('should show pending when user has accepted old versions', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies([
-                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
                 ], user2);
 
                 const oldVersionHash = policy1.versionHash;
 
                 const updatedPolicy = await appDriver.updatePolicy(policy1.id, {
                     text: 'Terms of Service v2 - updated',
-                    publish: true
-}, user1);
+                    publish: true,
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2689,28 +2918,28 @@ describe('app tests', () => {
             it('should show mixed acceptance state across multiple policies', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
-                    text: 'Privacy Policy v1'
-}, user1);
+                    text: 'Privacy Policy v1',
+                }, user1);
 
                 const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
-                    text: 'Cookie Policy v1'
-}, user1);
+                    text: 'Cookie Policy v1',
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies([
-                    {policyId: policy1.id, versionHash: policy1.versionHash},
-                    {policyId: policy2.id, versionHash: policy2.versionHash},
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
+                    { policyId: policy2.id, versionHash: policy2.versionHash },
                 ], user2);
 
                 await appDriver.updatePolicy(policy1.id, {
                     text: 'Terms of Service v2',
-                    publish: true
-}, user1);
+                    publish: true,
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2732,8 +2961,8 @@ describe('app tests', () => {
             it('should return correct response structure', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
 
@@ -2749,11 +2978,11 @@ describe('app tests', () => {
             it('should include all required fields in each policy', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies([
-                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
                 ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
@@ -2777,21 +3006,21 @@ describe('app tests', () => {
             it('should correctly count totalPending', async () => {
                 const policy1 = await appDriver.createPolicy({
                     policyName: 'Terms Of Service',
-                    text: 'Terms of Service v1'
-}, user1);
+                    text: 'Terms of Service v1',
+                }, user1);
 
                 const policy2 = await appDriver.createPolicy({
                     policyName: 'Privacy Policy',
-                    text: 'Privacy Policy v1'
-}, user1);
+                    text: 'Privacy Policy v1',
+                }, user1);
 
                 const policy3 = await appDriver.createPolicy({
                     policyName: 'Cookie Policy',
-                    text: 'Cookie Policy v1'
-}, user1);
+                    text: 'Cookie Policy v1',
+                }, user1);
 
                 await appDriver.acceptMultiplePolicies([
-                    {policyId: policy1.id, versionHash: policy1.versionHash},
+                    { policyId: policy1.id, versionHash: policy1.versionHash },
                 ], user2);
 
                 const status = await appDriver.getUserPolicyStatus(user2);
@@ -2818,22 +3047,25 @@ describe('app tests', () => {
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(user1)
-                .withParticipants([user1, user2])
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                    .build(),
+                user1,
+            );
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                transactionChangeCount: 1
-});
+                transactionChangeCount: 1,
+            });
 
             await appDriver.expectNotificationUpdate(user2, group.id, {
-                transactionChangeCount: 1
-});
+                transactionChangeCount: 1,
+            });
         });
 
         it('should update notifications when settlement is created', async () => {
@@ -2841,20 +3073,23 @@ describe('app tests', () => {
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(user2)
-                .withPayeeId(user1)
-                .withAmount(50, 'USD')
-                .build(), user2);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(user2)
+                    .withPayeeId(user1)
+                    .withAmount(50, 'USD')
+                    .build(),
+                user2,
+            );
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                balanceChangeCount: 1
-});
+                balanceChangeCount: 1,
+            });
 
             await appDriver.expectNotificationUpdate(user2, group.id, {
-                balanceChangeCount: 1
-});
+                balanceChangeCount: 1,
+            });
         });
 
         it('should update notifications when group comment is added', async () => {
@@ -2865,12 +3100,12 @@ describe('app tests', () => {
             await appDriver.createGroupComment(group.id, 'Test comment', user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                commentChangeCount: 1
-});
+                commentChangeCount: 1,
+            });
 
             await appDriver.expectNotificationUpdate(user2, group.id, {
-                commentChangeCount: 1
-});
+                commentChangeCount: 1,
+            });
         });
 
         it('should update notifications when expense comment is added', async () => {
@@ -2878,24 +3113,27 @@ describe('app tests', () => {
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(user1)
-                .withParticipants([user1, user2])
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
-                .build(), user1);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                    .build(),
+                user1,
+            );
 
             await appDriver.createExpenseComment(expense.id, 'Expense comment', user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                commentChangeCount: 1
-});
+                commentChangeCount: 1,
+            });
 
             await appDriver.expectNotificationUpdate(user2, group.id, {
-                commentChangeCount: 1
-});
+                commentChangeCount: 1,
+            });
         });
 
         it('should increment changeVersion on multiple operations', async () => {
@@ -2903,14 +3141,17 @@ describe('app tests', () => {
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(100, 'USD')
-                .withPaidBy(user1)
-                .withParticipants([user1, user2])
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(100, 'USD')
+                    .withPaidBy(user1)
+                    .withParticipants([user1, user2])
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                    .build(),
+                user1,
+            );
 
             const feedAfterExpense = await appDriver.getActivityFeedItems(user1);
             expect(feedAfterExpense.length).toBeGreaterThan(0);
@@ -2924,11 +3165,11 @@ describe('app tests', () => {
         it('should handle group updates', async () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
-            await appDriver.updateGroup(group.id, {name: toGroupName('Updated Name')}, user1);
+            await appDriver.updateGroup(group.id, { name: toGroupName('Updated Name') }, user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
-                groupDetailsChangeCount: 2
-});
+                groupDetailsChangeCount: 2,
+            });
         });
 
         it('should prune activity feed entries beyond the latest 20 items via async cleanup', async () => {
@@ -2940,12 +3181,15 @@ describe('app tests', () => {
 
             // Create 25 expenses - cleanup happens after each write
             for (let i = 0; i < 25; i += 1) {
-                await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withDescription(`Activity Feed Expense ${i}`)
-                    .build(), user1);
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withDescription(`Activity Feed Expense ${i}`)
+                        .build(),
+                    user1,
+                );
             }
 
             // After creating 25 expenses + 1 group create + 1 member join = 27 items
@@ -2974,15 +3218,18 @@ describe('app tests', () => {
             const participants = [user1, user2];
 
             for (let i = 0; i < 10; i += 1) {
-                await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withAmount(30, 'USD')
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(30, 'USD', participants))
-                    .withDescription(`Deletion Feed Expense ${i}`)
-                    .build(), user1);
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withAmount(30, 'USD')
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withSplitType('equal')
+                        .withSplits(calculateEqualSplits(30, 'USD', participants))
+                        .withDescription(`Deletion Feed Expense ${i}`)
+                        .build(),
+                    user1,
+                );
             }
 
             await appDriver.deleteGroup(group.id, user1);
@@ -3027,22 +3274,25 @@ describe('app tests', () => {
 
             const participants = [user1, user2];
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(42.5, 'USD')
-                .withPaidBy(user1)
-                .withDescription('Activity Feed Expense')
-                .withParticipants(participants)
-                .withSplitType('equal')
-                .withSplits(calculateEqualSplits(42.5, 'USD', participants))
-                .build(), user1);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(42.5, 'USD')
+                    .withPaidBy(user1)
+                    .withDescription('Activity Feed Expense')
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(42.5, 'USD', participants))
+                    .build(),
+                user1,
+            );
 
             await appDriver.createGroupComment(group.id, 'Activity feed comment', user1);
 
             const fullFeed = await appDriver.getActivityFeed({}, user1);
             expect(fullFeed.items.length).toBeGreaterThanOrEqual(2);
 
-            const limitedFeed = await appDriver.getActivityFeed({limit: 1}, user1);
+            const limitedFeed = await appDriver.getActivityFeed({ limit: 1 }, user1);
             expect(limitedFeed.items).toHaveLength(1);
             expect(limitedFeed.hasMore).toBe(fullFeed.items.length > 1);
 
@@ -3062,12 +3312,15 @@ describe('app tests', () => {
             // Create 25 expenses to generate activity items (25 expenses + 1 group create + 1 member join = 27 items)
             // Cleanup runs after each expense write
             for (let i = 0; i < 25; i += 1) {
-                await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withPaidBy(user1)
-                    .withParticipants(participants)
-                    .withDescription(`Test Expense ${i}`)
-                    .build(), user1);
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withPaidBy(user1)
+                        .withParticipants(participants)
+                        .withDescription(`Test Expense ${i}`)
+                        .build(),
+                    user1,
+                );
             }
 
             // Verify at most 20 items remain
@@ -3075,7 +3328,8 @@ describe('app tests', () => {
             expect(feed.items.length).toBeLessThanOrEqual(20);
 
             // Verify the most recent items are kept
-            const expenseDescriptions = feed.items
+            const expenseDescriptions = feed
+                .items
                 .filter((item) => item.eventType === ActivityFeedEventTypes.EXPENSE_CREATED)
                 .map((item) => item.details?.expenseDescription);
 
@@ -3089,8 +3343,8 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const permissionsUpdate = await appDriver.updateGroupPermissions(group.id, {
-                memberApproval: 'admin-required'
-}, user1);
+                memberApproval: 'admin-required',
+            }, user1);
 
             expect(permissionsUpdate.message).toBe('Permissions updated successfully');
 
@@ -3138,8 +3392,8 @@ describe('app tests', () => {
                 password: toPassword('ValidPass123!'),
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
-                privacyPolicyAccepted: true
-});
+                privacyPolicyAccepted: true,
+            });
 
             expect(registrationResult.success).toBe(true);
             expect(registrationResult.user.displayName).toBe('Registered User');
@@ -3159,7 +3413,7 @@ describe('app tests', () => {
                     password: toPassword('ValidPass123!'),
                     termsAccepted: true,
                     cookiePolicyAccepted: true,
-                    privacyPolicyAccepted: false
+                    privacyPolicyAccepted: false,
                 }),
             )
                 .rejects
@@ -3169,8 +3423,8 @@ describe('app tests', () => {
         describe('updateUserProfile', () => {
             it('should update display name successfully', async () => {
                 const updatedProfile = await appDriver.updateUserProfile({
-                    displayName: 'Updated Name'
-}, user1);
+                    displayName: 'Updated Name',
+                }, user1);
 
                 expect(updatedProfile.displayName).toBe('Updated Name');
 
@@ -3180,8 +3434,8 @@ describe('app tests', () => {
 
             it('should sanitize display name input', async () => {
                 const updatedProfile = await appDriver.updateUserProfile({
-                    displayName: '<script>alert("xss")</script>Clean Name'
-}, user1);
+                    displayName: '<script>alert("xss")</script>Clean Name',
+                }, user1);
 
                 expect(updatedProfile.displayName).not.toContain('<script>');
                 expect(updatedProfile.displayName).toContain('Clean Name');
@@ -3189,7 +3443,7 @@ describe('app tests', () => {
 
             it('should reject empty display name', async () => {
                 await expect(
-                    appDriver.updateUserProfile({displayName: ''}, user1),
+                    appDriver.updateUserProfile({ displayName: '' }, user1),
                 )
                     .rejects
                     .toThrow();
@@ -3198,7 +3452,7 @@ describe('app tests', () => {
             it('should reject display name that is too long', async () => {
                 const tooLongName = 'a'.repeat(256);
                 await expect(
-                    appDriver.updateUserProfile({displayName: tooLongName}, user1),
+                    appDriver.updateUserProfile({ displayName: tooLongName }, user1),
                 )
                     .rejects
                     .toThrow();
@@ -3212,8 +3466,8 @@ describe('app tests', () => {
             it('should successfully change password with valid credentials', async () => {
                 const result = await appDriver.changePassword({
                     currentPassword: VALID_CURRENT_PASSWORD,
-                    newPassword: VALID_NEW_PASSWORD
-}, user1);
+                    newPassword: VALID_NEW_PASSWORD,
+                }, user1);
 
                 expect(result.message).toBe('Password changed successfully');
             });
@@ -3222,8 +3476,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: toPassword('WrongPassword123!'),
-                        newPassword: VALID_NEW_PASSWORD
-}, user1),
+                        newPassword: VALID_NEW_PASSWORD,
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/password is incorrect/i);
@@ -3233,8 +3487,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: VALID_CURRENT_PASSWORD
-}, user1),
+                        newPassword: VALID_CURRENT_PASSWORD,
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3244,8 +3498,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: toPassword('Short1!')
-}, user1),
+                        newPassword: toPassword('Short1!'),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3254,8 +3508,8 @@ describe('app tests', () => {
             it('should reject when currentPassword field is missing', async () => {
                 await expect(
                     appDriver.changePassword({
-                        newPassword: VALID_NEW_PASSWORD
-} as any, user1),
+                        newPassword: VALID_NEW_PASSWORD,
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3264,8 +3518,8 @@ describe('app tests', () => {
             it('should reject when newPassword field is missing', async () => {
                 await expect(
                     appDriver.changePassword({
-                        currentPassword: VALID_CURRENT_PASSWORD
-} as any, user1),
+                        currentPassword: VALID_CURRENT_PASSWORD,
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3275,8 +3529,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: toPassword(''),
-                        newPassword: VALID_NEW_PASSWORD
-}, user1),
+                        newPassword: VALID_NEW_PASSWORD,
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3286,8 +3540,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changePassword({
                         currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: toPassword('')
-}, user1),
+                        newPassword: toPassword(''),
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3301,8 +3555,8 @@ describe('app tests', () => {
             it('should successfully change email with valid credentials', async () => {
                 const profile = await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
-                    newEmail: NEW_EMAIL
-}, user1);
+                    newEmail: NEW_EMAIL,
+                }, user1);
 
                 expect(profile.email).toBe(NEW_EMAIL);
                 expect(profile.emailVerified).toBe(false);
@@ -3312,8 +3566,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: toPassword('WrongPassword123!'),
-                        newEmail: NEW_EMAIL
-}, user1),
+                        newEmail: NEW_EMAIL,
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/password is incorrect/i);
@@ -3325,8 +3579,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                        newEmail: currentProfile.email!
-}, user1),
+                        newEmail: currentProfile.email!,
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/must be different/i);
@@ -3336,8 +3590,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                        newEmail: 'not-an-email'
-}, user1),
+                        newEmail: 'not-an-email',
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3346,8 +3600,8 @@ describe('app tests', () => {
             it('should reject when currentPassword field is missing', async () => {
                 await expect(
                     appDriver.changeEmail({
-                        newEmail: NEW_EMAIL
-} as any, user1),
+                        newEmail: NEW_EMAIL,
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3356,8 +3610,8 @@ describe('app tests', () => {
             it('should reject when newEmail field is missing', async () => {
                 await expect(
                     appDriver.changeEmail({
-                        currentPassword: CURRENT_PASSWORD
-} as any, user1),
+                        currentPassword: CURRENT_PASSWORD,
+                    } as any, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3367,8 +3621,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: toPassword(''),
-                        newEmail: NEW_EMAIL
-}, user1),
+                        newEmail: NEW_EMAIL,
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3378,8 +3632,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                        newEmail: ''
-}, user1),
+                        newEmail: '',
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3388,8 +3642,8 @@ describe('app tests', () => {
             it('should lowercase email address', async () => {
                 const profile = await appDriver.changeEmail({
                     currentPassword: CURRENT_PASSWORD,
-                    newEmail: 'NewEmail@EXAMPLE.COM'
-}, user1);
+                    newEmail: 'NewEmail@EXAMPLE.COM',
+                }, user1);
 
                 expect(profile.email).toBe('newemail@example.com');
             });
@@ -3400,8 +3654,8 @@ describe('app tests', () => {
                 await expect(
                     appDriver.changeEmail({
                         currentPassword: CURRENT_PASSWORD,
-                        newEmail: otherUserEmail
-}, user1),
+                        newEmail: otherUserEmail,
+                    }, user1),
                 )
                     .rejects
                     .toThrow(/already exists/i);
@@ -3421,36 +3675,36 @@ describe('app tests', () => {
 
             const created = await appDriver.createPolicy({
                 policyName,
-                text: 'Initial policy text'
-}, policyAdmin);
+                text: 'Initial policy text',
+            }, policyAdmin);
 
             expect(created).toMatchObject({
                 success: true,
                 id: expect.any(String),
-                versionHash: expect.any(String)
-});
+                versionHash: expect.any(String),
+            });
 
             const draftUpdate = await appDriver.updatePolicy(created.id, {
                 text: 'Updated draft policy text',
-                publish: false
-}, policyAdmin);
+                publish: false,
+            }, policyAdmin);
 
             expect(draftUpdate).toMatchObject({
                 success: true,
                 published: false,
-                versionHash: expect.any(String)
-});
+                versionHash: expect.any(String),
+            });
 
             const publishedUpdate = await appDriver.updatePolicy(created.id, {
                 text: 'Final published policy text',
-                publish: true
-}, policyAdmin);
+                publish: true,
+            }, policyAdmin);
 
             expect(publishedUpdate).toMatchObject({
                 success: true,
                 published: true,
-                currentVersionHash: expect.any(String)
-});
+                currentVersionHash: expect.any(String),
+            });
 
             const policyDetails = await appDriver.getPolicy(created.id, policyAdmin);
             const publishedVersionHash = publishedUpdate.currentVersionHash;
@@ -3468,29 +3722,29 @@ describe('app tests', () => {
             await expect(
                 appDriver.updatePolicy(policyId, {
                     text: 'Updated terms version 1',
-                    publish: true
-}, policyAdmin),
+                    publish: true,
+                }, policyAdmin),
             )
                 .rejects
                 .toThrow(/Policy not found/);
 
             const created = await appDriver.createPolicy({
                 policyName,
-                text: 'Initial terms content'
-}, policyAdmin);
+                text: 'Initial terms content',
+            }, policyAdmin);
 
             expect(created.id).toBe(policyId);
 
             const update = await appDriver.updatePolicy(created.id, {
                 text: 'Updated terms version 2',
-                publish: true
-}, policyAdmin);
+                publish: true,
+            }, policyAdmin);
 
             expect(update).toMatchObject({
                 success: true,
                 published: true,
-                currentVersionHash: expect.any(String)
-});
+                currentVersionHash: expect.any(String),
+            });
 
             const policyDetails = await appDriver.getPolicy(policyId, policyAdmin);
             const publishedHash = update.currentVersionHash;
@@ -3521,11 +3775,11 @@ describe('app tests', () => {
                     tenantId: expect.any(String),
                     config: expect.objectContaining({
                         tenantId: expect.any(String),
-                        branding: expect.any(Object)
-}),
+                        branding: expect.any(Object),
+                    }),
                     domains: expect.any(Array),
-                    primaryDomain: expect.any(String)
-});
+                    primaryDomain: expect.any(String),
+                });
 
                 expect(settings.config.branding).toMatchObject({
                     appName: expect.any(String),
@@ -3535,18 +3789,18 @@ describe('app tests', () => {
                     secondaryColor: expect.any(String),
                     marketingFlags: expect.objectContaining({
                         showLandingPage: expect.any(Boolean),
-                        showPricingPage: expect.any(Boolean)
-})
-});
+                        showPricingPage: expect.any(Boolean),
+                    }),
+                });
             });
 
             it('should deny regular user access to tenant settings', async () => {
                 const result = await appDriver.getTenantSettings(regularUser);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN'
-}
-});
+                        code: 'FORBIDDEN',
+                    },
+                });
             });
         });
 
@@ -3556,8 +3810,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     domains: expect.any(Array),
-                    primaryDomain: expect.any(String)
-});
+                    primaryDomain: expect.any(String),
+                });
 
                 expect(result.domains.length).toBeGreaterThan(0);
                 expect(result.domains).toContain(result.primaryDomain);
@@ -3567,9 +3821,9 @@ describe('app tests', () => {
                 const result = await appDriver.listTenantDomains(regularUser);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN'
-}
-});
+                        code: 'FORBIDDEN',
+                    },
+                });
             });
         });
 
@@ -3577,14 +3831,14 @@ describe('app tests', () => {
             it('should allow tenant admin to update branding', async () => {
                 const brandingData = {
                     appName: 'Custom Brand',
-                    primaryColor: '#FF0000'
-};
+                    primaryColor: '#FF0000',
+                };
 
                 const result = await appDriver.updateTenantBranding(tenantAdmin, brandingData);
 
                 expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully'
-});
+                    message: 'Tenant branding updated successfully',
+                });
 
                 // Verify the update persisted
                 const settings = await appDriver.getTenantSettings(tenantAdmin);
@@ -3594,12 +3848,12 @@ describe('app tests', () => {
 
             it('should update partial branding fields', async () => {
                 const result = await appDriver.updateTenantBranding(tenantAdmin, {
-                    logoUrl: 'https://custom.com/logo.svg'
-});
+                    logoUrl: 'https://custom.com/logo.svg',
+                });
 
                 expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully'
-});
+                    message: 'Tenant branding updated successfully',
+                });
 
                 const settings = await appDriver.getTenantSettings(tenantAdmin);
                 expect(settings.config.branding.logoUrl).toBe('https://custom.com/logo.svg');
@@ -3609,13 +3863,13 @@ describe('app tests', () => {
                 const result = await appDriver.updateTenantBranding(tenantAdmin, {
                     marketingFlags: {
                         showLandingPage: false,
-                        showPricingPage: true
-}
-});
+                        showPricingPage: true,
+                    },
+                });
 
                 expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully'
-});
+                    message: 'Tenant branding updated successfully',
+                });
 
                 const settings = await appDriver.getTenantSettings(tenantAdmin);
                 expect(settings.config.branding.marketingFlags?.showLandingPage).toBe(false);
@@ -3632,37 +3886,37 @@ describe('app tests', () => {
                 expect(result).toMatchObject({
                     error: {
                         code: 'VALIDATION_ERROR',
-                        message: expect.stringContaining('Invalid branding update request')
-}
-});
+                        message: expect.stringContaining('Invalid branding update request'),
+                    },
+                });
             });
 
             it('should reject extra fields', async () => {
                 const invalidData = {
                     appName: 'Valid',
-                    unexpectedField: 'should fail'
-};
+                    unexpectedField: 'should fail',
+                };
 
                 const result = await appDriver.updateTenantBranding(tenantAdmin, invalidData);
 
                 expect(result).toMatchObject({
                     error: {
-                        code: 'VALIDATION_ERROR'
-}
-});
+                        code: 'VALIDATION_ERROR',
+                    },
+                });
             });
 
             it('should deny regular user access to update branding', async () => {
                 const brandingData = {
-                    appName: 'Custom Brand'
-};
+                    appName: 'Custom Brand',
+                };
 
                 const result = await appDriver.updateTenantBranding(regularUser, brandingData);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN'
-}
-});
+                        code: 'FORBIDDEN',
+                    },
+                });
             });
 
             it('should allow system admin to update branding', async () => {
@@ -3670,42 +3924,42 @@ describe('app tests', () => {
                 appDriver.seedAdminUser(systemAdmin, {});
 
                 const result = await appDriver.updateTenantBranding(systemAdmin, {
-                    appName: 'System Admin Updated'
-});
+                    appName: 'System Admin Updated',
+                });
 
                 expect(result).toMatchObject({
-                    message: 'Tenant branding updated successfully'
-});
+                    message: 'Tenant branding updated successfully',
+                });
             });
         });
 
         describe('POST /settings/tenant/domains', () => {
             it('should return 501 not implemented for domain addition', async () => {
                 const domainData = {
-                    domain: 'custom.example.com'
-};
+                    domain: 'custom.example.com',
+                };
 
                 const result = await appDriver.addTenantDomain(tenantAdmin, domainData);
 
                 expect(result).toMatchObject({
                     error: {
                         code: 'NOT_IMPLEMENTED',
-                        message: expect.stringContaining('not yet implemented')
-}
-});
+                        message: expect.stringContaining('not yet implemented'),
+                    },
+                });
             });
 
             it('should deny regular user access to add domain', async () => {
                 const domainData = {
-                    domain: 'custom.example.com'
-};
+                    domain: 'custom.example.com',
+                };
 
                 const result = await appDriver.addTenantDomain(regularUser, domainData);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN'
-}
-});
+                        code: 'FORBIDDEN',
+                    },
+                });
             });
         });
 
@@ -3722,8 +3976,8 @@ describe('app tests', () => {
 
                 expect(settings).toMatchObject({
                     tenantId: expect.any(String),
-                    config: expect.any(Object)
-});
+                    config: expect.any(Object),
+                });
             });
 
             it('should allow system admin to list domains', async () => {
@@ -3731,8 +3985,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     domains: expect.any(Array),
-                    primaryDomain: expect.any(String)
-});
+                    primaryDomain: expect.any(String),
+                });
             });
         });
     });
@@ -3754,8 +4008,8 @@ describe('app tests', () => {
                     primaryColor: '#2563eb',
                     secondaryColor: '#7c3aed',
                     accentColor: '#f97316',
-                    themePalette: 'default'
-},
+                    themePalette: 'default',
+                },
                 brandingTokens: {
                     tokens: {
                         version: 1,
@@ -3770,14 +4024,14 @@ describe('app tests', () => {
                             success: '#22c55e',
                             warning: '#eab308',
                             danger: '#ef4444',
-                            info: '#38bdf8'
-},
+                            info: '#38bdf8',
+                        },
                         typography: {
                             fontFamily: {
                                 sans: 'Space Grotesk, Inter, system-ui, -apple-system, BlinkMacSystemFont',
                                 serif: 'Fraunces, Georgia, serif',
-                                mono: 'JetBrains Mono, SFMono-Regular, Menlo, monospace'
-},
+                                mono: 'JetBrains Mono, SFMono-Regular, Menlo, monospace',
+                            },
                             sizes: {
                                 xs: '0.75rem',
                                 sm: '0.875rem',
@@ -3787,24 +4041,24 @@ describe('app tests', () => {
                                 '2xl': '1.5rem',
                                 '3xl': '1.875rem',
                                 '4xl': '2.25rem',
-                                '5xl': '3rem'
-},
+                                '5xl': '3rem',
+                            },
                             weights: {
                                 regular: 400,
                                 medium: 500,
                                 semibold: 600,
-                                bold: 700
-},
+                                bold: 700,
+                            },
                             lineHeights: {
                                 compact: '1.25rem',
                                 standard: '1.5rem',
-                                spacious: '1.75rem'
-},
+                                spacious: '1.75rem',
+                            },
                             letterSpacing: {
                                 tight: '-0.02rem',
                                 normal: '0rem',
-                                wide: '0.04rem'
-},
+                                wide: '0.04rem',
+                            },
                             semantics: {
                                 body: 'md',
                                 bodyStrong: 'md',
@@ -3812,9 +4066,9 @@ describe('app tests', () => {
                                 button: 'sm',
                                 eyebrow: 'xs',
                                 heading: '2xl',
-                                display: '4xl'
-}
-},
+                                display: '4xl',
+                            },
+                        },
                         spacing: {
                             '2xs': '0.125rem',
                             xs: '0.25rem',
@@ -3822,31 +4076,31 @@ describe('app tests', () => {
                             md: '0.75rem',
                             lg: '1rem',
                             xl: '1.5rem',
-                            '2xl': '2rem'
-},
+                            '2xl': '2rem',
+                        },
                         radii: {
                             none: '0px',
                             sm: '4px',
                             md: '8px',
                             lg: '16px',
                             pill: '999px',
-                            full: '9999px'
-},
+                            full: '9999px',
+                        },
                         shadows: {
                             sm: '0 1px 2px rgba(15, 23, 42, 0.08)',
                             md: '0 4px 12px rgba(15, 23, 42, 0.12)',
-                            lg: '0 20px 60px rgba(15, 23, 42, 0.18)'
-},
+                            lg: '0 20px 60px rgba(15, 23, 42, 0.18)',
+                        },
                         assets: {
                             logoUrl: 'https://static.splitifyd.dev/branding/test/logo.svg',
-                            faviconUrl: 'https://static.splitifyd.dev/branding/test/favicon.png'
-},
+                            faviconUrl: 'https://static.splitifyd.dev/branding/test/favicon.png',
+                        },
                         legal: {
                             companyName: 'Test Company',
                             supportEmail: 'support@test.com',
                             privacyPolicyUrl: 'https://test.com/privacy',
-                            termsOfServiceUrl: 'https://test.com/terms'
-},
+                            termsOfServiceUrl: 'https://test.com/terms',
+                        },
                         semantics: {
                             colors: {
                                 surface: {
@@ -3854,15 +4108,15 @@ describe('app tests', () => {
                                     raised: '#fafbfc',
                                     sunken: '#eff1f3',
                                     overlay: '#0f172a',
-                                    warning: '#fef3c7'
-},
+                                    warning: '#fef3c7',
+                                },
                                 text: {
                                     primary: '#0f172a',
                                     secondary: '#475569',
                                     muted: '#94a3b8',
                                     inverted: '#ffffff',
-                                    accent: '#f97316'
-},
+                                    accent: '#f97316',
+                                },
                                 interactive: {
                                     primary: '#2563eb',
                                     primaryHover: '#224dc7',
@@ -3876,28 +4130,28 @@ describe('app tests', () => {
                                     destructiveHover: '#dc3e3e',
                                     destructiveActive: '#c93838',
                                     destructiveForeground: '#ffffff',
-                                    accent: '#f97316'
-},
+                                    accent: '#f97316',
+                                },
                                 border: {
                                     subtle: '#e2e8f0',
                                     default: '#cbd5f5',
                                     strong: '#94a3b8',
                                     focus: '#f97316',
-                                    warning: '#fbbf24'
-},
+                                    warning: '#fbbf24',
+                                },
                                 status: {
                                     success: '#22c55e',
                                     warning: '#eab308',
                                     danger: '#ef4444',
-                                    info: '#38bdf8'
-}
-},
+                                    info: '#38bdf8',
+                                },
+                            },
                             spacing: {
                                 pagePadding: '1.5rem',
                                 sectionGap: '2rem',
                                 cardPadding: '1rem',
-                                componentGap: '0.75rem'
-},
+                                componentGap: '0.75rem',
+                            },
                             typography: {
                                 body: 'md',
                                 bodyStrong: 'md',
@@ -3905,36 +4159,36 @@ describe('app tests', () => {
                                 button: 'sm',
                                 eyebrow: 'xs',
                                 heading: '2xl',
-                                display: '4xl'
-}
-},
+                                display: '4xl',
+                            },
+                        },
                         motion: {
                             duration: {
                                 instant: 50,
                                 fast: 150,
                                 base: 250,
                                 slow: 400,
-                                glacial: 800
-},
+                                glacial: 800,
+                            },
                             easing: {
                                 standard: 'cubic-bezier(0.22, 1, 0.36, 1)',
                                 decelerate: 'cubic-bezier(0.05, 0.7, 0.1, 1)',
                                 accelerate: 'cubic-bezier(0.3, 0, 0.8, 0.15)',
-                                spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
-},
+                                spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+                            },
                             enableParallax: false,
                             enableMagneticHover: false,
-                            enableScrollReveal: false
-}
-}
-},
+                            enableScrollReveal: false,
+                        },
+                    },
+                },
                 domains: {
                     primary: 'test.splitifyd.dev',
                     aliases: ['test.splitifyd.com'],
-                    normalized: ['test.splitifyd.dev', 'test.splitifyd.com']
-},
-                defaultTenant: false
-});
+                    normalized: ['test.splitifyd.dev', 'test.splitifyd.com'],
+                },
+                defaultTenant: false,
+            });
 
             it('should create a new tenant when it does not exist', async () => {
                 const payload = createValidTenantPayload('tenant_new_test');
@@ -3943,8 +4197,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_new_test',
-                    created: true
-});
+                    created: true,
+                });
             });
 
             it('should update an existing tenant when it already exists', async () => {
@@ -3959,16 +4213,16 @@ describe('app tests', () => {
                     ...payload,
                     branding: {
                         ...payload.branding,
-                        appName: 'Updated Tenant App'
-}
-};
+                        appName: 'Updated Tenant App',
+                    },
+                };
 
                 const updateResult = await appDriver.upsertTenant(adminUser, updatedPayload);
 
                 expect(updateResult).toMatchObject({
                     tenantId: 'tenant_existing_test',
-                    created: false
-});
+                    created: false,
+                });
             });
 
             it('should reject invalid branding tokens schema', async () => {
@@ -3979,10 +4233,10 @@ describe('app tests', () => {
                             version: 1,
                             palette: {
                                 primary: 'not-a-hex-color', // Invalid hex color
-                            }
-}
-}
-};
+                            },
+                        },
+                    },
+                };
 
                 await expect(appDriver.upsertTenant(adminUser, invalidPayload)).rejects.toThrow();
             });
@@ -3993,8 +4247,8 @@ describe('app tests', () => {
                     branding: {
                         appName: 'Test App',
                         // Missing required fields
-                    }
-};
+                    },
+                };
 
                 await expect(appDriver.upsertTenant(adminUser, invalidPayload)).rejects.toThrow();
             });
@@ -4008,9 +4262,9 @@ describe('app tests', () => {
                 const result = await appDriver.upsertTenant(regularUser, payload);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN'
-}
-});
+                        code: 'FORBIDDEN',
+                    },
+                });
             });
 
             it('should allow system admin to upsert tenant', async () => {
@@ -4023,8 +4277,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_system_admin',
-                    created: true
-});
+                    created: true,
+                });
             });
 
             it('should preserve brandingTokens with negative CSS values', async () => {
@@ -4037,8 +4291,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_negative_css',
-                    created: true
-});
+                    created: true,
+                });
 
                 // Verify the data was stored correctly by reading back
                 const tenantDoc = await appDriver.database.collection('tenants').doc('tenant_negative_css').get();
@@ -4050,15 +4304,15 @@ describe('app tests', () => {
             it('should handle default tenant flag correctly', async () => {
                 const payloadWithDefault = {
                     ...createValidTenantPayload('tenant_default_flag'),
-                    defaultTenant: true
-};
+                    defaultTenant: true,
+                };
 
                 const result = await appDriver.upsertTenant(adminUser, payloadWithDefault);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_default_flag',
-                    created: true
-});
+                    created: true,
+                });
 
                 // Verify the default flag was stored
                 const tenantDoc = await appDriver.database.collection('tenants').doc('tenant_default_flag').get();
@@ -4072,8 +4326,8 @@ describe('app tests', () => {
                 payload.domains = {
                     primary: 'example.splitifyd.dev',
                     aliases: ['www.example.splitifyd.dev', 'example.splitifyd.com'],
-                    normalized: ['example.splitifyd.dev', 'www.example.splitifyd.dev', 'example.splitifyd.com']
-};
+                    normalized: ['example.splitifyd.dev', 'www.example.splitifyd.dev', 'example.splitifyd.com'],
+                };
 
                 const result = await appDriver.upsertTenant(adminUser, payload);
 
@@ -4093,7 +4347,6 @@ describe('app tests', () => {
 
         // NOTE: Integration tests for POST /api/admin/tenants/publish are in
         // src/__tests__/integration/tenant/admin-tenant-publish.test.ts
-
     });
 
     describe('Admin User Management', () => {
@@ -4103,13 +4356,13 @@ describe('app tests', () => {
         beforeEach(() => {
             appDriver.seedAdminUser(adminUser, {
                 email: 'admin@test.com',
-                displayName: 'Admin User'
-});
+                displayName: 'Admin User',
+            });
             appDriver.seedUser(regularUser, {
                 email: 'regular@test.com',
                 displayName: 'Regular User',
-                role: SystemUserRoles.SYSTEM_USER
-});
+                role: SystemUserRoles.SYSTEM_USER,
+            });
         });
 
         describe('PUT /api/admin/users/:uid - updateUser (disable/enable)', () => {
@@ -4119,8 +4372,8 @@ describe('app tests', () => {
                 expect(result).toMatchObject({
                     uid: regularUser,
                     email: 'regular@test.com',
-                    disabled: true
-});
+                    disabled: true,
+                });
             });
 
             it('should allow admin to enable a disabled user account', async () => {
@@ -4133,29 +4386,33 @@ describe('app tests', () => {
                 expect(result).toMatchObject({
                     uid: regularUser,
                     email: 'regular@test.com',
-                    disabled: false
-});
+                    disabled: false,
+                });
             });
 
             it('should reject non-admin user', async () => {
                 const result = await appDriver.adminUpdateUser(regularUser, { disabled: true }, regularUser);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN'
-}
-});
+                        code: 'FORBIDDEN',
+                    },
+                });
             });
 
             it('should reject invalid UID', async () => {
                 await expect(
                     appDriver.adminUpdateUser('', { disabled: true }, adminUser),
-                ).rejects.toThrow();
+                )
+                    .rejects
+                    .toThrow();
             });
 
             it('should reject non-existent user', async () => {
                 await expect(
                     appDriver.adminUpdateUser('nonexistent-user', { disabled: true }, adminUser),
-                ).rejects.toThrow();
+                )
+                    .rejects
+                    .toThrow();
             });
         });
 
@@ -4165,8 +4422,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     uid: regularUser,
-                    email: 'regular@test.com'
-});
+                    email: 'regular@test.com',
+                });
 
                 // Verify role was written to Firestore
                 const userDoc = await appDriver.database.collection('users').doc(regularUser).get();
@@ -4179,8 +4436,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     uid: regularUser,
-                    email: 'regular@test.com'
-});
+                    email: 'regular@test.com',
+                });
 
                 // Verify role was written to Firestore
                 const userDoc = await appDriver.database.collection('users').doc(regularUser).get();
@@ -4197,8 +4454,8 @@ describe('app tests', () => {
 
                 expect(result).toMatchObject({
                     uid: regularUser,
-                    email: 'regular@test.com'
-});
+                    email: 'regular@test.com',
+                });
 
                 // Verify role was set to default SYSTEM_USER
                 const userDoc = await appDriver.database.collection('users').doc(regularUser).get();
@@ -4209,28 +4466,34 @@ describe('app tests', () => {
             it('should reject invalid role value', async () => {
                 await expect(
                     appDriver.adminUpdateUserRole(regularUser, { role: 'invalid_role' } as any, adminUser),
-                ).rejects.toThrow();
+                )
+                    .rejects
+                    .toThrow();
             });
 
             it('should reject non-admin user', async () => {
                 const result = await appDriver.adminUpdateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, regularUser);
                 expect(result).toMatchObject({
                     error: {
-                        code: 'FORBIDDEN'
-}
-});
+                        code: 'FORBIDDEN',
+                    },
+                });
             });
 
             it('should reject invalid UID', async () => {
                 await expect(
                     appDriver.adminUpdateUserRole('', { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
-                ).rejects.toThrow();
+                )
+                    .rejects
+                    .toThrow();
             });
 
             it('should reject non-existent user', async () => {
                 await expect(
                     appDriver.adminUpdateUserRole('nonexistent-user', { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
-                ).rejects.toThrow();
+                )
+                    .rejects
+                    .toThrow();
             });
         });
     });

@@ -47,5 +47,7 @@ function parseMarkdown(markdown: string): string {
 export function PolicyRenderer({ content, className = '' }: PolicyRendererProps) {
     const htmlContent = useMemo(() => parseMarkdown(content), [content]);
 
-    return <div class={`prose max-w-none space-y-6 text-text-primary prose-headings:text-text-primary prose-a:text-interactive-primary ${className}`} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+    return (
+        <div class={`prose max-w-none space-y-6 text-text-primary prose-headings:text-text-primary prose-a:text-interactive-primary ${className}`} dangerouslySetInnerHTML={{ __html: htmlContent }} />
+    );
 }

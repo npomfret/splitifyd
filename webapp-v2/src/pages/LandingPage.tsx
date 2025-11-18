@@ -1,5 +1,5 @@
-import { useTranslation } from 'react-i18next';
 import { useConfig } from '@/hooks/useConfig.ts';
+import { useTranslation } from 'react-i18next';
 import { CTASection } from '../components/landing/CTASection';
 import { FeaturesGrid } from '../components/landing/FeaturesGrid';
 import { HeroSection } from '../components/landing/HeroSection';

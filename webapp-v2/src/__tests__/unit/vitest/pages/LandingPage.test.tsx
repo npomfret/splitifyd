@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/preact';
 import type { AppConfiguration } from '@splitifyd/shared';
 import { AppConfigurationBuilder } from '@splitifyd/test-support';
+import { render, screen } from '@testing-library/preact';
 import type { ComponentChildren } from 'preact';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,7 +11,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 vi.mock('@/components/layout/BaseLayout', () => ({
-    BaseLayout: ({ children }: { children: ComponentChildren }) => <div data-testid='base-layout'>{children}</div>,
+    BaseLayout: ({ children }: { children: ComponentChildren; }) => <div data-testid='base-layout'>{children}</div>,
 }));
 
 vi.mock('@/components/landing/HeroSection', () => ({

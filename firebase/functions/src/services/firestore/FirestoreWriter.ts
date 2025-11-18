@@ -21,6 +21,8 @@ import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { ApiError } from '../../utils/errors';
 
+import type { BrandingArtifactMetadata } from '@splitifyd/shared';
+import { SystemUserRoles } from '@splitifyd/shared';
 import type { GroupBalanceDTO } from '../../schemas';
 import {
     ActivityFeedDocumentSchema,
@@ -30,20 +32,12 @@ import {
     GroupDocumentSchema,
     PolicyDocumentSchema,
     SettlementDocumentSchema,
+    TenantDocumentSchema,
     TopLevelGroupMemberSchema,
     UserDocumentSchema,
     validateUpdate,
-    TenantDocumentSchema,
 } from '../../schemas';
-import type {
-    FirestoreUserCreateData,
-    FirestoreUserUpdateData,
-    IFirestoreWriter,
-    TenantDocumentUpsertData,
-    WriteResult,
-} from './IFirestoreWriter';
-import type { BrandingArtifactMetadata } from '@splitifyd/shared';
-import {SystemUserRoles} from "@splitifyd/shared";
+import type { FirestoreUserCreateData, FirestoreUserUpdateData, IFirestoreWriter, TenantDocumentUpsertData, WriteResult } from './IFirestoreWriter';
 
 /**
  * Validation metrics for monitoring validation coverage and effectiveness
@@ -1314,7 +1308,7 @@ export class FirestoreWriter implements IFirestoreWriter {
         });
     }
 
-    async upsertTenant(tenantId: string, data: TenantDocumentUpsertData): Promise<WriteResult & { created: boolean }> {
+    async upsertTenant(tenantId: string, data: TenantDocumentUpsertData): Promise<WriteResult & { created: boolean; }> {
         return measureDb('FirestoreWriter.upsertTenant', async () => {
             try {
                 return await this.db.runTransaction(async (transaction) => {
@@ -1335,7 +1329,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                             throw new ApiError(
                                 HTTP_STATUS.BAD_REQUEST,
                                 'CANNOT_REMOVE_DEFAULT_TENANT',
-                                'Cannot remove default tenant flag. A default tenant must always exist. Set another tenant as default first.'
+                                'Cannot remove default tenant flag. A default tenant must always exist. Set another tenant as default first.',
                             );
                         }
                     }
@@ -1344,7 +1338,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                     const otherDefaultTenantRefs: IDocumentReference[] = [];
                     if (data.defaultTenant === true) {
                         const tenantsSnapshot = await transaction.get(
-                            this.db.collection(FirestoreCollections.TENANTS).where('defaultTenant', '==', true)
+                            this.db.collection(FirestoreCollections.TENANTS).where('defaultTenant', '==', true),
                         );
                         tenantsSnapshot.docs.forEach((doc) => {
                             if (doc.id !== tenantId) {

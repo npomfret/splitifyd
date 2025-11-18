@@ -51,7 +51,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             // Both users try to join simultaneously
             const joinPromises = [
                 apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token),
-                apiDriver.joinGroupByLink(shareLink.shareToken, users[2].token)
+                apiDriver.joinGroupByLink(shareLink.shareToken, users[2].token),
             ];
 
             const results = await Promise.allSettled(joinPromises);

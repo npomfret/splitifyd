@@ -391,5 +391,4 @@ export abstract class BasePage {
         await expect(this._page.getByText('Something went wrong')).toHaveCount(0);
         await expect(this._page.getByText(/ErrorBoundary caught an error/i)).toHaveCount(0);
     }
-
 }

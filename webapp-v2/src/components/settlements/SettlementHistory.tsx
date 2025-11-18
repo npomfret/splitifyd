@@ -2,9 +2,9 @@ import { apiClient } from '@/app/apiClient.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { themeStore } from '@/app/stores/theme-store.ts';
+import { logError } from '@/utils/browser-logger';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { logError } from '@/utils/browser-logger';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import type { GroupId, GroupMember, SettlementWithMembers } from '@splitifyd/shared';
@@ -291,7 +291,14 @@ export function SettlementHistory({
 
                                         {/* Deleted info if present */}
                                         {isDeleted && settlement.deletedAt && (
-                                            <div class={`${settlement.note ? 'row-start-5' : 'row-start-4'} col-start-2 text-semantic-error text-xs mt-1`} data-financial-amount='deleted'>
+                                            <div
+                                                class={`${
+                                                    settlement.note
+                                                        ? 'row-start-5'
+                                                        : 'row-start-4'
+                                                } col-start-2 text-semantic-error text-xs mt-1`}
+                                                data-financial-amount='deleted'
+                                            >
                                                 {t('settlementHistory.deletedBy')} {deletedByContent}{' '}
                                                 <RelativeTime
                                                     date={settlement

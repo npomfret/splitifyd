@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
+import { Timestamp } from '../firestore-wrapper';
 import { logger } from '../logger';
 import type { IFirestoreReader } from '../services/firestore';
-import { Timestamp } from '../firestore-wrapper';
 
 /**
  * Normalize Firestore Timestamp values to ISO strings for JSON serialization

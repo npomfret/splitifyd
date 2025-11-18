@@ -311,5 +311,4 @@ export class ShareGroupModalPage extends BasePage {
         await expect(this.getToastNotification()).toBeVisible();
         await expect(this.getToastNotification()).toContainText(/copied/i);
     }
-
 }

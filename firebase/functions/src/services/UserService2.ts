@@ -4,6 +4,7 @@ import { GroupId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email, UserId } from '@splitifyd/shared';
 import { normalizeDisplayNameForComparison } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';
@@ -16,7 +17,6 @@ import { LoggerContext } from '../utils/logger-context';
 import { withMinimumDuration } from '../utils/timing';
 import type { IAuthService } from './auth';
 import type { FirestoreUserCreateData, IFirestoreReader, IFirestoreWriter } from './firestore';
-import {toDisplayName} from "@splitifyd/shared";
 
 const MIN_REGISTRATION_DURATION_MS = 600;
 const REGISTRATION_FAILURE_ERROR_CODE = 'REGISTRATION_FAILED';

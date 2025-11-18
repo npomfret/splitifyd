@@ -93,4 +93,3 @@ export function detectLanguageFromHeader(acceptLanguage?: string): string {
 
     return 'en'; // Default fallback
 }
-

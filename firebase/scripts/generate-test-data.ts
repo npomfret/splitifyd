@@ -1,17 +1,17 @@
 #!/usr/bin/env tsx
 
-import {getProjectId} from '@splitifyd/test-support';
+import { getProjectId } from '@splitifyd/test-support';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
-import {requireInstanceMode} from '../functions/src/shared/instance-mode';
-import {getEnvironmentForModule, initializeFirebase} from './firebase-init';
-import {generateFullTestData} from './test-data-generator';
+import { requireInstanceMode } from '../functions/src/shared/instance-mode';
+import { getEnvironmentForModule, initializeFirebase } from './firebase-init';
+import { generateFullTestData } from './test-data-generator';
 
 // Load environment
 const envPath = path.join(__dirname, '../functions/.env');
 if (fs.existsSync(envPath)) {
-    dotenv.config({path: envPath});
+    dotenv.config({ path: envPath });
 }
 
 requireInstanceMode();
@@ -36,4 +36,4 @@ async function main(): Promise<void> {
     await generateFullTestData();
 }
 
-main()
+main();

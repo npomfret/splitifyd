@@ -1,6 +1,6 @@
+import { cx } from '@/utils/cx.ts';
 import type { Ref } from 'preact';
 import { useCallback } from 'preact/hooks';
-import { cx } from '@/utils/cx.ts';
 import { useTranslation } from 'react-i18next';
 
 interface InputProps {

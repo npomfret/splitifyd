@@ -1,4 +1,5 @@
-import type {Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest} from '@splitifyd/shared';
+import { createFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import type { Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest } from '@splitifyd/shared';
 import {
     AuthenticatedFirebaseUser,
     compareAmounts,
@@ -13,9 +14,8 @@ import {
     UserRegistration,
     zeroAmount,
 } from '@splitifyd/shared';
-import {ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig} from '@splitifyd/test-support';
-import {FirestoreWriter} from "../functions/src/services/firestore";
-import { createFirestoreDatabase } from "@splitifyd/firebase-simulator";
+import { ApiDriver, CreateExpenseRequestBuilder, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import { FirestoreWriter } from '../functions/src/services/firestore';
 
 // Lazy initialization - will be set when Firebase is initialized
 let firestoreDb: ReturnType<typeof createFirestoreDatabase>;

@@ -1,15 +1,10 @@
-import {
-    TenantDomainName,
-    TenantId,
-    toTenantDomainName,
-    toTenantId,
-} from '@splitifyd/shared';
+import { TenantDomainName, TenantId, toTenantDomainName, toTenantId } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
+import type { TenantRequestContext } from '../../types/tenant';
 import { ApiError } from '../../utils/errors';
 import type { TenantRegistryRecord } from '../firestore';
 import type { IFirestoreReader } from '../firestore';
-import type { TenantRequestContext } from '../../types/tenant';
 
 export interface TenantResolutionOptions {
     host?: string | null;

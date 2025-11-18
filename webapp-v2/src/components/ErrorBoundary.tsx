@@ -1,6 +1,6 @@
+import { logError } from '@/utils/browser-logger';
 import { Component, ComponentChildren } from 'preact';
 import { ErrorInfo } from 'preact/compat';
-import { logError } from '@/utils/browser-logger';
 import { ErrorState } from './ui';
 
 interface ErrorBoundaryState {

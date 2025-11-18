@@ -1,21 +1,21 @@
-import { Timestamp } from 'firebase-admin/firestore';
-import * as fs from 'fs';
-import * as path from 'path';
+import { createFirestoreDatabase } from '@splitifyd/firebase-simulator';
 import {
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
     toShowPricingPageFlag,
     toTenantAppName,
     toTenantBackgroundColor,
-    toTenantHeaderBackgroundColor,
     toTenantDefaultFlag,
     toTenantDomainName,
     toTenantFaviconUrl,
+    toTenantHeaderBackgroundColor,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@splitifyd/shared';
-import { createFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { Timestamp } from 'firebase-admin/firestore';
+import * as fs from 'fs';
+import * as path from 'path';
 import { FirestoreCollections } from '../functions/src/constants';
 
 interface TenantConfig {
@@ -50,7 +50,7 @@ function getFirestoreDb() {
     return firestoreDb;
 }
 
-async function syncTenantConfigs(options?: { defaultOnly?: boolean }) {
+async function syncTenantConfigs(options?: { defaultOnly?: boolean; }) {
     const configPath = path.join(__dirname, 'tenant-configs.json');
     const configData = fs.readFileSync(configPath, 'utf-8');
     let configs: TenantConfig[] = JSON.parse(configData);

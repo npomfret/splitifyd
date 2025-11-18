@@ -1,9 +1,9 @@
-import { toTenantId, type BrandingArtifactMetadata, type TenantId, type PublishTenantThemeResult } from '@splitifyd/shared';
+import { type BrandingArtifactMetadata, type PublishTenantThemeResult, type TenantId, toTenantId } from '@splitifyd/shared';
+import { HTTP_STATUS } from '../../constants';
 import type { AdminUpsertTenantRequest } from '../../schemas/tenant';
+import { ApiError } from '../../utils/errors';
 import type { IFirestoreReader, IFirestoreWriter } from '../firestore';
 import { ThemeArtifactService } from './ThemeArtifactService';
-import { ApiError } from '../../utils/errors';
-import { HTTP_STATUS } from '../../constants';
 
 export class TenantAdminService {
     constructor(

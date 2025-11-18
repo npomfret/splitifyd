@@ -204,7 +204,12 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
     return (
         <>
             <div class='fixed inset-0 bg-black/40 backdrop-blur-sm overflow-y-auto h-full w-full z-50' onClick={handleBackdropClick} role='presentation'>
-                <div class='relative top-20 mx-auto w-96 shadow-2xl rounded-2xl bg-surface-base border border-border-default overflow-hidden opacity-100' role='dialog' aria-modal='true' aria-labelledby='share-modal-title'>
+                <div
+                    class='relative top-20 mx-auto w-96 shadow-2xl rounded-2xl bg-surface-base border border-border-default overflow-hidden opacity-100'
+                    role='dialog'
+                    aria-modal='true'
+                    aria-labelledby='share-modal-title'
+                >
                     {/* Modal Header */}
                     <div class='px-5 py-3 border-b border-border-default'>
                         <div class='flex items-center justify-between'>

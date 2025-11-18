@@ -26,10 +26,13 @@ describe('Group sharing workflow (stub firestore)', () => {
         const outsider = 'outsider-user';
         seedUsers(owner, member, joiner, outsider);
 
-        const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-            .withName('Shareable Group')
-            .withDescription('Sharing end-to-end')
-            .build(), owner);
+        const group = await appDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Shareable Group')
+                .withDescription('Sharing end-to-end')
+                .build(),
+            owner,
+        );
 
         // Owner can generate a share link
         const ownerShare = await appDriver.generateShareableLink(group.id, undefined, owner);
@@ -75,9 +78,12 @@ describe('Group sharing workflow (stub firestore)', () => {
         const joiners = ['joiner-1', 'joiner-2', 'joiner-3'];
         seedUsers(owner, ...joiners);
 
-        const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-            .withName('Multi Join Group')
-            .build(), owner);
+        const group = await appDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Multi Join Group')
+                .build(),
+            owner,
+        );
 
         const shareLink = await appDriver.generateShareableLink(group.id, undefined, owner);
         expect(new Date(shareLink.expiresAt).getTime()).toBeGreaterThan(Date.now());

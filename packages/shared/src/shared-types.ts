@@ -9,7 +9,7 @@ import type { ColorPattern } from './user-colors';
 // ========================================================================
 
 // Utility to create branded primitive types for stronger nominal typing
-type Brand<K, T> = K & { __brand: T };
+type Brand<K, T> = K & { __brand: T; };
 type BrandedString<T extends string> = Brand<string, T>;
 type BrandedNumber<T extends string> = Brand<number, T>;
 type BrandedBoolean<T extends string> = Brand<boolean, T>;
@@ -782,7 +782,8 @@ export const CreateGroupRequestSchema = z.object({
         minMessage: 'Enter a display name.',
         maxMessage: 'Display name must be 50 characters or fewer.',
         patternMessage: 'Display name can only use letters, numbers, spaces, hyphens, underscores, and periods.',
-    }).transform(toDisplayName),
+    })
+        .transform(toDisplayName),
     description: z.string().trim().max(500).optional(),
 });
 

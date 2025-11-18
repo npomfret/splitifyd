@@ -1,11 +1,11 @@
 #!/usr/bin/env npx tsx
 
-import { ApiDriver } from '@splitifyd/test-support';
-import type { BrandingTokens, BrandingTokenFixtureKey } from '@splitifyd/shared';
+import type { BrandingTokenFixtureKey, BrandingTokens } from '@splitifyd/shared';
 import { brandingTokenFixtures } from '@splitifyd/shared';
-import { logger } from './logger';
+import { ApiDriver } from '@splitifyd/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
+import { logger } from './logger';
 
 type TenantSeed = {
     tenantId: string;
@@ -88,7 +88,7 @@ async function seedTenant(api: ApiDriver, adminToken: string, seed: TenantSeed):
     logger.info(`   ✓ Published hash ${publishResult.artifact.hash}`);
 }
 
-export async function publishLocalThemes(options?: { defaultOnly?: boolean }): Promise<void> {
+export async function publishLocalThemes(options?: { defaultOnly?: boolean; }): Promise<void> {
     const apiDriver = new ApiDriver();
 
     logger.info('Authenticating default admin (Bill Splitter)…');

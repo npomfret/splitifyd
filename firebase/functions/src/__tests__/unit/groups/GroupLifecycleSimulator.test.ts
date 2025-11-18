@@ -23,9 +23,12 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
     };
 
     const createGroupWithMembers = async (ownerId: string, memberIds: string[], name: string = 'Joined Group') => {
-        const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-            .withName(name)
-            .build(), ownerId);
+        const group = await appDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName(name)
+                .build(),
+            ownerId,
+        );
 
         if (memberIds.length > 0) {
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, ownerId);
@@ -43,10 +46,13 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const member = { id: 'member-user', displayName: 'Member' };
         seedUsers(owner, member);
 
-        const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-            .withName('Cascade Group')
-            .withDescription('Group slated for deletion')
-            .build(), owner.id);
+        const group = await appDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Cascade Group')
+                .withDescription('Group slated for deletion')
+                .build(),
+            owner.id,
+        );
 
         const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, owner.id);
         await appDriver.joinGroupByLink(shareToken, 'Test Member', member.id);
@@ -54,20 +60,26 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const groupDetails = await appDriver.getGroupFullDetails(group.id, {}, owner.id);
         expect(groupDetails.members.members).toHaveLength(2);
 
-        const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-            .withGroupId(group.id)
-            .withPaidBy(owner.id)
-            .withParticipants([owner.id, member.id])
-            .withAmount(125, 'USD')
-            .withSplitType('equal')
-            .build(), owner.id);
+        const expense = await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withPaidBy(owner.id)
+                .withParticipants([owner.id, member.id])
+                .withAmount(125, 'USD')
+                .withSplitType('equal')
+                .build(),
+            owner.id,
+        );
 
-        const settlement = await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-            .withGroupId(group.id)
-            .withPayerId(member.id)
-            .withPayeeId(owner.id)
-            .withAmount(50, 'USD')
-            .build(), owner.id);
+        const settlement = await appDriver.createSettlement(
+            new CreateSettlementRequestBuilder()
+                .withGroupId(group.id)
+                .withPayerId(member.id)
+                .withPayeeId(owner.id)
+                .withAmount(50, 'USD')
+                .build(),
+            owner.id,
+        );
 
         const response = await appDriver.deleteGroup(group.id, owner.id);
         expect(response.message).toBe('Group deleted successfully');
@@ -90,9 +102,12 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const member = { id: 'delete-member', displayName: 'Member' };
         seedUsers(owner, member);
 
-        const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-            .withName('Protected Group')
-            .build(), owner.id);
+        const group = await appDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Protected Group')
+                .build(),
+            owner.id,
+        );
         const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, owner.id);
         await appDriver.joinGroupByLink(shareToken, 'Test Member', member.id);
 
@@ -108,9 +123,12 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const outsider = { id: 'secure-outsider', displayName: 'Outsider' };
         seedUsers(owner, member, outsider);
 
-        const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-            .withName('Security Group')
-            .build(), owner.id);
+        const group = await appDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Security Group')
+                .build(),
+            owner.id,
+        );
 
         const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, owner.id);
         await appDriver.joinGroupByLink(shareToken, 'Test Member', member.id);
@@ -134,9 +152,12 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const member = { id: 'member-joiner', displayName: 'Joiner' };
         seedUsers(owner, member);
 
-        const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-            .withName('Member Ops')
-            .build(), owner.id);
+        const group = await appDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Member Ops')
+                .build(),
+            owner.id,
+        );
 
         const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, owner.id);
         await appDriver.joinGroupByLink(shareToken, 'Test Member', member.id);
@@ -225,20 +246,26 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
             const group = await createGroupWithMembers(owner.id, [memberA.id, memberB.id], 'Full Details');
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(owner.id)
-                .withParticipants([owner.id, memberA.id, memberB.id])
-                .withAmount(180, 'USD')
-                .withSplitType('equal')
-                .build(), owner.id);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(owner.id)
+                    .withParticipants([owner.id, memberA.id, memberB.id])
+                    .withAmount(180, 'USD')
+                    .withSplitType('equal')
+                    .build(),
+                owner.id,
+            );
 
-            await appDriver.createSettlement(new CreateSettlementRequestBuilder()
-                .withGroupId(group.id)
-                .withPayerId(memberA.id)
-                .withPayeeId(owner.id)
-                .withAmount(40, 'USD')
-                .build(), memberA.id);
+            await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPayerId(memberA.id)
+                    .withPayeeId(owner.id)
+                    .withAmount(40, 'USD')
+                    .build(),
+                memberA.id,
+            );
 
             const fullDetails = await appDriver.getGroupFullDetails(group.id, {}, owner.id);
 
@@ -264,13 +291,16 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
             const group = await createGroupWithMembers(owner.id, [member.id], 'Consistency Group');
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withPaidBy(owner.id)
-                .withParticipants([owner.id, member.id])
-                .withAmount(100, 'USD')
-                .withSplitType('equal')
-                .build(), owner.id);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withPaidBy(owner.id)
+                    .withParticipants([owner.id, member.id])
+                    .withAmount(100, 'USD')
+                    .withSplitType('equal')
+                    .build(),
+                owner.id,
+            );
 
             const ownerView = await appDriver.getGroupFullDetails(group.id, {}, owner.id);
             const memberView = await appDriver.getGroupFullDetails(group.id, {}, member.id);
@@ -310,9 +340,12 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const createSequentialGroups = async (count: number) => {
             const groups = [];
             for (let i = 0; i < count; i++) {
-                const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                    .withName(`Listing Group ${i}`)
-                    .build(), owner.id);
+                const group = await appDriver.createGroup(
+                    new CreateGroupRequestBuilder()
+                        .withName(`Listing Group ${i}`)
+                        .build(),
+                    owner.id,
+                );
                 groups.push(group);
                 await new Promise((resolve) => setTimeout(resolve, 10));
             }
@@ -333,14 +366,17 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('includes balance summaries in listings', async () => {
             const [targetGroup] = await createSequentialGroups(3);
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(targetGroup.id)
-                .withDescription('Listing expense')
-                .withAmount(100, 'USD')
-                .withPaidBy(owner.id)
-                .withParticipants([owner.id])
-                .withSplitType('equal')
-                .build(), owner.id);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(targetGroup.id)
+                    .withDescription('Listing expense')
+                    .withAmount(100, 'USD')
+                    .withPaidBy(owner.id)
+                    .withParticipants([owner.id])
+                    .withSplitType('equal')
+                    .build(),
+                owner.id,
+            );
 
             const updated = await appDriver.listGroups({}, owner.id);
             const groupEntry = updated.groups.find((group) => group.id === targetGroup.id);
@@ -356,7 +392,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('supports pagination', async () => {
             await createSequentialGroups(5);
 
-            const page1 = await appDriver.listGroups({limit: 2}, owner.id);
+            const page1 = await appDriver.listGroups({ limit: 2 }, owner.id);
             expect(page1.groups).toHaveLength(2);
             expect(page1.hasMore).toBe(true);
             expect(page1.nextCursor).toBeDefined();
@@ -374,7 +410,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('supports explicit page size of eight entries', async () => {
             const created = await createSequentialGroups(12);
 
-            const page1 = await appDriver.listGroups({limit: 8}, owner.id);
+            const page1 = await appDriver.listGroups({ limit: 8 }, owner.id);
             expect(page1.groups).toHaveLength(8);
             expect(page1.hasMore).toBe(true);
             expect(page1.nextCursor).toBeDefined();
@@ -396,12 +432,15 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('orders groups ascending and descending by last activity', async () => {
             await createSequentialGroups(5);
             await new Promise((resolve) => setTimeout(resolve, 100));
-            const newestGroup = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Latest Listing Group')
-                .build(), owner.id);
+            const newestGroup = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Latest Listing Group')
+                    .build(),
+                owner.id,
+            );
 
-            const responseDesc = await appDriver.listGroups({order: 'desc'}, owner.id);
-            const responseAsc = await appDriver.listGroups({order: 'asc'}, owner.id);
+            const responseDesc = await appDriver.listGroups({ order: 'desc' }, owner.id);
+            const responseAsc = await appDriver.listGroups({ order: 'asc' }, owner.id);
 
             const topSix = responseDesc.groups.slice(0, 6).map((g) => g.id);
             expect(topSix).toContain(newestGroup.id);
@@ -412,9 +451,12 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             const other = { id: 'listing-other', displayName: 'Other User' };
             seedUsers(other);
 
-            const otherGroup = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Other Users Group')
-                .build(), other.id);
+            const otherGroup = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Other Users Group')
+                    .build(),
+                other.id,
+            );
 
             await createSequentialGroups(2);
 
@@ -424,7 +466,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         });
 
         it('requires authentication', async () => {
-            const response = await appDriver.listGroups({limit: 1}, '');
+            const response = await appDriver.listGroups({ limit: 1 }, '');
             expect(response).toHaveProperty('error');
             expect((response as any).error.code).toBe('UNAUTHORIZED');
         });
@@ -432,10 +474,10 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('supports includeMetadata flag', async () => {
             await createSequentialGroups(2);
 
-            const withoutMeta = await appDriver.listGroups({includeMetadata: false}, owner.id);
+            const withoutMeta = await appDriver.listGroups({ includeMetadata: false }, owner.id);
             expect(withoutMeta.metadata).toBeUndefined();
 
-            const withMeta = await appDriver.listGroups({includeMetadata: true}, owner.id);
+            const withMeta = await appDriver.listGroups({ includeMetadata: true }, owner.id);
             if (withMeta.metadata) {
                 expect(withMeta.metadata).toHaveProperty('lastChangeTimestamp');
                 expect(withMeta.metadata).toHaveProperty('changeCount');
@@ -446,14 +488,17 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('reflects expenses and settlements in listings', async () => {
             const [targetGroup] = await createSequentialGroups(1);
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(targetGroup.id)
-                .withDescription('Listing Balances')
-                .withAmount(100, 'USD')
-                .withPaidBy(owner.id)
-                .withParticipants([owner.id])
-                .withSplitType('equal')
-                .build(), owner.id);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(targetGroup.id)
+                    .withDescription('Listing Balances')
+                    .withAmount(100, 'USD')
+                    .withPaidBy(owner.id)
+                    .withParticipants([owner.id])
+                    .withSplitType('equal')
+                    .build(),
+                owner.id,
+            );
 
             const response = await appDriver.listGroups({}, owner.id);
             const groupEntry = response.groups.find((g) => g.id === targetGroup.id);
@@ -471,9 +516,12 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             const owner = { id: 'edge-owner', displayName: 'Owner' };
             seedUsers(owner);
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('No Expense Group')
-                .build(), owner.id);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('No Expense Group')
+                    .build(),
+                owner.id,
+            );
 
             const details = await appDriver.getGroupFullDetails(group.id, {}, owner.id);
             expect(details.group.id).toBe(group.id);
@@ -491,20 +539,26 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             const owner = { id: 'edge-multi-owner', displayName: 'Owner' };
             seedUsers(owner);
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Multi Expense Group')
-                .build(), owner.id);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Multi Expense Group')
+                    .build(),
+                owner.id,
+            );
 
             const amounts = ['50', '30', '20'];
             for (const amount of amounts) {
-                await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withAmount(Number(amount), 'USD')
-                    .withDescription(`Expense ${amount}`)
-                    .withPaidBy(owner.id)
-                    .withParticipants([owner.id])
-                    .withSplitType('equal')
-                    .build(), owner.id);
+                await appDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withAmount(Number(amount), 'USD')
+                        .withDescription(`Expense ${amount}`)
+                        .withPaidBy(owner.id)
+                        .withParticipants([owner.id])
+                        .withSplitType('equal')
+                        .build(),
+                    owner.id,
+                );
             }
 
             const expenses = await appDriver.getGroupExpenses(group.id, {}, owner.id);
@@ -523,14 +577,17 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
             const group = await createGroupWithMembers(owner.id, [member.id], 'Deletion Group');
 
-            const createdExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withDescription('Deletable Expense')
-                .withAmount(100, 'USD')
-                .withPaidBy(owner.id)
-                .withParticipants([owner.id, member.id])
-                .withSplitType('equal')
-                .build(), owner.id);
+            const createdExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withDescription('Deletable Expense')
+                    .withAmount(100, 'USD')
+                    .withPaidBy(owner.id)
+                    .withParticipants([owner.id, member.id])
+                    .withSplitType('equal')
+                    .build(),
+                owner.id,
+            );
 
             const fullBefore = await appDriver.getExpenseFullDetails(createdExpense.id, owner.id);
             expect(fullBefore.expense.description).toBe('Deletable Expense');
@@ -544,17 +601,23 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             const owner = { id: 'edge-split-owner', displayName: 'Owner' };
             seedUsers(owner);
 
-            const group = await appDriver.createGroup(new CreateGroupRequestBuilder()
-                .withName('Split Group')
-                .build(), owner.id);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Split Group')
+                    .build(),
+                owner.id,
+            );
 
-            await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withAmount(90, 'USD')
-                .withPaidBy(owner.id)
-                .withParticipants([owner.id])
-                .withSplitType('equal')
-                .build(), owner.id);
+            await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withAmount(90, 'USD')
+                    .withPaidBy(owner.id)
+                    .withParticipants([owner.id])
+                    .withSplitType('equal')
+                    .build(),
+                owner.id,
+            );
 
             const details = await appDriver.getGroupFullDetails(group.id, {}, owner.id);
             expect(details.expenses.expenses).toHaveLength(1);
@@ -571,22 +634,29 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
             const group = await createGroupWithMembers(owner.id, [member.id], 'Update Group');
 
-            const initialExpense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-                .withGroupId(group.id)
-                .withDescription('Updatable Expense')
-                .withAmount(50, 'USD')
-                .withPaidBy(owner.id)
-                .withParticipants([owner.id, member.id])
-                .withSplitType('equal')
-                .build(), owner.id);
+            const initialExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(group.id)
+                    .withDescription('Updatable Expense')
+                    .withAmount(50, 'USD')
+                    .withPaidBy(owner.id)
+                    .withParticipants([owner.id, member.id])
+                    .withSplitType('equal')
+                    .build(),
+                owner.id,
+            );
 
             const participants = [owner.id, member.id];
-            await appDriver.updateExpense(initialExpense.id, new ExpenseUpdateBuilder()
-                .withAmount(80, 'USD')
-                .withDescription('Updated Expense')
-                .withParticipants(participants)
-                .withSplits(calculateEqualSplits(80, 'USD', participants))
-                .build(), owner.id);
+            await appDriver.updateExpense(
+                initialExpense.id,
+                new ExpenseUpdateBuilder()
+                    .withAmount(80, 'USD')
+                    .withDescription('Updated Expense')
+                    .withParticipants(participants)
+                    .withSplits(calculateEqualSplits(80, 'USD', participants))
+                    .build(),
+                owner.id,
+            );
 
             const updatedExpense = await appDriver.getExpenseFullDetails(initialExpense.id, owner.id);
             expect(updatedExpense.expense.amount).toBe('80');

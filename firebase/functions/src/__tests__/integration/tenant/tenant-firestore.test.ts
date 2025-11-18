@@ -13,9 +13,9 @@ import {
 } from '@splitifyd/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getFirestore } from '../../../firebase';
+import { createFirestoreDatabase } from '../../../firestore-wrapper';
 import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import type { TenantRegistryRecord } from '../../../services/firestore';
-import { createFirestoreDatabase } from '../../../firestore-wrapper';
 
 describe('Tenant Firestore Integration', () => {
     const wrappedDb = createFirestoreDatabase(getFirestore());
@@ -37,14 +37,14 @@ describe('Tenant Firestore Integration', () => {
                 logoUrl: toTenantLogoUrl(`https://${testDomain}/logo.svg`),
                 faviconUrl: toTenantFaviconUrl(`https://${testDomain}/favicon.ico`),
                 primaryColor: toTenantPrimaryColor('#FF5733'),
-                secondaryColor: toTenantSecondaryColor('#33FF57')
+                secondaryColor: toTenantSecondaryColor('#33FF57'),
             },
             domains: {
                 primary: toTenantDomainName(testDomain),
                 aliases: [toTenantDomainName(testAliasDomain)],
-                normalized: [toTenantDomainName(testDomain), toTenantDomainName(testAliasDomain)]
+                normalized: [toTenantDomainName(testDomain), toTenantDomainName(testAliasDomain)],
             },
-            defaultTenant: toTenantDefaultFlag(false)
+            defaultTenant: toTenantDefaultFlag(false),
         });
 
         // Create a second default tenant for testing default transfer
@@ -55,14 +55,14 @@ describe('Tenant Firestore Integration', () => {
                 logoUrl: toTenantLogoUrl(`https://${defaultDomain}/logo.svg`),
                 faviconUrl: toTenantFaviconUrl(`https://${defaultDomain}/favicon.ico`),
                 primaryColor: toTenantPrimaryColor('#1a73e8'),
-                secondaryColor: toTenantSecondaryColor('#34a853')
+                secondaryColor: toTenantSecondaryColor('#34a853'),
             },
             domains: {
                 primary: toTenantDomainName(defaultDomain),
                 aliases: [],
-                normalized: [toTenantDomainName(defaultDomain)]
+                normalized: [toTenantDomainName(defaultDomain)],
             },
-            defaultTenant: toTenantDefaultFlag(true)
+            defaultTenant: toTenantDefaultFlag(true),
         });
     });
 
@@ -76,14 +76,14 @@ describe('Tenant Firestore Integration', () => {
                 logoUrl: toTenantLogoUrl('/logo.svg'),
                 faviconUrl: toTenantFaviconUrl('/favicon.ico'),
                 primaryColor: toTenantPrimaryColor('#3B82F6'),
-                secondaryColor: toTenantSecondaryColor('#8B5CF6')
+                secondaryColor: toTenantSecondaryColor('#8B5CF6'),
             },
             domains: {
                 primary: toTenantDomainName('localhost'),
                 aliases: [],
-                normalized: [toTenantDomainName('localhost')]
+                normalized: [toTenantDomainName('localhost')],
             },
-            defaultTenant: toTenantDefaultFlag(true)
+            defaultTenant: toTenantDefaultFlag(true),
         });
 
         // Test tenants remain in the emulator - they use timestamped IDs so won't conflict
@@ -171,7 +171,6 @@ describe('Tenant Firestore Integration', () => {
             assertTenantRegistryRecordStructure(result!);
         });
     });
-
 });
 
 // Helper function to assert TenantRegistryRecord structure
@@ -213,14 +212,14 @@ describe('Tenant Branding Updates', () => {
                 logoUrl: toTenantLogoUrl(`https://${updateTestDomain}/logo.svg`),
                 faviconUrl: toTenantFaviconUrl(`https://${updateTestDomain}/favicon.ico`),
                 primaryColor: toTenantPrimaryColor('#000000'),
-                secondaryColor: toTenantSecondaryColor('#FFFFFF')
+                secondaryColor: toTenantSecondaryColor('#FFFFFF'),
             },
             domains: {
                 primary: toTenantDomainName(updateTestDomain),
                 aliases: [],
-                normalized: [toTenantDomainName(updateTestDomain)]
+                normalized: [toTenantDomainName(updateTestDomain)],
             },
-            defaultTenant: toTenantDefaultFlag(false)
+            defaultTenant: toTenantDefaultFlag(false),
         });
     });
 
@@ -230,8 +229,8 @@ describe('Tenant Branding Updates', () => {
 
     it('should update single branding field', async () => {
         const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
-            appName: toTenantAppName('Updated App Name')
-});
+            appName: toTenantAppName('Updated App Name'),
+        });
 
         expect(result.success).toBe(true);
 
@@ -244,8 +243,8 @@ describe('Tenant Branding Updates', () => {
     it('should update multiple branding fields', async () => {
         const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
             primaryColor: toTenantPrimaryColor('#FF0000'),
-            secondaryColor: toTenantSecondaryColor('#00FF00')
-});
+            secondaryColor: toTenantSecondaryColor('#00FF00'),
+        });
 
         expect(result.success).toBe(true);
 
@@ -259,9 +258,9 @@ describe('Tenant Branding Updates', () => {
         const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
             marketingFlags: {
                 showLandingPage: toShowLandingPageFlag(true),
-                showPricingPage: toShowPricingPageFlag(false)
-}
-});
+                showPricingPage: toShowPricingPageFlag(false),
+            },
+        });
 
         expect(result.success).toBe(true);
 
@@ -277,16 +276,16 @@ describe('Tenant Branding Updates', () => {
             marketingFlags: {
                 showLandingPage: toShowLandingPageFlag(true),
                 showMarketingContent: toShowMarketingContentFlag(true),
-                showPricingPage: toShowPricingPageFlag(true)
-}
-});
+                showPricingPage: toShowPricingPageFlag(true),
+            },
+        });
 
         // Then update only one flag
         const result = await firestoreWriter.updateTenantBranding(updateTestTenantId, {
             marketingFlags: {
-                showLandingPage: toShowLandingPageFlag(false)
-}
-});
+                showLandingPage: toShowLandingPageFlag(false),
+            },
+        });
 
         expect(result.success).toBe(true);
 
@@ -305,8 +304,8 @@ describe('Tenant Branding Updates', () => {
         await new Promise((resolve) => setTimeout(resolve, 10));
 
         await firestoreWriter.updateTenantBranding(updateTestTenantId, {
-            appName: toTenantAppName('Timestamp Test')
-});
+            appName: toTenantAppName('Timestamp Test'),
+        });
 
         const afterUpdate = await firestoreReader.getTenantById(toTenantId(updateTestTenantId));
         const afterTimestamp = afterUpdate?.tenant.updatedAt;
@@ -316,12 +315,11 @@ describe('Tenant Branding Updates', () => {
 
     it('should handle non-existent tenant gracefully', async () => {
         const result = await firestoreWriter.updateTenantBranding('non-existent-tenant', {
-            appName: toTenantAppName('Should Fail')
-});
+            appName: toTenantAppName('Should Fail'),
+        });
 
         // updateTenantBranding will return success=false on error
         expect(result.success).toBe(false);
         expect(result.error).toBeDefined();
     });
 });
-

@@ -1,7 +1,7 @@
 import { ReadonlySignal, signal } from '@preact/signals';
 import type { AppConfiguration, BrandingConfig } from '@splitifyd/shared';
-import i18n from '../i18n';
 import { firebaseConfigManager } from '../app/firebase-config';
+import i18n from '../i18n';
 import { syncThemeHash } from '../utils/theme-bootstrap';
 
 const DEFAULT_THEME_COLOR = '#1a73e8';

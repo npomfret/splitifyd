@@ -2,8 +2,8 @@ import type { ExpenseFormData } from '@splitifyd/shared';
 import { Amount } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { CurrencyISOCode } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
-import {toDisplayName} from "@splitifyd/shared";
 
 /**
  * Builder for creating ExpenseFormData objects for UI tests
@@ -42,7 +42,7 @@ export class ExpenseFormDataBuilder {
     }
 
     withPaidByDisplayName(displayName: DisplayName | string): this {
-        this.expense.paidByDisplayName = typeof displayName === "string" ? toDisplayName(displayName) : displayName;
+        this.expense.paidByDisplayName = typeof displayName === 'string' ? toDisplayName(displayName) : displayName;
         return this;
     }
 
@@ -52,7 +52,7 @@ export class ExpenseFormDataBuilder {
     }
 
     withParticipants(participants: DisplayName[] | string[]): this {
-        this.expense.participants = participants.map(item => typeof item === "string" ? toDisplayName(item) : item);
+        this.expense.participants = participants.map(item => typeof item === 'string' ? toDisplayName(item) : item);
         return this;
     }
 

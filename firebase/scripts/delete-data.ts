@@ -13,8 +13,8 @@ import * as fs from 'fs';
 import { stdin as input, stdout as output } from 'node:process';
 import * as path from 'path';
 import { createInterface } from 'readline/promises';
-import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
+import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
 const envPath = path.join(__dirname, '../functions/.env');
 if (fs.existsSync(envPath)) {

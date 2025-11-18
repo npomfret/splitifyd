@@ -224,7 +224,8 @@ export function CurrencyAmountInput({
 
                         {/* Currency list */}
                         <div className='overflow-auto max-h-64'>
-                            {filteredCurrencies.length === 0
+                            {filteredCurrencies
+                                    .length === 0
                                 ? (
                                     <div className='px-3 py-4 text-sm text-text-muted text-center' role='status'>
                                         {t('uiComponents.currencyAmountInput.noCurrencies')}
@@ -232,16 +233,40 @@ export function CurrencyAmountInput({
                                 )
                                 : (
                                     <>
-                                        {renderCurrencyGroup(groupedCurrencies.recent.length > 0 ? t('uiComponents.currencyAmountInput.recent') : '', groupedCurrencies.recent, 0)}
                                         {renderCurrencyGroup(
-                                            groupedCurrencies.common.length > 0 ? t('uiComponents.currencyAmountInput.common') : '',
-                                            groupedCurrencies.common,
-                                            groupedCurrencies.recent.length,
+                                            groupedCurrencies
+                                                    .recent
+                                                    .length > 0
+                                                ? t('uiComponents.currencyAmountInput.recent')
+                                                : '',
+                                            groupedCurrencies.recent,
+                                            0,
                                         )}
                                         {renderCurrencyGroup(
-                                            groupedCurrencies.others.length > 0 ? t('uiComponents.currencyAmountInput.allCurrencies') : '',
-                                            groupedCurrencies.others,
-                                            groupedCurrencies.recent.length + groupedCurrencies.common.length,
+                                            groupedCurrencies
+                                                    .common
+                                                    .length > 0
+                                                ? t('uiComponents.currencyAmountInput.common')
+                                                : '',
+                                            groupedCurrencies
+                                                .common,
+                                            groupedCurrencies
+                                                .recent
+                                                .length,
+                                        )}
+                                        {renderCurrencyGroup(
+                                            groupedCurrencies
+                                                    .others
+                                                    .length > 0
+                                                ? t('uiComponents.currencyAmountInput.allCurrencies')
+                                                : '',
+                                            groupedCurrencies
+                                                .others,
+                                            groupedCurrencies
+                                                .recent
+                                                .length + groupedCurrencies
+                                                .common
+                                                .length,
                                         )}
                                     </>
                                 )}

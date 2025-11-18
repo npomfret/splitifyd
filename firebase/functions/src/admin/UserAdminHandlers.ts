@@ -1,10 +1,10 @@
+import { SystemUserRoles } from '@splitifyd/shared';
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreWriter } from '../services/firestore/IFirestoreWriter';
 import { ApiError } from '../utils/errors';
-import { SystemUserRoles } from '@splitifyd/shared';
 
 /**
  * Handler for admin user management operations

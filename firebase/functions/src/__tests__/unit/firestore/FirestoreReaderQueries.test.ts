@@ -65,13 +65,13 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             }
 
             // Test limit - should return paginated result with hasMore=true
-            const limitedGroups = await appDriver.listGroups({limit: 2}, userId);
+            const limitedGroups = await appDriver.listGroups({ limit: 2 }, userId);
             expect(limitedGroups.groups).toHaveLength(2);
             expect(limitedGroups.hasMore).toBe(true);
             expect(limitedGroups.nextCursor).toBeDefined();
 
             // Test getting all groups
-            const allGroups = await appDriver.listGroups({limit: 10}, userId);
+            const allGroups = await appDriver.listGroups({ limit: 10 }, userId);
             expect(allGroups.groups).toHaveLength(3);
             expect(allGroups.hasMore).toBe(false);
 
@@ -91,7 +91,7 @@ describe('FirestoreReader Queries - Unit Tests', () => {
             }
 
             // Get first page
-            const firstPage = await appDriver.listGroups({limit: 2}, userId);
+            const firstPage = await appDriver.listGroups({ limit: 2 }, userId);
             expect(firstPage.groups).toHaveLength(2);
             expect(firstPage.hasMore).toBe(true);
             expect(firstPage.nextCursor).toBeDefined();
@@ -201,18 +201,18 @@ describe('FirestoreReader Queries - Unit Tests', () => {
         });
 
         test('should handle limit larger than total groups', async () => {
-            await appDriver.createGroup({name: toGroupName('Only Group'), groupDisplayName: toDisplayName('Owner Display')}, userId);
+            await appDriver.createGroup({ name: toGroupName('Only Group'), groupDisplayName: toDisplayName('Owner Display') }, userId);
 
-            const groups = await appDriver.listGroups({limit: 100}, userId);
+            const groups = await appDriver.listGroups({ limit: 100 }, userId);
             expect(groups.groups).toHaveLength(1);
             expect(groups.hasMore).toBe(false);
         });
 
         test('should handle limit of 1', async () => {
-            await appDriver.createGroup({name: toGroupName('Group 1'), groupDisplayName: toDisplayName('Owner Display')}, userId);
-            await appDriver.createGroup({name: toGroupName('Group 2'), groupDisplayName: toDisplayName('Owner Display')}, userId);
+            await appDriver.createGroup({ name: toGroupName('Group 1'), groupDisplayName: toDisplayName('Owner Display') }, userId);
+            await appDriver.createGroup({ name: toGroupName('Group 2'), groupDisplayName: toDisplayName('Owner Display') }, userId);
 
-            const groups = await appDriver.listGroups({limit: 1}, userId);
+            const groups = await appDriver.listGroups({ limit: 1 }, userId);
             expect(groups.groups).toHaveLength(1);
             expect(groups.hasMore).toBe(true);
         });

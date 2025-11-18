@@ -68,7 +68,7 @@ describe('Public endpoints', () => {
         // Should succeed with default tenant fallback
         expect(response.status).toBe(200);
 
-        const config = deserialize<{ tenant?: { tenantId: string }; firebase: Record<string, unknown> }>(await response.text());
+        const config = deserialize<{ tenant?: { tenantId: string; }; firebase: Record<string, unknown>; }>(await response.text());
         expect(config).toHaveProperty('firebase');
         expect(config).toHaveProperty('tenant');
         expect(config.tenant).toHaveProperty('tenantId', 'default-tenant');

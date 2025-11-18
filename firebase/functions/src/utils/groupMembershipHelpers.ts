@@ -1,7 +1,7 @@
-import {DisplayName, toISOString} from '@splitifyd/shared';
+import { DisplayName, toISOString } from '@splitifyd/shared';
 import type { GroupMember, GroupMembershipDTO, ISOString, UserId, UserThemeColor } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { TopLevelGroupMemberDocument } from '../types';
-import {toDisplayName} from "@splitifyd/shared";
 
 /**
  * Creates a top-level membership document from a subcollection membership document

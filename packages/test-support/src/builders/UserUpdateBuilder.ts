@@ -1,8 +1,8 @@
 import type { UpdateUserRequest } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
-import {Password, toPassword} from "@splitifyd/shared";
-import {toDisplayName} from "@splitifyd/shared";
+import { Password, toPassword } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 
 /**
  * Builder for creating user update request objects for testing
@@ -12,7 +12,7 @@ export class UserUpdateBuilder {
     private updateData: Partial<UpdateUserRequest> = {};
 
     withDisplayName(displayName: DisplayName | string): UserUpdateBuilder {
-        this.updateData.displayName = typeof displayName === "string" ? toDisplayName(displayName) : displayName;
+        this.updateData.displayName = typeof displayName === 'string' ? toDisplayName(displayName) : displayName;
         return this;
     }
 
@@ -31,8 +31,8 @@ export class UserUpdateBuilder {
         return this;
     }
 
-    withPassword(password: string |  Password): UserUpdateBuilder {
-        this.updateData.password = typeof password === "string" ? toPassword(password) : password;
+    withPassword(password: string | Password): UserUpdateBuilder {
+        this.updateData.password = typeof password === 'string' ? toPassword(password) : password;
         return this;
     }
 

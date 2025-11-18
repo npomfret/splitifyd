@@ -1,13 +1,13 @@
+import { Alert } from '@/components/ui';
+import { LoadingState } from '@/components/ui';
+import { navigationService } from '@/services/navigation.service';
+import { SystemUserRoles } from '@splitifyd/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { BaseLayout } from '../components/layout/BaseLayout';
-import { Alert } from '@/components/ui';
-import { SystemUserRoles } from '@splitifyd/shared';
-import { navigationService } from '@/services/navigation.service';
-import { LoadingState } from '@/components/ui';
-import { AdminTenantsTab } from '../components/admin/AdminTenantsTab';
 import { AdminDiagnosticsTab } from '../components/admin/AdminDiagnosticsTab';
+import { AdminTenantsTab } from '../components/admin/AdminTenantsTab';
 import { AdminUsersTab } from '../components/admin/AdminUsersTab';
+import { BaseLayout } from '../components/layout/BaseLayout';
 
 type AdminTab = 'tenants' | 'diagnostics' | 'users';
 
@@ -58,52 +58,57 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
         return null; // Will redirect in useEffect once role is known
     }
 
-    const tabs: { id: AdminTab; label: string; icon: string }[] = [
+    const tabs: { id: AdminTab; label: string; icon: string; }[] = [
         {
             id: 'tenants',
             label: 'Tenants',
-            icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'
+            icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
         },
         {
             id: 'diagnostics',
             label: 'Diagnostics',
-            icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'
+            icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
         },
         {
             id: 'users',
             label: 'Users',
-            icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'
-        }
+            icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+        },
     ];
 
     return (
-        <BaseLayout title="System Admin">
+        <BaseLayout title='System Admin'>
             {/* Admin-specific background with grid pattern */}
-            <div class="relative min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-gray-100">
+            <div class='relative min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-gray-100'>
                 {/* Decorative grid overlay */}
-                <div class="absolute inset-0 bg-[linear-gradient(to_right,#e0e7ff_1px,transparent_1px),linear-gradient(to_bottom,#e0e7ff_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30"></div>
+                <div class='absolute inset-0 bg-[linear-gradient(to_right,#e0e7ff_1px,transparent_1px),linear-gradient(to_bottom,#e0e7ff_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30'></div>
 
                 {/* Content */}
-                <div class="relative max-w-7xl mx-auto px-4 py-8">
+                <div class='relative max-w-7xl mx-auto px-4 py-8'>
                     {/* Header with admin badge */}
-                    <div class="mb-8 pb-6 border-b border-indigo-200">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <div class='mb-8 pb-6 border-b border-indigo-200'>
+                        <div class='flex items-center gap-3 mb-2'>
+                            <div class='flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20'>
+                                <svg class='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                    <path
+                                        stroke-linecap='round'
+                                        stroke-linejoin='round'
+                                        stroke-width='2'
+                                        d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
+                                    />
+                                    <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
                                 </svg>
                             </div>
-                            <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-amber-600 bg-clip-text text-transparent">
+                            <h1 class='text-3xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-amber-600 bg-clip-text text-transparent'>
                                 System Administration
                             </h1>
                         </div>
-                        <p class="mt-2 text-indigo-700 ml-13">Command center for tenants, diagnostics, and system configuration</p>
+                        <p class='mt-2 text-indigo-700 ml-13'>Command center for tenants, diagnostics, and system configuration</p>
                     </div>
 
                     {/* Tabs with admin styling */}
-                    <div class="mb-8">
-                        <nav class="flex space-x-2 bg-white/70 backdrop-blur-sm rounded-lg p-1.5 border border-indigo-200" aria-label="Admin tabs">
+                    <div class='mb-8'>
+                        <nav class='flex space-x-2 bg-white/70 backdrop-blur-sm rounded-lg p-1.5 border border-indigo-200' aria-label='Admin tabs'>
                             {tabs.map((tab) => {
                                 const isActive = activeTab === tab.id;
                                 const isDisabled = false; // All tabs are now implemented
@@ -112,8 +117,8 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                                     isActive
                                         ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 shadow-lg shadow-amber-500/10 border border-amber-300'
                                         : isDisabled
-                                            ? 'text-gray-400 cursor-not-allowed'
-                                            : 'text-indigo-600 hover:text-amber-600 hover:bg-indigo-50'
+                                        ? 'text-gray-400 cursor-not-allowed'
+                                        : 'text-indigo-600 hover:text-amber-600 hover:bg-indigo-50'
                                 }`;
 
                                 return (
@@ -125,16 +130,16 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                                         data-testid={`admin-tab-${tab.id}`}
                                     >
                                         <svg
-                                            class="w-5 h-5"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                            aria-hidden="true"
+                                            class='w-5 h-5'
+                                            fill='none'
+                                            stroke='currentColor'
+                                            viewBox='0 0 24 24'
+                                            aria-hidden='true'
                                         >
                                             <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
+                                                stroke-linecap='round'
+                                                stroke-linejoin='round'
+                                                stroke-width='2'
                                                 d={tab.icon}
                                             />
                                         </svg>
@@ -146,7 +151,7 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                     </div>
 
                     {/* Tab Content */}
-                    <div class="mt-6">
+                    <div class='mt-6'>
                         {activeTab === 'tenants' && <AdminTenantsTab />}
                         {activeTab === 'diagnostics' && <AdminDiagnosticsTab />}
                         {activeTab === 'users' && <AdminUsersTab />}

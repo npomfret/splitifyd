@@ -89,7 +89,6 @@ export class CreateGroupModalPage extends BasePage {
         return this.getModalContainer().getByTestId('group-description-input');
     }
 
-
     /**
      * Group name help text
      */
@@ -389,7 +388,7 @@ export class CreateGroupModalPage extends BasePage {
     /**
      * Verify modal is visible
      */
-    async verifyModalVisible(options?: { timeout?: number }): Promise<void> {
+    async verifyModalVisible(options?: { timeout?: number; }): Promise<void> {
         const { timeout } = options || {};
         await expect(this.getModalContainer()).toBeVisible(timeout ? { timeout } : {});
     }
@@ -397,7 +396,7 @@ export class CreateGroupModalPage extends BasePage {
     /**
      * Verify modal is not visible
      */
-    async verifyModalNotVisible(options?: { timeout?: number }): Promise<void> {
+    async verifyModalNotVisible(options?: { timeout?: number; }): Promise<void> {
         const { timeout } = options || {};
         await expect(this.getModalContainer()).not.toBeVisible(timeout ? { timeout } : {});
     }

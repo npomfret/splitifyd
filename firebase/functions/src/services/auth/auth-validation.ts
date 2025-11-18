@@ -180,4 +180,3 @@ export function validateListUsersOptions(options: unknown): { limit?: number; pa
 
     return result.data;
 }
-

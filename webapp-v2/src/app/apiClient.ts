@@ -51,12 +51,12 @@ import type {
     UpdateDisplayNameRequest,
     UpdateExpenseRequest,
     UpdateGroupRequest,
-    UpdateUserProfileRequest,
     UpdateTenantBrandingRequest,
+    UpdateUserProfileRequest,
+    UserId,
     UserPolicyStatusResponse,
     UserProfileResponse,
     UserRegistration,
-    UserId,
 } from '@splitifyd/shared';
 import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
 import type { UpdateSettlementRequest } from '@splitifyd/shared';
@@ -64,9 +64,9 @@ import { ExpenseId, GroupId } from '@splitifyd/shared';
 import { SettlementId } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import { PolicyId } from '@splitifyd/shared';
+import type { CommentText } from '@splitifyd/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
-import type {CommentText} from "@splitifyd/shared";
 
 // All types are now imported from shared-types
 
@@ -1019,7 +1019,7 @@ class ApiClient {
      * Update user account status (enable/disable)
      * Admin-only endpoint
      */
-    async updateUser(uid: string, updates: { disabled: boolean }) {
+    async updateUser(uid: string, updates: { disabled: boolean; }) {
         return this.request({
             endpoint: '/admin/users/:uid',
             method: 'PUT',
@@ -1033,7 +1033,7 @@ class ApiClient {
      * Update user role (system_admin, tenant_admin, or regular user)
      * Admin-only endpoint
      */
-    async updateUserRole(uid: string, updates: { role: string | null }) {
+    async updateUserRole(uid: string, updates: { role: string | null; }) {
         return this.request({
             endpoint: '/admin/users/:uid/role',
             method: 'PUT',

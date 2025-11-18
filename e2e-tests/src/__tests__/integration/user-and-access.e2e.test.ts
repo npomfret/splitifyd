@@ -1,5 +1,18 @@
 import { expect } from '@playwright/test';
-import { ApiDriver, DashboardPage, DEFAULT_PASSWORD, generateTestEmail, generateTestUserName, GroupDetailPage, JoinGroupPage, LoginPage, PolicyAcceptanceModalPage, RegisterPage, SettingsPage, TestUserBuilder } from '@splitifyd/test-support';
+import {
+    ApiDriver,
+    DashboardPage,
+    DEFAULT_PASSWORD,
+    generateTestEmail,
+    generateTestUserName,
+    GroupDetailPage,
+    JoinGroupPage,
+    LoginPage,
+    PolicyAcceptanceModalPage,
+    RegisterPage,
+    SettingsPage,
+    TestUserBuilder,
+} from '@splitifyd/test-support';
 import { simpleTest } from '../../fixtures';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
 import { EMULATOR_URL } from '../../helpers';

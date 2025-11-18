@@ -710,13 +710,13 @@ export class AppDriver {
     }
 
     // Admin User Management
-    async adminUpdateUser(targetUid: string, updates: { disabled: boolean }, adminToken: AuthToken): Promise<any> {
+    async adminUpdateUser(targetUid: string, updates: { disabled: boolean; }, adminToken: AuthToken): Promise<any> {
         const req = createStubRequest(adminToken, updates, { uid: targetUid });
         const res = await this.dispatchByHandler('updateUserAdmin', req);
         return res.getJson();
     }
 
-    async adminUpdateUserRole(targetUid: string, updates: { role: string | null }, adminToken: AuthToken): Promise<any> {
+    async adminUpdateUserRole(targetUid: string, updates: { role: string | null; }, adminToken: AuthToken): Promise<any> {
         const req = createStubRequest(adminToken, updates, { uid: targetUid });
         const res = await this.dispatchByHandler('updateUserRoleAdmin', req);
         return res.getJson();
@@ -746,7 +746,7 @@ export class AppDriver {
         return res.getJson() as PolicyDTO;
     }
 
-    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, authToken: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash }> {
+    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, authToken: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash; }> {
         const req = createStubRequest(authToken, {}, { id: policyId, hash: versionHash });
         const res = await this.dispatchByHandler('getPolicyVersion', req);
         return res.getJson() as PolicyVersion & { versionHash: VersionHash; };
@@ -964,13 +964,13 @@ export class AppDriver {
     }
 
     // Tenant Admin API methods
-    async upsertTenant(authToken: AuthToken, tenantData: any): Promise<{ tenantId: string; created: boolean }> {
+    async upsertTenant(authToken: AuthToken, tenantData: any): Promise<{ tenantId: string; created: boolean; }> {
         const req = createStubRequest(authToken, tenantData);
         const res = await this.dispatchByHandler('adminUpsertTenant', req);
         return res.getJson();
     }
 
-    async publishTenantTheme(authToken: AuthToken, payload: { tenantId: string }): Promise<any> {
+    async publishTenantTheme(authToken: AuthToken, payload: { tenantId: string; }): Promise<any> {
         const req = createStubRequest(authToken, payload);
         const res = await this.dispatchByHandler('publishTenantTheme', req);
         return res.getJson();

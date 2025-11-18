@@ -29,8 +29,8 @@ test.describe('Root Route - Conditional Rendering', () => {
             // Verify landing page content is visible
             // Landing page should have marketing content or at least a hero section
             await expect(page.locator('body')).toContainText(/split|expense|group/i, {
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE
-});
+                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
+            });
         });
 
         test('should show landing page for authenticated users', async ({ authenticatedPage }) => {
@@ -44,8 +44,8 @@ test.describe('Root Route - Conditional Rendering', () => {
 
             // Verify landing page content is visible (not dashboard content)
             await expect(page.locator('body')).toContainText(/split|expense|group/i, {
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE
-});
+                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
+            });
         });
     });
 
@@ -69,8 +69,8 @@ test.describe('Root Route - Conditional Rendering', () => {
 
             // Verify dashboard content (empty state) - use first match to avoid strict mode violation
             await expect(page.getByText(/create.*first.*group/i).first()).toBeVisible({
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE
-});
+                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
+            });
         });
 
         test('should redirect to login when unauthenticated user tries to access /dashboard', async ({ pageWithLogging: page }) => {
@@ -81,8 +81,8 @@ test.describe('Root Route - Conditional Rendering', () => {
 
             // Verify login page
             await expect(page.getByRole('heading', { name: /sign.*in/i })).toBeVisible({
-                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE
-});
+                timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE,
+            });
         });
     });
 

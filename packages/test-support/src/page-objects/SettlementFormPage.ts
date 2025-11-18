@@ -369,7 +369,7 @@ export class SettlementFormPage extends BasePage {
         await this.waitForModalClosed();
     }
 
-    async verifyModalVisible(options?: { timeout?: number }): Promise<void> {
+    async verifyModalVisible(options?: { timeout?: number; }): Promise<void> {
         const { timeout = TEST_TIMEOUTS.MODAL_TRANSITION } = options || {};
         await expect(this.getModal()).toBeVisible({ timeout });
     }

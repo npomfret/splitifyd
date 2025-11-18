@@ -1,13 +1,4 @@
-import type {
-    AppConfiguration,
-    BrandingConfig,
-    BrandingMarketingFlags,
-    EnvironmentConfig,
-    FirebaseConfig,
-    FormDefaults,
-    TenantConfig,
-    ThemeConfig,
-} from '@splitifyd/shared';
+import type { AppConfiguration, BrandingConfig, BrandingMarketingFlags, EnvironmentConfig, FirebaseConfig, FormDefaults, TenantConfig, ThemeConfig } from '@splitifyd/shared';
 import {
     isoStringNow,
     toShowLandingPageFlag,

@@ -114,7 +114,6 @@ class ThemeStoreImpl implements ThemeStore {
         if (currentTheme) {
             this.applyThemeToDOM(currentTheme, this.isDarkMode);
         }
-
     }
 
     // Method to be called by auth store when user changes

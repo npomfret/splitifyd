@@ -1,4 +1,5 @@
 import { DisplayName, toGroupId } from '@splitifyd/shared';
+import { toDisplayName, toPassword } from '@splitifyd/shared';
 import { GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
 import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -8,7 +9,6 @@ import { UserService } from '../../../services/UserService2';
 import { ApiError } from '../../../utils/errors';
 import { initializeI18n } from '../../../utils/i18n';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {toDisplayName, toPassword} from "@splitifyd/shared";
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;

@@ -1,13 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import {
-    LocalThemeArtifactStorage,
-    computeSha256,
-    createThemeArtifactStorage,
-    type ThemeArtifactPayload,
-} from '../../../../services/storage/ThemeArtifactStorage';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as firebase from '../../../../firebase';
+import { computeSha256, createThemeArtifactStorage, LocalThemeArtifactStorage, type ThemeArtifactPayload } from '../../../../services/storage/ThemeArtifactStorage';
 
 vi.mock('fs/promises');
 vi.mock('../../../../firebase');

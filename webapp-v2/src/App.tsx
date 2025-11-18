@@ -4,11 +4,11 @@ import { lazy, Suspense } from 'preact/compat';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from './app/hooks/useAuth';
-import { useConfig } from './hooks/useConfig.ts';
 import { TokenRefreshIndicator } from './components/auth/TokenRefreshIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
 import { LoadingState, WarningBanner } from './components/ui';
+import { useConfig } from './hooks/useConfig.ts';
 import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
 import { navigationService } from './services/navigation.service';
 

@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ThemeArtifactService } from '../../../../services/tenant/ThemeArtifactService';
-import type { ThemeArtifactStorage } from '../../../../services/storage/ThemeArtifactStorage';
 import type { BrandingTokens } from '@splitifyd/shared';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ThemeArtifactStorage } from '../../../../services/storage/ThemeArtifactStorage';
+import { ThemeArtifactService } from '../../../../services/tenant/ThemeArtifactService';
 
 describe('ThemeArtifactService', () => {
     let service: ThemeArtifactService;

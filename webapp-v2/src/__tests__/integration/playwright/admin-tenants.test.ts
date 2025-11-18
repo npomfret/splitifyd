@@ -266,7 +266,6 @@ test.describe('Admin Tenants Page - Data Extraction', () => {
         expect(count).toBe(secondCount);
     });
 
-
     test('should extract default tenant status', async ({ systemAdminPage }) => {
         const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);

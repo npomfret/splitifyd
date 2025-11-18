@@ -179,7 +179,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                             updateSplitPercentage={formState.updateSplitPercentage}
                                         />
 
-                                            {formState.validationErrors.splits && (
+                                        {formState.validationErrors.splits && (
                                             <p className='text-sm text-semantic-error mt-2' role='alert' data-testid='validation-error-splits'>
                                                 {formState.validationErrors.splits}
                                             </p>

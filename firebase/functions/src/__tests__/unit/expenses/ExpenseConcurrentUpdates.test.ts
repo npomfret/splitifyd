@@ -9,10 +9,10 @@
  */
 
 import { calculateEqualSplits, toGroupName } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
-import {toDisplayName} from "@splitifyd/shared";
 
 describe('Expense Concurrent Updates - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -39,16 +39,19 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         }, userId);
 
         // Create an expense
-        const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-            .withGroupId(group.id)
-            .withDescription('Test Expense')
-            .withAmount(100, 'EUR')
-            .withPaidBy(userId)
-            .withLabel('food')
-            .withDate(new Date().toISOString())
-            .withSplitType('equal')
-            .withParticipants([userId])
-            .build(), userId);
+        const expense = await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withDescription('Test Expense')
+                .withAmount(100, 'EUR')
+                .withPaidBy(userId)
+                .withLabel('food')
+                .withDate(new Date().toISOString())
+                .withSplitType('equal')
+                .withParticipants([userId])
+                .build(),
+            userId,
+        );
 
         // Verify expense was created
         expect(expense.id).toBeDefined();
@@ -57,16 +60,24 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         // Attempt concurrent updates
         const lockingTestParticipants = [userId];
         const updatePromises = [
-            appDriver.updateExpense(expense.id, new ExpenseUpdateBuilder()
-                .withAmount(200, 'EUR')
-                .withParticipants(lockingTestParticipants)
-                .withSplits(calculateEqualSplits(200, 'EUR', lockingTestParticipants))
-                .build(), userId),
-            appDriver.updateExpense(expense.id, new ExpenseUpdateBuilder()
-                .withAmount(300, 'EUR')
-                .withParticipants(lockingTestParticipants)
-                .withSplits(calculateEqualSplits(300, 'EUR', lockingTestParticipants))
-                .build(), userId),
+            appDriver.updateExpense(
+                expense.id,
+                new ExpenseUpdateBuilder()
+                    .withAmount(200, 'EUR')
+                    .withParticipants(lockingTestParticipants)
+                    .withSplits(calculateEqualSplits(200, 'EUR', lockingTestParticipants))
+                    .build(),
+                userId,
+            ),
+            appDriver.updateExpense(
+                expense.id,
+                new ExpenseUpdateBuilder()
+                    .withAmount(300, 'EUR')
+                    .withParticipants(lockingTestParticipants)
+                    .withSplits(calculateEqualSplits(300, 'EUR', lockingTestParticipants))
+                    .build(),
+                userId,
+            ),
         ];
 
         const results = await Promise.allSettled(updatePromises);
@@ -94,30 +105,41 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
         }, userId);
 
         // Create an expense
-        const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-            .withGroupId(group.id)
-            .withDescription('Test Expense')
-            .withAmount(100, 'USD')
-            .withPaidBy(userId)
-            .withLabel('food')
-            .withSplitType('equal')
-            .withParticipants([userId])
-            .build(), userId);
+        const expense = await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withDescription('Test Expense')
+                .withAmount(100, 'USD')
+                .withPaidBy(userId)
+                .withLabel('food')
+                .withSplitType('equal')
+                .withParticipants([userId])
+                .build(),
+            userId,
+        );
 
         // Concurrent updates to the same expense
         // This tests that TenantFirestoreTestDatabase correctly simulates transaction conflicts
         const participants = [userId];
         const updatePromises = [
-            appDriver.updateExpense(expense.id, new ExpenseUpdateBuilder()
-                .withAmount(150, 'USD')
-                .withParticipants(participants)
-                .withSplits(calculateEqualSplits(150, 'USD', participants))
-                .build(), userId),
-            appDriver.updateExpense(expense.id, new ExpenseUpdateBuilder()
-                .withAmount(200, 'USD')
-                .withParticipants(participants)
-                .withSplits(calculateEqualSplits(200, 'USD', participants))
-                .build(), userId),
+            appDriver.updateExpense(
+                expense.id,
+                new ExpenseUpdateBuilder()
+                    .withAmount(150, 'USD')
+                    .withParticipants(participants)
+                    .withSplits(calculateEqualSplits(150, 'USD', participants))
+                    .build(),
+                userId,
+            ),
+            appDriver.updateExpense(
+                expense.id,
+                new ExpenseUpdateBuilder()
+                    .withAmount(200, 'USD')
+                    .withParticipants(participants)
+                    .withSplits(calculateEqualSplits(200, 'USD', participants))
+                    .build(),
+                userId,
+            ),
         ];
 
         const results = await Promise.allSettled(updatePromises);
@@ -150,13 +172,16 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
             groupDisplayName: toDisplayName('Owner Display'),
         }, userId);
 
-        const expense = await appDriver.createExpense(new CreateExpenseRequestBuilder()
-            .withGroupId(group.id)
-            .withDescription('Test Expense')
-            .withAmount(100, 'USD')
-            .withPaidBy(userId)
-            .withParticipants([userId])
-            .build(), userId);
+        const expense = await appDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withDescription('Test Expense')
+                .withAmount(100, 'USD')
+                .withPaidBy(userId)
+                .withParticipants([userId])
+                .build(),
+            userId,
+        );
 
         // Non-member tries to update expense - should fail with access denied
         // Note: Using just description update to avoid validation complexity

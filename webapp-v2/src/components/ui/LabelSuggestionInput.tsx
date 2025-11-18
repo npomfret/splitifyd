@@ -125,7 +125,9 @@ export function LabelSuggestionInput({ value, onChange, suggestions, className =
         'backdrop-blur-sm',
     ];
 
-    const stateClasses = error ? 'border-border-error text-semantic-error focus:ring-semantic-error focus:border-semantic-error' : 'border-border-default focus:ring-interactive-primary focus:border-interactive-primary';
+    const stateClasses = error
+        ? 'border-border-error text-semantic-error focus:ring-semantic-error focus:border-semantic-error'
+        : 'border-border-default focus:ring-interactive-primary focus:border-interactive-primary';
 
     const inputClasses = [...baseInputClasses, stateClasses, className].filter(Boolean).join(' ');
 

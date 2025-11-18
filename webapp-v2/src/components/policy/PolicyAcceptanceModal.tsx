@@ -190,7 +190,10 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                                             {currentPolicy.policyName}
                                         </h3>
                                         {canAcceptCurrent && (
-                                            <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-semantic-success-subtle text-semantic-success-emphasis' data-testid='policy-accepted-badge'>
+                                            <span
+                                                className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-semantic-success-subtle text-semantic-success-emphasis'
+                                                data-testid='policy-accepted-badge'
+                                            >
                                                 {t('policyComponents.policyAcceptanceModal.acceptedIcon')}
                                             </span>
                                         )}

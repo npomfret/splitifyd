@@ -178,9 +178,11 @@ export function AdminUsersTab() {
             { value: SystemUserRoles.SYSTEM_ADMIN, label: 'System Admin' },
         ];
 
-        const currentRoleLabel = currentRole === SystemUserRoles.TENANT_ADMIN ? 'Tenant Admin'
-            : currentRole === SystemUserRoles.SYSTEM_ADMIN ? 'System Admin'
-                : 'Regular User';
+        const currentRoleLabel = currentRole === SystemUserRoles.TENANT_ADMIN
+            ? 'Tenant Admin'
+            : currentRole === SystemUserRoles.SYSTEM_ADMIN
+            ? 'System Admin'
+            : 'Regular User';
 
         const message = `Current role: ${currentRoleLabel}\n\nSelect new role:\n${roleOptions.map((opt, i) => `${i + 1}. ${opt.label}`).join('\n')}`;
         const choice = window.prompt(message, '1');
@@ -248,75 +250,73 @@ export function AdminUsersTab() {
     }
 
     return (
-        <div class="space-y-6">
-            <div class="flex items-center justify-between">
-                <p class="text-sm text-gray-700">
+        <div class='space-y-6'>
+            <div class='flex items-center justify-between'>
+                <p class='text-sm text-gray-700'>
                     Manage user accounts, roles, and permissions
                 </p>
-                <Button variant="secondary" size="sm" onClick={handleReset} className="!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50">
+                <Button variant='secondary' size='sm' onClick={handleReset} className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'>
                     Refresh
                 </Button>
             </div>
 
-            <Card className="p-6 space-y-6 bg-white/70 border border-indigo-200">
-                <form class="flex gap-4" onSubmit={handleSearch}>
-                    <label class="flex flex-col text-sm text-gray-800 flex-1">
-                        <span class="mb-1">Search by email or UID</span>
+            <Card className='p-6 space-y-6 bg-white/70 border border-indigo-200'>
+                <form class='flex gap-4' onSubmit={handleSearch}>
+                    <label class='flex flex-col text-sm text-gray-800 flex-1'>
+                        <span class='mb-1'>Search by email or UID</span>
                         <Input
                             value={searchValue.value}
                             onChange={(value) => (searchValue.value = value)}
-                            placeholder="Enter email or UID..."
+                            placeholder='Enter email or UID...'
                         />
                     </label>
-                    <div class="flex gap-2 items-end">
-                        <Button type="submit" className="!bg-indigo-600 !text-white hover:!bg-indigo-700">Search</Button>
-                        <Button type="button" variant="secondary" onClick={handleReset} className="!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50">
+                    <div class='flex gap-2 items-end'>
+                        <Button type='submit' className='!bg-indigo-600 !text-white hover:!bg-indigo-700'>Search</Button>
+                        <Button type='button' variant='secondary' onClick={handleReset} className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'>
                             Reset
                         </Button>
                     </div>
                 </form>
 
                 {loading.value && (
-                    <div class="flex justify-center py-6">
-                        <LoadingState message="Loading users..." />
+                    <div class='flex justify-center py-6'>
+                        <LoadingState message='Loading users...' />
                     </div>
                 )}
 
-                {error.value && <Alert type="error" message={error.value} />}
+                {error.value && <Alert type='error' message={error.value} />}
 
-                {!loading.value && users.value.length === 0 && !error.value && (
-                    <Alert type="info" message="No users found" />
-                )}
+                {!loading.value && users.value.length === 0 && !error.value && <Alert type='info' message='No users found' />}
 
                 {users.value.length > 0 && (
-                    <div class="overflow-x-auto border border-indigo-200 rounded-lg">
-                        <table class="min-w-full divide-y divide-indigo-200">
-                            <thead class="bg-indigo-50">
+                    <div class='overflow-x-auto border border-indigo-200 rounded-lg'>
+                        <table class='min-w-full divide-y divide-indigo-200'>
+                            <thead class='bg-indigo-50'>
                                 <tr>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider">
+                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         Email
                                     </th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider">
+                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         Display Name
                                     </th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider">
+                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         Role
                                     </th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider">
+                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         Status
                                     </th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider">
+                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         Created
                                     </th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider">
+                                    <th scope='col' class='px-4 py-3 text-left text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         Last Sign In
                                     </th>
-                                    <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider">
+                                    <th scope='col' class='px-4 py-3 text-right text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-indigo-200">
+                            <tbody class='bg-white divide-y divide-indigo-200'>
                                 {users.value.map((authUser) => {
                                     const metadata = authUser.metadata;
                                     const uid = String(authUser.uid ?? '');
@@ -325,23 +325,23 @@ export function AdminUsersTab() {
 
                                     return (
                                         <tr key={uid} class={isCurrentUser ? 'bg-blue-50' : ''}>
-                                            <td class="px-4 py-3 text-sm text-gray-900 break-all">
+                                            <td class='px-4 py-3 text-sm text-gray-900 break-all'>
                                                 {String(authUser.email ?? '')}
                                                 {isCurrentUser && (
-                                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                                    <span class='ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700'>
                                                         You
                                                     </span>
                                                 )}
                                             </td>
-                                            <td class="px-4 py-3 text-sm text-gray-700 break-all">
+                                            <td class='px-4 py-3 text-sm text-gray-700 break-all'>
                                                 {String(authUser.displayName ?? '-')}
                                             </td>
-                                            <td class="px-4 py-3 text-sm">
+                                            <td class='px-4 py-3 text-sm'>
                                                 <span class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getRoleBadgeClass(role, false)}`}>
                                                     {formatRole(role)}
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-3 text-sm">
+                                            <td class='px-4 py-3 text-sm'>
                                                 <span
                                                     class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                                                         authUser.disabled
@@ -352,26 +352,26 @@ export function AdminUsersTab() {
                                                     {authUser.disabled ? 'Disabled' : 'Active'}
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-3 text-sm text-gray-700">
+                                            <td class='px-4 py-3 text-sm text-gray-700'>
                                                 {getMetadataField(metadata, 'creationTime')}
                                             </td>
-                                            <td class="px-4 py-3 text-sm text-gray-700">
+                                            <td class='px-4 py-3 text-sm text-gray-700'>
                                                 {getMetadataField(metadata, 'lastSignInTime')}
                                             </td>
-                                            <td class="px-4 py-3 text-right text-sm">
-                                                <div class="flex items-center justify-end gap-2">
+                                            <td class='px-4 py-3 text-right text-sm'>
+                                                <div class='flex items-center justify-end gap-2'>
                                                     <Button
-                                                        variant="secondary"
-                                                        size="sm"
+                                                        variant='secondary'
+                                                        size='sm'
                                                         onClick={() => void handleUpdateRole(uid, role)}
                                                         disabled={isCurrentUser || operationInProgress.value === `role-${uid}`}
-                                                        className="!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50"
+                                                        className='!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50'
                                                     >
                                                         {operationInProgress.value === `role-${uid}` ? 'Updating...' : 'Change Role'}
                                                     </Button>
                                                     <Button
                                                         variant={authUser.disabled ? 'secondary' : 'danger'}
-                                                        size="sm"
+                                                        size='sm'
                                                         onClick={() => void handleDisableUser(uid, Boolean(authUser.disabled))}
                                                         disabled={isCurrentUser || operationInProgress.value === `disable-${uid}` || operationInProgress.value === `enable-${uid}`}
                                                         className={authUser.disabled ? '!bg-white !text-gray-800 !border-gray-300 hover:!bg-gray-50' : '!bg-red-600 !text-white hover:!bg-red-700'}
@@ -379,8 +379,8 @@ export function AdminUsersTab() {
                                                         {operationInProgress.value === `disable-${uid}` || operationInProgress.value === `enable-${uid}`
                                                             ? 'Processing...'
                                                             : authUser.disabled
-                                                                ? 'Enable'
-                                                                : 'Disable'}
+                                                            ? 'Enable'
+                                                            : 'Disable'}
                                                     </Button>
                                                 </div>
                                             </td>

@@ -646,7 +646,11 @@ export function GroupSettingsModal({
                         )}
 
                         {displayNameSuccessMessage && (
-                            <div className='bg-interactive-accent/10 border border-semantic-success/40 rounded-md px-3 py-2 text-sm text-semantic-success' role='status' data-testid='group-display-name-success'>
+                            <div
+                                className='bg-interactive-accent/10 border border-semantic-success/40 rounded-md px-3 py-2 text-sm text-semantic-success'
+                                role='status'
+                                data-testid='group-display-name-success'
+                            >
                                 {displayNameSuccessMessage}
                             </div>
                         )}
@@ -670,7 +674,11 @@ export function GroupSettingsModal({
                 <Form onSubmit={handleGeneralSubmit}>
                     <div className='space-y-4'>
                         {generalSuccessMessage && (
-                            <div className='bg-interactive-accent/10 border border-semantic-success/40 rounded-md px-3 py-2 text-sm text-semantic-success' role='status' data-testid='group-general-success'>
+                            <div
+                                className='bg-interactive-accent/10 border border-semantic-success/40 rounded-md px-3 py-2 text-sm text-semantic-success'
+                                role='status'
+                                data-testid='group-general-success'
+                            >
                                 {generalSuccessMessage}
                             </div>
                         )}
@@ -776,7 +784,9 @@ export function GroupSettingsModal({
                                 type='button'
                                 onClick={() => applyPreset(preset)}
                                 className={`h-full border rounded-lg px-4 py-3 text-left transition ${
-                                    isActive ? 'border-interactive-primary bg-interactive-primary/10 shadow-sm' : 'border-border-default hover:border-interactive-primary/40 hover:bg-interactive-primary/10/40'
+                                    isActive
+                                        ? 'border-interactive-primary bg-interactive-primary/10 shadow-sm'
+                                        : 'border-border-default hover:border-interactive-primary/40 hover:bg-interactive-primary/10/40'
                                 }`}
                                 data-testid={`preset-button-${preset}`}
                             >
@@ -942,7 +952,9 @@ export function GroupSettingsModal({
                                             type='button'
                                             onClick={() => setActiveTab(tab)}
                                             className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
-                                                isActive ? 'border-interactive-primary text-interactive-primary' : 'border-transparent text-text-muted hover:text-text-primary hover:border-border-default'
+                                                isActive
+                                                    ? 'border-interactive-primary text-interactive-primary'
+                                                    : 'border-transparent text-text-muted hover:text-text-primary hover:border-border-default'
                                             }`}
                                             data-testid={`group-settings-tab-${tab}`}
                                         >

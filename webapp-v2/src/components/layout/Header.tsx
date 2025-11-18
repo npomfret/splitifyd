@@ -48,10 +48,18 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         return (
             <div class='flex items-center gap-4'>
-                <button onClick={() => navigation.goToLogin()} class='px-4 py-2 rounded-lg text-text-primary border border-border-default hover:bg-surface-muted transition-colors' data-testid='header-login-link'>
+                <button
+                    onClick={() => navigation.goToLogin()}
+                    class='px-4 py-2 rounded-lg text-text-primary border border-border-default hover:bg-surface-muted transition-colors'
+                    data-testid='header-login-link'
+                >
                     {t('header.login')}
                 </button>
-                <button onClick={() => navigation.goToRegister()} class='bg-interactive-primary text-interactive-primary-foreground px-4 py-2 rounded-lg hover:bg-interactive-primary/90 transition-colors' data-testid='header-signup-link'>
+                <button
+                    onClick={() => navigation.goToRegister()}
+                    class='bg-interactive-primary text-interactive-primary-foreground px-4 py-2 rounded-lg hover:bg-interactive-primary/90 transition-colors'
+                    data-testid='header-signup-link'
+                >
                     {t('header.signUp')}
                 </button>
             </div>

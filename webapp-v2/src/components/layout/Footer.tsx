@@ -1,5 +1,5 @@
-import { useNavigation } from '@/hooks/useNavigation';
 import { useConfig } from '@/hooks/useConfig.ts';
+import { useNavigation } from '@/hooks/useNavigation';
 import { useTranslation } from 'react-i18next';
 
 export function Footer() {
@@ -48,12 +48,20 @@ export function Footer() {
                                 </button>
                             </li>
                             <li>
-                                <button onClick={() => navigation.goToPrivacyPolicy()} class='text-sm text-text-muted hover:text-interactive-primary transition-colors' data-testid='footer-privacy-link'>
+                                <button
+                                    onClick={() => navigation.goToPrivacyPolicy()}
+                                    class='text-sm text-text-muted hover:text-interactive-primary transition-colors'
+                                    data-testid='footer-privacy-link'
+                                >
                                     {t('footer.privacyPolicy')}
                                 </button>
                             </li>
                             <li>
-                                <button onClick={() => navigation.goToCookiePolicy()} class='text-sm text-text-muted hover:text-interactive-primary transition-colors' data-testid='footer-cookies-link'>
+                                <button
+                                    onClick={() => navigation.goToCookiePolicy()}
+                                    class='text-sm text-text-muted hover:text-interactive-primary transition-colors'
+                                    data-testid='footer-cookies-link'
+                                >
                                     {t('footer.cookiePolicy')}
                                 </button>
                             </li>

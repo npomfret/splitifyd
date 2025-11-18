@@ -1,8 +1,8 @@
 import { type ClientUser, type SystemUserRole, SystemUserRoles } from '@splitifyd/shared';
 import { DisplayName } from '@splitifyd/shared';
 import type { Email } from '@splitifyd/shared';
+import { toDisplayName } from '@splitifyd/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
-import {toDisplayName} from "@splitifyd/shared";
 
 /**
  * Builder for creating ClientUser objects for tests
@@ -34,7 +34,7 @@ export class ClientUserBuilder {
     }
 
     withDisplayName(displayName: DisplayName | string): this {
-        this.user.displayName = typeof displayName === "string" ? toDisplayName(displayName) : displayName;
+        this.user.displayName = typeof displayName === 'string' ? toDisplayName(displayName) : displayName;
         return this;
     }
 

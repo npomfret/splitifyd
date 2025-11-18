@@ -2,8 +2,8 @@
 export * from './shared-types';
 
 // Export branding tokens and schemas
-export * from './types/branding';
 export * from './fixtures/branding-tokens';
+export * from './types/branding';
 
 // Export user colors constants
 export * from './user-colors';
