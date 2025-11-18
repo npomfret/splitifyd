@@ -95,8 +95,8 @@ describe('getEnhancedConfigResponse', () => {
             source: 'domain',
             themeArtifact: {
                 hash: 'abc123',
-                cssUrl: 'file:///tmp/theme.css',
-                tokensUrl: 'file:///tmp/tokens.json',
+                cssUrl: 'https://storage.googleapis.com/test-bucket/theme-artifacts/tenant-with-theme/abc123/theme.css',
+                tokensUrl: 'https://storage.googleapis.com/test-bucket/theme-artifacts/tenant-with-theme/abc123/tokens.json',
                 version: 1,
                 generatedAtEpochMs: 123456789,
                 generatedBy: 'tester',

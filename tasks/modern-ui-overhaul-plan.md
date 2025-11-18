@@ -23,7 +23,7 @@
 - ✅ Tailwind config with 20+ semantic color mappings
 
 **⚠️ Production Blockers (8-11 hours):**
-1. **Artifact storage** - Replace `file://` URLs with Cloud Storage (4-6 hours)
+1. ✅ **Artifact storage** - migrated to Cloud Storage (commit `55cb5fad`)
 2. **Font deployment** - Serve Space Grotesk & Geist Mono (2 hours)
 3. **E2E tests** - Verify theme switching works (2-3 hours)
 
@@ -181,7 +181,7 @@ ALL feature flags: false
 1. Tenant identification middleware extracts hostname from request
 2. Looks up tenant config (localhost → Aurora, 127.0.0.1 → Brutalist)
 3. Fetches theme artifact from Firestore (`brandingTokens.artifact`)
-4. Reads CSS from storage (currently `file://` URLs - **BLOCKER**)
+4. Reads CSS from Cloud Storage URLs (HTTP(S))
 5. Returns with versioning headers:
    - `Cache-Control: public, max-age=31536000, immutable` (if `?v=hash`)
    - `ETag: "{hash}"`
@@ -287,39 +287,9 @@ ALL feature flags: false
 
 ## Production Blockers (Critical Path)
 
-### 🔥 Blocker 1: Artifact Storage (4-6 hours)
-**Problem:** Theme CSS stored as `file://` URLs, not web-accessible
-**Current:** `file:///tmp/theme-artifacts/{tenantId}/{hash}/theme.css`
-**Needed:** Cloud Storage integration
-
-**Solution:**
-```typescript
-// firebase/functions/src/services/storage/CloudThemeArtifactStorage.ts
-export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
-  async save(tenantId: string, hash: string, css: string, tokens: object): Promise<ArtifactUrls> {
-    const bucket = admin.storage().bucket();
-    const cssPath = `theme-artifacts/${tenantId}/${hash}/theme.css`;
-    const tokensPath = `theme-artifacts/${tenantId}/${hash}/tokens.json`;
-
-    await bucket.file(cssPath).save(css, { contentType: 'text/css' });
-    await bucket.file(tokensPath).save(JSON.stringify(tokens), { contentType: 'application/json' });
-
-    const [cssUrl] = await bucket.file(cssPath).getSignedUrl({ action: 'read', expires: '03-01-2500' });
-    const [tokensUrl] = await bucket.file(tokensPath).getSignedUrl({ action: 'read', expires: '03-01-2500' });
-
-    return { cssUrl, tokensUrl };
-  }
-}
-```
-
-**Files to modify:**
-- Create: `/firebase/functions/src/services/storage/CloudThemeArtifactStorage.ts`
-- Update: `/firebase/functions/src/services/tenant/TenantService.ts` (use CloudStorage instead of LocalStorage)
-- Update: `/firebase/functions/src/theme/ThemeHandlers.ts` (handle HTTPS URLs)
-
-**Acceptance:**
-- `curl http://localhost:5001/.../api/theme.css` returns CSS from Cloud Storage
-- URLs are HTTPS, not `file://`
+### ✅ Blocker 1: Artifact Storage (4-6 hours) — DONE
+**What changed:** Theme artifacts now read/write from Cloud Storage with public HTTP(S) URLs via `CloudThemeArtifactStorage` (`55cb5fad`). ThemeHandlers reject non-HTTP(S) URLs, and the integration test fetches CSS from storage.
+**Follow-up:** Update legacy test fixtures that still reference `file://` to keep expectations aligned.
 
 ### 🔥 Blocker 2: Font Deployment (2 hours)
 **Problem:** Space Grotesk & Geist Mono referenced but not served
@@ -822,7 +792,7 @@ test('Lighthouse performance score', async ({ page }) => {
 - [x] Hostname-based theme switching works
 - [x] Core component library uses semantic tokens
 - [x] Glassmorphism with fallbacks
-- [ ] **Cloud Storage for artifacts (BLOCKER)**
+- [x] Cloud Storage for artifacts
 - [ ] **Custom fonts deployed (BLOCKER)**
 - [ ] **E2E tests pass (BLOCKER)**
 - [ ] **Lighthouse score 90+ (BLOCKER)**
