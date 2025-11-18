@@ -1,4 +1,4 @@
-import { calculateEqualSplits, PooledTestUser } from '@billsplit-wl/shared';
+import { calculateEqualSplits, PooledTestUser, toAmount } from '@billsplit-wl/shared';
 import {
     ApiDriver,
     borrowTestUsers,
@@ -163,7 +163,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
                     new ExpenseUpdateBuilder()
                         .withAmount(200, 'USD')
                         .withParticipants(concurrentParticipants)
-                        .withSplits(calculateEqualSplits(200, 'USD', concurrentParticipants))
+                        .withSplits(calculateEqualSplits(toAmount(200), 'USD', concurrentParticipants))
                         .build(),
                     users[0].token,
                 ),
@@ -172,7 +172,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
                     new ExpenseUpdateBuilder()
                         .withAmount(300, 'USD')
                         .withParticipants(concurrentParticipants)
-                        .withSplits(calculateEqualSplits(300, 'USD', concurrentParticipants))
+                        .withSplits(calculateEqualSplits(toAmount(300), 'USD', concurrentParticipants))
                         .build(),
                     users[0].token,
                 ),
@@ -223,7 +223,7 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
                     new ExpenseUpdateBuilder()
                         .withAmount(75, 'USD')
                         .withParticipants(deleteUpdateParticipants)
-                        .withSplits(calculateEqualSplits(75, 'USD', deleteUpdateParticipants))
+                        .withSplits(calculateEqualSplits(toAmount(75), 'USD', deleteUpdateParticipants))
                         .build(),
                     users[0].token,
                 ),

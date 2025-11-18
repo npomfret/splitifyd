@@ -1,5 +1,5 @@
 import type { Amount, SimplifiedDebt, UserBalance } from '@billsplit-wl/shared';
-import { addAmounts, compareAmounts, isZeroAmount, subtractAmounts, zeroAmount } from '@billsplit-wl/shared';
+import { addAmounts, compareAmounts, isZeroAmount, subtractAmounts, toAmount, zeroAmount } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { DebtScenarios, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
@@ -95,7 +95,7 @@ const expectNetBalancesMatch = (balances: Record<string, UserBalance>, transacti
 };
 
 const expectAmountEqual = (actual: Amount, expected: Amount | number, currency: CurrencyISOCode) => {
-    expect(compareAmounts(actual, expected, currency)).toBe(0);
+    expect(compareAmounts(actual, toAmount(expected), currency)).toBe(0);
 };
 
 const expectAmountPositive = (actual: Amount, currency: CurrencyISOCode) => {

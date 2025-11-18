@@ -1,5 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
-import type { ExpenseFormData } from '@billsplit-wl/shared';
+import type {CurrencyISOCode, ExpenseFormData, UserId } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { TEST_TIMEOUTS } from '../test-constants';
@@ -348,7 +348,7 @@ export class ExpenseFormPage extends BasePage {
         await expect(input).toHaveValue(value);
     }
 
-    async expectCurrencySelectionDisplays(symbol: string, currencyCode: string): Promise<void> {
+    async expectCurrencySelectionDisplays(symbol: string, currencyCode: CurrencyISOCode): Promise<void> {
         const currencyButton = this.getCurrencySelect();
         await expect(currencyButton).toContainText(symbol);
         await expect(currencyButton).toContainText(currencyCode);
@@ -362,7 +362,7 @@ export class ExpenseFormPage extends BasePage {
      * Select a currency
      * Note: Currency is a custom dropdown (button + listbox), not a native select
      */
-    async selectCurrency(currencyCode: string): Promise<void> {
+    async selectCurrency(currencyCode: CurrencyISOCode | string): Promise<void> {
         const currencyButton = this.getCurrencySelect();
         await expect(currencyButton).toBeVisible();
         await this.clickButton(currencyButton, { buttonName: 'Select currency' });
@@ -474,7 +474,7 @@ export class ExpenseFormPage extends BasePage {
     /**
      * Select a specific set of participants, toggling checkboxes as needed.
      */
-    async selectSpecificParticipants(participants: string[]): Promise<void> {
+    async selectSpecificParticipants(participants: UserId[]): Promise<void> {
         const allLabels = this.page.locator('[data-testid="participant-selector-grid"]').locator('label');
         await allLabels.first().waitFor({ state: 'visible' });
 

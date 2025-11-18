@@ -115,7 +115,7 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withParticipants(participants: string[]): this {
+    withParticipants(participants: UserId[]): this {
         this.expense.participants = [...participants];
         if (participants.length === this.expense.splits.length) {
             this.expense.splits = participants.map((uid, index) => ({

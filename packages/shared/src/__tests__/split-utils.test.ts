@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { CurrencyISOCode } from '../shared-types';
+import {toAmount, type CurrencyISOCode } from '../shared-types';
 import { amountToSmallestUnit, calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, getCurrencyDecimals, roundToCurrencyPrecision } from '../split-utils';
 
-const amountFor = (value: number | string, currency: CurrencyISOCode): string => roundToCurrencyPrecision(value, currency);
+const amountFor = (value: number | string, currency: CurrencyISOCode): string => roundToCurrencyPrecision(toAmount(value), currency);
 const sumSplitAmounts = (splits: Array<{ amount: string; }>): number => splits.reduce((sum, split) => sum + Number(split.amount), 0);
 
 describe('Split Utils', () => {
@@ -48,45 +48,45 @@ describe('Split Utils', () => {
 
     describe('roundToCurrencyPrecision', () => {
         it('should round to 0 decimals for JPY', () => {
-            expect(roundToCurrencyPrecision(33.333333, 'JPY')).toBe('33');
-            expect(roundToCurrencyPrecision(33.666666, 'JPY')).toBe('34');
-            expect(roundToCurrencyPrecision(100.1, 'JPY')).toBe('100');
-            expect(roundToCurrencyPrecision(100.9, 'JPY')).toBe('101');
+            expect(roundToCurrencyPrecision(toAmount(33.333333), 'JPY')).toBe('33');
+            expect(roundToCurrencyPrecision(toAmount(33.666666), 'JPY')).toBe('34');
+            expect(roundToCurrencyPrecision(toAmount(100.1), 'JPY')).toBe('100');
+            expect(roundToCurrencyPrecision(toAmount(100.9), 'JPY')).toBe('101');
         });
 
         it('should round to 1 decimal for MGA', () => {
-            expect(roundToCurrencyPrecision(33.333333, 'MGA')).toBe('33.3');
-            expect(roundToCurrencyPrecision(33.666666, 'MGA')).toBe('33.7');
-            expect(roundToCurrencyPrecision(100.15, 'MGA')).toBe('100.2');
-            expect(roundToCurrencyPrecision(100.14, 'MGA')).toBe('100.1');
+            expect(roundToCurrencyPrecision(toAmount(33.333333), 'MGA')).toBe('33.3');
+            expect(roundToCurrencyPrecision(toAmount(33.666666), 'MGA')).toBe('33.7');
+            expect(roundToCurrencyPrecision(toAmount(100.15), 'MGA')).toBe('100.2');
+            expect(roundToCurrencyPrecision(toAmount(100.14), 'MGA')).toBe('100.1');
         });
 
         it('should round to 2 decimals for USD', () => {
-            expect(roundToCurrencyPrecision(33.333333, 'USD')).toBe('33.33');
-            expect(roundToCurrencyPrecision(33.336666, 'USD')).toBe('33.34');
-            expect(roundToCurrencyPrecision(100.125, 'USD')).toBe('100.13');
-            expect(roundToCurrencyPrecision(100.124, 'USD')).toBe('100.12');
+            expect(roundToCurrencyPrecision(toAmount(33.333333), 'USD')).toBe('33.33');
+            expect(roundToCurrencyPrecision(toAmount(33.336666), 'USD')).toBe('33.34');
+            expect(roundToCurrencyPrecision(toAmount(100.125), 'USD')).toBe('100.13');
+            expect(roundToCurrencyPrecision(toAmount(100.124), 'USD')).toBe('100.12');
         });
 
         it('should round to 3 decimals for BHD', () => {
-            expect(roundToCurrencyPrecision(33.333333, 'BHD')).toBe('33.333');
-            expect(roundToCurrencyPrecision(33.333666, 'BHD')).toBe('33.334');
-            expect(roundToCurrencyPrecision(100.1235, 'BHD')).toBe('100.124');
-            expect(roundToCurrencyPrecision(100.1234, 'BHD')).toBe('100.123');
+            expect(roundToCurrencyPrecision(toAmount(33.333333), 'BHD')).toBe('33.333');
+            expect(roundToCurrencyPrecision(toAmount(33.333666), 'BHD')).toBe('33.334');
+            expect(roundToCurrencyPrecision(toAmount(100.1235), 'BHD')).toBe('100.124');
+            expect(roundToCurrencyPrecision(toAmount(100.1234), 'BHD')).toBe('100.123');
         });
 
         it('should handle already-rounded amounts', () => {
-            expect(roundToCurrencyPrecision(100, 'JPY')).toBe('100');
-            expect(roundToCurrencyPrecision(100.5, 'MGA')).toBe('100.5');
-            expect(roundToCurrencyPrecision(100.5, 'USD')).toBe('100.50'); // USD requires 2 decimals
-            expect(roundToCurrencyPrecision(100.5, 'BHD')).toBe('100.500'); // BHD requires 3 decimals
+            expect(roundToCurrencyPrecision(toAmount(100), 'JPY')).toBe('100');
+            expect(roundToCurrencyPrecision(toAmount(100.5), 'MGA')).toBe('100.5');
+            expect(roundToCurrencyPrecision(toAmount(100.5), 'USD')).toBe('100.50'); // USD requires 2 decimals
+            expect(roundToCurrencyPrecision(toAmount(100.5), 'BHD')).toBe('100.500'); // BHD requires 3 decimals
         });
     });
 
     describe('calculateEqualSplits', () => {
         describe('JPY (0 decimals)', () => {
             it('should split evenly divisible amounts', () => {
-                const splits = calculateEqualSplits('90', 'JPY', ['user1', 'user2', 'user3']);
+                const splits = calculateEqualSplits(toAmount('90'), 'JPY', ['user1', 'user2', 'user3']);
                 expect(splits).toEqual([
                     { uid: 'user1', amount: '30' },
                     { uid: 'user2', amount: '30' },
@@ -95,7 +95,7 @@ describe('Split Utils', () => {
             });
 
             it('should handle indivisible amounts with remainder to last participant', () => {
-                const splits = calculateEqualSplits('100', 'JPY', ['user1', 'user2', 'user3'], 2);
+                const splits = calculateEqualSplits(toAmount('100'), 'JPY', ['user1', 'user2', 'user3'], 2);
                 expect(splits).toEqual([
                     { uid: 'user1', amount: '33' },
                     { uid: 'user2', amount: '33' },
@@ -107,7 +107,7 @@ describe('Split Utils', () => {
             });
 
             it('should handle 2-way split with odd amount', () => {
-                const splits = calculateEqualSplits('101', 'JPY', ['user1', 'user2'], 1);
+                const splits = calculateEqualSplits(toAmount('101'), 'JPY', ['user1', 'user2'], 1);
                 expect(splits).toEqual([
                     { uid: 'user1', amount: '50' },
                     { uid: 'user2', amount: '51' }, // Last gets remainder
@@ -119,7 +119,7 @@ describe('Split Utils', () => {
 
         describe('USD (2 decimals)', () => {
             it('should split evenly divisible amounts', () => {
-                const splits = calculateEqualSplits('90', 'USD', ['user1', 'user2', 'user3']);
+                const splits = calculateEqualSplits(toAmount('90'), 'USD', ['user1', 'user2', 'user3']);
                 expect(splits).toEqual([
                     { uid: 'user1', amount: '30.00' },
                     { uid: 'user2', amount: '30.00' },
@@ -128,7 +128,7 @@ describe('Split Utils', () => {
             });
 
             it('should handle indivisible amounts with remainder to last participant', () => {
-                const splits = calculateEqualSplits('100', 'USD', ['user1', 'user2', 'user3'], 2);
+                const splits = calculateEqualSplits(toAmount('100'), 'USD', ['user1', 'user2', 'user3'], 2);
                 expect(splits).toEqual([
                     { uid: 'user1', amount: '33.33' },
                     { uid: 'user2', amount: '33.33' },
@@ -141,7 +141,7 @@ describe('Split Utils', () => {
 
             it('should handle many participants', () => {
                 const participants = Array.from({ length: 7 }, (_, i) => `user${i + 1}`);
-                const splits = calculateEqualSplits('100', 'USD', participants, 6);
+                const splits = calculateEqualSplits(toAmount('100'), 'USD', participants, 6);
 
                 // Using integer math: 10000 cents / 7 = 1428 cents base (14.28)
                 // First 6 get 14.28, last gets remainder: 100 - (14.28 * 6) = 14.32
@@ -156,7 +156,7 @@ describe('Split Utils', () => {
 
         describe('BHD (3 decimals)', () => {
             it('should split with 3 decimal precision', () => {
-                const splits = calculateEqualSplits('100', 'BHD', ['user1', 'user2', 'user3'], 2);
+                const splits = calculateEqualSplits(toAmount('100'), 'BHD', ['user1', 'user2', 'user3'], 2);
                 expect(splits).toEqual([
                     { uid: 'user1', amount: '33.333' },
                     { uid: 'user2', amount: '33.333' },
@@ -169,7 +169,7 @@ describe('Split Utils', () => {
 
         describe('MGA (1 decimal)', () => {
             it('should split with 1 decimal precision', () => {
-                const splits = calculateEqualSplits('100', 'MGA', ['user1', 'user2', 'user3'], 2);
+                const splits = calculateEqualSplits(toAmount('100'), 'MGA', ['user1', 'user2', 'user3'], 2);
                 expect(splits).toEqual([
                     { uid: 'user1', amount: '33.3' },
                     { uid: 'user2', amount: '33.3' },
@@ -182,27 +182,27 @@ describe('Split Utils', () => {
 
         describe('Edge cases', () => {
             it('should return empty array for empty participants', () => {
-                const splits = calculateEqualSplits('100', 'USD', []);
+                const splits = calculateEqualSplits(toAmount('100'), 'USD', []);
                 expect(splits).toEqual([]);
             });
 
             it('should return empty array for zero amount', () => {
-                const splits = calculateEqualSplits('0', 'USD', ['user1', 'user2']);
+                const splits = calculateEqualSplits(toAmount('0'), 'USD', ['user1', 'user2']);
                 expect(splits).toEqual([]);
             });
 
             it('should return empty array for negative amount', () => {
-                const splits = calculateEqualSplits('-100', 'USD', ['user1', 'user2']);
+                const splits = calculateEqualSplits(toAmount('-100'), 'USD', ['user1', 'user2']);
                 expect(splits).toEqual([]);
             });
 
             it('should handle single participant', () => {
-                const splits = calculateEqualSplits('100', 'USD', ['user1']);
+                const splits = calculateEqualSplits(toAmount('100'), 'USD', ['user1']);
                 expect(splits).toEqual([{ uid: 'user1', amount: '100.00' }]);
             });
 
             it('should handle very small amounts', () => {
-                const splits = calculateEqualSplits('0.03', 'USD', ['user1', 'user2', 'user3']);
+                const splits = calculateEqualSplits(toAmount('0.03'), 'USD', ['user1', 'user2', 'user3']);
                 expect(splits).toEqual([
                     { uid: 'user1', amount: '0.01' },
                     { uid: 'user2', amount: '0.01' },
@@ -219,7 +219,7 @@ describe('Split Utils', () => {
                 const participants = ['user1', 'user2', 'user3'];
 
                 // Test with rotationSeed=0 (remainder goes to index 0)
-                const splits = calculateEqualSplits(100, 'USD', participants, 0);
+                const splits = calculateEqualSplits(toAmount(100), 'USD', participants, 0);
 
                 expect(splits[0].amount).toBe('33.34'); // Gets remainder
                 expect(splits[1].amount).toBe('33.33');
@@ -234,37 +234,37 @@ describe('Split Utils', () => {
                 const participants = ['user1', 'user2', 'user3'];
 
                 // Seed 0: remainder to index 0
-                const splits0 = calculateEqualSplits(100, 'USD', participants, 0);
+                const splits0 = calculateEqualSplits(toAmount(100), 'USD', participants, 0);
                 expect(splits0[0].amount).toBe('33.34');
                 expect(splits0[1].amount).toBe('33.33');
                 expect(splits0[2].amount).toBe('33.33');
 
                 // Seed 1: remainder to index 1
-                const splits1 = calculateEqualSplits(100, 'USD', participants, 1);
+                const splits1 = calculateEqualSplits(toAmount(100), 'USD', participants, 1);
                 expect(splits1[0].amount).toBe('33.33');
                 expect(splits1[1].amount).toBe('33.34');
                 expect(splits1[2].amount).toBe('33.33');
 
                 // Seed 2: remainder to index 2
-                const splits2 = calculateEqualSplits(100, 'USD', participants, 2);
+                const splits2 = calculateEqualSplits(toAmount(100), 'USD', participants, 2);
                 expect(splits2[0].amount).toBe('33.33');
                 expect(splits2[1].amount).toBe('33.33');
                 expect(splits2[2].amount).toBe('33.34');
             });
 
             it('should reject non-integer rotationSeed', () => {
-                expect(() => calculateEqualSplits(100, 'USD', ['user1', 'user2'], 1.5)).toThrow('rotationSeed must be an integer');
-                expect(() => calculateEqualSplits(100, 'USD', ['user1', 'user2'], 2.7)).toThrow('rotationSeed must be an integer');
-                expect(() => calculateEqualSplits(100, 'USD', ['user1', 'user2'], NaN)).toThrow('rotationSeed must be an integer');
+                expect(() => calculateEqualSplits(toAmount(100), 'USD', ['user1', 'user2'], 1.5)).toThrow('rotationSeed must be an integer');
+                expect(() => calculateEqualSplits(toAmount(100), 'USD', ['user1', 'user2'], 2.7)).toThrow('rotationSeed must be an integer');
+                expect(() => calculateEqualSplits(toAmount(100), 'USD', ['user1', 'user2'], NaN)).toThrow('rotationSeed must be an integer');
             });
 
             it('should reject negative rotationSeed', () => {
-                expect(() => calculateEqualSplits(100, 'USD', ['user1', 'user2'], -1)).toThrow('rotationSeed must be non-negative');
-                expect(() => calculateEqualSplits(100, 'USD', ['user1', 'user2'], -5)).toThrow('rotationSeed must be non-negative');
+                expect(() => calculateEqualSplits(toAmount(100), 'USD', ['user1', 'user2'], -1)).toThrow('rotationSeed must be non-negative');
+                expect(() => calculateEqualSplits(toAmount(100), 'USD', ['user1', 'user2'], -5)).toThrow('rotationSeed must be non-negative');
             });
 
             it('should accept zero as rotationSeed', () => {
-                const splits = calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3'], 0);
+                const splits = calculateEqualSplits(toAmount(100), 'USD', ['user1', 'user2', 'user3'], 0);
                 expect(splits[0].amount).toBe('33.34'); // First gets remainder
             });
         });
@@ -274,7 +274,7 @@ describe('Split Utils', () => {
         it('should return same as calculateEqualSplits as starting point', () => {
             // Use explicit seed since random distribution would make them different
             const seed = 0;
-            const equalSplits = calculateEqualSplits('100', 'USD', ['user1', 'user2', 'user3'], seed);
+            const equalSplits = calculateEqualSplits(toAmount('100'), 'USD', ['user1', 'user2', 'user3'], seed);
             const exactSplits = calculateExactSplits('100', 'USD', ['user1', 'user2', 'user3'], seed);
             expect(exactSplits).toEqual(equalSplits);
         });
@@ -295,7 +295,7 @@ describe('Split Utils', () => {
     describe('calculatePercentageSplits', () => {
         describe('Basic percentage splits', () => {
             it('should split 100% evenly among participants', () => {
-                const splits = calculatePercentageSplits('90', 'USD', ['user1', 'user2', 'user3']);
+                const splits = calculatePercentageSplits(toAmount('90'), 'USD', ['user1', 'user2', 'user3']);
 
                 // Each gets ~33.33%, amounts add up to 90
                 expect(splits).toHaveLength(3);
@@ -317,7 +317,7 @@ describe('Split Utils', () => {
             });
 
             it('should handle indivisible percentages', () => {
-                const splits = calculatePercentageSplits('100', 'USD', ['user1', 'user2', 'user3']);
+                const splits = calculatePercentageSplits(toAmount('100'), 'USD', ['user1', 'user2', 'user3']);
 
                 // 100 / 3 = 33.333...%
                 expect(splits).toHaveLength(3);
@@ -346,7 +346,7 @@ describe('Split Utils', () => {
                 ];
 
                 testCases.forEach(({ amount, currency, participants }) => {
-                    const splits = calculatePercentageSplits(amount, currency, participants);
+                    const splits = calculatePercentageSplits(toAmount(amount), currency, participants);
                     const totalPercentage = splits.reduce((sum, s) => sum + s.percentage!, 0);
 
                     // Percentages must sum to EXACTLY 100, not 100.0066 or similar
@@ -360,7 +360,7 @@ describe('Split Utils', () => {
 
         describe('Currency-specific rounding', () => {
             it('should work with JPY (0 decimals)', () => {
-                const splits = calculatePercentageSplits('100', 'JPY', ['user1', 'user2', 'user3'], 2);
+                const splits = calculatePercentageSplits(toAmount('100'), 'JPY', ['user1', 'user2', 'user3'], 2);
 
                 expect(splits[0].amount).toBe('33');
                 expect(splits[1].amount).toBe('33');
@@ -371,7 +371,7 @@ describe('Split Utils', () => {
             });
 
             it('should work with BHD (3 decimals)', () => {
-                const splits = calculatePercentageSplits('100', 'BHD', ['user1', 'user2', 'user3'], 2);
+                const splits = calculatePercentageSplits(toAmount('100'), 'BHD', ['user1', 'user2', 'user3'], 2);
 
                 expect(splits[0].amount).toBe('33.333');
                 expect(splits[1].amount).toBe('33.333');
@@ -384,22 +384,22 @@ describe('Split Utils', () => {
 
         describe('Edge cases', () => {
             it('should return empty array for empty participants', () => {
-                const splits = calculatePercentageSplits('100', 'USD', []);
+                const splits = calculatePercentageSplits(toAmount('100'), 'USD', []);
                 expect(splits).toEqual([]);
             });
 
             it('should return empty array for zero amount', () => {
-                const splits = calculatePercentageSplits('0', 'USD', ['user1', 'user2']);
+                const splits = calculatePercentageSplits(toAmount('0'), 'USD', ['user1', 'user2']);
                 expect(splits).toEqual([]);
             });
 
             it('should handle single participant', () => {
-                const splits = calculatePercentageSplits('100', 'USD', ['user1']);
+                const splits = calculatePercentageSplits(toAmount('100'), 'USD', ['user1']);
                 expect(splits).toEqual([{ uid: 'user1', percentage: 100, amount: '100.00' }]);
             });
 
             it('should handle 2 participants evenly', () => {
-                const splits = calculatePercentageSplits('100', 'USD', ['user1', 'user2']);
+                const splits = calculatePercentageSplits(toAmount('100'), 'USD', ['user1', 'user2']);
                 expect(splits).toEqual([
                     { uid: 'user1', percentage: 50, amount: '50.00' },
                     { uid: 'user2', percentage: 50, amount: '50.00' },
@@ -409,18 +409,18 @@ describe('Split Utils', () => {
 
         describe('Rotation Seed Validation', () => {
             it('should reject non-integer rotationSeed', () => {
-                expect(() => calculatePercentageSplits(100, 'USD', ['user1', 'user2'], 1.5)).toThrow('rotationSeed must be an integer');
-                expect(() => calculatePercentageSplits(100, 'USD', ['user1', 'user2'], 2.7)).toThrow('rotationSeed must be an integer');
-                expect(() => calculatePercentageSplits(100, 'USD', ['user1', 'user2'], NaN)).toThrow('rotationSeed must be an integer');
+                expect(() => calculatePercentageSplits(toAmount(100), 'USD', ['user1', 'user2'], 1.5)).toThrow('rotationSeed must be an integer');
+                expect(() => calculatePercentageSplits(toAmount(100), 'USD', ['user1', 'user2'], 2.7)).toThrow('rotationSeed must be an integer');
+                expect(() => calculatePercentageSplits(toAmount(100), 'USD', ['user1', 'user2'], NaN)).toThrow('rotationSeed must be an integer');
             });
 
             it('should reject negative rotationSeed', () => {
-                expect(() => calculatePercentageSplits(100, 'USD', ['user1', 'user2'], -1)).toThrow('rotationSeed must be non-negative');
-                expect(() => calculatePercentageSplits(100, 'USD', ['user1', 'user2'], -5)).toThrow('rotationSeed must be non-negative');
+                expect(() => calculatePercentageSplits(toAmount(100), 'USD', ['user1', 'user2'], -1)).toThrow('rotationSeed must be non-negative');
+                expect(() => calculatePercentageSplits(toAmount(100), 'USD', ['user1', 'user2'], -5)).toThrow('rotationSeed must be non-negative');
             });
 
             it('should accept zero as rotationSeed', () => {
-                const splits = calculatePercentageSplits(100, 'USD', ['user1', 'user2', 'user3'], 0);
+                const splits = calculatePercentageSplits(toAmount(100), 'USD', ['user1', 'user2', 'user3'], 0);
                 expect(splits[0].amount).toBe('33.34'); // First gets remainder
                 expect(splits[0].percentage).toBe(34);
                 expect(splits[1].percentage).toBe(33);
@@ -466,20 +466,20 @@ describe('Split Utils', () => {
             testCases.forEach(([amount, currency, participantCount, description]) => {
                 it(`${description}: ${amount} ${currency} ÷ ${participantCount} must sum EXACTLY to ${amount}`, () => {
                     const participants = Array.from({ length: participantCount }, (_, i) => `user${i + 1}`);
-                    const splits = calculateEqualSplits(amount, currency, participants);
+                    const splits = calculateEqualSplits(toAmount(amount), currency, participants);
 
                     // Sum all split amounts
                     const total = sumSplitAmounts(splits);
 
                     // Round the total to currency precision to eliminate floating point accumulation errors
                     // (e.g., 33.33 + 33.33 + 33.34 = 100.00000000000001 in JavaScript)
-                    const roundedTotal = roundToCurrencyPrecision(total, currency);
+                    const roundedTotal = roundToCurrencyPrecision(toAmount(total), currency);
                     const expectedTotal = amountFor(amount, currency);
                     expect(roundedTotal).toBe(expectedTotal);
 
                     // Verify no split has more precision than currency allows
                     splits.forEach((split) => {
-                        const rounded = roundToCurrencyPrecision(split.amount, currency);
+                        const rounded = roundToCurrencyPrecision(toAmount(split.amount), currency);
                         expect(split.amount).toBe(rounded);
                     });
                 });
@@ -493,9 +493,9 @@ describe('Split Utils', () => {
                 amounts.forEach((amount) => {
                     participantCounts.forEach((count) => {
                         const participants = Array.from({ length: count }, (_, i) => `user${i + 1}`);
-                        const splits = calculateEqualSplits(amount, 'USD', participants);
+                        const splits = calculateEqualSplits(toAmount(amount), 'USD', participants);
                         const total = sumSplitAmounts(splits);
-                        const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                        const roundedTotal = roundToCurrencyPrecision(toAmount(total), 'USD');
                         const expectedTotal = amountFor(amount, 'USD');
                         expect(roundedTotal).toBe(expectedTotal);
                     });
@@ -522,13 +522,13 @@ describe('Split Utils', () => {
                     const participants = Array.from({ length: participantCount }, (_, i) => `user${i + 1}`);
                     // Use explicit rotation seed to ensure "last gets remainder" for deterministic percentages
                     const rotationSeed = participantCount - 1;
-                    const splits = calculatePercentageSplits(amount, currency, participants, rotationSeed);
+                    const splits = calculatePercentageSplits(toAmount(amount), currency, participants, rotationSeed);
 
                     // Sum all split amounts
                     const total = sumSplitAmounts(splits);
 
                     // Round the total to currency precision to eliminate floating point accumulation errors
-                    const roundedTotal = roundToCurrencyPrecision(total, currency);
+                    const roundedTotal = roundToCurrencyPrecision(toAmount(total), currency);
                     const expectedTotal = amountFor(amount, currency);
                     expect(roundedTotal).toBe(expectedTotal);
 
@@ -541,7 +541,7 @@ describe('Split Utils', () => {
 
                     // Verify no split has more precision than currency allows
                     splits.forEach((split) => {
-                        const rounded = roundToCurrencyPrecision(split.amount, currency);
+                        const rounded = roundToCurrencyPrecision(toAmount(split.amount), currency);
                         expect(split.amount).toBe(rounded);
                     });
                 });
@@ -551,9 +551,9 @@ describe('Split Utils', () => {
         describe('Exact Splits - Precision Guarantee', () => {
             // Exact splits use the same logic as equal splits initially
             const testCases = [
-                [100, 'JPY', 3],
-                [100, 'USD', 7],
-                [100.123, 'BHD', 11],
+                [toAmount(100), 'JPY', 3],
+                [toAmount(100), 'USD', 7],
+                [toAmount(100.123), 'BHD', 11],
             ] as const;
 
             testCases.forEach(([amount, currency, participantCount]) => {
@@ -562,7 +562,7 @@ describe('Split Utils', () => {
                     const splits = calculateExactSplits(amount, currency, participants);
 
                     const total = sumSplitAmounts(splits);
-                    const roundedTotal = roundToCurrencyPrecision(total, currency);
+                    const roundedTotal = roundToCurrencyPrecision(toAmount(total), currency);
                     const expectedTotal = amountFor(amount, currency);
                     expect(roundedTotal).toBe(expectedTotal);
                 });
@@ -572,20 +572,20 @@ describe('Split Utils', () => {
         describe('Stress Test - Large Scale Precision', () => {
             it('should handle 1000 splits with perfect precision (USD)', () => {
                 const participants = Array.from({ length: 1000 }, (_, i) => `user${i + 1}`);
-                const splits = calculateEqualSplits(12345.67, 'USD', participants);
+                const splits = calculateEqualSplits(toAmount(12345.67), 'USD', participants);
 
                 const total = sumSplitAmounts(splits);
-                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                const roundedTotal = roundToCurrencyPrecision(toAmount(total), 'USD');
                 const expectedTotal = amountFor(12345.67, 'USD');
                 expect(roundedTotal).toBe(expectedTotal);
             });
 
             it('should handle 100 splits with perfect precision (BHD)', () => {
                 const participants = Array.from({ length: 100 }, (_, i) => `user${i + 1}`);
-                const splits = calculateEqualSplits(999.999, 'BHD', participants);
+                const splits = calculateEqualSplits(toAmount(999.999), 'BHD', participants);
 
                 const total = sumSplitAmounts(splits);
-                const roundedTotal = roundToCurrencyPrecision(total, 'BHD');
+                const roundedTotal = roundToCurrencyPrecision(toAmount(total), 'BHD');
                 const expectedTotal = amountFor(999.999, 'BHD');
                 expect(roundedTotal).toBe(expectedTotal);
             });
@@ -593,10 +593,10 @@ describe('Split Utils', () => {
             it('should handle very small amounts with many participants', () => {
                 // 1 cent split 50 ways should still be exact
                 const participants = Array.from({ length: 50 }, (_, i) => `user${i + 1}`);
-                const splits = calculateEqualSplits(0.50, 'USD', participants);
+                const splits = calculateEqualSplits(toAmount(0.50), 'USD', participants);
 
                 const total = sumSplitAmounts(splits);
-                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                const roundedTotal = roundToCurrencyPrecision(toAmount(total), 'USD');
                 const expectedTotal = amountFor(0.5, 'USD');
                 expect(roundedTotal).toBe(expectedTotal);
             });
@@ -606,32 +606,32 @@ describe('Split Utils', () => {
             // These amounts are known to cause floating point issues
             it('should handle 0.1 + 0.2 precision issue', () => {
                 // In JavaScript: 0.1 + 0.2 = 0.30000000000000004
-                const splits = calculateEqualSplits(0.30, 'USD', ['user1', 'user2']);
+                const splits = calculateEqualSplits(toAmount(0.30), 'USD', ['user1', 'user2']);
                 const total = sumSplitAmounts(splits);
-                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                const roundedTotal = roundToCurrencyPrecision(toAmount(total), 'USD');
                 expect(roundedTotal).toBe(amountFor(0.3, 'USD'));
             });
 
             it('should handle 1/3 divisions correctly', () => {
                 // 100 / 3 = 33.333...
-                const splits = calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3']);
+                const splits = calculateEqualSplits(toAmount(100), 'USD', ['user1', 'user2', 'user3']);
                 const total = sumSplitAmounts(splits);
-                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                const roundedTotal = roundToCurrencyPrecision(toAmount(total), 'USD');
                 expect(roundedTotal).toBe(amountFor(100, 'USD'));
             });
 
             it('should handle 1/7 divisions correctly', () => {
                 // 100 / 7 = 14.285714...
-                const splits = calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7']);
+                const splits = calculateEqualSplits(toAmount(100), 'USD', ['user1', 'user2', 'user3', 'user4', 'user5', 'user6', 'user7']);
                 const total = sumSplitAmounts(splits);
-                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                const roundedTotal = roundToCurrencyPrecision(toAmount(total), 'USD');
                 expect(roundedTotal).toBe(amountFor(100, 'USD'));
             });
 
             it('should handle 99.99 / 3 precision', () => {
-                const splits = calculateEqualSplits(99.99, 'USD', ['user1', 'user2', 'user3']);
+                const splits = calculateEqualSplits(toAmount(99.99), 'USD', ['user1', 'user2', 'user3']);
                 const total = sumSplitAmounts(splits);
-                const roundedTotal = roundToCurrencyPrecision(total, 'USD');
+                const roundedTotal = roundToCurrencyPrecision(toAmount(total), 'USD');
                 expect(roundedTotal).toBe(amountFor(99.99, 'USD'));
             });
         });
@@ -881,7 +881,7 @@ describe('Split Utils', () => {
             it('documents why tolerance-based validation is insufficient', () => {
                 // Problem 1: Floating-point error can grow beyond any chosen tolerance
                 const problematic1 = 999.99;
-                const splits1 = calculateEqualSplits(problematic1, 'USD', ['u1', 'u2', 'u3']);
+                const splits1 = calculateEqualSplits(toAmount(problematic1), 'USD', ['u1', 'u2', 'u3']);
                 const total1 = sumSplitAmounts(splits1);
                 const diff1 = Math.abs(total1 - problematic1);
                 expect(diff1).toBeGreaterThanOrEqual(0);

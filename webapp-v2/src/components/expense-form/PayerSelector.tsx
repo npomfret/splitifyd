@@ -2,6 +2,7 @@ import { getGroupDisplayName } from '@/utils/displayName';
 import { useTranslation } from 'react-i18next';
 import { Avatar, Card } from '../ui';
 import { Stack } from '../ui/Stack';
+import { UserId } from "@billsplit-wl/shared";
 
 interface Member {
     uid: string;
@@ -11,7 +12,7 @@ interface Member {
 
 interface PayerSelectorProps {
     members: Member[];
-    paidBy: string;
+    paidBy: UserId;
     validationErrors: any;
     updateField: (field: string, value: any) => void;
 }

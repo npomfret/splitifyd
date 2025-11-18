@@ -62,7 +62,7 @@ export class ExpenseUpdateBuilder {
         return this;
     }
 
-    withParticipants(participants: string[]): this {
+    withParticipants(participants: UserId[]): this {
         this.update.participants = [...participants];
         return this;
     }

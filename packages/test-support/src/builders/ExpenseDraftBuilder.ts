@@ -67,7 +67,7 @@ export class ExpenseDraftBuilder {
         return this;
     }
 
-    withParticipants(participants: string[]): this {
+    withParticipants(participants: UserId[]): this {
         this.draft.participants = [...participants];
         return this;
     }

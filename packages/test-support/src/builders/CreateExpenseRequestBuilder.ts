@@ -66,7 +66,7 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withParticipants(participants: string[]): this {
+    withParticipants(participants: UserId[] | string[]): this {
         this.expense.participants = [...participants];
         return this;
     }

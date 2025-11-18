@@ -1,4 +1,4 @@
-import { getCurrency, getCurrencyDecimals } from '@billsplit-wl/shared';
+import {CurrencyISOCode, getCurrency, getCurrencyDecimals } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 
 /**
@@ -20,7 +20,7 @@ function countDecimalPlaces(value: Amount | number): number {
  * Matches backend implementation in firebase/functions/src/utils/amount-validation.ts
  * @throws Error if precision is invalid
  */
-function validateAmountPrecision(amount: Amount, currencyCode: string): void {
+function validateAmountPrecision(amount: Amount, currencyCode: CurrencyISOCode): void {
     const maxDecimals = getCurrencyDecimals(currencyCode);
     const actualDecimals = countDecimalPlaces(amount);
 
@@ -38,7 +38,7 @@ function validateAmountPrecision(amount: Amount, currencyCode: string): void {
  * Validate amount precision and return formatted error message
  * Returns null if valid, error message if invalid
  */
-export function getAmountPrecisionError(amount: Amount, currencyCode: string): string | null {
+export function getAmountPrecisionError(amount: Amount, currencyCode: CurrencyISOCode): string | null {
     try {
         validateAmountPrecision(amount, currencyCode);
         return null;

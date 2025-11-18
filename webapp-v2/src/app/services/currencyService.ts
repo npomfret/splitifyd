@@ -1,6 +1,7 @@
 import { STORAGE_KEYS } from '@/constants.ts';
 import { CURRENCIES, type Currency, getCurrency, isValidCurrency } from '@/utils/currency';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
+import { CurrencyISOCode } from "@billsplit-wl/shared";
 
 interface GroupedCurrencies {
     recent: Currency[];
@@ -89,7 +90,7 @@ export class CurrencyService {
         this.storage.setItem(STORAGE_KEYS.RECENT_CURRENCIES, JSON.stringify(recent));
     }
 
-    addToRecentCurrencies(currencyCode: string): void {
+    addToRecentCurrencies(currencyCode: CurrencyISOCode): void {
         if (!isValidCurrency(currencyCode)) return;
 
         const code = currencyCode.toUpperCase();
@@ -160,7 +161,7 @@ export class CurrencyService {
     /**
      * Calculate min and step values based on currency decimal digits
      */
-    getCurrencyInputConfig(currencyCode: string): { minValue: string; stepValue: string; } {
+    getCurrencyInputConfig(currencyCode: CurrencyISOCode): { minValue: string; stepValue: string; } {
         const currency = this.getCurrencyByCode(currencyCode);
         const decimalDigits = currency?.decimal_digits ?? 2; // Default to 2 if unknown
         const step = Math.pow(10, -decimalDigits); // 0.01 for 2 digits, 1 for 0 digits, 0.001 for 3 digits

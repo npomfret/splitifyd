@@ -1,4 +1,4 @@
-import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses } from '@billsplit-wl/shared';
+import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses, toAmount } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { toGroupName } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
@@ -653,7 +653,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                     .withAmount(80, 'USD')
                     .withDescription('Updated Expense')
                     .withParticipants(participants)
-                    .withSplits(calculateEqualSplits(80, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(80), 'USD', participants))
                     .build(),
                 owner.id,
             );

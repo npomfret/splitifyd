@@ -1,5 +1,5 @@
 // Import currency utilities from shared package
-import { CurrencyISOCode, toPassword } from '@billsplit-wl/shared';
+import { CurrencyISOCode, toAmount, toPassword } from '@billsplit-wl/shared';
 import { Amount, getCurrencyDecimals, roundToCurrencyPrecision } from '@billsplit-wl/shared';
 import { ISOString, toISOString } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
@@ -115,7 +115,7 @@ export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500
 
     // Generate amount with correct decimal precision
     const numericAmount = randomDecimal(min, max, selectedDecimals);
-    const amount: Amount = roundToCurrencyPrecision(numericAmount, currency);
+    const amount: Amount = roundToCurrencyPrecision(toAmount(numericAmount), currency);
 
     return { currency, amount };
 }

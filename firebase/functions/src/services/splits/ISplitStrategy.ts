@@ -1,4 +1,4 @@
-import { ExpenseSplit } from '@billsplit-wl/shared';
+import {CurrencyISOCode, ExpenseSplit, UserId } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 
 export interface ISplitStrategy {
@@ -10,5 +10,5 @@ export interface ISplitStrategy {
      * @param currencyCode Optional currency code for precision validation
      * @throws ApiError if validation fails
      */
-    validateSplits(totalAmount: Amount, participants: string[], splits: ExpenseSplit[], currencyCode: string): void;
+    validateSplits(totalAmount: Amount, participants: UserId[], splits: ExpenseSplit[], currencyCode: CurrencyISOCode): void;
 }

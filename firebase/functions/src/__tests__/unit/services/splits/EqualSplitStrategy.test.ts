@@ -1,4 +1,4 @@
-import { calculateEqualSplits } from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount } from '@billsplit-wl/shared';
 import { describe, expect, it } from 'vitest';
 import { EqualSplitStrategy } from '../../../../services/splits/EqualSplitStrategy';
 
@@ -8,28 +8,28 @@ describe('EqualSplitStrategy', () => {
     describe('validateSplits', () => {
         it('should validate equal splits for two participants', () => {
             const participants = ['user1', 'user2'];
-            const splits = calculateEqualSplits(100, 'USD', participants);
+            const splits = calculateEqualSplits(toAmount(100), 'USD', participants);
 
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).not.toThrow();
         });
 
         it('should validate equal splits for three participants', () => {
             const participants = ['user1', 'user2', 'user3'];
-            const splits = calculateEqualSplits(100, 'USD', participants);
+            const splits = calculateEqualSplits(toAmount(100), 'USD', participants);
 
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).not.toThrow();
         });
 
         it('should validate equal splits for single participant', () => {
             const participants = ['user1'];
-            const splits = calculateEqualSplits(100, 'USD', participants);
+            const splits = calculateEqualSplits(toAmount(100), 'USD', participants);
 
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).not.toThrow();
         });
 
         it('should validate equal splits with currency-aware precision (JPY)', () => {
             const participants = ['user1', 'user2', 'user3'];
-            const splits = calculateEqualSplits(100, 'JPY', participants);
+            const splits = calculateEqualSplits(toAmount(100), 'JPY', participants);
 
             expect(() => strategy.validateSplits('100', participants, splits, 'JPY')).not.toThrow();
         });
@@ -42,7 +42,7 @@ describe('EqualSplitStrategy', () => {
 
         it('should reject when splits length does not match participants', () => {
             const participants = ['user1', 'user2', 'user3'];
-            const splits = calculateEqualSplits(100, 'USD', ['user1', 'user2']);
+            const splits = calculateEqualSplits(toAmount(100), 'USD', ['user1', 'user2']);
 
             expect(() => strategy.validateSplits('100', participants, splits, 'USD')).toThrow('Splits must be provided');
         });

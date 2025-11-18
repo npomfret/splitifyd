@@ -1,5 +1,6 @@
 // Currency definitions - single source of truth for the entire application
 import currencyData from './currency-data';
+import {CurrencyISOCode} from "./shared-types";
 
 /**
  * Currency interface matching the structure in currencies.json
@@ -29,7 +30,7 @@ const currencyMap = new Map<string, Currency>(CURRENCIES.map((currency) => [curr
  * @returns Currency object
  * @throws Error if currency not found (fail-fast principle)
  */
-export function getCurrency(code: string): Currency {
+export function getCurrency(code: CurrencyISOCode): Currency {
     const upperCode = code.toUpperCase();
     const currency = currencyMap.get(upperCode);
 

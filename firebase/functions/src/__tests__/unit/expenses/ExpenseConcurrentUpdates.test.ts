@@ -8,7 +8,7 @@
  * The integration test remains for testing actual Firebase optimistic locking behavior.
  */
 
-import { calculateEqualSplits, toGroupName } from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount, toGroupName } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
@@ -65,7 +65,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
                 new ExpenseUpdateBuilder()
                     .withAmount(200, 'EUR')
                     .withParticipants(lockingTestParticipants)
-                    .withSplits(calculateEqualSplits(200, 'EUR', lockingTestParticipants))
+                    .withSplits(calculateEqualSplits(toAmount(200), 'EUR', lockingTestParticipants))
                     .build(),
                 userId,
             ),
@@ -74,7 +74,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
                 new ExpenseUpdateBuilder()
                     .withAmount(300, 'EUR')
                     .withParticipants(lockingTestParticipants)
-                    .withSplits(calculateEqualSplits(300, 'EUR', lockingTestParticipants))
+                    .withSplits(calculateEqualSplits(toAmount(300), 'EUR', lockingTestParticipants))
                     .build(),
                 userId,
             ),
@@ -127,7 +127,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
                 new ExpenseUpdateBuilder()
                     .withAmount(150, 'USD')
                     .withParticipants(participants)
-                    .withSplits(calculateEqualSplits(150, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(150), 'USD', participants))
                     .build(),
                 userId,
             ),
@@ -136,7 +136,7 @@ describe('Expense Concurrent Updates - Unit Tests', () => {
                 new ExpenseUpdateBuilder()
                     .withAmount(200, 'USD')
                     .withParticipants(participants)
-                    .withSplits(calculateEqualSplits(200, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(200), 'USD', participants))
                     .build(),
                 userId,
             ),

@@ -1,4 +1,4 @@
-import { Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString } from '@billsplit-wl/shared';
+import { Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString, toAmount } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 
 /**
@@ -38,7 +38,7 @@ export class ExpenseSplitBuilder {
         currency: CurrencyISOCode,
     ): ExpenseSplitBuilder {
         const builder = new ExpenseSplitBuilder();
-        const normalizedTotal = roundToCurrencyPrecision(totalAmount, currency);
+        const normalizedTotal = roundToCurrencyPrecision(toAmount(totalAmount), currency);
         const totalUnits = amountToSmallestUnit(normalizedTotal, currency);
         let allocatedUnits = 0;
 

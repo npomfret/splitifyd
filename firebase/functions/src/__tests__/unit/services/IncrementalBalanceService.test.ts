@@ -1,4 +1,4 @@
-import { calculateEqualSplits } from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder } from '@billsplit-wl/test-support';
@@ -235,7 +235,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants(participants)
-                    .withSplits(calculateEqualSplits(150.5, currency, participants))
+                    .withSplits(calculateEqualSplits(toAmount(150.5), currency, participants))
                     .build();
 
                 await stubDb.runTransaction(async (transaction) => {
@@ -265,7 +265,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants(participants)
-                    .withSplits(calculateEqualSplits(100, currency, participants))
+                    .withSplits(calculateEqualSplits(toAmount(100), currency, participants))
                     .build();
 
                 await stubDb.runTransaction(async (transaction) => {
@@ -280,7 +280,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants(participants)
-                    .withSplits(calculateEqualSplits(150.5, currency, participants))
+                    .withSplits(calculateEqualSplits(toAmount(150.5), currency, participants))
                     .build();
 
                 await stubDb.runTransaction(async (transaction) => {

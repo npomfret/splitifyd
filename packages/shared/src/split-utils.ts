@@ -1,12 +1,12 @@
 import { getCurrency } from './currencies';
-import { Amount, ExpenseSplit } from './shared-types';
+import { Amount, CurrencyISOCode, ExpenseSplit } from './shared-types';
 
 /**
  * Get the decimal precision for a currency
  * @param currencyCode - 3-letter ISO currency code (e.g., 'USD', 'JPY', 'BHD')
  * @returns Number of decimal places (0, 1, 2, or 3)
  */
-export function getCurrencyDecimals(currencyCode: string): number {
+export function getCurrencyDecimals(currencyCode: CurrencyISOCode): number {
     const currency = getCurrency(currencyCode);
     return currency.decimal_digits;
 }
@@ -71,7 +71,7 @@ export function parseMonetaryAmount(amount: string | number): number {
  * roundToCurrencyPrecision(33.333333, 'USD') // "33.33" (2 decimals)
  * roundToCurrencyPrecision(33.333333, 'BHD') // "33.333" (3 decimals)
  */
-export function roundToCurrencyPrecision(amount: Amount | number, currencyCode: string): string {
+export function roundToCurrencyPrecision(amount: Amount, currencyCode: CurrencyISOCode): string {
     const numericAmount = parseMonetaryAmount(amount);
     const decimals = getCurrencyDecimals(currencyCode);
     const multiplier = Math.pow(10, decimals);
@@ -91,15 +91,15 @@ export function roundToCurrencyPrecision(amount: Amount | number, currencyCode: 
  *
  * @example
  * // JPY 100 split 3 ways: [34, 33, 33] (first person gets remainder with rotationSeed=0)
- * calculateEqualSplits(100, 'JPY', ['user1', 'user2', 'user3'], 0)
+ * calculateEqualSplits(toAmount(100), 'JPY', ['user1', 'user2', 'user3'], 0)
  *
  * @example
  * // USD 100 split 3 ways with random remainder distribution (default)
- * calculateEqualSplits(100, 'USD', ['user1', 'user2', 'user3'])
+ * calculateEqualSplits(toAmount(100), 'USD', ['user1', 'user2', 'user3'])
  */
 export function calculateEqualSplits(
-    totalAmount: Amount | number,
-    currencyCode: string,
+    totalAmount: Amount,
+    currencyCode: CurrencyISOCode,
     participantIds: string[],
     rotationSeed?: number,
 ): ExpenseSplit[] {
@@ -161,7 +161,7 @@ export function calculateEqualSplits(
  * @param rotationSeed - Optional seed for remainder rotation (default: random distribution for fairness)
  * @returns Array of ExpenseSplit objects with equal amounts as starting point
  */
-export function calculateExactSplits(totalAmount: Amount | number, currencyCode: string, participantIds: string[], rotationSeed?: number): ExpenseSplit[] {
+export function calculateExactSplits(totalAmount: Amount, currencyCode: CurrencyISOCode, participantIds: string[], rotationSeed?: number): ExpenseSplit[] {
     // For exact splits, use same logic as equal splits as a starting point
     // User will then manually adjust amounts
     return calculateEqualSplits(totalAmount, currencyCode, participantIds, rotationSeed);
@@ -186,8 +186,8 @@ export function calculateExactSplits(totalAmount: Amount | number, currencyCode:
  * calculatePercentageSplits(100, 'USD', ['user1', 'user2', 'user3'])
  */
 export function calculatePercentageSplits(
-    totalAmount: Amount | number,
-    currencyCode: string,
+    totalAmount: Amount,
+    currencyCode: CurrencyISOCode,
     participantIds: string[],
     rotationSeed?: number,
 ): ExpenseSplit[] {
@@ -286,7 +286,7 @@ export function calculatePercentageSplits(
  * @param currencyCode The 3-letter ISO currency code.
  * @returns The amount in the smallest integer unit (e.g., 5025 for "50.25" USD).
  */
-export function amountToSmallestUnit(amountStr: string, currencyCode: string): number {
+export function amountToSmallestUnit(amountStr: Amount, currencyCode: CurrencyISOCode): number {
     // Use existing parser for basic validation (is it a number-like string?)
     parseMonetaryAmount(amountStr);
 
@@ -312,7 +312,7 @@ export function amountToSmallestUnit(amountStr: string, currencyCode: string): n
  * @param currencyCode The 3-letter ISO currency code.
  * @returns A string representation of the amount, formatted to the currency's decimal places (e.g., "50.25").
  */
-export function smallestUnitToAmountString(amountInSmallestUnit: number, currencyCode: string): string {
+export function smallestUnitToAmountString(amountInSmallestUnit: number, currencyCode: CurrencyISOCode): string {
     const decimals = getCurrencyDecimals(currencyCode);
     if (decimals === 0) {
         return String(amountInSmallestUnit);

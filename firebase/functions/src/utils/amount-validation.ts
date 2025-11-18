@@ -1,9 +1,9 @@
-import { Amount, getCurrency } from '@billsplit-wl/shared';
+import { Amount, CurrencyISOCode, getCurrency } from '@billsplit-wl/shared';
 
 /**
  * Determine the maximum number of decimal places that a currency supports.
  */
-function getMaxDecimalPlaces(currencyCode: string): number {
+function getMaxDecimalPlaces(currencyCode: CurrencyISOCode): number {
     const currency = getCurrency(currencyCode);
     return currency.decimal_digits;
 }
@@ -26,7 +26,7 @@ function countDecimalPlaces(value: Amount | number): number {
  *
  * @throws Error when the precision exceeds the currency's supported decimal places.
  */
-export function validateAmountPrecision(amount: Amount, currencyCode: string): void {
+export function validateAmountPrecision(amount: Amount, currencyCode: CurrencyISOCode): void {
     const maxDecimals = getMaxDecimalPlaces(currencyCode);
     const actualDecimals = countDecimalPlaces(amount);
 

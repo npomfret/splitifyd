@@ -193,7 +193,7 @@ export class SettlementFormPage extends BasePage {
             .toPass({ timeout: 2000 });
     }
 
-    async expectCurrencySelectionDisplays(symbol: string, currencyCode: string): Promise<void> {
+    async expectCurrencySelectionDisplays(symbol: string, currencyCode: CurrencyISOCode | string): Promise<void> {
         const currencyButton = this.getCurrencyButton();
         await expect(currencyButton).toContainText(symbol);
         await expect(currencyButton).toContainText(currencyCode);

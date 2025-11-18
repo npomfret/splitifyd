@@ -8,6 +8,7 @@ import {
     MemberStatuses,
     smallestUnitToAmountString,
     SystemUserRoles,
+    toAmount,
     toGroupName,
     UserBalance,
 } from '@billsplit-wl/shared';
@@ -79,7 +80,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'EUR', participants))
+                    .withSplits(calculateEqualSplits(toAmount(100), 'EUR', participants))
                     .build(),
                 user1,
             );
@@ -98,7 +99,7 @@ describe('app tests', () => {
                     .withAmount(150.5, 'EUR')
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
+                    .withSplits(calculateEqualSplits(toAmount(150.5), 'EUR', participants))
                     .build(),
                 user1,
             );
@@ -158,7 +159,7 @@ describe('app tests', () => {
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(amount, 'USD', participants))
+                        .withSplits(calculateEqualSplits(toAmount(amount), 'USD', participants))
                         .build(),
                     user1,
                 );
@@ -256,7 +257,7 @@ describe('app tests', () => {
 
             const participants = [user1, user2, user3];
 
-            const kwdSplits = calculateEqualSplits(12.345, 'KWD', participants);
+            const kwdSplits = calculateEqualSplits(toAmount(12.345), 'KWD', participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -281,7 +282,7 @@ describe('app tests', () => {
             expect(kwdBalances![user2].netBalance).toBe(`-${amountFor(kwdSplits, user2)}`);
             expect(kwdBalances![user3].netBalance).toBe(`-${amountFor(kwdSplits, user3)}`);
 
-            const jpySplits = calculateEqualSplits(303, 'JPY', participants);
+            const jpySplits = calculateEqualSplits(toAmount(303), 'JPY', participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -306,7 +307,7 @@ describe('app tests', () => {
             expect(jpyBalances![user1].netBalance).toBe(`-${amountFor(jpySplits, user1)}`);
             expect(jpyBalances![user3].netBalance).toBe(`-${amountFor(jpySplits, user3)}`);
 
-            const gbpSplits = calculateEqualSplits(45.67, 'GBP', participants);
+            const gbpSplits = calculateEqualSplits(toAmount(45.67), 'GBP', participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -395,7 +396,7 @@ describe('app tests', () => {
 
             const participants = [user1, user2, user3];
 
-            const percentageSplits = calculatePercentageSplits(200, 'EUR', participants);
+            const percentageSplits = calculatePercentageSplits(toAmount(200), 'EUR', participants);
             const createdExpense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -429,7 +430,7 @@ describe('app tests', () => {
             expect(recordedExpenseBeforeUpdate!.splits.map((split) => split.percentage)).toEqual(percentageSplits.map((split) => split.percentage));
 
             const updatedParticipants = [user1, user2];
-            const updatedSplits = calculateEqualSplits(303, 'JPY', updatedParticipants);
+            const updatedSplits = calculateEqualSplits(toAmount(303), 'JPY', updatedParticipants);
             await appDriver.updateExpense(
                 createdExpense.id,
                 ExpenseUpdateBuilder
@@ -521,7 +522,7 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
-            const usdSplits = calculateEqualSplits(90, 'USD', participants);
+            const usdSplits = calculateEqualSplits(toAmount(90), 'USD', participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -577,7 +578,7 @@ describe('app tests', () => {
 
             const participants = [user1, user2];
 
-            const firstExpenseSplits = calculateEqualSplits(120, 'USD', participants);
+            const firstExpenseSplits = calculateEqualSplits(toAmount(120), 'USD', participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -653,7 +654,7 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            const metadataSplits = calculateEqualSplits(80, 'USD', participants);
+            const metadataSplits = calculateEqualSplits(toAmount(80), 'USD', participants);
 
             const metadataExpense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
@@ -671,7 +672,7 @@ describe('app tests', () => {
                 user1,
             );
 
-            const secondarySplits = calculateEqualSplits(50, 'USD', participants);
+            const secondarySplits = calculateEqualSplits(toAmount(50), 'USD', participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -864,7 +865,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
                     .build(),
                 user1,
             );
@@ -916,7 +917,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(60, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(60), 'USD', participants))
                     .build(),
                 user1,
             );
@@ -969,7 +970,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'EUR', participants))
+                    .withSplits(calculateEqualSplits(toAmount(100), 'EUR', participants))
                     .build(),
                 user1,
             );
@@ -988,7 +989,7 @@ describe('app tests', () => {
                     .withAmount(150.5, 'EUR')
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(150.5, 'EUR', participants))
+                    .withSplits(calculateEqualSplits(toAmount(150.5), 'EUR', participants))
                     .build(),
                 user1,
             );
@@ -1047,7 +1048,7 @@ describe('app tests', () => {
                 .withPaidBy(user1)
                 .withParticipants(participants)
                 .withSplitType('exact')
-                .withSplits(calculateEqualSplits(100, 'USD', participants))
+                .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
                 .build();
 
             const invalidExpense = {
@@ -1077,7 +1078,7 @@ describe('app tests', () => {
                 .withPaidBy(user1)
                 .withParticipants(participants)
                 .withSplitType('exact')
-                .withSplits(calculateEqualSplits(12, 'JPY', participants))
+                .withSplits(calculateEqualSplits(toAmount(12), 'JPY', participants))
                 .build();
 
             const invalidExpense = {
@@ -1135,7 +1136,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(50, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(50), 'USD', participants))
                     .build(),
                 user1,
             );
@@ -1166,7 +1167,7 @@ describe('app tests', () => {
                 .withPaidBy(user1)
                 .withParticipants(participants)
                 .withSplitType('equal')
-                .withSplits(calculateEqualSplits(40, 'USD', participants))
+                .withSplits(calculateEqualSplits(toAmount(40), 'USD', participants))
                 .build();
 
             await expect(appDriver.createExpense(expenseRequest, user3))
@@ -1197,7 +1198,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(120, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(120), 'USD', participants))
                     .build(),
                 user1,
             );
@@ -1251,7 +1252,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(30, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(30), 'USD', participants))
                     .build(),
                 user1,
             );
@@ -1291,7 +1292,7 @@ describe('app tests', () => {
                 .withReceiptUrl('not-a-url')
                 .withParticipants(participants)
                 .withSplitType('equal')
-                .withSplits(calculateEqualSplits(40, 'USD', participants))
+                .withSplits(calculateEqualSplits(toAmount(40), 'USD', participants))
                 .build();
 
             await expect(appDriver.createExpense(expense, user1))
@@ -1314,13 +1315,13 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(60, 'USD', [user1, user2]))
+                    .withSplits(calculateEqualSplits(toAmount(60), 'USD', [user1, user2]))
                     .build(),
                 user1,
             );
 
             const updatedParticipants = [user1, user2, user4];
-            const updatedSplits = calculateEqualSplits(90, 'USD', updatedParticipants);
+            const updatedSplits = calculateEqualSplits(toAmount(90), 'USD', updatedParticipants);
 
             await expect(appDriver.updateExpense(
                 baseExpense.id,
@@ -1352,7 +1353,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(80, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(80), 'USD', participants))
                     .build(),
                 user1,
             );
@@ -1438,7 +1439,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(50, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(50), 'USD', participants))
                     .build(),
                 user1,
             );
@@ -1603,7 +1604,7 @@ describe('app tests', () => {
         });
 
         it('should handle large monetary amounts without precision loss', async () => {
-            const LARGE_AMOUNT = 1234567.88;
+            const LARGE_AMOUNT = toAmount(1234567.88);
             const CURRENCY = 'USD';
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
@@ -1639,7 +1640,7 @@ describe('app tests', () => {
         });
 
         it('should achieve exactly zero balance through multiple partial settlements', async () => {
-            const EXPENSE_AMOUNT = 100;
+            const EXPENSE_AMOUNT = toAmount(100);
             const FIRST_SETTLEMENT = '10.00';
             const SECOND_SETTLEMENT = '15.00';
             const THIRD_SETTLEMENT = '12.50';
@@ -1731,7 +1732,7 @@ describe('app tests', () => {
         });
 
         it('should correctly calculate circular debt balances', async () => {
-            const CIRCULAR_AMOUNT = 90;
+            const CIRCULAR_AMOUNT = toAmount(90);
             const CURRENCY = 'USD';
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
@@ -1799,7 +1800,7 @@ describe('app tests', () => {
 
             const participants = [user1, user2, user3];
 
-            const usdExpense1Splits = calculateEqualSplits(150, 'USD', participants);
+            const usdExpense1Splits = calculateEqualSplits(toAmount(150), 'USD', participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -1812,7 +1813,7 @@ describe('app tests', () => {
                 user1,
             );
 
-            const eurExpense1Splits = calculateEqualSplits(200, 'EUR', participants);
+            const eurExpense1Splits = calculateEqualSplits(toAmount(200), 'EUR', participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -1825,7 +1826,7 @@ describe('app tests', () => {
                 user2,
             );
 
-            const gbpExpense1Splits = calculateEqualSplits(75.50, 'GBP', participants);
+            const gbpExpense1Splits = calculateEqualSplits(toAmount(75.50), 'GBP', participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -1892,7 +1893,7 @@ describe('app tests', () => {
             for (let i = 0; i < OPERATIONS_COUNT; i++) {
                 const amount = (i + 1) * 10;
                 const payer = payers[i % payers.length];
-                const splits = calculateEqualSplits(amount, 'USD', participants);
+                const splits = calculateEqualSplits(toAmount(amount), 'USD', participants);
 
                 await appDriver.createExpense(
                     new CreateExpenseRequestBuilder()
@@ -1927,7 +1928,7 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
-            const splits = calculateEqualSplits(100, 'JPY', participants, 2);
+            const splits = calculateEqualSplits(toAmount(100), 'JPY', participants, 2);
 
             expect(splits[0].amount).toBe('33');
             expect(splits[1].amount).toBe('33');
@@ -1960,7 +1961,7 @@ describe('app tests', () => {
         });
 
         it('should maintain precision when converting between split types', async () => {
-            const AMOUNT = 100;
+            const AMOUNT = toAmount(100);
             const CURRENCY = 'EUR';
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
@@ -2082,7 +2083,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(150, CURRENCY, participants))
+                    .withSplits(calculateEqualSplits(toAmount(150), CURRENCY, participants))
                     .build(),
                 user1,
             );
@@ -2118,7 +2119,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, CURRENCY, [user1, user2]))
+                    .withSplits(calculateEqualSplits(toAmount(100), CURRENCY, [user1, user2]))
                     .build(),
                 user1,
             );
@@ -2332,7 +2333,7 @@ describe('app tests', () => {
                     .withPaidBy(user3)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
                     .build();
 
                 await expect(appDriver.createExpense(expenseRequest, user1))
@@ -2345,7 +2346,7 @@ describe('app tests', () => {
                 const groupId = group.id;
 
                 const singleParticipant = [user1];
-                const splits = calculateEqualSplits(100, 'USD', singleParticipant);
+                const splits = calculateEqualSplits(toAmount(100), 'USD', singleParticipant);
 
                 const expense = await appDriver.createExpense(
                     new CreateExpenseRequestBuilder()
@@ -2373,7 +2374,7 @@ describe('app tests', () => {
 
         describe('boundary and limit testing', () => {
             it('should handle very large expense amounts', async () => {
-                const LARGE_AMOUNT = 9999999.99;
+                const LARGE_AMOUNT = toAmount(9999999.99);
                 const CURRENCY = 'USD';
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
@@ -2406,7 +2407,7 @@ describe('app tests', () => {
             });
 
             it('should handle minimum valid amounts', async () => {
-                const MIN_AMOUNT = 0.02;
+                const MIN_AMOUNT = toAmount(0.02);
                 const CURRENCY = 'USD';
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
@@ -2470,7 +2471,7 @@ describe('app tests', () => {
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
-                            .withSplits(calculateEqualSplits(100, 'USD', participants))
+                            .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
                             .build(),
                         user1,
                     ),
@@ -2497,7 +2498,7 @@ describe('app tests', () => {
                     manyUsers.push(userId);
                 }
 
-                const AMOUNT = 1000;
+                const AMOUNT = toAmount(1000);
                 const CURRENCY = 'USD';
                 const splits = calculateEqualSplits(AMOUNT, CURRENCY, manyUsers);
 
@@ -2540,7 +2541,7 @@ describe('app tests', () => {
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
-                            .withSplits(calculateEqualSplits(100, 'USD', participants))
+                            .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
                             .build(),
                         user1,
                     ),
@@ -2629,7 +2630,7 @@ describe('app tests', () => {
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(100, 'USD', participants))
+                        .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
                         .build(),
                     user1,
                 );
@@ -2663,7 +2664,7 @@ describe('app tests', () => {
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(100, 'USD', participants))
+                        .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
                         .build(),
                     user1,
                 );
@@ -3054,7 +3055,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                    .withSplits(calculateEqualSplits(toAmount(100), 'USD', [user1, user2]))
                     .build(),
                 user1,
             );
@@ -3120,7 +3121,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                    .withSplits(calculateEqualSplits(toAmount(100), 'USD', [user1, user2]))
                     .build(),
                 user1,
             );
@@ -3148,7 +3149,7 @@ describe('app tests', () => {
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(100, 'USD', [user1, user2]))
+                    .withSplits(calculateEqualSplits(toAmount(100), 'USD', [user1, user2]))
                     .build(),
                 user1,
             );
@@ -3225,7 +3226,7 @@ describe('app tests', () => {
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(30, 'USD', participants))
+                        .withSplits(calculateEqualSplits(toAmount(30), 'USD', participants))
                         .withDescription(`Deletion Feed Expense ${i}`)
                         .build(),
                     user1,
@@ -3282,7 +3283,7 @@ describe('app tests', () => {
                     .withDescription('Activity Feed Expense')
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(42.5, 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(42.5), 'USD', participants))
                     .build(),
                 user1,
             );

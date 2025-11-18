@@ -10,7 +10,7 @@
 
 import { z } from 'zod';
 import { getCurrency } from '../currencies';
-import { type Amount, SplitTypes } from '../shared-types';
+import { type Amount, CurrencyISOCode, SplitTypes } from '../shared-types';
 import { parseMonetaryAmount } from '../split-utils';
 import { createDisplayNameSchema, DisplayNameSchema, type DisplayNameSchemaOptions } from './primitives';
 
@@ -252,7 +252,7 @@ export const createPaginationSchema = (options?: PaginationSchemaOptions) => {
         }));
 };
 
-const validateAmountPrecision = (amount: Amount, currencyCode: string): void => {
+const validateAmountPrecision = (amount: Amount, currencyCode: CurrencyISOCode): void => {
     const currency = getCurrency(currencyCode);
     const decimalIndex = amount.indexOf('.');
     const decimals = decimalIndex === -1 ? 0 : amount.length - decimalIndex - 1;

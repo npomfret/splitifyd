@@ -1,4 +1,4 @@
-import { Amount, amountToSmallestUnit, normalizeAmount } from '@billsplit-wl/shared';
+import { Amount, amountToSmallestUnit, CurrencyISOCode, normalizeAmount } from '@billsplit-wl/shared';
 import { getCurrency } from './currencyList';
 
 export interface FormatOptions {
@@ -6,7 +6,7 @@ export interface FormatOptions {
     includeCurrencyCode?: boolean;
 }
 
-export const formatCurrency = (amount: Amount | number, currencyCode: string, options: FormatOptions = {}): string => {
+export const formatCurrency = (amount: Amount, currencyCode: CurrencyISOCode, options: FormatOptions = {}): string => {
     const {
         locale = 'en-US',
         includeCurrencyCode = true,

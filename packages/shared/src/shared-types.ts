@@ -48,6 +48,8 @@ export const isoStringNow = (): ISOString => new Date().toISOString() as ISOStri
  * See: tasks/monetary-amounts-as-strings-refactor.md
  */
 export type Amount = string;
+export const toAmount = (value: string | number): Amount => typeof value === "number" ? value.toString() as Amount : value as Amount;
+
 export const ZERO: Amount = '0';
 
 export type GroupId = Brand<string, 'GroupId'>;

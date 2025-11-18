@@ -31,7 +31,7 @@ interface ExpenseFormStore {
     paidBy: UserId;
     label: string;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
-    participants: string[];
+    participants: UserId[];
     splits: ExpenseSplit[];
 
     // UI state
@@ -59,7 +59,7 @@ interface ExpenseFormStore {
     // Actions
     updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void;
     validateOnBlur(field: keyof ExpenseFormData): void;
-    setParticipants(participants: string[]): void;
+    setParticipants(participants: UserId[]): void;
     toggleParticipant(uid: string): void;
     calculateEqualSplits(): void;
     updateSplitAmount(uid: string, amount: Amount): void;
@@ -604,7 +604,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         this.#validationErrorsSignal.value = errors;
     }
 
-    setParticipants(participants: string[]): void {
+    setParticipants(participants: UserId[]): void {
         this.#participantsSignal.value = participants;
         // Always include payer in participants
         if (this.#paidBySignal.value && !participants.includes(this.#paidBySignal.value)) {

@@ -11,7 +11,7 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { calculateEqualSplits, UserToken } from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount, UserToken } from '@billsplit-wl/shared';
 import { borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { ApiDriver } from '@billsplit-wl/test-support';
 
@@ -66,7 +66,7 @@ describe('Expense Locking - Firebase Transaction Behavior', () => {
                 new ExpenseUpdateBuilder()
                     .withAmount(200, 'EUR')
                     .withParticipants(lockingTestParticipants)
-                    .withSplits(calculateEqualSplits(200, 'EUR', lockingTestParticipants))
+                    .withSplits(calculateEqualSplits(toAmount(200), 'EUR', lockingTestParticipants))
                     .build(),
                 user1.token,
             ),
@@ -75,7 +75,7 @@ describe('Expense Locking - Firebase Transaction Behavior', () => {
                 new ExpenseUpdateBuilder()
                     .withAmount(300, 'EUR')
                     .withParticipants(lockingTestParticipants)
-                    .withSplits(calculateEqualSplits(300, 'EUR', lockingTestParticipants))
+                    .withSplits(calculateEqualSplits(toAmount(300), 'EUR', lockingTestParticipants))
                     .build(),
                 user1.token,
             ),
