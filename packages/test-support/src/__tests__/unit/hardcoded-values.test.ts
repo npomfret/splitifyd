@@ -1,31 +1,22 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import { describe, it, expect } from 'vitest';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 describe('Hardcoded Values Validation', () => {
-    // TODO: Work in progress - needs configuration update
-    it.skip('should not contain "splitifyd" in any git tracked files', () => {
+    it('should not contain "splitifyd" in any git tracked files', () => {
         const projectRoot = path.join(__dirname, '../../..');
 
         // Exceptions: this test file and documentation/IDE files
         const exceptions = [
-            'e2e-tests/src/__tests__/hardcoded-values.test.ts',
-            'firebase/.firebaserc',
-            'webapp/esbuild.config.js',
             'package.json',
-            'package-lock.json',
-            'test-support/package.json',
-            'e2e-tests/package.json',
-            'firebase/functions/__tests__/support/ApiDriver.ts',
-            'e2e-tests/helpers/emulator-utils.ts',
-            'e2e-tests/tests/homepage.e2e.test.ts',
-            'e2e-tests/tests/run-mcp-debug.ts',
-            'mcp-browser-tests/lib/browser-test-base.ts',
-            'webapp-v2/src/__tests__/setup.ts',
-            'webapp-v2/src/components/__tests__/SEOHead.test.tsx',
-            'webapp-v2/src/components/__tests__/StaticPageLayout.seo.test.tsx',
-            'webapp-v2/src/pages/static/TermsOfServicePage.tsx',
-            'webapp-v2/src/pages/static/__tests__/TermsOfServicePage.test.tsx',
+            'run-test.sh',
+            'e2e-tests/src/__tests__/hardcoded-values.test.ts',
         ];
 
         const excludeDirectories = ['docs/', '.idea/'];
