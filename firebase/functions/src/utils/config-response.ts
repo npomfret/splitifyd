@@ -2,7 +2,7 @@ import { AppConfiguration, TenantConfig, toShowLandingPageFlag, toShowMarketingC
 import { getTenantAwareAppConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import type { TenantRequestContext } from '../types/tenant';
-import { ApiError } from '../utils/errors';
+import { ApiError } from './errors';
 
 const cloneTenantConfig = (tenant: TenantConfig): TenantConfig => {
     const { marketingFlags, ...restOfBranding } = tenant.branding;

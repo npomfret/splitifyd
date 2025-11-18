@@ -1,5 +1,5 @@
 import { ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
-import { expect, test } from '../../utils/console-logging-fixture';
+import { test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
 
 test.describe('Group Detail - Balance Display: All Settled Up', () => {

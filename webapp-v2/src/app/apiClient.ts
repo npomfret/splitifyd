@@ -48,7 +48,6 @@ import type {
     ShareLinkToken,
     TenantDomainsResponse,
     TenantSettingsResponse,
-    UpdateDisplayNameRequest,
     UpdateExpenseRequest,
     UpdateGroupRequest,
     UpdateTenantBrandingRequest,

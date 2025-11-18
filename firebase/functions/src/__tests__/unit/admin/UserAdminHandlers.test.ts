@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UserAdminHandlers } from '../../../admin/UserAdminHandlers';
 import type { AuthenticatedRequest } from '../../../auth/middleware';
 import { HTTP_STATUS } from '../../../constants';
-import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWriter';
+import type { IFirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
 

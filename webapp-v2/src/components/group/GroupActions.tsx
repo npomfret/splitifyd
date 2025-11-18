@@ -2,7 +2,6 @@ import { SidebarCard } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { ArchiveBoxArrowDownIcon, ArrowLeftStartOnRectangleIcon, ArrowPathIcon, BanknotesIcon, CogIcon, PlusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../ui/Button';
 
 interface GroupActionsProps {
     onAddExpense?: () => void;

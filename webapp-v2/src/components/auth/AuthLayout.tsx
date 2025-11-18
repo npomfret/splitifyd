@@ -1,7 +1,7 @@
 import { ComponentChildren } from 'preact';
 import { useTranslation } from 'react-i18next';
 import { BaseLayout } from '../layout/BaseLayout';
-import { Card, Typography } from '../ui';
+import { Typography } from '../ui';
 
 interface AuthLayoutProps {
     title: string;

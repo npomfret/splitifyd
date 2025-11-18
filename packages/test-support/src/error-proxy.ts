@@ -4,7 +4,6 @@
  */
 
 import { Page } from '@playwright/test';
-import { DisplayName } from '@splitifyd/shared';
 import { ProxiedMethodError } from './errors/test-errors';
 import { collectPageState } from './utils/page-state-collector';
 

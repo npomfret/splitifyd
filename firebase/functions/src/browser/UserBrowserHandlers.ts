@@ -5,7 +5,7 @@ import { FirestoreCollections } from '../constants';
 import { type IDocumentSnapshot, type IFirestoreDatabase, Timestamp } from '../firestore-wrapper';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
-import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
+import type { IFirestoreReader } from '../services/firestore';
 
 interface ListAuthQuery {
     limit: number;
