@@ -1,7 +1,7 @@
 import { Timestamp } from '@google-cloud/firestore';
 import { toGroupId, toSettlementId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
+import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder, SettlementDocumentBuilder, ClientUserBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -16,11 +16,12 @@ describe('SettlementService - Unit Tests', () => {
     const seedUser = (userId: string, overrides: Record<string, any> = {}) => {
         const user = db.seedUser(userId, overrides);
 
-        stubAuth.setUser(userId, {
-            uid: userId,
-            email: user.email,
-            displayName: overrides.displayName ?? user.displayName,
-        });
+        const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+            .withUid(userId)
+            .withEmail(user.email)
+            .withDisplayName(overrides.displayName ?? user.displayName)
+            .build();
+        stubAuth.setUser(userId, userData);
 
         return user;
     };
@@ -582,21 +583,19 @@ describe('SettlementService - Unit Tests', () => {
             const groupId = toGroupId('test-group');
 
             // Seed settlement
-            const settlementData = {
-                id: settlementId,
-                groupId,
-                payerId: 'payer-user',
-                payeeId: 'payee-user',
-                amount: '100',
-                currency: 'USD',
-                date: Timestamp.now(),
-                note: 'Test settlement',
-                createdBy: creatorId,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const settlementData = new SettlementDocumentBuilder()
+                .withId(settlementId)
+                .withGroupId(groupId)
+                .withPayerId('payer-user')
+                .withPayeeId('payee-user')
+                .withAmount(100, 'USD')
+                .withNote('Test settlement')
+                .withCreatedBy(creatorId)
+                .withCreatedAt(Timestamp.now().toDate())
+                .withUpdatedAt(Timestamp.now().toDate())
+                .withDeletedAt(null)
+                .withDeletedBy(null)
+                .build();
             db.seedSettlement(settlementId, settlementData);
 
             // Set up group and membership
@@ -638,20 +637,18 @@ describe('SettlementService - Unit Tests', () => {
             const groupId = toGroupId('test-group');
 
             // Seed already-deleted settlement
-            const deletedSettlementData = {
-                id: settlementId,
-                groupId,
-                payerId: 'payer-user',
-                payeeId: 'payee-user',
-                amount: '100',
-                currency: 'USD',
-                date: Timestamp.now(),
-                createdBy: creatorId,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: Timestamp.now(), // Already deleted
-                deletedBy: creatorId,
-            };
+            const deletedSettlementData = new SettlementDocumentBuilder()
+                .withId(settlementId)
+                .withGroupId(groupId)
+                .withPayerId('payer-user')
+                .withPayeeId('payee-user')
+                .withAmount(100, 'USD')
+                .withCreatedBy(creatorId)
+                .withCreatedAt(Timestamp.now().toDate())
+                .withUpdatedAt(Timestamp.now().toDate())
+                .withDeletedAt(Timestamp.now().toDate())
+                .withDeletedBy(creatorId)
+                .build();
             db.seedSettlement(settlementId, deletedSettlementData);
 
             // Set up group and membership
@@ -681,20 +678,18 @@ describe('SettlementService - Unit Tests', () => {
             const creatorId = 'creator-user';
             const groupId = toGroupId('test-group');
 
-            const settlementData = {
-                id: settlementId,
-                groupId,
-                payerId: 'payer-user',
-                payeeId: 'payee-user',
-                amount: '100',
-                currency: 'USD',
-                date: Timestamp.now(),
-                createdBy: creatorId,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const settlementData = new SettlementDocumentBuilder()
+                .withId(settlementId)
+                .withGroupId(groupId)
+                .withPayerId('payer-user')
+                .withPayeeId('payee-user')
+                .withAmount(100, 'USD')
+                .withCreatedBy(creatorId)
+                .withCreatedAt(Timestamp.now().toDate())
+                .withUpdatedAt(Timestamp.now().toDate())
+                .withDeletedAt(null)
+                .withDeletedBy(null)
+                .build();
             db.seedSettlement(settlementId, settlementData);
 
             db.seedGroup(groupId, { name: 'Test Group' });
@@ -735,20 +730,18 @@ describe('SettlementService - Unit Tests', () => {
             const adminId = 'admin-user';
             const groupId = toGroupId('test-group');
 
-            const settlementData = {
-                id: settlementId,
-                groupId,
-                payerId: 'payer-user',
-                payeeId: 'payee-user',
-                amount: '100',
-                currency: 'USD',
-                date: Timestamp.now(),
-                createdBy: creatorId, // Different from admin
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const settlementData = new SettlementDocumentBuilder()
+                .withId(settlementId)
+                .withGroupId(groupId)
+                .withPayerId('payer-user')
+                .withPayeeId('payee-user')
+                .withAmount(100, 'USD')
+                .withCreatedBy(creatorId)
+                .withCreatedAt(Timestamp.now().toDate())
+                .withUpdatedAt(Timestamp.now().toDate())
+                .withDeletedAt(null)
+                .withDeletedBy(null)
+                .build();
             db.seedSettlement(settlementId, settlementData);
 
             db.seedGroup(groupId, { name: 'Test Group' });
@@ -797,20 +790,18 @@ describe('SettlementService - Unit Tests', () => {
             const otherId = 'other-user';
             const groupId = toGroupId('test-group');
 
-            const settlementData = {
-                id: settlementId,
-                groupId,
-                payerId: 'payer-user',
-                payeeId: 'payee-user',
-                amount: '100',
-                currency: 'USD',
-                date: Timestamp.now(),
-                createdBy: creatorId,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const settlementData = new SettlementDocumentBuilder()
+                .withId(settlementId)
+                .withGroupId(groupId)
+                .withPayerId('payer-user')
+                .withPayeeId('payee-user')
+                .withAmount(100, 'USD')
+                .withCreatedBy(creatorId)
+                .withCreatedAt(Timestamp.now().toDate())
+                .withUpdatedAt(Timestamp.now().toDate())
+                .withDeletedAt(null)
+                .withDeletedBy(null)
+                .build();
             db.seedSettlement(settlementId, settlementData);
 
             db.seedGroup(groupId, { name: 'Test Group' });
@@ -854,20 +845,18 @@ describe('SettlementService - Unit Tests', () => {
             const nonMemberId = 'non-member-user';
             const groupId = toGroupId('test-group');
 
-            const settlementData = {
-                id: settlementId,
-                groupId,
-                payerId: 'payer-user',
-                payeeId: 'payee-user',
-                amount: '100',
-                currency: 'USD',
-                date: Timestamp.now(),
-                createdBy: creatorId,
-                createdAt: Timestamp.now(),
-                updatedAt: Timestamp.now(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const settlementData = new SettlementDocumentBuilder()
+                .withId(settlementId)
+                .withGroupId(groupId)
+                .withPayerId('payer-user')
+                .withPayeeId('payee-user')
+                .withAmount(100, 'USD')
+                .withCreatedBy(creatorId)
+                .withCreatedAt(Timestamp.now().toDate())
+                .withUpdatedAt(Timestamp.now().toDate())
+                .withDeletedAt(null)
+                .withDeletedBy(null)
+                .build();
             db.seedSettlement(settlementId, settlementData);
 
             db.seedGroup(groupId, { name: 'Test Group' });

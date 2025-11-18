@@ -13,7 +13,7 @@ import {
 } from '@billsplit-wl/shared';
 import type { GroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
+import { GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, ClientUserBuilder, ShareLinkBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FirestoreCollections, HTTP_STATUS } from '../../../constants';
 import { ActivityFeedService } from '../../../services/ActivityFeedService';
@@ -63,11 +63,12 @@ describe('GroupShareService', () => {
     const seedUserProfile = (userId: string, overrides: Record<string, any> = {}) => {
         const user = db.seedUser(userId, overrides);
 
-        authService.setUser(userId, {
-            uid: userId,
-            email: user.email,
-            displayName: overrides.displayName ?? user.displayName,
-        });
+        const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+            .withUid(userId)
+            .withEmail(user.email)
+            .withDisplayName(overrides.displayName ?? user.displayName)
+            .build();
+        authService.setUser(userId, userData);
 
         return user;
     };
@@ -81,14 +82,14 @@ describe('GroupShareService', () => {
 
         it('returns a theme not present in existing combinations', () => {
             const assignedAt = toISOString(new Date().toISOString());
-            const existingTheme = {
-                light: USER_COLORS[0].light,
-                dark: USER_COLORS[0].dark,
-                name: USER_COLORS[0].name,
-                pattern: COLOR_PATTERNS[0],
-                assignedAt,
-                colorIndex: 0,
-            };
+            const existingTheme = new ThemeBuilder()
+                .withLight(USER_COLORS[0].light)
+                .withDark(USER_COLORS[0].dark)
+                .withName(USER_COLORS[0].name)
+                .withPattern(COLOR_PATTERNS[0])
+                .withAssignedAt(assignedAt)
+                .withColorIndex(0)
+                .build();
 
             vi.spyOn(Math, 'random').mockReturnValue(0);
 
@@ -103,14 +104,15 @@ describe('GroupShareService', () => {
         it('reuses the palette gracefully when all combinations are exhausted', () => {
             const assignedAt = toISOString(new Date().toISOString());
             const allThemes = USER_COLORS.flatMap((color, colorIndex) =>
-                COLOR_PATTERNS.map(pattern => ({
-                    light: color.light,
-                    dark: color.dark,
-                    name: color.name,
-                    pattern,
-                    assignedAt,
-                    colorIndex,
-                }))
+                COLOR_PATTERNS.map(pattern => new ThemeBuilder()
+                    .withLight(color.light)
+                    .withDark(color.dark)
+                    .withName(color.name)
+                    .withPattern(pattern)
+                    .withAssignedAt(assignedAt)
+                    .withColorIndex(colorIndex)
+                    .build()
+                )
             );
 
             vi.spyOn(Math, 'random').mockReturnValue(0);
@@ -257,15 +259,18 @@ describe('GroupShareService', () => {
             const userId = 'owner-cleanup';
             seedGroupWithOwner(groupId, userId);
 
-            const expiredShareLink = {
-                id: 'expired-cleanup-doc',
-                token: 'expired-cleanup-token',
-                createdBy: userId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-            };
-            seedShareLink(groupId, expiredShareLink);
+            const expiredShareLink = new ShareLinkBuilder()
+                .withCreatedBy(userId)
+                .withExpiresAt(new Date(Date.now() - 5 * 60 * 1000).toISOString())
+                .build();
+            db.seed(`groups/${groupId}/shareLinks/expired-cleanup-doc`, { ...expiredShareLink, id: 'expired-cleanup-doc', token: 'expired-cleanup-token' });
+            db.seed(`${FirestoreCollections.SHARE_LINK_TOKENS}/expired-cleanup-token`, {
+                groupId,
+                shareLinkId: 'expired-cleanup-doc',
+                expiresAt: expiredShareLink.expiresAt,
+                createdBy: expiredShareLink.createdBy,
+                createdAt: expiredShareLink.createdAt,
+            });
 
             await groupShareService.generateShareableLink(userId, groupId);
 
@@ -286,15 +291,18 @@ describe('GroupShareService', () => {
         });
 
         it('rejects joins when the share link is expired', async () => {
-            const expiredShareLink = {
-                id: 'expired-doc-id',
-                token: expiredToken,
-                createdBy: ownerId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() - 60 * 1000).toISOString(),
-            };
-            seedShareLink(groupId, expiredShareLink);
+            const expiredShareLink = new ShareLinkBuilder()
+                .withCreatedBy(ownerId)
+                .withExpiresAt(new Date(Date.now() - 60 * 1000).toISOString())
+                .build();
+            db.seed(`groups/${groupId}/shareLinks/expired-doc-id`, { ...expiredShareLink, id: 'expired-doc-id', token: expiredToken });
+            db.seed(`${FirestoreCollections.SHARE_LINK_TOKENS}/${expiredToken}`, {
+                groupId,
+                shareLinkId: 'expired-doc-id',
+                expiresAt: expiredShareLink.expiresAt,
+                createdBy: expiredShareLink.createdBy,
+                createdAt: expiredShareLink.createdAt,
+            });
 
             seedUserProfile('joining-user', { displayName: 'Joining User' });
 
@@ -304,15 +312,18 @@ describe('GroupShareService', () => {
         });
 
         it('blocks previews for expired share links', async () => {
-            const expiredShareLink = {
-                id: 'preview-expired-doc-id',
-                token: previewToken,
-                createdBy: ownerId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-            };
-            seedShareLink(groupId, expiredShareLink);
+            const expiredShareLink = new ShareLinkBuilder()
+                .withCreatedBy(ownerId)
+                .withExpiresAt(new Date(Date.now() - 2 * 60 * 1000).toISOString())
+                .build();
+            db.seed(`groups/${groupId}/shareLinks/preview-expired-doc-id`, { ...expiredShareLink, id: 'preview-expired-doc-id', token: previewToken });
+            db.seed(`${FirestoreCollections.SHARE_LINK_TOKENS}/${previewToken}`, {
+                groupId,
+                shareLinkId: 'preview-expired-doc-id',
+                expiresAt: expiredShareLink.expiresAt,
+                createdBy: expiredShareLink.createdBy,
+                createdAt: expiredShareLink.createdAt,
+            });
 
             await expect(groupShareService.previewGroupByLink('different-user', previewToken)).rejects.toMatchObject({
                 code: 'LINK_EXPIRED',
@@ -345,15 +356,18 @@ describe('GroupShareService', () => {
             db.initializeGroupBalance(groupId); // Initialize balance for incremental updates
 
             // Set up share link
-            const shareLink = {
-                id: linkId,
-                token: linkId,
-                createdBy: 'owner-id',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            };
-            seedShareLink(groupId, shareLink);
+            const shareLink = new ShareLinkBuilder()
+                .withCreatedBy('owner-id')
+                .withExpiresAt(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())
+                .build();
+            db.seed(`groups/${groupId}/shareLinks/${linkId}`, { ...shareLink, id: linkId, token: linkId });
+            db.seed(`${FirestoreCollections.SHARE_LINK_TOKENS}/${linkId}`, {
+                groupId,
+                shareLinkId: linkId,
+                expiresAt: shareLink.expiresAt,
+                createdBy: shareLink.createdBy,
+                createdAt: shareLink.createdAt,
+            });
         });
 
         it(`should succeed when group has ${MAX_GROUP_MEMBERS - 1} members`, async () => {
@@ -447,15 +461,18 @@ describe('GroupShareService', () => {
             db.initializeGroupBalance(groupId);
 
             // Set up share link
-            const shareLink = {
-                id: linkId,
-                token: linkId,
-                createdBy: 'owner-id',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            };
-            seedShareLink(groupId, shareLink);
+            const shareLink = new ShareLinkBuilder()
+                .withCreatedBy('owner-id')
+                .withExpiresAt(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString())
+                .build();
+            db.seed(`groups/${groupId}/shareLinks/${linkId}`, { ...shareLink, id: linkId, token: linkId });
+            db.seed(`${FirestoreCollections.SHARE_LINK_TOKENS}/${linkId}`, {
+                groupId,
+                shareLinkId: linkId,
+                expiresAt: shareLink.expiresAt,
+                createdBy: shareLink.createdBy,
+                createdAt: shareLink.createdAt,
+            });
         });
 
         it('should return displayNameConflict: false when display name is unique', async () => {
@@ -635,15 +652,18 @@ describe('GroupShareService', () => {
                 .buildDocument();
             db.seedGroupMember(groupId, ownerId, ownerMembership);
 
-            const shareLink = {
-                id: linkId,
-                token: linkId,
-                createdBy: ownerId,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-            };
-            seedShareLink(groupId, shareLink);
+            const shareLink = new ShareLinkBuilder()
+                .withCreatedBy(ownerId)
+                .withExpiresAt(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())
+                .build();
+            db.seed(`groups/${groupId}/shareLinks/${linkId}`, { ...shareLink, id: linkId, token: linkId });
+            db.seed(`${FirestoreCollections.SHARE_LINK_TOKENS}/${linkId}`, {
+                groupId,
+                shareLinkId: linkId,
+                expiresAt: shareLink.expiresAt,
+                createdBy: shareLink.createdBy,
+                createdAt: shareLink.createdAt,
+            });
 
             seedUserProfile(joiningUserId, { displayName: 'Joining User' });
 

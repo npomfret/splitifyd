@@ -292,7 +292,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject settlement for non-existent group', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId);
+            appDriver.seedUser(userId, { email: `${userId}@test.com`, displayName: 'Test User' });
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId('non-existent-group')
@@ -314,10 +314,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             const payerId = 'payer-user';
             const payeeId = 'payee-user';
 
-            appDriver.seedUser(creatorId);
-            appDriver.seedUser(nonMemberId);
-            appDriver.seedUser(payerId);
-            appDriver.seedUser(payeeId);
+            appDriver.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
+            appDriver.seedUser(nonMemberId, { email: `${nonMemberId}@test.com`, displayName: 'Non Member User' });
+            appDriver.seedUser(payerId, { email: `${payerId}@test.com`, displayName: 'Payer User' });
+            appDriver.seedUser(payeeId, { email: `${payeeId}@test.com`, displayName: 'Payee User' });
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
@@ -342,9 +342,9 @@ describe('SettlementHandlers - Unit Tests', () => {
             const userId = 'test-user';
             const payeeId = 'payee-user';
 
-            appDriver.seedUser(userId);
-            appDriver.seedUser('non-member-payer');
-            appDriver.seedUser(payeeId);
+            appDriver.seedUser(userId, { email: `${userId}@test.com`, displayName: 'Test User' });
+            appDriver.seedUser('non-member-payer', { email: 'non-member-payer@test.com', displayName: 'Non Member' });
+            appDriver.seedUser(payeeId, { email: `${payeeId}@test.com`, displayName: 'Payee User' });
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -368,9 +368,9 @@ describe('SettlementHandlers - Unit Tests', () => {
             const userId = 'test-user';
             const payerId = 'payer-user';
 
-            appDriver.seedUser(userId);
-            appDriver.seedUser(payerId);
-            appDriver.seedUser('non-member-payee');
+            appDriver.seedUser(userId, { email: `${userId}@test.com`, displayName: 'Test User' });
+            appDriver.seedUser(payerId, { email: `${payerId}@test.com`, displayName: 'Payer User' });
+            appDriver.seedUser('non-member-payee', { email: 'non-member-payee@test.com', displayName: 'Non Member' });
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -534,7 +534,7 @@ describe('SettlementHandlers - Unit Tests', () => {
 
         it('should reject update of non-existent settlement', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId);
+            appDriver.seedUser(userId, { email: `${userId}@test.com`, displayName: 'Test User' });
 
             const updateRequest = { amount: '150' };
 
@@ -551,10 +551,10 @@ describe('SettlementHandlers - Unit Tests', () => {
             const payerId = 'payer-user';
             const payeeId = 'payee-user';
 
-            appDriver.seedUser(creatorId);
-            appDriver.seedUser(nonMemberId);
-            appDriver.seedUser(payerId);
-            appDriver.seedUser(payeeId);
+            appDriver.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
+            appDriver.seedUser(nonMemberId, { email: `${nonMemberId}@test.com`, displayName: 'Non Member User' });
+            appDriver.seedUser(payerId, { email: `${payerId}@test.com`, displayName: 'Payer User' });
+            appDriver.seedUser(payeeId, { email: `${payeeId}@test.com`, displayName: 'Payee User' });
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);

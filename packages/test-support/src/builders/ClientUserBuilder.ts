@@ -54,7 +54,14 @@ export class ClientUserBuilder {
     }
 
     build(): ClientUser {
-        return { ...this.user };
+        // Filter out undefined values to ensure Firestore compatibility
+        const user = { ...this.user };
+        Object.keys(user).forEach(key => {
+            if (user[key as keyof ClientUser] === undefined) {
+                delete user[key as keyof ClientUser];
+            }
+        });
+        return user;
     }
 
     static validUser(): ClientUserBuilder {

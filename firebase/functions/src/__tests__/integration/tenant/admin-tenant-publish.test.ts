@@ -1,5 +1,16 @@
 import type { BrandingTokens, PooledTestUser } from '@billsplit-wl/shared';
+import {
+    toTenantAccentColor,
+    toTenantAppName,
+    toTenantDomainName,
+    toTenantFaviconUrl,
+    toTenantLogoUrl,
+    toTenantPrimaryColor,
+    toTenantSecondaryColor,
+    toTenantThemePaletteName,
+} from '@billsplit-wl/shared';
 import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
+import { AdminTenantRequestBuilder } from '../../unit/AdminTenantRequestBuilder';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { getAuth, getFirestore } from '../../../firebase';
@@ -10,184 +21,27 @@ describe('Admin Tenant Theme Publishing', () => {
 
     let adminUser: PooledTestUser;
 
-    const mockTokens: BrandingTokens = {// todo: use a builder
-        version: 1,
-        palette: {
-            primary: '#2563eb',
-            primaryVariant: '#1d4ed8',
-            secondary: '#7c3aed',
-            secondaryVariant: '#6d28d9',
-            accent: '#f97316',
-            neutral: '#f8fafc',
-            neutralVariant: '#e2e8f0',
-            success: '#22c55e',
-            warning: '#eab308',
-            danger: '#ef4444',
-            info: '#38bdf8',
-        },
-        typography: {
-            fontFamily: {
-                sans: 'Inter, system-ui, sans-serif',
-                mono: 'Fira Code, monospace',
-            },
-            sizes: {
-                xs: '0.75rem',
-                sm: '0.875rem',
-                md: '1rem',
-                lg: '1.125rem',
-                xl: '1.25rem',
-                '2xl': '1.5rem',
-                '3xl': '1.875rem',
-                '4xl': '2.25rem',
-                '5xl': '3rem',
-            },
-            weights: {
-                regular: 400,
-                medium: 500,
-                semibold: 600,
-                bold: 700,
-            },
-            lineHeights: {
-                compact: '1.25rem',
-                standard: '1.5rem',
-                spacious: '1.75rem',
-            },
-            letterSpacing: {
-                tight: '-0.01rem',
-                normal: '0rem',
-                wide: '0.05rem',
-            },
-            semantics: {
-                body: 'md',
-                bodyStrong: 'md',
-                caption: 'sm',
-                button: 'md',
-                eyebrow: 'xs',
-                heading: 'xl',
-                display: '3xl',
-            },
-        },
-        spacing: {
-            '2xs': '0.25rem',
-            xs: '0.5rem',
-            sm: '0.75rem',
-            md: '1rem',
-            lg: '1.5rem',
-            xl: '2rem',
-            '2xl': '3rem',
-        },
-        radii: {
-            none: '0rem',
-            sm: '0.125rem',
-            md: '0.25rem',
-            lg: '0.5rem',
-            pill: '9999px',
-            full: '50rem',
-        },
-        shadows: {
-            sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-            md: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-        },
-        assets: {
-            logoUrl: 'https://example.com/logo.svg',
-            faviconUrl: 'https://example.com/favicon.ico',
-        },
-        legal: {
-            companyName: 'Test Company',
-            supportEmail: 'support@example.com',
-            privacyPolicyUrl: 'https://example.com/privacy',
-            termsOfServiceUrl: 'https://example.com/terms',
-        },
-        semantics: {
-            colors: {
-                surface: {
-                    base: '#ffffff',
-                    raised: '#f9f9f9',
-                    sunken: '#f0f0f0',
-                    overlay: '#000000',
-                    warning: '#fffacd',
-                },
-                text: {
-                    primary: '#000000',
-                    secondary: '#666666',
-                    muted: '#999999',
-                    inverted: '#ffffff',
-                    accent: '#0066cc',
-                },
-                interactive: {
-                    primary: '#0066cc',
-                    primaryHover: '#0052a3',
-                    primaryActive: '#003d7a',
-                    primaryForeground: '#ffffff',
-                    secondary: '#f0f0f0',
-                    secondaryHover: '#e0e0e0',
-                    secondaryActive: '#d0d0d0',
-                    secondaryForeground: '#000000',
-                    accent: '#22c55e',
-                    destructive: '#dc3545',
-                    destructiveHover: '#c82333',
-                    destructiveActive: '#bd2130',
-                    destructiveForeground: '#ffffff',
-                },
-                border: {
-                    subtle: '#f0f0f0',
-                    default: '#d0d0d0',
-                    strong: '#999999',
-                    focus: '#0066cc',
-                    warning: '#ffd700',
-                },
-                status: {
-                    success: '#28a745',
-                    warning: '#ffc107',
-                    danger: '#dc3545',
-                    info: '#17a2b8',
-                },
-            },
-            spacing: {
-                pagePadding: '1rem',
-                sectionGap: '2rem',
-                cardPadding: '1.5rem',
-                componentGap: '0.5rem',
-            },
-            typography: {
-                body: 'md',
-                bodyStrong: 'md',
-                caption: 'sm',
-                button: 'md',
-                eyebrow: 'xs',
-                heading: 'xl',
-                display: '3xl',
-            },
-        },
-    };
+    const mockTokens: BrandingTokens = AdminTenantRequestBuilder.forTenant('tenant-theme-tokens').buildTokens();
 
     beforeAll(async () => {
         adminUser = await apiDriver.getDefaultAdminUser();
     });
 
     const createTenantWithTokens = async (tenantId: string) => {
-        const tenantData = {// todo: use a builder
-            tenantId,
-            branding: {
-                appName: 'Test Theme Tenant',
-                logoUrl: 'https://foo/branding/test/logo.svg',
-                faviconUrl: 'https://foo/branding/test/favicon.png',
-                primaryColor: '#2563eb',
-                secondaryColor: '#7c3aed',
-                accentColor: '#f97316',
-                themePalette: 'default',
-            },
-            brandingTokens: {
-                tokens: mockTokens,
-            },
-            domains: {
-                primary: 'theme.example.com',
-                aliases: [],
-                normalized: ['theme.example.com'],
-            },
-            defaultTenant: false,
-        };
+        const tenantData = AdminTenantRequestBuilder.forTenant(tenantId)
+            .withBranding({
+                appName: toTenantAppName('Test Theme Tenant'),
+                logoUrl: toTenantLogoUrl('https://foo/branding/test/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('https://foo/branding/test/favicon.png'),
+                primaryColor: toTenantPrimaryColor('#2563eb'),
+                secondaryColor: toTenantSecondaryColor('#7c3aed'),
+                accentColor: toTenantAccentColor('#f97316'),
+                themePalette: toTenantThemePaletteName('default'),
+            })
+            .withBrandingTokens({ tokens: mockTokens })
+            .withPrimaryDomain(toTenantDomainName('theme.example.com'))
+            .withDomainAliases([])
+            .build();
 
         await apiDriver.adminUpsertTenant(adminUser.token, tenantData);
     };

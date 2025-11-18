@@ -10,6 +10,7 @@ import {
     SystemUserRoles,
     toAmount,
     toGroupName,
+    toTenantDomainName,
     UserBalance,
 } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
@@ -17,7 +18,8 @@ import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { toExpenseId } from '@billsplit-wl/shared';
 import { toPassword } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseSplitBuilder, ExpenseUpdateBuilder, PasswordChangeRequestBuilder, RegisterRequestBuilder, UserUpdateBuilder, ClientUserBuilder, GroupUpdateBuilder, SettlementUpdateBuilder } from '@billsplit-wl/test-support';
+import { AdminTenantRequestBuilder } from './AdminTenantRequestBuilder';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from './AppDriver';
 
@@ -346,11 +348,11 @@ describe('app tests', () => {
 
             const participants = [user1, user2, user3];
 
-            const exactSplits = [
+            const exactSplits = ExpenseSplitBuilder.exactSplit([
                 { uid: user1, amount: '120.10' },
                 { uid: user2, amount: '80.05' },
                 { uid: user3, amount: '75.10' },
-            ];
+            ]).build();
 
             const createdExpense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
@@ -818,10 +820,7 @@ describe('app tests', () => {
             expect(previewAfterJoin.isAlreadyMember).toBe(true);
             expect(previewAfterJoin.memberCount).toBe(2);
 
-            await appDriver.updateGroup(groupId, {
-                name: toGroupName('Adventure Squad+'),
-                description: 'Updated itinerary for the squad',
-            }, user1);
+            await appDriver.updateGroup(groupId, new GroupUpdateBuilder().withName(toGroupName('Adventure Squad+')).withDescription('Updated itinerary for the squad').build(), user1);
             await appDriver.updateGroupMemberDisplayName(groupId, 'Squad Leader', user1);
 
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
@@ -886,10 +885,7 @@ describe('app tests', () => {
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBe('20.00');
             expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBe('20.00');
 
-            await appDriver.updateSettlement(settlementId, {
-                amount: '50.00',
-                note: 'Adjusted amount',
-            }, user2);
+            await appDriver.updateSettlement(settlementId, new SettlementUpdateBuilder().withAmount('50.00', 'USD').withNote('Adjusted amount').build(), user2);
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBeUndefined();
@@ -1216,10 +1212,7 @@ describe('app tests', () => {
             const details = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = details.settlements.settlements[0].id;
 
-            await expect(appDriver.updateSettlement(settlementId, {
-                amount: '20.123',
-                currency: 'USD',
-            }, user2))
+            await expect(appDriver.updateSettlement(settlementId, new SettlementUpdateBuilder().withAmount('20.123', 'USD').withCurrency('USD').build(), user2))
                 .rejects
                 .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
@@ -2273,11 +2266,11 @@ describe('app tests', () => {
                 await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
                 const participants = [user1, user2, user3];
-                const invalidPercentageSplits = [
+                const invalidPercentageSplits = ExpenseSplitBuilder.exactSplit([
                     { uid: user1, amount: '40.00', percentage: 40 },
                     { uid: user2, amount: '40.00', percentage: 40 },
                     { uid: user3, amount: '19.00', percentage: 19 },
-                ];
+                ]).build();
 
                 const expenseRequest = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -2300,10 +2293,10 @@ describe('app tests', () => {
                 await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 const participants = [user1, user2];
-                const invalidPercentageSplits = [
+                const invalidPercentageSplits = ExpenseSplitBuilder.exactSplit([
                     { uid: user1, amount: '120.00', percentage: 120 },
                     { uid: user2, amount: '-20.00', percentage: -20 },
-                ];
+                ]).build();
 
                 const expenseRequest = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -3166,7 +3159,7 @@ describe('app tests', () => {
         it('should handle group updates', async () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
-            await appDriver.updateGroup(group.id, { name: toGroupName('Updated Name') }, user1);
+            await appDriver.updateGroup(group.id, new GroupUpdateBuilder().withName(toGroupName('Updated Name')).build(), user1);
 
             await appDriver.expectNotificationUpdate(user1, group.id, {
                 groupDetailsChangeCount: 2,
@@ -3387,14 +3380,16 @@ describe('app tests', () => {
         });
 
         it('should register a new user through the registration workflow', async () => {
-            const registrationResult = await appDriver.registerUser({
-                displayName: toDisplayName('Registered User'),
-                email: 'registered@example.com',
-                password: toPassword('ValidPass123!'),
-                termsAccepted: true,
-                cookiePolicyAccepted: true,
-                privacyPolicyAccepted: true,
-            });
+            const registrationResult = await appDriver.registerUser(
+                new RegisterRequestBuilder()
+                    .withDisplayName('Registered User')
+                    .withEmail('registered@example.com')
+                    .withPassword('ValidPass123!')
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
+                    .build()
+            );
 
             expect(registrationResult.success).toBe(true);
             expect(registrationResult.user.displayName).toBe('Registered User');
@@ -3408,14 +3403,16 @@ describe('app tests', () => {
 
         it('should reject registration when privacy policy is not accepted', async () => {
             await expect(
-                appDriver.registerUser({
-                    displayName: toDisplayName('Privacy Reject'),
-                    email: 'privacy.reject@example.com',
-                    password: toPassword('ValidPass123!'),
-                    termsAccepted: true,
-                    cookiePolicyAccepted: true,
-                    privacyPolicyAccepted: false,
-                }),
+                appDriver.registerUser(
+                    new RegisterRequestBuilder()
+                        .withDisplayName('Privacy Reject')
+                        .withEmail('privacy.reject@example.com')
+                        .withPassword('ValidPass123!')
+                        .withTermsAccepted(true)
+                        .withCookiePolicyAccepted(true)
+                        .withPrivacyPolicyAccepted(false)
+                        .build()
+                ),
             )
                 .rejects
                 .toThrow(/Privacy Policy/);
@@ -3423,9 +3420,10 @@ describe('app tests', () => {
 
         describe('updateUserProfile', () => {
             it('should update display name successfully', async () => {
-                const updatedProfile = await appDriver.updateUserProfile({
-                    displayName: 'Updated Name',
-                }, user1);
+                const updatedProfile = await appDriver.updateUserProfile(
+                    new UserUpdateBuilder().withDisplayName('Updated Name').build(),
+                    user1
+                );
 
                 expect(updatedProfile.displayName).toBe('Updated Name');
 
@@ -3434,9 +3432,10 @@ describe('app tests', () => {
             });
 
             it('should sanitize display name input', async () => {
-                const updatedProfile = await appDriver.updateUserProfile({
-                    displayName: '<script>alert("xss")</script>Clean Name',
-                }, user1);
+                const updatedProfile = await appDriver.updateUserProfile(
+                    new UserUpdateBuilder().withDisplayName('<script>alert("xss")</script>Clean Name').build(),
+                    user1
+                );
 
                 expect(updatedProfile.displayName).not.toContain('<script>');
                 expect(updatedProfile.displayName).toContain('Clean Name');
@@ -3444,7 +3443,7 @@ describe('app tests', () => {
 
             it('should reject empty display name', async () => {
                 await expect(
-                    appDriver.updateUserProfile({ displayName: '' }, user1),
+                    appDriver.updateUserProfile(new UserUpdateBuilder().withDisplayName('').build(), user1),
                 )
                     .rejects
                     .toThrow();
@@ -3453,7 +3452,7 @@ describe('app tests', () => {
             it('should reject display name that is too long', async () => {
                 const tooLongName = 'a'.repeat(256);
                 await expect(
-                    appDriver.updateUserProfile({ displayName: tooLongName }, user1),
+                    appDriver.updateUserProfile(new UserUpdateBuilder().withDisplayName(tooLongName).build(), user1),
                 )
                     .rejects
                     .toThrow();
@@ -3465,20 +3464,26 @@ describe('app tests', () => {
             const VALID_NEW_PASSWORD = toPassword('NewSecurePass123!');
 
             it('should successfully change password with valid credentials', async () => {
-                const result = await appDriver.changePassword({
-                    currentPassword: VALID_CURRENT_PASSWORD,
-                    newPassword: VALID_NEW_PASSWORD,
-                }, user1);
+                const result = await appDriver.changePassword(
+                    new PasswordChangeRequestBuilder()
+                        .withCurrentPassword(VALID_CURRENT_PASSWORD)
+                        .withNewPassword(VALID_NEW_PASSWORD)
+                        .build(),
+                    user1
+                );
 
                 expect(result.message).toBe('Password changed successfully');
             });
 
             it('should reject when current password is incorrect', async () => {
                 await expect(
-                    appDriver.changePassword({
-                        currentPassword: toPassword('WrongPassword123!'),
-                        newPassword: VALID_NEW_PASSWORD,
-                    }, user1),
+                    appDriver.changePassword(
+                        new PasswordChangeRequestBuilder()
+                            .withCurrentPassword('WrongPassword123!')
+                            .withNewPassword(VALID_NEW_PASSWORD)
+                            .build(),
+                        user1
+                    ),
                 )
                     .rejects
                     .toThrow(/password is incorrect/i);
@@ -3486,10 +3491,13 @@ describe('app tests', () => {
 
             it('should reject when new password is same as current', async () => {
                 await expect(
-                    appDriver.changePassword({
-                        currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: VALID_CURRENT_PASSWORD,
-                    }, user1),
+                    appDriver.changePassword(
+                        new PasswordChangeRequestBuilder()
+                            .withCurrentPassword(VALID_CURRENT_PASSWORD)
+                            .withNewPassword(VALID_CURRENT_PASSWORD)
+                            .build(),
+                        user1
+                    ),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3497,10 +3505,13 @@ describe('app tests', () => {
 
             it('should reject when new password is too short', async () => {
                 await expect(
-                    appDriver.changePassword({
-                        currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: toPassword('Short1!'),
-                    }, user1),
+                    appDriver.changePassword(
+                        new PasswordChangeRequestBuilder()
+                            .withCurrentPassword(VALID_CURRENT_PASSWORD)
+                            .withNewPassword('Short1!')
+                            .build(),
+                        user1
+                    ),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3508,9 +3519,12 @@ describe('app tests', () => {
 
             it('should reject when currentPassword field is missing', async () => {
                 await expect(
-                    appDriver.changePassword({
-                        newPassword: VALID_NEW_PASSWORD,
-                    } as any, user1),
+                    appDriver.changePassword(
+                        new PasswordChangeRequestBuilder()
+                            .withNewPassword(VALID_NEW_PASSWORD)
+                            .build(),
+                        user1
+                    ),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3518,9 +3532,12 @@ describe('app tests', () => {
 
             it('should reject when newPassword field is missing', async () => {
                 await expect(
-                    appDriver.changePassword({
-                        currentPassword: VALID_CURRENT_PASSWORD,
-                    } as any, user1),
+                    appDriver.changePassword(
+                        new PasswordChangeRequestBuilder()
+                            .withCurrentPassword(VALID_CURRENT_PASSWORD)
+                            .build(),
+                        user1
+                    ),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3528,10 +3545,13 @@ describe('app tests', () => {
 
             it('should reject when currentPassword is empty string', async () => {
                 await expect(
-                    appDriver.changePassword({
-                        currentPassword: toPassword(''),
-                        newPassword: VALID_NEW_PASSWORD,
-                    }, user1),
+                    appDriver.changePassword(
+                        new PasswordChangeRequestBuilder()
+                            .withCurrentPassword('')
+                            .withNewPassword(VALID_NEW_PASSWORD)
+                            .build(),
+                        user1
+                    ),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -3539,10 +3559,13 @@ describe('app tests', () => {
 
             it('should reject when newPassword is empty string', async () => {
                 await expect(
-                    appDriver.changePassword({
-                        currentPassword: VALID_CURRENT_PASSWORD,
-                        newPassword: toPassword(''),
-                    }, user1),
+                    appDriver.changePassword(
+                        new PasswordChangeRequestBuilder()
+                            .withCurrentPassword(VALID_CURRENT_PASSWORD)
+                            .withNewPassword('')
+                            .build(),
+                        user1
+                    ),
                 )
                     .rejects
                     .toThrow(/invalid input/i);
@@ -4000,199 +4023,8 @@ describe('app tests', () => {
         });
 
         describe('POST /api/admin/tenants - upsertTenant', () => {
-            const createValidTenantPayload = (tenantId: string) => ({//todo: user a builder
-                tenantId,
-                branding: {
-                    appName: 'Test Tenant App',
-                    logoUrl: 'https://foo/branding/test/logo.svg',
-                    faviconUrl: 'https://foo/branding/test/favicon.png',
-                    primaryColor: '#2563eb',
-                    secondaryColor: '#7c3aed',
-                    accentColor: '#f97316',
-                    themePalette: 'default',
-                },
-                brandingTokens: {
-                    tokens: {
-                        version: 1,
-                        palette: {
-                            primary: '#2563eb',
-                            primaryVariant: '#1d4ed8',
-                            secondary: '#7c3aed',
-                            secondaryVariant: '#6d28d9',
-                            accent: '#f97316',
-                            neutral: '#f8fafc',
-                            neutralVariant: '#e2e8f0',
-                            success: '#22c55e',
-                            warning: '#eab308',
-                            danger: '#ef4444',
-                            info: '#38bdf8',
-                        },
-                        typography: {
-                            fontFamily: {
-                                sans: 'Space Grotesk, Inter, system-ui, -apple-system, BlinkMacSystemFont',
-                                serif: 'Fraunces, Georgia, serif',
-                                mono: 'JetBrains Mono, SFMono-Regular, Menlo, monospace',
-                            },
-                            sizes: {
-                                xs: '0.75rem',
-                                sm: '0.875rem',
-                                md: '1rem',
-                                lg: '1.125rem',
-                                xl: '1.25rem',
-                                '2xl': '1.5rem',
-                                '3xl': '1.875rem',
-                                '4xl': '2.25rem',
-                                '5xl': '3rem',
-                            },
-                            weights: {
-                                regular: 400,
-                                medium: 500,
-                                semibold: 600,
-                                bold: 700,
-                            },
-                            lineHeights: {
-                                compact: '1.25rem',
-                                standard: '1.5rem',
-                                spacious: '1.75rem',
-                            },
-                            letterSpacing: {
-                                tight: '-0.02rem',
-                                normal: '0rem',
-                                wide: '0.04rem',
-                            },
-                            semantics: {
-                                body: 'md',
-                                bodyStrong: 'md',
-                                caption: 'sm',
-                                button: 'sm',
-                                eyebrow: 'xs',
-                                heading: '2xl',
-                                display: '4xl',
-                            },
-                        },
-                        spacing: {
-                            '2xs': '0.125rem',
-                            xs: '0.25rem',
-                            sm: '0.5rem',
-                            md: '0.75rem',
-                            lg: '1rem',
-                            xl: '1.5rem',
-                            '2xl': '2rem',
-                        },
-                        radii: {
-                            none: '0px',
-                            sm: '4px',
-                            md: '8px',
-                            lg: '16px',
-                            pill: '999px',
-                            full: '9999px',
-                        },
-                        shadows: {
-                            sm: '0 1px 2px rgba(15, 23, 42, 0.08)',
-                            md: '0 4px 12px rgba(15, 23, 42, 0.12)',
-                            lg: '0 20px 60px rgba(15, 23, 42, 0.18)',
-                        },
-                        assets: {
-                            logoUrl: 'https://foo/branding/test/logo.svg',
-                            faviconUrl: 'https://foo/branding/test/favicon.png',
-                        },
-                        legal: {
-                            companyName: 'Test Company',
-                            supportEmail: 'support@test.com',
-                            privacyPolicyUrl: 'https://test.com/privacy',
-                            termsOfServiceUrl: 'https://test.com/terms',
-                        },
-                        semantics: {
-                            colors: {
-                                surface: {
-                                    base: '#f8fafc',
-                                    raised: '#fafbfc',
-                                    sunken: '#eff1f3',
-                                    overlay: '#0f172a',
-                                    warning: '#fef3c7',
-                                },
-                                text: {
-                                    primary: '#0f172a',
-                                    secondary: '#475569',
-                                    muted: '#94a3b8',
-                                    inverted: '#ffffff',
-                                    accent: '#f97316',
-                                },
-                                interactive: {
-                                    primary: '#2563eb',
-                                    primaryHover: '#224dc7',
-                                    primaryActive: '#1f45b3',
-                                    primaryForeground: '#ffffff',
-                                    secondary: '#7c3aed',
-                                    secondaryHover: '#7235d9',
-                                    secondaryActive: '#6730c5',
-                                    secondaryForeground: '#ffffff',
-                                    destructive: '#ef4444',
-                                    destructiveHover: '#dc3e3e',
-                                    destructiveActive: '#c93838',
-                                    destructiveForeground: '#ffffff',
-                                    accent: '#f97316',
-                                },
-                                border: {
-                                    subtle: '#e2e8f0',
-                                    default: '#cbd5f5',
-                                    strong: '#94a3b8',
-                                    focus: '#f97316',
-                                    warning: '#fbbf24',
-                                },
-                                status: {
-                                    success: '#22c55e',
-                                    warning: '#eab308',
-                                    danger: '#ef4444',
-                                    info: '#38bdf8',
-                                },
-                            },
-                            spacing: {
-                                pagePadding: '1.5rem',
-                                sectionGap: '2rem',
-                                cardPadding: '1rem',
-                                componentGap: '0.75rem',
-                            },
-                            typography: {
-                                body: 'md',
-                                bodyStrong: 'md',
-                                caption: 'sm',
-                                button: 'sm',
-                                eyebrow: 'xs',
-                                heading: '2xl',
-                                display: '4xl',
-                            },
-                        },
-                        motion: {
-                            duration: {
-                                instant: 50,
-                                fast: 150,
-                                base: 250,
-                                slow: 400,
-                                glacial: 800,
-                            },
-                            easing: {
-                                standard: 'cubic-bezier(0.22, 1, 0.36, 1)',
-                                decelerate: 'cubic-bezier(0.05, 0.7, 0.1, 1)',
-                                accelerate: 'cubic-bezier(0.3, 0, 0.8, 0.15)',
-                                spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-                            },
-                            enableParallax: false,
-                            enableMagneticHover: false,
-                            enableScrollReveal: false,
-                        },
-                    },
-                },
-                domains: {
-                    primary: 'foo',
-                    aliases: ['bar'],
-                    normalized: ['foo', 'bar'],
-                },
-                defaultTenant: false,
-            });
-
             it('should create a new tenant when it does not exist', async () => {
-                const payload = createValidTenantPayload('tenant_new_test');
+                const payload = AdminTenantRequestBuilder.forTenant('tenant_new_test').build();
 
                 const result = await appDriver.upsertTenant(adminUser, payload);
 
@@ -4203,20 +4035,16 @@ describe('app tests', () => {
             });
 
             it('should update an existing tenant when it already exists', async () => {
-                const payload = createValidTenantPayload('tenant_existing_test');
+                const payload = AdminTenantRequestBuilder.forTenant('tenant_existing_test').build();
 
                 // Create tenant first
                 const createResult = await appDriver.upsertTenant(adminUser, payload);
                 expect(createResult.created).toBe(true);
 
                 // Update the same tenant
-                const updatedPayload = {
-                    ...payload,
-                    branding: {
-                        ...payload.branding,
-                        appName: 'Updated Tenant App',
-                    },
-                };
+                const updatedPayload = AdminTenantRequestBuilder.forTenant('tenant_existing_test')
+                    .withAppName('Updated Tenant App')
+                    .build();
 
                 const updateResult = await appDriver.upsertTenant(adminUser, updatedPayload);
 
@@ -4227,17 +4055,9 @@ describe('app tests', () => {
             });
 
             it('should reject invalid branding tokens schema', async () => {
-                const invalidPayload = {
-                    ...createValidTenantPayload('tenant_invalid'),
-                    brandingTokens: {
-                        tokens: {
-                            version: 1,
-                            palette: {
-                                primary: 'not-a-hex-color', // Invalid hex color
-                            },
-                        },
-                    },
-                };
+                const invalidPayload = AdminTenantRequestBuilder.forTenant('tenant_invalid')
+                    .withPaletteColor('primary', 'not-a-hex-color') // Invalid hex color
+                    .build();
 
                 await expect(appDriver.upsertTenant(adminUser, invalidPayload)).rejects.toThrow();
             });
@@ -4249,7 +4069,7 @@ describe('app tests', () => {
                         appName: 'Test App',
                         // Missing required fields
                     },
-                };
+                } as any;
 
                 await expect(appDriver.upsertTenant(adminUser, invalidPayload)).rejects.toThrow();
             });
@@ -4258,7 +4078,7 @@ describe('app tests', () => {
                 const regularUser = 'regular-user';
                 appDriver.seedUser(regularUser, { displayName: 'Regular User', email: 'regular@test.com' });
 
-                const payload = createValidTenantPayload('tenant_unauthorized');
+                const payload = AdminTenantRequestBuilder.forTenant('tenant_unauthorized').build();
 
                 const result = await appDriver.upsertTenant(regularUser, payload);
                 expect(result).toMatchObject({
@@ -4272,7 +4092,7 @@ describe('app tests', () => {
                 const systemAdmin = 'system-admin';
                 appDriver.seedAdminUser(systemAdmin, {});
 
-                const payload = createValidTenantPayload('tenant_system_admin');
+                const payload = AdminTenantRequestBuilder.forTenant('tenant_system_admin').build();
 
                 const result = await appDriver.upsertTenant(systemAdmin, payload);
 
@@ -4283,10 +4103,10 @@ describe('app tests', () => {
             });
 
             it('should preserve brandingTokens with negative CSS values', async () => {
-                const payload = createValidTenantPayload('tenant_negative_css');
-
                 // Ensure negative letter-spacing is preserved
-                payload.brandingTokens.tokens.typography.letterSpacing.tight = '-0.02rem';
+                const payload = AdminTenantRequestBuilder.forTenant('tenant_negative_css')
+                    .withLetterSpacing('tight', '-0.02rem')
+                    .build();
 
                 const result = await appDriver.upsertTenant(adminUser, payload);
 
@@ -4303,10 +4123,9 @@ describe('app tests', () => {
             });
 
             it('should handle default tenant flag correctly', async () => {
-                const payloadWithDefault = {
-                    ...createValidTenantPayload('tenant_default_flag'),
-                    defaultTenant: true,
-                };
+                const payloadWithDefault = AdminTenantRequestBuilder.forTenant('tenant_default_flag')
+                    .asDefaultTenant()
+                    .build();
 
                 const result = await appDriver.upsertTenant(adminUser, payloadWithDefault);
 
@@ -4323,12 +4142,13 @@ describe('app tests', () => {
             });
 
             it('should validate domain normalization', async () => {
-                const payload = createValidTenantPayload('tenant_domains');
-                payload.domains = {
-                    primary: 'example.bar',
-                    aliases: ['www.foo', 'example.bar'],
-                    normalized: ['example.bar', 'www.foo', 'example.bar'],
-                };
+                const payload = AdminTenantRequestBuilder.forTenant('tenant_domains')
+                    .withDomains({
+                        primary: toTenantDomainName('example.bar'),
+                        aliases: [toTenantDomainName('www.foo'), toTenantDomainName('example.bar')],
+                        normalized: [toTenantDomainName('example.bar'), toTenantDomainName('www.foo'), toTenantDomainName('example.bar')],
+                    })
+                    .build();
 
                 const result = await appDriver.upsertTenant(adminUser, payload);
 
@@ -4362,7 +4182,6 @@ describe('app tests', () => {
             appDriver.seedUser(regularUser, {
                 email: 'regular@test.com',
                 displayName: 'Regular User',
-                role: SystemUserRoles.SYSTEM_USER,
             });
         });
 

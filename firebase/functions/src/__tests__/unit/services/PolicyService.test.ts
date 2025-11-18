@@ -463,10 +463,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 .build();
 
             // Add old version
-            mockPolicy.versions[versionToDelete] = {
-                text: 'Old content',
-                createdAt: convertToISOString(new Date()),
-            };
+            mockPolicy.versions[versionToDelete] = { text: 'Old content', createdAt: convertToISOString(new Date()) };
 
             db.seedPolicy(policyId, mockPolicy);
 
@@ -499,10 +496,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 .build();
 
             // Add another version
-            mockPolicy.versions['another-version'] = {
-                text: 'Another content',
-                createdAt: convertToISOString(new Date()),
-            };
+            mockPolicy.versions['another-version'] = { text: 'Another content', createdAt: convertToISOString(new Date()) };
 
             db.seedPolicy(policyId, mockPolicy);
 
@@ -659,10 +653,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 .withVersionText(currentVersion, 'Current content')
                 .build();
 
-            mockPolicy.versions[newVersion] = {
-                text: 'New content',
-                createdAt: convertToISOString(new Date()),
-            };
+            mockPolicy.versions[newVersion] = { text: 'New content', createdAt: convertToISOString(new Date()) };
 
             db.seedPolicy(policyId, mockPolicy);
 
@@ -797,14 +788,8 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 .withVersionText(version1Hash, version1Text)
                 .build();
 
-            policy.versions[version2Hash] = {
-                text: version2Text,
-                createdAt: convertToISOString(new Date()),
-            };
-            policy.versions[version3Hash] = {
-                text: version3Text,
-                createdAt: convertToISOString(new Date()),
-            };
+            policy.versions[version2Hash] = { text: version2Text, createdAt: convertToISOString(new Date()) };
+            policy.versions[version3Hash] = { text: version3Text, createdAt: convertToISOString(new Date()) };
 
             db.seedPolicy(policyId, policy);
 

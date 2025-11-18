@@ -2,6 +2,7 @@ import { toGroupId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { toTenantAppName, toTenantDefaultFlag, toTenantDomainName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import { GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { TenantPayloadBuilder } from '../TenantPayloadBuilder';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -191,32 +192,48 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         firestoreReader = applicationBuilder.buildFirestoreReader();
     });
 
-    const createTenantData = (appName: string, domain: string, isDefault: boolean) => ({
-        branding: {
-            appName: toTenantAppName(appName),
-            logoUrl: toTenantLogoUrl('/logo.svg'),
-            faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-            primaryColor: toTenantPrimaryColor('#000000'),
-            secondaryColor: toTenantSecondaryColor('#ffffff'),
-        },
-        domains: {
-            primary: toTenantDomainName(domain),
-            aliases: [],
-            normalized: [toTenantDomainName(domain)],
-        },
-        defaultTenant: toTenantDefaultFlag(isDefault),
-    });
+    
+    
+    
 
     it('should prevent removing default flag from default tenant', async () => {
         const tenantId = 'test-tenant-1';
 
         // Create a default tenant
-        await firestoreWriter.upsertTenant(tenantId, createTenantData('Test Tenant 1', 'test1.example.com', true));
+        await firestoreWriter.upsertTenant(tenantId, new TenantPayloadBuilder('test-tenant')
+            .withBranding({
+                appName: toTenantAppName('Test Tenant 1'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#000000'),
+                secondaryColor: toTenantSecondaryColor('#ffffff'),
+            })
+            .withDomains({
+                primary: toTenantDomainName('test1.example.com'),
+                aliases: [],
+                normalized: [toTenantDomainName('test1.example.com')],
+            })
+            .withDefaultTenantFlag(true)
+            .build());
 
         // Try to remove the default flag
         let caughtError: ApiError | undefined;
         try {
-            await firestoreWriter.upsertTenant(tenantId, createTenantData('Test Tenant 1', 'test1.example.com', false));
+            await firestoreWriter.upsertTenant(tenantId, new TenantPayloadBuilder('test-tenant')
+            .withBranding({
+                appName: toTenantAppName('Test Tenant 1'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#000000'),
+                secondaryColor: toTenantSecondaryColor('#ffffff'),
+            })
+            .withDomains({
+                primary: toTenantDomainName('test1.example.com'),
+                aliases: [],
+                normalized: [toTenantDomainName('test1.example.com')],
+            })
+            .withDefaultTenantFlag(false)
+            .build());
         } catch (error) {
             caughtError = error as ApiError;
         }
@@ -233,14 +250,42 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         const tenant2Id = 'test-tenant-2';
 
         // Create first tenant as default
-        await firestoreWriter.upsertTenant(tenant1Id, createTenantData('Test Tenant 1', 'test1.example.com', true));
+        await firestoreWriter.upsertTenant(tenant1Id, new TenantPayloadBuilder('test-tenant')
+            .withBranding({
+                appName: toTenantAppName('Test Tenant 1'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#000000'),
+                secondaryColor: toTenantSecondaryColor('#ffffff'),
+            })
+            .withDomains({
+                primary: toTenantDomainName('test1.example.com'),
+                aliases: [],
+                normalized: [toTenantDomainName('test1.example.com')],
+            })
+            .withDefaultTenantFlag(true)
+            .build());
 
         // Verify tenant1 is default
         const tenant1Before = await firestoreReader.getTenantById(toTenantId(tenant1Id));
         expect(tenant1Before?.isDefault).toBe(true);
 
         // Create second tenant and make it default
-        await firestoreWriter.upsertTenant(tenant2Id, createTenantData('Test Tenant 2', 'test2.example.com', true));
+        await firestoreWriter.upsertTenant(tenant2Id, new TenantPayloadBuilder('test-tenant')
+            .withBranding({
+                appName: toTenantAppName('Test Tenant 2'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#000000'),
+                secondaryColor: toTenantSecondaryColor('#ffffff'),
+            })
+            .withDomains({
+                primary: toTenantDomainName('test2.example.com'),
+                aliases: [],
+                normalized: [toTenantDomainName('test2.example.com')],
+            })
+            .withDefaultTenantFlag(true)
+            .build());
 
         // Verify tenant2 is now default
         const tenant2After = await firestoreReader.getTenantById(toTenantId(tenant2Id));
@@ -256,10 +301,38 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         const tenant2Id = 'test-tenant-2';
 
         // Create default tenant
-        await firestoreWriter.upsertTenant(tenant1Id, createTenantData('Test Tenant 1', 'test1.example.com', true));
+        await firestoreWriter.upsertTenant(tenant1Id, new TenantPayloadBuilder('test-tenant')
+            .withBranding({
+                appName: toTenantAppName('Test Tenant 1'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#000000'),
+                secondaryColor: toTenantSecondaryColor('#ffffff'),
+            })
+            .withDomains({
+                primary: toTenantDomainName('test1.example.com'),
+                aliases: [],
+                normalized: [toTenantDomainName('test1.example.com')],
+            })
+            .withDefaultTenantFlag(true)
+            .build());
 
         // Create non-default tenant (should not throw)
-        await firestoreWriter.upsertTenant(tenant2Id, createTenantData('Test Tenant 2', 'test2.example.com', false));
+        await firestoreWriter.upsertTenant(tenant2Id, new TenantPayloadBuilder('test-tenant')
+            .withBranding({
+                appName: toTenantAppName('Test Tenant 2'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#000000'),
+                secondaryColor: toTenantSecondaryColor('#ffffff'),
+            })
+            .withDomains({
+                primary: toTenantDomainName('test2.example.com'),
+                aliases: [],
+                normalized: [toTenantDomainName('test2.example.com')],
+            })
+            .withDefaultTenantFlag(false)
+            .build());
 
         // Verify both tenants exist with correct default flags
         const tenant1 = await firestoreReader.getTenantById(toTenantId(tenant1Id));
@@ -274,11 +347,53 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
         const tenant2Id = 'test-tenant-2';
 
         // Create default and non-default tenants
-        await firestoreWriter.upsertTenant(tenant1Id, createTenantData('Test Tenant 1', 'test1.example.com', true));
-        await firestoreWriter.upsertTenant(tenant2Id, createTenantData('Test Tenant 2', 'test2.example.com', false));
+        await firestoreWriter.upsertTenant(tenant1Id, new TenantPayloadBuilder('test-tenant')
+            .withBranding({
+                appName: toTenantAppName('Test Tenant 1'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#000000'),
+                secondaryColor: toTenantSecondaryColor('#ffffff'),
+            })
+            .withDomains({
+                primary: toTenantDomainName('test1.example.com'),
+                aliases: [],
+                normalized: [toTenantDomainName('test1.example.com')],
+            })
+            .withDefaultTenantFlag(true)
+            .build());
+        await firestoreWriter.upsertTenant(tenant2Id, new TenantPayloadBuilder('test-tenant')
+            .withBranding({
+                appName: toTenantAppName('Test Tenant 2'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#000000'),
+                secondaryColor: toTenantSecondaryColor('#ffffff'),
+            })
+            .withDomains({
+                primary: toTenantDomainName('test2.example.com'),
+                aliases: [],
+                normalized: [toTenantDomainName('test2.example.com')],
+            })
+            .withDefaultTenantFlag(false)
+            .build());
 
         // Update non-default tenant (keeping it non-default)
-        await firestoreWriter.upsertTenant(tenant2Id, createTenantData('Updated Tenant 2', 'test2.example.com', false));
+        await firestoreWriter.upsertTenant(tenant2Id, new TenantPayloadBuilder('test-tenant')
+            .withBranding({
+                appName: toTenantAppName('Updated Tenant 2'),
+                logoUrl: toTenantLogoUrl('/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('/favicon.ico'),
+                primaryColor: toTenantPrimaryColor('#000000'),
+                secondaryColor: toTenantSecondaryColor('#ffffff'),
+            })
+            .withDomains({
+                primary: toTenantDomainName('test2.example.com'),
+                aliases: [],
+                normalized: [toTenantDomainName('test2.example.com')],
+            })
+            .withDefaultTenantFlag(false)
+            .build());
 
         // Verify tenant1 is still default
         const tenant1 = await firestoreReader.getTenantById(toTenantId(tenant1Id));

@@ -1,33 +1,36 @@
 import type { PooledTestUser } from '@billsplit-wl/shared';
-import { brandingTokenFixtures } from '@billsplit-wl/shared';
+import {
+    brandingTokenFixtures,
+    toTenantAccentColor,
+    toTenantAppName,
+    toTenantFaviconUrl,
+    toTenantLogoUrl,
+    toTenantPrimaryColor,
+    toTenantSecondaryColor,
+    toTenantThemePaletteName,
+} from '@billsplit-wl/shared';
 import { ApiDriver } from '@billsplit-wl/test-support';
+import { AdminTenantRequestBuilder } from '../../unit/AdminTenantRequestBuilder';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { getFirestore } from '../../../firebase';
 
 const buildTenantPayload = (tenantId: string) => {
     const tokens = brandingTokenFixtures.localhost;
-    return {
-        tenantId,
-        branding: {
-            appName: 'Theming Fixture Tenant',
-            logoUrl: tokens.assets.logoUrl,
-            faviconUrl: tokens.assets.faviconUrl,
-            primaryColor: tokens.palette.primary,
-            secondaryColor: tokens.palette.secondary,
-            accentColor: tokens.palette.accent,
-            themePalette: 'default',
-        },
-        brandingTokens: {
-            tokens,
-        },
-        domains: {
-            primary: `${tenantId}.local.test`,
-            aliases: [],
-            normalized: [`${tenantId}.local.test`],
-        },
-        defaultTenant: false,
-    };
+    return AdminTenantRequestBuilder.forTenant(tenantId)
+        .withBranding({
+            appName: toTenantAppName('Theming Fixture Tenant'),
+            logoUrl: toTenantLogoUrl(tokens.assets.logoUrl),
+            faviconUrl: toTenantFaviconUrl(tokens.assets.faviconUrl || 'https://example.com/favicon.ico'),
+            primaryColor: toTenantPrimaryColor(tokens.palette.primary),
+            secondaryColor: toTenantSecondaryColor(tokens.palette.secondary),
+            accentColor: toTenantAccentColor(tokens.palette.accent),
+            themePalette: toTenantThemePaletteName('default'),
+        })
+        .withBrandingTokens({ tokens })
+        .withPrimaryDomain(`${tenantId}.local.test`)
+        .withDomainAliases([])
+        .build();
 };
 
 describe('Theme CSS delivery', () => {

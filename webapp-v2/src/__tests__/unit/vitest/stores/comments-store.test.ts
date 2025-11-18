@@ -50,6 +50,7 @@ import type { CommentsStoreTarget } from '@/stores/comments-store';
 import { CommentDTO, GroupId, ListCommentsResponse, toCommentText } from '@billsplit-wl/shared';
 import { toCommentId, toGroupId } from '@billsplit-wl/shared';
 import { toISOString } from '@billsplit-wl/shared';
+import { CommentBuilder } from '@billsplit-wl/test-support';
 
 const mockedApiClient = apiClient as unknown as {
     listGroupComments: Mock;
@@ -57,15 +58,14 @@ const mockedApiClient = apiClient as unknown as {
 };
 
 function createComment(id: string, message: string): CommentDTO {
-    const now = toISOString(new Date().toISOString());
-    return {
-        id: toCommentId(id),
-        text: toCommentText(message),
-        createdAt: now,
-        updatedAt: now,
-        authorId: `user-${id}`,
-        authorName: `User ${id}`,
-    };
+    return new CommentBuilder()
+        .withId(id)
+        .withText(message)
+        .withAuthorId(`user-${id}`)
+        .withAuthorName(`User ${id}`)
+        .withCreatedAt(new Date())
+        .withUpdatedAt(new Date())
+        .build();
 }
 
 function responseFor(comments: CommentDTO[]): ListCommentsResponse {

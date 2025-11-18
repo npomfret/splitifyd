@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseSplitBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { validateCreateSettlement } from '../../../settlements/validation';
@@ -13,10 +13,7 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withPaidBy('user1')
-                    .withSplits([
-                        { uid: 'user1', amount: '0.01' },
-                        { uid: 'user2', amount: '0.01' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '0.01').withSplit('user2', '0.01').build())
                     .build();
 
                 const result = validateCreateExpense(expenseData);
@@ -41,10 +38,10 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withPaidBy('user1')
-                    .withSplits([
+                    .withSplits(ExpenseSplitBuilder.exactSplit([
                         { uid: 'user1', amount: '499999.99' },
                         { uid: 'user2', amount: '499999.99' },
-                    ])
+                    ]).build())
                     .build();
 
                 const result = validateCreateExpense(expenseData);
@@ -59,7 +56,7 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1'])
                     .withPaidBy('user1')
-                    .withSplits([{ uid: 'user1', amount: '0' }])
+                    .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: 'user1', amount: '0' }]).build())
                     .withAmount(0, 'USD')
                     .build();
 
@@ -71,10 +68,10 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withPaidBy('user1')
-                    .withSplits([
+                    .withSplits(ExpenseSplitBuilder.exactSplit([
                         { uid: 'user1', amount: '25' },
                         { uid: 'user2', amount: '25' },
-                    ])
+                    ]).build())
                     .withAmount(-50, 'USD')
                     .build();
 
@@ -86,10 +83,7 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withPaidBy('user1')
-                    .withSplits([
-                        { uid: 'user1', amount: '0.01' },
-                        { uid: 'user2', amount: '0.01' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '0.01').withSplit('user2', '0.01').build())
                     .withAmount(-0.01, 'USD')
                     .build();
 
@@ -131,10 +125,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
-                    .withSplits([
-                        { uid: 'user1', amount: '60' },
-                        { uid: 'user2', amount: '30' }, // Only adds up to 90, not 100
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '60').withSplit('user2', '30').build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -146,11 +137,7 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2', 'user3'])
                     .withPaidBy('user1')
-                    .withSplits([
-                        { uid: 'user1', amount: '33.33' },
-                        { uid: 'user2', amount: '33.33' },
-                        { uid: 'user3', amount: '33.34' }, // Total: 100.00
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '33.33').withSplit('user2', '33.33').withSplit('user3', '33.34').build())
                     .build();
 
                 const result = validateCreateExpense(expenseData);
@@ -163,10 +150,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
-                    .withSplits([
-                        { uid: 'user1', amount: '50.0' },
-                        { uid: 'user2', amount: '49.0' }, // Total: 99.00
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '50.0').withSplit('user2', '49.0').build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -177,10 +161,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
-                    .withSplits([
-                        { uid: 'user1', amount: '120' },
-                        { uid: 'user2', amount: '-20' }, // Negative amount
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '120').withSplit('user2', '-20').build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -191,10 +172,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
-                    .withSplits([
-                        { uid: 'user1', amount: '100' },
-                        { uid: 'user2', amount: '0' }, // Zero amount
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '100').withSplit('user2', '0').build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -205,10 +183,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
-                    .withSplits([
-                        { uid: 'user1', amount: '50' },
-                        { uid: 'user1', amount: '50' }, // Duplicate user
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '50').withSplit('user1', '50').build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -219,10 +194,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1']) // Only user1 is a participant
-                    .withSplits([
-                        { uid: 'user1', amount: '50' },
-                        { uid: 'user2', amount: '50' }, // User2 is not a participant
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '50').withSplit('user2', '50').build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -233,10 +205,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2', 'user3']) // 3 participants
-                    .withSplits([
-                        { uid: 'user1', amount: '50' },
-                        { uid: 'user2', amount: '50' }, // Missing split for user3
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '50').withSplit('user2', '50').build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -249,10 +218,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('percentage')
                     .withParticipants(['user1', 'user2'])
-                    .withSplits([
-                        { uid: 'user1', amount: '60', percentage: 60 },
-                        { uid: 'user2', amount: '30', percentage: 30 }, // Only adds up to 90%
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '60', 60).withSplit('user2', '30', 30).build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -264,11 +230,7 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('percentage')
                     .withParticipants(['user1', 'user2', 'user3'])
                     .withPaidBy('user1')
-                    .withSplits([
-                        { uid: 'user1', amount: '33.33', percentage: 33.33 },
-                        { uid: 'user2', amount: '33.33', percentage: 33.33 },
-                        { uid: 'user3', amount: '33.34', percentage: 33.34 }, // Total: 100.00%
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '33.33', 33.33).withSplit('user2', '33.33', 33.33).withSplit('user3', '33.34', 33.34).build())
                     .build();
 
                 const result = validateCreateExpense(expenseData);
@@ -281,10 +243,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('percentage')
                     .withParticipants(['user1', 'user2'])
-                    .withSplits([
-                        { uid: 'user1', amount: '120', percentage: 120 },
-                        { uid: 'user2', amount: '-20', percentage: -20 }, // Negative percentage
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '120', 120).withSplit('user2', '-20', -20).build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -295,9 +254,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('percentage')
                     .withParticipants(['user1'])
-                    .withSplits([
-                        { uid: 'user1', amount: '100', percentage: 150 }, // 150% is over limit
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '100', 150).build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -308,9 +265,7 @@ describe('Input Validation Unit Tests', () => {
                     .withAmount(100, 'USD')
                     .withSplitType('percentage')
                     .withParticipants(['user1', 'user2']) // 2 participants
-                    .withSplits([
-                        { uid: 'user1', amount: '100', percentage: 100 }, // Missing split for user2
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit('user1', '100', 100).build())
                     .build();
 
                 expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);

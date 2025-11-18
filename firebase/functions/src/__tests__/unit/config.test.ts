@@ -10,26 +10,15 @@ describe('Configuration Response Functions', () => {
             expect(() => validateAppConfiguration(config)).not.toThrow();
         });
 
-        it('should validate configuration with tenant payload', () => {
-            const configWithTenant = new AppConfigurationBuilder()
+        it('should validate configuration with custom firebase config', () => {
+            const configWithCustomFirebase = new AppConfigurationBuilder()
                 .withFirebaseConfig({
-                    authDomain: 'tenant.firebaseapp.com',
-                    projectId: 'tenant-project',
-                    storageBucket: 'tenant.firebasestorage.app',
-                    messagingSenderId: '654321',
-                    appId: '1:654321:web:def',
-                })
-                .withTenantOverrides({
-                    tenantId: 'acme',
-                    branding: {
-                        marketingFlags: {
-                            showPricingPage: false,
-                        },
-                    },
+                    ...new AppConfigurationBuilder().build().firebase,
+                    apiKey: 'custom-api-key',
                 })
                 .build();
 
-            expect(() => validateAppConfiguration(configWithTenant)).not.toThrow();
+            expect(() => validateAppConfiguration(configWithCustomFirebase)).not.toThrow();
         });
 
         it('should reject invalid configuration', () => {

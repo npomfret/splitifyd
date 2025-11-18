@@ -1,6 +1,7 @@
 import { configStore } from '@/stores/config-store.ts';
 import type { AppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
 import { toISOString, toTenantAppName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
+import { BrandingConfigBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/app/firebase-config', () => ({
@@ -55,13 +56,13 @@ describe('configStore', () => {
     });
 
     it('updates branding metadata and theme when tenant branding exists', async () => {
-        const branding: BrandingConfig = {
-            appName: toTenantAppName('Branded'),
-            logoUrl: toTenantLogoUrl('https://logo.svg'),
-            faviconUrl: toTenantFaviconUrl('https://favicon.ico'),
-            primaryColor: toTenantPrimaryColor('#112233'),
-            secondaryColor: toTenantSecondaryColor('#445566'),
-        };
+        const branding: BrandingConfig = new BrandingConfigBuilder()
+            .withAppName('Branded')
+            .withLogoUrl('https://logo.svg')
+            .withFaviconUrl('https://favicon.ico')
+            .withPrimaryColor('#112233')
+            .withSecondaryColor('#445566')
+            .build();
 
         const config = baseConfig(branding);
         config.theme = { hash: 'abc123' } as AppConfiguration['theme'];

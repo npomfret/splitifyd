@@ -1,4 +1,5 @@
 import type { AppConfiguration } from '@billsplit-wl/shared';
+import { toShowMarketingContentFlag } from '@billsplit-wl/shared';
 import { AppConfigurationBuilder } from '@billsplit-wl/test-support';
 import { render, screen } from '@testing-library/preact';
 import type { ComponentChildren } from 'preact';
@@ -39,7 +40,7 @@ const enableMarketing = (): AppConfiguration =>
         .withTenantOverrides({
             branding: {
                 marketingFlags: {
-                    showMarketingContent: true,
+                    showMarketingContent: toShowMarketingContentFlag(true),
                 },
             },
         })
@@ -50,7 +51,7 @@ const disableMarketing = (): AppConfiguration =>
         .withTenantOverrides({
             branding: {
                 marketingFlags: {
-                    showMarketingContent: false,
+                    showMarketingContent: toShowMarketingContentFlag(false),
                 },
             },
         })

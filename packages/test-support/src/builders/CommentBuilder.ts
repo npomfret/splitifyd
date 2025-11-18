@@ -34,6 +34,11 @@ export class CommentBuilder {
         return this;
     }
 
+    withAuthorName(name: string): this {
+        this.comment.authorName = name;
+        return this;
+    }
+
     withAvatar(avatar: string | null): this {
         this.comment.authorAvatar = avatar === null ? undefined : avatar;
         return this;

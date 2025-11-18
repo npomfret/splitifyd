@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder, ExpenseSplitBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { validateCreateSettlement } from '../../../settlements/validation';
@@ -12,10 +12,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
-                .withSplits([
-                    { uid: 'user1', amount: '500' },
-                    { uid: 'user2', amount: '500' },
-                ])
+                .withSplits(new ExpenseSplitBuilder().withSplit('user1', '500').withSplit('user2', '500').build())
                 .build();
 
             const result = validateCreateExpense(expenseData);
@@ -40,10 +37,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
-                .withSplits([
-                    { uid: 'user1', amount: '5000.5' },
-                    { uid: 'user2', amount: '4999.5' },
-                ])
+                .withSplits(new ExpenseSplitBuilder().withSplit('user1', '5000.5').withSplit('user2', '4999.5').build())
                 .build();
 
             expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
@@ -58,10 +52,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
-                .withSplits([
-                    { uid: 'user1', amount: '49.99' },
-                    { uid: 'user2', amount: '50.0' },
-                ])
+                .withSplits(new ExpenseSplitBuilder().withSplit('user1', '49.99').withSplit('user2', '50.0').build())
                 .build();
 
             const result = validateCreateExpense(expenseData);
@@ -88,10 +79,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
-                .withSplits([
-                    { uid: 'user1', amount: '5.062' },
-                    { uid: 'user2', amount: '5.061' },
-                ])
+                .withSplits(new ExpenseSplitBuilder().withSplit('user1', '5.062').withSplit('user2', '5.061').build())
                 .build();
 
             const result = validateCreateExpense(expenseData);
@@ -118,10 +106,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2'])
                 .withPaidBy('user1')
-                .withSplits([
-                    { uid: 'user1', amount: '50.3' },
-                    { uid: 'user2', amount: '50.2' },
-                ])
+                .withSplits(new ExpenseSplitBuilder().withSplit('user1', '50.3').withSplit('user2', '50.2').build())
                 .build();
 
             const result = validateCreateExpense(expenseData);
@@ -174,11 +159,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2', 'user3'])
                 .withPaidBy('user1')
-                .withSplits([
-                    { uid: 'user1', amount: '334' },
-                    { uid: 'user2', amount: '333' },
-                    { uid: 'user3', amount: '333' }, // Total: 1000
-                ])
+                .withSplits(new ExpenseSplitBuilder().withSplit('user1', '334').withSplit('user2', '333').withSplit('user3', '333').build())
                 .build();
 
             const result = validateCreateExpense(expenseData);
@@ -191,11 +172,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2', 'user3'])
                 .withPaidBy('user1')
-                .withSplits([
-                    { uid: 'user1', amount: '33.34' },
-                    { uid: 'user2', amount: '33.33' },
-                    { uid: 'user3', amount: '33.33' }, // Total: 100.00
-                ])
+                .withSplits(new ExpenseSplitBuilder().withSplit('user1', '33.34').withSplit('user2', '33.33').withSplit('user3', '33.33').build())
                 .build();
 
             const result = validateCreateExpense(expenseData);
@@ -208,11 +185,7 @@ describe('Currency-Aware Amount Validation', () => {
                 .withSplitType('exact')
                 .withParticipants(['user1', 'user2', 'user3'])
                 .withPaidBy('user1')
-                .withSplits([
-                    { uid: 'user1', amount: '3.334' },
-                    { uid: 'user2', amount: '3.333' },
-                    { uid: 'user3', amount: '3.333' }, // Total: 10.000
-                ])
+                .withSplits(new ExpenseSplitBuilder().withSplit('user1', '3.334').withSplit('user2', '3.333').withSplit('user3', '3.333').build())
                 .build();
 
             const result = validateCreateExpense(expenseData);

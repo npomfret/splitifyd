@@ -43,6 +43,10 @@ export class GroupMemberDocumentBuilder {
         return this;
     }
 
+    withUid(userId: UserId): this {
+        return this.withUserId(userId);
+    }
+
     withGroupId(groupId: GroupId | string): this {
         this.memberDoc.groupId = typeof groupId === 'string' ? toGroupId(groupId) : groupId;
         return this;

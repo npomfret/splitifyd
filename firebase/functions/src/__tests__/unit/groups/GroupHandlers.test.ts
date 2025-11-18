@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, TenantFirestoreTestDatabase, ClientUserBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
@@ -16,7 +16,8 @@ describe('GroupHandlers - Unit Tests', () => {
     describe('createGroup', () => {
         it('should create a group successfully with name and description', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Test User' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
+            appDriver.seedUser(userId, userData);
 
             const groupRequest = new CreateGroupRequestBuilder()
                 .withName('My Test Group')
@@ -36,7 +37,8 @@ describe('GroupHandlers - Unit Tests', () => {
 
         it('should create a group successfully without description', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Test User' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
+            appDriver.seedUser(userId, userData);
 
             const groupRequest = new CreateGroupRequestBuilder()
                 .withName('Simple Group')
@@ -134,7 +136,8 @@ describe('GroupHandlers - Unit Tests', () => {
     describe('updateGroup', () => {
         it('should update group name successfully', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Test User' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
+            appDriver.seedUser(userId, userData);
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -156,7 +159,8 @@ describe('GroupHandlers - Unit Tests', () => {
 
         it('should update group description successfully', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Test User' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
+            appDriver.seedUser(userId, userData);
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -179,7 +183,8 @@ describe('GroupHandlers - Unit Tests', () => {
 
         it('should update both name and description', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Test User' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
+            appDriver.seedUser(userId, userData);
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -257,7 +262,8 @@ describe('GroupHandlers - Unit Tests', () => {
     describe('deleteGroup', () => {
         it('should delete group successfully as admin', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Test User' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
+            appDriver.seedUser(userId, userData);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -279,7 +285,8 @@ describe('GroupHandlers - Unit Tests', () => {
 
         it('should reject delete of non-existent group', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Test User' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
+            appDriver.seedUser(userId, userData);
 
             await expect(appDriver.deleteGroup('non-existent-group', userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -292,7 +299,8 @@ describe('GroupHandlers - Unit Tests', () => {
     describe('listGroups', () => {
         it('should list groups for user', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Test User' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
+            appDriver.seedUser(userId, userData);
 
             await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -317,7 +325,8 @@ describe('GroupHandlers - Unit Tests', () => {
 
         it('should list groups with pagination parameters', async () => {
             const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Test User' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
+            appDriver.seedUser(userId, userData);
 
             const result = await appDriver.listGroups({}, userId);
 
@@ -386,7 +395,8 @@ describe('GroupHandlers - Unit Tests', () => {
     describe('getGroupFullDetails', () => {
         it('should return full group details with string-based amounts', async () => {
             const userId = 'details-owner';
-            appDriver.seedUser(userId, { displayName: 'Owner User', email: 'owner@example.com' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Owner User').withEmail('owner@example.com').build();
+            appDriver.seedUser(userId, userData);
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -424,8 +434,10 @@ describe('GroupHandlers - Unit Tests', () => {
             const userId = 'owner';
             const memberId = 'member';
 
-            appDriver.seedUser(userId, { displayName: 'Owner User' });
-            appDriver.seedUser(memberId, { displayName: 'Member User' });
+            const { role: _1, photoURL: __1, ...userData1 } = new ClientUserBuilder().withUid(userId).withDisplayName('Owner User').build();
+            const { role: _2, photoURL: __2, ...userData2 } = new ClientUserBuilder().withUid(memberId).withDisplayName('Member User').build();
+            appDriver.seedUser(userId, userData1);
+            appDriver.seedUser(memberId, userData2);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -451,7 +463,8 @@ describe('GroupHandlers - Unit Tests', () => {
 
         it('should include soft-deleted expenses only when includeDeletedExpenses is true', async () => {
             const ownerId = 'include-deleted-owner';
-            appDriver.seedUser(ownerId, { displayName: 'Owner User' });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(ownerId).withDisplayName('Owner User').build();
+            appDriver.seedUser(ownerId, userData);
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()

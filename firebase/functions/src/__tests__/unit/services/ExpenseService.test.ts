@@ -1,6 +1,6 @@
 import { toExpenseId, toGroupId } from '@billsplit-wl/shared';
 import { convertToISOString, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, ExpenseSplitBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -48,17 +48,14 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withLabel('Food')
                 .withSplitType('equal')
                 .withParticipants([userId, 'other-user'])
-                .withSplits([
-                    { uid: userId, amount: '50.25' },
-                    { uid: 'other-user', amount: '50.25' },
-                ])
+                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '50.25' }, { uid: 'other-user', amount: '50.25' }]).build())
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
                 .build();
 
             // Seed group and membership for access control
-            db.seedGroup(toGroupId('test-group-id'), { id: 'test-group-id', name: 'Test Group' });
+            db.seedGroup(toGroupId('test-group-id'), { name: 'Test Group' });
             seedMembership('test-group-id', userId);
 
             // Seed the expense with Timestamp objects
@@ -106,7 +103,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .build();
 
             // Seed group and membership for access control
-            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
             seedMembership(mockExpense.groupId, userId);
 
             db.seedExpense(expenseId, mockExpense);
@@ -133,8 +130,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
-            // Seed group and membership for access control (non-participant is still a group member)
-            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
             seedMembership(mockExpense.groupId, nonParticipantId);
             seedMembership(mockExpense.groupId, participantId);
 
@@ -160,7 +156,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .build();
 
             // Seed group and membership for access control
-            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
             seedMembership(mockExpense.groupId, participant1);
             seedMembership(mockExpense.groupId, participant2);
 
@@ -230,13 +226,13 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withExpenseId(expenseId)
                 .withAmount(100.33, 'USD')
                 .withParticipants([userId])
-                .withSplits([{ uid: userId, amount: '100.33' }])
+                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '100.33' }]).build())
                 .withCreatedAt(convertToISOString(new Date()))
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
             // Seed group and membership for access control
-            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
             seedMembership(mockExpense.groupId, userId);
 
             db.seedExpense(expenseId, mockExpense);
@@ -261,7 +257,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withPaidBy('user1')
                 .withParticipants(['user1'])
                 .withSplitType('equal')
-                .withSplits([{ uid: 'user1', amount: '-50' }])
+                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: 'user1', amount: '-50' }]).build())
                 .withDate(new Date().toISOString())
                 .build();
 
@@ -283,7 +279,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withPaidBy('user1')
                 .withParticipants(['user1'])
                 .withSplitType('equal')
-                .withSplits([{ uid: 'user1', amount: '100' }])
+                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: 'user1', amount: '100' }]).build())
                 .withDate(new Date().toISOString())
                 .build();
 
@@ -311,7 +307,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .build();
 
             // Seed group and membership for access control
-            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
             seedMembership(mockExpense.groupId, userId);
 
             db.seedExpense(expenseId, mockExpense);
@@ -338,7 +334,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .build();
 
             // Seed group and membership for access control
-            db.seedGroup(mockExpense.groupId, { id: mockExpense.groupId, name: 'Test Group' });
+            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
             seedMembership(mockExpense.groupId, userId);
 
             db.seedExpense(expenseId, mockExpense);
@@ -382,7 +378,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .build();
 
             // Seed group and membership for access control
-            db.seedGroup(expenseData.groupId, { id: expenseData.groupId, name: 'Test Group' });
+            db.seedGroup(expenseData.groupId, { name: 'Test Group' });
             seedMembership(expenseData.groupId, participantId);
 
             db.seedExpense(expenseId, expenseData);
@@ -410,7 +406,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .build();
 
             // Seed group and membership for access control (outsider is still a group member)
-            db.seedGroup(expenseData.groupId, { id: expenseData.groupId, name: 'Test Group' });
+            db.seedGroup(expenseData.groupId, { name: 'Test Group' });
             seedMembership(expenseData.groupId, outsiderId);
             seedMembership(expenseData.groupId, participantId);
 
@@ -461,14 +457,14 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withLabel('Food')
                 .withSplitType('equal')
                 .withParticipants([userId])
-                .withSplits([{ uid: userId, amount: '100.5' }])
+                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '100.5' }]).build())
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .withCreatedAt(now)
                 .withUpdatedAt(now)
                 .build();
 
             // Seed group and membership for access control
-            db.seedGroup(toGroupId('test-group'), { id: 'test-group', name: 'Test Group' });
+            db.seedGroup(toGroupId('test-group'), { name: 'Test Group' });
             seedMembership('test-group', userId);
 
             db.seedExpense(expenseId, expenseData);
@@ -512,7 +508,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .build();
 
             // Seed group and membership for access control
-            db.seedGroup(expenseData.groupId, { id: expenseData.groupId, name: 'Test Group' });
+            db.seedGroup(expenseData.groupId, { name: 'Test Group' });
             seedMembership(expenseData.groupId, userId);
 
             db.seedExpense(expenseId, expenseData);

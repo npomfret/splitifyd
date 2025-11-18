@@ -122,6 +122,18 @@ export class GroupDTOBuilder {
         return this;
     }
 
+    withoutPermissions(): this {
+        const { permissions, ...rest } = this.group;
+        this.group = rest as typeof this.group;
+        return this;
+    }
+
+    withoutPermission(permission: keyof GroupPermissions): this {
+        const { [permission]: _removed, ...remainingPermissions } = this.group.permissions;
+        this.group.permissions = remainingPermissions as GroupPermissions;
+        return this;
+    }
+
     build(): GroupDTO {
         const {
             balance,

@@ -18,7 +18,7 @@
     "paths": {
       "@shared/*": ["../firebase/functions/src/shared/*"]
     },
-    "types": ["@types/node", "@playwright/test"]
+    "types": ["node", "@playwright/test"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts"],
   "exclude": ["node_modules"]

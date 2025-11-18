@@ -1,6 +1,6 @@
 import { DisplayName, toGroupId } from '@billsplit-wl/shared';
 import { toDisplayName, toPassword } from '@billsplit-wl/shared';
-import { GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { ClientUserBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -61,11 +61,12 @@ describe('UserService - Consolidated Unit Tests', () => {
             const email = 'existing@example.com';
 
             // Set up existing user in Auth stub
-            stubAuth.setUser('existing-user', {
-                uid: 'existing-user',
-                email,
-                displayName: 'Existing User',
-            });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+                .withUid('existing-user')
+                .withEmail(email)
+                .withDisplayName('Existing User')
+                .build();
+            stubAuth.setUser('existing-user', userData);
 
             const duplicateData = new UserRegistrationBuilder()
                 .withEmail(email) // Use the same email as the existing user
@@ -88,11 +89,12 @@ describe('UserService - Consolidated Unit Tests', () => {
             try {
                 const email = 'slow-existing@example.com';
 
-                stubAuth.setUser('existing-user', {
-                    uid: 'existing-user',
-                    email,
-                    displayName: 'Existing User',
-                });
+                const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+                    .withUid('existing-user')
+                    .withEmail(email)
+                    .withDisplayName('Existing User')
+                    .build();
+                stubAuth.setUser('existing-user', userData);
 
                 const duplicateData = new UserRegistrationBuilder()
                     .withEmail(email)
@@ -189,13 +191,15 @@ describe('UserService - Consolidated Unit Tests', () => {
             const displayName = 'Test User';
 
             // Set up Auth user
-            stubAuth.setUser(uid, {
-                uid,
-                email,
-                displayName,
-                emailVerified: true,
-                photoURL: 'https://example.com/photo.jpg',
-            });
+            const { role: _, ...userDataWithPhoto } = new ClientUserBuilder()
+                .withUid(uid)
+                .withEmail(email)
+                .withDisplayName(displayName)
+                .withEmailVerified(true)
+                .withPhotoURL('https://example.com/photo.jpg')
+                .build();
+            const { photoURL, ...userData } = userDataWithPhoto;
+            stubAuth.setUser(uid, { ...userData, photoURL: photoURL ?? undefined });
 
             // Set up Firestore user document using seedUser
             db.seedUser(uid, {
@@ -229,11 +233,12 @@ describe('UserService - Consolidated Unit Tests', () => {
             const uid = 'incomplete-user';
 
             // Set up Auth user without required fields
-            stubAuth.setUser(uid, {
-                uid,
-                email: 'test@example.com',
-                // Missing displayName
-            });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+                .withUid(uid)
+                .withEmail('test@example.com')
+                .withDisplayName(undefined as any)
+                .build();
+            stubAuth.setUser(uid, userData);
 
             await expect(userService.getUser(uid)).rejects.toThrow('User incomplete-user missing required fields: email and displayName are mandatory');
         });
@@ -246,11 +251,12 @@ describe('UserService - Consolidated Unit Tests', () => {
             const newDisplayName = 'Updated Display Name';
 
             // Set up existing user
-            stubAuth.setUser(uid, {
-                uid,
-                email: 'test@example.com',
-                displayName: originalDisplayName,
-            });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+                .withUid(uid)
+                .withEmail('test@example.com')
+                .withDisplayName(originalDisplayName)
+                .build();
+            stubAuth.setUser(uid, userData);
 
             db.seedUser(uid, {
                 displayName: originalDisplayName,
@@ -272,11 +278,12 @@ describe('UserService - Consolidated Unit Tests', () => {
             const newLanguage = 'en';
 
             // Set up existing user
-            stubAuth.setUser(uid, {
-                uid,
-                email: 'test@example.com',
-                displayName: 'Test User',
-            });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+                .withUid(uid)
+                .withEmail('test@example.com')
+                .withDisplayName('Test User')
+                .build();
+            stubAuth.setUser(uid, userData);
 
             db.seedUser(uid, {
                 displayName: 'Test User',
@@ -293,12 +300,13 @@ describe('UserService - Consolidated Unit Tests', () => {
             const uid = 'test-user';
 
             // Set up existing user with photo URL
-            stubAuth.setUser(uid, {
-                uid,
-                email: 'test@example.com',
-                displayName: 'Test User',
-                photoURL: 'https://example.com/old-photo.jpg',
-            });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+                .withUid(uid)
+                .withEmail('test@example.com')
+                .withDisplayName('Test User')
+                .withPhotoURL('https://example.com/old-photo.jpg')
+                .build();
+            stubAuth.setUser(uid, userData);
 
             db.seedUser(uid, {
                 displayName: 'Test User',
@@ -337,13 +345,14 @@ describe('UserService - Consolidated Unit Tests', () => {
             const newPassword = 'NewSecurePassword1234!';
 
             // Set up existing user
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+                .withUid(uid)
+                .withEmail('test@example.com')
+                .withDisplayName('Test User')
+                .build();
             stubAuth.setUser(
                 uid,
-                {
-                    uid,
-                    email: 'test@example.com',
-                    displayName: 'Test User',
-                },
+                userData,
                 {
                     password: currentPassword,
                 },
@@ -386,12 +395,14 @@ describe('UserService - Consolidated Unit Tests', () => {
             const displayName = 'Consistent User';
 
             // Set up consistent data
-            stubAuth.setUser(uid, {
-                uid,
-                email,
-                displayName,
-                photoURL: 'https://example.com/photo.jpg',
-            });
+            const { role: _, ...userDataWithPhoto } = new ClientUserBuilder()
+                .withUid(uid)
+                .withEmail(email)
+                .withDisplayName(displayName)
+                .withPhotoURL('https://example.com/photo.jpg')
+                .build();
+            const { photoURL, ...userData } = userDataWithPhoto;
+            stubAuth.setUser(uid, { ...userData, photoURL: photoURL ?? undefined });
 
             db.seedUser(uid, {
                 displayName,
@@ -523,47 +534,47 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
 
             it('should accept lowercase-only passwords when long enough', async () => {
-                const changeData = {
-                    currentPassword: 'ValidCurrentPassword1234!',
-                    newPassword: 'lowercaseonlypass',
-                };
+                const changeData = new PasswordChangeRequestBuilder()
+                    .withCurrentPassword('ValidCurrentPassword1234!')
+                    .withNewPassword('lowercaseonlypass')
+                    .build();
 
                 await expect(validationUserService.changePassword(testUserId, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
             it('should accept passwords without numbers or special characters when long enough', async () => {
-                const changeData = {
-                    currentPassword: 'ValidCurrentPassword1234!',
-                    newPassword: 'JustLettersHere',
-                };
+                const changeData = new PasswordChangeRequestBuilder()
+                    .withCurrentPassword('ValidCurrentPassword1234!')
+                    .withNewPassword('JustLettersHere')
+                    .build();
 
                 await expect(validationUserService.changePassword(testUserId, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
             it('should accept passwords with spaces when long enough', async () => {
-                const changeData = {
-                    currentPassword: 'ValidCurrentPassword1234!',
-                    newPassword: 'twelve chars ok',
-                };
+                const changeData = new PasswordChangeRequestBuilder()
+                    .withCurrentPassword('ValidCurrentPassword1234!')
+                    .withNewPassword('twelve chars ok')
+                    .build();
 
                 await expect(validationUserService.changePassword(testUserId, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
             it('should validate current password is provided', async () => {
-                const changeData = {
-                    currentPassword: '',
-                    newPassword: 'NewSecurePassword1234!',
-                };
+                const changeData = new PasswordChangeRequestBuilder()
+                    .withCurrentPassword('')
+                    .withNewPassword('NewSecurePassword1234!')
+                    .build();
 
                 await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
             });
 
             it('should validate new password is different from current', async () => {
                 const samePassword = 'SamePassword1234!';
-                const changeData = {
-                    currentPassword: samePassword,
-                    newPassword: samePassword,
-                };
+                const changeData = new PasswordChangeRequestBuilder()
+                    .withCurrentPassword(samePassword)
+                    .withNewPassword(samePassword)
+                    .build();
 
                 await expect(validationUserService.changePassword(testUserId, changeData)).rejects.toThrow(ApiError);
             });
@@ -579,79 +590,79 @@ describe('UserService - Consolidated Unit Tests', () => {
 
         describe('registration validation', () => {
             it('should validate email format', async () => {
-                const registrationData = {
-                    email: 'invalid-email',
-                    password: toPassword('ValidPassword1234!'),
-                    displayName: toDisplayName('Test User'),
-                    termsAccepted: true,
-                    cookiePolicyAccepted: true,
-                    privacyPolicyAccepted: true,
-                };
+                const registrationData = new UserRegistrationBuilder()
+                    .withEmail('invalid-email')
+                    .withPassword('ValidPassword1234!')
+                    .withDisplayName('Test User')
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
+                    .build();
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(ApiError);
             });
 
             it('should validate password strength during registration', async () => {
-                const registrationData = {
-                    email: 'newuser@example.com',
-                    password: toPassword('weak'), // Weak password
-                    displayName: toDisplayName('Test User'),
-                    termsAccepted: true,
-                    cookiePolicyAccepted: true,
-                    privacyPolicyAccepted: true,
-                };
+                const registrationData = new UserRegistrationBuilder()
+                    .withEmail('newuser@example.com')
+                    .withPassword('weak') // Weak password
+                    .withDisplayName('Test User')
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
+                    .build();
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(ApiError);
             });
 
             it('should require terms acceptance', async () => {
-                const registrationData = {
-                    email: 'newuser@example.com',
-                    password: toPassword('ValidPassword1234!'),
-                    displayName: toDisplayName('Test User'),
-                    termsAccepted: false,
-                    cookiePolicyAccepted: true,
-                    privacyPolicyAccepted: true,
-                };
+                const registrationData = new UserRegistrationBuilder()
+                    .withEmail('newuser@example.com')
+                    .withPassword('ValidPassword1234!')
+                    .withDisplayName('Test User')
+                    .withTermsAccepted(false)
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
+                    .build();
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(/Terms of Service/);
             });
 
             it('should require cookie policy acceptance', async () => {
-                const registrationData = {
-                    email: 'newuser@example.com',
-                    password: toPassword('ValidPassword1234!'),
-                    displayName: toDisplayName('Test User'),
-                    termsAccepted: true,
-                    cookiePolicyAccepted: false,
-                    privacyPolicyAccepted: true,
-                };
+                const registrationData = new UserRegistrationBuilder()
+                    .withEmail('newuser@example.com')
+                    .withPassword('ValidPassword1234!')
+                    .withDisplayName('Test User')
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(false)
+                    .withPrivacyPolicyAccepted(true)
+                    .build();
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(/Cookie Policy/);
             });
 
             it('should require privacy policy acceptance', async () => {
-                const registrationData = {
-                    email: 'newuser@example.com',
-                    password: toPassword('ValidPassword1234!'),
-                    displayName: toDisplayName('Test User'),
-                    termsAccepted: true,
-                    cookiePolicyAccepted: true,
-                    privacyPolicyAccepted: false,
-                };
+                const registrationData = new UserRegistrationBuilder()
+                    .withEmail('newuser@example.com')
+                    .withPassword('ValidPassword1234!')
+                    .withDisplayName('Test User')
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(false)
+                    .build();
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(/Privacy Policy/);
             });
 
             it('should validate displayName during registration', async () => {
-                const registrationData = {
-                    email: 'newuser@example.com',
-                    password: toPassword('ValidPassword1234!'),
-                    displayName: toDisplayName(''), // Empty display name
-                    termsAccepted: true,
-                    cookiePolicyAccepted: true,
-                    privacyPolicyAccepted: true,
-                };
+                const registrationData = new UserRegistrationBuilder()
+                    .withEmail('newuser@example.com')
+                    .withPassword('ValidPassword1234!')
+                    .withDisplayName('') // Empty display name
+                    .withTermsAccepted(true)
+                    .withCookiePolicyAccepted(true)
+                    .withPrivacyPolicyAccepted(true)
+                    .build();
 
                 await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(ApiError);
             });

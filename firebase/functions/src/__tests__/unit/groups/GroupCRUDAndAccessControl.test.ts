@@ -1,7 +1,7 @@
 // Unit tests for group CRUD operations and access control
 // Extracted from groups-management-consolidated.test.ts integration tests
 
-import { CreateGroupRequestBuilder, GroupUpdateBuilder } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, GroupUpdateBuilder, ClientUserBuilder } from '@billsplit-wl/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
@@ -15,10 +15,12 @@ describe('Groups Management - CRUD and Access Control Unit Tests', () => {
 
         // Seed users
         userIds.forEach((userId, index) => {
-            appDriver.seedUser(userId, {
-                displayName: `User ${index}`,
-                email: `user${index}@test.local`,
-            });
+            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+                .withUid(userId)
+                .withDisplayName(`User ${index}`)
+                .withEmail(`user${index}@test.local`)
+                .build();
+            appDriver.seedUser(userId, userData);
         });
     });
 

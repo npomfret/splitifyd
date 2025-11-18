@@ -11,21 +11,14 @@ describe('PermissionEngineAsync', () => {
     beforeEach(() => {
         testGroup = new GroupDTOBuilder()
             .withId(testGroupId)
-            .withName('Test Group')
-            .withDescription('Test Description')
-            .withCreatedBy('creator123')
-            .withCreatedAt('2023-01-01T00:00:00Z')
-            .withUpdatedAt('2023-01-01T00:00:00Z')
+            .withPermissions({
+                expenseEditing: PermissionLevels.ANYONE,
+                expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
+                memberInvitation: PermissionLevels.ADMIN_ONLY,
+                memberApproval: 'automatic',
+                settingsManagement: PermissionLevels.ADMIN_ONLY,
+            })
             .build();
-
-        // Override the permissions to match the test expectations
-        testGroup.permissions = {
-            expenseEditing: PermissionLevels.ANYONE,
-            expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
-            memberInvitation: PermissionLevels.ADMIN_ONLY,
-            memberApproval: 'automatic',
-            settingsManagement: PermissionLevels.ADMIN_ONLY,
-        };
     });
 
     describe('checkPermission', () => {
@@ -40,10 +33,7 @@ describe('PermissionEngineAsync', () => {
             const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
-                .withRole('member')
                 .withStatus('pending')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
             const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'expenseEditing');
@@ -55,10 +45,7 @@ describe('PermissionEngineAsync', () => {
             const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
-                .withRole('member')
                 .withStatus('pending')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
             const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'viewGroup');
@@ -70,10 +57,7 @@ describe('PermissionEngineAsync', () => {
             const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
-                .withRole('member')
                 .withStatus('active')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
             const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'viewGroup');
@@ -86,9 +70,6 @@ describe('PermissionEngineAsync', () => {
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('viewer')
-                .withStatus('active')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
             const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'expenseEditing');
@@ -100,10 +81,6 @@ describe('PermissionEngineAsync', () => {
             const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
-                .withRole('member')
-                .withStatus('active')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
             const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'expenseEditing');
@@ -116,9 +93,6 @@ describe('PermissionEngineAsync', () => {
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('admin')
-                .withStatus('active')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
             const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'memberInvitation');
@@ -130,10 +104,6 @@ describe('PermissionEngineAsync', () => {
             const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
-                .withRole('member')
-                .withStatus('active')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
             const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'memberInvitation');
@@ -147,8 +117,6 @@ describe('PermissionEngineAsync', () => {
                 .withGroupId(testGroupId)
                 .withRole('admin')
                 .withStatus('active')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
             const result = PermissionEngineAsync.checkPermission(member, testGroup, testUserId, 'expenseDeletion');
@@ -162,8 +130,6 @@ describe('PermissionEngineAsync', () => {
                 .withGroupId(testGroupId)
                 .withRole('member')
                 .withStatus('active')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
             const mockExpense = new ExpenseDTOBuilder()
@@ -186,31 +152,24 @@ describe('PermissionEngineAsync', () => {
         });
 
         test('should throw error if group missing permissions', () => {
-            const groupWithoutPermissions = { ...testGroup, permissions: undefined as any };
+            const groupWithoutPermissions = new GroupDTOBuilder().withId(testGroupId).withoutPermissions().build() as any;
             const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('member')
                 .withStatus('active')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
-            expect(() => PermissionEngineAsync.checkPermission(member, groupWithoutPermissions, testUserId, 'expenseEditing')).toThrow('Group group456 is missing permissions configuration');
+            expect(() => PermissionEngineAsync.checkPermission(member, groupWithoutPermissions, testUserId, 'expenseEditing')).toThrow('Group group456 is missing permission setting for action: expenseEditing');
         });
 
         test('should throw error if specific permission missing', () => {
-            const groupWithMissingPermission = {
-                ...testGroup,
-                permissions: { ...testGroup.permissions, expenseEditing: undefined as any },
-            };
+            const groupWithMissingPermission = new GroupDTOBuilder().withId(testGroupId).withoutPermission('expenseEditing').build() as any;
             const member = new GroupMemberDocumentBuilder()
                 .withUserId(testUserId)
                 .withGroupId(testGroupId)
                 .withRole('member')
                 .withStatus('active')
-                .withJoinedAt('2023-01-01T00:00:00Z')
-                .withThemeColors('#0000FF', '#000080', 'blue')
                 .build();
 
             expect(() => PermissionEngineAsync.checkPermission(member, groupWithMissingPermission, testUserId, 'expenseEditing')).toThrow(

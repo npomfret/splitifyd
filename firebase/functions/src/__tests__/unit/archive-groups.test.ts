@@ -9,7 +9,7 @@
 import { MemberStatuses } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
+import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { ActivityFeedService } from '../../services/ActivityFeedService';
 import { FirestoreReader } from '../../services/firestore';
@@ -163,8 +163,7 @@ describe('Archive Groups - GroupMemberService', () => {
             const userId = 'user123';
             const groupId = 'group123' as any;
 
-            // Create group and active membership
-            db.seedGroup(groupId, { name: 'Test Group', createdBy: userId });
+db.seedGroup(groupId, { name: 'Test Group', createdBy: userId });
             const activeMember = new GroupMemberDocumentBuilder()
                 .withGroupId(groupId)
                 .withUserId(userId)

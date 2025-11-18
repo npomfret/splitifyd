@@ -10,6 +10,8 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
+import { TenantConfigBuilder } from '@billsplit-wl/test-support';
+import { TenantRegistryRecordBuilder } from '../TenantRegistryRecordBuilder';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import type { TenantRegistryRecord } from '../../../services/firestore';
@@ -21,45 +23,41 @@ describe('TenantRegistryService', () => {
     let mockFirestoreReader: IFirestoreReader;
     let service: TenantRegistryService;
 
-    const mockTenantConfig: TenantConfig = {
-        tenantId: toTenantId('test-tenant'),
-        branding: {
-            appName: toTenantAppName('Test App'),
-            logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-            faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
-            primaryColor: toTenantPrimaryColor('#0066CC'),
-            secondaryColor: toTenantSecondaryColor('#FF6600'),
-        },
-        createdAt: toISOString('2025-01-15T10:00:00.000Z'),
-        updatedAt: toISOString('2025-01-20T14:30:00.000Z'),
-    };
+    const mockTenantConfig: TenantConfig = new TenantConfigBuilder()
+        .withTenantId('test-tenant')
+        .withAppName('Test App')
+        .withLogoUrl('https://example.com/logo.svg')
+        .withFaviconUrl('https://example.com/favicon.ico')
+        .withPrimaryColor('#0066CC')
+        .withSecondaryColor('#FF6600')
+        .withCreatedAt('2025-01-15T10:00:00.000Z')
+        .withUpdatedAt('2025-01-20T14:30:00.000Z')
+        .build();
 
-    const mockTenantRecord: TenantRegistryRecord = {
-        tenant: mockTenantConfig,
-        primaryDomain: toTenantDomainName('app.example.com'),
-        domains: [toTenantDomainName('app.example.com'), toTenantDomainName('example.com')],
-        isDefault: toTenantDefaultFlag(false),
-    };
+    const mockTenantRecord: TenantRegistryRecord = new TenantRegistryRecordBuilder()
+        .withTenantConfig(new TenantConfigBuilder().withTenantId('test-tenant'))
+        .withPrimaryDomain('app.example.com')
+        .withDomains(['app.example.com', 'example.com'])
+        .asNonDefault()
+        .build();
 
-    const defaultTenantConfig: TenantConfig = {
-        tenantId: toTenantId('default-tenant'),
-        branding: {
-            appName: toTenantAppName('Splitifyd'),
-            logoUrl: toTenantLogoUrl('/logo.svg'),
-            faviconUrl: toTenantFaviconUrl('/favicon.ico'),
-            primaryColor: toTenantPrimaryColor('#1a73e8'),
-            secondaryColor: toTenantSecondaryColor('#34a853'),
-        },
-        createdAt: toISOString('2025-01-01T00:00:00.000Z'),
-        updatedAt: toISOString('2025-01-01T00:00:00.000Z'),
-    };
+    const defaultTenantConfig: TenantConfig = new TenantConfigBuilder()
+        .withTenantId('default-tenant')
+        .withAppName('Splitifyd')
+        .withLogoUrl('/logo.svg')
+        .withFaviconUrl('/favicon.ico')
+        .withPrimaryColor('#1a73e8')
+        .withSecondaryColor('#34a853')
+        .withCreatedAt('2025-01-01T00:00:00.000Z')
+        .withUpdatedAt('2025-01-01T00:00:00.000Z')
+        .build();
 
-    const defaultTenantRecord: TenantRegistryRecord = {
-        tenant: defaultTenantConfig,
-        primaryDomain: toTenantDomainName('app.foo.com'),
-        domains: [toTenantDomainName('app.foo.com')],
-        isDefault: toTenantDefaultFlag(true),
-    };
+    const defaultTenantRecord: TenantRegistryRecord = new TenantRegistryRecordBuilder()
+        .withTenantConfig(new TenantConfigBuilder().withTenantId('default-tenant').withAppName('Splitifyd').withLogoUrl('/logo.svg').withFaviconUrl('/favicon.ico').withPrimaryColor('#1a73e8').withSecondaryColor('#34a853').withCreatedAt('2025-01-01T00:00:00.000Z').withUpdatedAt('2025-01-01T00:00:00.000Z'))
+        .withPrimaryDomain('app.foo.com')
+        .withDomains(['app.foo.com'])
+        .asDefault()
+        .build();
 
     beforeEach(() => {
         mockFirestoreReader = {

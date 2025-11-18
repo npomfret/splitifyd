@@ -66,6 +66,7 @@ import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
 import { Errors, sendError } from '../../utils/errors';
 import { StubAuthService } from './mocks/StubAuthService';
+import type {UserRecord} from "firebase-admin/auth";
 
 /**
  * Extended request interface for authenticated requests in AppDriver
@@ -336,7 +337,7 @@ export class AppDriver {
         return res;
     }
 
-    seedUser(userId: UserId, userData: Record<string, any> = {}) {
+    seedUser(userId: UserId, userData: Partial<UserRecord>) {
         const user = this.db.seedUser(userId, userData);
 
         this.authService.setUser(userId, {

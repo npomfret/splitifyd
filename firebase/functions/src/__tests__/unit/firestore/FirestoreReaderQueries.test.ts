@@ -6,6 +6,7 @@
  */
 
 import { toDisplayName, toGroupName } from '@billsplit-wl/shared';
+import { ClientUserBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -15,10 +16,12 @@ describe('FirestoreReader Queries - Unit Tests', () => {
 
     beforeEach(() => {
         appDriver = new AppDriver();
-        appDriver.seedUser(userId, {
-            displayName: toDisplayName('Test User'),
-            email: 'test@example.com',
-        });
+        const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
+            .withUid(userId)
+            .withDisplayName('Test User')
+            .withEmail('test@example.com')
+            .build();
+        appDriver.seedUser(userId, userData);
     });
 
     afterEach(() => {
@@ -175,10 +178,12 @@ describe('FirestoreReader Queries - Unit Tests', () => {
 
         test('should throw error when user is not a member', async () => {
             const otherUserId = 'other-user-456';
-            appDriver.seedUser(otherUserId, {
-                displayName: toDisplayName('Other User'),
-                email: 'other@example.com',
-            });
+            const { role: _, photoURL: __, ...otherUserData } = new ClientUserBuilder()
+                .withUid(otherUserId)
+                .withDisplayName('Other User')
+                .withEmail('other@example.com')
+                .build();
+            appDriver.seedUser(otherUserId, otherUserData);
 
             const group = await appDriver.createGroup({
                 name: toGroupName('Private Group'),

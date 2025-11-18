@@ -10,6 +10,8 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
+import { TenantConfigBuilder } from '@billsplit-wl/test-support';
+import { TenantRequestContextBuilder } from '../TenantRequestContextBuilder';
 import express from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -25,30 +27,22 @@ describe('tenantContextMiddleware', () => {
     let mockResponse: Partial<express.Response>;
     let nextFunction: ReturnType<typeof vi.fn>;
 
-    const mockTenantContext: TenantRequestContext = {
-        tenantId: toTenantId('test-tenant'),
-        config: {
-            tenantId: toTenantId('test-tenant'),
-            branding: {
-                appName: toTenantAppName('Test App'),
-                logoUrl: toTenantLogoUrl('https://example.com/logo.svg'),
-                faviconUrl: toTenantFaviconUrl('https://example.com/favicon.ico'),
-                primaryColor: toTenantPrimaryColor('#0066CC'),
-                secondaryColor: toTenantSecondaryColor('#FF6600'),
-            },
-            features: {
-                enableAdvancedReporting: (false),
-                maxGroupsPerUser: (10),
-                maxUsersPerGroup: (20),
-            },
-            createdAt: toISOString('2025-01-15T10:00:00.000Z'),
-            updatedAt: toISOString('2025-01-20T14:30:00.000Z'),
-        } as TenantConfig,
-        primaryDomain: toTenantDomainName('app.example.com'),
-        domains: [toTenantDomainName('app.example.com')],
-        isDefault: toTenantDefaultFlag(false),
-        source: 'domain',
-    };
+    const mockTenantContext: TenantRequestContext = new TenantRequestContextBuilder()
+        .withTenantId('test-tenant')
+        .withConfig(new TenantConfigBuilder()
+            .withTenantId('test-tenant')
+            .withAppName('Test App')
+            .withLogoUrl('https://example.com/logo.svg')
+            .withFaviconUrl('https://example.com/favicon.ico')
+            .withPrimaryColor('#0066CC')
+            .withSecondaryColor('#FF6600')
+            .withCreatedAt('2025-01-15T10:00:00.000Z')
+            .withUpdatedAt('2025-01-20T14:30:00.000Z'))
+        .withPrimaryDomain('app.example.com')
+        .withDomains(['app.example.com'])
+        .asDefault()
+        .withSource('domain')
+        .build();
 
     beforeEach(() => {
         mockTenantRegistry = {

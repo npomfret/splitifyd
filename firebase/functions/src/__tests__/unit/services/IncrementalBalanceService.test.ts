@@ -1,7 +1,7 @@
 import { calculateEqualSplits, toAmount } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder } from '@billsplit-wl/test-support';
+import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder, ExpenseSplitBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
@@ -26,14 +26,8 @@ describe('IncrementalBalanceService - Unit Tests', () => {
     const createBalanceWithUSD = (): GroupBalanceDTO =>
         new GroupBalanceDTOBuilder()
             .withVersion(1)
-            .withUserBalance('USD', userId1, {
-                netBalance: '50',
-                owedBy: { [userId2]: '50' },
-            })
-            .withUserBalance('USD', userId2, {
-                netBalance: '-50',
-                owes: { [userId1]: '50' },
-            })
+            .withUserBalance('USD', userId1, new UserBalanceBuilder().withNetBalance('50').owedByUser(userId2, '50').build())
+            .withUserBalance('USD', userId2, new UserBalanceBuilder().withNetBalance('-50').owesUser(userId1, '50').build())
             .withSimplifiedDebt(
                 new SimplifiedDebtBuilder()
                     .from(userId2)
@@ -61,10 +55,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withSplits([
-                        { uid: userId1, amount: '50' },
-                        { uid: userId2, amount: '50' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '50').withSplit(userId2, '50').build())
                     .build();
 
                 const initialBalance = createEmptyBalance();
@@ -92,10 +83,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId2)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withSplits([
-                        { uid: userId1, amount: '30' },
-                        { uid: userId2, amount: '30' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '30').withSplit(userId2, '30').build())
                     .build();
 
                 const initialBalance = createBalanceWithUSD(); // User1 is owed $50 by User2
@@ -122,11 +110,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2, userId3])
-                    .withSplits([
-                        { uid: userId1, amount: '30' },
-                        { uid: userId2, amount: '30' },
-                        { uid: userId3, amount: '30' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '30').withSplit(userId2, '30').withSplit(userId3, '30').build())
                     .build();
 
                 const initialBalance = createEmptyBalance();
@@ -152,10 +136,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withSplits([
-                        { uid: userId1, amount: '50' },
-                        { uid: userId2, amount: '50' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '50').withSplit(userId2, '50').build())
                     .build();
 
                 const initialBalance = createBalanceWithUSD(); // User1 is owed $50
@@ -190,10 +171,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withSplits([
-                        { uid: userId1, amount: '50' },
-                        { uid: userId2, amount: '50' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '50').withSplit(userId2, '50').build())
                     .build();
 
                 await stubDb.runTransaction(async (transaction) => {
@@ -212,18 +190,18 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
                 const currentBalance = new GroupBalanceDTOBuilder()
                     .withGroupId(groupId)
-                    .withUserBalance(currency, userId1, {
-                        uid: userId1,
-                        owes: {},
-                        owedBy: { [userId2]: '25.00' },
-                        netBalance: '25.00',
-                    })
-                    .withUserBalance(currency, userId2, {
-                        uid: userId2,
-                        owes: { [userId1]: '25.00' },
-                        owedBy: {},
-                        netBalance: '-25.00',
-                    })
+                    .withUserBalance(currency, userId1, new UserBalanceBuilder()
+                        .withUserId(userId1)
+                        .owedByUser(userId2, '25.00')
+                        .withNetBalance('-25.00')
+                        .build()
+                    )
+                    .withUserBalance(currency, userId2, new UserBalanceBuilder()
+                        .withUserId(userId2)
+                        .owesUser(userId1, '25.00')
+                        .withNetBalance('25.00')
+                        .build()
+                    )
                     .build();
 
                 stubDb.seed(`groups/${groupId}/metadata/balance`, currentBalance);
@@ -322,10 +300,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withSplits([
-                        { uid: userId1, amount: '50' },
-                        { uid: userId2, amount: '50' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '50').withSplit(userId2, '50').build())
                     .build();
 
                 const newExpense = new ExpenseDTOBuilder()
@@ -335,10 +310,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withSplits([
-                        { uid: userId1, amount: '60' },
-                        { uid: userId2, amount: '60' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '60').withSplit(userId2, '60').build())
                     .build();
 
                 const initialBalance = createBalanceWithUSD();
@@ -363,10 +335,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withSplits([
-                        { uid: userId1, amount: '50' },
-                        { uid: userId2, amount: '50' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '50').withSplit(userId2, '50').build())
                     .build();
 
                 const newExpense = new ExpenseDTOBuilder()
@@ -376,10 +345,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId2) // Changed payer
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withSplits([
-                        { uid: userId1, amount: '50' },
-                        { uid: userId2, amount: '50' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '50').withSplit(userId2, '50').build())
                     .build();
 
                 const initialBalance = createBalanceWithUSD();
@@ -406,10 +372,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withSplits([
-                        { uid: userId1, amount: '50' },
-                        { uid: userId2, amount: '50' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '50').withSplit(userId2, '50').build())
                     .build();
 
                 const newExpense = new ExpenseDTOBuilder()
@@ -419,10 +382,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .withPaidBy(userId1)
                     .withSplitType('equal')
                     .withParticipants([userId1, userId2])
-                    .withSplits([
-                        { uid: userId1, amount: '40' },
-                        { uid: userId2, amount: '40' },
-                    ])
+                    .withSplits(new ExpenseSplitBuilder().withSplit(userId1, '40').withSplit(userId2, '40').build())
                     .build();
 
                 const initialBalance = createBalanceWithUSD();

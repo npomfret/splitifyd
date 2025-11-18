@@ -1,6 +1,6 @@
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import type { TenantSettingsResponse } from '@billsplit-wl/shared';
-import { ClientUserBuilder, TenantBrandingPage } from '@billsplit-wl/test-support';
+import { ClientUserBuilder, TenantBrandingPage, TenantConfigBuilder, TenantSettingsResponseBuilder } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
@@ -16,28 +16,20 @@ import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
  * - Regular users (role: system_user) are denied
  */
 
-const mockTenantSettings: TenantSettingsResponse = {
-    tenantId: 'test-tenant' as any,
-    config: {
-        tenantId: 'test-tenant' as any,
-        branding: {
-            appName: 'Test App' as any,
-            logoUrl: '/logo.svg' as any,
-            faviconUrl: '/favicon.ico' as any,
-            primaryColor: '#1a73e8' as any,
-            secondaryColor: '#34a853' as any,
-            marketingFlags: {
-                showLandingPage: true as any,
-                showMarketingContent: true as any,
-                showPricingPage: false as any,
-            },
-        },
-        createdAt: '2025-01-01T00:00:00.000Z' as any,
-        updatedAt: '2025-01-01T00:00:00.000Z' as any,
-    },
-    domains: ['localhost' as any],
-    primaryDomain: 'localhost' as any,
-};
+const mockTenantSettings: TenantSettingsResponse = new TenantSettingsResponseBuilder()
+    .withTenantId('test-tenant')
+    .withConfig(new TenantConfigBuilder()
+        .withTenantId('test-tenant')
+        .withAppName('Test App')
+        .withLogoUrl('/logo.svg')
+        .withFaviconUrl('/favicon.ico')
+        .withPrimaryColor('#1a73e8')
+        .withSecondaryColor('#34a853')
+        .withCreatedAt('2025-01-01T00:00:00.000Z')
+        .withUpdatedAt('2025-01-01T00:00:00.000Z'))
+    .withDomains(['localhost'])
+    .withPrimaryDomain('localhost')
+    .build();
 
 test.describe('Tenant Branding Page - Access Control', () => {
     test('should deny access to regular users', async ({ pageWithLogging: page, authenticatedMockFirebase }) => {
