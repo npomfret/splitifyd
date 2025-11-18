@@ -1,7 +1,7 @@
-import type { Amount, SimplifiedDebt, UserBalance } from '@splitifyd/shared';
-import { addAmounts, compareAmounts, isZeroAmount, subtractAmounts, zeroAmount } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
-import { DebtScenarios, SimplifiedDebtBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
+import type { Amount, SimplifiedDebt, UserBalance } from '@billsplit-wl/shared';
+import { addAmounts, compareAmounts, isZeroAmount, subtractAmounts, zeroAmount } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import { DebtScenarios, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 

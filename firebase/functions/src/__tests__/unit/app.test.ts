@@ -10,13 +10,13 @@ import {
     SystemUserRoles,
     toGroupName,
     UserBalance,
-} from '@splitifyd/shared';
-import type { UserId } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
-import { toExpenseId } from '@splitifyd/shared';
-import { toPassword } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
+} from '@billsplit-wl/shared';
+import type { UserId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import { toExpenseId } from '@billsplit-wl/shared';
+import { toPassword } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from './AppDriver';
 
@@ -3999,12 +3999,12 @@ describe('app tests', () => {
         });
 
         describe('POST /api/admin/tenants - upsertTenant', () => {
-            const createValidTenantPayload = (tenantId: string) => ({
+            const createValidTenantPayload = (tenantId: string) => ({//todo: user a builder
                 tenantId,
                 branding: {
                     appName: 'Test Tenant App',
-                    logoUrl: 'https://static.splitifyd.dev/branding/test/logo.svg',
-                    faviconUrl: 'https://static.splitifyd.dev/branding/test/favicon.png',
+                    logoUrl: 'https://foo/branding/test/logo.svg',
+                    faviconUrl: 'https://foo/branding/test/favicon.png',
                     primaryColor: '#2563eb',
                     secondaryColor: '#7c3aed',
                     accentColor: '#f97316',
@@ -4092,8 +4092,8 @@ describe('app tests', () => {
                             lg: '0 20px 60px rgba(15, 23, 42, 0.18)',
                         },
                         assets: {
-                            logoUrl: 'https://static.splitifyd.dev/branding/test/logo.svg',
-                            faviconUrl: 'https://static.splitifyd.dev/branding/test/favicon.png',
+                            logoUrl: 'https://foo/branding/test/logo.svg',
+                            faviconUrl: 'https://foo/branding/test/favicon.png',
                         },
                         legal: {
                             companyName: 'Test Company',
@@ -4183,9 +4183,9 @@ describe('app tests', () => {
                     },
                 },
                 domains: {
-                    primary: 'test.splitifyd.dev',
-                    aliases: ['test.splitifyd.com'],
-                    normalized: ['test.splitifyd.dev', 'test.splitifyd.com'],
+                    primary: 'foo',
+                    aliases: ['bar'],
+                    normalized: ['foo', 'bar'],
                 },
                 defaultTenant: false,
             });
@@ -4324,9 +4324,9 @@ describe('app tests', () => {
             it('should validate domain normalization', async () => {
                 const payload = createValidTenantPayload('tenant_domains');
                 payload.domains = {
-                    primary: 'example.splitifyd.dev',
-                    aliases: ['www.example.splitifyd.dev', 'example.splitifyd.com'],
-                    normalized: ['example.splitifyd.dev', 'www.example.splitifyd.dev', 'example.splitifyd.com'],
+                    primary: 'example.bar',
+                    aliases: ['www.foo', 'example.bar'],
+                    normalized: ['example.bar', 'www.foo', 'example.bar'],
                 };
 
                 const result = await appDriver.upsertTenant(adminUser, payload);
@@ -4338,9 +4338,9 @@ describe('app tests', () => {
                 const data = tenantDoc.data();
 
                 expect(data?.domains?.normalized).toEqual([
-                    'example.splitifyd.dev',
-                    'www.example.splitifyd.dev',
-                    'example.splitifyd.com',
+                    'example.bar',
+                    'www.foo',
+                    'example.bar',
                 ]);
             });
         });

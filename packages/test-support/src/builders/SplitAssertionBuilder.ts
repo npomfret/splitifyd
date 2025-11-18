@@ -1,5 +1,5 @@
-import type { ExpenseSplit } from '@splitifyd/shared';
-import { Amount, ZERO } from '@splitifyd/shared';
+import type { ExpenseSplit } from '@billsplit-wl/shared';
+import { Amount, ZERO } from '@billsplit-wl/shared';
 import { generateShortId } from '../test-helpers';
 
 /**

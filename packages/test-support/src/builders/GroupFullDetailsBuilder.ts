@@ -1,5 +1,5 @@
-import type { ExpenseDTO, GroupBalances, GroupDTO, GroupFullDetailsDTO, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import type { ExpenseDTO, GroupBalances, GroupDTO, GroupFullDetailsDTO, GroupMember, ListCommentsResponse, SettlementWithMembers } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
 import { convertToISOString } from '../test-helpers';
 
 /**

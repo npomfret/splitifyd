@@ -40,7 +40,7 @@
 
 ## Vision (Unchanged)
 
-Transform Splitifyd from "functional expense tracker" to "the app people screenshot and share." The UI should feel like a premium consumer product, not enterprise software.
+Transform BillSplit from "functional expense tracker" to "the app people screenshot and share." The UI should feel like a premium consumer product, not enterprise software.
 
 ### Dual-Tenant Strategy
 
@@ -191,7 +191,7 @@ ALL feature flags: false
 **Location:** `/webapp-v2/src/utils/theme-bootstrap.ts`
 - Injects `<link rel="stylesheet" href="/api/theme.css?v={hash}">`
 - Syncs hash changes with `syncThemeHash()`
-- Stores hash in localStorage (`splitifyd:theme-hash`)
+- Stores hash in localStorage (`billsplit:theme-hash`)
 
 #### 5. Component Library
 **Location:** `/webapp-v2/src/components/ui/`

@@ -1,4 +1,4 @@
-import { createFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { createFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
 
 let firestoreDb: ReturnType<typeof createFirestoreDatabase>;
 

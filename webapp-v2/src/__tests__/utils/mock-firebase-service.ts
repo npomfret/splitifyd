@@ -15,7 +15,7 @@ import {
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
 import type { Page, Response, Route } from '@playwright/test';
-import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserId } from '@splitifyd/shared';
+import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserId } from '@billsplit-wl/shared';
 
 interface AuthError {
     code: string;

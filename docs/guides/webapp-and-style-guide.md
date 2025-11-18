@@ -580,7 +580,7 @@ When creating a user page:
     "domains": ["localhost"],              // Domain mapping (without port)
     "isDefault": true,                     // ONE tenant must be default
     "branding": {
-      "appName": "Splitifyd Demo",
+      "appName": "BillSplit Demo",
       "logoUrl": "/logo.svg",
       "faviconUrl": "/favicon.ico",
       "primaryColor": "#3B82F6",           // Hex color (legacy, not used in new themes)
@@ -623,7 +623,7 @@ const fixtureMap: Record<string, BrandingTokenFixtureKey> = {
 **To add a new tenant:**
 1. Add entry to `tenant-configs.json`
 2. Add mapping to `fixtureMap` in `publish-local-themes.ts` (lines 26-29)
-3. Create branding fixture in `@splitifyd/shared/src/fixtures/branding-tokens.ts`
+3. Create branding fixture in `@billsplit/shared/src/fixtures/branding-tokens.ts`
 4. Restart emulator
 
 ### Verifying Tenant Setup
@@ -658,7 +658,7 @@ You MUST run: `cd firebase && npm run theme:publish-local`
 ## Tenant Theming System
 
 ### Overview
-Splitifyd uses a **white-label theming system** where each tenant gets their own branded UI via design tokens. The system generates CSS from structured token data stored in Firestore, ensuring consistent branding across all pages without hardcoded colors or inline styles.
+BillSplit uses a **white-label theming system** where each tenant gets their own branded UI via design tokens. The system generates CSS from structured token data stored in Firestore, ensuring consistent branding across all pages without hardcoded colors or inline styles.
 
 ### Architecture
 
@@ -672,7 +672,7 @@ Firestore (tenants/{id})
   ThemeArtifactService.ts
   (generates CSS from tokens)
           ↓
-    Cloud Storage (gs://splitifyd-themes/)
+    Cloud Storage (gs://billsplit-themes/)
     ├── {hash}.css
     └── {hash}.tokens.json
           ↓
@@ -756,7 +756,7 @@ The system ships with **two distinct demo tenants** for local development:
 ## Stack & Layout
 - **Framework**: Preact + TypeScript on Vite
 - **Routing**: `preact-router` with lazy-loaded pages
-- **Shared code**: Domain types and Zod schemas from `@splitifyd/shared`
+- **Shared code**: Domain types and Zod schemas from `@billsplit/shared`
 - **Firebase**: Wrapped by `firebaseConfigManager` + `FirebaseService` (handles emulator wiring)
 - **Source structure**: Feature-first organization:
   - `components/<feature>/` - Feature-specific UI components
@@ -884,8 +884,8 @@ cd webapp-v2 && npm run lint
 cd webapp-v2 && npm run lint:styles
 
 # Test theme CSS output
-curl -H "Host: localhost" http://localhost:5001/splitifyd-dev/us-central1/api/theme.css
-curl -H "Host: 127.0.0.1" http://localhost:5001/splitifyd-dev/us-central1/api/theme.css
+curl -H "Host: localhost" http://localhost:5001/billsplit-dev/us-central1/api/theme.css
+curl -H "Host: 127.0.0.1" http://localhost:5001/billsplit-dev/us-central1/api/theme.css
 
 # Find hardcoded colors (should return 0 results)
 grep -r "bg-gray\|bg-blue\|bg-red\|text-gray\|text-blue\|border-gray" webapp-v2/src/components

@@ -1,6 +1,6 @@
-import { DisplayName, toISOString } from '@splitifyd/shared';
-import type { GroupMember, GroupMembershipDTO, ISOString, UserId, UserThemeColor } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import { DisplayName, toISOString } from '@billsplit-wl/shared';
+import type { GroupMember, GroupMembershipDTO, ISOString, UserId, UserThemeColor } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { TopLevelGroupMemberDocument } from '../types';
 
 /**

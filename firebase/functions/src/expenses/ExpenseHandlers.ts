@@ -1,4 +1,4 @@
-import { MessageResponse } from '@splitifyd/shared';
+import { MessageResponse } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';

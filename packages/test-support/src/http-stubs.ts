@@ -1,4 +1,4 @@
-import { UserId } from '@splitifyd/shared';
+import { UserId } from '@billsplit-wl/shared';
 
 /**
  * Creates a stub request for testing.

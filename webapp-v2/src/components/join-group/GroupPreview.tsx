@@ -4,7 +4,7 @@
  * Shows group information in the join group flow
  */
 
-import { GroupDTO } from '@splitifyd/shared';
+import { GroupDTO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';

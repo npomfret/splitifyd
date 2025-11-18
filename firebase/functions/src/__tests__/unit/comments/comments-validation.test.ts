@@ -1,4 +1,4 @@
-import { CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@splitifyd/shared';
+import { CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@billsplit-wl/shared';
 import { describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';

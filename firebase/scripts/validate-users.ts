@@ -7,7 +7,7 @@
  *
  * Defaults: pageSize = 25, maxPages = all
  */
-import { SystemUserRoles } from '@splitifyd/shared';
+import { SystemUserRoles } from '@billsplit-wl/shared';
 import * as dotenv from 'dotenv';
 import * as admin from 'firebase-admin';
 import { DocumentSnapshot, FieldPath, FieldValue, Firestore, Query } from 'firebase-admin/firestore';

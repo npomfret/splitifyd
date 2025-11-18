@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateSettlementRequestBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateCreateExpense } from '../../../expenses/validation';
 import { validateCreateSettlement } from '../../../settlements/validation';

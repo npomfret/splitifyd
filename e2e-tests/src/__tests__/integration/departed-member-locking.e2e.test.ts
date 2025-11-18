@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { ExpenseFormDataBuilder, ExpenseFormPage, generateShortId } from '@splitifyd/test-support';
+import { ExpenseFormDataBuilder, ExpenseFormPage, generateShortId } from '@billsplit-wl/test-support';
 import { expect, simpleTest } from '../../fixtures';
 
 simpleTest.describe('Departed Member Transaction Locking', () => {

@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 
-import { getFunctionsPort, getProjectId, getRegion } from '@splitifyd/test-support';
+import { getFunctionsPort, getProjectId, getRegion } from '@billsplit-wl/test-support';
 import { ChildProcess, spawn } from 'child_process';
 import * as fs from 'fs';
 import * as http from 'http';

@@ -1,4 +1,4 @@
-import type { ClientUser, Email } from '@splitifyd/shared';
+import type { ClientUser, Email } from '@billsplit-wl/shared';
 import type { FirebaseService } from '../firebase';
 import { getFirebaseService } from '../firebase';
 

@@ -1,7 +1,7 @@
-import type { SimplifiedDebt } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
+import type { SimplifiedDebt } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
 import { FirestoreWriter } from '../../../services/firestore';

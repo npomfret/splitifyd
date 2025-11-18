@@ -1,4 +1,4 @@
-import type { CommentText, Email, GroupName, ISOString, ShareLinkToken, UserId } from '@splitifyd/shared';
+import type { CommentText, Email, GroupName, ISOString, ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -49,7 +49,7 @@ import {
     UserProfileResponse,
     UserRegistration,
     UserToken,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';

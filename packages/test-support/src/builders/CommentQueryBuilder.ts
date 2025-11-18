@@ -1,4 +1,4 @@
-import type { CommentQuery } from '@splitifyd/shared';
+import type { CommentQuery } from '@billsplit-wl/shared';
 import { generateShortId, randomNumber } from '../test-helpers';
 
 /**

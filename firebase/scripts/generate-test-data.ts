@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { getProjectId } from '@splitifyd/test-support';
+import { getProjectId } from '@billsplit-wl/test-support';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';

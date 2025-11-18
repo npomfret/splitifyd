@@ -1,6 +1,6 @@
-import type { CommentDTO, CommentText, ISOString } from '@splitifyd/shared';
-import type { CommentId, UserId } from '@splitifyd/shared';
-import { toCommentId, toCommentText } from '@splitifyd/shared';
+import type { CommentDTO, CommentText, ISOString } from '@billsplit-wl/shared';
+import type { CommentId, UserId } from '@billsplit-wl/shared';
+import { toCommentId, toCommentText } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomDate, randomString } from '../test-helpers';
 
 export class CommentBuilder {

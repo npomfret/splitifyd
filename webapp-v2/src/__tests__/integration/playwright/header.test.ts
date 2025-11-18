@@ -1,4 +1,4 @@
-import { HeaderPage } from '@splitifyd/test-support';
+import { HeaderPage } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Header Page Object', () => {

@@ -1,7 +1,7 @@
-import { Amount } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import type { CurrencyISOCode, ISOString, UserId } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import { Amount } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode, ISOString, UserId } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId } from '../test-helpers';
 
 interface GroupBalanceDocument {

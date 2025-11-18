@@ -1,5 +1,5 @@
-import { SystemUserRoles, toDisplayName } from '@splitifyd/shared';
-import { RegisteredUserBuilder } from '@splitifyd/test-support';
+import { SystemUserRoles, toDisplayName } from '@billsplit-wl/shared';
+import { RegisteredUserBuilder } from '@billsplit-wl/test-support';
 import type { Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UserAdminHandlers } from '../../../admin/UserAdminHandlers';

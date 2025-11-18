@@ -1,5 +1,5 @@
-import { GroupDTO, PermissionLevels } from '@splitifyd/shared';
-import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { GroupDTO, PermissionLevels } from '@billsplit-wl/shared';
+import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
 

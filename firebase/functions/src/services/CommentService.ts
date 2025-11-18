@@ -1,5 +1,5 @@
-import type { ExpenseId, GroupId, UserId } from '@splitifyd/shared';
-import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toCommentId, toISOString } from '@splitifyd/shared';
+import type { ExpenseId, GroupId, UserId } from '@billsplit-wl/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes, CommentDTO, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsResponse, toCommentId, toISOString } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';

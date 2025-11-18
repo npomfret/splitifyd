@@ -250,16 +250,16 @@ main() {
         webapp-v2)
             run_webapp_tests
             ;;
-        "@splitifyd/e2e-tests")
+        "@billsplit-wl/e2e-tests")
             run_e2e_tests
             ;;
         functions)
             run_functions_tests
             ;;
-        "@splitifyd/firebase-simulator")
+        "@billsplit-wl/firebase-simulator")
             run_generic_vitest "$WORKSPACE_ROOT/vitest.config.ts"
             ;;
-        "@splitifyd/shared"|"@splitifyd/test-support")
+        "@billsplit-wl/shared"|"@billsplit-wl/test-support")
             run_generic_vitest ""
             ;;
         *)

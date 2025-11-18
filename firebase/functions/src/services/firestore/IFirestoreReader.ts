@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId, UserId } from '@splitifyd/shared';
+import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId, UserId } from '@billsplit-wl/shared';
 import type { IDocumentReference, IDocumentSnapshot, IQuerySnapshot, ITransaction } from '../../firestore-wrapper';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 
@@ -72,10 +72,10 @@ export interface GetGroupsForUserOptions extends Pick<PaginationOptions, 'limit'
 }
 
 // Import parsed types from schemas
-import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, SettlementDTO, ShareLinkToken, TenantBranding } from '@splitifyd/shared';
-import { GroupId, ShareLinkId } from '@splitifyd/shared';
-import { SettlementId } from '@splitifyd/shared';
-import { PolicyId } from '@splitifyd/shared';
+import type { CommentDTO, ExpenseDTO, GroupDTO, GroupMembershipDTO, PolicyDTO, SettlementDTO, ShareLinkToken, TenantBranding } from '@billsplit-wl/shared';
+import { GroupId, ShareLinkId } from '@billsplit-wl/shared';
+import { SettlementId } from '@billsplit-wl/shared';
+import { PolicyId } from '@billsplit-wl/shared';
 import type { GroupBalanceDTO, ParsedShareLink, UserDocument } from '../../schemas';
 
 export interface TenantRegistryRecord {

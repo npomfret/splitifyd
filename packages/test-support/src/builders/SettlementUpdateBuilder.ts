@@ -1,7 +1,7 @@
-import type { UpdateSettlementRequest } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
-import type { ISOString } from '@splitifyd/shared';
+import type { UpdateSettlementRequest } from '@billsplit-wl/shared';
+import { Amount } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import type { ISOString } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomDate, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class SettlementUpdateBuilder {

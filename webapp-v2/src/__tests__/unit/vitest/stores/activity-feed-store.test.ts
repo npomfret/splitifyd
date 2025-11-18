@@ -1,7 +1,7 @@
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { ActivityFeedStoreImpl } from '@/app/stores/activity-feed-store';
-import { type ActivityFeedItem, type ActivityFeedResponse, toGroupId, toGroupName } from '@splitifyd/shared';
-import { ActivityFeedItemBuilder } from '@splitifyd/test-support';
+import { type ActivityFeedItem, type ActivityFeedResponse, toGroupId, toGroupName } from '@billsplit-wl/shared';
+import { ActivityFeedItemBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 

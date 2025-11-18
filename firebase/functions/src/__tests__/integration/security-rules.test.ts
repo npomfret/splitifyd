@@ -1,5 +1,5 @@
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { ExpenseDTOBuilder, getFirestorePort, GroupBalanceDocumentBuilder, GroupDTOBuilder, PolicyDocumentBuilder, SettlementDTOBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, getFirestorePort, GroupBalanceDocumentBuilder, GroupDTOBuilder, PolicyDocumentBuilder, SettlementDTOBuilder } from '@billsplit-wl/test-support';
 import { collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc, Timestamp } from 'firebase/firestore';
 import { readFileSync } from 'fs';
 import { join } from 'path';

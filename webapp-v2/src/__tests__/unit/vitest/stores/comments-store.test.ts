@@ -47,9 +47,9 @@ import { apiClient } from '@/app/apiClient';
 import type { ActivityFeedRealtimeService } from '@/app/services/activity-feed-realtime-service';
 import { CommentsStoreImpl } from '@/stores/comments-store';
 import type { CommentsStoreTarget } from '@/stores/comments-store';
-import { CommentDTO, GroupId, ListCommentsResponse, toCommentText } from '@splitifyd/shared';
-import { toCommentId, toGroupId } from '@splitifyd/shared';
-import { toISOString } from '@splitifyd/shared';
+import { CommentDTO, GroupId, ListCommentsResponse, toCommentText } from '@billsplit-wl/shared';
+import { toCommentId, toGroupId } from '@billsplit-wl/shared';
+import { toISOString } from '@billsplit-wl/shared';
 
 const mockedApiClient = apiClient as unknown as {
     listGroupComments: Mock;

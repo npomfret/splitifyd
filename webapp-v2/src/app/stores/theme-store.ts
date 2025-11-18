@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
-import type { UserId, UserThemeColor } from '@splitifyd/shared';
-import type { ClientUser } from '@splitifyd/shared';
+import type { UserId, UserThemeColor } from '@billsplit-wl/shared';
+import type { ClientUser } from '@billsplit-wl/shared';
 
 interface ThemeState {
     userThemes: Map<string, UserThemeColor>;

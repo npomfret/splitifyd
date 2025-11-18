@@ -1,5 +1,5 @@
 import { useComputed } from '@preact/signals';
-import { Amount, UserId } from '@splitifyd/shared';
+import { Amount, UserId } from '@billsplit-wl/shared';
 import { expenseFormStore } from '../stores/expense-form-store';
 
 /**

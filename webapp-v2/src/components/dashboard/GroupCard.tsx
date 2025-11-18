@@ -1,4 +1,4 @@
-import { absAmount, type Amount, amountToSmallestUnit, GroupDTO, GroupId } from '@splitifyd/shared';
+import { absAmount, type Amount, amountToSmallestUnit, GroupDTO, GroupId } from '@billsplit-wl/shared';
 import type { JSX } from 'preact';
 import { useTranslation } from 'react-i18next';
 import { Card, CurrencyAmount, RelativeTime, Tooltip } from '../ui';

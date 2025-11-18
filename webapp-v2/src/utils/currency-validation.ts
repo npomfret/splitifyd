@@ -1,5 +1,5 @@
-import { getCurrency, getCurrencyDecimals } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
+import { getCurrency, getCurrencyDecimals } from '@billsplit-wl/shared';
+import { Amount } from '@billsplit-wl/shared';
 
 /**
  * Count decimal places in an amount without relying on floating-point math

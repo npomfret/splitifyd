@@ -1,4 +1,4 @@
-import { PositiveAmountStringSchema, toISOString } from '@splitifyd/shared';
+import { PositiveAmountStringSchema, toISOString } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { FirestoreTimestampSchema, UserIdSchema } from './common';
 

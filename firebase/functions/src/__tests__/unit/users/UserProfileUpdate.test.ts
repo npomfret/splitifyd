@@ -1,5 +1,5 @@
 // Unit tests for user profile update functionality
-import { toPassword } from '@splitifyd/shared';
+import { toPassword } from '@billsplit-wl/shared';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

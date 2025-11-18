@@ -5,7 +5,7 @@
  * Tests query behavior, pagination, and ordering using TenantFirestoreTestDatabase.
  */
 
-import { toDisplayName, toGroupName } from '@splitifyd/shared';
+import { toDisplayName, toGroupName } from '@billsplit-wl/shared';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

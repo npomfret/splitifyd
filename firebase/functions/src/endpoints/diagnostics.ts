@@ -1,4 +1,4 @@
-import { toISOString } from '@splitifyd/shared';
+import { toISOString } from '@billsplit-wl/shared';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as v8 from 'v8';

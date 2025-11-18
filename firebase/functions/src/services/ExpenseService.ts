@@ -12,7 +12,7 @@ import {
     toISOString,
     UpdateExpenseRequest,
     UserId,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import * as expenseValidation from '../expenses/validation';
@@ -176,7 +176,7 @@ export class ExpenseService {
         const now = toISOString(new Date().toISOString());
 
         // Use client-calculated splits (already validated)
-        // Client sends splits calculated using currency-aware logic from @splitifyd/shared
+        // Client sends splits calculated using currency-aware logic from @billsplit-wl/shared
         const splits = validatedExpenseData.splits;
 
         // Generate expense ID early (local operation, no DB call)
@@ -376,7 +376,7 @@ export class ExpenseService {
             const splitType = updateData.splitType !== undefined ? updateData.splitType : expense.splitType;
             const splits = updateData.splits !== undefined ? updateData.splits : expense.splits;
 
-            // Client always sends splits calculated using currency-aware logic from @splitifyd/shared
+            // Client always sends splits calculated using currency-aware logic from @billsplit-wl/shared
             updates.splits = splits;
             updates.splitType = splitType;
         }

@@ -10,7 +10,7 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getFirestore } from '../../../firebase';
 import { createFirestoreDatabase } from '../../../firestore-wrapper';

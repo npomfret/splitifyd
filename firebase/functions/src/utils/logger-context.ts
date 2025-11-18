@@ -1,4 +1,4 @@
-import type { UserId } from '@splitifyd/shared';
+import type { UserId } from '@billsplit-wl/shared';
 import { AsyncLocalStorage } from 'async_hooks';
 
 /**

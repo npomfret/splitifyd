@@ -1,4 +1,4 @@
-import { toISOString } from '@splitifyd/shared';
+import { toISOString } from '@billsplit-wl/shared';
 import {
     ExpenseDTOBuilder,
     GroupBalancesBuilder,
@@ -8,7 +8,7 @@ import {
     GroupMemberBuilder,
     SettlementWithMembersBuilder,
     ThemeBuilder,
-} from '@splitifyd/test-support';
+} from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
 

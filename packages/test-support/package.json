@@ -1,5 +1,5 @@
 {
-  "name": "@splitifyd/test-support",
+  "name": "@billsplit-wl/test-support",
   "version": "1.0.0",
   "description": "Shared test support utilities",
   "type": "module",
@@ -19,9 +19,9 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "@splitifyd/firebase-simulator": "0.0.1",
+    "@billsplit-wl/firebase-simulator": "0.0.1",
     "@playwright/test": "^1.55.1",
-    "@splitifyd/shared": "^1.0.0",
+    "@billsplit-wl/shared": "^1.0.0",
     "firebase-admin": "^13.5.0"
   }
 }

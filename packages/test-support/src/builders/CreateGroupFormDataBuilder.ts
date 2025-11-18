@@ -1,4 +1,4 @@
-import type { CreateGroupFormData } from '@splitifyd/shared';
+import type { CreateGroupFormData } from '@billsplit-wl/shared';
 import { generateShortId, randomString } from '../test-helpers';
 
 export class CreateGroupFormDataBuilder {

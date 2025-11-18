@@ -1,5 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
-import { ExpenseId, GroupId } from '@splitifyd/shared';
+import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { BasePage } from './BasePage';
 import { ExpenseFormPage } from './ExpenseFormPage';
 

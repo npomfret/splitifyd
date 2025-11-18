@@ -1,5 +1,5 @@
-import { ApiSerializer } from '@splitifyd/shared';
-import { ApiDriver } from '@splitifyd/test-support';
+import { ApiSerializer } from '@billsplit-wl/shared';
+import { ApiDriver } from '@billsplit-wl/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest';
 import { FirestoreCollections } from '../../constants';

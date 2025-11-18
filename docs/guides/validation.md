@@ -7,16 +7,16 @@
 
 ## Direction
 - **Zod is canonical** for all runtime validation.
-  - Shared DTO schemas remain in `@splitifyd/shared`; request validators live in Firebase functions until the shared surface is formalised.
+  - Shared DTO schemas remain in `@billsplit/shared`; request validators live in Firebase functions until the shared surface is formalised.
   - `parseWithApiError` + monitoring hooks assume Zod issues, so inputs should always be parsed via the shared helpers.
-- **Future shared surface**: design an `@splitifyd/shared/src/schemas/apiRequests.ts` module to host request DTOs consumed by both client and server once request/response contracts stabilise.
+- **Future shared surface**: design an `@billsplit/shared/src/schemas/apiRequests.ts` module to host request DTOs consumed by both client and server once request/response contracts stabilise.
 
 ## Implementation Principles
 1. Preserve current error codes/messages; snapshot before/after where possible.
 2. Keep shared primitives (email/password regex, amount/date schemas, sanitisation) in the common module to avoid divergence.
 3. Build request validators with `createRequestValidator` so that parsing, sanitisation, and error mapping remain consistent.
 4. Update unit tests to cover both happy-path parsing and error translation.
-5. When promoting schemas to `@splitifyd/shared`, ensure they remain tree-shakeable and safe for both Node and browser runtimes.
+5. When promoting schemas to `@billsplit/shared`, ensure they remain tree-shakeable and safe for both Node and browser runtimes.
 
 ## Completed Phases
 1. ✅ **Scaffolding**  
@@ -37,5 +37,5 @@
    - Renamed localisation helper to `translateValidationError` while keeping Zod-focused behaviour intact.
 
 ## Next Steps
-- Design and expose shared request schemas via `@splitifyd/shared` once API contracts stabilise, enabling client/server reuse.
+- Design and expose shared request schemas via `@billsplit/shared` once API contracts stabilise, enabling client/server reuse.
 - Backfill unit coverage for the new validators (auth, policies, expenses, settlements) to lock in error-code parity.

@@ -1,4 +1,4 @@
-import { SettingsPage } from '@splitifyd/test-support';
+import { SettingsPage } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Settings Page Object', () => {

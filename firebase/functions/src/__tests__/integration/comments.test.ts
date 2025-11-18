@@ -1,5 +1,5 @@
-import { PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, generateShortId } from '@splitifyd/test-support';
+import { PooledTestUser } from '@billsplit-wl/shared';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, generateShortId } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 
 /**

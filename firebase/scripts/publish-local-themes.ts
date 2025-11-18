@@ -1,8 +1,8 @@
 #!/usr/bin/env npx tsx
 
-import type { BrandingTokenFixtureKey, BrandingTokens } from '@splitifyd/shared';
-import { brandingTokenFixtures } from '@splitifyd/shared';
-import { ApiDriver } from '@splitifyd/test-support';
+import type { BrandingTokenFixtureKey, BrandingTokens } from '@billsplit-wl/shared';
+import { brandingTokenFixtures } from '@billsplit-wl/shared';
+import { ApiDriver } from '@billsplit-wl/test-support';
 import * as fs from 'fs';
 import * as path from 'path';
 import { logger } from './logger';

@@ -6,7 +6,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { BanknotesIcon, ScaleIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
-import type { SimplifiedDebt, UserId } from '@splitifyd/shared';
+import type { SimplifiedDebt, UserId } from '@billsplit-wl/shared';
 import { useMemo } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Card } from '../ui/Card';

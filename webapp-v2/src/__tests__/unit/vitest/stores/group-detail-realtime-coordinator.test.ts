@@ -1,7 +1,7 @@
 import type { ActivityFeedRealtimeConsumer, ActivityFeedRealtimePayload } from '@/app/services/activity-feed-realtime-service';
 import { GroupDetailRealtimeCoordinator } from '@/app/stores/helpers/group-detail-realtime-coordinator';
-import type { GroupId } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import type { GroupId } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
 import { describe, expect, it, vi } from 'vitest';
 
 interface TestContext {

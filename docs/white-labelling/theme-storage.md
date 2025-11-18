@@ -7,13 +7,13 @@ Provision a dedicated Cloud Storage bucket that hosts rendered theme artifacts (
 
 ## Prerequisites
 - `gcloud` CLI ≥ 475
-- Access to the `splitifyd` (or target) Firebase project
+- Access to the `billsplit` (or target) Firebase project
 - Service account with `roles/storage.admin`
 
 ## Bucket Standards
 | Item | Value |
 | --- | --- |
-| Bucket name | `splitifyd-themes` (override via `THEME_BUCKET`) |
+| Bucket name | `billsplit-themes` (override via `THEME_BUCKET`) |
 | Location | `us-central1` |
 | Uniform bucket-level access | Enabled |
 | Public access prevention | Enabled (objects are shared via signed origin) |
@@ -23,7 +23,7 @@ Provision a dedicated Cloud Storage bucket that hosts rendered theme artifacts (
 ```json
 [
   {
-    "origin": ["http://localhost:5173", "https://splitifyd.com"],
+    "origin": ["http://localhost:5173", "https://billsplit.com"],
     "method": ["GET"],
     "responseHeader": ["Content-Type", "Cache-Control"],
     "maxAgeSeconds": 3600
@@ -35,14 +35,14 @@ Provision a dedicated Cloud Storage bucket that hosts rendered theme artifacts (
 Use `scripts/theme-storage/setup.sh` to create the bucket, apply the CORS policy, and grant IAM in one shot:
 
 ```bash
-PROJECT_ID=splitifyd THEME_BUCKET=splitifyd-themes ./scripts/theme-storage/setup.sh
+PROJECT_ID=billsplit THEME_BUCKET=billsplit-themes ./scripts/theme-storage/setup.sh
 ```
 
 The script writes the canonical CORS file to `scripts/theme-storage/cors.json`. Re-run anytime to update the policy.
 
 ## Verification
-1. `gcloud storage buckets describe gs://splitifyd-themes` → verify location + UBU.
-2. `gsutil cors get gs://splitifyd-themes` → matches JSON above.
+1. `gcloud storage buckets describe gs://billsplit-themes` → verify location + UBU.
+2. `gsutil cors get gs://billsplit-themes` → matches JSON above.
 3. Upload a sample CSS file and `curl` it from localhost to confirm CORS headers.
 
 ## Incident Response

@@ -1,4 +1,4 @@
-import { GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';

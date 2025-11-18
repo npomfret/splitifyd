@@ -1,7 +1,7 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
-import { type SystemUserRole, SystemUserRoles } from '@splitifyd/shared';
+import { type SystemUserRole, SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 

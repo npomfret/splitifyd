@@ -1,5 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
-import type { GroupName } from '@splitifyd/shared';
+import type { GroupName } from '@billsplit-wl/shared';
 import { TEST_ROUTES, TEST_TIMEOUTS } from '../test-constants';
 import { generateShortId, randomString } from '../test-helpers';
 import { translationEn } from '../translations/translation-en';

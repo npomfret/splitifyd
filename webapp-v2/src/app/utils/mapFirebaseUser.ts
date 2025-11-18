@@ -1,5 +1,5 @@
-import type { ClientUser } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import type { ClientUser } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import type { User as FirebaseUser } from 'firebase/auth';
 
 export function mapFirebaseUser(firebaseUser: FirebaseUser): ClientUser {

@@ -1,4 +1,4 @@
-import { ChangeEmailRequestSchema, ChangePasswordRequestSchema, UpdateUserProfileRequestSchema } from '@splitifyd/shared';
+import { ChangeEmailRequestSchema, ChangePasswordRequestSchema, UpdateUserProfileRequestSchema } from '@billsplit-wl/shared';
 import { Errors } from '../utils/errors';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
 

@@ -1,7 +1,7 @@
 import { CurrencyService } from '@/app/services/currencyService.ts';
 import { getLastNight, getThisMorning, getToday, getYesterday } from '@/utils/dateUtils.ts';
 import { ClockIcon } from '@heroicons/react/24/outline';
-import { Amount, ExpenseLabel } from '@splitifyd/shared';
+import { Amount, ExpenseLabel } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, CurrencyAmount, CurrencyAmountInput, LabelSuggestionInput, TimeInput, Tooltip } from '../ui';
 import { Stack } from '../ui/Stack';

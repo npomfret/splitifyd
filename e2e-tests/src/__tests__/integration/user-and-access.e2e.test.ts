@@ -12,7 +12,7 @@ import {
     RegisterPage,
     SettingsPage,
     TestUserBuilder,
-} from '@splitifyd/test-support';
+} from '@billsplit-wl/test-support';
 import { simpleTest } from '../../fixtures';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
 import { EMULATOR_URL } from '../../helpers';

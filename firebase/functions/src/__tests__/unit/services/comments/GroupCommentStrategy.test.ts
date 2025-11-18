@@ -1,6 +1,6 @@
-import { toGroupId } from '@splitifyd/shared';
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { toGroupId } from '@billsplit-wl/shared';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../../constants';
 import { ActivityFeedService } from '../../../../services/ActivityFeedService';

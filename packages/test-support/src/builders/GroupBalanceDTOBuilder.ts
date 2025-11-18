@@ -1,9 +1,9 @@
-import type { ISOString, SimplifiedDebt, UserBalance, UserId } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
-import { negateNormalizedAmount, toISOString, ZERO } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import type { ISOString, SimplifiedDebt, UserBalance, UserId } from '@billsplit-wl/shared';
+import { Amount } from '@billsplit-wl/shared';
+import { negateNormalizedAmount, toISOString, ZERO } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
 import { generateShortId } from '../test-helpers';
 
 /**

@@ -1,5 +1,5 @@
 {
-  "name": "@splitifyd/e2e-tests",
+  "name": "@billsplit-wl/e2e-tests",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -14,28 +14,15 @@
     "install-browsers": "playwright install --with-deps"
   },
   "dependencies": {
-    "@splitifyd/shared": "^1.0.0",
-    "@splitifyd/test-support": "*",
+    "@billsplit-wl/shared": "^1.0.0",
+    "@billsplit-wl/test-support": "*",
     "preact": "^10.27.2"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
     "@playwright/test": "^1.54.1",
-    "@types/jest": "^29.5.11",
     "@types/node": "^20.11.5",
-    "jest": "^29.7.0",
     "playwright": "^1.54.1",
-    "ts-jest": "^29.1.1",
     "typescript": "^5.8.3"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/src/__tests__/**/*.test.ts"
-    ],
-    "moduleNameMapper": {
-      "^@shared/(.*)$": "<rootDir>/../firebase/functions/src/$1"
-    }
   }
 }

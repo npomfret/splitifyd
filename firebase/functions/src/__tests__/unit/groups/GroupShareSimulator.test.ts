@@ -1,4 +1,4 @@
-import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

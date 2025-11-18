@@ -1,4 +1,4 @@
-import type { GroupId, UserId } from '@splitifyd/shared';
+import type { GroupId, UserId } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../../constants';
 import { ApiError } from '../../utils/errors';
 import type { IFirestoreReader } from '../firestore';

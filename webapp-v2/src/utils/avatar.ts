@@ -1,4 +1,4 @@
-import { DisplayName, UserId } from '@splitifyd/shared';
+import { DisplayName, UserId } from '@billsplit-wl/shared';
 
 export interface AvatarProps {
     displayName: DisplayName;

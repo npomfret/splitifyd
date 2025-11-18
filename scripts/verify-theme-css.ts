@@ -7,7 +7,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { LocalThemeArtifactStorage } from '../firebase/functions/src/services/storage/ThemeArtifactStorage';
 import { ThemeArtifactService } from '../firebase/functions/src/services/tenant/ThemeArtifactService';
-import { localhostBrandingTokens, loopbackBrandingTokens } from '@splitifyd/shared/src';
+import { localhostBrandingTokens, loopbackBrandingTokens } from '@billsplit-wl/shared/src';
 
 async function main() {
     const tmpDir = join(process.cwd(), 'tmp', 'theme-verification');

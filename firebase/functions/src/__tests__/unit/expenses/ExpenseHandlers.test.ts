@@ -1,5 +1,5 @@
-import type { UpdateExpenseRequest } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
+import type { UpdateExpenseRequest } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';

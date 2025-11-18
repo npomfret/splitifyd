@@ -14,8 +14,8 @@ import {
     StubFirestoreDatabase,
     Timestamp,
     type TriggerDefinition,
-} from '@splitifyd/firebase-simulator';
-import { getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+} from '@billsplit-wl/firebase-simulator';
+import { getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';

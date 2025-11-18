@@ -1,5 +1,5 @@
-import type { CurrencyBalance, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, ISOString, PermissionChangeLog, UserId } from '@splitifyd/shared';
-import { toGroupId, toGroupName } from '@splitifyd/shared';
+import type { CurrencyBalance, GroupDTO, GroupId, GroupName, GroupPermissions, InviteLink, ISOString, PermissionChangeLog, UserId } from '@billsplit-wl/shared';
+import { toGroupId, toGroupName } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomString } from '../test-helpers';
 
 /**

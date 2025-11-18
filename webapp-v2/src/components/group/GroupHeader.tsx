@@ -1,5 +1,5 @@
 import { CogIcon } from '@heroicons/react/24/outline';
-import { GroupDTO, GroupMember } from '@splitifyd/shared';
+import { GroupDTO, GroupMember } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, RelativeTime, Tooltip } from '../ui';
 

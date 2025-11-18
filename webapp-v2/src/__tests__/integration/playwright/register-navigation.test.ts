@@ -1,4 +1,4 @@
-import { ClientUserBuilder, LoginPage, RegisterPage, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { ClientUserBuilder, LoginPage, RegisterPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Navigation Flows', () => {

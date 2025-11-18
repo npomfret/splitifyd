@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';

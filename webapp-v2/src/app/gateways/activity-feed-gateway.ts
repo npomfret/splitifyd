@@ -1,5 +1,5 @@
 import { logError } from '@/utils/browser-logger';
-import { type ActivityFeedItem, type ISOString, toISOString, type UserId } from '@splitifyd/shared';
+import { type ActivityFeedItem, type ISOString, toISOString, type UserId } from '@billsplit-wl/shared';
 import { documentId, Timestamp } from 'firebase/firestore';
 import type { FirebaseService } from '../firebase';
 import { getFirebaseService } from '../firebase';

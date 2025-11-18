@@ -1,5 +1,5 @@
-import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
-import { ActivityFeedItemBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@splitifyd/test-support';
+import { ActivityFeedActions, ActivityFeedEventTypes } from '@billsplit-wl/shared';
+import { ActivityFeedItemBuilder, DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder } from '@billsplit-wl/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 

@@ -1,5 +1,5 @@
-import type { DisplayName, RegisteredUser } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import type { DisplayName, RegisteredUser } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { generateShortId, randomBoolean, randomChoice, randomString, randomUrl } from '../test-helpers';
 
 /**

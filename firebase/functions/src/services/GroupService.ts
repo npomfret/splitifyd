@@ -1,4 +1,4 @@
-import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
+import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
 import {
     ActivityFeedActions,
     ActivityFeedEventTypes,
@@ -21,8 +21,8 @@ import {
     toGroupId,
     toISOString,
     UpdateGroupRequest,
-} from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
 import { DOCUMENT_CONFIG, FirestoreCollections, HTTP_STATUS } from '../constants';
 import { logger, LoggerContext } from '../logger';
 import * as measure from '../monitoring/measure';

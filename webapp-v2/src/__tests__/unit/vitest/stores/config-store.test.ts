@@ -1,6 +1,6 @@
 import { configStore } from '@/stores/config-store.ts';
-import type { AppConfiguration, BrandingConfig } from '@splitifyd/shared';
-import { toISOString, toTenantAppName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@splitifyd/shared';
+import type { AppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
+import { toISOString, toTenantAppName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/app/firebase-config', () => ({

@@ -9,17 +9,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 describe('Hardcoded Values Validation', () => {
-    it('should not contain "splitifyd" in any git tracked files', () => {
-        const projectRoot = path.join(__dirname, '../../..');
+    it('should not contain hardcoded brand names in any git tracked files', () => {
+        const projectRoot = path.join(__dirname, '../../../../..');
+        const hardcodedBrandName = 'splitifyd'; // The old brand name to detect
 
-        // Exceptions: this test file and documentation/IDE files
+        // Exceptions: this test file (contains the search string as a variable)
+        const testFilePath = path.relative(projectRoot, __filename);
         const exceptions = [
-            'package.json',
-            'run-test.sh',
-            'e2e-tests/src/__tests__/hardcoded-values.test.ts',
+            testFilePath,
+            'packages/test-support/src/__tests__/unit/hardcoded-values.test.ts',
+            'firebase/.firebaserc',
+            'firebase/package.json',
+            'firebase/service-account-key.json',
+            'firebase/functions/vitest.config.ts',//todo
         ];
 
-        const excludeDirectories = ['docs/', '.idea/'];
+        const excludeDirectories = ['docs/', '.idea/', 'tasks'];
 
         // Get all git tracked files
         const gitFiles = execSync('git ls-files', {
@@ -38,6 +43,8 @@ describe('Hardcoded Values Validation', () => {
                 return;
             }
 
+            // console.log(file);
+
             const filePath = path.join(projectRoot, file);
 
             if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
@@ -50,7 +57,7 @@ describe('Hardcoded Values Validation', () => {
                 const matches: string[] = [];
 
                 lines.forEach((line, index) => {
-                    if (line.includes('splitifyd')) {
+                    if (line.includes(hardcodedBrandName)) {
                         matches.push(`Line ${index + 1}: ${line.trim()}`);
                     }
                 });
@@ -66,7 +73,7 @@ describe('Hardcoded Values Validation', () => {
         if (violations.length > 0) {
             const errorMessage = violations.map(({ file, matches }) => `${file}:\n${matches.map((match) => `  ${match}`).join('\n')}`).join('\n\n');
 
-            throw new Error(`Found "splitifyd" references in ${violations.length} files:\n\n${errorMessage}`);
+            throw new Error(`Found hardcoded "${hardcodedBrandName}" references in ${violations.length} files:\n\n${errorMessage}`);
         }
     });
 });

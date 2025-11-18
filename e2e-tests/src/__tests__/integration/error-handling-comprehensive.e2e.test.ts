@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { CreateGroupModalPage, DashboardPage, ExpenseFormPage, generateTestGroupName, GroupDetailPage, LoginPage } from '@splitifyd/test-support';
+import { CreateGroupModalPage, DashboardPage, ExpenseFormPage, generateTestGroupName, GroupDetailPage, LoginPage } from '@billsplit-wl/test-support';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
 

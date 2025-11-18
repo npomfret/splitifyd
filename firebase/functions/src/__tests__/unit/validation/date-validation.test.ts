@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, test } from 'vitest';
 import { validateCreateExpense, validateUpdateExpense } from '../../../expenses/validation';
 import { ApiError } from '../../../utils/errors';

@@ -1,8 +1,8 @@
-import type { UpdateUserRequest } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
-import { Password, toPassword } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import type { UpdateUserRequest } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import type { Email } from '@billsplit-wl/shared';
+import { Password, toPassword } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 
 /**
  * Builder for creating user update request objects for testing

@@ -1,5 +1,5 @@
-import { PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { PooledTestUser } from '@billsplit-wl/shared';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 
 describe('Balance & Settlement - Consolidated Tests', () => {

@@ -1,5 +1,5 @@
-import { isZeroAmount, SimplifiedDebt, UserBalance } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import { isZeroAmount, SimplifiedDebt, UserBalance } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 

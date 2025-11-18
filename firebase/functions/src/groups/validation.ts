@@ -9,9 +9,9 @@ import {
     UpdateDisplayNameRequestSchema,
     UpdateGroupRequest,
     UpdateGroupRequestSchema,
-} from '@splitifyd/shared';
-import { toGroupId, toGroupName } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
+import { toGroupId, toGroupName } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';

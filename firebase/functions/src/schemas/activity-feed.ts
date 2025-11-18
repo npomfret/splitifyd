@@ -1,4 +1,4 @@
-import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema, createDocumentSchemas, FirestoreTimestampSchema, GroupIdSchema, GroupNameSchema } from './common';
 

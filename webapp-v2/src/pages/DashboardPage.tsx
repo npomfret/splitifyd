@@ -1,8 +1,8 @@
 import { ShareGroupModal } from '@/components/group';
 import { navigationService } from '@/services/navigation.service';
 import { logWarning } from '@/utils/browser-logger.ts';
-import { GroupId, GroupName } from '@splitifyd/shared';
-import { toGroupId, toGroupName } from '@splitifyd/shared';
+import { GroupId, GroupName } from '@billsplit-wl/shared';
+import { toGroupId, toGroupName } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';

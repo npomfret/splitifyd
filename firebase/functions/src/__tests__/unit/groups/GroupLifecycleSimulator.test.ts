@@ -1,7 +1,7 @@
-import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import { toGroupName } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
+import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import { toGroupName } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

@@ -1,6 +1,6 @@
-import type { GroupName, PreviewGroupResponse } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import { toGroupId, toGroupName } from '@splitifyd/shared';
+import type { GroupName, PreviewGroupResponse } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
+import { toGroupId, toGroupName } from '@billsplit-wl/shared';
 import { generateShortId } from '../test-helpers';
 
 /**

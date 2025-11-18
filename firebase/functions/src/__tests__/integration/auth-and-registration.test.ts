@@ -10,8 +10,8 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { PooledTestUser, toPassword } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, generateTestEmail, TestUserBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { PooledTestUser, toPassword } from '@billsplit-wl/shared';
+import { ApiDriver, borrowTestUsers, generateTestEmail, TestUserBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 
 describe('Authentication and Registration - Integration Tests (Essential Firebase Behavior Only)', () => {
     const apiDriver = new ApiDriver();

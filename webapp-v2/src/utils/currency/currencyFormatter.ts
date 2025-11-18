@@ -1,4 +1,4 @@
-import { Amount, amountToSmallestUnit, normalizeAmount } from '@splitifyd/shared';
+import { Amount, amountToSmallestUnit, normalizeAmount } from '@billsplit-wl/shared';
 import { getCurrency } from './currencyList';
 
 export interface FormatOptions {

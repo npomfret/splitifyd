@@ -1,4 +1,4 @@
-import { type CurrentPolicyResponse, PolicyIds } from '@splitifyd/shared';
+import { type CurrentPolicyResponse, PolicyIds } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { apiClient, ApiError } from '../app/apiClient';
 import { logError } from '../utils/browser-logger';

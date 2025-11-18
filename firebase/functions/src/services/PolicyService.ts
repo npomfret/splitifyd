@@ -1,5 +1,5 @@
-import { PolicyDTO, PolicyVersion, toISOString, VersionHash } from '@splitifyd/shared';
-import { PolicyId } from '@splitifyd/shared';
+import { PolicyDTO, PolicyVersion, toISOString, VersionHash } from '@billsplit-wl/shared';
+import { PolicyId } from '@billsplit-wl/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
 import { ALLOWED_POLICY_IDS, HTTP_STATUS } from '../constants';

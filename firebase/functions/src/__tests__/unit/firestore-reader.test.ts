@@ -4,9 +4,9 @@
  * Tests the basic functionality of the FirestoreReader service and MockFirestoreReader
  */
 
-import { toGroupId } from '@splitifyd/shared';
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { GroupDTOBuilder } from '@splitifyd/test-support';
+import { toGroupId } from '@billsplit-wl/shared';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { GroupDTOBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { Timestamp } from '../../firestore-wrapper';

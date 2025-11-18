@@ -117,7 +117,7 @@ Remove built-in policy/legal pages from the application and replace them with co
 ## Implementation Phases
 
 ### Phase 1: Schema & Configuration (Backend)
-1. Update tenant config types in `@splitifyd/shared`
+1. Update tenant config types in `@billsplit/shared`
 2. Add Firestore validation for `externalLinks` field
 3. Add admin UI in Tenant Branding page for link configuration
 

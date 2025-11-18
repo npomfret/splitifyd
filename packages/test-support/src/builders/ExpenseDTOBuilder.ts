@@ -1,10 +1,10 @@
-import type { ExpenseDTO, UserId } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
-import { ExpenseId, toExpenseId } from '@splitifyd/shared';
-import type { ISOString } from '@splitifyd/shared';
+import type { ExpenseDTO, UserId } from '@billsplit-wl/shared';
+import { Amount } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
+import { ExpenseId, toExpenseId } from '@billsplit-wl/shared';
+import type { ISOString } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 /**

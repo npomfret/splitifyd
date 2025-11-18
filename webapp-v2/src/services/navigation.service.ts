@@ -1,6 +1,6 @@
 import { ROUTES, routes } from '@/constants/routes';
 import { logUserAction } from '@/utils/browser-logger';
-import { ExpenseId, GroupId } from '@splitifyd/shared';
+import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { route } from 'preact-router';
 
 /**

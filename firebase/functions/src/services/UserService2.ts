@@ -1,10 +1,10 @@
-import { RegisteredUser, SystemUserRoles, toISOString, UserProfileResponse, UserRegistration } from '@splitifyd/shared';
-import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import type { Email, UserId } from '@splitifyd/shared';
-import { normalizeDisplayNameForComparison } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import { RegisteredUser, SystemUserRoles, toISOString, UserProfileResponse, UserRegistration } from '@billsplit-wl/shared';
+import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import type { Email, UserId } from '@billsplit-wl/shared';
+import { normalizeDisplayNameForComparison } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { validateRegisterRequest } from '../auth/validation';
 import { HTTP_STATUS } from '../constants';

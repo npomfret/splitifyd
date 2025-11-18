@@ -12,8 +12,8 @@
  * Add new invalid data scenarios here as they're discovered in production.
  */
 
-import { toGroupId } from '@splitifyd/shared';
-import { ApiDriver, convertToISOString, CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { toGroupId } from '@billsplit-wl/shared';
+import { ApiDriver, convertToISOString, CreateGroupRequestBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { FirestoreCollections } from '../../constants';

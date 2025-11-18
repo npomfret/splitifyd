@@ -1,5 +1,5 @@
 import { logError, logWarning } from '@/utils/browser-logger.ts';
-import type { ActivityFeedItem, UserId } from '@splitifyd/shared';
+import type { ActivityFeedItem, UserId } from '@billsplit-wl/shared';
 import { type ActivityFeedGateway, type ActivityFeedRealtimeUpdate, getDefaultActivityFeedGateway } from '../gateways/activity-feed-gateway';
 
 export interface ActivityFeedRealtimePayload {

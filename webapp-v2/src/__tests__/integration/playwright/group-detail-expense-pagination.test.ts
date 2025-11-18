@@ -1,4 +1,4 @@
-import { ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { ExpenseDTOBuilder, GroupBalancesBuilder, GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { fulfillWithSerialization, mockGroupCommentsApi } from '../../utils/mock-firebase-service';
 

@@ -1,5 +1,5 @@
-import { PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver } from '@splitifyd/test-support';
+import { PooledTestUser } from '@billsplit-wl/shared';
+import { ApiDriver } from '@billsplit-wl/test-support';
 
 /**
  * Thin wrapper around the remote test user pool API.

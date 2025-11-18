@@ -1,5 +1,5 @@
-import { addAmounts, Amount, compareAmounts, isZeroAmount, normalizeAmount, SettlementDTO, subtractAmounts, sumAmounts, UserBalance, zeroAmount } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import { addAmounts, Amount, compareAmounts, isZeroAmount, normalizeAmount, SettlementDTO, subtractAmounts, sumAmounts, UserBalance, zeroAmount } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 
 export class SettlementProcessor {

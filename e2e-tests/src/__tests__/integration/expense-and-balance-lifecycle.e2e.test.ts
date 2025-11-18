@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { ExpenseFormDataBuilder, ExpenseFormPage, generateShortId, GroupDetailPage, SettlementFormDataBuilder } from '@splitifyd/test-support';
+import { ExpenseFormDataBuilder, ExpenseFormPage, generateShortId, GroupDetailPage, SettlementFormDataBuilder } from '@billsplit-wl/test-support';
 import { expect, simpleTest } from '../../fixtures';
 
 /**

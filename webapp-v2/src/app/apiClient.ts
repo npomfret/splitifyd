@@ -5,7 +5,7 @@
  * This ensures the server response matches our expected types
  */
 
-import { ApiSerializer, ISOString } from '@splitifyd/shared';
+import { ApiSerializer, ISOString } from '@billsplit-wl/shared';
 import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -56,14 +56,14 @@ import type {
     UserPolicyStatusResponse,
     UserProfileResponse,
     UserRegistration,
-} from '@splitifyd/shared';
-import { ApiErrorResponseSchema, responseSchemas } from '@splitifyd/shared';
-import type { UpdateSettlementRequest } from '@splitifyd/shared';
-import { ExpenseId, GroupId } from '@splitifyd/shared';
-import { SettlementId } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import { PolicyId } from '@splitifyd/shared';
-import type { CommentText } from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
+import { ApiErrorResponseSchema, responseSchemas } from '@billsplit-wl/shared';
+import type { UpdateSettlementRequest } from '@billsplit-wl/shared';
+import { ExpenseId, GroupId } from '@billsplit-wl/shared';
+import { SettlementId } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import { PolicyId } from '@billsplit-wl/shared';
+import type { CommentText } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
 

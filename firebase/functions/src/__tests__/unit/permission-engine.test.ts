@@ -1,4 +1,4 @@
-import { PermissionLevels, SecurityPresets } from '@splitifyd/shared';
+import { PermissionLevels, SecurityPresets } from '@billsplit-wl/shared';
 import { PermissionEngine } from '../../permissions';
 
 describe('PermissionEngine', () => {

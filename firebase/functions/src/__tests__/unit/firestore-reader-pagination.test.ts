@@ -6,9 +6,9 @@
  * firestore-read-encapsulation-report.md
  */
 
-import { toGroupId } from '@splitifyd/shared';
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { toGroupId } from '@billsplit-wl/shared';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { FirestoreReader } from '../../services/firestore';
 

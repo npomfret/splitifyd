@@ -1,7 +1,7 @@
-import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@splitifyd/test-support';
+import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { ActivityFeedService } from '../../../services/ActivityFeedService';

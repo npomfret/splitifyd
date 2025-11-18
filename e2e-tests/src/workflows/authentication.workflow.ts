@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
-import type { Email } from '@splitifyd/shared';
-import { DashboardPage, LoginPage } from '@splitifyd/test-support';
+import type { Email } from '@billsplit-wl/shared';
+import { DashboardPage, LoginPage } from '@billsplit-wl/test-support';
 
 /**
  * Authentication workflow class that handles user creation and login flows.

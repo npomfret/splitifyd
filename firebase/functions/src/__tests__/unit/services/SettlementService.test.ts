@@ -1,7 +1,7 @@
 import { Timestamp } from '@google-cloud/firestore';
-import { toGroupId, toSettlementId } from '@splitifyd/shared';
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { toGroupId, toSettlementId } from '@billsplit-wl/shared';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { CreateSettlementRequestBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';

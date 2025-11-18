@@ -9,7 +9,7 @@ import {
     GroupMemberBuilder,
     SettlementWithMembersBuilder,
     ThemeBuilder,
-} from '@splitifyd/test-support';
+} from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockApiFailure, mockGroupCommentsApi, mockGroupDetailApi, mockPendingMembersApi, mockUpdateGroupPermissionsApi, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 

@@ -1,4 +1,4 @@
-import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';

@@ -1,9 +1,9 @@
-import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, CreateExpenseRequest } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
-import type { ISOString } from '@splitifyd/shared';
+import { calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, CreateExpenseRequest } from '@billsplit-wl/shared';
+import { Amount } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
+import type { ISOString } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class CreateExpenseRequestBuilder {

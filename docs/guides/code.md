@@ -36,20 +36,20 @@ The project is a monorepo containing two main packages:
 - `firebase`: The backend, containing Firebase Functions written in TypeScript.
 - `webapp-v2`: The frontend, a modern Preact single-page application.
 
-### Shared Code via `@splitifyd/shared`
+### Shared Code via `@billsplit/shared`
 
 The monorepo uses npm workspace packages for sharing code between frontend and backend.
 
 - **Purpose**: Share type definitions and utilities across the entire stack with absolute type safety.
 - **Location**: Shared packages are located in `packages/` directory:
-    - `@splitifyd/shared` - Types and utilities shared between frontend and backend
-    - `@splitifyd/test-support` - Test utilities and configurations
-- **Primary Use**: All types intended for use by both client and server are in the `@splitifyd/shared` package.
-- **Rule**: When creating a type that will be sent to or received from the API, it **must** be defined in the shared package and imported using `@splitifyd/shared`.
+    - `@billsplit/shared` - Types and utilities shared between frontend and backend
+    - `@billsplit/test-support` - Test utilities and configurations
+- **Primary Use**: All types intended for use by both client and server are in the `@billsplit/shared` package.
+- **Rule**: When creating a type that will be sent to or received from the API, it **must** be defined in the shared package and imported using `@billsplit/shared`.
 
 ```typescript
 // Example from webapp-v2/src/api/apiClient.ts
-import type { CreateGroupRequest, Group } from '@splitifyd/shared';
+import type { CreateGroupRequest, Group } from '@billsplit/shared';
 ```
 
 ---

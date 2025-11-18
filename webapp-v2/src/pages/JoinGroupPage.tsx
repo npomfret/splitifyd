@@ -11,7 +11,7 @@ import { LoadingSpinner } from '@/components/ui';
 import { Input } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { useComputed } from '@preact/signals';
-import { toDisplayName } from '@splitifyd/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';

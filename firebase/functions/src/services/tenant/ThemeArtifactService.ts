@@ -1,4 +1,4 @@
-import type { BrandingTokens } from '@splitifyd/shared';
+import type { BrandingTokens } from '@billsplit-wl/shared';
 import { computeSha256, ThemeArtifactStorage } from '../storage/ThemeArtifactStorage';
 
 interface ThemeArtifactResult {

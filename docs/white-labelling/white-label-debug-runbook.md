@@ -6,20 +6,20 @@ Date: 2025-11-13
 | Symptom | Checks |
 | --- | --- |
 | FOUC on first paint | 1) Confirm `/api/theme.css` returns 200 + cache headers. 2) Ensure inline base stylesheet tag still exists in `webapp-v2/index.html`. 3) Verify service worker cached latest hash. |
-| Wrong tenant colors | 1) `curl -I /api/theme.css` to inspect `X-Splitifyd-Tenant`. 2) Check tenant doc `domains.normalized` includes hostname. 3) Re-register fixtures through `POST /api/admin/tenants`. |
+| Wrong tenant colors | 1) `curl -I /api/theme.css` to inspect `X-BillSplit-Tenant`. 2) Check tenant doc `domains.normalized` includes hostname. 3) Re-register fixtures through `POST /api/admin/tenants`. |
 | Publish endpoint 500 | 1) Inspect `firebase/functions` logs for `ThemeArtifactService`. 2) Validate Firestore doc against `TenantBrandingSchema` using `npx tsx scripts/validate-tenant.ts tenantId`. |
 | CSS not updating | 1) Ensure `theme.css?v=<hash>` query param updated in `index.html`. 2) Invalidate SW cache via diagnostics panel “Force reload”. |
 
 ## Diagnostic Commands
 ```bash
 # Inspect tenant document
-firebase firestore:documents get tenants/tenant_localhost --project splitifyd
+firebase firestore:documents get tenants/tenant_localhost --project billsplit
 
 # Fetch CSS directly
 curl -H "Host: localhost" http://localhost:6005/api/theme.css -v
 
 # Measure CSS payload size
-curl -s -H "Host: default.splitifyd.dev" http://localhost:6005/api/theme.css | gzip -c | wc -c
+curl -s -H "Host: default.billsplit.dev" http://localhost:6005/api/theme.css | gzip -c | wc -c
 ```
 
 ## Escalation Path

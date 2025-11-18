@@ -9,7 +9,7 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import type { TenantRegistryRecord } from '../../../services/firestore';
@@ -56,8 +56,8 @@ describe('TenantRegistryService', () => {
 
     const defaultTenantRecord: TenantRegistryRecord = {
         tenant: defaultTenantConfig,
-        primaryDomain: toTenantDomainName('app.splitifyd.com'),
-        domains: [toTenantDomainName('app.splitifyd.com')],
+        primaryDomain: toTenantDomainName('app.foo.com'),
+        domains: [toTenantDomainName('app.foo.com')],
         isDefault: toTenantDefaultFlag(true),
     };
 
@@ -310,7 +310,7 @@ describe('TenantRegistryService', () => {
             vi.mocked(mockFirestoreReader.getTenantByDomain).mockResolvedValue(defaultTenantRecord);
 
             const options: TenantResolutionOptions = {
-                host: 'app.splitifyd.com',
+                host: 'app.foo.com',
                 overrideTenantId: 'test-tenant',
                 allowOverride: true,
             };

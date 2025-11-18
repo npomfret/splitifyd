@@ -10,10 +10,10 @@
  */
 
 // Import types
-import type { CommentDTO, DisplayName, Email, ShareLinkDTO, ShareLinkToken, UserId } from '@splitifyd/shared';
-import { normalizeDisplayNameForComparison } from '@splitifyd/shared';
+import type { CommentDTO, DisplayName, Email, ShareLinkDTO, ShareLinkToken, UserId } from '@billsplit-wl/shared';
+import { normalizeDisplayNameForComparison } from '@billsplit-wl/shared';
 // Import schemas for validation
-import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@splitifyd/shared';
+import { ExpenseId, GroupId, PolicyId, ShareLinkId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { ALLOWED_POLICY_IDS, FirestoreCollections, HTTP_STATUS } from '../../constants';
 import { FieldValue, type IDocumentReference, type IFirestoreDatabase, type ITransaction, type IWriteBatch, Timestamp } from '../../firestore-wrapper';
@@ -21,8 +21,8 @@ import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { ApiError } from '../../utils/errors';
 
-import type { BrandingArtifactMetadata } from '@splitifyd/shared';
-import { SystemUserRoles } from '@splitifyd/shared';
+import type { BrandingArtifactMetadata } from '@billsplit-wl/shared';
+import { SystemUserRoles } from '@billsplit-wl/shared';
 import type { GroupBalanceDTO } from '../../schemas';
 import {
     ActivityFeedDocumentSchema,

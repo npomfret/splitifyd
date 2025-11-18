@@ -1,5 +1,5 @@
 import { logError, logInfo, logWarning } from '@/utils/browser-logger';
-import type { ActivityFeedItem, GroupId, UserId } from '@splitifyd/shared';
+import type { ActivityFeedItem, GroupId, UserId } from '@billsplit-wl/shared';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../../services/activity-feed-realtime-service';
 
 interface GroupDetailRealtimeCoordinatorOptions {

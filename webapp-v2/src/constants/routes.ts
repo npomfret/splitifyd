@@ -1,4 +1,4 @@
-import { ExpenseId, GroupId } from '@splitifyd/shared';
+import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 
 export const ROUTES = {
     // Main Routes

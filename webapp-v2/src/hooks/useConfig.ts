@@ -1,5 +1,5 @@
 import { configStore } from '@/stores/config-store';
-import type { AppConfiguration } from '@splitifyd/shared';
+import type { AppConfiguration } from '@billsplit-wl/shared';
 import { useEffect } from 'preact/hooks';
 
 export function useConfig(): AppConfiguration | null {

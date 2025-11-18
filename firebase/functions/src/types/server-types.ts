@@ -1,4 +1,4 @@
-import { GroupId } from '@splitifyd/shared';
+import { GroupId } from '@billsplit-wl/shared';
 import { Timestamp } from '../firestore-wrapper';
 
 /**
@@ -8,7 +8,7 @@ import { Timestamp } from '../firestore-wrapper';
  * Uses Firestore Timestamp objects for internal storage. When read by FirestoreReader,
  * these are converted to GroupMembershipDTO with ISO strings.
  *
- * Note: GroupMemberDocument removed from application layer - services use GroupMembershipDTO from @splitifyd/shared.
+ * Note: GroupMemberDocument removed from application layer - services use GroupMembershipDTO from @billsplit-wl/shared.
  * This TopLevelGroupMemberDocument type is ONLY used internally by FirestoreReader for type assertions.
  */
 export interface TopLevelGroupMemberDocument {

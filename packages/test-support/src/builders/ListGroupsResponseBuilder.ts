@@ -1,4 +1,4 @@
-import type { ChangeMetadata, GroupDTO, ListGroupsResponse } from '@splitifyd/shared';
+import type { ChangeMetadata, GroupDTO, ListGroupsResponse } from '@billsplit-wl/shared';
 
 /**
  * Builder for creating ListGroupsResponse objects for tests

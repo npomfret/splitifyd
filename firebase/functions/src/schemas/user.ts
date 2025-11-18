@@ -1,4 +1,4 @@
-import { SystemUserRoles } from '@splitifyd/shared';
+import { SystemUserRoles } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { createDocumentSchemas, FirestoreTimestampSchema, OptionalAuditFieldsSchema } from './common';
 

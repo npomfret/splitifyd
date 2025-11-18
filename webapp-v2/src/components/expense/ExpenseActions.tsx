@@ -1,5 +1,5 @@
 import { logError } from '@/utils/browser-logger.ts';
-import type { ExpenseDTO } from '@splitifyd/shared';
+import type { ExpenseDTO } from '@billsplit-wl/shared';
 import { useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Alert, Button, ConfirmDialog } from '../ui';

@@ -19,7 +19,7 @@ import {
     smallestUnitToAmountString,
     UserId,
     ZERO,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip } from '../ui';

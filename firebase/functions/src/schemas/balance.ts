@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// Schema for UserBalance (from @splitifyd/shared)
+// Schema for UserBalance (from @billsplit-wl/shared)
 const UserBalanceSchema = z.object({
     uid: z.string(),
     owes: z.record(z.string(), z.string()),

@@ -1,5 +1,5 @@
-import { SystemUserRoles } from '@splitifyd/shared';
-import type { TenantDomainsResponse } from '@splitifyd/shared';
+import { SystemUserRoles } from '@billsplit-wl/shared';
+import type { TenantDomainsResponse } from '@billsplit-wl/shared';
 import { fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import type { ComponentChildren } from 'preact';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

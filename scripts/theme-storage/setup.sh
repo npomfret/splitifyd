@@ -6,11 +6,12 @@ if ! command -v gcloud >/dev/null 2>&1; then
   exit 1
 fi
 
-PROJECT_ID="${PROJECT_ID:-splitifyd}"
-BUCKET_NAME="${THEME_BUCKET:-splitifyd-themes}"
-LOCATION="${THEME_BUCKET_LOCATION:-us-central1}"
+#PROJECT_ID=todo - get this from config
+BUCKET_NAME="${THEME_BUCKET:-themes}"
+#LOCATION=todo - get this from config
 CORS_FILE="${THEME_CORS_FILE:-$(pwd)/scripts/theme-storage/cors.json}"
 
+# WTF?? this is total bullshit - the origin is nonsense - what is this for???????
 if [[ ! -f "$CORS_FILE" ]]; then
   cat <<'JSON' > "$CORS_FILE"
 [

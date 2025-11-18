@@ -15,11 +15,11 @@ const productionEnv = {
 
 const workspacePackages = [
     {
-        name: '@splitifyd/shared',
+        name: '@billsplit-wl/shared',
         directory: path.join(rootDir, 'packages/shared'),
     },
     {
-        name: '@splitifyd/firebase-simulator',
+        name: '@billsplit-wl/firebase-simulator',
         directory: path.join(rootDir, 'packages/firebase-simulator'),
     },
 ];
@@ -121,7 +121,7 @@ tarballs.forEach(({ name, filename }) => {
 });
 
 Object.keys(pkg.devDependencies).forEach((dep) => {
-    if (dep.startsWith('@splitifyd/')) {
+    if (dep.startsWith('@billsplit-wl/')) {
         console.log(`Removing devDependency: ${dep}`);
         delete pkg.devDependencies[dep];
     }

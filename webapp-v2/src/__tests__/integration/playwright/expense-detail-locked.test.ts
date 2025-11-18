@@ -1,4 +1,4 @@
-import { ExpenseDetailPage, ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@splitifyd/test-support';
+import { ExpenseDetailPage, ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockExpenseCommentsApi, mockExpenseDetailApi } from '../../utils/mock-firebase-service';

@@ -1,4 +1,4 @@
-import { PooledTestUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@billsplit-wl/shared';
 import { ApiDriver } from './ApiDriver';
 
 /**
@@ -10,7 +10,7 @@ import { ApiDriver } from './ApiDriver';
  *
  * @example
  * ```typescript
- * import { borrowTestUsers } from '@splitifyd/test-support';
+ * import { borrowTestUsers } from '@billsplit-wl/test-support';
  *
  * describe('My Test', () => {
  *   let users: AuthenticatedFirebaseUser[];

@@ -4,7 +4,7 @@ import { navigationService } from '@/services/navigation.service';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
 import { batch, useComputed, useSignal } from '@preact/signals';
-import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember } from '@splitifyd/shared';
+import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';

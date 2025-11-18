@@ -1,6 +1,6 @@
-import type { PooledTestUser } from '@splitifyd/shared';
-import { brandingTokenFixtures } from '@splitifyd/shared';
-import { ApiDriver } from '@splitifyd/test-support';
+import type { PooledTestUser } from '@billsplit-wl/shared';
+import { brandingTokenFixtures } from '@billsplit-wl/shared';
+import { ApiDriver } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { getFirestore } from '../../../firebase';

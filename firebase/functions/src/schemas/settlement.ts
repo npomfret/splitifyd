@@ -1,4 +1,4 @@
-import { PositiveAmountStringSchema } from '@splitifyd/shared';
+import { PositiveAmountStringSchema } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema, createDocumentSchemas, CurrencyCodeSchema, FirestoreTimestampSchema, GroupIdSchema, SoftDeletionFieldsSchema, UserIdSchema } from './common';
 

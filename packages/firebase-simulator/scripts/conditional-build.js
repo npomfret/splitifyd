@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Conditional build script for @splitifyd/firebase-simulator
+ * Conditional build script for @billsplit-wl/firebase-simulator
  *
  * - In production or test environments we emit compiled bundles with tsup.
  * - During local development we create lightweight wrappers that delegate to the
@@ -20,19 +20,19 @@ const distDir = path.join(__dirname, '..', 'dist');
 
 const buildMode = process.env.BUILD_MODE || 'development';
 if (process.env.SKIP_WORKSPACE_BUILD === 'true') {
-    console.log('⏭️  Skipping build for @splitifyd/firebase-simulator (SKIP_WORKSPACE_BUILD detected)');
+    console.log('⏭️  Skipping build for @billsplit-wl/firebase-simulator (SKIP_WORKSPACE_BUILD detected)');
     process.exit(0);
 }
 const shouldEmitBundles = buildMode === 'production' || buildMode === 'test' || process.env.FORCE_PROD_BUILD === 'true';
 
 if (shouldEmitBundles) {
-    console.log('🏗️  Building @splitifyd/firebase-simulator bundles with tsup...');
+    console.log('🏗️  Building @billsplit-wl/firebase-simulator bundles with tsup...');
     execSync('npx tsup', { stdio: 'inherit' });
     console.log('✅  Bundles written to dist/');
     process.exit(0);
 }
 
-console.log('⚡  Preparing @splitifyd/firebase-simulator development wrappers');
+console.log('⚡  Preparing @billsplit-wl/firebase-simulator development wrappers');
 
 if (!fs.existsSync(distDir)) {
     fs.mkdirSync(distDir, { recursive: true });

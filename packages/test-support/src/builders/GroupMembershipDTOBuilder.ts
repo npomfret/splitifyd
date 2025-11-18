@@ -1,7 +1,7 @@
-import type { DisplayName, GroupId, GroupMembershipDTO, ISOString, MemberRole, MemberStatus, UserId, UserThemeColor } from '@splitifyd/shared';
-import { MemberRoles, MemberStatuses } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import type { DisplayName, GroupId, GroupMembershipDTO, ISOString, MemberRole, MemberStatus, UserId, UserThemeColor } from '@billsplit-wl/shared';
+import { MemberRoles, MemberStatuses } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice } from '../test-helpers';
 import { ThemeBuilder } from './ThemeBuilder';
 

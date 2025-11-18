@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 
-import { getPorts, getProjectId } from '@splitifyd/test-support';
+import { getPorts, getProjectId } from '@billsplit-wl/test-support';
 import { ChildProcess } from 'child_process';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';

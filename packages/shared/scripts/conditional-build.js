@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Conditional build script for @splitifyd/shared
+ * Conditional build script for @billsplit-wl/shared
  *
  * This script runs the production build only when BUILD_MODE=production.
  * During local development, it creates wrapper files that use tsx to run TypeScript directly.
@@ -17,15 +17,15 @@ const __dirname = path.dirname(__filename);
 
 const buildMode = process.env.BUILD_MODE || 'development';
 if (process.env.SKIP_WORKSPACE_BUILD === 'true') {
-    console.log('⏭️  Skipping build for @splitifyd/shared (SKIP_WORKSPACE_BUILD detected)');
+    console.log('⏭️  Skipping build for @billsplit-wl/shared (SKIP_WORKSPACE_BUILD detected)');
     process.exit(0);
 }
 
 if (buildMode === 'production' || buildMode === 'test') {
-    console.log('🏗️  Running production build for @splitifyd/shared...');
+    console.log('🏗️  Running production build for @billsplit-wl/shared...');
     execSync('npx tsup', { stdio: 'inherit' });
 } else {
-    console.log('⚡ Setting up @splitifyd/shared development mode (using tsx for direct TypeScript execution)');
+    console.log('⚡ Setting up @billsplit-wl/shared development mode (using tsx for direct TypeScript execution)');
 
     // Ensure dist directory exists
     const distDir = path.join(__dirname, '..', 'dist');

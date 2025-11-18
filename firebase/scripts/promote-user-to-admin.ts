@@ -12,7 +12,7 @@
  * WARNING: This grants full admin access to the user. Use with caution in production.
  */
 
-import { SystemUserRoles, UserId } from '@splitifyd/shared';
+import { SystemUserRoles, UserId } from '@billsplit-wl/shared';
 import * as admin from 'firebase-admin';
 import { Firestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../functions/src/constants';

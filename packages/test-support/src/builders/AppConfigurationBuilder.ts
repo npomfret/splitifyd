@@ -1,4 +1,4 @@
-import type { AppConfiguration, BrandingConfig, BrandingMarketingFlags, EnvironmentConfig, FirebaseConfig, FormDefaults, TenantConfig, ThemeConfig } from '@splitifyd/shared';
+import type { AppConfiguration, BrandingConfig, BrandingMarketingFlags, EnvironmentConfig, FirebaseConfig, FormDefaults, TenantConfig, ThemeConfig } from '@billsplit-wl/shared';
 import {
     isoStringNow,
     toShowLandingPageFlag,
@@ -13,7 +13,7 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
     toTenantThemePaletteName,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { convertToISOString } from '../test-helpers';
 
 export interface TenantBrandingOverrides {

@@ -1,4 +1,4 @@
-import { SystemUserRoles } from '@splitifyd/shared';
+import { SystemUserRoles } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';

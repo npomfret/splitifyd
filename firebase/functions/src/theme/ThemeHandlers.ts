@@ -1,4 +1,4 @@
-import { BrandingArtifactMetadata } from '@splitifyd/shared';
+import { BrandingArtifactMetadata } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';

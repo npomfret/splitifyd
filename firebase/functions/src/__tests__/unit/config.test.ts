@@ -1,4 +1,4 @@
-import { AppConfigurationBuilder } from '@splitifyd/test-support';
+import { AppConfigurationBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateAppConfiguration } from '../../middleware/config-validation';
 

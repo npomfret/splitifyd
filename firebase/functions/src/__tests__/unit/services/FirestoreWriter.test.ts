@@ -1,7 +1,7 @@
-import { toGroupId } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
-import { toTenantAppName, toTenantDefaultFlag, toTenantDomainName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@splitifyd/shared';
-import { GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
+import { toGroupId } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
+import { toTenantAppName, toTenantDefaultFlag, toTenantDomainName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
+import { GroupDTOBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';

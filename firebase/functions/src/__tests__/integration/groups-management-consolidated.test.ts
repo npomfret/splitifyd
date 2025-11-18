@@ -1,4 +1,4 @@
-import { calculateEqualSplits, PooledTestUser } from '@splitifyd/shared';
+import { calculateEqualSplits, PooledTestUser } from '@billsplit-wl/shared';
 import {
     ApiDriver,
     borrowTestUsers,
@@ -9,7 +9,7 @@ import {
     getFirebaseEmulatorConfig,
     GroupUpdateBuilder,
     SettlementUpdateBuilder,
-} from '@splitifyd/test-support';
+} from '@billsplit-wl/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';

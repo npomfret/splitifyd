@@ -1,4 +1,4 @@
-import { GroupName, toGroupName, UpdateGroupRequest } from '@splitifyd/shared';
+import { GroupName, toGroupName, UpdateGroupRequest } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice, randomString } from '../test-helpers';
 
 export class GroupUpdateBuilder {

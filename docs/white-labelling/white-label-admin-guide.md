@@ -42,6 +42,6 @@ Audience: Tenant success / customer admin teams
 | Visual regression failed | Review diff artifacts; fix layout or update baseline before retrying publish. |
 
 ## Contacts
-- **Design Owner:** Dana Lee (`design@splitifyd.com`)
+- **Design Owner:** Dana Lee (`design@billsplit.com`)
 - **Dev Steward:** @ui-foundations (Slack)
-- **After-hours escalation:** theme-oncall@splitifyd.com (Weeks 5–8 rollout)
+- **After-hours escalation:** theme-oncall@billsplit.com (Weeks 5–8 rollout)

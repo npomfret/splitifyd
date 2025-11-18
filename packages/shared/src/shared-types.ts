@@ -1,7 +1,7 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
 import { z } from 'zod';
-import { createDisplayNameSchema } from './schemas';
+import { createDisplayNameSchema } from './schemas/primitives';
 import type { ColorPattern } from './user-colors';
 
 // ========================================================================

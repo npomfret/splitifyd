@@ -1,4 +1,4 @@
-import { AdminTenantsPage, TenantEditorModalPage } from '@splitifyd/test-support';
+import { AdminTenantsPage, TenantEditorModalPage } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Tenant Editor Modal', () => {

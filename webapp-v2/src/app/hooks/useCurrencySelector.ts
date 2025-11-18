@@ -1,5 +1,5 @@
 import { useDebounce } from '@/utils/debounce.ts';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { type Currency, CurrencyService } from '../services/currencyService';
 

@@ -1,7 +1,7 @@
-import { AppConfiguration, EnvironmentConfig, FirebaseConfig, TenantConfig } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import { AppConfiguration, EnvironmentConfig, FirebaseConfig, TenantConfig } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import type { Email } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';

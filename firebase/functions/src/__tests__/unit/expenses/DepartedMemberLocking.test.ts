@@ -1,8 +1,8 @@
 // Unit tests for departed member transaction locking
 // Tests that expenses and settlements involving departed members become read-only (locked)
 
-import { calculateEqualSplits, GroupId } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
+import { calculateEqualSplits, GroupId } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, SettlementUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

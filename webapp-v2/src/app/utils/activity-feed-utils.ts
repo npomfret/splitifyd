@@ -1,5 +1,5 @@
-import { ActivityFeedActions, ActivityFeedEventTypes } from '@splitifyd/shared';
-import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem } from '@splitifyd/shared';
+import { ActivityFeedActions, ActivityFeedEventTypes } from '@billsplit-wl/shared';
+import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem } from '@billsplit-wl/shared';
 
 const EVENT_ACTION_MAP: Record<ActivityFeedEventType, ActivityFeedAction> = {
     [ActivityFeedEventTypes.EXPENSE_CREATED]: ActivityFeedActions.CREATE,

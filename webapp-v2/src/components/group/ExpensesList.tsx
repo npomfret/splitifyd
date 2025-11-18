@@ -1,6 +1,6 @@
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { useComputed } from '@preact/signals';
-import type { ExpenseDTO } from '@splitifyd/shared';
+import type { ExpenseDTO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';

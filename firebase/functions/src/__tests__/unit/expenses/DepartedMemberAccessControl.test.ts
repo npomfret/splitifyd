@@ -1,8 +1,8 @@
 // Unit tests for departed member access control
 // Tests that users who have left a group cannot access expenses, settlements, or group data
 
-import { GroupId } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder } from '@splitifyd/test-support';
+import { GroupId } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

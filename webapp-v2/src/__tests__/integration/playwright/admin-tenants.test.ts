@@ -1,4 +1,4 @@
-import { AdminTenantsPage } from '@splitifyd/test-support';
+import { AdminTenantsPage } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Admin Tenants Page - System Admin View', () => {

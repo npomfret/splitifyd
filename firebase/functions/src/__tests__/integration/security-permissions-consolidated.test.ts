@@ -1,8 +1,8 @@
 // Consolidated Security and Permissions Integration Tests
 // Combines tests from security-and-permissions.test.ts, permission-edge-cases.test.ts, and security-preset-validation.integration.test.ts
 
-import { GroupDTO, PooledTestUser, UserToken } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { GroupDTO, PooledTestUser, UserToken } from '@billsplit-wl/shared';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, GroupUpdateBuilder } from '@billsplit-wl/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 

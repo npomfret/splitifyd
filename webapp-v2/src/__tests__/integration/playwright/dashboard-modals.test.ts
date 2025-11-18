@@ -1,4 +1,4 @@
-import { CreateGroupModalPage, DashboardPage, FORM_VALIDATION, GroupDTOBuilder, ListGroupsResponseBuilder, randomString } from '@splitifyd/test-support';
+import { CreateGroupModalPage, DashboardPage, FORM_VALIDATION, GroupDTOBuilder, ListGroupsResponseBuilder, randomString } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockApiFailure, mockGenerateShareLinkApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 

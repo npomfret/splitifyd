@@ -1,9 +1,9 @@
-import { Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import { Amount, amountToSmallestUnit, roundToCurrencyPrecision, smallestUnitToAmountString } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
 
 /**
  * Internal interface for expense splits - used only by ExpenseSplitBuilder
- * For application usage, import ExpenseSplit from @splitifyd/shared
+ * For application usage, import ExpenseSplit from @billsplit-wl/shared
  */
 interface ExpenseSplit {
     uid: string;

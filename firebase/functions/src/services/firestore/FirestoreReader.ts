@@ -10,9 +10,9 @@
  * for migration guidance.
  */
 
-import type { CommentId, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId } from '@splitifyd/shared';
+import type { CommentId, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId } from '@billsplit-wl/shared';
 // Note: ParsedGroupMemberDocument no longer exported from schemas after DTO migration
-// FirestoreReader now works directly with GroupMembershipDTO from @splitifyd/shared
+// FirestoreReader now works directly with GroupMembershipDTO from @billsplit-wl/shared
 import {
     type ActivityFeedAction,
     ActivityFeedActions,
@@ -34,7 +34,7 @@ import {
     type SettlementDTO,
     SettlementId,
     type UserId,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { FirestoreCollections, HTTP_STATUS } from '../../constants';
 import { FieldPath, Filter, type IDocumentReference, type IDocumentSnapshot, type IFirestoreDatabase, type IQuery, type IQuerySnapshot, type ITransaction, Timestamp } from '../../firestore-wrapper';
 import { logger } from '../../logger';
@@ -43,7 +43,7 @@ import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelper
 import { ApiError } from '../../utils/errors';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
-import { ShareLinkId, toCommentId, toExpenseId, toGroupId, toGroupName, toISOString, toSettlementId, toShareLinkId, toTenantDefaultFlag } from '@splitifyd/shared';
+import { ShareLinkId, toCommentId, toExpenseId, toGroupId, toGroupName, toISOString, toSettlementId, toShareLinkId, toTenantDefaultFlag } from '@billsplit-wl/shared';
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,

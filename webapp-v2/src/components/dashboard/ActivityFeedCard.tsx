@@ -4,7 +4,7 @@ import { routes } from '@/constants/routes.ts';
 import { navigationService } from '@/services/navigation.service.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import { useComputed } from '@preact/signals';
-import type { ActivityFeedItem, UserId } from '@splitifyd/shared';
+import type { ActivityFeedItem, UserId } from '@billsplit-wl/shared';
 import type { TFunction } from 'i18next';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';

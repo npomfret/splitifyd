@@ -1,4 +1,4 @@
-import { convertToISOString } from '@splitifyd/test-support';
+import { convertToISOString } from '@billsplit-wl/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTrueServerTimestamp, getRelativeTime, isDateInValidRange, isUTCFormat, parseISOToTimestamp, safeParseISOToTimestamp, validateUTCDate } from '../../utils/dateHelpers';

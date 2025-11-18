@@ -11,7 +11,7 @@ import {
     toSettlementId,
     UpdateSettlementRequest,
     UserId,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import { FieldValue } from '../firestore-wrapper';
 import { logger } from '../logger';

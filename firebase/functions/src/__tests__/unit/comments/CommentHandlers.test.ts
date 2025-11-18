@@ -1,5 +1,5 @@
-import { CommentDTO } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
+import { CommentDTO } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
 import { HTTP_STATUS } from '../../../constants';

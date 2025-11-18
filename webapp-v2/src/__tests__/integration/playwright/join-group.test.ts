@@ -1,4 +1,4 @@
-import { JoinGroupPage, JoinGroupResponseBuilder, PreviewGroupResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { JoinGroupPage, JoinGroupResponseBuilder, PreviewGroupResponseBuilder, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupPreviewApi, mockGroupPreviewFailure, mockJoinGroupApi, mockJoinGroupFailure, setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 

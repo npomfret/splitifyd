@@ -1,6 +1,6 @@
-import { CreateGroupRequest, toGroupId } from '@splitifyd/shared';
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { CreateGroupRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequest, toGroupId } from '@billsplit-wl/shared';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS, VALIDATION_LIMITS } from '../../constants';
 import { validateCreateGroup, validateGroupId, validateUpdateGroup } from '../../groups/validation';

@@ -1,4 +1,4 @@
-import { GroupPermissions, PermissionLevels, SecurityPreset, SecurityPresets } from '@splitifyd/shared';
+import { GroupPermissions, PermissionLevels, SecurityPreset, SecurityPresets } from '@billsplit-wl/shared';
 
 /**
  * @deprecated Use PermissionEngineAsync instead for scalable subcollection-based permissions

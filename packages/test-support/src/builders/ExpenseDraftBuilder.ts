@@ -1,7 +1,7 @@
-import type { ExpenseDraft, UserId } from '@splitifyd/shared';
-import { SplitTypes } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import type { ExpenseDraft, UserId } from '@billsplit-wl/shared';
+import { SplitTypes } from '@billsplit-wl/shared';
+import { Amount } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class ExpenseDraftBuilder {

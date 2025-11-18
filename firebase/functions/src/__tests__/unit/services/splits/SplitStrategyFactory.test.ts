@@ -1,4 +1,4 @@
-import { SplitTypes } from '@splitifyd/shared';
+import { SplitTypes } from '@billsplit-wl/shared';
 import { describe, expect, it } from 'vitest';
 import { EqualSplitStrategy } from '../../../../services/splits/EqualSplitStrategy';
 import { ExactSplitStrategy } from '../../../../services/splits/ExactSplitStrategy';

@@ -1,4 +1,4 @@
-import { AppConfiguration, TenantConfig, toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '@splitifyd/shared';
+import { AppConfiguration, TenantConfig, toShowLandingPageFlag, toShowMarketingContentFlag, toShowPricingPageFlag } from '@billsplit-wl/shared';
 import { getTenantAwareAppConfig } from '../client-config';
 import { HTTP_STATUS } from '../constants';
 import type { TenantRequestContext } from '../types/tenant';

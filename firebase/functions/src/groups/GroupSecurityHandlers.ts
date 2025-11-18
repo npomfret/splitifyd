@@ -1,4 +1,4 @@
-import type { GroupId, UserId } from '@splitifyd/shared';
+import type { GroupId, UserId } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';

@@ -1,6 +1,6 @@
-import { toExpenseId, toGroupId } from '@splitifyd/shared';
-import { convertToISOString, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { toExpenseId, toGroupId } from '@billsplit-wl/shared';
+import { convertToISOString, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';

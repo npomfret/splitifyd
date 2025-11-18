@@ -1,10 +1,10 @@
-import type { GroupBalances, ISOString, SimplifiedDebt, UserBalance } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
-import { negateNormalizedAmount, ZERO } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import type { GroupBalances, ISOString, SimplifiedDebt, UserBalance } from '@billsplit-wl/shared';
+import { Amount } from '@billsplit-wl/shared';
+import { negateNormalizedAmount, ZERO } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
 import { convertToISOString } from '../test-helpers';
 
 /**

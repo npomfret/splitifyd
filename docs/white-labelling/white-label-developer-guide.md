@@ -4,14 +4,14 @@ Date: 2025-11-13
 Audience: Frontend + backend engineers
 
 ## Tokens & Schemas
-- Source of truth lives in `@splitifyd/shared/src/types/branding.ts`.
-- Fixtures for local testing: `@splitifyd/shared/src/fixtures/branding-tokens.ts` (`default`, `localhost`, `loopback`).
+- Source of truth lives in `@billsplit/shared/src/types/branding.ts`.
+- Fixtures for local testing: `@billsplit/shared/src/fixtures/branding-tokens.ts` (`default`, `localhost`, `loopback`).
 - Firestore tenants will store `brandingTokens: TenantBranding` alongside legacy `branding` fields until migration completes.
 
 ## Backend Flow
 1. Tenant updates stored under `tenants/{tenantId}`.
 2. Admin console calls `POST /api/admin/publishTenantTheme`.
-3. `ThemeArtifactService` renders CSS + JSON, stores `gs://splitifyd-themes/{tenant}/{hash}.css`.
+3. `ThemeArtifactService` renders CSS + JSON, stores `gs://billsplit-themes/{tenant}/{hash}.css`.
 4. `/api/theme.css?v=<hash>` resolves tenant via hostname and streams CSS.
 
 ## Frontend Consumption

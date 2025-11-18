@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

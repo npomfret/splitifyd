@@ -1,7 +1,7 @@
 import { Alert, Button, Card, Form, Input, LoadingSpinner } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
-import { SystemUserRoles } from '@splitifyd/shared';
-import type { TenantSettingsResponse, UpdateTenantBrandingRequest } from '@splitifyd/shared';
+import { SystemUserRoles } from '@billsplit-wl/shared';
+import type { TenantSettingsResponse, UpdateTenantBrandingRequest } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';

@@ -1,5 +1,5 @@
-import { DisplayName } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import type { Email } from '@billsplit-wl/shared';
 import type { UserRecord } from 'firebase-admin/auth';
 import { generateShortId } from '../test-helpers';
 

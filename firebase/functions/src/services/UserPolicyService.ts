@@ -1,5 +1,5 @@
-import { PolicyAcceptanceStatusDTO, PolicyId, UserPolicyStatusResponse, VersionHash } from '@splitifyd/shared';
-import type { UserId } from '@splitifyd/shared';
+import { PolicyAcceptanceStatusDTO, PolicyId, UserPolicyStatusResponse, VersionHash } from '@billsplit-wl/shared';
+import type { UserId } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';

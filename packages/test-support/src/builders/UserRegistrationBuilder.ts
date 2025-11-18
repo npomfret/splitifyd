@@ -1,6 +1,6 @@
-import { toPassword, UserRegistration } from '@splitifyd/shared';
-import { DisplayName, toDisplayName } from '@splitifyd/shared';
-import type { Email, Password } from '@splitifyd/shared';
+import { toPassword, UserRegistration } from '@billsplit-wl/shared';
+import { DisplayName, toDisplayName } from '@billsplit-wl/shared';
+import type { Email, Password } from '@billsplit-wl/shared';
 import { generateNewUserDetails } from '../test-helpers';
 
 export class UserRegistrationBuilder {

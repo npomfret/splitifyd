@@ -1,4 +1,4 @@
-import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { DashboardPage, GroupDTOBuilder, ListGroupsResponseBuilder, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockApiFailure, mockGroupsApi } from '../../utils/mock-firebase-service';
 

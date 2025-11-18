@@ -13,7 +13,7 @@ import {
     ListGroupsResponseBuilder,
     SettlementWithMembersBuilder,
     ThemeBuilder,
-} from '@splitifyd/test-support';
+} from '@billsplit-wl/test-support';
 import translationEn from '../../../locales/en/translation.json' with { type: 'json' };
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';

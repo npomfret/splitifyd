@@ -1,5 +1,5 @@
-import type { GenerateShareLinkRequest } from '@splitifyd/shared';
-import { toDisplayName, toGroupId, toShareLinkToken } from '@splitifyd/shared';
+import type { GenerateShareLinkRequest } from '@billsplit-wl/shared';
+import { toDisplayName, toGroupId, toShareLinkToken } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';

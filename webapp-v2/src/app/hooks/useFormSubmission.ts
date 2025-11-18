@@ -1,8 +1,8 @@
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger.ts';
 import { useComputed } from '@preact/signals';
-import { GroupId, UserId } from '@splitifyd/shared';
-import { ExpenseId } from '@splitifyd/shared';
+import { GroupId, UserId } from '@billsplit-wl/shared';
+import { ExpenseId } from '@billsplit-wl/shared';
 import { useEffect } from 'preact/hooks';
 import { expenseFormStore } from '../stores/expense-form-store';
 

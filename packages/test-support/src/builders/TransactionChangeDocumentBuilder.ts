@@ -1,5 +1,5 @@
-import { GroupId, ISOString } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import { GroupId, ISOString } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId } from '../test-helpers';
 
 interface TransactionChangeDocument {

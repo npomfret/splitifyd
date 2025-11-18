@@ -10,10 +10,10 @@ export type {
     OrderByDirection,
     SetOptions,
     WhereFilterOp,
-} from '@splitifyd/firebase-simulator';
-export { type FirestoreTriggerChange, type FirestoreTriggerChangeHandler, type FirestoreTriggerEventType, type FirestoreTriggerHandlers, StubFirestoreDatabase } from '@splitifyd/firebase-simulator';
-export type { FirestoreTriggerChangeHandler as FirestoreTriggerHandler } from '@splitifyd/firebase-simulator';
-export { ActivityFeedEventTypes } from '@splitifyd/shared';
+} from '@billsplit-wl/firebase-simulator';
+export { type FirestoreTriggerChange, type FirestoreTriggerChangeHandler, type FirestoreTriggerEventType, type FirestoreTriggerHandlers, StubFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
+export type { FirestoreTriggerChangeHandler as FirestoreTriggerHandler } from '@billsplit-wl/firebase-simulator';
+export { ActivityFeedEventTypes } from '@billsplit-wl/shared';
 export * from './ApiDriver';
 export * from './builders';
 export * from './error-proxy';

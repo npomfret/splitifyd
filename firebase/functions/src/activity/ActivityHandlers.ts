@@ -1,4 +1,4 @@
-import type { ActivityFeedItem } from '@splitifyd/shared';
+import type { ActivityFeedItem } from '@billsplit-wl/shared';
 import type { Response } from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';

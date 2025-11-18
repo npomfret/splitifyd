@@ -16,7 +16,7 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
     toTenantThemePaletteName,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { AuditFieldsSchema } from './common';
 

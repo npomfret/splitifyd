@@ -1,6 +1,6 @@
 import { BrowserContext, Page } from '@playwright/test';
-import { PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, DashboardPage, LoginPage } from '@splitifyd/test-support';
+import { PooledTestUser } from '@billsplit-wl/shared';
+import { ApiDriver, DashboardPage, LoginPage } from '@billsplit-wl/test-support';
 import { ApiInterceptor, attachApiInterceptor, attachConsoleHandler, attachScreenshotHandler, ScreenshotHandler, UnifiedConsoleHandler } from '../helpers';
 import { AuthenticationWorkflow } from '../workflows';
 import { baseTest } from './base-test';

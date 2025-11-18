@@ -10,8 +10,8 @@ import {
     MemberStatuses,
     MessageResponse,
     UserId,
-} from '@splitifyd/shared';
-import { toISOString } from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
+import { toISOString } from '@billsplit-wl/shared';
 import { FirestoreCollections } from '../constants';
 import { FieldValue } from '../firestore-wrapper';
 import { logger, LoggerContext } from '../logger';

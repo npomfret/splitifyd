@@ -1,5 +1,5 @@
-import { toCommentId } from '@splitifyd/shared';
-import { CommentQueryBuilder } from '@splitifyd/test-support';
+import { toCommentId } from '@billsplit-wl/shared';
+import { CommentQueryBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../comments/validation';
 import { ApiError } from '../../utils/errors';

@@ -1,5 +1,5 @@
-import { ClientUser } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
+import { ClientUser } from '@billsplit-wl/shared';
+import type { Email } from '@billsplit-wl/shared';
 import { FirebaseApp, initializeApp } from 'firebase/app';
 import {
     Auth,

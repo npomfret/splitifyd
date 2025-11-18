@@ -1,6 +1,6 @@
-import type { DisplayName, SettlementFormData } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import type { DisplayName, SettlementFormData } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 /**

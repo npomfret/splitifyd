@@ -1,4 +1,4 @@
-import { ClientUserBuilder, DashboardPage, LoginPage, TEST_TIMEOUTS } from '@splitifyd/test-support';
+import { ClientUserBuilder, DashboardPage, LoginPage, TEST_TIMEOUTS } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 

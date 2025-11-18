@@ -1,7 +1,7 @@
 import { GROUP_DETAIL_ERROR_CODES } from '@/constants/error-codes.ts';
 import { logError, logInfo, logWarning } from '@/utils/browser-logger';
 import { batch, signal } from '@preact/signals';
-import { ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers, UserId } from '@splitifyd/shared';
+import { ExpenseDTO, GroupBalances, GroupDTO, GroupId, GroupMember, ListCommentsResponse, SettlementWithMembers, UserId } from '@billsplit-wl/shared';
 import { apiClient } from '../apiClient';
 import type { ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../services/activity-feed-realtime-service';

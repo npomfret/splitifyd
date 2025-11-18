@@ -6,10 +6,10 @@
  * - GroupMemberService archive/unarchive methods
  */
 
-import { MemberStatuses } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { MemberStatuses } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { ActivityFeedService } from '../../services/ActivityFeedService';
 import { FirestoreReader } from '../../services/firestore';

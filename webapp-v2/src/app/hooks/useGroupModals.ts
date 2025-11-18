@@ -1,5 +1,5 @@
 import { useSignal } from '@preact/signals';
-import type { SettlementWithMembers, SimplifiedDebt } from '@splitifyd/shared';
+import type { SettlementWithMembers, SimplifiedDebt } from '@billsplit-wl/shared';
 
 /**
  * Custom hook to manage all modals used in the Group Detail page

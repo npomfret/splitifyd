@@ -1,6 +1,6 @@
-import { amountToSmallestUnit, GroupDTO, toDisplayName } from '@splitifyd/shared';
-import { PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import { amountToSmallestUnit, GroupDTO, toDisplayName } from '@billsplit-wl/shared';
+import { PooledTestUser } from '@billsplit-wl/shared';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { getAuth, getFirestore } from '../../firebase';
 import { ComponentBuilder } from '../../services/ComponentBuilder';

@@ -1,7 +1,7 @@
-import type { SettlementDTO, UserId } from '@splitifyd/shared';
-import { Amount, GroupId, SettlementId, toGroupId, toSettlementId } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
-import type { ISOString } from '@splitifyd/shared';
+import type { SettlementDTO, UserId } from '@billsplit-wl/shared';
+import { Amount, GroupId, SettlementId, toGroupId, toSettlementId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import type { ISOString } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 /**

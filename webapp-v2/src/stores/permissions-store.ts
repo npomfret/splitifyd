@@ -1,6 +1,6 @@
 import { computed, signal } from '@preact/signals';
-import { GroupDTO, GroupMember, GroupPermissions, MemberRole, UserId } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
+import { GroupDTO, GroupMember, GroupPermissions, MemberRole, UserId } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
 
 /**
  * Permission cache with TTL

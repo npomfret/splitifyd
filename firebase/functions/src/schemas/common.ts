@@ -1,5 +1,5 @@
-import { isValidCurrency, toGroupId, toGroupName } from '@splitifyd/shared';
-import type { GroupId, GroupName } from '@splitifyd/shared';
+import { isValidCurrency, toGroupId, toGroupName } from '@billsplit-wl/shared';
+import type { GroupId, GroupName } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { FieldValue, Timestamp } from '../firestore-wrapper';
 

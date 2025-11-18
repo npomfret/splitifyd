@@ -1,4 +1,4 @@
-import { Amount, amountToSmallestUnit, compareAmounts, ExpenseSplit, normalizeAmount } from '@splitifyd/shared';
+import { Amount, amountToSmallestUnit, compareAmounts, ExpenseSplit, normalizeAmount } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../../constants';
 import { ApiError } from '../../utils/errors';
 import { ISplitStrategy } from './ISplitStrategy';

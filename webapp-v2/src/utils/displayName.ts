@@ -1,4 +1,4 @@
-import { DisplayName, toDisplayName } from '@splitifyd/shared';
+import { DisplayName, toDisplayName } from '@billsplit-wl/shared';
 
 interface DisplayNameSource {
     displayName?: string | null;

@@ -1,4 +1,4 @@
-import { getPorts, getProjectId } from '@splitifyd/test-support';
+import { getPorts, getProjectId } from '@billsplit-wl/test-support';
 import * as dotenv from 'dotenv';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';

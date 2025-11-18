@@ -1,4 +1,4 @@
-import { ISOString } from '@splitifyd/shared';
+import { ISOString } from '@billsplit-wl/shared';
 import { FieldValue, Timestamp } from '../firestore-wrapper';
 
 /**

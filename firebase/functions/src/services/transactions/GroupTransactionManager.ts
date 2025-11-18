@@ -1,4 +1,4 @@
-import type { GroupDTO, GroupId } from '@splitifyd/shared';
+import type { GroupDTO, GroupId } from '@billsplit-wl/shared';
 import type { ITransaction } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
 import { Errors } from '../../utils/errors';

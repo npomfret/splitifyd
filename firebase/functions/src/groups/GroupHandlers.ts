@@ -1,5 +1,5 @@
-import { MemberStatuses } from '@splitifyd/shared';
-import type { MemberStatus } from '@splitifyd/shared';
+import { MemberStatuses } from '@billsplit-wl/shared';
+import type { MemberStatus } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { DOCUMENT_CONFIG, HTTP_STATUS } from '../constants';

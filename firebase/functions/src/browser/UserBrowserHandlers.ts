@@ -1,4 +1,4 @@
-import { SystemUserRoles } from '@splitifyd/shared';
+import { SystemUserRoles } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { FirestoreCollections } from '../constants';

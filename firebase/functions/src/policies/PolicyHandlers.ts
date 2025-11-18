@@ -1,4 +1,4 @@
-import { CreatePolicyResponse, DeletePolicyVersionResponse, PublishPolicyResponse, UpdatePolicyResponse } from '@splitifyd/shared';
+import { CreatePolicyResponse, DeletePolicyVersionResponse, PublishPolicyResponse, UpdatePolicyResponse } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';

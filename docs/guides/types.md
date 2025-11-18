@@ -8,7 +8,7 @@ This document was created following a comprehensive firebase types audit that su
 
 The codebase follows a **DTO-everywhere** architecture where:
 
-- **DTOs (Data Transfer Objects)** from `@splitifyd/shared` are the single source of truth for application logic
+- **DTOs (Data Transfer Objects)** from `@billsplit/shared` are the single source of truth for application logic
 - **Firestore Timestamp ↔ ISO string conversion** happens exclusively at the FirestoreReader/Writer boundary
 - **Services work only with DTOs** containing ISO 8601 date strings
 - **Firestore Document schemas** are internal implementation details for I/O validation
@@ -17,7 +17,7 @@ The codebase follows a **DTO-everywhere** architecture where:
 ┌─────────────────────────────────────────────────────────────┐
 │ Application Layer (Services, Handlers, Business Logic)     │
 │ ✅ Use: ExpenseDTO, GroupDTO, SettlementDTO, etc.         │
-│ ✅ Import from: @splitifyd/shared                          │
+│ ✅ Import from: @billsplit/shared                          │
 │ ✅ Date format: ISO 8601 strings (e.g., "2025-01-15T...")  │
 └─────────────────────────────────────────────────────────────┘
                            ↕
@@ -46,7 +46,7 @@ To maintain consistency and prevent duplication, follow these guidelines when de
 - DTOs use **ISO 8601 string dates** (e.g., `createdAt: string`, `date: string`)
 - Examples: `ExpenseDTO`, `GroupDTO`, `SettlementDTO`, `PolicyDTO`, `CommentDTO`
 - Services, handlers, and business logic import these types
-- **Rule**: If a service uses a type, it must be a DTO from `@splitifyd/shared`
+- **Rule**: If a service uses a type, it must be a DTO from `@billsplit/shared`
 
 ### 2. Firestore Document Schemas - Internal I/O Validation
 
@@ -84,12 +84,12 @@ To maintain consistency and prevent duplication, follow these guidelines when de
 
 **When creating a new type, ask:**
 
-1. **Is this data returned from FirestoreReader or sent to an API?** → Use existing DTO from `@splitifyd/shared`
+1. **Is this data returned from FirestoreReader or sent to an API?** → Use existing DTO from `@billsplit/shared`
 2. **Is this a request or response type for an API endpoint?** → `packages/shared/src/shared-types.ts` (**ALWAYS**)
 3. **Is this ONLY used within FirestoreReader/Writer for validation?** → Create Zod schema in `firebase/functions/src/schemas/` (but do NOT export the inferred type)
 4. **Is this only used within a single service?** → Co-locate with the service
 
-**Rule of thumb:** If you're writing service logic, you should ONLY import DTOs from `@splitifyd/shared`. Document types should never appear in your imports.
+**Rule of thumb:** If you're writing service logic, you should ONLY import DTOs from `@billsplit/shared`. Document types should never appear in your imports.
 
 ## Anti-Patterns to Avoid
 
@@ -109,7 +109,7 @@ function processExpenses(expenses: ExpenseDocument[]) {
 
 ```typescript
 // GOOD: Import DTOs from shared package
-import type { ExpenseDTO } from '@splitifyd/shared';
+import type { ExpenseDTO } from '@billsplit/shared';
 
 function processExpenses(expenses: ExpenseDTO[]) {
     // ✅ Correct! Services work with DTOs containing ISO strings
@@ -165,7 +165,7 @@ interface Expense {
 
 ```typescript
 // GOOD: Import existing DTOs
-import type { ExpenseDTO } from '@splitifyd/shared';
+import type { ExpenseDTO } from '@billsplit/shared';
 
 function processExpense(expense: ExpenseDTO) {
     // Use the canonical type
@@ -196,7 +196,7 @@ A comprehensive refactoring was completed to establish DTOs as the single source
 
 ### Goals Achieved
 
-1. ✅ **Eliminated Document types from application layer** - Services now import only from `@splitifyd/shared`
+1. ✅ **Eliminated Document types from application layer** - Services now import only from `@billsplit/shared`
 2. ✅ **Centralized timestamp conversion** - All Timestamp ↔ ISO string conversion happens at FirestoreReader/Writer boundary
 3. ✅ **Zero `z.any()` types** - Every schema field has explicit type validation
 4. ✅ **Simplified type system** - One type per entity (DTOs), not multiple parallel hierarchies

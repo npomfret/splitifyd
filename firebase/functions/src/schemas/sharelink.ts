@@ -1,4 +1,4 @@
-import { toISOString, toShareLinkId, toShareLinkToken } from '@splitifyd/shared';
+import { toISOString, toShareLinkId, toShareLinkToken } from '@billsplit-wl/shared';
 import { z } from 'zod';
 
 /**

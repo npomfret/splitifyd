@@ -1,6 +1,6 @@
 import { getInitials } from '@/utils/avatar.ts';
-import type { CommentDTO } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import type { CommentDTO } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { RelativeTime } from '../ui';
 
 interface CommentItemProps {

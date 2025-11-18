@@ -20,7 +20,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@preact/signals": "^2.2.1",
-    "@splitifyd/shared": "*",
+    "@billsplit-wl/shared": "*",
     "@types/three": "^0.178.1",
     "firebase": "^12.0.0",
     "gsap": "^3.13.0",
@@ -35,7 +35,7 @@
   "devDependencies": {
     "@playwright/test": "^1.55.0",
     "@preact/preset-vite": "^2.8.1",
-    "@splitifyd/test-support": "*",
+    "@billsplit-wl/test-support": "*",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/preact": "^3.2.4",
     "@types/node": "^20.11.5",

@@ -1,4 +1,4 @@
-import { CommentBodySchema, type CommentId, type CommentText, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsQuerySchema, toCommentId, toCommentText } from '@splitifyd/shared';
+import { CommentBodySchema, type CommentId, type CommentText, CreateExpenseCommentRequest, CreateGroupCommentRequest, ListCommentsQuerySchema, toCommentId, toCommentText } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../constants';
 import { validateExpenseId } from '../expenses/validation';
 import { validateGroupId } from '../groups/validation';

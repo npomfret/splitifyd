@@ -13,7 +13,7 @@
  * - Follows the same patterns as IFirestoreReader/Writer
  */
 
-import type { Email } from '@splitifyd/shared';
+import type { Email } from '@billsplit-wl/shared';
 import type { CreateRequest, DecodedIdToken, ListUsersResult, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
 export interface IAuthService {

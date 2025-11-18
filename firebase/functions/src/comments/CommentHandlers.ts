@@ -1,6 +1,6 @@
-import { CommentDTO } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
-import { toExpenseId } from '@splitifyd/shared';
+import { CommentDTO } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
+import { toExpenseId } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';

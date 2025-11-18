@@ -1,6 +1,6 @@
-import type { Password, UserRegistration } from '@splitifyd/shared';
-import { DisplayName, toDisplayName, toPassword } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
+import type { Password, UserRegistration } from '@billsplit-wl/shared';
+import { DisplayName, toDisplayName, toPassword } from '@billsplit-wl/shared';
+import type { Email } from '@billsplit-wl/shared';
 import { randomBoolean, randomChoice, randomEmail, randomString } from '../test-helpers';
 
 export class RegisterRequestBuilder {

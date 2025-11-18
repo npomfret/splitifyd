@@ -1,4 +1,4 @@
-import type { ClientUser, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@splitifyd/shared';
+import type { ClientUser, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@billsplit-wl/shared';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
 
 interface HandlerOptions {

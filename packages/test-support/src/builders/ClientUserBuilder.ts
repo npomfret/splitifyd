@@ -1,7 +1,7 @@
-import { type ClientUser, type SystemUserRole, SystemUserRoles } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import { type ClientUser, type SystemUserRole, SystemUserRoles } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import type { Email } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
 
 /**

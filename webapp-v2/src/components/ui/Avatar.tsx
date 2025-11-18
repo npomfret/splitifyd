@@ -1,6 +1,6 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { type AvatarProps, getAvatarSize, getContrastColor, getInitials } from '@/utils/avatar.ts';
-import type { UserThemeColor } from '@splitifyd/shared';
+import type { UserThemeColor } from '@billsplit-wl/shared';
 
 interface EnhancedAvatarProps extends AvatarProps {
     themeColor?: UserThemeColor;

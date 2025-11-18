@@ -8,9 +8,9 @@
  * The integration test remains for testing actual Firebase optimistic locking behavior.
  */
 
-import { calculateEqualSplits, toGroupName } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
-import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
+import { calculateEqualSplits, toGroupName } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

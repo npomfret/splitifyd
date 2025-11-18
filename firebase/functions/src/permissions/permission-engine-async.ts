@@ -1,6 +1,6 @@
-import { ExpenseDTO, GroupDTO, GroupPermissions, MemberRoles, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
-import { GroupMembership } from '@splitifyd/shared';
-import type { UserId } from '@splitifyd/shared';
+import { ExpenseDTO, GroupDTO, GroupPermissions, MemberRoles, MemberStatuses, PermissionLevels } from '@billsplit-wl/shared';
+import { GroupMembership } from '@billsplit-wl/shared';
+import type { UserId } from '@billsplit-wl/shared';
 
 interface PermissionCheckOptions {
     expense?: ExpenseDTO;

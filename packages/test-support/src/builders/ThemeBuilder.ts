@@ -1,5 +1,5 @@
-import type { ColorPattern, UserThemeColor } from '@splitifyd/shared';
-import type { ISOString } from '@splitifyd/shared';
+import type { ColorPattern, UserThemeColor } from '@billsplit-wl/shared';
+import type { ISOString } from '@billsplit-wl/shared';
 import { convertToISOString } from '../test-helpers';
 
 /**

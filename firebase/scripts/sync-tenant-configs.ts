@@ -1,4 +1,4 @@
-import { createFirestoreDatabase } from '@splitifyd/firebase-simulator';
+import { createFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
 import {
     toShowLandingPageFlag,
     toShowMarketingContentFlag,
@@ -12,7 +12,7 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 import * as fs from 'fs';
 import * as path from 'path';

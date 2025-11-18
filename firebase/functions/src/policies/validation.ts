@@ -6,7 +6,7 @@ import {
     PublishPolicyRequestSchema,
     UpdatePolicyRequestSchema,
     VersionHash,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { createRequestValidator, createZodErrorMapper, sanitizeInputString } from '../validation/common';
 
 interface AcceptMultiplePoliciesRequest {

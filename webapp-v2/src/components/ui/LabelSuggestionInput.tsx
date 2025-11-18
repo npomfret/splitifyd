@@ -1,4 +1,4 @@
-import type { ExpenseLabel } from '@splitifyd/shared';
+import type { ExpenseLabel } from '@billsplit-wl/shared';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 

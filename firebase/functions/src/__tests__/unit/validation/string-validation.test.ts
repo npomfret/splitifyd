@@ -1,4 +1,4 @@
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, test } from 'vitest';
 import { VALIDATION_LIMITS } from '../../../constants';
 import { validateCreateExpense, validateUpdateExpense } from '../../../expenses/validation';

@@ -1,5 +1,5 @@
-import type { BrandingTokens, PooledTestUser } from '@splitifyd/shared';
-import { ApiDriver, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import type { BrandingTokens, PooledTestUser } from '@billsplit-wl/shared';
+import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { getAuth, getFirestore } from '../../../firebase';
@@ -10,7 +10,7 @@ describe('Admin Tenant Theme Publishing', () => {
 
     let adminUser: PooledTestUser;
 
-    const mockTokens: BrandingTokens = {
+    const mockTokens: BrandingTokens = {// todo: use a builder
         version: 1,
         palette: {
             primary: '#2563eb',
@@ -167,12 +167,12 @@ describe('Admin Tenant Theme Publishing', () => {
     });
 
     const createTenantWithTokens = async (tenantId: string) => {
-        const tenantData = {
+        const tenantData = {// todo: use a builder
             tenantId,
             branding: {
                 appName: 'Test Theme Tenant',
-                logoUrl: 'https://static.splitifyd.dev/branding/test/logo.svg',
-                faviconUrl: 'https://static.splitifyd.dev/branding/test/favicon.png',
+                logoUrl: 'https://foo/branding/test/logo.svg',
+                faviconUrl: 'https://foo/branding/test/favicon.png',
                 primaryColor: '#2563eb',
                 secondaryColor: '#7c3aed',
                 accentColor: '#f97316',

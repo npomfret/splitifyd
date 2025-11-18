@@ -41,23 +41,23 @@ function getTestCommand(scriptType, packageName) {
             'test:unit': 'vitest run src/__tests__/unit/vitest',
             'test:integration': 'playwright test',
         },
-        '@splitifyd/e2e-tests': {
-            test: 'npm run test:unit && npm run test:integration',
-            'test:unit': 'BUILD_MODE=test npm run build && jest src/__tests__/unit',
+        '@billsplit-wl/e2e-tests': {
+            test: 'npm run test:integration',
+            'test:unit': 'echo \'No unit tests for e2e-tests package\'',
             'test:integration':
                 'BUILD_MODE=test npm run build && mkdir -p playwright-output/integration/report playwright-output/integration/data && JAVA_TOOL_OPTIONS="-Xmx4g" PLAYWRIGHT_HTML_REPORT=playwright-output/integration/report PLAYWRIGHT_TEST_OUTPUT_DIR=playwright-output/integration/data PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=1 --project=chromium --reporter=html src/__tests__/integration',
         },
-        '@splitifyd/shared': {
+        '@billsplit-wl/shared': {
             test: 'npm run test:unit && npm run test:integration',
             'test:unit': 'vitest run src/__tests__/',
             'test:integration': 'echo \'No integration tests for shared package\'',
         },
-        '@splitifyd/test-support': {
+        '@billsplit-wl/test-support': {
             test: 'npm run test:unit && npm run test:integration',
             'test:unit': 'echo \'No unit tests for shared package\'',
             'test:integration': 'echo \'No integration tests for test-support package\'',
         },
-        '@splitifyd/firebase-simulator': {
+        '@billsplit-wl/firebase-simulator': {
             test: 'npm run test:unit && npm run test:integration',
             'test:unit': 'vitest run --config vitest.config.ts src/__tests__/unit/',
             'test:integration': 'vitest run --config vitest.config.ts src/__tests__/integration/ --test-timeout 5000 --hook-timeout 5000 --teardown-timeout 5000',

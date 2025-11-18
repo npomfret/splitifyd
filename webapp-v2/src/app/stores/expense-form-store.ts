@@ -14,9 +14,9 @@ import {
     ExpenseSplit,
     smallestUnitToAmountString,
     SplitTypes,
-} from '@splitifyd/shared';
-import { ExpenseId, GroupId } from '@splitifyd/shared';
-import type { CurrencyISOCode, UserId } from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
+import { ExpenseId, GroupId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';

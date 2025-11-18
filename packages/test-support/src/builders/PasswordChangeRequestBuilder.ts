@@ -1,4 +1,4 @@
-import { type Password, type PasswordChangeRequest, toPassword } from '@splitifyd/shared';
+import { type Password, type PasswordChangeRequest, toPassword } from '@billsplit-wl/shared';
 
 /**
  * Builder for creating password change request objects for testing

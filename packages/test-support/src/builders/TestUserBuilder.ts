@@ -1,5 +1,5 @@
-import { DisplayName, toDisplayName } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
+import { DisplayName, toDisplayName } from '@billsplit-wl/shared';
+import type { Email } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice } from '../test-helpers';
 
 interface TestUser {

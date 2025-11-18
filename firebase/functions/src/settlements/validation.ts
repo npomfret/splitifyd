@@ -7,7 +7,7 @@ import {
     toSettlementId,
     UpdateSettlementRequest,
     UpdateSettlementRequestSchema,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';

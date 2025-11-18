@@ -52,12 +52,12 @@ import {
     UserProfileResponse,
     UserRegistration,
     VersionHash,
-} from '@splitifyd/shared';
-import { ExpenseId, SettlementId } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import { SystemUserRoles } from '@splitifyd/shared';
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@splitifyd/test-support';
+} from '@billsplit-wl/shared';
+import { ExpenseId, SettlementId } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import { SystemUserRoles } from '@billsplit-wl/shared';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@billsplit-wl/test-support';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { expect } from 'vitest';
 import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
@@ -301,7 +301,7 @@ export class AppDriver {
                 };
 
                 // Execute middleware
-                const result = middleware(req, res, next);
+                const result = middleware(req, res, next) as void | Promise<void>;
 
                 // Handle async middleware
                 if (result && result instanceof Promise) {

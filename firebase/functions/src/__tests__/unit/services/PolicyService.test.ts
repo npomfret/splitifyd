@@ -1,5 +1,5 @@
-import { convertToISOString, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { PolicyDocumentBuilder } from '@splitifyd/test-support';
+import { convertToISOString, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { PolicyDocumentBuilder } from '@billsplit-wl/test-support';
 import * as crypto from 'crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';

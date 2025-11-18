@@ -1,4 +1,4 @@
-import { ISOString, PolicyDTO, VersionHash } from '@splitifyd/shared';
+import { ISOString, PolicyDTO, VersionHash } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId } from '../test-helpers';
 
 /**

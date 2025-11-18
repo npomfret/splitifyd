@@ -1,6 +1,6 @@
 import { LoadingState } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
-import { SystemUserRoles } from '@splitifyd/shared';
+import { SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { AdminDiagnosticsTab } from '../components/admin/AdminDiagnosticsTab';

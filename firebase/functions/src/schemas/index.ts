@@ -3,16 +3,16 @@
  *
  * This file provides a single import point for all Zod schemas used throughout
  * the application. After the DTO migration, most application code should use
- * DTOs from @splitifyd/shared. Document schemas are for internal Firestore I/O only.
+ * DTOs from @billsplit-wl/shared. Document schemas are for internal Firestore I/O only.
  *
  * IMPORTANT:
- * - **Application Layer**: Use DTOs from @splitifyd/shared (e.g., ExpenseDTO, GroupDTO)
+ * - **Application Layer**: Use DTOs from @billsplit-wl/shared (e.g., ExpenseDTO, GroupDTO)
  * - **Firestore I/O Layer**: Use Document schemas (e.g., ExpenseDocumentSchema) - INTERNAL ONLY
  *
  * Usage:
  * ```typescript
  * // Application code - use DTOs
- * import type { ExpenseDTO, GroupDTO } from '@splitifyd/shared';
+ * import type { ExpenseDTO, GroupDTO } from '@billsplit-wl/shared';
  *
  * // Firestore Reader/Writer - use Document schemas for validation
  * import { ExpenseDocumentSchema, GroupDocumentSchema } from '../schemas';
@@ -29,7 +29,7 @@
 // DOCUMENT SCHEMAS ONLY (No Document Types)
 // ==========================================
 // After DTO migration, Document types are internal to FirestoreReader/Writer.
-// Services should import DTOs from @splitifyd/shared instead.
+// Services should import DTOs from @billsplit-wl/shared instead.
 
 // Comment schemas
 export { CommentDataSchema, CommentDocumentSchema } from './comment';

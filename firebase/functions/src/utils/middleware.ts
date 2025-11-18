@@ -1,4 +1,4 @@
-import { ApiSerializer } from '@splitifyd/shared';
+import { ApiSerializer } from '@billsplit-wl/shared';
 import { randomUUID } from 'crypto';
 import express from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';

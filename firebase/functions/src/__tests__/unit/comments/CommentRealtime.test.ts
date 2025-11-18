@@ -1,7 +1,7 @@
 // Unit tests for comment real-time subscriptions using TenantFirestoreTestDatabase
 // Migrated from integration/comments.test.ts to avoid Firebase emulator dependency
 
-import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
 

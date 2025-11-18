@@ -8,8 +8,8 @@
  * with real Firestore (cursor consistency, pagination edge cases with real data, etc.)
  */
 
-import { GroupId } from '@splitifyd/shared';
-import { ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { GroupId } from '@billsplit-wl/shared';
+import { ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, describe, expect, test } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { createFirestoreDatabase } from '../../firestore-wrapper';

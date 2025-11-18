@@ -9,7 +9,7 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-} from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
 import express from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TenantIdentification, type TenantIdentificationConfig } from '../../../middleware/tenant-identification';

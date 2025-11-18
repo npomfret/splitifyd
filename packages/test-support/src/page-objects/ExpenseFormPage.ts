@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
-import type { ExpenseFormData } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
+import type { ExpenseFormData } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
 

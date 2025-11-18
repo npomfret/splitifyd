@@ -1,4 +1,4 @@
-import { PasswordChangeRequestBuilder, RegisteredUserBuilder, TenantFirestoreTestDatabase, UserUpdateBuilder } from '@splitifyd/test-support';
+import { PasswordChangeRequestBuilder, RegisteredUserBuilder, TenantFirestoreTestDatabase, UserUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';

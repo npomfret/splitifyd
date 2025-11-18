@@ -1,8 +1,8 @@
-import type { ExpenseDTO, SettlementDTO, UserBalance } from '@splitifyd/shared';
-import { amountToSmallestUnit, negateAmount, smallestUnitToAmountString, subtractAmounts, sumAmounts, zeroAmount } from '@splitifyd/shared';
-import { negateNormalizedAmount } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import type { ExpenseDTO, SettlementDTO, UserBalance } from '@billsplit-wl/shared';
+import { amountToSmallestUnit, negateAmount, smallestUnitToAmountString, subtractAmounts, sumAmounts, zeroAmount } from '@billsplit-wl/shared';
+import { negateNormalizedAmount } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ITransaction } from '../../firestore-wrapper';
 import type { GroupBalanceDTO, ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 import type { IFirestoreWriter } from '../firestore';

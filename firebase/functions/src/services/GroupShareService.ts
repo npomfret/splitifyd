@@ -1,4 +1,4 @@
-import type { DisplayName, GroupMembershipDTO, GroupName, ISOString, JoinGroupResponse, UserId } from '@splitifyd/shared';
+import type { DisplayName, GroupMembershipDTO, GroupName, ISOString, JoinGroupResponse, UserId } from '@billsplit-wl/shared';
 import {
     ActivityFeedActions,
     ActivityFeedEventTypes,
@@ -13,8 +13,8 @@ import {
     toShareLinkToken,
     USER_COLORS,
     UserThemeColor,
-} from '@splitifyd/shared';
-import { toISOString } from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
+import { toISOString } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { FirestoreCollections, HTTP_STATUS } from '../constants';
 import { logger, LoggerContext } from '../logger';

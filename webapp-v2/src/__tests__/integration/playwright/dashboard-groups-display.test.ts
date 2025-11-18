@@ -1,4 +1,4 @@
-import { ActivityFeedItemBuilder, DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, HeaderPage, ListGroupsResponseBuilder, ThemeBuilder } from '@splitifyd/test-support';
+import { ActivityFeedItemBuilder, DashboardPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, HeaderPage, ListGroupsResponseBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockActivityFeedApi, mockGroupCommentsApi, mockGroupDetailApi, mockGroupsApi } from '../../utils/mock-firebase-service';
 

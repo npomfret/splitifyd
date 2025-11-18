@@ -1,8 +1,8 @@
 // Import currency utilities from shared package
-import { CurrencyISOCode, toPassword } from '@splitifyd/shared';
-import { Amount, getCurrencyDecimals, roundToCurrencyPrecision } from '@splitifyd/shared';
-import { ISOString, toISOString } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import { CurrencyISOCode, toPassword } from '@billsplit-wl/shared';
+import { Amount, getCurrencyDecimals, roundToCurrencyPrecision } from '@billsplit-wl/shared';
+import { ISOString, toISOString } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 
 /**
  * Generates a short, readable UUID for test data

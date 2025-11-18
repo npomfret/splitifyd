@@ -1,6 +1,6 @@
-import { SystemUserRoles } from '@splitifyd/shared';
-import type { TenantDomainsResponse } from '@splitifyd/shared';
-import { ClientUserBuilder, DomainManagementPage } from '@splitifyd/test-support';
+import { SystemUserRoles } from '@billsplit-wl/shared';
+import type { TenantDomainsResponse } from '@billsplit-wl/shared';
+import { ClientUserBuilder, DomainManagementPage } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 

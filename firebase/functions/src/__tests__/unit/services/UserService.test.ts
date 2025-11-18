@@ -1,7 +1,7 @@
-import { DisplayName, toGroupId } from '@splitifyd/shared';
-import { toDisplayName, toPassword } from '@splitifyd/shared';
-import { GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@splitifyd/test-support';
+import { DisplayName, toGroupId } from '@billsplit-wl/shared';
+import { toDisplayName, toPassword } from '@billsplit-wl/shared';
+import { GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';

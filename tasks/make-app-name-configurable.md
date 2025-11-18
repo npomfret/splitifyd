@@ -25,14 +25,14 @@
 
 ### Remaining Work
 - ✅ Additional translation keys (lines 673, 763, 820, 838, 932, 1320, 1447, 1481) - COMPLETED
-- ⏳ Backend scripts still have hardcoded "splitifyd" (low priority - dev tooling)
+- ⏳ Backend scripts still have hardcoded "billsplit" (low priority - dev tooling)
 - ⏳ Re-enable e2e-tests/src/__tests__/unit/hardcoded-values.test.ts
 - ⏳ Update remaining fixtures/builders
 - ⏳ Documentation updates (README, guides)
 
 ## Overview
 
-The app currently has "Splitifyd" and "Splitify" hardcoded throughout the codebase. Tenant configuration already supports a configurable `branding.appName` (`TenantConfig.branding.appName`), but that value is not used consistently. Merge of previous tasks: ensure every user-facing or tenant-aware surface pulls the app name from the tenant config rather than a literal string.
+The app currently has "BillSplit" and "BillSplit" hardcoded throughout the codebase. Tenant configuration already supports a configurable `branding.appName` (`TenantConfig.branding.appName`), but that value is not used consistently. Merge of previous tasks: ensure every user-facing or tenant-aware surface pulls the app name from the tenant config rather than a literal string.
 
 ## Tenant Config Structure
 
@@ -54,7 +54,7 @@ export interface TenantConfig {
 ```
 
 Current tenant configurations (`firebase/scripts/tenant-configs.json`):
-- localhost-tenant: "Splitifyd Demo"
+- localhost-tenant: "BillSplit Demo"
 - partner-tenant: "Partner Expenses"
 
 ## Areas to Update
@@ -63,34 +63,34 @@ Current tenant configurations (`firebase/scripts/tenant-configs.json`):
 
 **Translations: `webapp-v2/src/locales/en/translation.json`**
 
-The following keys contain hardcoded "Splitifyd"/"Splitify" and should interpolate the configured app name (e.g., `{{appName}}`):
+The following keys contain hardcoded "BillSplit"/"BillSplit" and should interpolate the configured app name (e.g., `{{appName}}`):
 
 | Status | Line | Key | Current Value | Change Required |
 |--------|------|-----|---------------|-----------------|
-| ✅ | 56 | `common.titleSuffix` | `" - Splitifyd"` | Use appName from config |
-| ✅ | 71 | `landing.hero.appScreenshotAlt` | `"Splitifyd App Screenshot"` | Use appName |
-| ✅ | 163 | `registerPage.description` | `"Create your Splitifyd account..."` | Use appName |
-| ✅ | 218 | `dashboard.title` | `"Dashboard - Splitifyd"` | Use appName |
-| ✅ | 219 | `dashboard.description` | `"Manage your groups and expenses with Splitifyd"` | Use appName |
-| ✅ | 220 | `dashboard.welcomeMessage` | `"Welcome to Splitifyd, {{name}}!"` | Use appName |
-| ✅ | 556 | `navigation.footer.copyright` | `"© {{year}} Splitifyd. All rights reserved."` | Use appName |
-| ✅ | 596 | `policy.acceptance.instruction` | `"...to continue using Splitify."` | Use appName (typo currently "Splitify") |
-| ✅ | 608 | `pricing.description` | `"Simple, transparent pricing for Splitifyd..."` | Use appName |
-| ✅ | 672 | `seo.titleSuffix` | `" \| Splitifyd"` | Use appName |
-| ✅ | 673 | `seo.siteName` | `"Splitifyd"` | Use appName |
-| ✅ | 763 | `emptyGroupsState.gettingStartedTitle` | `"Getting started with Splitifyd:"` | Use appName |
-| ✅ | 820 | `header.logoAlt` | `"Splitifyd"` | Use appName |
-| ✅ | 838 | `footer.companyName` | `"Splitifyd"` | Use appName |
-| ✅ | 932 | `settingsPage.title` | `"Settings - Splitifyd"` | Use appName |
-| ✅ | 1320 | `policyComponents.policyAcceptanceModal.acceptanceInstructions` | `"...to continue using Splitify."` | Use appName |
-| ✅ | 1447 | `pages.landingPage.title` | `"Effortless Bill Splitting - Splitifyd"` | Use appName |
-| ✅ | 1481 | `authLayout.titleSuffix` | `" - Splitifyd"` | Use appName |
+| ✅ | 56 | `common.titleSuffix` | `" - BillSplit"` | Use appName from config |
+| ✅ | 71 | `landing.hero.appScreenshotAlt` | `"BillSplit App Screenshot"` | Use appName |
+| ✅ | 163 | `registerPage.description` | `"Create your BillSplit account..."` | Use appName |
+| ✅ | 218 | `dashboard.title` | `"Dashboard - BillSplit"` | Use appName |
+| ✅ | 219 | `dashboard.description` | `"Manage your groups and expenses with BillSplit"` | Use appName |
+| ✅ | 220 | `dashboard.welcomeMessage` | `"Welcome to BillSplit, {{name}}!"` | Use appName |
+| ✅ | 556 | `navigation.footer.copyright` | `"© {{year}} BillSplit. All rights reserved."` | Use appName |
+| ✅ | 596 | `policy.acceptance.instruction` | `"...to continue using BillSplit."` | Use appName (typo currently "BillSplit") |
+| ✅ | 608 | `pricing.description` | `"Simple, transparent pricing for BillSplit..."` | Use appName |
+| ✅ | 672 | `seo.titleSuffix` | `" \| BillSplit"` | Use appName |
+| ✅ | 673 | `seo.siteName` | `"BillSplit"` | Use appName |
+| ✅ | 763 | `emptyGroupsState.gettingStartedTitle` | `"Getting started with BillSplit:"` | Use appName |
+| ✅ | 820 | `header.logoAlt` | `"BillSplit"` | Use appName |
+| ✅ | 838 | `footer.companyName` | `"BillSplit"` | Use appName |
+| ✅ | 932 | `settingsPage.title` | `"Settings - BillSplit"` | Use appName |
+| ✅ | 1320 | `policyComponents.policyAcceptanceModal.acceptanceInstructions` | `"...to continue using BillSplit."` | Use appName |
+| ✅ | 1447 | `pages.landingPage.title` | `"Effortless Bill Splitting - BillSplit"` | Use appName |
+| ✅ | 1481 | `authLayout.titleSuffix` | `" - BillSplit"` | Use appName |
 
 (And additional instances throughout the file.) Strategy: add `appName` to the global i18n context and use interpolation rather than literals.
 
 **App code**
 
-- ✅ `webapp-v2/src/stores/config-store.ts`: Updates i18n default variables with appName (keeps `DEFAULT_APP_NAME = 'Splitifyd'` as fallback).
+- ✅ `webapp-v2/src/stores/config-store.ts`: Updates i18n default variables with appName (keeps `DEFAULT_APP_NAME = 'BillSplit'` as fallback).
 - ✅ Static pages: `webapp-v2/src/pages/static/PricingPage.tsx`, `CookiePolicyPage.tsx`, `TermsOfServicePage.tsx`, `PrivacyPolicyPage.tsx` now use dynamic titles.
 - ✅ `webapp-v2/src/utils/theme-bootstrap.ts`: Now uses tenant-scoped storage key `'tenant-theme:' + host + ':hash'`; `window.__tenantTheme`.
 - ✅ `webapp-v2/src/pages/AdminDiagnosticsPage.tsx` and `webapp-v2/src/components/admin/AdminDiagnosticsTab.tsx`: Updated for tenant-scoped theme hash key.
@@ -108,12 +108,12 @@ The following keys contain hardcoded "Splitifyd"/"Splitify" and should interpola
 - ✅ `firebase/functions/src/utils/config-response.ts`: Added `cloneTenantConfig()` to provide default marketingFlags when undefined.
 - ✅ `firebase/functions/src/__tests__/unit/config-response.test.ts`: Added unit tests for default marketingFlags behavior.
 - ✅ `firebase/functions/src/__tests__/integration/config.test.ts`: Integration tests passing (29/29) with proper tenant override via X-Tenant-ID header.
-- ⏳ `firebase/functions/src/services/tenant/TenantRegistryService.ts`: Fallback still uses `appName: toTenantAppName('Splitifyd')` (acceptable as last-resort default).
+- ⏳ `firebase/functions/src/services/tenant/TenantRegistryService.ts`: Fallback still uses `appName: toTenantAppName('BillSplit')` (acceptable as last-resort default).
 - ✅ `firebase/functions/src/routes/route-config.ts`: Comment references updated or benign.
-- ⏳ `firebase/functions/src/services/ExpenseService.ts`: comment references `@splitifyd/shared` (package name, not user-facing).
-- ⏳ `firebase/functions/src/schemas/index.ts`: comment references `@splitifyd/shared` (package name, not user-facing).
+- ⏳ `firebase/functions/src/services/ExpenseService.ts`: comment references `@billsplit/shared` (package name, not user-facing).
+- ⏳ `firebase/functions/src/schemas/index.ts`: comment references `@billsplit/shared` (package name, not user-facing).
 - ⏳ Translation/messages: `firebase/functions/src/locales/en/translation.json` — update any literals (if applicable).
-- ✅ `firebase/functions/vitest.config.ts`: Default GCLOUD_PROJECT changed to 'splitifyd' (project ID, not branding).
+- ✅ `firebase/functions/vitest.config.ts`: Default GCLOUD_PROJECT changed to 'billsplit' (project ID, not branding).
 
 ### Tests
 
@@ -122,14 +122,14 @@ Update fixtures/assertions to use configurable app name:
 - ✅ `e2e-tests/src/__tests__/integration/site-quality.e2e.test.ts` (updated).
 - ⏳ `e2e-tests/src/__tests__/integration/error-handling-comprehensive.e2e.test.ts`.
 - ⏳ `firebase/functions/src/__tests__/integration/tenant/admin-tenant-publish.test.ts`.
-- ⏳ `firebase/functions/src/__tests__/unit/services/TenantRegistryService.test.ts` (includes host `app.splitifyd.com`).
-- ⏳ `firebase/functions/src/__tests__/unit/app.test.ts` (`https://static.splitifyd.dev`).
+- ⏳ `firebase/functions/src/__tests__/unit/services/TenantRegistryService.test.ts` (includes host `app.billsplit.com`).
+- ⏳ `firebase/functions/src/__tests__/unit/app.test.ts` (`https://foo`).
 - ✅ `firebase/functions/src/__tests__/integration/config.test.ts` (29/29 tests passing).
 - ✅ `firebase/functions/src/__tests__/unit/config-response.test.ts` (new unit tests for marketingFlags defaults).
 - ✅ Multiple firebase unit tests updated for tenant-agnostic naming (AppDriver.ts, GroupService.test.ts, etc.).
 - ✅ `webapp-v2/src/test/msw/handlers.ts` (updated).
 - ⏳ `webapp-v2/src/__tests__/utils/mock-firebase-service.ts`.
-- ⏳ `webapp-v2/src/__tests__/unit/vitest/stores/config-store.test.ts` (sets `document.title = 'Splitifyd'`).
+- ⏳ `webapp-v2/src/__tests__/unit/vitest/stores/config-store.test.ts` (sets `document.title = 'BillSplit'`).
 - ✅ `webapp-v2/src/__tests__/unit/vitest/pages/TenantBrandingPage.test.tsx` (updated).
 - ✅ `webapp-v2/src/__tests__/unit/vitest/components/GroupCard.test.tsx` (react-i18next mock updated).
 - ✅ `webapp-v2/src/__tests__/unit/vitest/components/ShareGroupModal.test.tsx` (react-i18next mock updated).
@@ -140,12 +140,12 @@ Update fixtures/assertions to use configurable app name:
 - ✅ `webapp-v2/src/__tests__/integration/playwright/settings-functionality.test.ts` (updated).
 - ✅ `webapp-v2/src/__tests__/integration/playwright/theme-smoke.test.ts` (updated).
 - ✅ `packages/shared/src/fixtures/branding-tokens.ts` (updated).
-- ✅ `packages/test-support/src/firebase/TenantFirestoreTestDatabase.ts` (renamed from SplitifydFirestoreTestDatabase).
+- ✅ `packages/test-support/src/firebase/TenantFirestoreTestDatabase.ts` (renamed from BillSplitFirestoreTestDatabase).
 - ⏳ `packages/test-support/src/builders/AppConfigurationBuilder.ts`.
 
 ### Documentation
 
-Update to reflect white-labeling rather than Splitifyd-specific branding:
+Update to reflect white-labeling rather than BillSplit-specific branding:
 - ⏳ `README.md`.
 - ⏳ `docs/white-labelling/theme-storage.md`.
 - ⏳ `docs/white-labelling/white-label-admin-guide.md`.
@@ -158,20 +158,20 @@ Update to reflect white-labeling rather than Splitifyd-specific branding:
 - ✅ `firebase/docs/policies/terms-and-conditions.md` (updated).
 - ✅ `firebase/docs/policies/privacy-policy.md` (updated).
 - ✅ `firebase/docs/policies/cookie-policy.md` (updated).
-- ⏳ `tasks/modern-ui-overhaul-plan.md` (mentions Splitifyd).
+- ⏳ `tasks/modern-ui-overhaul-plan.md` (mentions BillSplit).
 
 ### Configuration and Scripts
 
-**Note:** These are infrastructure/dev scripts. "splitifyd" here refers to the GCP project ID, not user-facing branding.
+**Note:** These are infrastructure/dev scripts. "billsplit" here refers to the GCP project ID, not user-facing branding.
 
-- ⏳ `scripts/theme-storage/setup.sh`: `PROJECT_ID="${PROJECT_ID:-splitifyd}"`, `BUCKET_NAME="${THEME_BUCKET:-splitifyd-themes}"`, `https://splitifyd.com` (project infrastructure, low priority).
-- ✅ `firebase/functions/vitest.config.ts`: `GCLOUD_PROJECT: 'splitifyd'` (project ID, not branding - completed).
-- ⏳ `firebase/scripts/prepare-functions-deploy.js`: `'splitifyd-service-account-key.json'` (infrastructure file name).
-- ⏳ `firebase/scripts/grant-deploy-roles.sh`: `PROJECT_ID="splitifyd"` (GCP project ID).
-- ⏳ `firebase/scripts/show-logs.ts`: `const DEFAULT_PROJECT = 'splitifyd';` (GCP project ID).
-- ⏳ `firebase/scripts/start-emulator.ts`: `logger.info('📍 The Splitifyd emulators are now fully operational');` (dev-only log message).
-- ⏳ `firebase/package.json`: `GCLOUD_PROJECT=splitifyd` (GCP project ID).
-- ⏳ `firebase/scripts/deploy-from-fresh-checkout.ts`: `mkdtempSync(join(tmpdir(), 'splitifyd-deploy-'));` (temp directory prefix).
+- ⏳ `scripts/theme-storage/setup.sh`: `PROJECT_ID="${PROJECT_ID:-billsplit}"`, `BUCKET_NAME="${THEME_BUCKET:-billsplit-themes}"`, `https://billsplit.com` (project infrastructure, low priority).
+- ✅ `firebase/functions/vitest.config.ts`: `GCLOUD_PROJECT: 'billsplit'` (project ID, not branding - completed).
+- ⏳ `firebase/scripts/prepare-functions-deploy.js`: `'billsplit-service-account-key.json'` (infrastructure file name).
+- ⏳ `firebase/scripts/grant-deploy-roles.sh`: `PROJECT_ID="billsplit"` (GCP project ID).
+- ⏳ `firebase/scripts/show-logs.ts`: `const DEFAULT_PROJECT = 'billsplit';` (GCP project ID).
+- ⏳ `firebase/scripts/start-emulator.ts`: `logger.info('📍 The BillSplit emulators are now fully operational');` (dev-only log message).
+- ⏳ `firebase/package.json`: `GCLOUD_PROJECT=billsplit` (GCP project ID).
+- ⏳ `firebase/scripts/deploy-from-fresh-checkout.ts`: `mkdtempSync(join(tmpdir(), 'billsplit-deploy-'));` (temp directory prefix).
 
 ## Implementation Strategy
 
@@ -193,7 +193,7 @@ Update to reflect white-labeling rather than Splitifyd-specific branding:
    - ✅ Replaced literals in static policy pages (PricingPage, CookiePolicyPage, etc.).
    - ✅ Updated config store to set i18n default variables with appName.
    - ✅ Aligned localStorage keys with tenant-scoped convention.
-   - ✅ Changed `window.__splitifydTheme` → `window.__tenantTheme`.
+   - ✅ Changed `window.__billsplitTheme` → `window.__tenantTheme`.
    - ✅ Updated AdminDiagnosticsTab for tenant-scoped theme keys.
 
 ### Phase 2: Server-Side Changes ✅ ~90% Complete
@@ -209,7 +209,7 @@ Update to reflect white-labeling rather than Splitifyd-specific branding:
 ### Phase 3: Testing 🟡 ~60% Complete
 
 1. ✅ **Update Fixtures**
-   - ✅ Renamed `SplitifydFirestoreTestDatabase` → `TenantFirestoreTestDatabase`.
+   - ✅ Renamed `BillSplitFirestoreTestDatabase` → `TenantFirestoreTestDatabase`.
    - ✅ Updated branding-tokens fixtures.
    - ⏳ Some builders/fixtures still need updating (AppConfigurationBuilder).
 
@@ -235,23 +235,23 @@ Update to reflect white-labeling rather than Splitifyd-specific branding:
 For backwards compatibility:
 
 ```typescript
-const appName = config?.tenant?.branding?.appName ?? 'Splitifyd';
+const appName = config?.tenant?.branding?.appName ?? 'BillSplit';
 ```
 
 ## Acceptance Criteria
 
-- All instances of hardcoded "Splitifyd"/"Splitify" replaced with the tenant-config value or a generic identifier.
+- All instances of hardcoded "BillSplit"/"BillSplit" replaced with the tenant-config value or a generic identifier.
 - Page titles, SEO meta tags, and initial HTML title use the configured app name.
 - Footer/headers and other UI text pull from translations with interpolation.
 - Tests updated to assert against configured app name; hardcoded-values guard test enabled.
-- Documentation and scripts describe/configure white-label behavior and avoid Splitifyd-specific defaults where inappropriate.
+- Documentation and scripts describe/configure white-label behavior and avoid BillSplit-specific defaults where inappropriate.
 - Fallback to default app name works when tenant branding is missing; no console errors/warnings.
 
 ## Notes
 
 - ✅ LocalStorage keys updated to use tenant-scoped keys (`tenant-theme:{host}:hash`).
-- ✅ Window globals changed from `__splitifydTheme` to `__tenantTheme`.
-- ✅ The typo "Splitify" vs "Splitifyd" fixed (line 596 updated).
+- ✅ Window globals changed from `__billsplitTheme` to `__tenantTheme`.
+- ✅ The typo "BillSplit" vs "BillSplit" fixed (line 596 updated).
 - ✅ Service worker cache name made tenant-agnostic.
 - ✅ robots.txt made generic.
 - ✅ Theme storage keys now tenant-scoped.

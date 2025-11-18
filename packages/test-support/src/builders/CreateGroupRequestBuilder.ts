@@ -1,6 +1,6 @@
-import type { CreateGroupRequest, DisplayName, GroupName } from '@splitifyd/shared';
-import { toGroupName } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import type { CreateGroupRequest, DisplayName, GroupName } from '@billsplit-wl/shared';
+import { toGroupName } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { generateShortId, randomChoice, randomString } from '../test-helpers';
 
 export class CreateGroupRequestBuilder {

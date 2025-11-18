@@ -10,10 +10,10 @@ import {
     toISOString,
     toShareLinkToken,
     USER_COLORS,
-} from '@splitifyd/shared';
-import type { GroupId } from '@splitifyd/shared';
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
-import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+} from '@billsplit-wl/shared';
+import type { GroupId } from '@billsplit-wl/shared';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FirestoreCollections, HTTP_STATUS } from '../../../constants';
 import { ActivityFeedService } from '../../../services/ActivityFeedService';

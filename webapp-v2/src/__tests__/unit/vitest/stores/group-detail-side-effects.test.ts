@@ -1,6 +1,6 @@
 import { GroupDetailSideEffectsManager } from '@/app/stores/helpers/group-detail-side-effects';
-import type { GroupId } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import type { GroupId } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
 import { describe, expect, it, vi } from 'vitest';
 
 describe('GroupDetailSideEffectsManager', () => {

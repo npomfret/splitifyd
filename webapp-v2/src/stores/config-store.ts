@@ -1,12 +1,11 @@
 import { ReadonlySignal, signal } from '@preact/signals';
-import type { AppConfiguration, BrandingConfig } from '@splitifyd/shared';
+import type { AppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
 import { firebaseConfigManager } from '../app/firebase-config';
 import i18n from '../i18n';
 import { syncThemeHash } from '../utils/theme-bootstrap';
 
 const DEFAULT_THEME_COLOR = '#1a73e8';
 const DEFAULT_APP_NAME = 'Splitifyd';
-const TITLE_PLACEHOLDERS = new Set(['splitifyd', 'splitify', 'app', 'app name']);
 const DEFAULT_FAVICON = '/src/assets/logo.svg';
 
 const setTranslationAppName = (appName: string): void => {
@@ -56,12 +55,7 @@ const applyDocumentTitle = (brandName?: string | null): void => {
         return;
     }
 
-    const currentTitle = document.title?.trim();
-    const normalizedTitle = currentTitle?.toLowerCase();
-    const shouldOverride = !currentTitle || (normalizedTitle ? TITLE_PLACEHOLDERS.has(normalizedTitle) : false);
-    if (shouldOverride) {
-        document.title = brandName?.trim() || DEFAULT_APP_NAME;
-    }
+    document.title = brandName?.trim() || DEFAULT_APP_NAME;
 };
 
 const updateBrandingMetadata = (branding: BrandingConfig | null): void => {

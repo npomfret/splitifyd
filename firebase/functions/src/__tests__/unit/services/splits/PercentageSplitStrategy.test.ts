@@ -1,4 +1,4 @@
-import { ExpenseSplitBuilder } from '@splitifyd/test-support';
+import { ExpenseSplitBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { PercentageSplitStrategy } from '../../../../services/splits/PercentageSplitStrategy';
 import { ApiError } from '../../../../utils/errors';

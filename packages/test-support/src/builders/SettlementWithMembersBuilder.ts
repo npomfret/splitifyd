@@ -1,9 +1,9 @@
-import type { GroupMember, SettlementWithMembers, UserId } from '@splitifyd/shared';
-import { Amount, toDisplayName } from '@splitifyd/shared';
-import { GroupId, ISOString } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
-import { SettlementId, toSettlementId } from '@splitifyd/shared';
+import type { GroupMember, SettlementWithMembers, UserId } from '@billsplit-wl/shared';
+import { Amount, toDisplayName } from '@billsplit-wl/shared';
+import { GroupId, ISOString } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
+import { SettlementId, toSettlementId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
 

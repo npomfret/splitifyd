@@ -1,4 +1,4 @@
-import { type BrandingArtifactMetadata, type PublishTenantThemeResult, type TenantId, toTenantId } from '@splitifyd/shared';
+import { type BrandingArtifactMetadata, type PublishTenantThemeResult, type TenantId, toTenantId } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../../constants';
 import type { AdminUpsertTenantRequest } from '../../schemas/tenant';
 import { ApiError } from '../../utils/errors';

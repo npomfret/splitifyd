@@ -14,10 +14,10 @@
  * - Performance monitoring with sampling
  */
 
-import type { BrandingArtifactMetadata, CommentDTO, ISOString, ShareLinkDTO, ShareLinkToken, SystemUserRole, UserId } from '@splitifyd/shared';
-import { DisplayName, ExpenseId, GroupId, ShareLinkId } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
-import { PolicyId } from '@splitifyd/shared';
+import type { BrandingArtifactMetadata, CommentDTO, ISOString, ShareLinkDTO, ShareLinkToken, SystemUserRole, UserId } from '@billsplit-wl/shared';
+import { DisplayName, ExpenseId, GroupId, ShareLinkId } from '@billsplit-wl/shared';
+import type { Email } from '@billsplit-wl/shared';
+import { PolicyId } from '@billsplit-wl/shared';
 import type { IDocumentReference, ITransaction, IWriteBatch } from '../../firestore-wrapper';
 import type { GroupBalanceDTO } from '../../schemas';
 import type { TenantDocument } from '../../schemas/tenant';

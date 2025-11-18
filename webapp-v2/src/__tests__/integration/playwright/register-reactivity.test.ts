@@ -1,4 +1,4 @@
-import { ClientUserBuilder, RegisterPage } from '@splitifyd/test-support';
+import { ClientUserBuilder, RegisterPage } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Form Reactivity and UI States', () => {

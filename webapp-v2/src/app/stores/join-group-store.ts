@@ -5,9 +5,9 @@
  */
 
 import { ReadonlySignal, signal } from '@preact/signals';
-import { GroupDTO, JoinGroupResponse, MemberStatus } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import { toISOString } from '@splitifyd/shared';
+import { GroupDTO, JoinGroupResponse, MemberStatus } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import { toISOString } from '@billsplit-wl/shared';
 import { apiClient } from '../apiClient';
 
 class JoinGroupStore {

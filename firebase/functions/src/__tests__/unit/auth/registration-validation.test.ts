@@ -1,6 +1,6 @@
-import type { UserRegistration } from '@splitifyd/shared';
-import { toDisplayName, toPassword } from '@splitifyd/shared';
-import { UserRegistrationBuilder } from '@splitifyd/test-support';
+import type { UserRegistration } from '@billsplit-wl/shared';
+import { toDisplayName, toPassword } from '@billsplit-wl/shared';
+import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { validateRegisterRequest } from '../../../auth/validation';
 import { HTTP_STATUS } from '../../../constants';

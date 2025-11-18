@@ -1,7 +1,7 @@
-import { PREDEFINED_EXPENSE_LABELS } from '@splitifyd/shared';
-import { GroupId } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
-import { ExpenseId } from '@splitifyd/shared';
+import { PREDEFINED_EXPENSE_LABELS } from '@billsplit-wl/shared';
+import { GroupId } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
+import { ExpenseId } from '@billsplit-wl/shared';
 import { getRecentAmounts } from '../stores/expense-form-store';
 import { useFormInitialization } from './useFormInitialization';
 import { useFormState } from './useFormState';

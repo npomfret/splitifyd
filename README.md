@@ -1,4 +1,4 @@
-# Splitifyd
+# BillSplit
 
 A white-label bill splitting webapp and service.
 

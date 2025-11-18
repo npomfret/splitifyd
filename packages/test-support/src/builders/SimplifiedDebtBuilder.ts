@@ -1,6 +1,6 @@
-import type { SimplifiedDebt } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
+import type { SimplifiedDebt } from '@billsplit-wl/shared';
+import { Amount } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
 
 /**
  * Builder for creating SimplifiedDebt objects for testing

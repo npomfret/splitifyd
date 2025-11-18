@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui';
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
-import { toDisplayName, toPassword } from '@splitifyd/shared';
+import { toDisplayName, toPassword } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';

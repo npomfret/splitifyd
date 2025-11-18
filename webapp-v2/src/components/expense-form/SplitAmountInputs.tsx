@@ -1,6 +1,6 @@
 import { getCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { Amount, amountToSmallestUnit, smallestUnitToAmountString, ZERO } from '@splitifyd/shared';
+import { Amount, amountToSmallestUnit, smallestUnitToAmountString, ZERO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, CurrencyAmount } from '../ui';
 

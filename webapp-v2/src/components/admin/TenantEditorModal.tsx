@@ -1,7 +1,7 @@
 import { apiClient } from '@/app/apiClient';
 import { Alert, Button, Card, Input, Modal } from '@/components/ui';
 import { logError } from '@/utils/browser-logger';
-import type { AdminUpsertTenantRequest } from '@splitifyd/shared';
+import type { AdminUpsertTenantRequest } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 
 interface TenantData {

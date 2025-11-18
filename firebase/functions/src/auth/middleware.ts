@@ -1,4 +1,4 @@
-import { AuthenticatedUser, SystemUserRoles, toDisplayName } from '@splitifyd/shared';
+import { AuthenticatedUser, SystemUserRoles, toDisplayName } from '@billsplit-wl/shared';
 import { NextFunction, Request, Response } from 'express';
 import { getIdentityToolkitConfig } from '../client-config';
 import { AUTH } from '../constants';
@@ -15,7 +15,7 @@ const authService = applicationBuilder.buildAuthService();
 
 /**
  * Extended Express Request with user information.
- * Note: There is also an AuthenticatedRequest type in @splitifyd/shared used for test stubs.
+ * Note: There is also an AuthenticatedRequest type in @billsplit-wl/shared used for test stubs.
  */
 export interface AuthenticatedRequest extends Request {
     user?: AuthenticatedUser;

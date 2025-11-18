@@ -54,8 +54,8 @@ interface ValidatedUpdateUserRequest extends UpdateRequest {
     emailVerified?: boolean;
     disabled?: boolean;
 }
-import { DisplayName } from '@splitifyd/shared';
-import type { Email } from '@splitifyd/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import type { Email } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';

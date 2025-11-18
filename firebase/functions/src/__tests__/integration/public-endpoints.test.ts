@@ -1,4 +1,4 @@
-import { ApiSerializer } from '@splitifyd/shared';
+import { ApiSerializer } from '@billsplit-wl/shared';
 import { createServer, type Server } from 'node:http';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getApiAppForTesting } from '../../index';

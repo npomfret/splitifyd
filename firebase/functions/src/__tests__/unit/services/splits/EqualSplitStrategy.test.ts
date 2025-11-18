@@ -1,4 +1,4 @@
-import { calculateEqualSplits } from '@splitifyd/shared';
+import { calculateEqualSplits } from '@billsplit-wl/shared';
 import { describe, expect, it } from 'vitest';
 import { EqualSplitStrategy } from '../../../../services/splits/EqualSplitStrategy';
 

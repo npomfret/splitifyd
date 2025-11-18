@@ -1,7 +1,7 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { ExpenseDTO, GroupMember } from '@splitifyd/shared';
-import { DELETED_AT_FIELD } from '@splitifyd/shared';
+import { ExpenseDTO, GroupMember } from '@billsplit-wl/shared';
+import { DELETED_AT_FIELD } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
 

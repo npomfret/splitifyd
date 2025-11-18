@@ -1,4 +1,4 @@
-import type { AppConfiguration } from '@splitifyd/shared';
+import type { AppConfiguration } from '@billsplit-wl/shared';
 import { apiClient, ApiError } from './apiClient';
 
 class FirebaseConfigManager {

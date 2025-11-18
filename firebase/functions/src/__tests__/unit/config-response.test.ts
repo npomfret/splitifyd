@@ -8,8 +8,8 @@ import {
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-} from '@splitifyd/shared';
-import type { AppConfiguration, TenantConfig } from '@splitifyd/shared';
+} from '@billsplit-wl/shared';
+import type { AppConfiguration, TenantConfig } from '@billsplit-wl/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as clientConfig from '../../client-config';
 import type { TenantRequestContext } from '../../types/tenant';

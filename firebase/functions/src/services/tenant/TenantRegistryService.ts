@@ -1,4 +1,4 @@
-import { TenantDomainName, TenantId, toTenantDomainName, toTenantId } from '@splitifyd/shared';
+import { TenantDomainName, TenantId, toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
 import { HTTP_STATUS } from '../../constants';
 import { logger } from '../../logger';
 import type { TenantRequestContext } from '../../types/tenant';

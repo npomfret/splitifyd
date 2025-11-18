@@ -1,4 +1,4 @@
-import type { ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember } from '@splitifyd/shared';
+import type { ExpenseDTO, ExpenseFullDetailsDTO, GroupDTO, GroupMember } from '@billsplit-wl/shared';
 import { ExpenseDTOBuilder } from './ExpenseDTOBuilder';
 import { GroupDTOBuilder } from './GroupDTOBuilder';
 import { GroupMemberBuilder } from './GroupMemberBuilder';

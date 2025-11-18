@@ -1,4 +1,4 @@
-import { TenantFirestoreTestDatabase } from '@splitifyd/test-support';
+import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';

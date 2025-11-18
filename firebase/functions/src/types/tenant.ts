@@ -1,4 +1,4 @@
-import type { BrandingArtifactMetadata, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId } from '@splitifyd/shared';
+import type { BrandingArtifactMetadata, TenantConfig, TenantDefaultFlag, TenantDomainName, TenantId } from '@billsplit-wl/shared';
 
 type TenantResolutionSource = 'domain' | 'override' | 'default';
 

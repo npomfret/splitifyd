@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 
-import { PolicyIds } from '@splitifyd/shared';
-import { ApiDriver, getFirebaseEmulatorConfig } from '@splitifyd/test-support';
+import { PolicyIds } from '@billsplit-wl/shared';
+import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import assert from 'node:assert';
@@ -32,7 +32,7 @@ console.log(`🎯 Running policy seeding for ${env.environment}`);
 // Initialize Firebase using common pattern
 initializeFirebase(env);
 
-import { PolicyId } from '@splitifyd/shared';
+import { PolicyId } from '@billsplit-wl/shared';
 import { getIdentityToolkitConfig } from '../functions/src/client-config';
 import { FirestoreCollections } from '../functions/src/constants';
 import { getAuth, getFirestore } from '../functions/src/firebase';

@@ -11,9 +11,9 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { calculateEqualSplits, UserToken } from '@splitifyd/shared';
-import { borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder } from '@splitifyd/test-support';
-import { ApiDriver } from '@splitifyd/test-support';
+import { calculateEqualSplits, UserToken } from '@billsplit-wl/shared';
+import { borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
+import { ApiDriver } from '@billsplit-wl/test-support';
 
 describe('Expense Locking - Firebase Transaction Behavior', () => {
     const apiDriver = new ApiDriver();

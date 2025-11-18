@@ -1,4 +1,4 @@
-import { COLOR_PATTERNS, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { COLOR_PATTERNS, MemberRoles, MemberStatuses } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { FirestoreTimestampSchema, UserIdSchema } from './common';
 

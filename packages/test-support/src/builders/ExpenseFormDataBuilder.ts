@@ -1,8 +1,8 @@
-import type { ExpenseFormData } from '@splitifyd/shared';
-import { Amount } from '@splitifyd/shared';
-import { DisplayName } from '@splitifyd/shared';
-import type { CurrencyISOCode } from '@splitifyd/shared';
-import { toDisplayName } from '@splitifyd/shared';
+import type { ExpenseFormData } from '@billsplit-wl/shared';
+import { Amount } from '@billsplit-wl/shared';
+import { DisplayName } from '@billsplit-wl/shared';
+import type { CurrencyISOCode } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { randomChoice, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 /**

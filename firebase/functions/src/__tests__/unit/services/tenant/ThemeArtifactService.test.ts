@@ -1,4 +1,4 @@
-import type { BrandingTokens } from '@splitifyd/shared';
+import type { BrandingTokens } from '@billsplit-wl/shared';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ThemeArtifactStorage } from '../../../../services/storage/ThemeArtifactStorage';
 import { ThemeArtifactService } from '../../../../services/tenant/ThemeArtifactService';

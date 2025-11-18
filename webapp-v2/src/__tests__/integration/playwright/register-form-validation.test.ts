@@ -1,4 +1,4 @@
-import { RegisterPage } from '@splitifyd/test-support';
+import { RegisterPage } from '@billsplit-wl/test-support';
 import { test } from '../../utils/console-logging-fixture';
 
 test.describe('Registration Form Validation', () => {

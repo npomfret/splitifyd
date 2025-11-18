@@ -1,5 +1,5 @@
 import { permissionsStore } from '@/stores/permissions-store.ts';
-import type { GroupDTO, GroupId, GroupMember, UserId } from '@splitifyd/shared';
+import type { GroupDTO, GroupId, GroupMember, UserId } from '@billsplit-wl/shared';
 import { themeStore } from '../theme-store';
 
 /**

@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 
-import { getAllEmulatorPorts } from '@splitifyd/test-support';
+import { getAllEmulatorPorts } from '@billsplit-wl/test-support';
 import { execSync } from 'child_process';
 import { logger } from './logger';
 

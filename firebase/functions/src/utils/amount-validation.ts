@@ -1,4 +1,4 @@
-import { Amount, getCurrency } from '@splitifyd/shared';
+import { Amount, getCurrency } from '@billsplit-wl/shared';
 
 /**
  * Determine the maximum number of decimal places that a currency supports.

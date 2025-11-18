@@ -1,6 +1,6 @@
-import { ColorPattern, GroupMembershipDTO, MemberRoles, MemberStatuses, UserThemeColor } from '@splitifyd/shared';
-import { GroupId, UserId } from '@splitifyd/shared';
-import { toGroupId } from '@splitifyd/shared';
+import { ColorPattern, GroupMembershipDTO, MemberRoles, MemberStatuses, UserThemeColor } from '@billsplit-wl/shared';
+import { GroupId, UserId } from '@billsplit-wl/shared';
+import { toGroupId } from '@billsplit-wl/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 
 /**
