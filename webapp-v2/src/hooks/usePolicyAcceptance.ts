@@ -94,7 +94,7 @@ export function usePolicyAcceptance(): PolicyAcceptanceState {
                 currentController.current = null;
             }
         };
-    }, [user, authLoading]);
+    }, [user]);
 
     // Automatic refresh every 5 minutes when user is active
     useEffect(() => {
