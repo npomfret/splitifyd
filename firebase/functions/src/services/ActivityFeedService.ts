@@ -162,37 +162,6 @@ export class ActivityFeedService {
     }
 
     /**
-     * @deprecated Use recordActivityForUsers (non-transactional version)
-     * Legacy method for recording activity within a transaction
-     * Prefer calling recordActivityForUsers AFTER transaction commits
-     */
-    recordActivityForUsersInTransaction(
-        transaction: ITransaction,
-        userIds: UserId[],
-        item: CreateActivityItemInput,
-    ): void {
-        if (userIds.length === 0) {
-            return;
-        }
-
-        const details = item.details ?? {};
-
-        for (const userId of userIds) {
-            this.firestoreWriter.createActivityFeedItemInTransaction(transaction, userId, null, {
-                userId,
-                groupId: item.groupId,
-                groupName: item.groupName,
-                eventType: item.eventType,
-                action: item.action,
-                actorId: item.actorId,
-                actorName: item.actorName,
-                timestamp: item.timestamp,
-                details,
-            });
-        }
-    }
-
-    /**
      * Trigger cleanup after activity write (fire-and-forget)
      * This is called automatically by recordActivityForUsers after the transaction commits
      */
