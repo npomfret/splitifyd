@@ -38,10 +38,14 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withPaidBy('user1')
-                    .withSplits(ExpenseSplitBuilder.exactSplit([
-                        { uid: 'user1', amount: '499999.99' },
-                        { uid: 'user2', amount: '499999.99' },
-                    ]).build())
+                    .withSplits(
+                        ExpenseSplitBuilder
+                            .exactSplit([
+                                { uid: 'user1', amount: '499999.99' },
+                                { uid: 'user2', amount: '499999.99' },
+                            ])
+                            .build(),
+                    )
                     .build();
 
                 const result = validateCreateExpense(expenseData);
@@ -68,10 +72,14 @@ describe('Input Validation Unit Tests', () => {
                     .withSplitType('exact')
                     .withParticipants(['user1', 'user2'])
                     .withPaidBy('user1')
-                    .withSplits(ExpenseSplitBuilder.exactSplit([
-                        { uid: 'user1', amount: '25' },
-                        { uid: 'user2', amount: '25' },
-                    ]).build())
+                    .withSplits(
+                        ExpenseSplitBuilder
+                            .exactSplit([
+                                { uid: 'user1', amount: '25' },
+                                { uid: 'user2', amount: '25' },
+                            ])
+                            .build(),
+                    )
                     .withAmount(-50, 'USD')
                     .build();
 

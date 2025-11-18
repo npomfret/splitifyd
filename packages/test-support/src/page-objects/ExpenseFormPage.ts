@@ -1,7 +1,7 @@
-import { expect, Locator, Page } from '@playwright/test';
-import type {CurrencyISOCode, ExpenseFormData, UserId } from '@billsplit-wl/shared';
+import type { CurrencyISOCode, ExpenseFormData, UserId } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
+import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { BasePage } from './BasePage';
 

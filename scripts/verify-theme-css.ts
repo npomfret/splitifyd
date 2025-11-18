@@ -3,11 +3,11 @@
  * Quick verification script to generate and inspect theme CSS for both themes
  */
 
+import { localhostBrandingTokens, loopbackBrandingTokens } from '@billsplit-wl/shared/src';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { LocalThemeArtifactStorage } from '../firebase/functions/src/services/storage/ThemeArtifactStorage';
 import { ThemeArtifactService } from '../firebase/functions/src/services/tenant/ThemeArtifactService';
-import { localhostBrandingTokens, loopbackBrandingTokens } from '@billsplit-wl/shared/src';
 
 async function main() {
     const tmpDir = join(process.cwd(), 'tmp', 'theme-verification');

@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { Avatar, Button, Card } from '../ui';
 import { Stack } from '../ui/Stack';
 
-interface Member {//todo: strong these be strongly typed?
+interface Member { // todo: strong these be strongly typed?
     uid: string;
     groupDisplayName: string;
     displayName?: string | null;
 }
 
-interface ParticipantSelectorProps {//todo: strong these be strongly typed?
+interface ParticipantSelectorProps { // todo: strong these be strongly typed?
     members: Member[];
     participants: string[];
     paidBy: string;

@@ -1,14 +1,11 @@
-
 import {
+    toISOString,
     toTenantAppName,
-    toTenantDefaultFlag,
-    toTenantDomainName,
     toTenantFaviconUrl,
     toTenantId,
     toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toISOString,
 } from '@billsplit-wl/shared';
 import type { ISOString, TenantConfig, TenantId } from '@billsplit-wl/shared';
 

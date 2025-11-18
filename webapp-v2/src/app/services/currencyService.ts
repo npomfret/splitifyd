@@ -1,7 +1,7 @@
 import { STORAGE_KEYS } from '@/constants.ts';
 import { CURRENCIES, type Currency, getCurrency, isValidCurrency } from '@/utils/currency';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
-import { CurrencyISOCode } from "@billsplit-wl/shared";
+import { CurrencyISOCode } from '@billsplit-wl/shared';
 
 interface GroupedCurrencies {
     recent: Currency[];

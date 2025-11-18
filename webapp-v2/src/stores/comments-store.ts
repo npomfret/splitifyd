@@ -1,5 +1,5 @@
-import { ReadonlySignal, signal } from '@preact/signals';
 import type { ActivityFeedItem, CommentDTO, CommentText, ExpenseId, GroupId, ListCommentsResponse } from '@billsplit-wl/shared';
+import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient } from '../app/apiClient';
 import type { ActivityFeedRealtimePayload, ActivityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../app/services/activity-feed-realtime-service';

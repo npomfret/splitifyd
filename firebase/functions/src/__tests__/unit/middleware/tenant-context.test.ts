@@ -1,17 +1,13 @@
 import {
-    type TenantConfig,
-    toISOString,
-    toTenantAppName,
     toTenantDefaultFlag,
-    toTenantDomainName,
-    toTenantFaviconUrl,
-    toTenantId,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
+
+
+
+
+
+
 } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from '@billsplit-wl/test-support';
-import { TenantRequestContextBuilder } from '../TenantRequestContextBuilder';
 import express from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -19,6 +15,7 @@ import { type TenantContextConfig, tenantContextMiddleware } from '../../../midd
 import { TenantRegistryService } from '../../../services/tenant/TenantRegistryService';
 import type { TenantRequestContext } from '../../../types/tenant';
 import { ApiError } from '../../../utils/errors';
+import { TenantRequestContextBuilder } from '../TenantRequestContextBuilder';
 
 describe('tenantContextMiddleware', () => {
     let mockTenantRegistry: TenantRegistryService;
@@ -29,15 +26,17 @@ describe('tenantContextMiddleware', () => {
 
     const mockTenantContext: TenantRequestContext = new TenantRequestContextBuilder()
         .withTenantId('test-tenant')
-        .withConfig(new TenantConfigBuilder()
-            .withTenantId('test-tenant')
-            .withAppName('Test App')
-            .withLogoUrl('https://example.com/logo.svg')
-            .withFaviconUrl('https://example.com/favicon.ico')
-            .withPrimaryColor('#0066CC')
-            .withSecondaryColor('#FF6600')
-            .withCreatedAt('2025-01-15T10:00:00.000Z')
-            .withUpdatedAt('2025-01-20T14:30:00.000Z'))
+        .withConfig(
+            new TenantConfigBuilder()
+                .withTenantId('test-tenant')
+                .withAppName('Test App')
+                .withLogoUrl('https://example.com/logo.svg')
+                .withFaviconUrl('https://example.com/favicon.ico')
+                .withPrimaryColor('#0066CC')
+                .withSecondaryColor('#FF6600')
+                .withCreatedAt('2025-01-15T10:00:00.000Z')
+                .withUpdatedAt('2025-01-20T14:30:00.000Z'),
+        )
         .withPrimaryDomain('app.example.com')
         .withDomains(['app.example.com'])
         .asDefault()

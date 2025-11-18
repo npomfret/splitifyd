@@ -1,7 +1,7 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
 import { z } from 'zod';
-import { createDisplayNameSchema } from './schemas/primitives';
+import { createDisplayNameSchema } from './schemas';
 import type { ColorPattern } from './user-colors';
 
 // ========================================================================
@@ -48,7 +48,7 @@ export const isoStringNow = (): ISOString => new Date().toISOString() as ISOStri
  * See: tasks/monetary-amounts-as-strings-refactor.md
  */
 export type Amount = string;
-export const toAmount = (value: string | number): Amount => typeof value === "number" ? value.toString() as Amount : value as Amount;
+export const toAmount = (value: string | number): Amount => typeof value === 'number' ? value.toString() as Amount : value as Amount;
 
 export const ZERO: Amount = '0';
 

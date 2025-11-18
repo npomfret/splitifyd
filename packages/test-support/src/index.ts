@@ -11,7 +11,13 @@ export type {
     SetOptions,
     WhereFilterOp,
 } from '@billsplit-wl/firebase-simulator';
-export { type FirestoreTriggerChange, type FirestoreTriggerChangeHandler, type FirestoreTriggerEventType, type FirestoreTriggerHandlers, StubFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
+export {
+    type FirestoreTriggerChange,
+    type FirestoreTriggerChangeHandler,
+    type FirestoreTriggerEventType,
+    type FirestoreTriggerHandlers,
+    StubFirestoreDatabase,
+} from '@billsplit-wl/firebase-simulator';
 export type { FirestoreTriggerChangeHandler as FirestoreTriggerHandler } from '@billsplit-wl/firebase-simulator';
 export { ActivityFeedEventTypes } from '@billsplit-wl/shared';
 export * from './ApiDriver';

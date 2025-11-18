@@ -1,23 +1,19 @@
 import {
     type TenantConfig,
-    toISOString,
-    toTenantAppName,
-    toTenantDefaultFlag,
     toTenantDomainName,
-    toTenantFaviconUrl,
     toTenantId,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
+
+
+
 } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from '@billsplit-wl/test-support';
-import { TenantRegistryRecordBuilder } from '../TenantRegistryRecordBuilder';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import type { TenantRegistryRecord } from '../../../services/firestore';
 import type { IFirestoreReader } from '../../../services/firestore';
 import { TenantRegistryService, type TenantResolutionOptions } from '../../../services/tenant/TenantRegistryService';
 import { ApiError } from '../../../utils/errors';
+import { TenantRegistryRecordBuilder } from '../TenantRegistryRecordBuilder';
 
 describe('TenantRegistryService', () => {
     let mockFirestoreReader: IFirestoreReader;
@@ -53,7 +49,17 @@ describe('TenantRegistryService', () => {
         .build();
 
     const defaultTenantRecord: TenantRegistryRecord = new TenantRegistryRecordBuilder()
-        .withTenantConfig(new TenantConfigBuilder().withTenantId('default-tenant').withAppName('Splitifyd').withLogoUrl('/logo.svg').withFaviconUrl('/favicon.ico').withPrimaryColor('#1a73e8').withSecondaryColor('#34a853').withCreatedAt('2025-01-01T00:00:00.000Z').withUpdatedAt('2025-01-01T00:00:00.000Z'))
+        .withTenantConfig(
+            new TenantConfigBuilder()
+                .withTenantId('default-tenant')
+                .withAppName('Splitifyd')
+                .withLogoUrl('/logo.svg')
+                .withFaviconUrl('/favicon.ico')
+                .withPrimaryColor('#1a73e8')
+                .withSecondaryColor('#34a853')
+                .withCreatedAt('2025-01-01T00:00:00.000Z')
+                .withUpdatedAt('2025-01-01T00:00:00.000Z'),
+        )
         .withPrimaryDomain('app.foo.com')
         .withDomains(['app.foo.com'])
         .asDefault()

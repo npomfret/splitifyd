@@ -13,7 +13,7 @@ import {
 } from '@billsplit-wl/shared';
 import type { GroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, ClientUserBuilder, ShareLinkBuilder } from '@billsplit-wl/test-support';
+import { ClientUserBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ShareLinkBuilder, ThemeBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FirestoreCollections, HTTP_STATUS } from '../../../constants';
 import { ActivityFeedService } from '../../../services/ActivityFeedService';
@@ -104,14 +104,15 @@ describe('GroupShareService', () => {
         it('reuses the palette gracefully when all combinations are exhausted', () => {
             const assignedAt = toISOString(new Date().toISOString());
             const allThemes = USER_COLORS.flatMap((color, colorIndex) =>
-                COLOR_PATTERNS.map(pattern => new ThemeBuilder()
-                    .withLight(color.light)
-                    .withDark(color.dark)
-                    .withName(color.name)
-                    .withPattern(pattern)
-                    .withAssignedAt(assignedAt)
-                    .withColorIndex(colorIndex)
-                    .build()
+                COLOR_PATTERNS.map(pattern =>
+                    new ThemeBuilder()
+                        .withLight(color.light)
+                        .withDark(color.dark)
+                        .withName(color.name)
+                        .withPattern(pattern)
+                        .withAssignedAt(assignedAt)
+                        .withColorIndex(colorIndex)
+                        .build()
                 )
             );
 

@@ -1,9 +1,9 @@
+import { apiClient } from '@/app/apiClient.ts';
 import { TenantEditorModal } from '@/components/admin/TenantEditorModal';
 import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
+import { configStore } from '@/stores/config-store.ts';
 import { logError } from '@/utils/browser-logger';
 import { useEffect, useState } from 'preact/hooks';
-import { apiClient } from '@/app/apiClient.ts';
-import { configStore } from '@/stores/config-store.ts';
 
 interface TenantBranding {
     appName: string;

@@ -1,6 +1,17 @@
+import { toExpenseId } from '@billsplit-wl/shared';
+import {
+    ActivityFeedItemBuilder,
+    ClientUserBuilder,
+    CommentBuilder,
+    ExpenseDTOBuilder,
+    getFirestorePort,
+    GroupBalanceDocumentBuilder,
+    GroupDTOBuilder,
+    GroupMemberDocumentBuilder,
+    PolicyDocumentBuilder,
+    SettlementDTOBuilder,
+} from '@billsplit-wl/test-support';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { toExpenseId, toISOString } from '@billsplit-wl/shared';
-import { ExpenseDTOBuilder, getFirestorePort, GroupBalanceDocumentBuilder, GroupDTOBuilder, PolicyDocumentBuilder, SettlementDTOBuilder, GroupMemberDocumentBuilder, CommentBuilder, ActivityFeedItemBuilder, ClientUserBuilder } from '@billsplit-wl/test-support';
 import { collection, doc, getDoc, getDocs, limit, onSnapshot, query, setDoc } from 'firebase/firestore';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -285,7 +296,10 @@ describe('Firestore Security Rules (Production)', () => {
                     await setDoc(doc(db, 'expenses', expenseId), commentExpense);
 
                     // Create expense comment document manually for now
-                    await setDoc(doc(db, 'expenses', expenseId, 'comments', expenseCommentId), new CommentBuilder().withText('An expense comment').withAuthorId('user1-id').withCreatedAt(new Date()).build());
+                    await setDoc(
+                        doc(db, 'expenses', expenseId, 'comments', expenseCommentId),
+                        new CommentBuilder().withText('An expense comment').withAuthorId('user1-id').withCreatedAt(new Date()).build(),
+                    );
                 });
         });
 
@@ -323,19 +337,23 @@ describe('Firestore Security Rules (Production)', () => {
                 const db = context.firestore();
                 const now = new Date();
 
-                await setDoc(doc(db, 'activity-feed', userId, 'items', feedItemId), ActivityFeedItemBuilder.create()
-                    .withUserId(userId)
-                    .withGroupId('test-group-1')
-                    .withGroupName('Test Group')
-                    .withEventType('expense-created')
-                    .withActorId(userId)
-                    .withActorName('User One')
-                    .withTimestamp(now)
-                    .withCreatedAt(now)
-                    .withDetails({
-                        expenseId: toExpenseId('expense-1'),
-                    })
-                    .build());
+                await setDoc(
+                    doc(db, 'activity-feed', userId, 'items', feedItemId),
+                    ActivityFeedItemBuilder
+                        .create()
+                        .withUserId(userId)
+                        .withGroupId('test-group-1')
+                        .withGroupName('Test Group')
+                        .withEventType('expense-created')
+                        .withActorId(userId)
+                        .withActorName('User One')
+                        .withTimestamp(now)
+                        .withCreatedAt(now)
+                        .withDetails({
+                            expenseId: toExpenseId('expense-1'),
+                        })
+                        .build(),
+                );
             });
         });
 
@@ -358,17 +376,21 @@ describe('Firestore Security Rules (Production)', () => {
             const now = new Date();
 
             await assertFails(
-                setDoc(newItemRef, ActivityFeedItemBuilder.create()
-                    .withUserId(userId)
-                    .withGroupId('test-group-1')
-                    .withGroupName('Test Group')
-                    .withEventType('expense-created')
-                    .withActorId(userId)
-                    .withActorName('User One')
-                    .withTimestamp(now)
-                    .withCreatedAt(now)
-                    .withDetails({})
-                    .build()),
+                setDoc(
+                    newItemRef,
+                    ActivityFeedItemBuilder
+                        .create()
+                        .withUserId(userId)
+                        .withGroupId('test-group-1')
+                        .withGroupName('Test Group')
+                        .withEventType('expense-created')
+                        .withActorId(userId)
+                        .withActorName('User One')
+                        .withTimestamp(now)
+                        .withCreatedAt(now)
+                        .withDetails({})
+                        .build(),
+                ),
             );
         });
     });
@@ -496,10 +518,11 @@ describe('Firestore Security Rules (Production)', () => {
             await testEnv
                 .withSecurityRulesDisabled(async (context: any) => {
                     const userData = new ClientUserBuilder()
-                                        .withEmail('other@example.com')
-                                        .withDisplayName('Other User')
-                                        .withRole('system_user')
-                                        .build();                    await setDoc(doc(context.firestore(), 'users', 'other-user-id'), userData);
+                        .withEmail('other@example.com')
+                        .withDisplayName('Other User')
+                        .withRole('system_user')
+                        .build();
+                    await setDoc(doc(context.firestore(), 'users', 'other-user-id'), userData);
                 });
 
             // User should NOT be able to read other user's document

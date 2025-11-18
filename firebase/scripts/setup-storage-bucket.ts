@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 
 import * as admin from 'firebase-admin';
-import { initializeFirebase, getEnvironment } from './firebase-init';
+import { getEnvironment, initializeFirebase } from './firebase-init';
 import { logger } from './logger';
 
 async function setupStorageBucket(): Promise<void> {

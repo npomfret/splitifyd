@@ -10,10 +10,10 @@ import {
     toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
 import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
-import { AdminTenantRequestBuilder } from '../../unit/AdminTenantRequestBuilder';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { getAuth, getFirestore } from '../../../firebase';
+import { AdminTenantRequestBuilder } from '../../unit/AdminTenantRequestBuilder';
 
 describe('Admin Tenant Theme Publishing', () => {
     const apiDriver = new ApiDriver();
@@ -28,7 +28,8 @@ describe('Admin Tenant Theme Publishing', () => {
     });
 
     const createTenantWithTokens = async (tenantId: string) => {
-        const tenantData = AdminTenantRequestBuilder.forTenant(tenantId)
+        const tenantData = AdminTenantRequestBuilder
+            .forTenant(tenantId)
             .withBranding({
                 appName: toTenantAppName('Test Theme Tenant'),
                 logoUrl: toTenantLogoUrl('https://foo/branding/test/logo.svg'),

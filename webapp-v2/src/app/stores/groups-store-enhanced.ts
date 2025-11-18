@@ -1,8 +1,8 @@
 import { logInfo } from '@/utils/browser-logger.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
-import { batch, ReadonlySignal, signal } from '@preact/signals';
 import { CreateGroupRequest, GroupDTO, MemberStatus, MemberStatuses } from '@billsplit-wl/shared';
 import type { GroupId, GroupName, UserId } from '@billsplit-wl/shared';
+import { batch, ReadonlySignal, signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
 import type { ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../services/activity-feed-realtime-service';

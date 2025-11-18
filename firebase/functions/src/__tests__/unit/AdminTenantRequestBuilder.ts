@@ -286,9 +286,7 @@ export class AdminTenantRequestBuilder {
     }
 
     withDomainAliases(aliases: Array<TenantDomainName | string>): this {
-        this.payload.domains.aliases = aliases.map((alias) =>
-            typeof alias === 'string' ? toTenantDomainName(alias) : alias
-        );
+        this.payload.domains.aliases = aliases.map((alias) => typeof alias === 'string' ? toTenantDomainName(alias) : alias);
 
         // Update normalized
         const normalized = new Set([this.payload.domains.primary, ...this.payload.domains.aliases]);

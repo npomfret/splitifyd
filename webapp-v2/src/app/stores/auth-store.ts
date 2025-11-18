@@ -1,10 +1,10 @@
 import { USER_ID_KEY } from '@/constants.ts';
 import { logError } from '@/utils/browser-logger.ts';
 import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
-import { ReadonlySignal, signal } from '@preact/signals';
 import type { ClientUser, Email, Password, UserId } from '@billsplit-wl/shared';
 import { AuthErrors } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
+import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
 import { type AuthGateway, getDefaultAuthGateway } from '../gateways/auth-gateway';
 import { CurrencyService } from '../services/currencyService';

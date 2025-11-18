@@ -1,6 +1,5 @@
-
-import { convertToISOString } from '../test-helpers';
 import type { ISOString } from '@billsplit-wl/shared';
+import { convertToISOString } from '../test-helpers';
 
 export interface PolicyVersion {
     text: string;

@@ -11,8 +11,8 @@ import {
     toTenantSecondaryColor,
     toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
-import type { TenantDocumentUpsertData } from '../../services/firestore/IFirestoreWriter';
 import type { AdminUpsertTenantRequest } from '../../schemas/tenant';
+import type { TenantDocumentUpsertData } from '../../services/firestore/IFirestoreWriter';
 
 /**
  * Builder for creating tenant payloads for tests.
@@ -289,9 +289,7 @@ export class TenantPayloadBuilder {
     }
 
     withDomainAliases(aliases: Array<TenantDomainName | string>): this {
-        this.payload.domains.aliases = aliases.map((alias) =>
-            typeof alias === 'string' ? toTenantDomainName(alias) : alias
-        );
+        this.payload.domains.aliases = aliases.map((alias) => typeof alias === 'string' ? toTenantDomainName(alias) : alias);
 
         // Update normalized
         const normalized = new Set([this.payload.domains.primary, ...this.payload.domains.aliases]);

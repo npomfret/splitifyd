@@ -1,6 +1,5 @@
-
-import { toTenantId, toTenantDomainName } from '@billsplit-wl/shared';
-import type { TenantId, TenantDomainName } from '@billsplit-wl/shared';
+import { toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
+import type { TenantDomainName, TenantId } from '@billsplit-wl/shared';
 import type { TenantSettingsResponse } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from './TenantConfigBuilder';
 

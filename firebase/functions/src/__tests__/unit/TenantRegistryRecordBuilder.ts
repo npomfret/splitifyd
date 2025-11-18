@@ -1,8 +1,7 @@
-
-import { toTenantDomainName, toTenantDefaultFlag } from '@billsplit-wl/shared';
-import type { TenantDomainName, TenantDefaultFlag } from '@billsplit-wl/shared';
-import type { TenantRegistryRecord } from '../../services/firestore/IFirestoreReader';
+import { toTenantDefaultFlag, toTenantDomainName } from '@billsplit-wl/shared';
+import type { TenantDomainName } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from '@billsplit-wl/test-support';
+import type { TenantRegistryRecord } from '../../services/firestore';
 
 export class TenantRegistryRecordBuilder {
     private record: Partial<TenantRegistryRecord> = {};

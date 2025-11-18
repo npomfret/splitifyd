@@ -1,4 +1,3 @@
-import { expect } from '@playwright/test';
 import {
     ApiDriver,
     DashboardPage,
@@ -13,6 +12,7 @@ import {
     SettingsPage,
     TestUserBuilder,
 } from '@billsplit-wl/test-support';
+import { expect } from '@playwright/test';
 import { simpleTest } from '../../fixtures';
 import { getUserPool } from '../../fixtures/user-pool.fixture';
 import { EMULATOR_URL } from '../../helpers';

@@ -1,7 +1,7 @@
 import { calculateEqualSplits, toAmount } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { ExpenseDTOBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder, ExpenseSplitBuilder } from '@billsplit-wl/test-support';
+import { ExpenseDTOBuilder, ExpenseSplitBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
@@ -190,17 +190,23 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
                 const currentBalance = new GroupBalanceDTOBuilder()
                     .withGroupId(groupId)
-                    .withUserBalance(currency, userId1, new UserBalanceBuilder()
-                        .withUserId(userId1)
-                        .owedByUser(userId2, '25.00')
-                        .withNetBalance('-25.00')
-                        .build()
+                    .withUserBalance(
+                        currency,
+                        userId1,
+                        new UserBalanceBuilder()
+                            .withUserId(userId1)
+                            .owedByUser(userId2, '25.00')
+                            .withNetBalance('-25.00')
+                            .build(),
                     )
-                    .withUserBalance(currency, userId2, new UserBalanceBuilder()
-                        .withUserId(userId2)
-                        .owesUser(userId1, '25.00')
-                        .withNetBalance('25.00')
-                        .build()
+                    .withUserBalance(
+                        currency,
+                        userId2,
+                        new UserBalanceBuilder()
+                            .withUserId(userId2)
+                            .owesUser(userId1, '25.00')
+                            .withNetBalance('25.00')
+                            .build(),
                     )
                     .build();
 

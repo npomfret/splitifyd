@@ -1,5 +1,5 @@
-import { expect, Locator, Page } from '@playwright/test';
 import type { GroupName } from '@billsplit-wl/shared';
+import { expect, Locator, Page } from '@playwright/test';
 import { TEST_TIMEOUTS } from '../test-constants';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';

@@ -1,13 +1,13 @@
 import type * as admin from 'firebase-admin';
 import { logger } from '../../logger';
-import type { ThemeArtifactPayload, ThemeArtifactStorage, ThemeArtifactLocation } from './ThemeArtifactStorage';
+import type { ThemeArtifactLocation, ThemeArtifactPayload, ThemeArtifactStorage } from './ThemeArtifactStorage';
 
 export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
     constructor(private readonly getStorageInstance: () => admin.storage.Storage) {}
 
     async save(payload: ThemeArtifactPayload): Promise<ThemeArtifactLocation> {
         const bucket = this.getStorageInstance().bucket();
-        const { tenantId, hash, cssContent, tokensJson} = payload;
+        const { tenantId, hash, cssContent, tokensJson } = payload;
 
         const cssPath = `theme-artifacts/${tenantId}/${hash}/theme.css`;
         const tokensPath = `theme-artifacts/${tenantId}/${hash}/tokens.json`;

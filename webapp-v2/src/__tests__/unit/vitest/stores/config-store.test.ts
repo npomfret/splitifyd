@@ -1,6 +1,6 @@
 import { configStore } from '@/stores/config-store.ts';
 import type { AppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
-import { toISOString, toTenantAppName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
+import { toISOString, toTenantId } from '@billsplit-wl/shared';
 import { BrandingConfigBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 

@@ -17,10 +17,20 @@ import type { UserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { toExpenseId } from '@billsplit-wl/shared';
 import { toPassword } from '@billsplit-wl/shared';
-import { toDisplayName } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseSplitBuilder, ExpenseUpdateBuilder, PasswordChangeRequestBuilder, RegisterRequestBuilder, UserUpdateBuilder, ClientUserBuilder, GroupUpdateBuilder, SettlementUpdateBuilder } from '@billsplit-wl/test-support';
-import { AdminTenantRequestBuilder } from './AdminTenantRequestBuilder';
+import {
+    CreateExpenseRequestBuilder,
+    CreateGroupRequestBuilder,
+    CreateSettlementRequestBuilder,
+    ExpenseSplitBuilder,
+    ExpenseUpdateBuilder,
+    GroupUpdateBuilder,
+    PasswordChangeRequestBuilder,
+    RegisterRequestBuilder,
+    SettlementUpdateBuilder,
+    UserUpdateBuilder,
+} from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
+import { AdminTenantRequestBuilder } from './AdminTenantRequestBuilder';
 import { AppDriver } from './AppDriver';
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
@@ -348,11 +358,13 @@ describe('app tests', () => {
 
             const participants = [user1, user2, user3];
 
-            const exactSplits = ExpenseSplitBuilder.exactSplit([
-                { uid: user1, amount: '120.10' },
-                { uid: user2, amount: '80.05' },
-                { uid: user3, amount: '75.10' },
-            ]).build();
+            const exactSplits = ExpenseSplitBuilder
+                .exactSplit([
+                    { uid: user1, amount: '120.10' },
+                    { uid: user2, amount: '80.05' },
+                    { uid: user3, amount: '75.10' },
+                ])
+                .build();
 
             const createdExpense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
@@ -2266,11 +2278,13 @@ describe('app tests', () => {
                 await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
                 const participants = [user1, user2, user3];
-                const invalidPercentageSplits = ExpenseSplitBuilder.exactSplit([
-                    { uid: user1, amount: '40.00', percentage: 40 },
-                    { uid: user2, amount: '40.00', percentage: 40 },
-                    { uid: user3, amount: '19.00', percentage: 19 },
-                ]).build();
+                const invalidPercentageSplits = ExpenseSplitBuilder
+                    .exactSplit([
+                        { uid: user1, amount: '40.00', percentage: 40 },
+                        { uid: user2, amount: '40.00', percentage: 40 },
+                        { uid: user3, amount: '19.00', percentage: 19 },
+                    ])
+                    .build();
 
                 const expenseRequest = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -2293,10 +2307,12 @@ describe('app tests', () => {
                 await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
                 const participants = [user1, user2];
-                const invalidPercentageSplits = ExpenseSplitBuilder.exactSplit([
-                    { uid: user1, amount: '120.00', percentage: 120 },
-                    { uid: user2, amount: '-20.00', percentage: -20 },
-                ]).build();
+                const invalidPercentageSplits = ExpenseSplitBuilder
+                    .exactSplit([
+                        { uid: user1, amount: '120.00', percentage: 120 },
+                        { uid: user2, amount: '-20.00', percentage: -20 },
+                    ])
+                    .build();
 
                 const expenseRequest = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
@@ -3388,7 +3404,7 @@ describe('app tests', () => {
                     .withTermsAccepted(true)
                     .withCookiePolicyAccepted(true)
                     .withPrivacyPolicyAccepted(true)
-                    .build()
+                    .build(),
             );
 
             expect(registrationResult.success).toBe(true);
@@ -3411,7 +3427,7 @@ describe('app tests', () => {
                         .withTermsAccepted(true)
                         .withCookiePolicyAccepted(true)
                         .withPrivacyPolicyAccepted(false)
-                        .build()
+                        .build(),
                 ),
             )
                 .rejects
@@ -3422,7 +3438,7 @@ describe('app tests', () => {
             it('should update display name successfully', async () => {
                 const updatedProfile = await appDriver.updateUserProfile(
                     new UserUpdateBuilder().withDisplayName('Updated Name').build(),
-                    user1
+                    user1,
                 );
 
                 expect(updatedProfile.displayName).toBe('Updated Name');
@@ -3434,7 +3450,7 @@ describe('app tests', () => {
             it('should sanitize display name input', async () => {
                 const updatedProfile = await appDriver.updateUserProfile(
                     new UserUpdateBuilder().withDisplayName('<script>alert("xss")</script>Clean Name').build(),
-                    user1
+                    user1,
                 );
 
                 expect(updatedProfile.displayName).not.toContain('<script>');
@@ -3469,7 +3485,7 @@ describe('app tests', () => {
                         .withCurrentPassword(VALID_CURRENT_PASSWORD)
                         .withNewPassword(VALID_NEW_PASSWORD)
                         .build(),
-                    user1
+                    user1,
                 );
 
                 expect(result.message).toBe('Password changed successfully');
@@ -3482,7 +3498,7 @@ describe('app tests', () => {
                             .withCurrentPassword('WrongPassword123!')
                             .withNewPassword(VALID_NEW_PASSWORD)
                             .build(),
-                        user1
+                        user1,
                     ),
                 )
                     .rejects
@@ -3496,7 +3512,7 @@ describe('app tests', () => {
                             .withCurrentPassword(VALID_CURRENT_PASSWORD)
                             .withNewPassword(VALID_CURRENT_PASSWORD)
                             .build(),
-                        user1
+                        user1,
                     ),
                 )
                     .rejects
@@ -3510,7 +3526,7 @@ describe('app tests', () => {
                             .withCurrentPassword(VALID_CURRENT_PASSWORD)
                             .withNewPassword('Short1!')
                             .build(),
-                        user1
+                        user1,
                     ),
                 )
                     .rejects
@@ -3523,7 +3539,7 @@ describe('app tests', () => {
                         new PasswordChangeRequestBuilder()
                             .withNewPassword(VALID_NEW_PASSWORD)
                             .build(),
-                        user1
+                        user1,
                     ),
                 )
                     .rejects
@@ -3536,7 +3552,7 @@ describe('app tests', () => {
                         new PasswordChangeRequestBuilder()
                             .withCurrentPassword(VALID_CURRENT_PASSWORD)
                             .build(),
-                        user1
+                        user1,
                     ),
                 )
                     .rejects
@@ -3550,7 +3566,7 @@ describe('app tests', () => {
                             .withCurrentPassword('')
                             .withNewPassword(VALID_NEW_PASSWORD)
                             .build(),
-                        user1
+                        user1,
                     ),
                 )
                     .rejects
@@ -3564,7 +3580,7 @@ describe('app tests', () => {
                             .withCurrentPassword(VALID_CURRENT_PASSWORD)
                             .withNewPassword('')
                             .build(),
-                        user1
+                        user1,
                     ),
                 )
                     .rejects
@@ -4042,7 +4058,8 @@ describe('app tests', () => {
                 expect(createResult.created).toBe(true);
 
                 // Update the same tenant
-                const updatedPayload = AdminTenantRequestBuilder.forTenant('tenant_existing_test')
+                const updatedPayload = AdminTenantRequestBuilder
+                    .forTenant('tenant_existing_test')
                     .withAppName('Updated Tenant App')
                     .build();
 
@@ -4055,7 +4072,8 @@ describe('app tests', () => {
             });
 
             it('should reject invalid branding tokens schema', async () => {
-                const invalidPayload = AdminTenantRequestBuilder.forTenant('tenant_invalid')
+                const invalidPayload = AdminTenantRequestBuilder
+                    .forTenant('tenant_invalid')
                     .withPaletteColor('primary', 'not-a-hex-color') // Invalid hex color
                     .build();
 
@@ -4104,7 +4122,8 @@ describe('app tests', () => {
 
             it('should preserve brandingTokens with negative CSS values', async () => {
                 // Ensure negative letter-spacing is preserved
-                const payload = AdminTenantRequestBuilder.forTenant('tenant_negative_css')
+                const payload = AdminTenantRequestBuilder
+                    .forTenant('tenant_negative_css')
                     .withLetterSpacing('tight', '-0.02rem')
                     .build();
 
@@ -4123,7 +4142,8 @@ describe('app tests', () => {
             });
 
             it('should handle default tenant flag correctly', async () => {
-                const payloadWithDefault = AdminTenantRequestBuilder.forTenant('tenant_default_flag')
+                const payloadWithDefault = AdminTenantRequestBuilder
+                    .forTenant('tenant_default_flag')
                     .asDefaultTenant()
                     .build();
 
@@ -4142,7 +4162,8 @@ describe('app tests', () => {
             });
 
             it('should validate domain normalization', async () => {
-                const payload = AdminTenantRequestBuilder.forTenant('tenant_domains')
+                const payload = AdminTenantRequestBuilder
+                    .forTenant('tenant_domains')
                     .withDomains({
                         primary: toTenantDomainName('example.bar'),
                         aliases: [toTenantDomainName('www.foo'), toTenantDomainName('example.bar')],

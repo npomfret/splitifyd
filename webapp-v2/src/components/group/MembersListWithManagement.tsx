@@ -5,9 +5,9 @@ import { Avatar, Button, Card, ConfirmDialog, LoadingSpinner, SidebarCard, Toolt
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
 import { getGroupDisplayName } from '@/utils/displayName';
+import { GroupId, GroupMember } from '@billsplit-wl/shared';
 import { ChevronDownIcon, UserMinusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
-import { GroupId, GroupMember } from '@billsplit-wl/shared';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {toAmount, type CurrencyISOCode } from '../shared-types';
+import { type CurrencyISOCode, toAmount } from '../shared-types';
 import { amountToSmallestUnit, calculateEqualSplits, calculateExactSplits, calculatePercentageSplits, getCurrencyDecimals, roundToCurrencyPrecision } from '../split-utils';
 
 const amountFor = (value: number | string, currency: CurrencyISOCode): string => roundToCurrencyPrecision(toAmount(value), currency);

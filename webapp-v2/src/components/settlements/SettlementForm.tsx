@@ -6,7 +6,6 @@ import { formatCurrency } from '@/utils/currency';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { useComputed } from '@preact/signals';
 import {
     amountToSmallestUnit,
     CreateSettlementRequest,
@@ -20,6 +19,7 @@ import {
     UserId,
     ZERO,
 } from '@billsplit-wl/shared';
+import { useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip } from '../ui';

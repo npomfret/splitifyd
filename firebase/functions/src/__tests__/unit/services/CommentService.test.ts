@@ -1,8 +1,7 @@
 import { toGroupId } from '@billsplit-wl/shared';
-import type { CreateExpenseCommentRequest, CreateGroupCommentRequest } from '@billsplit-wl/shared';
-import { toCommentId, toCommentText, toExpenseId } from '@billsplit-wl/shared';
+import { toCommentId, toExpenseId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, CreateGroupCommentRequestBuilder, CreateExpenseCommentRequestBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseCommentRequestBuilder, CreateGroupCommentRequestBuilder, ExpenseDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { validateCommentId, validateCreateExpenseComment, validateCreateGroupComment, validateListCommentsQuery } from '../../../comments/validation';
 import { HTTP_STATUS } from '../../../constants';

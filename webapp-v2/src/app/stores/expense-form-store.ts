@@ -2,7 +2,6 @@ import { logWarning } from '@/utils/browser-logger.ts';
 import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
 import { getUTCDateTime, isDateInFuture } from '@/utils/dateUtils.ts';
 import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
-import { ReadonlySignal, signal } from '@preact/signals';
 import {
     Amount,
     amountToSmallestUnit,
@@ -17,6 +16,7 @@ import {
 } from '@billsplit-wl/shared';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
+import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';

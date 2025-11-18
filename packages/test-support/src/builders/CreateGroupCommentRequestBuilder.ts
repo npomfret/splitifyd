@@ -1,6 +1,5 @@
-
 import { toCommentText, toGroupId } from '@billsplit-wl/shared';
-import type { CreateGroupCommentRequest, GroupId, CommentText } from '@billsplit-wl/shared';
+import type { CommentText, CreateGroupCommentRequest, GroupId } from '@billsplit-wl/shared';
 
 export class CreateGroupCommentRequestBuilder {
     private request: Partial<CreateGroupCommentRequest> = {};

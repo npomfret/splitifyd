@@ -1,6 +1,6 @@
 // Currency definitions - single source of truth for the entire application
 import currencyData from './currency-data';
-import {CurrencyISOCode} from "./shared-types";
+import { CurrencyISOCode } from './shared-types';
 
 /**
  * Currency interface matching the structure in currencies.json

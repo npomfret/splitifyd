@@ -1,6 +1,6 @@
 import { toExpenseId, toGroupId } from '@billsplit-wl/shared';
 import { convertToISOString, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, ExpenseSplitBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, ExpenseSplitBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -130,7 +130,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 .withUpdatedAt(convertToISOString(new Date()))
                 .build();
 
-db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
+            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
             seedMembership(mockExpense.groupId, nonParticipantId);
             seedMembership(mockExpense.groupId, participantId);
 

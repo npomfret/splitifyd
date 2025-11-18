@@ -1,7 +1,16 @@
 import { ActivityFeedCard } from '@/components/dashboard/ActivityFeedCard.tsx';
-import { type ReadonlySignal, type Signal, signal } from '@preact/signals';
-import { type ActivityFeedAction, ActivityFeedActions, type ActivityFeedEventType, ActivityFeedEventTypes, type ActivityFeedItem, toCommentId, toGroupName, toSettlementId } from '@billsplit-wl/shared';
+import {
+    type ActivityFeedAction,
+    ActivityFeedActions,
+    type ActivityFeedEventType,
+    ActivityFeedEventTypes,
+    type ActivityFeedItem,
+    toCommentId,
+    toGroupName,
+    toSettlementId,
+} from '@billsplit-wl/shared';
 import { ActivityFeedItemBuilder } from '@billsplit-wl/test-support';
+import { type ReadonlySignal, type Signal, signal } from '@preact/signals';
 import { fireEvent, render, screen } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 

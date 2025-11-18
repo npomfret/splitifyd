@@ -59,6 +59,7 @@ import { SystemUserRoles } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@billsplit-wl/test-support';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
+import type { UserRecord } from 'firebase-admin/auth';
 import { expect } from 'vitest';
 import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
@@ -66,7 +67,6 @@ import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
 import { Errors, sendError } from '../../utils/errors';
 import { StubAuthService } from './mocks/StubAuthService';
-import type {UserRecord} from "firebase-admin/auth";
 
 /**
  * Extended request interface for authenticated requests in AppDriver

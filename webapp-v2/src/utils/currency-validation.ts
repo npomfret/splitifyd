@@ -1,4 +1,4 @@
-import {CurrencyISOCode, getCurrency, getCurrencyDecimals } from '@billsplit-wl/shared';
+import { CurrencyISOCode, getCurrency, getCurrencyDecimals } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 
 /**

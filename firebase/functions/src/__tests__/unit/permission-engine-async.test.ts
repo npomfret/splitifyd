@@ -160,7 +160,9 @@ describe('PermissionEngineAsync', () => {
                 .withStatus('active')
                 .build();
 
-            expect(() => PermissionEngineAsync.checkPermission(member, groupWithoutPermissions, testUserId, 'expenseEditing')).toThrow('Group group456 is missing permission setting for action: expenseEditing');
+            expect(() => PermissionEngineAsync.checkPermission(member, groupWithoutPermissions, testUserId, 'expenseEditing')).toThrow(
+                'Group group456 is missing permission setting for action: expenseEditing',
+            );
         });
 
         test('should throw error if specific permission missing', () => {

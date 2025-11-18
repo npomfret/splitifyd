@@ -21,7 +21,7 @@ describe('Hardcoded Values Validation', () => {
             'firebase/.firebaserc',
             'firebase/package.json',
             'firebase/service-account-key.json',
-            'firebase/functions/vitest.config.ts',//todo
+            'firebase/functions/vitest.config.ts', // todo
         ];
 
         const excludeDirectories = ['docs/', '.idea/', 'tasks'];

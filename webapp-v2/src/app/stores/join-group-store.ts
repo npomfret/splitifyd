@@ -4,10 +4,10 @@
  * Manages the state for joining a group via share link
  */
 
-import { ReadonlySignal, signal } from '@preact/signals';
 import { GroupDTO, JoinGroupResponse, MemberStatus } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { toISOString } from '@billsplit-wl/shared';
+import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
 
 class JoinGroupStore {

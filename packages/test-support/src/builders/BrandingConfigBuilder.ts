@@ -1,18 +1,25 @@
-
 import {
+    toTenantAccentColor,
     toTenantAppName,
-    toTenantLogoUrl,
+    toTenantCustomCss,
     toTenantFaviconUrl,
+    toTenantLogoUrl,
     toTenantPrimaryColor,
     toTenantSecondaryColor,
-    toTenantAccentColor,
     toTenantThemePaletteName,
-    toTenantCustomCss,
-    toShowLandingPageFlag,
-    toShowMarketingContentFlag,
-    toShowPricingPageFlag,
 } from '@billsplit-wl/shared';
-import type { BrandingConfig, BrandingMarketingFlags, TenantAccentColor, TenantAppName, TenantCustomCss, TenantFaviconUrl, TenantLogoUrl, TenantPrimaryColor, TenantSecondaryColor, TenantThemePaletteName } from '@billsplit-wl/shared';
+import type {
+    BrandingConfig,
+    BrandingMarketingFlags,
+
+
+
+
+
+
+
+
+} from '@billsplit-wl/shared';
 
 export class BrandingConfigBuilder {
     private config: Partial<BrandingConfig> = {};

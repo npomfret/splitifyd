@@ -1,6 +1,6 @@
 import { getCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { Amount, amountToSmallestUnit, smallestUnitToAmountString, UserId, ZERO } from '@billsplit-wl/shared';
+import { Amount, amountToSmallestUnit, smallestUnitToAmountString, ZERO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, CurrencyAmount } from '../ui';
 
@@ -10,13 +10,13 @@ interface Member {
     displayName?: string | null;
 }
 
-interface Split {// todo: should these be strongly typed?
+interface Split { // todo: should these be strongly typed?
     uid: string;
     amount: Amount;
     percentage?: number;
 }
 
-interface SplitAmountInputsProps {// todo: should these be strongly typed?
+interface SplitAmountInputsProps { // todo: should these be strongly typed?
     splitType: string;
     amount: Amount;
     currency: string;

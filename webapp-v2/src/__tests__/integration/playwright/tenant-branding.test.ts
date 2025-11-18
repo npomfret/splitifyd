@@ -18,15 +18,17 @@ import { setupSuccessfulApiMocks } from '../../utils/mock-firebase-service';
 
 const mockTenantSettings: TenantSettingsResponse = new TenantSettingsResponseBuilder()
     .withTenantId('test-tenant')
-    .withConfig(new TenantConfigBuilder()
-        .withTenantId('test-tenant')
-        .withAppName('Test App')
-        .withLogoUrl('/logo.svg')
-        .withFaviconUrl('/favicon.ico')
-        .withPrimaryColor('#1a73e8')
-        .withSecondaryColor('#34a853')
-        .withCreatedAt('2025-01-01T00:00:00.000Z')
-        .withUpdatedAt('2025-01-01T00:00:00.000Z'))
+    .withConfig(
+        new TenantConfigBuilder()
+            .withTenantId('test-tenant')
+            .withAppName('Test App')
+            .withLogoUrl('/logo.svg')
+            .withFaviconUrl('/favicon.ico')
+            .withPrimaryColor('#1a73e8')
+            .withSecondaryColor('#34a853')
+            .withCreatedAt('2025-01-01T00:00:00.000Z')
+            .withUpdatedAt('2025-01-01T00:00:00.000Z'),
+    )
     .withDomains(['localhost'])
     .withPrimaryDomain('localhost')
     .build();

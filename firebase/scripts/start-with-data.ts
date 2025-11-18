@@ -2,17 +2,17 @@
 
 import { getPorts, getProjectId } from '@billsplit-wl/test-support';
 import { ChildProcess } from 'child_process';
+import { exec } from 'child_process';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
+import { promisify } from 'util';
 import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
 import { createDefaultTenant, generateBillSplitterUser } from './test-data-generator';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 
 const execPromise = promisify(exec);
 
@@ -50,7 +50,7 @@ async function runSetupStorageBucketStep(): Promise<void> {
         logger.info('✅ Cloud Storage bucket is ready!');
     } catch (error) {
         logger.warn('⚠️  Could not setup storage bucket (may already exist)', {
-            error: error instanceof Error ? error.message : String(error)
+            error: error instanceof Error ? error.message : String(error),
         });
     }
 }

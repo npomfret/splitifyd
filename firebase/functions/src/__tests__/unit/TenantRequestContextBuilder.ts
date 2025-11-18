@@ -1,8 +1,7 @@
-
-import { toTenantId, toTenantDomainName, toTenantDefaultFlag } from '@billsplit-wl/shared';
-import type { TenantId, TenantDomainName, TenantDefaultFlag } from '@billsplit-wl/shared';
-import type { TenantRequestContext } from '../../types/tenant';
+import { toTenantDefaultFlag, toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
+import type { TenantDomainName, TenantId } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from '@billsplit-wl/test-support';
+import type { TenantRequestContext } from '../../types/tenant';
 
 export class TenantRequestContextBuilder {
     private context: Partial<TenantRequestContext> = {};

@@ -1,7 +1,7 @@
 import { commentsStore } from '@/stores/comments-store.ts';
 import type { CommentsStoreTarget } from '@/stores/comments-store.ts';
-import { useComputed } from '@preact/signals';
 import { type ListCommentsResponse, toCommentText } from '@billsplit-wl/shared';
+import { useComputed } from '@preact/signals';
 import { useEffect, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { CommentInput } from './CommentInput';

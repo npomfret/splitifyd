@@ -14,8 +14,8 @@ import {
     registerSuccessHandler,
 } from '@/test/msw/handlers.ts';
 import type { SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
-import type { Page, Response, Route } from '@playwright/test';
 import { type ActivityFeedItem, ApiSerializer, ClientUser, ExpenseId, GroupId, ListGroupsResponse, MessageResponse, UserId } from '@billsplit-wl/shared';
+import type { Page, Response, Route } from '@playwright/test';
 
 interface AuthError {
     code: string;

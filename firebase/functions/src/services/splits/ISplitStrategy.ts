@@ -1,4 +1,4 @@
-import {CurrencyISOCode, ExpenseSplit, UserId } from '@billsplit-wl/shared';
+import { CurrencyISOCode, ExpenseSplit, UserId } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 
 export interface ISplitStrategy {

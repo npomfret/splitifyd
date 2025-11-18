@@ -1,6 +1,5 @@
-
 import { toCommentText, toExpenseId } from '@billsplit-wl/shared';
-import type { CreateExpenseCommentRequest, ExpenseId, CommentText } from '@billsplit-wl/shared';
+import type { CommentText, CreateExpenseCommentRequest, ExpenseId } from '@billsplit-wl/shared';
 
 export class CreateExpenseCommentRequestBuilder {
     private request: Partial<CreateExpenseCommentRequest> = {};

@@ -1,6 +1,6 @@
-import { expect, Locator, Page } from '@playwright/test';
 import { DisplayName } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
+import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { HeaderPage } from './HeaderPage';
 

@@ -1,5 +1,5 @@
 import { formatCurrency, type FormatOptions } from '@/utils/currency';
-import {toAmount, type Amount } from '@billsplit-wl/shared';
+import { type Amount, toAmount } from '@billsplit-wl/shared';
 import type { JSX } from 'preact';
 import { Tooltip } from './Tooltip';
 

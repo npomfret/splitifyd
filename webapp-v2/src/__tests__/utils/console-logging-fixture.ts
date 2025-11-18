@@ -1,8 +1,8 @@
 import type { ActiveHandlerSummary, SerializedBodyMatcher, SerializedMswHandler } from '@/test/msw/types.ts';
-import { Page, test as base } from '@playwright/test';
-import type { Request as PlaywrightRequest, Route } from '@playwright/test';
 import { ApiSerializer, ClientUser } from '@billsplit-wl/shared';
 import { ClientUserBuilder } from '@billsplit-wl/test-support';
+import { Page, test as base } from '@playwright/test';
+import type { Request as PlaywrightRequest, Route } from '@playwright/test';
 import * as fs from 'fs';
 import { createMockFirebase, MockFirebase, mockFullyAcceptedPoliciesApi, setupSuccessfulApiMocks } from './mock-firebase-service';
 import { createConsoleLogPath, createScreenshotPath, createTestDirectory, logTestArtifactPaths } from './test-utils';

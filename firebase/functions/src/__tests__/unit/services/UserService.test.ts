@@ -1,5 +1,5 @@
 import { DisplayName, toGroupId } from '@billsplit-wl/shared';
-import { toDisplayName, toPassword } from '@billsplit-wl/shared';
+import { toDisplayName } from '@billsplit-wl/shared';
 import { ClientUserBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { PasswordChangeRequestBuilder, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';

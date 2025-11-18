@@ -1,5 +1,5 @@
-import { ReadonlySignal, signal } from '@preact/signals';
 import type { AppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
+import { ReadonlySignal, signal } from '@preact/signals';
 import { firebaseConfigManager } from '../app/firebase-config';
 import i18n from '../i18n';
 import { syncThemeHash } from '../utils/theme-bootstrap';

@@ -1,5 +1,5 @@
-import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import type { CommentDTO } from '@billsplit-wl/shared';
+import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { LoadingSpinner } from '../ui';
 import { CommentItem } from './CommentItem';

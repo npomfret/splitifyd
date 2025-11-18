@@ -10,14 +10,15 @@ import {
     toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
 import { ApiDriver } from '@billsplit-wl/test-support';
-import { AdminTenantRequestBuilder } from '../../unit/AdminTenantRequestBuilder';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { getFirestore } from '../../../firebase';
+import { AdminTenantRequestBuilder } from '../../unit/AdminTenantRequestBuilder';
 
 const buildTenantPayload = (tenantId: string) => {
     const tokens = brandingTokenFixtures.localhost;
-    return AdminTenantRequestBuilder.forTenant(tenantId)
+    return AdminTenantRequestBuilder
+        .forTenant(tenantId)
         .withBranding({
             appName: toTenantAppName('Theming Fixture Tenant'),
             logoUrl: toTenantLogoUrl(tokens.assets.logoUrl),
