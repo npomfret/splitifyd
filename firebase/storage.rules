@@ -1,13 +1,27 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    // Static assets: Backend writes, public reads
+
+    // Theme artifacts (CSS and design tokens)
+    match /theme-artifacts/{tenantId}/{hash}/{file} {
+      // Public read access for theme CSS and tokens
+      allow read: if true;
+
+      // Only Cloud Functions can write (via service account - implicit)
+      allow write: if false;
+    }
+
+    // Tenant assets (logos, favicons, images - future)
+    // match /tenant-assets/{tenantId}/{file} {
+    //   allow read: if true;
+    //   allow write: if false;
+    // }
+
+    // Deny everything else by default
     match /{allPaths=**} {
-      // Allow authenticated users to read and write
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }

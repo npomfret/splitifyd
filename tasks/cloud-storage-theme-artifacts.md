@@ -87,17 +87,16 @@ async function setupThemeStorageBucket(): Promise<void> {
     }
 
     // Set CORS configuration for theme CSS delivery
-    // NOTE: Align with scripts/theme-storage/setup.sh defaults (localhost + prod domain) or
-    // deliberately widen; don't hardcode '*' if bucket policy forbids it.
+    // Allow all origins since files are publicly readable
     await bucket.setCorsConfiguration([
         {
-            origin: ['http://localhost:5173'], // add your production host here
+            origin: ['*'],
             method: ['GET', 'HEAD'],
             responseHeader: ['Content-Type', 'Cache-Control', 'ETag'],
             maxAgeSeconds: 3600,
         },
     ]);
-    logger.info('   ✓ CORS configuration updated');
+    logger.info('   ✓ CORS configuration updated (allows all origins)');
 
     // Set lifecycle rule to clean up old theme artifacts (optional)
     await bucket.setMetadata({
@@ -161,20 +160,17 @@ interface ThemeArtifactLocation {
 }
 
 export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
-    private bucket: admin.storage.Bucket;
-
-    constructor() {
-        this.bucket = admin.storage().bucket();
-    }
+    constructor(private readonly getStorageInstance: () => admin.storage.Storage) {}
 
     async save(payload: ThemeArtifactPayload): Promise<ThemeArtifactLocation> {
+        const bucket = this.getStorageInstance().bucket();
         const { tenantId, hash, cssContent, tokensJson } = payload;
 
         const cssPath = `theme-artifacts/${tenantId}/${hash}/theme.css`;
         const tokensPath = `theme-artifacts/${tenantId}/${hash}/tokens.json`;
 
-        const cssFile = this.bucket.file(cssPath);
-        const tokensFile = this.bucket.file(tokensPath);
+        const cssFile = bucket.file(cssPath);
+        const tokensFile = bucket.file(tokensPath);
 
         // Upload both files in parallel
         await Promise.all([
@@ -202,10 +198,28 @@ export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
             }),
         ]);
 
-        // NOTE: scripts/theme-storage/setup.sh creates buckets with uniform bucket-level access
-        // and public-access-prevention. Avoid makePublic(); use signed URLs or bucket-level IAM.
-        const [cssUrl] = await cssFile.getSignedUrl({ action: 'read', expires: '03-01-2500' });
-        const [tokensUrl] = await tokensFile.getSignedUrl({ action: 'read', expires: '03-01-2500' });
+        // Make files publicly readable
+        await Promise.all([
+            cssFile.makePublic(),
+            tokensFile.makePublic(),
+        ]);
+
+        // Get public URLs - use emulator URL for test/dev environments
+        let cssUrl: string;
+        let tokensUrl: string;
+
+        const storageHost = process.env.FIREBASE_STORAGE_EMULATOR_HOST;
+
+        if (storageHost) {
+            // Emulator URL format: http://localhost:PORT/v0/b/BUCKET/o/PATH
+            const baseUrl = `http://${storageHost}/v0/b/${bucket.name}/o`;
+            cssUrl = `${baseUrl}/${encodeURIComponent(cssPath)}?alt=media`;
+            tokensUrl = `${baseUrl}/${encodeURIComponent(tokensPath)}?alt=media`;
+        } else {
+            // Production URL format
+            cssUrl = `https://storage.googleapis.com/${bucket.name}/${cssPath}`;
+            tokensUrl = `https://storage.googleapis.com/${bucket.name}/${tokensPath}`;
+        }
 
         logger.info('Saved cloud theme artifacts', {
             tenantId,
@@ -226,16 +240,13 @@ export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
 **Update: `firebase/functions/src/services/storage/ThemeArtifactStorage.ts`**
 
 Changes needed:
-1. Import `CloudThemeArtifactStorage`
-2. Update `createThemeArtifactStorage()` to use Cloud Storage in production
-3. Keep `LocalThemeArtifactStorage` for emulator
+1. Import `CloudThemeArtifactStorage` and `getStorage`
+2. Update `createThemeArtifactStorage()` to use Cloud Storage everywhere (dev and prod)
+3. Remove `LocalThemeArtifactStorage` (no longer needed)
 
 ```typescript
 import crypto from 'crypto';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { isEmulator } from '../../firebase';
-import { logger } from '../../logger';
+import { getStorage } from '../../firebase';
 import { CloudThemeArtifactStorage } from './CloudThemeArtifactStorage';
 
 export interface ThemeArtifactPayload {
@@ -254,39 +265,13 @@ export interface ThemeArtifactStorage {
     save(payload: ThemeArtifactPayload): Promise<ThemeArtifactLocation>;
 }
 
-const LOCAL_ROOT = path.join(process.cwd(), 'tmp', 'theme-artifacts');
-
-export class LocalThemeArtifactStorage implements ThemeArtifactStorage {
-    async save(payload: ThemeArtifactPayload): Promise<ThemeArtifactLocation> {
-        const { tenantId, hash, cssContent, tokensJson } = payload;
-        const tenantDir = path.join(LOCAL_ROOT, tenantId, hash);
-        await fs.mkdir(tenantDir, { recursive: true });
-
-        const cssPath = path.join(tenantDir, 'theme.css');
-        const tokensPath = path.join(tenantDir, 'tokens.json');
-
-        await Promise.all([
-            fs.writeFile(cssPath, cssContent, 'utf8'),
-            fs.writeFile(tokensPath, tokensJson, 'utf8'),
-        ]);
-
-        logger.info('Saved local theme artifacts', { tenantId, hash, tenantDir });
-
-        // Return file:// URLs for emulator compatibility
-        return {
-            cssUrl: `file://${cssPath}`,
-            tokensUrl: `file://${tokensPath}`,
-        };
-    }
-}
+let _instance: ThemeArtifactStorage | undefined;
 
 export function createThemeArtifactStorage(): ThemeArtifactStorage {
-    if (isEmulator()) {
-        return new LocalThemeArtifactStorage();
+    if (!_instance) {
+        _instance = new CloudThemeArtifactStorage(() => getStorage());
     }
-
-    // Production uses Cloud Storage (bucket prepared via scripts/theme-storage/setup.sh)
-    return new CloudThemeArtifactStorage();
+    return _instance;
 }
 
 export function computeSha256(content: string): string {
@@ -298,92 +283,33 @@ export function computeSha256(content: string): string {
 
 ---
 
-## Phase 4: Update Theme Handlers to Support HTTPS URLs
+## Phase 4: Update Theme Handlers to Support HTTP(S) URLs
 
 **Update: `firebase/functions/src/theme/ThemeHandlers.ts`**
 
-Update the `readCssContent` method to support both `file://` (emulator) and `https://` (production) URLs:
+Update the `readCssContent` method to support both `http://` (emulator) and `https://` (production) URLs:
 
 ```typescript
-import { BrandingArtifactMetadata } from '@splitifyd/shared';
-import type { RequestHandler } from 'express';
-import { promises as fs } from 'fs';
-import { fileURLToPath } from 'url';
-import { HTTP_STATUS } from '../constants';
-import { logger } from '../logger';
-import type { IFirestoreReader } from '../services/firestore';
-import { ApiError } from '../utils/errors';
-
-export class ThemeHandlers {
-    constructor(private readonly firestoreReader: IFirestoreReader) {}
-
-    serveThemeCss: RequestHandler = async (req, res) => {
-        const tenantContext = req.tenant;
-
-        if (!tenantContext) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'TENANT_NOT_FOUND', 'Unable to resolve tenant for this request');
-        }
-
-        const record = await this.firestoreReader.getTenantById(tenantContext.tenantId);
-        const artifact = record?.brandingTokens?.artifact;
-
-        if (!artifact) {
-            logger.warn('theme-artifact-missing', { tenantId: tenantContext.tenantId });
-            res.setHeader('Content-Type', 'text/css; charset=utf-8');
-            res.setHeader('Cache-Control', 'no-cache');
-            res.status(HTTP_STATUS.OK).send('/* No theme published for this tenant */\n');
-            return;
-        }
-
-        const cssContent = await this.readCssContent(artifact);
-
-        res.setHeader('Content-Type', 'text/css; charset=utf-8');
-
-        // Content-addressed caching: when ?v=hash is present, cache aggressively since content is immutable
-        // Otherwise, use no-cache to ensure browsers check for updates
-        const requestedVersion = req.query.v;
-        if (requestedVersion) {
-            // Version parameter present - enable aggressive caching
-            // The presence of ?v= indicates the client is requesting a specific immutable version
-            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        } else {
-            // No version - use no-cache so browsers always check for updates
-            res.setHeader('Cache-Control', 'no-cache');
-        }
-
-        res.setHeader('ETag', `"${artifact.hash}"`);
-        res.setHeader('Last-Modified', new Date(artifact.generatedAtEpochMs).toUTCString());
-
-        res.status(HTTP_STATUS.OK).send(cssContent);
-    };
-
-    private async readCssContent(artifact: BrandingArtifactMetadata): Promise<string> {
-        // Support file:// URLs (emulator)
-        if (artifact.cssUrl.startsWith('file://')) {
-            const path = fileURLToPath(artifact.cssUrl);
-            return fs.readFile(path, 'utf8');
-        }
-
-        // Support https:// URLs (production Cloud Storage)
-        if (artifact.cssUrl.startsWith('https://')) {
-            const response = await fetch(artifact.cssUrl);
-            if (!response.ok) {
-                throw new ApiError(
-                    HTTP_STATUS.SERVICE_UNAVAILABLE,
-                    'THEME_FETCH_FAILED',
-                    `Failed to fetch theme from Cloud Storage: ${response.status}`,
-                );
-            }
-            return response.text();
-        }
-
-        logger.error('Unsupported CSS artifact URL scheme', { cssUrl: artifact.cssUrl });
+private async readCssContent(artifact: BrandingArtifactMetadata): Promise<string> {
+    // Accept both https:// (production) and http:// (emulator)
+    if (!artifact.cssUrl.startsWith('https://') && !artifact.cssUrl.startsWith('http://')) {
+        logger.error('Invalid CSS artifact URL - must be HTTP(S)', { cssUrl: artifact.cssUrl });
         throw new ApiError(
             HTTP_STATUS.SERVICE_UNAVAILABLE,
-            'THEME_STORAGE_UNSUPPORTED',
-            'Theme storage backend not supported',
+            'THEME_STORAGE_INVALID',
+            'Theme CSS URL must be HTTP(S)',
         );
     }
+
+    const response = await fetch(artifact.cssUrl);
+    if (!response.ok) {
+        throw new ApiError(
+            HTTP_STATUS.SERVICE_UNAVAILABLE,
+            'THEME_FETCH_FAILED',
+            `Failed to fetch theme from Cloud Storage: ${response.status}`,
+        );
+    }
+    return response.text();
 }
 ```
 
@@ -518,8 +444,107 @@ npm run test:integration  # then filter within workspace if needed
 
 ## Notes
 
-- Emulator continues to use `file://` URLs (no Cloud Storage needed locally)
+- Dev and prod both use Cloud Storage (no file:// support)
 - Production automatically switches to Cloud Storage
-- Old artifacts auto-deleted after 90 days (configurable)
-- Public URLs enable CDN caching and global distribution
 - Bucket setup is idempotent (safe to run multiple times)
+- Bucket configured via `FIREBASE_CONFIG.storageBucket` or derived from `GCLOUD_PROJECT`
+
+---
+
+## Bucket Directory Structure
+
+The Cloud Storage bucket is organized into two main sections:
+
+### 1. Theme Artifacts (`theme-artifacts/`)
+
+**Current Implementation** ✅
+
+```
+theme-artifacts/
+├── {tenantId}/
+│   └── {hash}/
+│       ├── theme.css      (generated CSS from branding tokens)
+│       └── tokens.json    (full branding token configuration)
+```
+
+**Characteristics:**
+- Content-addressed by SHA-256 hash (immutable)
+- Signed URLs with far-future expiry (2500)
+- Automatic lifecycle: Clean up after 90 days (optional)
+- Read: Signed URLs only (no direct access)
+- Write: Service account only (via Cloud Functions)
+
+**Example:**
+```
+theme-artifacts/
+├── localhost-tenant/
+│   └── abc123def456789.../
+│       ├── theme.css
+│       └── tokens.json
+└── tenant-company-acme/
+    └── 987fed654321abc.../
+        ├── theme.css
+        └── tokens.json
+```
+
+### 2. Tenant Assets (`tenant-assets/`)
+
+**Future Enhancement** 🔮
+
+```
+tenant-assets/
+├── {tenantId}/
+│   ├── logos/
+│   │   ├── logo.png           (main logo, light theme)
+│   │   ├── logo-dark.png      (dark mode variant)
+│   │   ├── logo-square.png    (square variant for avatars)
+│   │   ├── favicon.ico        (browser favicon)
+│   │   └── favicon-32x32.png  (PNG favicon)
+│   │
+│   ├── branding/
+│   │   ├── hero-bg.jpg        (landing page hero background)
+│   │   ├── og-image.png       (social media share image 1200x630)
+│   │   ├── email-header.png   (email template header)
+│   │   └── app-icon-512.png   (PWA app icon)
+│   │
+│   └── uploads/
+│       └── {userId}/          (user-generated content)
+│           ├── {fileId}.jpg
+│           └── {fileId}.pdf
+```
+
+**Planned Security Model:**
+
+| Path | Read Access | Write Access | Use Case |
+|------|-------------|--------------|----------|
+| `theme-artifacts/{tenantId}/{hash}/` | Public read | Service account | Theme CSS delivery |
+| `tenant-assets/{tenantId}/logos/` | Public read | Tenant admins + service account | Logo display |
+| `tenant-assets/{tenantId}/branding/` | Public read | Tenant admins + service account | Marketing assets |
+| `tenant-assets/{tenantId}/uploads/{userId}/` | Authenticated users in tenant | File owner + admins | User content |
+
+**Example:**
+```
+tenant-assets/
+├── localhost-tenant/
+│   ├── logos/
+│   │   ├── logo.png
+│   │   └── favicon.ico
+│   └── branding/
+│       ├── hero-bg.jpg
+│       └── og-image.png
+│
+└── tenant-company-acme/
+    ├── logos/
+    │   ├── logo.png
+    │   ├── logo-dark.png
+    │   └── favicon.ico
+    └── branding/
+        ├── hero-bg.jpg
+        └── email-header.png
+```
+
+**Implementation Notes:**
+- Tenant assets are **not yet implemented**
+- Will require separate upload endpoints and storage rules
+- Logo URLs currently stored as external URLs in branding config
+- Future: Store uploaded logos in `tenant-assets/{tenantId}/logos/` and generate public URLs

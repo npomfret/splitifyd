@@ -119,6 +119,10 @@ export function initializeFirebase(env: ScriptEnvironment): void {
                 process.env.FIREBASE_AUTH_EMULATOR_HOST = `localhost:${ports.auth}`;
             }
 
+            if (!process.env.FIREBASE_STORAGE_EMULATOR_HOST) {
+                process.env.FIREBASE_STORAGE_EMULATOR_HOST = `localhost:${ports.storage}`;
+            }
+
             if (!process.env.FIREBASE_CONFIG) {
                 const resolvedProjectId = projectId ?? 'local-test';
                 process.env.FIREBASE_CONFIG = JSON.stringify({
@@ -128,6 +132,18 @@ export function initializeFirebase(env: ScriptEnvironment): void {
             }
         } catch (error) {
             console.warn('⚠️  Failed to load emulator ports from firebase.json', error);
+        }
+
+        // Initialize Firebase Admin in emulator mode
+        if (admin.apps.length === 0) {
+            const resolvedProjectId = projectId ?? 'local-test';
+            admin.initializeApp({
+                projectId: resolvedProjectId,
+                storageBucket: `${resolvedProjectId}.appspot.com`,
+            });
+            console.log('   Firebase Admin initialized for emulator');
+        } else {
+            console.log('   Firebase Admin already initialized');
         }
     }
 }

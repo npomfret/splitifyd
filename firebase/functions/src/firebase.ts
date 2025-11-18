@@ -47,9 +47,13 @@ function getApp(): admin.app.App {
             app = admin.app();
         } catch (error) {
             // No app exists, create a new one
-            app = admin.initializeApp({
-                projectId: process.env.GCLOUD_PROJECT!,
-            });
+            // In emulator/test mode, use FIREBASE_CONFIG env var which includes storageBucket
+            // In production, use explicit project ID
+            const config = process.env.FIREBASE_CONFIG
+                ? JSON.parse(process.env.FIREBASE_CONFIG)
+                : { projectId: process.env.GCLOUD_PROJECT! };
+
+            app = admin.initializeApp(config);
 
             // Configure emulator settings if needed
             if (!isProduction()) {
@@ -68,6 +72,7 @@ function configureEmulatorSettings(appInstance: admin.app.App): void {
         // Sanity checks for emulator environment
         assert(process.env.FIREBASE_AUTH_EMULATOR_HOST);
         assert(process.env.FIRESTORE_EMULATOR_HOST);
+        assert(process.env.FIREBASE_STORAGE_EMULATOR_HOST);
         assert(process.env.FIREBASE_CONFIG);
     } else if (isTest()) {
         const firebaseJsonPath = join(__dirname, '../../firebase.json');
@@ -89,14 +94,20 @@ function configureEmulatorSettings(appInstance: admin.app.App): void {
         assert(firebaseConfig.emulators?.auth?.port, 'firebase auth port must be defined in firebase.json emulators configuration');
         const authPort = firebaseConfig.emulators.auth.port;
         assert(typeof authPort === 'number', 'firebase auth port in firebase.json must be a number');
-
         process.env['FIREBASE_AUTH_EMULATOR_HOST'] = `localhost:${authPort}`;
+
+        // Configure Storage emulator
+        assert(firebaseConfig.emulators?.storage?.port, 'firebase storage port must be defined in firebase.json emulators configuration');
+        const storagePort = firebaseConfig.emulators.storage.port;
+        assert(typeof storagePort === 'number', 'firebase storage port in firebase.json must be a number');
+        process.env['FIREBASE_STORAGE_EMULATOR_HOST'] = `localhost:${storagePort}`;
     }
 }
 
 // Lazy-initialized singleton instances to minimize connections
 let _firestoreDb: admin.firestore.Firestore | undefined;
 let _firebaseAuth: admin.auth.Auth | undefined;
+let _firebaseStorage: admin.storage.Storage | undefined;
 
 /**
  * Get Firestore instance - lazy initialization to reduce connections
@@ -120,4 +131,16 @@ export function getAuth(): admin.auth.Auth {
         _firebaseAuth = appInstance.auth();
     }
     return _firebaseAuth;
+}
+
+/**
+ * Get Storage instance - lazy initialization to reduce connections
+ * This ensures we only create connections when actually needed
+ */
+export function getStorage(): admin.storage.Storage {
+    if (!_firebaseStorage) {
+        const appInstance = getApp();
+        _firebaseStorage = appInstance.storage();
+    }
+    return _firebaseStorage;
 }

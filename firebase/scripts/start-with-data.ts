@@ -11,6 +11,10 @@ import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
 import { createDefaultTenant, generateBillSplitterUser } from './test-data-generator';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execPromise = promisify(exec);
 
 async function runSeedPoliciesStep(): Promise<void> {
     logger.info('');
@@ -24,6 +28,31 @@ async function runSeedPoliciesStep(): Promise<void> {
     logger.info('');
     logger.info('✅ Policy seeding completed successfully!');
     logger.info('📋 Privacy policy, terms, and cookie policy are now available');
+}
+
+async function runSetupStorageBucketStep(): Promise<void> {
+    logger.info('');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('🪣 SETTING UP CLOUD STORAGE BUCKET...');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('');
+
+    try {
+        // Run the storage setup script in emulator mode
+        const { stdout, stderr } = await execPromise('npx tsx scripts/setup-storage-bucket.ts emulator', {
+            cwd: path.join(__dirname, '..'),
+        });
+
+        if (stdout) logger.info(stdout.trim());
+        if (stderr) logger.error(stderr.trim());
+
+        logger.info('');
+        logger.info('✅ Cloud Storage bucket is ready!');
+    } catch (error) {
+        logger.warn('⚠️  Could not setup storage bucket (may already exist)', {
+            error: error instanceof Error ? error.message : String(error)
+        });
+    }
 }
 
 async function runCreateDefaultTenantStep(): Promise<void> {
@@ -107,13 +136,16 @@ const main = async () => {
 
         logger.info('🚀 You can now use the webapp and all endpoints are available');
 
-        // Step 2: Ensure default test user exists (needed for tenant creation)
+        // Step 2: Setup Cloud Storage bucket (needed before publishing themes)
+        await runSetupStorageBucketStep();
+
+        // Step 3: Ensure default test user exists (needed for tenant creation)
         await runEnsureBillSplitterUserStep();
 
-        // Step 3: Create default tenants and publish themes (requires admin user)
+        // Step 4: Create default tenants and publish themes (requires admin user + bucket)
         await runCreateDefaultTenantStep();
 
-        // Step 4: Seed policies
+        // Step 5: Seed policies
         await runSeedPoliciesStep();
 
         logger.info('');

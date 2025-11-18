@@ -1,7 +1,5 @@
 import { BrandingArtifactMetadata } from '@billsplit-wl/shared';
 import type { RequestHandler } from 'express';
-import { promises as fs } from 'fs';
-import { fileURLToPath } from 'url';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import type { IFirestoreReader } from '../services/firestore';
@@ -51,12 +49,24 @@ export class ThemeHandlers {
     };
 
     private async readCssContent(artifact: BrandingArtifactMetadata): Promise<string> {
-        if (artifact.cssUrl.startsWith('file://')) {
-            const path = fileURLToPath(artifact.cssUrl);
-            return fs.readFile(path, 'utf8');
+        // Accept both https:// (production) and http:// (emulator)
+        if (!artifact.cssUrl.startsWith('https://') && !artifact.cssUrl.startsWith('http://')) {
+            logger.error('Invalid CSS artifact URL - must be HTTP(S)', { cssUrl: artifact.cssUrl });
+            throw new ApiError(
+                HTTP_STATUS.SERVICE_UNAVAILABLE,
+                'THEME_STORAGE_INVALID',
+                'Theme CSS URL must be HTTP(S)',
+            );
         }
 
-        logger.error('Unsupported CSS artifact URL scheme', { cssUrl: artifact.cssUrl });
-        throw new ApiError(HTTP_STATUS.SERVICE_UNAVAILABLE, 'THEME_STORAGE_UNSUPPORTED', 'Theme storage backend not supported yet');
+        const response = await fetch(artifact.cssUrl);
+        if (!response.ok) {
+            throw new ApiError(
+                HTTP_STATUS.SERVICE_UNAVAILABLE,
+                'THEME_FETCH_FAILED',
+                `Failed to fetch theme from Cloud Storage: ${response.status}`,
+            );
+        }
+        return response.text();
     }
 }
