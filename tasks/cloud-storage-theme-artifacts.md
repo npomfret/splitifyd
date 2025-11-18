@@ -5,13 +5,13 @@
 Theme CSS files are currently stored using `file://` URLs, which works in the emulator but **won't work in production** because:
 
 1. Cloud Functions instances don't share a filesystem
-2. The `/tmp` directory is ephemeral and cleared between cold starts
+2. Local tmp storage is ephemeral and cleared between cold starts
 3. `file://` URLs aren't web-accessible
 
-**Current Implementation:**
-- `ThemeArtifactStorage.ts` (line 43): Returns `file://${cssPath}`
-- `ThemeHandlers.ts` (line 54): Reads from `file://` URLs using `fileURLToPath()`
-- Artifacts stored in `/tmp/theme-artifacts/{tenantId}/{hash}/theme.css`
+**Current Implementation (actual):**
+- `ThemeArtifactStorage.ts` returns `file://` paths that point to `tmp/theme-artifacts/{tenantId}/{hash}/theme.css` under the repo (`process.cwd()`), not `/tmp`.
+- `ThemeHandlers.ts` only supports `file://` URLs and will 503 for any other scheme.
+- Factory always uses `LocalThemeArtifactStorage`, even in prod.
 
 **Needed:**
 - Upload artifacts to Cloud Storage
@@ -87,9 +87,11 @@ async function setupThemeStorageBucket(): Promise<void> {
     }
 
     // Set CORS configuration for theme CSS delivery
+    // NOTE: Align with scripts/theme-storage/setup.sh defaults (localhost + prod domain) or
+    // deliberately widen; don't hardcode '*' if bucket policy forbids it.
     await bucket.setCorsConfiguration([
         {
-            origin: ['*'], // Allow all origins for theme CSS
+            origin: ['http://localhost:5173'], // add your production host here
             method: ['GET', 'HEAD'],
             responseHeader: ['Content-Type', 'Cache-Control', 'ETag'],
             maxAgeSeconds: 3600,
@@ -200,15 +202,10 @@ export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
             }),
         ]);
 
-        // Make files publicly readable
-        await Promise.all([
-            cssFile.makePublic(),
-            tokensFile.makePublic(),
-        ]);
-
-        // Get public URLs
-        const cssUrl = `https://storage.googleapis.com/${this.bucket.name}/${cssPath}`;
-        const tokensUrl = `https://storage.googleapis.com/${this.bucket.name}/${tokensPath}`;
+        // NOTE: scripts/theme-storage/setup.sh creates buckets with uniform bucket-level access
+        // and public-access-prevention. Avoid makePublic(); use signed URLs or bucket-level IAM.
+        const [cssUrl] = await cssFile.getSignedUrl({ action: 'read', expires: '03-01-2500' });
+        const [tokensUrl] = await tokensFile.getSignedUrl({ action: 'read', expires: '03-01-2500' });
 
         logger.info('Saved cloud theme artifacts', {
             tenantId,
@@ -288,7 +285,7 @@ export function createThemeArtifactStorage(): ThemeArtifactStorage {
         return new LocalThemeArtifactStorage();
     }
 
-    // Production uses Cloud Storage
+    // Production uses Cloud Storage (bucket prepared via scripts/theme-storage/setup.sh)
     return new CloudThemeArtifactStorage();
 }
 
@@ -426,6 +423,10 @@ describe('Cloud Storage Theme Artifacts', () => {
     });
 
     it('should serve theme CSS from Cloud Storage', async () => {
+        // Ensure an artifact exists in emulator before fetching
+        const tenantId = 'localhost-tenant';
+        const result = await api.publishTenantTheme(adminToken, { tenantId });
+
         const response = await api.get('/api/theme.css', {
             headers: { Host: 'localhost' },
         });
@@ -433,6 +434,7 @@ describe('Cloud Storage Theme Artifacts', () => {
         expect(response.status).toBe(200);
         expect(response.headers['content-type']).toContain('text/css');
         expect(response.data).toContain(':root');
+        expect(response.headers.etag).toContain(result.artifact.hash);
     });
 });
 ```
@@ -489,8 +491,8 @@ npm run theme:publish-local
 # Verify themes are accessible
 curl https://your-domain.com/api/theme.css
 
-# Run integration tests
-npm run test:integration -- theme-storage.test.ts
+# Run integration tests (follow wrapper rules; no extra args)
+npm run test:integration  # then filter within workspace if needed
 ```
 
 ---
