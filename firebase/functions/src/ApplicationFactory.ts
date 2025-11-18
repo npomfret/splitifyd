@@ -32,6 +32,7 @@ import { SettlementHandlers } from './settlements/SettlementHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
 import { UserHandlers } from './user/UserHandlers';
+import {toPolicyId} from "@billsplit-wl/shared";
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.
@@ -557,7 +558,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         // Public policy handlers (inline)
         getCurrentPolicy: async (req, res) => {
             const { id } = req.params;
-            const result = await policyService.getCurrentPolicy(id);
+            const result = await policyService.getCurrentPolicy(toPolicyId(id));
             res.json(result);
         },
 

@@ -1,5 +1,6 @@
-import { ISOString, PolicyDTO, VersionHash } from '@billsplit-wl/shared';
+import {ISOString, PolicyDTO, PolicyId, VersionHash} from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId } from '../test-helpers';
+import {toPolicyId} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating PolicyDTO objects for tests
@@ -11,7 +12,7 @@ export class PolicyDocumentBuilder {
     constructor() {
         const versionHash = 'v1-hash';
         this.policy = {
-            id: `policy-${generateShortId()}`,
+            id: toPolicyId(`policy-${generateShortId()}`),
             policyName: 'privacy',
             currentVersionHash: versionHash,
             versions: {
@@ -25,8 +26,8 @@ export class PolicyDocumentBuilder {
         };
     }
 
-    withId(id: string): this {
-        this.policy.id = id;
+    withId(id: PolicyId | string): this {
+        this.policy.id = typeof id === "string" ? toPolicyId(id) : id;
         return this;
     }
 

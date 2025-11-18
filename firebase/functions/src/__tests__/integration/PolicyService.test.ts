@@ -4,6 +4,7 @@ import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { FirestoreReader } from '../../services/firestore';
 import { FirestoreWriter } from '../../services/firestore';
 import { PolicyService } from '../../services/PolicyService';
+import {toPolicyId} from "@billsplit-wl/shared";
 
 /**
  * Minimal PolicyService Integration Tests
@@ -34,7 +35,7 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
             // This test verifies that PolicyService works with real Firebase operations
             // including transactions, document writes, and consistency guarantees
             const policyName = 'Privacy Policy';
-            const policyId = 'privacy-policy'; // Standard policy ID
+            const policyId = toPolicyId('privacy-policy'); // Standard policy ID
             const initialText = 'Firebase integration test content.';
 
             // Try to create the policy, or get it if it already exists
@@ -58,7 +59,7 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
             expect(createResult).toHaveProperty('currentVersionHash');
 
             // Verify the policy can be retrieved with real Firestore operations
-            const retrievedPolicy = await policyService.getPolicy(createResult.id);
+            const retrievedPolicy = await policyService.getPolicy(toPolicyId(createResult.id));
 
             expect(retrievedPolicy).toEqual(
                 expect.objectContaining({
@@ -71,13 +72,13 @@ describe('PolicyService - Integration Tests (Essential Firebase Operations Only)
             // Test that updates work with real Firestore transactions
             // Use timestamp to ensure unique content for each test run
             const updatedText = `Updated Firebase integration content at ${Date.now()}.`;
-            const updateResult = await policyService.updatePolicy(createResult.id, updatedText, true);
+            const updateResult = await policyService.updatePolicy(toPolicyId(createResult.id), updatedText, true);
 
             expect(updateResult).toHaveProperty('versionHash');
             expect(updateResult).toHaveProperty('currentVersionHash');
 
             // Verify the update was persisted to real Firestore
-            const updatedPolicy = await policyService.getPolicy(createResult.id);
+            const updatedPolicy = await policyService.getPolicy(toPolicyId(createResult.id));
             expect(updatedPolicy.currentVersionHash).toBe(updateResult.currentVersionHash);
         });
     });

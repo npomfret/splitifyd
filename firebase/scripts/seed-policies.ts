@@ -74,7 +74,7 @@ function readPolicyFile(filename: string): string {
 /**
  * Seed policy using API endpoints (dev) or internal functions (production)
  */
-async function seedPolicy(policyId: PolicyId, policyName: string, filename: string): Promise<void> {
+async function seedPolicy(policyId: PolicyId, policyName: PolicyName, filename: string): Promise<void> {
     try {
         // Check if policy already exists
         const existingDoc = await firestoreDb.collection(FirestoreCollections.POLICIES).doc(policyId).get();

@@ -1,5 +1,18 @@
-import { PolicyDTO, PolicyVersion, toISOString, VersionHash } from '@billsplit-wl/shared';
-import { PolicyId } from '@billsplit-wl/shared';
+import {
+    PolicyDTO,
+    PolicyVersion,
+    toISOString,
+    VersionHash,
+    PolicyId,
+    PolicyName,
+    ListPoliciesResponse,
+    PolicyVersionResponse,
+    UpdatePolicyResult,
+    PublishPolicyResult,
+    CreatePolicyResult,
+    CurrentPolicyResponse,
+    toPolicyId,
+} from '@billsplit-wl/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
 import { ALLOWED_POLICY_IDS, HTTP_STATUS } from '../constants';
@@ -24,7 +37,7 @@ export class PolicyService {
     /**
      * Validates that a policy document remains valid after an update operation
      */
-    private async validatePolicyAfterUpdate(policyId: PolicyId, operationType: 'update' | 'publish' | 'version deletion', additionalContext: Record<string, any> = {}): Promise<void> {
+    private async validatePolicyAfterUpdate(policyId: PolicyId, operationType: 'update' | 'publish' | 'version deletion', additionalContext: Record<string, unknown> = {}): Promise<void> {
         const updatedDoc = await this.firestoreReader.getRawPolicyDocument(policyId);
         if (!updatedDoc) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', `Policy not found after ${operationType}`);
@@ -58,7 +71,7 @@ export class PolicyService {
     /**
      * List all policies
      */
-    async listPolicies(): Promise<{ policies: PolicyDTO[]; count: number; }> {
+    async listPolicies(): Promise<ListPoliciesResponse> {
         try {
             const policies = await this.firestoreReader.getAllPolicies();
             return {
@@ -77,7 +90,7 @@ export class PolicyService {
     /**
      * Get policy details and version history
      */
-    async getPolicy(id: string): Promise<PolicyDTO> {
+    async getPolicy(id: PolicyId): Promise<PolicyDTO> {
         try {
             const policy = await this.firestoreReader.getPolicy(id);
 
@@ -98,7 +111,7 @@ export class PolicyService {
     /**
      * Get specific version content
      */
-    async getPolicyVersion(id: string, hash: string): Promise<PolicyVersion & { versionHash: VersionHash; }> {
+    async getPolicyVersion(id: PolicyId, hash: string): Promise<PolicyVersionResponse> {
         try {
             const policy = await this.firestoreReader.getPolicy(id);
 
@@ -131,11 +144,11 @@ export class PolicyService {
     /**
      * Create new draft version (not published)
      */
-    async updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: VersionHash; currentVersionHash?: string; }> {
+    async updatePolicy(id: PolicyId, text: string, publish: boolean = false): Promise<UpdatePolicyResult> {
         return measureDb('PolicyService.updatePolicy', async () => this._updatePolicy(id, text, publish));
     }
 
-    private async _updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: VersionHash; currentVersionHash?: string; }> {
+    private async _updatePolicy(id: PolicyId, text: string, publish: boolean = false): Promise<UpdatePolicyResult> {
         LoggerContext.update({ policyId: id, operation: 'update-policy', publish });
         const timer = new PerformanceTimer();
 
@@ -170,7 +183,7 @@ export class PolicyService {
 
             versions[versionHash] = newVersion;
 
-            const updates: any = {
+            const updates: Partial<Pick<PolicyDTO, 'versions' | 'currentVersionHash'>> = {
                 versions,
                 // updatedAt is automatically added by FirestoreWriter
             };
@@ -211,7 +224,7 @@ export class PolicyService {
     /**
      * Publish a policy version (internal helper)
      */
-    async publishPolicyInternal(id: string, versionHash: VersionHash): Promise<{ currentVersionHash: string; }> {
+    async publishPolicyInternal(id: PolicyId, versionHash: VersionHash): Promise<PublishPolicyResult> {
         if (!versionHash) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'VERSION_HASH_REQUIRED', 'Version hash is required');
         }
@@ -264,11 +277,11 @@ export class PolicyService {
     /**
      * Publish a policy version
      */
-    async publishPolicy(id: string, versionHash: VersionHash): Promise<{ currentVersionHash: string; }> {
+    async publishPolicy(id: PolicyId, versionHash: VersionHash): Promise<PublishPolicyResult> {
         return measureDb('PolicyService.publishPolicy', async () => this._publishPolicy(id, versionHash));
     }
 
-    private async _publishPolicy(id: string, versionHash: VersionHash): Promise<{ currentVersionHash: string; }> {
+    private async _publishPolicy(id: PolicyId, versionHash: VersionHash): Promise<PublishPolicyResult> {
         LoggerContext.update({ policyId: id, operation: 'publish-policy', versionHash });
 
         return this.publishPolicyInternal(id, versionHash);
@@ -277,17 +290,18 @@ export class PolicyService {
     /**
      * Generate ID from policy name (kebab-case)
      */
-    private generatePolicyId(policyName: string): string {
-        return policyName
+    private generatePolicyId(policyName: PolicyName): PolicyId {
+        return toPolicyId(policyName
             .toLowerCase()
             .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, '');
+            .replace(/[^a-z0-9-]/g, '')
+        );
     }
 
     /**
      * Create a new policy (internal helper)
      */
-    async createPolicyInternal(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string; }> {
+    async createPolicyInternal(policyName: PolicyName, text: string, customId?: PolicyId): Promise<CreatePolicyResult> {
         if (!policyName || !text) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_FIELDS', 'Policy name and text are required');
         }
@@ -354,11 +368,11 @@ export class PolicyService {
     /**
      * Create a new policy
      */
-    async createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string; }> {
+    async createPolicy(policyName: PolicyName, text: string, customId?: PolicyId): Promise<CreatePolicyResult> {
         return measureDb('PolicyService.createPolicy', async () => this._createPolicy(policyName, text, customId));
     }
 
-    private async _createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string; }> {
+    private async _createPolicy(policyName: PolicyName, text: string, customId?: PolicyId): Promise<CreatePolicyResult> {
         LoggerContext.update({ operation: 'create-policy', policyName, customId });
 
         return this.createPolicyInternal(policyName, text, customId);
@@ -367,7 +381,7 @@ export class PolicyService {
     /**
      * Delete a policy version
      */
-    async deletePolicyVersion(id: string, hash: string): Promise<void> {
+    async deletePolicyVersion(id: PolicyId, hash: string): Promise<void> {
         try {
             const timer = new PerformanceTimer();
 
@@ -430,13 +444,7 @@ export class PolicyService {
     /**
      * Get current version of a specific policy (public endpoint)
      */
-    async getCurrentPolicy(id: string): Promise<{
-        id: string;
-        policyName: string;
-        currentVersionHash: string;
-        text: string;
-        createdAt: any;
-    }> {
+    async getCurrentPolicy(id: PolicyId): Promise<CurrentPolicyResponse> {
         try {
             const policy = await this.firestoreReader.getPolicy(id);
 

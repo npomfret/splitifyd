@@ -5,6 +5,7 @@ import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { PolicyService } from '../services/PolicyService';
 import { validateCreatePolicy, validatePublishPolicy, validateUpdatePolicy } from './validation';
+import {toPolicyId} from "@billsplit-wl/shared";
 
 export class PolicyHandlers {
     constructor(
@@ -35,7 +36,7 @@ export class PolicyHandlers {
         const { id } = req.params;
 
         try {
-            const policy = await this.policyService.getPolicy(id);
+            const policy = await this.policyService.getPolicy(toPolicyId(id));
 
             res.json(policy);
         } catch (error) {
@@ -54,7 +55,7 @@ export class PolicyHandlers {
         const { id, hash } = req.params;
 
         try {
-            const version = await this.policyService.getPolicyVersion(id, hash);
+            const version = await this.policyService.getPolicyVersion(toPolicyId(id), hash);
 
             res.json(version);
         } catch (error) {
@@ -78,7 +79,7 @@ export class PolicyHandlers {
         const { text, publish = false } = validatedData;
 
         try {
-            const result = await this.policyService.updatePolicy(id, text, publish);
+            const result = await this.policyService.updatePolicy(toPolicyId(id), text, publish);
 
             const response: UpdatePolicyResponse = {
                 success: true,
@@ -107,7 +108,7 @@ export class PolicyHandlers {
         const { versionHash } = validatePublishPolicy(req.body);
 
         try {
-            const result = await this.policyService.publishPolicy(id, versionHash);
+            const result = await this.policyService.publishPolicy(toPolicyId(id), versionHash);
 
             const response: PublishPolicyResponse = {
                 success: true,
@@ -138,7 +139,7 @@ export class PolicyHandlers {
 
             const response: CreatePolicyResponse = {
                 success: true,
-                id: result.id,
+                id: toPolicyId(result.id),
                 versionHash: result.currentVersionHash,
                 message: 'Policy created successfully',
             };
@@ -159,7 +160,7 @@ export class PolicyHandlers {
         const { id, hash } = req.params;
 
         try {
-            await this.policyService.deletePolicyVersion(id, hash);
+            await this.policyService.deletePolicyVersion(toPolicyId(id), hash);
 
             const response: DeletePolicyVersionResponse = {
                 success: true,

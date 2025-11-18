@@ -132,10 +132,14 @@ export const toPassword = (value: string): Password => value as Password;
 export type DisplayName = Brand<string, 'DisplayName'>;
 export const toDisplayName = (value: string): DisplayName => value as DisplayName;
 
+export type PolicyId = Brand<string, 'PolicyId'>;
+export const toPolicyId = (value: string): PolicyId => value as PolicyId;
+
+export type PolicyName = string;
+export type PolicyText = string;
 export type UserId = string;
 export type Email = string;
 export type CurrencyISOCode = string;
-export type PolicyId = string;
 export type VersionHash = string;
 export type ActivityFeedItemId = string;
 
@@ -164,9 +168,9 @@ export const AuthErrors = {
 } as const;
 
 export const PolicyIds = {
-    TERMS_OF_SERVICE: 'terms-of-service',
-    COOKIE_POLICY: 'cookie-policy',
-    PRIVACY_POLICY: 'privacy-policy',
+    TERMS_OF_SERVICE: toPolicyId('terms-of-service'),
+    COOKIE_POLICY: toPolicyId('cookie-policy'),
+    PRIVACY_POLICY: toPolicyId('privacy-policy'),
 } as const;
 
 // ========================================================================
@@ -611,7 +615,7 @@ export interface PolicyVersion {
 }
 
 interface Policy {
-    policyName: string;
+    policyName: PolicyName;
     currentVersionHash: string;
     versions: Record<string, PolicyVersion>; // Map of versionHash -> PolicyVersion
 }
@@ -996,7 +1000,7 @@ export interface RegisterResponse {
 
 export interface CurrentPolicyResponse {
     id: string;
-    policyName: string;
+    policyName: PolicyName;
     currentVersionHash: string;
     text: string;
     createdAt: ISOString;
@@ -1021,10 +1025,10 @@ export interface AcceptMultiplePoliciesResponse {
 
 export interface PolicyAcceptanceStatusDTO {
     policyId: PolicyId;
-    currentVersionHash: string;
-    userAcceptedHash?: string;
+    currentVersionHash: VersionHash;
+    userAcceptedHash?: VersionHash;
     needsAcceptance: boolean;
-    policyName: string;
+    policyName: PolicyName;
 }
 
 export interface UserPolicyStatusResponse {
@@ -1136,7 +1140,7 @@ export interface PublishPolicyResponse {
 
 export interface CreatePolicyResponse {
     success: boolean;
-    id: string;
+    id: PolicyId;
     versionHash: VersionHash;
     message: string;
 }
@@ -1151,7 +1155,7 @@ export interface DeletePolicyVersionResponse {
 // ========================================================================
 
 export interface CreatePolicyRequest {
-    policyName: string;
+    policyName: PolicyName;
     text: string;
 }
 
@@ -1163,6 +1167,30 @@ export interface UpdatePolicyRequest {
 export interface ListPoliciesResponse {
     policies: PolicyDTO[];
     count: number;
+}
+
+// ========================================================================
+// Policy Service Result Types
+// ========================================================================
+// These are simpler return types for service-level methods,
+// distinct from API response types which include success/message wrappers
+
+export interface PolicyVersionResponse extends PolicyVersion {
+    versionHash: VersionHash;
+}
+
+export interface UpdatePolicyResult {
+    versionHash: VersionHash;
+    currentVersionHash?: string;
+}
+
+export interface PublishPolicyResult {
+    currentVersionHash: string;
+}
+
+export interface CreatePolicyResult {
+    id: PolicyId;
+    currentVersionHash: string;
 }
 
 export interface GetPendingMembersResponse {

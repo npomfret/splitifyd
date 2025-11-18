@@ -1,4 +1,4 @@
-import type { CommentText, Email, GroupName, ISOString, ShareLinkToken, UserId } from '@billsplit-wl/shared';
+import type { CommentText, Email, GroupName, ISOString, PolicyName, ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -53,6 +53,7 @@ import {
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
+import {PolicyText} from "@billsplit-wl/shared";
 
 const randomLetters = (min: number, max: number): string => {
     const length = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -591,7 +592,7 @@ export class ApiDriver {
     }
 
     // Policy administration methods for testing
-    async updatePolicy(policyId: PolicyId, text: string, publish: boolean = true, adminToken?: AuthToken): Promise<any> {
+    async updatePolicy(policyId: PolicyId, text: PolicyText, publish: boolean = true, adminToken?: AuthToken): Promise<any> {
         // Try with the adminToken first, then fall back to regular token
         return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', {
             text,
@@ -599,7 +600,7 @@ export class ApiDriver {
         }, adminToken);
     }
 
-    async createPolicy(policyName: string, text: string, adminToken?: AuthToken): Promise<any> {
+    async createPolicy(policyName: PolicyName, text: PolicyText, adminToken?: AuthToken): Promise<any> {
         // Try with the adminToken first, then fall back to regular token
         return await this.apiRequest('/admin/policies', 'POST', {
             policyName,

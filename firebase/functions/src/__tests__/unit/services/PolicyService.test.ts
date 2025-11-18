@@ -6,6 +6,7 @@ import { HTTP_STATUS } from '../../../constants';
 import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { PolicyService } from '../../../services/PolicyService';
+import {toPolicyId} from "@billsplit-wl/shared";
 
 /**
  * Consolidated PolicyService Unit Tests
@@ -90,7 +91,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
             // Arrange
             const policyName = 'Terms Of Service'; // Maps to 'terms-of-service'
             const policyText = 'Some content';
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
 
             const existingPolicy = new PolicyDocumentBuilder()
                 .withId(policyId)
@@ -129,7 +130,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
     describe('getPolicy', () => {
         it('should return policy when it exists', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const mockPolicy = new PolicyDocumentBuilder()
                 .withId(policyId)
                 .withPolicyName('Test Policy')
@@ -149,7 +150,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should throw NOT_FOUND when policy does not exist', async () => {
             // Arrange
-            const policyId = 'non-existent-policy';
+            const policyId = toPolicyId('non-existent-policy');
 
             // Act & Assert
             await expect(policyService.getPolicy(policyId)).rejects.toThrow(
@@ -164,7 +165,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
     describe('updatePolicy', () => {
         it('should create new version when text is different', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const newText = 'Updated policy content';
             const existingPolicy = new PolicyDocumentBuilder()
                 .withId(policyId)
@@ -183,7 +184,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should auto-publish when publish flag is true', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const newText = 'Published policy content';
             const existingPolicy = new PolicyDocumentBuilder()
                 .withId(policyId)
@@ -202,7 +203,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should reject update with same content', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const existingText = 'Default policy content for testing...';
             const existingHash = crypto.createHash('sha256').update(existingText, 'utf8').digest('hex');
 
@@ -225,7 +226,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should throw NOT_FOUND when policy does not exist', async () => {
             // Arrange
-            const policyId = 'non-existent-policy';
+            const policyId = toPolicyId('non-existent-policy');
 
             // Act & Assert
             await expect(policyService.updatePolicy(policyId, 'text')).rejects.toThrow(
@@ -240,7 +241,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
     describe('publishPolicy', () => {
         it('should publish existing version successfully', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const versionHash = 'version-hash-123';
             const existingPolicy = new PolicyDocumentBuilder()
                 .withId(policyId)
@@ -265,7 +266,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should throw NOT_FOUND when policy does not exist', async () => {
             // Arrange
-            const policyId = 'non-existent-policy';
+            const policyId = toPolicyId('non-existent-policy');
             const versionHash = 'version-hash';
 
             // Act & Assert
@@ -279,7 +280,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should throw NOT_FOUND when version does not exist', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const nonExistentVersionHash = 'non-existent-version';
             const existingPolicy = new PolicyDocumentBuilder()
                 .withId(policyId)
@@ -310,8 +311,8 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 .withPolicyName('Terms of Service')
                 .build();
 
-            db.seedPolicy('policy1', policy1);
-            db.seedPolicy('policy2', policy2);
+            db.seedPolicy(toPolicyId('policy1'), policy1);
+            db.seedPolicy(toPolicyId('policy2'), policy2);
 
             // Act
             const result = await policyService.listPolicies();
@@ -346,7 +347,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
     describe('getCurrentPolicy', () => {
         it('should return current version details', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const currentVersionHash = 'current-version-hash';
             const policyText = 'Current policy content';
             const mockPolicy = new PolicyDocumentBuilder()
@@ -370,7 +371,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should throw NOT_FOUND when policy does not exist', async () => {
             // Arrange
-            const policyId = 'non-existent-policy';
+            const policyId = toPolicyId('non-existent-policy');
 
             // Act & Assert
             await expect(policyService.getCurrentPolicy(policyId)).rejects.toThrow(
@@ -385,7 +386,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
     describe('getPolicyVersion', () => {
         it('should return specific version when it exists', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const versionHash = 'version-hash-123';
             const versionText = 'Specific version content';
             const mockPolicy = new PolicyDocumentBuilder()
@@ -412,7 +413,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should throw NOT_FOUND when version does not exist', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const nonExistentVersionHash = 'non-existent-version';
             const mockPolicy = new PolicyDocumentBuilder()
                 .withId(policyId)
@@ -434,7 +435,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
     describe('deletePolicyVersion', () => {
         it('should throw error when trying to delete current version', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const currentVersionHash = 'current-version';
             const mockPolicy = new PolicyDocumentBuilder()
                 .withId(policyId)
@@ -454,7 +455,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should successfully delete non-current version', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const currentVersionHash = 'current-version';
             const versionToDelete = 'old-version';
             const mockPolicy = new PolicyDocumentBuilder()
@@ -473,7 +474,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should throw NOT_FOUND when policy does not exist', async () => {
             // Arrange
-            const policyId = 'non-existent-policy';
+            const policyId = toPolicyId('non-existent-policy');
             const versionHash = 'some-version';
 
             // Act & Assert
@@ -487,7 +488,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should throw NOT_FOUND when version does not exist', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const currentVersion = 'current-version';
             const nonExistentVersion = 'non-existent-version';
             const mockPolicy = new PolicyDocumentBuilder()
@@ -522,7 +523,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should handle corrupted policy data', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const corruptedPolicy = {
                 id: policyId,
                 // Missing required fields like policyName, currentVersionHash, versions
@@ -543,7 +544,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
     describe('Version Management Scenarios', () => {
         it('should handle multiple version creation and management', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const policyName = 'Multi-Version Policy';
             const version1Hash = 'hash-v1';
 
@@ -572,7 +573,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should prevent deletion of only remaining version', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const onlyVersionHash = 'only-version';
             const mockPolicy = new PolicyDocumentBuilder()
                 .withId(policyId)
@@ -592,7 +593,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should handle version retrieval edge cases', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const versionHash = 'test-version';
             const mockPolicy = new PolicyDocumentBuilder()
                 .withId(policyId)
@@ -618,7 +619,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
     describe('Concurrent Operations Protection', () => {
         it('should handle concurrent version creation attempts', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const policyName = 'Concurrent Test Policy';
             const baseVersionHash = 'base-version';
 
@@ -644,7 +645,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
         it('should handle concurrent policy publication attempts', async () => {
             // Arrange
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const currentVersion = 'current-version';
             const newVersion = 'new-version';
 
@@ -674,7 +675,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
 
             // Act - Create policy
             const createResult = await policyService.createPolicy(policyName, initialContent);
-            const policyId = createResult.id;
+            const policyId = toPolicyId(createResult.id);
             expect(createResult.id).toBeDefined();
             expect(createResult.currentVersionHash).toBeDefined();
 
@@ -703,7 +704,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
         it('should create, read, update, and publish policies', async () => {
             const policyName = 'Cookie Policy'; // Maps to 'cookie-policy'
             const initialText = 'Initial policy content for integration testing.';
-            const expectedId = 'cookie-policy';
+            const expectedId = toPolicyId('cookie-policy');
             const initialHash = crypto.createHash('sha256').update(initialText, 'utf8').digest('hex');
 
             // Step 1: Create a new policy
@@ -773,7 +774,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
         });
 
         it('should handle policy version management correctly', async () => {
-            const policyId = 'privacy-policy';
+            const policyId = toPolicyId('privacy-policy');
             const version1Text = 'Version 1';
             const version2Text = 'Version 2';
             const version3Text = 'Version 3';
@@ -818,7 +819,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
         });
 
         it('should enforce version constraints correctly', async () => {
-            const policyId = 'cookie-policy';
+            const policyId = toPolicyId('cookie-policy');
             const currentHash = crypto.createHash('sha256').update('Original', 'utf8').digest('hex');
 
             const policy = new PolicyDocumentBuilder()
@@ -854,7 +855,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
         });
 
         it('should handle concurrent version creation correctly', async () => {
-            const policyId = 'privacy-policy';
+            const policyId = toPolicyId('privacy-policy');
             const baseContent = 'Base content';
             const baseHash = crypto.createHash('sha256').update(baseContent, 'utf8').digest('hex');
 
@@ -893,8 +894,8 @@ describe('PolicyService - Consolidated Unit Tests', () => {
                 .withPolicyName('List Test 2')
                 .build();
 
-            db.seedPolicy('list-test-1', policy1);
-            db.seedPolicy('list-test-2', policy2);
+            db.seedPolicy(toPolicyId('list-test-1'), policy1);
+            db.seedPolicy(toPolicyId('list-test-2'), policy2);
 
             // Test listPolicies
             const listResult = await policyService.listPolicies();
@@ -904,7 +905,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
         });
 
         it('should handle non-existent policy operations gracefully', async () => {
-            const nonExistentId = 'definitely-does-not-exist';
+            const nonExistentId = toPolicyId('definitely-does-not-exist');
 
             await expect(policyService.getPolicy(nonExistentId)).rejects.toThrow(
                 expect.objectContaining({
@@ -929,7 +930,7 @@ describe('PolicyService - Consolidated Unit Tests', () => {
         });
 
         it('should handle invalid version hash operations', async () => {
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
             const validHash = 'valid-hash';
             const invalidHash = 'invalid-hash';
 

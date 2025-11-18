@@ -3,6 +3,7 @@ import {
     AcceptPolicyRequest,
     CreatePolicyRequestSchema,
     type PolicyId,
+    PolicyName,
     PublishPolicyRequestSchema,
     UpdatePolicyRequestSchema,
     VersionHash,
@@ -58,7 +59,7 @@ export const validateAcceptMultiplePolicies = (body: unknown): AcceptMultiplePol
 };
 
 interface CreatePolicyRequest {
-    policyName: string;
+    policyName: PolicyName;
     text: string;
     publish?: boolean;
 }

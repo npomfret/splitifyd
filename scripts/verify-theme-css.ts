@@ -3,7 +3,7 @@
  * Quick verification script to generate and inspect theme CSS for both themes
  */
 
-import { localhostBrandingTokens, loopbackBrandingTokens } from '@billsplit-wl/shared/src';
+import { localhostBrandingTokens, loopbackBrandingTokens } from '@billsplit-wl/shared';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { LocalThemeArtifactStorage } from '../firebase/functions/src/services/storage/ThemeArtifactStorage';

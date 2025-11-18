@@ -1,5 +1,6 @@
 import type { ClientUser, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@billsplit-wl/shared';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
+import {toPolicyId} from "@billsplit-wl/shared";
 
 interface HandlerOptions {
     delayMs?: number;
@@ -52,14 +53,14 @@ export function acceptedPoliciesHandler(options: HandlerOptions = {}): Serialize
             needsAcceptance: false,
             policies: [
                 {
-                    policyId: 'terms-of-service',
+                    policyId: toPolicyId('terms-of-service'),
                     currentVersionHash: 'hash123',
                     userAcceptedHash: 'hash123',
                     needsAcceptance: false,
                     policyName: 'Terms of Service',
                 },
                 {
-                    policyId: 'cookie-policy',
+                    policyId: toPolicyId('cookie-policy'),
                     currentVersionHash: 'hash456',
                     userAcceptedHash: 'hash456',
                     needsAcceptance: false,

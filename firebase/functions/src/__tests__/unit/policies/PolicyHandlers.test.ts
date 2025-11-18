@@ -4,6 +4,7 @@ import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
+import {toPolicyId} from "@billsplit-wl/shared";
 
 describe('PolicyHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -125,7 +126,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should reject request for non-existent policy', async () => {
             const userId = 'admin-user';
-            const policyId = 'non-existent-policy';
+            const policyId = toPolicyId('non-existent-policy');
 
             appDriver.seedAdminUser(userId, {});
 
@@ -154,7 +155,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should reject request for non-existent policy', async () => {
             const userId = 'admin-user';
-            const policyId = 'non-existent-policy';
+            const policyId = toPolicyId('non-existent-policy');
             const versionHash = 'some-hash';
 
             appDriver.seedAdminUser(userId, {});
@@ -244,7 +245,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should reject update for non-existent policy', async () => {
             const userId = 'admin-user';
-            const policyId = 'non-existent-policy';
+            const policyId = toPolicyId('non-existent-policy');
 
             appDriver.seedAdminUser(userId, {});
 
@@ -296,7 +297,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should reject publish for non-existent policy', async () => {
             const userId = 'admin-user';
-            const policyId = 'non-existent-policy';
+            const policyId = toPolicyId('non-existent-policy');
 
             appDriver.seedAdminUser(userId, {});
 
@@ -379,7 +380,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
         it('should reject deletion for non-existent policy', async () => {
             const userId = 'admin-user';
-            const policyId = 'non-existent-policy';
+            const policyId = toPolicyId('non-existent-policy');
             const versionHash = 'some-hash';
 
             appDriver.seedAdminUser(userId, {});

@@ -8,6 +8,7 @@ import { Card } from '../ui/Card';
 import { Container } from '../ui/Container';
 import { Stack } from '../ui/Stack';
 import { PolicyRenderer } from './PolicyRenderer';
+import { PolicyId } from "@billsplit-wl/shared";
 
 interface PolicyAcceptanceModalProps {
     policies: PolicyAcceptanceStatusDTO[];
@@ -30,7 +31,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
     const canAcceptCurrent = acceptedPolicies.has(currentPolicy?.policyId);
     const allPoliciesAccepted = policies.every((p) => acceptedPolicies.has(p.policyId));
 
-    const loadPolicyContent = async (policyId: string) => {
+    const loadPolicyContent = async (policyId: PolicyId) => {
         if (policyContents[policyId]) return; // Already loaded
 
         setLoadingPolicy(policyId);

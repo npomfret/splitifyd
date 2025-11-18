@@ -32,6 +32,7 @@ import {
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AdminTenantRequestBuilder } from './AdminTenantRequestBuilder';
 import { AppDriver } from './AppDriver';
+import {toPolicyId} from "@billsplit-wl/shared";
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
@@ -2775,7 +2776,7 @@ describe('app tests', () => {
             it('should reject when policyId is missing', async () => {
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        { policyId: '', versionHash: 'some-hash' },
+                        { policyId: toPolicyId(''), versionHash: 'some-hash' },
                     ], user1),
                 )
                     .rejects
@@ -2785,7 +2786,7 @@ describe('app tests', () => {
             it('should reject when versionHash is missing', async () => {
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        { policyId: 'some-policy', versionHash: '' },
+                        { policyId: toPolicyId('some-policy'), versionHash: '' },
                     ], user1),
                 )
                     .rejects
@@ -2795,7 +2796,7 @@ describe('app tests', () => {
             it('should reject when policy does not exist', async () => {
                 await expect(
                     appDriver.acceptMultiplePolicies([
-                        { policyId: 'non-existent-policy', versionHash: 'some-hash' },
+                        { policyId: toPolicyId('non-existent-policy'), versionHash: 'some-hash' },
                     ], user1),
                 )
                     .rejects
@@ -2826,7 +2827,7 @@ describe('app tests', () => {
                 await expect(
                     appDriver.acceptMultiplePolicies([
                         { policyId: policy1.id, versionHash: policy1.versionHash },
-                        { policyId: 'non-existent', versionHash: 'some-hash' },
+                        { policyId: toPolicyId('non-existent'), versionHash: 'some-hash' },
                     ], user1),
                 )
                     .rejects
@@ -3757,7 +3758,7 @@ describe('app tests', () => {
 
         it('should handle update-or-create workflow for named policies', async () => {
             const policyName = 'Terms of Service';
-            const policyId = 'terms-of-service';
+            const policyId = toPolicyId('terms-of-service');
 
             await expect(
                 appDriver.updatePolicy(policyId, {
