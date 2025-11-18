@@ -24,7 +24,7 @@
 
 **⚠️ Production Blockers (8-11 hours):**
 1. ✅ **Artifact storage** - migrated to Cloud Storage (commit `55cb5fad`)
-2. **Font deployment** - Serve Space Grotesk & Geist Mono (2 hours)
+2. **Font deployment** - Serve Space Grotesk & Geist Mono (assets added; republish themes next)
 3. **E2E tests** - Verify theme switching works (2-3 hours)
 
 **🔮 Missing Enhancements (2-3 weeks):**

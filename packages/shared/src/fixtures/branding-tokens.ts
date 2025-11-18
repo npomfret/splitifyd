@@ -425,6 +425,11 @@ export const localhostBrandingTokens: BrandingTokens = BrandingTokensSchema.pars
     assets: {
         logoUrl: auroraLogoSvg,
         // faviconUrl will default to logoUrl
+        fonts: {
+            headingUrl: '/fonts/space-grotesk-variable.woff2',
+            bodyUrl: '/fonts/space-grotesk-variable.woff2',
+            monoUrl: '/fonts/geist-mono-variable.woff2',
+        },
     },
     legal: baseLegal,
     semantics: auroraSemantics,
