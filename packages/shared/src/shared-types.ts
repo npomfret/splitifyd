@@ -1,7 +1,6 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
 import { z } from 'zod';
-import { createDisplayNameSchema } from './schemas/primitives';
 import type { ColorPattern } from './user-colors';
 
 // ========================================================================
@@ -776,36 +775,6 @@ export interface UpdateGroupRequest {
 export interface UpdateDisplayNameRequest {
     displayName: DisplayName;
 }
-
-// Validation schemas
-export const CreateGroupRequestSchema = z.object({
-    name: z.string().trim().min(1, 'Group name is required').max(100, 'Group name must be less than 100 characters').transform(toGroupName),
-    groupDisplayName: createDisplayNameSchema({
-        minMessage: 'Enter a display name.',
-        maxMessage: 'Display name must be 50 characters or fewer.',
-        patternMessage: 'Display name can only use letters, numbers, spaces, hyphens, underscores, and periods.',
-    })
-        .transform(toDisplayName),
-    description: z.string().trim().max(500).optional(),
-});
-
-export const UpdateGroupRequestSchema = z
-    .object({
-        name: z.string().trim().min(1).max(100).transform(toGroupName).optional(),
-        description: z.string().trim().max(500).optional(),
-    })
-    .refine((data) => data.name !== undefined || data.description !== undefined, {
-        message: 'At least one field (name or description) must be provided',
-    });
-
-export const UpdateDisplayNameRequestSchema = z.object({
-    displayName: z
-        .string()
-        .min(1, 'Display name is required')
-        .max(50, 'Display name must be 50 characters or less')
-        .trim()
-        .transform(toDisplayName),
-});
 
 // Metadata for real-time change tracking
 export interface ChangeMetadata {
