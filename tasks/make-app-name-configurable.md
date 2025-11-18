@@ -5,7 +5,7 @@
 **Last Updated:** 2025-01-17
 
 ### Progress Summary
-- ✅ **Phase 1 (Client-Side):** ~80% complete - Core i18n infrastructure working, key translation keys updated
+- ✅ **Phase 1 (Client-Side):** 100% complete - All translation keys updated with {{appName}} interpolation
 - ✅ **Phase 2 (Server-Side):** ~90% complete - Config endpoint returns appName, marketingFlags defaults working
 - 🟡 **Phase 3 (Testing):** ~60% complete - Integration tests passing, some fixtures updated, hardcoded-values test not re-enabled
 - ❌ **Phase 4 (Documentation):** Not started - Policy docs updated, but guides and README pending
@@ -24,7 +24,7 @@
 - ✅ Webapp test mocks updated for react-i18next
 
 ### Remaining Work
-- ⏳ Additional translation keys (lines 673, 763, 820, 838, 932, 1320, 1447, 1481)
+- ✅ Additional translation keys (lines 673, 763, 820, 838, 932, 1320, 1447, 1481) - COMPLETED
 - ⏳ Backend scripts still have hardcoded "splitifyd" (low priority - dev tooling)
 - ⏳ Re-enable e2e-tests/src/__tests__/unit/hardcoded-values.test.ts
 - ⏳ Update remaining fixtures/builders
@@ -77,14 +77,14 @@ The following keys contain hardcoded "Splitifyd"/"Splitify" and should interpola
 | ✅ | 596 | `policy.acceptance.instruction` | `"...to continue using Splitify."` | Use appName (typo currently "Splitify") |
 | ✅ | 608 | `pricing.description` | `"Simple, transparent pricing for Splitifyd..."` | Use appName |
 | ✅ | 672 | `seo.titleSuffix` | `" \| Splitifyd"` | Use appName |
-| ⏳ | 673 | `seo.siteName` | `"Splitifyd"` | Use appName |
-| ⏳ | 763 | `emptyGroupsState.gettingStartedTitle` | `"Getting started with Splitifyd:"` | Use appName |
-| ⏳ | 820 | `header.logoAlt` | `"Splitifyd"` | Use appName |
-| ⏳ | 838 | `footer.companyName` | `"Splitifyd"` | Use appName |
-| ⏳ | 932 | `settingsPage.title` | `"Settings - Splitifyd"` | Use appName |
-| ⏳ | 1320 | `policyComponents.policyAcceptanceModal.acceptanceInstructions` | `"...to continue using Splitify."` | Use appName |
-| ⏳ | 1447 | `pages.landingPage.title` | `"Effortless Bill Splitting - Splitifyd"` | Use appName |
-| ⏳ | 1481 | `authLayout.titleSuffix` | `" - Splitifyd"` | Use appName |
+| ✅ | 673 | `seo.siteName` | `"Splitifyd"` | Use appName |
+| ✅ | 763 | `emptyGroupsState.gettingStartedTitle` | `"Getting started with Splitifyd:"` | Use appName |
+| ✅ | 820 | `header.logoAlt` | `"Splitifyd"` | Use appName |
+| ✅ | 838 | `footer.companyName` | `"Splitifyd"` | Use appName |
+| ✅ | 932 | `settingsPage.title` | `"Settings - Splitifyd"` | Use appName |
+| ✅ | 1320 | `policyComponents.policyAcceptanceModal.acceptanceInstructions` | `"...to continue using Splitify."` | Use appName |
+| ✅ | 1447 | `pages.landingPage.title` | `"Effortless Bill Splitting - Splitifyd"` | Use appName |
+| ✅ | 1481 | `authLayout.titleSuffix` | `" - Splitifyd"` | Use appName |
 
 (And additional instances throughout the file.) Strategy: add `appName` to the global i18n context and use interpolation rather than literals.
 
@@ -175,12 +175,12 @@ Update to reflect white-labeling rather than Splitifyd-specific branding:
 
 ## Implementation Strategy
 
-### Phase 1: Client-Side Changes ✅ ~80% Complete
+### Phase 1: Client-Side Changes ✅ 100% Complete
 
 1. ✅ **Update i18n Context**
    - ✅ Modified i18n initialization to include tenant config and add `appName` to global translation context (config-store.ts).
    - ✅ Replaced ~10 key translation keys with `{{appName}}` interpolation.
-   - ⏳ ~8 additional translation keys still need updating (lines 673, 763, 820, 838, 932, 1320, 1447, 1481).
+   - ✅ All 8 additional translation keys updated (lines 673, 763, 820, 838, 932, 1320, 1447, 1481).
 
 2. ✅ **Update SEO/HTML/Theme**
    - ✅ SEOHead already uses translations; works correctly with tenant config.
@@ -258,7 +258,7 @@ const appName = config?.tenant?.branding?.appName ?? 'Splitifyd';
 
 ## Next Steps (Priority Order)
 
-1. **Complete remaining translation keys** (~8 keys, lines 673, 763, 820, 838, 932, 1320, 1447, 1481)
+1. ✅ **Complete remaining translation keys** (~8 keys, lines 673, 763, 820, 838, 932, 1320, 1447, 1481) - COMPLETED
 2. **Re-enable hardcoded-values guard test** (`e2e-tests/src/__tests__/unit/hardcoded-values.test.ts`)
 3. **Update remaining test fixtures** (AppConfigurationBuilder, etc.)
 4. **Manual testing** - Validate with localhost-tenant and partner-tenant
