@@ -934,15 +934,6 @@ export class FirestoreWriter implements IFirestoreWriter {
         return snapshot.docs.map((doc) => ({ id: doc.id }));
     }
 
-    /**
-     * Delete an activity feed item (non-transaction version for async cleanup)
-     */
-    async deleteActivityFeedItem(userId: UserId, documentId: string): Promise<void> {
-        const collectionRef = this.db.collection(FirestoreCollections.ACTIVITY_FEED).doc(userId).collection('items');
-        const docRef = collectionRef.doc(documentId);
-        await docRef.delete();
-    }
-
     createBatch(): IWriteBatch {
         return this.db.batch();
     }

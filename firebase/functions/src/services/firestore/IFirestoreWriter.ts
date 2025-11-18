@@ -213,11 +213,6 @@ export interface IFirestoreWriter {
     getActivityFeedItemsForUser(userId: UserId, limit: number): Promise<Array<{ id: string; }>>;
 
     /**
-     * Delete an activity feed item (non-transaction version for async cleanup)
-     */
-    deleteActivityFeedItem(userId: UserId, documentId: string): Promise<void>;
-
-    /**
      * Create a write batch for batching multiple operations
      */
     createBatch(): IWriteBatch;
