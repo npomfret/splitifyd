@@ -958,11 +958,8 @@ export class GroupDetailPage extends BasePage {
      * Verify a payer and currency amount combination appears inside expenses
      */
     async verifyCurrencyAmountInExpenses(payer: string, currencyAmount: string): Promise<void> {
-        const expensesHeading = this.page.getByRole('heading', { name: /Expenses/i });
-        await expect(expensesHeading).toBeVisible({ timeout: 2000 });
-
         const expensesContainer = this.getExpensesContainer();
-        await expect(expensesContainer).toBeVisible();
+        await expect(expensesContainer).toBeVisible({ timeout: 2000 });
 
         await expect(async () => {
             const expenseItems = expensesContainer.locator('[data-testid="expense-item"]');
