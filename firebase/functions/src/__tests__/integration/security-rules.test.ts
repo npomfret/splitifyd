@@ -480,11 +480,13 @@ describe('Firestore Security Rules (Production)', () => {
             const userData = new ClientUserBuilder()
                 .withEmail('user1@example.com')
                 .withDisplayName('User One')
-                .withRole('system_user')
                 .build();
 
-            // User should be able to write to their own document
-            await assertSucceeds(setDoc(doc(user1Db, 'users', 'user1-id'), userData));
+            // Remove role field as users cannot set their own role
+            const { role, ...userDataWithoutRole } = userData;
+
+            // User should be able to write to their own document (without role field)
+            await assertSucceeds(setDoc(doc(user1Db, 'users', 'user1-id'), userDataWithoutRole));
 
             // User should be able to read their own document
             await assertSucceeds(getDoc(doc(user1Db, 'users', 'user1-id')));

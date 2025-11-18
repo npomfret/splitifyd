@@ -86,12 +86,15 @@ service cloud.firestore {
       // Allow read if user is reading their own document
       allow read: if request.auth != null && request.auth.uid == userId;
 
-      // Allow create if user is creating their own document
-      allow create: if request.auth != null && request.auth.uid == userId;
+      // Allow create if user is creating their own document (but not setting role field)
+      allow create: if request.auth != null &&
+        request.auth.uid == userId &&
+        !("role" in request.resource.data);
 
       // Allow update if user is updating their own document (but not role field)
       allow update: if request.auth != null &&
         request.auth.uid == userId &&
+        resource != null &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(["role"]);
     }
     
