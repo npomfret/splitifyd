@@ -466,7 +466,7 @@ export interface FormDefaults {
 }
 
 export interface ThemeConfig {
-    hash: string;
+    hash: VersionHash;
     generatedAtEpochMs?: number;
 }
 
@@ -551,7 +551,7 @@ export interface RegisteredUser extends FirebaseUser {
     termsAcceptedAt?: ISOString;
     cookiePolicyAcceptedAt?: ISOString;
     privacyPolicyAcceptedAt?: ISOString;
-    acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash
+    acceptedPolicies?: Record<string, VersionHash>; // Map of policyId -> versionHash
 
     // User preferences
     preferredLanguage?: string; // User's preferred language code (e.g., 'en', 'es', 'fr')
@@ -616,7 +616,7 @@ export interface PolicyVersion {
 
 interface Policy {
     policyName: PolicyName;
-    currentVersionHash: string;
+    currentVersionHash: VersionHash;
     versions: Record<string, PolicyVersion>; // Map of versionHash -> PolicyVersion
 }
 
@@ -1001,7 +1001,7 @@ export interface RegisterResponse {
 export interface CurrentPolicyResponse {
     id: string;
     policyName: PolicyName;
-    currentVersionHash: string;
+    currentVersionHash: VersionHash;
     text: string;
     createdAt: ISOString;
 }
@@ -1019,7 +1019,7 @@ export interface AcceptMultiplePoliciesResponse {
     acceptedPolicies: Array<{
         policyId: PolicyId;
         versionHash: VersionHash;
-        acceptedAt: string;
+        acceptedAt: ISOString;
     }>;
 }
 
@@ -1128,14 +1128,14 @@ export interface UpdatePolicyResponse {
     success: boolean;
     versionHash: VersionHash;
     published: boolean;
-    currentVersionHash: string | undefined;
+    currentVersionHash: VersionHash | undefined;
     message: string;
 }
 
 export interface PublishPolicyResponse {
     success: boolean;
     message: string;
-    currentVersionHash: string;
+    currentVersionHash: VersionHash;
 }
 
 export interface CreatePolicyResponse {
@@ -1181,16 +1181,16 @@ export interface PolicyVersionResponse extends PolicyVersion {
 
 export interface UpdatePolicyResult {
     versionHash: VersionHash;
-    currentVersionHash?: string;
+    currentVersionHash?: VersionHash;
 }
 
 export interface PublishPolicyResult {
-    currentVersionHash: string;
+    currentVersionHash: VersionHash;
 }
 
 export interface CreatePolicyResult {
     id: PolicyId;
-    currentVersionHash: string;
+    currentVersionHash: VersionHash;
 }
 
 export interface GetPendingMembersResponse {
