@@ -12,7 +12,7 @@ import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
-import { createDefaultTenant, generateBillSplitterUser } from './test-data-generator';
+import { createAllDemoTenants, generateBillSplitterUser } from './test-data-generator';
 
 const execPromise = promisify(exec);
 
@@ -55,18 +55,18 @@ async function runSetupStorageBucketStep(): Promise<void> {
     }
 }
 
-async function runCreateDefaultTenantStep(): Promise<void> {
+async function runCreateDemoTenantsStep(): Promise<void> {
     logger.info('');
     logger.info('═══════════════════════════════════════════════════════');
-    logger.info('🏢 CREATING DEFAULT TENANTS...');
+    logger.info('🏢 CREATING DEMO TENANTS...');
     logger.info('═══════════════════════════════════════════════════════');
     logger.info('');
 
-    await createDefaultTenant();
+    await createAllDemoTenants();
 
     logger.info('');
-    logger.info('✅ Default tenants created and themes published!');
-    logger.info('🎨 Theme CSS available at /api/theme.css');
+    logger.info('✅ Demo tenants created and themes published!');
+    logger.info('🎨 Theme CSS available at /api/theme.css for localhost + loopback hosts');
 }
 
 async function runEnsureBillSplitterUserStep(): Promise<void> {
@@ -142,8 +142,8 @@ const main = async () => {
         // Step 3: Ensure default test user exists (needed for tenant creation)
         await runEnsureBillSplitterUserStep();
 
-        // Step 4: Create default tenants and publish themes (requires admin user + bucket)
-        await runCreateDefaultTenantStep();
+        // Step 4: Create demo tenants (localhost + 127.0.0.1) and publish themes
+        await runCreateDemoTenantsStep();
 
         // Step 5: Seed policies
         await runSeedPoliciesStep();

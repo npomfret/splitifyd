@@ -305,7 +305,7 @@ ALL feature flags: false
 
 **Solution:**
 ```typescript
-// e2e-tests/src/__tests__/smoke/theme-switching.test.ts
+// e2e-tests/src/__tests__/integration/theme-switching.e2e.test.ts
 import { test, expect } from '@playwright/test';
 
 test.describe('Theme Switching', () => {
@@ -357,8 +357,7 @@ test.describe('Theme Switching', () => {
 });
 ```
 
-**Files to create:**
-- `/e2e-tests/src/__tests__/smoke/theme-switching.test.ts`
+**Status:** `/e2e-tests/src/__tests__/integration/theme-switching.e2e.test.ts` implemented (tenant switching, glassmorphism, contrast). Needs CI wiring + emulator-backed run.
 
 **Acceptance:**
 - All tests pass
@@ -386,10 +385,10 @@ test.describe('Theme Switching', () => {
   - Verify fonts load in browser
 
 - [ ] Day 3-4: Write E2E tests (2-3 hours)
-  - Theme switching tests
-  - Glassmorphism verification
-  - Color contrast checks
-  - Add to CI pipeline
+  - [x] Theme switching tests
+  - [x] Glassmorphism verification
+  - [x] Color contrast checks
+  - [ ] Add to CI pipeline
 
 **Acceptance:**
 - ✅ Theme CSS served from Cloud Storage
@@ -659,7 +658,7 @@ This guide provides battle-tested patterns for implementing the remaining featur
 
 ### Phase 1: Production Tests
 ```typescript
-// e2e-tests/src/__tests__/smoke/theme-switching.test.ts
+// e2e-tests/src/__tests__/integration/theme-switching.e2e.test.ts
 test('Aurora theme has vibrant accents', async ({ page }) => {
   await page.goto('http://localhost:5173');
   const cta = page.getByRole('button').first();
@@ -803,7 +802,7 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 ### Tests (To Be Created)
 | File | Purpose | Status |
 |------|---------|--------|
-| `/e2e-tests/src/__tests__/smoke/theme-switching.test.ts` | Theme contrast tests | ❌ Missing |
+| `/e2e-tests/src/__tests__/integration/theme-switching.e2e.test.ts` | Theme contrast tests | ✅ Added (awaiting CI run) |
 | `/e2e-tests/src/__tests__/performance/theme-load.test.ts` | Performance budgets | ❌ Missing |
 | `/e2e-tests/src/__tests__/a11y/wcag-compliance.test.ts` | Accessibility tests | ❌ Missing |
 
