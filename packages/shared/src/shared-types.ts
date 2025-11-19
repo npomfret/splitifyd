@@ -999,7 +999,7 @@ export interface RegisterResponse {
 }
 
 export interface CurrentPolicyResponse {
-    id: string;
+    id: PolicyId;
     policyName: PolicyName;
     currentVersionHash: VersionHash;
     text: PolicyText;
