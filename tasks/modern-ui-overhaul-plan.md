@@ -24,7 +24,7 @@
 
 **⚠️ Production Blockers (8-11 hours):**
 1. ✅ **Artifact storage** - migrated to Cloud Storage (commit `55cb5fad`)
-2. **Font deployment** - Serve Space Grotesk & Geist Mono (assets added; republish themes next)
+2. ✅ **Font deployment** - Space Grotesk & Geist Mono assets shipped (commit `265db8a2`)
 3. **E2E tests** - Verify theme switching works (2-3 hours)
 
 **🔮 Missing Enhancements (2-3 weeks):**
@@ -291,28 +291,13 @@ ALL feature flags: false
 **What changed:** Theme artifacts now read/write from Cloud Storage with public HTTP(S) URLs via `CloudThemeArtifactStorage` (`55cb5fad`). ThemeHandlers reject non-HTTP(S) URLs, and the integration test fetches CSS from storage.
 **Follow-up:** Update legacy test fixtures that still reference `file://` to keep expectations aligned.
 
-### 🔥 Blocker 2: Font Deployment (2 hours)
-**Problem:** Space Grotesk & Geist Mono referenced but not served
-**Current:** Aurora theme expects fonts at `/fonts/space-grotesk.woff2`, etc.
-**Needed:** Download fonts, add to `webapp-v2/public/fonts/`
+### ✅ Blocker 2: Font Deployment (2 hours) — DONE
+**What changed:** Space Grotesk and Geist Mono variable fonts now live under `webapp-v2/public/fonts`, the Aurora fixture points at `/fonts/space-grotesk-variable.woff2` and `/fonts/geist-mono-variable.woff2`, and the theme artifact pipeline emits the correct `@font-face` declarations (`265db8a2`).
 
-**Solution:**
-1. Download Space Grotesk from [Google Fonts](https://fonts.google.com/specimen/Space+Grotesk)
-2. Download Geist Mono from [Vercel](https://vercel.com/font)
-3. Place woff2 files in `/webapp-v2/public/fonts/`
-4. Update Aurora fixture to point to `/fonts/space-grotesk-variable.woff2`
-5. Republish theme
-
-**Files to modify:**
-- Add: `/webapp-v2/public/fonts/space-grotesk-variable.woff2`
-- Add: `/webapp-v2/public/fonts/geist-mono-variable.woff2`
-- Update: `/packages/shared/src/fixtures/branding-tokens.ts` (fix font URLs)
-- Run: `npm run publish-themes` in firebase package
-
-**Acceptance:**
-- Aurora theme loads custom fonts (inspect Network tab)
-- Headings use Space Grotesk
-- Monospace elements use Geist Mono
+**Verification evidence:**
+- Network tab shows `/fonts/space-grotesk-variable.woff2` & `/fonts/geist-mono-variable.woff2`
+- Headings render with Space Grotesk, code/monospace with Geist Mono
+- Brutalist remains on the system stack
 
 ### 🔥 Blocker 3: E2E Theme Tests (2-3 hours)
 **Problem:** No automated tests verifying theme switching works
@@ -387,13 +372,13 @@ test.describe('Theme Switching', () => {
 **Goal:** Fix blockers, ship to production
 
 **Week 1 Tasks:**
-- [ ] Day 1-2: Implement CloudThemeArtifactStorage (4-6 hours)
+- [x] Day 1-2: Implement CloudThemeArtifactStorage (4-6 hours)
   - Create CloudStorage service
   - Update TenantService to use Cloud Storage
   - Test artifact upload/download
   - Verify HTTPS URLs work
 
-- [ ] Day 2-3: Deploy fonts (2 hours)
+- [x] Day 2-3: Deploy fonts (2 hours)
   - Download Space Grotesk & Geist Mono
   - Add to `/webapp-v2/public/fonts/`
   - Update Aurora fixture
@@ -793,7 +778,7 @@ test('Lighthouse performance score', async ({ page }) => {
 - [x] Core component library uses semantic tokens
 - [x] Glassmorphism with fallbacks
 - [x] Cloud Storage for artifacts
-- [ ] **Custom fonts deployed (BLOCKER)**
+- [x] Custom fonts deployed (Space Grotesk + Geist Mono shipping)
 - [ ] **E2E tests pass (BLOCKER)**
 - [ ] **Lighthouse score 90+ (BLOCKER)**
 
@@ -831,7 +816,7 @@ test('Lighthouse performance score', async ({ page }) => {
 | `/packages/shared/src/types/branding.ts` | Schema definition (324 lines) | ✅ Complete |
 | `/packages/shared/src/fixtures/branding-tokens.ts` | Aurora & Brutalist tokens (471 lines) | ✅ Complete |
 | `/firebase/functions/src/services/tenant/ThemeArtifactService.ts` | CSS generation (443 lines) | ✅ Complete |
-| `/firebase/functions/src/services/storage/ThemeArtifactStorage.ts` | Artifact persistence (67 lines) | ⚠️ File-based only |
+| `/firebase/functions/src/services/storage/ThemeArtifactStorage.ts` | Artifact persistence (67 lines) | ✅ Cloud Storage-backed singleton |
 | `/firebase/functions/src/theme/ThemeHandlers.ts` | CSS delivery endpoint (63 lines) | ✅ Complete |
 | `/firebase/functions/src/middleware/tenant-identification.ts` | Host-based routing (92 lines) | ✅ Complete |
 | `/webapp-v2/src/utils/theme-bootstrap.ts` | Client-side theme loading (72 lines) | ✅ Complete |
