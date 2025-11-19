@@ -610,7 +610,7 @@ interface BaseDTO<T> {
 }
 
 export interface PolicyVersion {
-    text: string;
+    text: PolicyText;
     createdAt: ISOString;
 }
 
@@ -1002,7 +1002,7 @@ export interface CurrentPolicyResponse {
     id: string;
     policyName: PolicyName;
     currentVersionHash: VersionHash;
-    text: string;
+    text: PolicyText;
     createdAt: ISOString;
 }
 
@@ -1156,11 +1156,11 @@ export interface DeletePolicyVersionResponse {
 
 export interface CreatePolicyRequest {
     policyName: PolicyName;
-    text: string;
+    text: PolicyText;
 }
 
 export interface UpdatePolicyRequest {
-    text: string;
+    text: PolicyText;
     publish?: boolean;
 }
 
