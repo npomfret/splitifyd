@@ -84,3 +84,14 @@ This layered approach allows us to start simply and add more robust protections 
     *   Expose our critical HTTP Firebase Functions (e.g., `createUser`, `addExpense`) via a Google Cloud HTTP Load Balancer.
     *   Place **Google Cloud Armor** in front of the load balancer.
     *   Configure Cloud Armor with rate-limiting rules based on IP address to prevent volumetric attacks and rapid account creation.
+
+## Research Findings and Recommendations
+
+### App Check Attestation
+Firebase App Check with the reCAPTCHA Enterprise provider is the recommended "proof of humanity" layer. It allows invisible challenges, configurable token TTLs (30 minutes to 7 days), and a tunable risk threshold (default `0.5`). Start with the 1-hour TTL and default threshold while collecting score distributions before moving to enforcement. Enable monitoring mode initially so we can understand what traffic would have been flagged before blocking it.
+
+### Cloud Armor Rate Limiting
+Cloud Armor best practices suggest staging new policies in preview, ordering rules so explicit denies/throttles can’t be skipped, and combining IP-based limits with upstream bot indicators like App Check. Cloud Armor supports both `throttle` (gradual slowdown) and `rate_based_ban` (temporary quarantine), matching our soft-ban model. Initial thresholds should sit above the 99th percentile of observed traffic and be relaxed during planned surges. When fronting Firebase Functions with an HTTP Load Balancer, use `gcloud compute security-policies` to target specific paths (e.g., `/api/login`) so we can cap per-IP/fingerprint hits while still allowing non-critical endpoints more room.
+
+### Firestore Collection Resilience
+Writing every event to `rate-limit-actors/{actorId}/logs` risks hitting Firestore’s 500 sequential writes per document per second limit. Introduce sharding (append a random suffix or rotate among multiple log documents per actor) or batch counts into periodic summaries to avoid contention. Enable TTL cleanup on the collection so only the most recent minute or two of activity persists, keeping storage and cost predictable.
