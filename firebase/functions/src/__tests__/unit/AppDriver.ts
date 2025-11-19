@@ -56,13 +56,14 @@ import {
 import { ExpenseId, SettlementId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { SystemUserRoles } from '@billsplit-wl/shared';
-import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { StubStorage, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@billsplit-wl/test-support';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { expect } from 'vitest';
 import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
+import { CloudThemeArtifactStorage } from '../../services/storage/CloudThemeArtifactStorage';
 import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
 import { Errors, sendError } from '../../utils/errors';
@@ -100,6 +101,7 @@ export type AuthToken = UserId;
  */
 export class AppDriver {
     private db = new TenantFirestoreTestDatabase();
+    private storage = new StubStorage({ defaultBucketName: 'app-driver-test-bucket' });
     private authService = new StubAuthService();
     private routeDefinitions: RouteDefinition[];
 
@@ -108,7 +110,9 @@ export class AppDriver {
         const componentBuilder = new ComponentBuilder(this.authService, this.db);
 
         // Create populated route definitions using the component builder
-        this.routeDefinitions = createRouteDefinitions(componentBuilder);
+        this.routeDefinitions = createRouteDefinitions(componentBuilder, {
+            themeArtifactStorage: new CloudThemeArtifactStorage(this.storage),
+        });
     }
 
     /**
@@ -116,6 +120,10 @@ export class AppDriver {
      */
     get database() {
         return this.db;
+    }
+
+    get storageStub(): StubStorage {
+        return this.storage;
     }
 
     /**

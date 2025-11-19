@@ -4188,8 +4188,80 @@ describe('app tests', () => {
             });
         });
 
-        // NOTE: Integration tests for POST /api/admin/tenants/publish are in
-        // src/__tests__/integration/tenant/admin-tenant-publish.test.ts
+        describe('POST /api/admin/tenants/publish - publishTenantTheme', () => {
+            const systemAdmin = 'tenant-theme-admin';
+            const tenantId = 'tenant_publish_unit';
+
+            beforeEach(() => {
+                appDriver.storageStub.clear();
+                appDriver.seedAdminUser(systemAdmin, { email: 'theme-admin@test.com' });
+                const tokens = AdminTenantRequestBuilder.forTenant(tenantId).buildTokens();
+                appDriver.seedTenantDocument(tenantId, {
+                    brandingTokens: {
+                        tokens,
+                    },
+                });
+            });
+
+            it('should publish theme artifacts and record metadata', async () => {
+                const result = await appDriver.publishTenantTheme(systemAdmin, { tenantId });
+
+                expect(result).toMatchObject({
+                    cssUrl: expect.stringContaining(`theme-artifacts/${tenantId}/`),
+                    tokensUrl: expect.stringContaining(`theme-artifacts/${tenantId}/`),
+                    artifact: {
+                        version: 1,
+                        generatedBy: systemAdmin,
+                        cssUrl: expect.any(String),
+                        tokensUrl: expect.any(String),
+                    },
+                });
+
+                const tenantRef = await appDriver.database.collection('tenants').doc(tenantId).get();
+                const data = tenantRef.data();
+                expect(data?.brandingTokens?.artifact).toMatchObject({
+                    version: 1,
+                    hash: result.artifact.hash,
+                    generatedBy: systemAdmin,
+                });
+
+                const bucketName = appDriver.storageStub.bucket().name;
+                const cssPath = `theme-artifacts/${tenantId}/${result.artifact.hash}/theme.css`;
+                const tokensPath = `theme-artifacts/${tenantId}/${result.artifact.hash}/tokens.json`;
+
+                const cssFile = appDriver.storageStub.getFile(bucketName, cssPath);
+                const tokensFile = appDriver.storageStub.getFile(bucketName, tokensPath);
+
+                expect(cssFile?.public).toBe(true);
+                expect(cssFile?.metadata?.metadata?.tenantId).toBe(tenantId);
+                expect(tokensFile?.public).toBe(true);
+                expect(tokensFile?.content.toString('utf8')).toContain('"palette"');
+            });
+
+            it('should increment artifact version on subsequent publishes', async () => {
+                const first = await appDriver.publishTenantTheme(systemAdmin, { tenantId });
+                const second = await appDriver.publishTenantTheme(systemAdmin, { tenantId });
+
+                expect(second.artifact.version).toBe(first.artifact.version + 1);
+
+                const tenantRef = await appDriver.database.collection('tenants').doc(tenantId).get();
+                const data = tenantRef.data();
+                expect(data?.brandingTokens?.artifact?.version).toBe(2);
+            });
+
+            it('should reject when tenant is missing branding tokens', async () => {
+                const tenantWithoutTokens = 'tenant_no_tokens';
+                appDriver.seedTenantDocument(tenantWithoutTokens, {});
+
+                await expect(appDriver.publishTenantTheme(systemAdmin, { tenantId: tenantWithoutTokens }))
+                    .rejects.toMatchObject({ code: 'TENANT_TOKENS_MISSING' });
+            });
+
+            it('should reject when tenant does not exist', async () => {
+                await expect(appDriver.publishTenantTheme(systemAdmin, { tenantId: 'unknown-tenant' }))
+                    .rejects.toMatchObject({ code: 'TENANT_NOT_FOUND' });
+            });
+        });
     });
 
     describe('Admin User Management', () => {

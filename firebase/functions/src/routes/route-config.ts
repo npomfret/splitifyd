@@ -1,5 +1,5 @@
 import type { RequestHandler } from 'express';
-import { createHandlerRegistry } from '../ApplicationFactory';
+import { createHandlerRegistry, type HandlerRegistryOptions } from '../ApplicationFactory';
 import { FirestoreCollections } from '../constants';
 import { logger } from '../logger';
 import { ComponentBuilder } from '../services/ComponentBuilder';
@@ -530,8 +530,8 @@ const routeDefinitions: RouteDefinition[] = [
     },
 ];
 
-export function createRouteDefinitions(componentBuilder: ComponentBuilder) {
-    const handlerRegistry = createHandlerRegistry(componentBuilder);
+export function createRouteDefinitions(componentBuilder: ComponentBuilder, options?: HandlerRegistryOptions) {
+    const handlerRegistry = createHandlerRegistry(componentBuilder, options ?? {});
 
     // Populate route definitions with handlers from the registry
     const routes = routeDefinitions.slice();

@@ -25,7 +25,7 @@ import { GroupSecurityHandlers } from './groups/GroupSecurityHandlers';
 import { GroupShareHandlers } from './groups/GroupShareHandlers';
 import { PolicyHandlers } from './policies/PolicyHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
-import { createThemeArtifactStorage } from './services/storage/ThemeArtifactStorage';
+import { createThemeArtifactStorage, type ThemeArtifactStorage } from './services/storage/ThemeArtifactStorage';
 import { TenantAdminService } from './services/tenant/TenantAdminService';
 import { ThemeArtifactService } from './services/tenant/ThemeArtifactService';
 import { SettlementHandlers } from './settlements/SettlementHandlers';
@@ -42,7 +42,11 @@ import {toPolicyId} from "@billsplit-wl/shared";
  * @param db - Database implementation (Firestore or test database)
  * @returns Record mapping handler names to handler functions
  */
-export function createHandlerRegistry(componentBuilder: ComponentBuilder): Record<string, RequestHandler> {
+export interface HandlerRegistryOptions {
+    themeArtifactStorage?: ThemeArtifactStorage;
+}
+
+export function createHandlerRegistry(componentBuilder: ComponentBuilder, options: HandlerRegistryOptions = {}): Record<string, RequestHandler> {
     // Create ComponentBuilder with injected dependencies
     const authService: IAuthService = componentBuilder.buildAuthService();
     const db: IFirestoreDatabase = componentBuilder.getDatabase();
@@ -77,10 +81,11 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const firestoreWriter = componentBuilder.buildFirestoreWriter();
     const userAdminHandlers = new UserAdminHandlers(authService, firestoreWriter);
     const tenantRegistryService = componentBuilder.buildTenantRegistryService();
+    const themeArtifactStorage = options.themeArtifactStorage ?? createThemeArtifactStorage();
     const tenantAdminService = new TenantAdminService(
         componentBuilder.buildFirestoreWriter(),
         componentBuilder.buildFirestoreReader(),
-        new ThemeArtifactService(createThemeArtifactStorage()),
+        new ThemeArtifactService(themeArtifactStorage),
     );
     const tenantAdminHandlers = new TenantAdminHandlers(tenantAdminService);
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader());

@@ -19,6 +19,7 @@ export {
     StubFirestoreDatabase,
 } from '@billsplit-wl/firebase-simulator';
 export type { FirestoreTriggerChangeHandler as FirestoreTriggerHandler } from '@billsplit-wl/firebase-simulator';
+export { StubStorage } from '@billsplit-wl/firebase-simulator';
 export { ActivityFeedEventTypes } from '@billsplit-wl/shared';
 export * from './ApiDriver';
 export * from './builders';

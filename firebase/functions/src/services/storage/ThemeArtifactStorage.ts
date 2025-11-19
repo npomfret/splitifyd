@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { getStorage } from '../../firebase';
+import { createStorage } from '../../storage-wrapper';
 import { CloudThemeArtifactStorage } from './CloudThemeArtifactStorage';
 
 export interface ThemeArtifactPayload {
@@ -22,7 +23,7 @@ let _instance: ThemeArtifactStorage | undefined;
 
 export function createThemeArtifactStorage(): ThemeArtifactStorage {
     if (!_instance) {
-        _instance = new CloudThemeArtifactStorage(() => getStorage());
+        _instance = new CloudThemeArtifactStorage(createStorage(getStorage()));
     }
     return _instance;
 }
