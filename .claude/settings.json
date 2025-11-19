@@ -49,6 +49,7 @@
       "Bash(rm:*)",
       "Bash(sed:*)",
       "Bash(sg:*)",
+      "Bash(test:*)",
       "Bash(tsc:*)",
       "Bash(vite:*)",
       "Bash(vitest:*)",
