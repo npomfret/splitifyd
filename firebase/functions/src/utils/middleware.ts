@@ -4,7 +4,7 @@ import express from 'express';
 import type { AuthenticatedRequest } from '../auth/middleware';
 import { getConfig } from '../client-config';
 import { getIdentityToolkitConfig } from '../client-config';
-import { getAuth, getFirestore } from '../firebase';
+import { getAuth, getFirestore, getStorage } from '../firebase';
 import { logger, LoggerContext } from '../logger';
 import { applyCacheControl } from '../middleware/cache-control';
 import { applySecurityHeaders } from '../middleware/security-headers';
@@ -15,7 +15,7 @@ import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, Local
 import '../types/tenant';
 
 // Initialize services
-const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getIdentityToolkitConfig());
+const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getStorage(), getIdentityToolkitConfig());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const tenantRegistryService = applicationBuilder.buildTenantRegistryService();
 

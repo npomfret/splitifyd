@@ -1,3 +1,4 @@
+import { StubStorage } from '@billsplit-wl/test-support';
 import type { UpdateExpenseRequest } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -431,7 +432,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
         it('should create ExpenseHandlers instance with ExpenseService', () => {
             const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
-            const componentBuilder = new ComponentBuilder(authService, db);
+            const componentBuilder = new ComponentBuilder(authService, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
             const handlers = new ExpenseHandlers(componentBuilder.buildExpenseService());
             expect(handlers).toBeInstanceOf(ExpenseHandlers);
             expect(handlers.createExpense).toBeDefined();

@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { requireInstanceMode } from '../functions/src/shared/instance-mode';
 import { logger } from './logger';
+import { resolvePortsForMode } from './instances-config';
 
 dotenv.config({ path: path.join(__dirname, '../functions/.env') });
 
@@ -21,10 +22,6 @@ let configContent: string = fs.readFileSync(templatePath, 'utf8');
 const instanceMode = requireInstanceMode();
 const isProduction = instanceMode === 'prod';
 
-const requiredVars: readonly string[] = isProduction
-    ? []
-    : (['EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT', 'EMULATOR_STORAGE_PORT', 'EMULATOR_UI_PORT'] as const);
-
 // Optional staging variables with defaults
 const optionalVars: Record<string, string> = {
     FUNCTIONS_SOURCE: 'functions',
@@ -36,37 +33,20 @@ if (isProduction && !process.env.FUNCTIONS_SOURCE) {
     process.exit(1);
 }
 
-const missingVars: string[] = requiredVars.filter((varName) => !process.env[varName]);
-if (missingVars.length > 0) {
-    logger.error('❌ Missing required environment variables', {
-        missing: missingVars,
-        note: 'Ensure .env file is properly configured',
-    });
-    process.exit(1);
-}
+const portConfig = resolvePortsForMode(instanceMode);
+const portPlaceholders: Record<string, number> = {
+    EMULATOR_UI_PORT: portConfig.ui,
+    EMULATOR_AUTH_PORT: portConfig.auth,
+    EMULATOR_FUNCTIONS_PORT: portConfig.functions,
+    EMULATOR_FIRESTORE_PORT: portConfig.firestore,
+    EMULATOR_HOSTING_PORT: portConfig.hosting,
+    EMULATOR_STORAGE_PORT: portConfig.storage,
+};
 
-// Replace required variables (ports)
-if (!isProduction) {
-    requiredVars.forEach((varName) => {
-        const placeholder: string = `{{${varName}}}`;
-        const value: number = parseInt(process.env[varName]!);
-        configContent = configContent.replace(new RegExp(placeholder, 'g'), value.toString());
-    });
-} else {
-    // For production, replace emulator placeholders with default values (won't be used anyway)
-    const defaultPorts = {
-        EMULATOR_AUTH_PORT: '6002',
-        EMULATOR_FUNCTIONS_PORT: '6003',
-        EMULATOR_FIRESTORE_PORT: '6004',
-        EMULATOR_HOSTING_PORT: '6005',
-        EMULATOR_STORAGE_PORT: '6006',
-        EMULATOR_UI_PORT: '6001',
-    };
-    Object.entries(defaultPorts).forEach(([varName, defaultValue]) => {
-        const placeholder: string = `{{${varName}}}`;
-        configContent = configContent.replace(new RegExp(placeholder, 'g'), defaultValue);
-    });
-}
+Object.entries(portPlaceholders).forEach(([placeholderKey, portValue]) => {
+    const placeholder: string = `{{${placeholderKey}}}`;
+    configContent = configContent.replace(new RegExp(placeholder, 'g'), portValue.toString());
+});
 
 // Replace optional variables (staging configuration)
 Object.entries(optionalVars).forEach(([varName, defaultValue]) => {
@@ -90,13 +70,6 @@ if (isProduction) {
     });
 } else {
     logger.info('🔥 Firebase configuration generated', {
-        ports: {
-            ui: process.env.EMULATOR_UI_PORT!,
-            auth: process.env.EMULATOR_AUTH_PORT!,
-            functions: process.env.EMULATOR_FUNCTIONS_PORT!,
-            firestore: process.env.EMULATOR_FIRESTORE_PORT!,
-            hosting: process.env.EMULATOR_HOSTING_PORT!,
-            storage: process.env.EMULATOR_STORAGE_PORT!,
-        },
+        ports: portConfig,
     });
 }

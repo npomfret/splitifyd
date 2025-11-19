@@ -1,0 +1,60 @@
+import { readFileSync, existsSync } from 'fs';
+import path from 'path';
+
+export interface InstancePorts {
+    ui: number;
+    auth: number;
+    functions: number;
+    firestore: number;
+    hosting: number;
+    storage: number;
+}
+
+export interface InstanceConfig {
+    instanceMode: string;
+    ports: InstancePorts;
+}
+
+type InstancesMap = Record<string, InstanceConfig>;
+
+const FIREBASE_DIR = path.join(__dirname, '..');
+const INSTANCES_FILE = path.join(FIREBASE_DIR, 'instances.json');
+
+let cachedInstances: InstancesMap | null = null;
+
+function loadInstancesFile(): InstancesMap {
+    if (cachedInstances) {
+        return cachedInstances;
+    }
+
+    if (!existsSync(INSTANCES_FILE)) {
+        throw new Error('instances.json not found. Ensure firebase/instances.json exists and is committed.');
+    }
+
+    const raw = readFileSync(INSTANCES_FILE, 'utf8');
+    const config = JSON.parse(raw) as InstancesMap;
+    cachedInstances = config;
+    return config;
+}
+
+export function getInstancesConfig(): InstancesMap {
+    return loadInstancesFile();
+}
+
+export function requireInstanceConfig(instanceKey: string): InstanceConfig {
+    const instances = loadInstancesFile();
+    const entry = instances[instanceKey];
+    if (!entry) {
+        throw new Error(`Instance "${instanceKey}" is not defined in firebase/instances.json`);
+    }
+    return entry;
+}
+
+export function resolvePortsForMode(instanceMode: string): InstancePorts {
+    const instances = loadInstancesFile();
+    const entry = Object.values(instances).find((candidate) => candidate.instanceMode === instanceMode);
+    if (!entry) {
+        throw new Error(`No port configuration found for INSTANCE_MODE="${instanceMode}"`);
+    }
+    return entry.ports;
+}

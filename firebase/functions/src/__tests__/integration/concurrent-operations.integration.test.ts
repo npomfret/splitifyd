@@ -2,7 +2,7 @@ import { amountToSmallestUnit, GroupDTO, toDisplayName } from '@billsplit-wl/sha
 import { PooledTestUser } from '@billsplit-wl/shared';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
-import { getAuth, getFirestore } from '../../firebase';
+import { getAuth, getFirestore, getStorage } from '../../firebase';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 
 async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>, limit: number): Promise<PromiseSettledResult<T>[]> {
@@ -46,7 +46,7 @@ async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>,
 describe('Concurrent Operations Integration Tests', () => {
     const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
 
-    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), identityToolkit);
+    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getStorage(), identityToolkit);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     const groupService = applicationBuilder.buildGroupService();
     const groupMemberService = applicationBuilder.buildGroupMemberService();

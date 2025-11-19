@@ -26,7 +26,6 @@ import { GroupSecurityHandlers } from './groups/GroupSecurityHandlers';
 import { GroupShareHandlers } from './groups/GroupShareHandlers';
 import { PolicyHandlers } from './policies/PolicyHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
-import { createThemeArtifactStorage, type ThemeArtifactStorage } from './services/storage/ThemeArtifactStorage';
 import { TenantAdminService } from './services/tenant/TenantAdminService';
 import { ThemeArtifactService } from './services/tenant/ThemeArtifactService';
 import { SettlementHandlers } from './settlements/SettlementHandlers';
@@ -38,15 +37,10 @@ import { UserHandlers } from './user/UserHandlers';
  * Factory function that creates all application handlers with proper dependency injection.
  * This is the single source of truth for handler instantiation.
  *
- * @param authService - Authentication service implementation (Firebase or stub for testing)
- * @param db - Database implementation (Firestore or test database)
+ * @param componentBuilder - Component builder that provides all dependencies
  * @returns Record mapping handler names to handler functions
  */
-export interface HandlerRegistryOptions {
-    themeArtifactStorage?: ThemeArtifactStorage;
-}
-
-export function createHandlerRegistry(componentBuilder: ComponentBuilder, options: HandlerRegistryOptions = {}): Record<string, RequestHandler> {
+export function createHandlerRegistry(componentBuilder: ComponentBuilder): Record<string, RequestHandler> {
     // Create ComponentBuilder with injected dependencies
     const authService: IAuthService = componentBuilder.buildAuthService();
     const db: IFirestoreDatabase = componentBuilder.getDatabase();
@@ -81,11 +75,10 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder, option
     const firestoreWriter = componentBuilder.buildFirestoreWriter();
     const userAdminHandlers = new UserAdminHandlers(authService, firestoreWriter);
     const tenantRegistryService = componentBuilder.buildTenantRegistryService();
-    const themeArtifactStorage = options.themeArtifactStorage ?? createThemeArtifactStorage();
     const tenantAdminService = new TenantAdminService(
         componentBuilder.buildFirestoreWriter(),
         componentBuilder.buildFirestoreReader(),
-        new ThemeArtifactService(themeArtifactStorage),
+        new ThemeArtifactService(componentBuilder.buildThemeArtifactStorage()),
     );
     const tenantAdminHandlers = new TenantAdminHandlers(tenantAdminService);
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader());

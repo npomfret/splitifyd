@@ -1,3 +1,4 @@
+import { StubStorage } from '@billsplit-wl/test-support';
 import { toGroupId, toSettlementId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { ClientUserBuilder, CreateSettlementRequestBuilder, GroupMemberDocumentBuilder, SettlementDocumentBuilder } from '@billsplit-wl/test-support';
@@ -31,7 +32,7 @@ describe('SettlementService - Unit Tests', () => {
         db = new TenantFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
-        const applicationBuilder = new ComponentBuilder(stubAuth, db);
+        const applicationBuilder = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
         settlementService = applicationBuilder.buildSettlementService();
     });
 

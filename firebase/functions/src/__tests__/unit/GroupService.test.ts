@@ -1,3 +1,4 @@
+import { StubStorage } from '@billsplit-wl/test-support';
 import { CreateGroupRequest, toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { CreateGroupRequestBuilder, ExpenseDTOBuilder, GroupMemberDocumentBuilder, GroupUpdateBuilder } from '@billsplit-wl/test-support';
@@ -20,7 +21,7 @@ describe('GroupService - Unit Tests', () => {
         db = new TenantFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
-        applicationBuilder = new ComponentBuilder(stubAuth, db);
+        applicationBuilder = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
         groupService = applicationBuilder.buildGroupService();
     });
 

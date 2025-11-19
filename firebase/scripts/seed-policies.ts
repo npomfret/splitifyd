@@ -35,7 +35,7 @@ initializeFirebase(env);
 import { PolicyId } from '@billsplit-wl/shared';
 import { getIdentityToolkitConfig } from '../functions/src/client-config';
 import { FirestoreCollections } from '../functions/src/constants';
-import { getAuth, getFirestore } from '../functions/src/firebase';
+import { getAuth, getFirestore, getStorage } from '../functions/src/firebase';
 import { ComponentBuilder } from '../functions/src/services/ComponentBuilder';
 
 type IdentityToolkit = ReturnType<typeof getIdentityToolkitConfig>;
@@ -55,7 +55,7 @@ if (env.isEmulator) {
 // Get Firebase instances
 const firestoreDb = getFirestore();
 
-const applicationBuilder = ComponentBuilder.createComponentBuilder(firestoreDb, getAuth(), identityToolkitConfig);
+const applicationBuilder = ComponentBuilder.createComponentBuilder(firestoreDb, getAuth(), getStorage(), identityToolkitConfig);
 const policyService = applicationBuilder.buildPolicyService();
 
 /**

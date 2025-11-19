@@ -1,3 +1,4 @@
+import { StubStorage } from '@billsplit-wl/test-support';
 import { RegisteredUserBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import type { Request, Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -26,7 +27,7 @@ describe('UserBrowserHandlers - Unit Tests', () => {
     beforeEach(() => {
         db = new TenantFirestoreTestDatabase();
         authService = new StubAuthService();
-        componentBuilder = new ComponentBuilder(authService, db);
+        componentBuilder = new ComponentBuilder(authService, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
         handlers = new UserBrowserHandlers(authService, db);
 
         // Setup mock request and response

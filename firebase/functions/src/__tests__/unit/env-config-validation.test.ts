@@ -39,16 +39,7 @@ describe('Environment Configuration Validation', () => {
         });
 
         it('should contain all expected core environment variables', () => {
-            const expectedVars = [
-                'INSTANCE_MODE',
-                'LOG_LEVEL',
-                'EMULATOR_UI_PORT',
-                'EMULATOR_AUTH_PORT',
-                'EMULATOR_FUNCTIONS_PORT',
-                'EMULATOR_FIRESTORE_PORT',
-                'EMULATOR_HOSTING_PORT',
-                'EMULATOR_STORAGE_PORT',
-            ];
+            const expectedVars = ['INSTANCE_MODE', 'DEV_FORM_EMAIL', 'DEV_FORM_PASSWORD', 'WARNING_BANNER'];
 
             expectedVars.forEach((varName) => {
                 expect(templateConfig.variables.has(varName)).toBe(true);
@@ -129,71 +120,24 @@ describe('Environment Configuration Validation', () => {
                 }
             });
 
-            it('should have numeric values for port variables', () => {
-                const portVars = [
-                    'EMULATOR_UI_PORT',
-                    'EMULATOR_AUTH_PORT',
-                    'EMULATOR_FUNCTIONS_PORT',
-                    'EMULATOR_FIRESTORE_PORT',
-                    'EMULATOR_HOSTING_PORT',
-                    'EMULATOR_STORAGE_PORT',
-                ];
-                const invalidPorts: string[] = [];
-
-                portVars.forEach((varName) => {
-                    const envVar = envConfig.variables.get(varName);
-                    if (envVar && envVar.value) {
-                        const port = parseInt(envVar.value, 10);
-                        if (isNaN(port) || port < 1000 || port > 65535) {
-                            invalidPorts.push(`${varName}=${envVar.value}`);
-                        }
-                    }
-                });
-
-                expect(invalidPorts).toEqual([]);
+            it('should not define emulator port variables (moved to instances.json)', () => {
+                const forbiddenVars = Array.from(envConfig.variables.keys()).filter((key) => key.startsWith('EMULATOR_'));
+                expect(forbiddenVars).toEqual([]);
             });
         });
     });
 
     describe('Cross-Environment Validation', () => {
-        it('should have unique emulator ports across all instances', () => {
-            const portMapping = new Map<string, string[]>();
-            const portVars = [
-                'EMULATOR_UI_PORT',
-                'EMULATOR_AUTH_PORT',
-                'EMULATOR_FUNCTIONS_PORT',
-                'EMULATOR_FIRESTORE_PORT',
-                'EMULATOR_HOSTING_PORT',
-                'EMULATOR_STORAGE_PORT',
-            ];
+        it('should not include deprecated emulator port variables in any environment file', () => {
+            const offendingFiles = envFiles
+                .map((file) => {
+                    const envConfig = parseEnvFile(file);
+                    const keys = Array.from(envConfig.variables.keys()).filter((key) => key.startsWith('EMULATOR_'));
+                    return keys.length > 0 ? `${path.basename(file)}: ${keys.join(', ')}` : null;
+                })
+                .filter((entry): entry is string => entry !== null);
 
-            // Only check actual instance files, not the template
-            const instanceFiles = envFiles.filter((file) => !file.includes('.env.example'));
-
-            instanceFiles.forEach((envFile) => {
-                const envConfig = parseEnvFile(envFile);
-                const fileName = path.basename(envFile);
-
-                portVars.forEach((portVar) => {
-                    const envVar = envConfig.variables.get(portVar);
-                    if (envVar && envVar.value) {
-                        const port = envVar.value;
-                        if (!portMapping.has(port)) {
-                            portMapping.set(port, []);
-                        }
-                        portMapping.get(port)!.push(`${fileName}:${portVar}`);
-                    }
-                });
-            });
-
-            const duplicatePorts: string[] = [];
-            portMapping.forEach((instances, port) => {
-                if (instances.length > 1) {
-                    duplicatePorts.push(`Port ${port} used by: ${instances.join(', ')}`);
-                }
-            });
-
-            expect(duplicatePorts).toEqual([]);
+            expect(offendingFiles).toEqual([]);
         });
     });
 });

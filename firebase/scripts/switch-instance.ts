@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { requireInstanceMode } from '../functions/src/shared/instance-mode';
 import { logger } from './logger';
+import { requireInstanceConfig } from './instances-config';
 
 const instance: string | undefined = process.argv[2];
 
@@ -63,13 +64,9 @@ try {
     });
 
     if (!isProduction) {
+        const ports = requireInstanceConfig(expectedMode).ports;
         logger.info('📍 Emulator ports configured', {
-            ui: process.env.EMULATOR_UI_PORT,
-            auth: process.env.EMULATOR_AUTH_PORT,
-            functions: process.env.EMULATOR_FUNCTIONS_PORT,
-            firestore: process.env.EMULATOR_FIRESTORE_PORT,
-            hosting: process.env.EMULATOR_HOSTING_PORT,
-            storage: process.env.EMULATOR_STORAGE_PORT,
+            ...ports,
             nextStep: 'npm run dev:with-data',
         });
     } else {

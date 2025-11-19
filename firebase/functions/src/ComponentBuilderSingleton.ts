@@ -1,6 +1,6 @@
 // Initialize ApplicationBuilder
 import { getIdentityToolkitConfig } from './client-config';
-import { getAuth, getFirestore } from './firebase';
+import { getAuth, getFirestore, getStorage } from './firebase';
 import { ComponentBuilder } from './services/ComponentBuilder';
 
 // Lazy initialization
@@ -12,6 +12,7 @@ export function getComponentBuilder(): ComponentBuilder {
         appBuilder = ComponentBuilder.createComponentBuilder(
             getFirestore(),
             getAuth(),
+            getStorage(),
             getIdentityToolkitConfig(),
         );
     }

@@ -1,3 +1,4 @@
+import { StubStorage } from '@billsplit-wl/test-support';
 import { DisplayName, toGroupId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { ClientUserBuilder, GroupMemberDocumentBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
@@ -28,7 +29,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         stubAuth = new StubAuthService();
 
         // Create UserService via ApplicationBuilder
-        userService = new ComponentBuilder(stubAuth, db).buildUserService();
+        userService = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' })).buildUserService();
 
         // Clear all stub data
         stubAuth.clear();
@@ -436,7 +437,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         const testUserId = 'test-user-id';
 
         beforeEach(() => {
-            validationUserService = new ComponentBuilder(stubAuth, db).buildUserService();
+            validationUserService = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' })).buildUserService();
 
             const email = `${testUserId}@example.com`;
             const displayName = 'Validation User';

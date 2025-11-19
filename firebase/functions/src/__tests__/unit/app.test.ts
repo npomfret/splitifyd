@@ -4206,9 +4206,14 @@ describe('app tests', () => {
             it('should publish theme artifacts and record metadata', async () => {
                 const result = await appDriver.publishTenantTheme(systemAdmin, { tenantId });
 
+                // URLs may be emulator format (with URL encoding) or production format
+                // Decode to handle both cases
+                const decodedCssUrl = decodeURIComponent(result.cssUrl);
+                const decodedTokensUrl = decodeURIComponent(result.tokensUrl);
+
+                expect(decodedCssUrl).toContain(`theme-artifacts/${tenantId}/`);
+                expect(decodedTokensUrl).toContain(`theme-artifacts/${tenantId}/`);
                 expect(result).toMatchObject({
-                    cssUrl: expect.stringContaining(`theme-artifacts/${tenantId}/`),
-                    tokensUrl: expect.stringContaining(`theme-artifacts/${tenantId}/`),
                     artifact: {
                         version: 1,
                         generatedBy: systemAdmin,

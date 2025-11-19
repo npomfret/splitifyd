@@ -8,7 +8,7 @@ import { toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { GroupDTOBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
-import { getAuth, getFirestore } from '../../firebase';
+import { getAuth, getFirestore, getStorage } from '../../firebase';
 import { Timestamp } from '../../firestore-wrapper';
 import { createFirestoreDatabase } from '../../firestore-wrapper';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
@@ -21,7 +21,7 @@ const identityToolkitConfig = {
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
-    const applicationBuilder = ComponentBuilder.createComponentBuilder(firestore, getAuth(), identityToolkitConfig);
+    const applicationBuilder = ComponentBuilder.createComponentBuilder(firestore, getAuth(), getStorage(), identityToolkitConfig);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
 
     test('should be instantiable', () => {

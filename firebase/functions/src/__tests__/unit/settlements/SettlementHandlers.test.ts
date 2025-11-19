@@ -1,3 +1,4 @@
+import { StubStorage } from '@billsplit-wl/test-support';
 import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -834,7 +835,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         it('should create SettlementHandlers instance with SettlementService', () => {
             const db = new TenantFirestoreTestDatabase();
             const authService = new StubAuthService();
-            const componentBuilder = new ComponentBuilder(authService, db);
+            const componentBuilder = new ComponentBuilder(authService, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
             const handlers = new SettlementHandlers(componentBuilder.buildSettlementService());
             expect(handlers).toBeInstanceOf(SettlementHandlers);
             expect(handlers.createSettlement).toBeDefined();

@@ -64,7 +64,6 @@ import { expect } from 'vitest';
 import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FirestoreReader } from '../../services/firestore';
-import { CloudThemeArtifactStorage } from '../../services/storage/CloudThemeArtifactStorage';
 import { RegisterUserResult } from '../../services/UserService2';
 import { Errors, sendError } from '../../utils/errors';
 import { StubAuthService } from './mocks/StubAuthService';
@@ -107,12 +106,10 @@ export class AppDriver {
 
     constructor() {
         // Create a ComponentBuilder with our test dependencies
-        const componentBuilder = new ComponentBuilder(this.authService, this.db);
+        const componentBuilder = new ComponentBuilder(this.authService, this.db, this.storage);
 
         // Create populated route definitions using the component builder
-        this.routeDefinitions = createRouteDefinitions(componentBuilder, {
-            themeArtifactStorage: new CloudThemeArtifactStorage(this.storage),
-        });
+        this.routeDefinitions = createRouteDefinitions(componentBuilder);
     }
 
     /**

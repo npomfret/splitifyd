@@ -1,6 +1,7 @@
 import type { Auth } from 'firebase-admin/auth';
 import type { Firestore } from 'firebase-admin/firestore';
 import { createFirestoreDatabase, IFirestoreDatabase } from '../firestore-wrapper';
+import { createStorage, type IStorage } from '../storage-wrapper';
 import { ActivityFeedService } from './ActivityFeedService';
 import { IAuthService } from './auth';
 import { FirebaseAuthService, type IdentityToolkitConfig } from './auth';
@@ -14,6 +15,8 @@ import { GroupService } from './GroupService';
 import { GroupShareService } from './GroupShareService';
 import { PolicyService } from './PolicyService';
 import { SettlementService } from './SettlementService';
+import { CloudThemeArtifactStorage } from './storage/CloudThemeArtifactStorage';
+import { type ThemeArtifactStorage } from './storage/ThemeArtifactStorage';
 import { TenantRegistryService } from './tenant/TenantRegistryService';
 import { GroupTransactionManager } from './transactions/GroupTransactionManager';
 import { UserPolicyService } from './UserPolicyService';
@@ -35,17 +38,28 @@ export class ComponentBuilder {
     private incrementalBalanceService?: IncrementalBalanceService;
     private activityFeedService?: ActivityFeedService;
     private tenantRegistryService?: TenantRegistryService;
-    private firestoreReader: IFirestoreReader;
-    private firestoreWriter: IFirestoreWriter;
+    private themeArtifactStorage?: ThemeArtifactStorage;
+    private readonly firestoreReader: IFirestoreReader;
+    private readonly firestoreWriter: IFirestoreWriter;
 
-    constructor(private authService: IAuthService, private db: IFirestoreDatabase) {
+    constructor(
+        private readonly authService: IAuthService,
+        private readonly db: IFirestoreDatabase,
+        private readonly storage: IStorage,
+    ) {
         this.firestoreReader = new FirestoreReader(db);
         this.firestoreWriter = new FirestoreWriter(db);
     }
 
-    static createComponentBuilder(firestore: Firestore, auth: Auth, identityToolkit: IdentityToolkitConfig) {
+    static createComponentBuilder(
+        firestore: Firestore,
+        auth: Auth,
+        storage: import('firebase-admin/storage').Storage,
+        identityToolkit: IdentityToolkitConfig,
+    ) {
         // Wrap the Firestore instance with our abstraction layer
         const wrappedDb = createFirestoreDatabase(firestore);
+        const wrappedStorage = createStorage(storage);
 
         const firebaseAuthService = new FirebaseAuthService(
             auth,
@@ -54,7 +68,7 @@ export class ComponentBuilder {
             true, // enableMetrics
         );
 
-        return new ComponentBuilder(firebaseAuthService, wrappedDb);
+        return new ComponentBuilder(firebaseAuthService, wrappedDb, wrappedStorage);
     }
 
     // ========================================================================
@@ -203,6 +217,13 @@ export class ComponentBuilder {
 
     buildAuthService(): IAuthService {
         return this.authService;
+    }
+
+    buildThemeArtifactStorage(): ThemeArtifactStorage {
+        if (!this.themeArtifactStorage) {
+            this.themeArtifactStorage = new CloudThemeArtifactStorage(this.storage);
+        }
+        return this.themeArtifactStorage;
     }
 
     getDatabase(): IFirestoreDatabase {

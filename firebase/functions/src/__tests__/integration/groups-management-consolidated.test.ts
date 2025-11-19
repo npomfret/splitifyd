@@ -12,7 +12,7 @@ import {
 } from '@billsplit-wl/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { beforeEach, describe, expect, test } from 'vitest';
-import { getAuth, getFirestore } from '../../firebase';
+import { getAuth, getFirestore, getStorage } from '../../firebase';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 
 // NOTE: This integration test suite now focuses exclusively on Firebase-specific features that
@@ -24,7 +24,7 @@ import { ComponentBuilder } from '../../services/ComponentBuilder';
 describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
     const apiDriver = new ApiDriver();
     const identityToolkit = getFirebaseEmulatorConfig().identityToolkit;
-    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), identityToolkit);
+    const applicationBuilder = ComponentBuilder.createComponentBuilder(getFirestore(), getAuth(), getStorage(), identityToolkit);
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     let users: PooledTestUser[];
 

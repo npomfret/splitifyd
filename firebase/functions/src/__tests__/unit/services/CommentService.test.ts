@@ -1,3 +1,4 @@
+import { StubStorage } from '@billsplit-wl/test-support';
 import { toGroupId } from '@billsplit-wl/shared';
 import { toCommentId, toExpenseId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
@@ -19,7 +20,7 @@ describe('CommentService - Consolidated Tests', () => {
         db = new TenantFirestoreTestDatabase();
         stubAuth = new StubAuthService();
 
-        const applicationBuilder = new ComponentBuilder(stubAuth, db);
+        const applicationBuilder = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
 
         commentService = applicationBuilder.buildCommentService();
     });

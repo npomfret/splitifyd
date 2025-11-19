@@ -2,14 +2,14 @@ import { AuthenticatedUser, SystemUserRoles, toDisplayName } from '@billsplit-wl
 import { NextFunction, Request, Response } from 'express';
 import { getIdentityToolkitConfig } from '../client-config';
 import { AUTH } from '../constants';
-import { getAuth, getFirestore } from '../firebase';
+import { getAuth, getFirestore, getStorage } from '../firebase';
 import { logger } from '../logger';
 import { LoggerContext } from '../logger';
 import { ComponentBuilder } from '../services/ComponentBuilder';
 import { Errors, sendError } from '../utils/errors';
 
 const firestore = getFirestore();
-const applicationBuilder = ComponentBuilder.createComponentBuilder(firestore, getAuth(), getIdentityToolkitConfig());
+const applicationBuilder = ComponentBuilder.createComponentBuilder(firestore, getAuth(), getStorage(), getIdentityToolkitConfig());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 const authService = applicationBuilder.buildAuthService();
 

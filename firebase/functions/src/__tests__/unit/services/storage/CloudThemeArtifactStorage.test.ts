@@ -1,21 +1,17 @@
 import { StubStorage } from '@billsplit-wl/firebase-simulator';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { CloudThemeArtifactStorage } from '../../../../services/storage/CloudThemeArtifactStorage';
 
 describe('CloudThemeArtifactStorage', () => {
     let stubStorage: StubStorage;
-    let storage: CloudThemeArtifactStorage;
 
     beforeEach(() => {
         stubStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
-        storage = new CloudThemeArtifactStorage(stubStorage);
     });
 
-    afterEach(() => {
-        delete process.env.FIREBASE_STORAGE_EMULATOR_HOST;
-    });
+    it('generates production URLs when storageEmulatorHost is null', async () => {
+        const storage = new CloudThemeArtifactStorage(stubStorage, null);
 
-    it('uploads css and tokens content and returns public urls', async () => {
         const result = await storage.save({
             tenantId: 'tenant-123',
             hash: 'abc',
@@ -29,8 +25,8 @@ describe('CloudThemeArtifactStorage', () => {
         expect(result.tokensUrl).toBe('https://storage.googleapis.com/test-bucket/theme-artifacts/tenant-123/abc/tokens.json');
     });
 
-    it('uses emulator url pattern when FIREBASE_STORAGE_EMULATOR_HOST is set', async () => {
-        process.env.FIREBASE_STORAGE_EMULATOR_HOST = 'localhost:9199';
+    it('generates emulator URLs when storageEmulatorHost is provided', async () => {
+        const storage = new CloudThemeArtifactStorage(stubStorage, 'localhost:9199');
 
         const result = await storage.save({
             tenantId: 'tenant-123',

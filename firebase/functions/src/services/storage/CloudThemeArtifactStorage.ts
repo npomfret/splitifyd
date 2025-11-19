@@ -3,7 +3,14 @@ import type { IStorage } from '../../storage-wrapper';
 import type { ThemeArtifactLocation, ThemeArtifactPayload, ThemeArtifactStorage } from './ThemeArtifactStorage';
 
 export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
-    constructor(private readonly storage: IStorage) {}
+    private readonly storageEmulatorHost: string | null;
+
+    constructor(
+        private readonly storage: IStorage,
+        storageEmulatorHost: string | null | undefined = process.env.FIREBASE_STORAGE_EMULATOR_HOST,
+    ) {
+        this.storageEmulatorHost = storageEmulatorHost ?? null;
+    }
 
     async save(payload: ThemeArtifactPayload): Promise<ThemeArtifactLocation> {
         const bucket = this.storage.bucket();
@@ -51,11 +58,9 @@ export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
         let cssUrl: string;
         let tokensUrl: string;
 
-        const storageHost = process.env.FIREBASE_STORAGE_EMULATOR_HOST;
-
-        if (storageHost) {
+        if (this.storageEmulatorHost) {
             // Emulator URL format: http://localhost:PORT/v0/b/BUCKET/o/PATH
-            const baseUrl = `http://${storageHost}/v0/b/${bucket.name}/o`;
+            const baseUrl = `http://${this.storageEmulatorHost}/v0/b/${bucket.name}/o`;
             cssUrl = `${baseUrl}/${encodeURIComponent(cssPath)}?alt=media`;
             tokensUrl = `${baseUrl}/${encodeURIComponent(tokensPath)}?alt=media`;
         } else {

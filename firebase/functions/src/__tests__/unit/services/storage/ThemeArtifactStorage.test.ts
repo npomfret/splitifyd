@@ -1,43 +1,25 @@
 import { StubStorage } from '@billsplit-wl/firebase-simulator';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-let stubStorage: StubStorage;
-const createStorageMock = vi.fn(() => stubStorage);
-const getStorageMock = vi.fn(() => ({}));
-
-vi.mock('../../../../storage-wrapper', async () => {
-    const actual = await vi.importActual<typeof import('../../../../storage-wrapper')>('../../../../storage-wrapper');
-    return {
-        ...actual,
-        createStorage: createStorageMock,
-    };
-});
-
-vi.mock('../../../../firebase', () => ({
-    getStorage: getStorageMock,
-}));
+import { beforeEach, describe, expect, it } from 'vitest';
+import { computeSha256, createThemeArtifactStorage, resetThemeArtifactStorage } from '../../../../services/storage/ThemeArtifactStorage';
 
 describe('ThemeArtifactStorage factory', () => {
+    let stubStorage: StubStorage;
+
     beforeEach(() => {
+        // Reset singleton for test isolation
+        resetThemeArtifactStorage();
         stubStorage = new StubStorage({ defaultBucketName: 'unit-theme-bucket' });
-        createStorageMock.mockClear();
-        getStorageMock.mockClear();
-        vi.resetModules();
     });
 
-    it('creates a singleton and wires through createStorage', async () => {
-        const { createThemeArtifactStorage } = await import('../../../../services/storage/ThemeArtifactStorage');
-        const first = createThemeArtifactStorage();
-        const second = createThemeArtifactStorage();
+    it('creates a singleton and wires through injected storage', () => {
+        const first = createThemeArtifactStorage({ storage: stubStorage, storageEmulatorHost: null });
+        const second = createThemeArtifactStorage({ storage: stubStorage, storageEmulatorHost: null });
 
         expect(first).toBe(second);
-        expect(createStorageMock).toHaveBeenCalledTimes(1);
-        expect(getStorageMock).toHaveBeenCalledTimes(1);
     });
 
     it('saves artifacts via the stub storage instance', async () => {
-        const { createThemeArtifactStorage } = await import('../../../../services/storage/ThemeArtifactStorage');
-        const storage = createThemeArtifactStorage();
+        const storage = createThemeArtifactStorage({ storage: stubStorage, storageEmulatorHost: null });
 
         const payload = {
             tenantId: 'tenant-abc',
@@ -59,9 +41,7 @@ describe('ThemeArtifactStorage factory', () => {
         expect(tokensSnapshot?.content.toString('utf8')).toBe(payload.tokensJson);
     });
 
-    it('computes stable SHA-256 hashes', async () => {
-        const { computeSha256 } = await import('../../../../services/storage/ThemeArtifactStorage');
-
+    it('computes stable SHA-256 hashes', () => {
         const value = computeSha256('hello world');
         const sameValue = computeSha256('hello world');
         const differentValue = computeSha256('goodbye');

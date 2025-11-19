@@ -1,3 +1,4 @@
+import { StubStorage } from '@billsplit-wl/test-support';
 import { toExpenseId, toGroupId } from '@billsplit-wl/shared';
 import { convertToISOString, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, ExpenseSplitBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
@@ -14,7 +15,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     beforeEach(() => {
         db = new TenantFirestoreTestDatabase();
         const stubAuth = new StubAuthService();
-        const applicationBuilder = new ComponentBuilder(stubAuth, db);
+        const applicationBuilder = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
         expenseService = applicationBuilder.buildExpenseService();
     });
 
