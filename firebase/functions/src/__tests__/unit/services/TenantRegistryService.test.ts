@@ -1,11 +1,4 @@
-import {
-    type TenantConfig,
-    toTenantDomainName,
-    toTenantId,
-
-
-
-} from '@billsplit-wl/shared';
+import { type TenantConfig, toTenantDomainName, toTenantId } from '@billsplit-wl/shared';
 import { TenantConfigBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';

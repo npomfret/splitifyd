@@ -17,6 +17,7 @@ import type { UserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { toExpenseId } from '@billsplit-wl/shared';
 import { toPassword } from '@billsplit-wl/shared';
+import { toPolicyId } from '@billsplit-wl/shared';
 import {
     CreateExpenseRequestBuilder,
     CreateGroupRequestBuilder,
@@ -32,7 +33,6 @@ import {
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AdminTenantRequestBuilder } from './AdminTenantRequestBuilder';
 import { AppDriver } from './AppDriver';
-import {toPolicyId} from "@billsplit-wl/shared";
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;
 
@@ -4254,12 +4254,14 @@ describe('app tests', () => {
                 appDriver.seedTenantDocument(tenantWithoutTokens, {});
 
                 await expect(appDriver.publishTenantTheme(systemAdmin, { tenantId: tenantWithoutTokens }))
-                    .rejects.toMatchObject({ code: 'TENANT_TOKENS_MISSING' });
+                    .rejects
+                    .toMatchObject({ code: 'TENANT_TOKENS_MISSING' });
             });
 
             it('should reject when tenant does not exist', async () => {
                 await expect(appDriver.publishTenantTheme(systemAdmin, { tenantId: 'unknown-tenant' }))
-                    .rejects.toMatchObject({ code: 'TENANT_NOT_FOUND' });
+                    .rejects
+                    .toMatchObject({ code: 'TENANT_NOT_FOUND' });
             });
         });
     });

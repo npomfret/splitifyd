@@ -1,6 +1,6 @@
 import type { ClientUser, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@billsplit-wl/shared';
+import { toPolicyId } from '@billsplit-wl/shared';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
-import {toPolicyId} from "@billsplit-wl/shared";
 
 interface HandlerOptions {
     delayMs?: number;

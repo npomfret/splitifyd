@@ -13,6 +13,7 @@ import { TestUserPoolService } from './test-pool/TestUserPoolService';
 import { getEnhancedConfigResponse } from './utils/config-response';
 
 // Handler imports
+import { toPolicyId } from '@billsplit-wl/shared';
 import { ActivityFeedHandlers } from './activity/ActivityHandlers';
 import { UserAdminHandlers } from './admin/UserAdminHandlers';
 import { TenantBrowserHandlers } from './browser/TenantBrowserHandlers';
@@ -32,7 +33,6 @@ import { SettlementHandlers } from './settlements/SettlementHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
 import { UserHandlers } from './user/UserHandlers';
-import {toPolicyId} from "@billsplit-wl/shared";
 
 /**
  * Factory function that creates all application handlers with proper dependency injection.

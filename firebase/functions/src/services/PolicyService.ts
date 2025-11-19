@@ -1,17 +1,17 @@
 import {
-    PolicyDTO,
-    PolicyVersion,
-    toISOString,
-    VersionHash,
-    PolicyId,
-    PolicyName,
-    ListPoliciesResponse,
-    PolicyVersionResponse,
-    UpdatePolicyResult,
-    PublishPolicyResult,
     CreatePolicyResult,
     CurrentPolicyResponse,
+    ListPoliciesResponse,
+    PolicyDTO,
+    PolicyId,
+    PolicyName,
+    PolicyVersion,
+    PolicyVersionResponse,
+    PublishPolicyResult,
+    toISOString,
     toPolicyId,
+    UpdatePolicyResult,
+    VersionHash,
 } from '@billsplit-wl/shared';
 import * as crypto from 'crypto';
 import { z } from 'zod';
@@ -291,10 +291,11 @@ export class PolicyService {
      * Generate ID from policy name (kebab-case)
      */
     private generatePolicyId(policyName: PolicyName): PolicyId {
-        return toPolicyId(policyName
-            .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, '')
+        return toPolicyId(
+            policyName
+                .toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-z0-9-]/g, ''),
         );
     }
 

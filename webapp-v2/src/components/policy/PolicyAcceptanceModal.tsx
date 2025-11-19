@@ -1,6 +1,7 @@
 import { apiClient, type PolicyAcceptanceStatusDTO } from '@/app/apiClient.ts';
 import { ErrorState, LoadingSpinner, Tooltip } from '@/components/ui';
 import { logError } from '@/utils/browser-logger.ts';
+import { PolicyId } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
@@ -8,7 +9,6 @@ import { Card } from '../ui/Card';
 import { Container } from '../ui/Container';
 import { Stack } from '../ui/Stack';
 import { PolicyRenderer } from './PolicyRenderer';
-import { PolicyId } from "@billsplit-wl/shared";
 
 interface PolicyAcceptanceModalProps {
     policies: PolicyAcceptanceStatusDTO[];

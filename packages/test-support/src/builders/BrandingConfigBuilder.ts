@@ -8,18 +8,7 @@ import {
     toTenantSecondaryColor,
     toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
-import type {
-    BrandingConfig,
-    BrandingMarketingFlags,
-
-
-
-
-
-
-
-
-} from '@billsplit-wl/shared';
+import type { BrandingConfig, BrandingMarketingFlags } from '@billsplit-wl/shared';
 
 export class BrandingConfigBuilder {
     private config: Partial<BrandingConfig> = {};

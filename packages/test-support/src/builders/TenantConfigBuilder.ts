@@ -1,12 +1,4 @@
-import {
-    toISOString,
-    toTenantAppName,
-    toTenantFaviconUrl,
-    toTenantId,
-    toTenantLogoUrl,
-    toTenantPrimaryColor,
-    toTenantSecondaryColor,
-} from '@billsplit-wl/shared';
+import { toISOString, toTenantAppName, toTenantFaviconUrl, toTenantId, toTenantLogoUrl, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
 import type { ISOString, TenantConfig, TenantId } from '@billsplit-wl/shared';
 
 export class TenantConfigBuilder {

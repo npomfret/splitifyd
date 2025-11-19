@@ -50,10 +50,10 @@ import {
     UserRegistration,
     UserToken,
 } from '@billsplit-wl/shared';
+import { PolicyText } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
-import {PolicyText} from "@billsplit-wl/shared";
 
 const randomLetters = (min: number, max: number): string => {
     const length = Math.floor(Math.random() * (max - min + 1)) + min;

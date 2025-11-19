@@ -1,10 +1,10 @@
+import { toPolicyId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
-import {toPolicyId} from "@billsplit-wl/shared";
 
 describe('PolicyHandlers - Unit Tests', () => {
     let appDriver: AppDriver;

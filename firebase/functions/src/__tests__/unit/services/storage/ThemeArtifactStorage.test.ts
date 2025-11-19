@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StubStorage } from '@billsplit-wl/firebase-simulator';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 let stubStorage: StubStorage;
 const createStorageMock = vi.fn(() => stubStorage);

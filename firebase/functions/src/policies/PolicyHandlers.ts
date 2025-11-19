@@ -1,11 +1,11 @@
 import { CreatePolicyResponse, DeletePolicyVersionResponse, PublishPolicyResponse, UpdatePolicyResponse } from '@billsplit-wl/shared';
+import { toPolicyId } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import { PolicyService } from '../services/PolicyService';
 import { validateCreatePolicy, validatePublishPolicy, validateUpdatePolicy } from './validation';
-import {toPolicyId} from "@billsplit-wl/shared";
 
 export class PolicyHandlers {
     constructor(

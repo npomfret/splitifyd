@@ -1,7 +1,6 @@
 import { toGroupName } from '@billsplit-wl/shared';
 import type { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, ActivityFeedItemDetails, CommentId, ExpenseId, ISOString, SettlementId } from '@billsplit-wl/shared';
 import type { GroupId, GroupName, UserId } from '@billsplit-wl/shared';
-import type { ITransaction } from '../firestore-wrapper';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore';

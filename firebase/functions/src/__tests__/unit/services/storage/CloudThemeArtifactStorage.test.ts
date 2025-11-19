@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { StubStorage } from '@billsplit-wl/firebase-simulator';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { CloudThemeArtifactStorage } from '../../../../services/storage/CloudThemeArtifactStorage';
 
 describe('CloudThemeArtifactStorage', () => {

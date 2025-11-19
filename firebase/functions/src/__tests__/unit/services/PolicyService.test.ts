@@ -1,3 +1,4 @@
+import { toPolicyId } from '@billsplit-wl/shared';
 import { convertToISOString, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { PolicyDocumentBuilder } from '@billsplit-wl/test-support';
 import * as crypto from 'crypto';
@@ -6,7 +7,6 @@ import { HTTP_STATUS } from '../../../constants';
 import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { PolicyService } from '../../../services/PolicyService';
-import {toPolicyId} from "@billsplit-wl/shared";
 
 /**
  * Consolidated PolicyService Unit Tests

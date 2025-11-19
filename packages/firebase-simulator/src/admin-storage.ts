@@ -1,5 +1,5 @@
-import type * as admin from 'firebase-admin';
 import type { Bucket, File } from '@google-cloud/storage';
+import type * as admin from 'firebase-admin';
 import type { IStorage, IStorageBucket, IStorageFile, StorageFileContent, StorageSaveOptions } from './storage-types';
 
 class StorageWrapper implements IStorage {
