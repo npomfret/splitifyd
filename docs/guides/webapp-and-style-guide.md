@@ -4,14 +4,15 @@
 1. [🚨 MANDATORY UX CHANGE RULES 🚨](#-mandatory-ux-change-rules-)
 2. [CRITICAL: Tenant Configuration Rules](#critical-tenant-configuration-rules)
 3. [Tenant Theming System](#tenant-theming-system)
-4. [Stack & Layout](#stack--layout)
-5. [State & Stores](#state--stores)
-6. [API & Data Flow](#api--data--flow)
-7. [Navigation & Routing](#navigation--routing)
-8. [UI Components & Styling](#ui-components--styling)
-9. [Error & Financial Semantics](#error--financial-semantics)
-10. [Testing & Tooling](#testing--tooling)
-11. [Observability & Resilience](#observability--resilience)
+4. [Motion Enhancement System (Phase 2)](#motion-enhancement-system-phase-2)
+5. [Stack & Layout](#stack--layout)
+6. [State & Stores](#state--stores)
+7. [API & Data Flow](#api--data--flow)
+8. [Navigation & Routing](#navigation--routing)
+9. [UI Components & Styling](#ui-components--styling)
+10. [Error & Financial Semantics](#error--financial-semantics)
+11. [Testing & Tooling](#testing--tooling)
+12. [Observability & Resilience](#observability--resilience)
 
 ---
 
@@ -427,12 +428,16 @@ const auroraSemantics: BrandingTokens['semantics'] = {
 
 ### Admin Pages DO NOT Follow Tenant Branding
 
-**Admin pages** (tenant management, system configuration, analytics) have their own **fixed, consistent style** that is **completely separate** from tenant branding.
+**⚠️ CURRENT STATUS (2025-11-19): Admin page isolation is PLANNED but NOT YET IMPLEMENTED.**
+
+Admin pages currently inherit tenant theming (unintended behavior). Full isolation is documented in Phase 4 of the Modern UI Overhaul plan (`tasks/modern-ui-overhaul-plan.md`).
+
+**Target behavior** (planned): Admin pages (tenant management, system configuration, analytics) will have their own **fixed, consistent style** that is **completely separate** from tenant branding.
 
 **Why this matters:**
 - Admins need a consistent experience across all tenants
 - Clear visual distinction between "admin mode" and "user mode"
-- Admin UI never changes when switching between tenants
+- Admin UI should never change when switching between tenants
 - Professional, neutral appearance for system management
 
 ---
@@ -534,7 +539,9 @@ webapp-v2/src/components/dashboard/GroupCard.tsx
 
 ### Admin Page Checklist
 
-When creating an admin page:
+**⚠️ NOTE:** Since admin isolation is not yet implemented, these are **target guidelines** for when Phase 4 is complete.
+
+When creating an admin page (future state):
 
 - [ ] File is in `src/pages/admin/` or `src/components/admin/`
 - [ ] Uses fixed Tailwind colors (slate, blue, red, green)
@@ -543,12 +550,12 @@ When creating an admin page:
 - [ ] Has clear "Admin" header or indicator
 - [ ] Uses consistent admin color palette across all admin pages
 
-When creating a user page:
+When creating a user page (current requirement):
 
 - [ ] File is NOT in `/admin/` directory
 - [ ] Uses ONLY semantic tokens
 - [ ] Works for both Aurora (dark) and Brutalist (light) themes
-- [ ] NO hardcoded colors
+- [ ] NO hardcoded colors (except in `/admin/` pages - future exception)
 - [ ] Loads tenant branding from `/api/theme.css`
 
 ---
@@ -753,6 +760,316 @@ The system ships with **two distinct demo tenants** for local development:
 
 ---
 
+## Motion Enhancement System (Phase 2)
+
+### Overview
+BillSplit's motion system provides **tenant-controlled animations and interactions** that enhance UX while maintaining accessibility. Each tenant can enable/disable motion effects via CSS variables, allowing Aurora to have rich animations while Brutalist remains static.
+
+### Tenant-Controlled Motion Flags
+
+Each tenant's theme defines motion behavior via CSS variables:
+
+```css
+/* Aurora theme - motion enabled */
+:root {
+  --motion-enable-magnetic-hover: true;
+  --motion-enable-scroll-reveal: true;
+  --motion-enable-parallax: true;
+}
+
+/* Brutalist theme - motion disabled */
+:root {
+  --motion-enable-magnetic-hover: false;
+  --motion-enable-scroll-reveal: false;
+  --motion-enable-parallax: false;
+}
+```
+
+**Motion respects `prefers-reduced-motion`**: All animations automatically disable when the user has reduced motion preferences.
+
+---
+
+### Motion Hooks
+
+#### `useThemeConfig` - Read Motion Flags
+
+Reads motion configuration from CSS variables:
+
+```tsx
+import { useThemeConfig } from '@/app/hooks/useThemeConfig';
+
+export function MyComponent() {
+  const { motion } = useThemeConfig();
+
+  if (motion.enableMagneticHover) {
+    // Enable magnetic hover effect
+  }
+
+  return <div>Content</div>;
+}
+```
+
+#### `useMagneticHover` - Cursor-Following Effect
+
+Makes elements smoothly follow the cursor with magnetic attraction:
+
+```tsx
+import { useMagneticHover } from '@/app/hooks/useMagneticHover';
+
+export function MagneticCard() {
+  const ref = useMagneticHover<HTMLDivElement>({
+    strength: 0.3,        // How far element moves (0.0 - 1.0)
+    transitionDuration: 400,  // Spring-back duration (ms)
+    disabled: false,      // Disable for specific elements
+  });
+
+  return (
+    <div ref={ref} className="card">
+      Follows your cursor!
+    </div>
+  );
+}
+```
+
+**Automatic behavior:**
+- Enabled by default on Aurora theme (`--motion-enable-magnetic-hover: true`)
+- Disabled automatically on Brutalist theme (`--motion-enable-magnetic-hover: false`)
+- Disabled when button/element is `disabled={true}`
+- Uses GPU-accelerated transforms for 60fps performance
+- Respects `prefers-reduced-motion`
+
+#### `useScrollReveal` - Fade-In Animations
+
+Reveals elements with fade-up animation when they scroll into view:
+
+```tsx
+import { useScrollReveal } from '@/app/hooks/useScrollReveal';
+
+export function RevealCard() {
+  const { ref, isVisible } = useScrollReveal({
+    threshold: 0.25,  // Trigger when 25% visible
+    delay: 100,       // Delay before revealing (ms)
+  });
+
+  return (
+    <div
+      ref={ref}
+      className={`fade-up ${isVisible ? 'fade-up-visible' : ''}`}
+    >
+      Fades in on scroll
+    </div>
+  );
+}
+```
+
+**CSS classes** (defined in `global.css`):
+```css
+.fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-up-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+```
+
+---
+
+### Button Component - Magnetic Hover
+
+The `Button` component has **magnetic hover enabled by default**:
+
+```tsx
+import { Button } from '@/components/ui/Button';
+
+// ✅ Magnetic hover enabled (default)
+<Button onClick={handleClick}>
+  Hover me
+</Button>
+
+// ✅ Explicitly enable magnetic hover
+<Button magnetic={true} onClick={handleClick}>
+  Magnetic button
+</Button>
+
+// ✅ Disable magnetic hover (for toggle buttons, etc.)
+<Button magnetic={false} onClick={handleToggle}>
+  Toggle Option
+</Button>
+
+// ✅ Toggle button support
+<Button
+  magnetic={false}
+  aria-pressed={isActive}
+  onClick={handleToggle}
+>
+  Active: {isActive ? 'Yes' : 'No'}
+</Button>
+```
+
+**When to disable magnetic hover:**
+- Toggle buttons (Active/Archived filters, switches)
+- Buttons in compact layouts where movement could be distracting
+- Accessibility reasons (if motion conflicts with screen readers)
+
+**Automatic behavior:**
+- Aurora theme: Buttons follow cursor with 0.3 strength
+- Brutalist theme: Magnetic effect automatically disabled via CSS variable
+- Disabled buttons: Magnetic effect disabled via `disabled` prop
+
+---
+
+### Card Component - Magnetic Hover
+
+The `Card` component supports magnetic hover via the `magnetic` prop:
+
+```tsx
+import { Card } from '@/components/ui/Card';
+
+// ✅ Enable magnetic hover on cards
+<Card magnetic={true} variant="glass">
+  Hover me!
+</Card>
+
+// ❌ Default is no magnetic hover (opt-in for cards)
+<Card variant="base">
+  Static card
+</Card>
+```
+
+---
+
+### Testing Motion Components
+
+#### Testing Gradient Backgrounds
+
+Primary buttons use **CSS gradients** (`background-image`), not solid colors:
+
+```tsx
+// ❌ WRONG - Checks backgroundColor (always returns default/transparent)
+const backgroundColor = await button.evaluate(el =>
+  getComputedStyle(el).backgroundColor
+);
+expect(backgroundColor).toBe('rgb(52, 211, 153)');  // FAILS!
+
+// ✅ CORRECT - Checks backgroundImage gradient
+const backgroundImage = await button.evaluate(el =>
+  getComputedStyle(el).backgroundImage
+);
+
+// Extract RGB values from gradient
+const rgbMatches = backgroundImage.match(/rgba?\(([^)]+)\)/g);
+expect(rgbMatches).toBeTruthy();
+expect(rgbMatches![0]).toContain('52, 211, 153');
+```
+
+**Helper function** (used in tests):
+```tsx
+async function expectGradientContainsColor(
+  locator: Locator,
+  rgbTriplet: string
+): Promise<void> {
+  const backgroundImage = await locator.evaluate(el =>
+    getComputedStyle(el).backgroundImage
+  );
+
+  const rgbMatches = backgroundImage.match(/rgba?\(([^)]+)\)/g);
+  if (!rgbMatches || rgbMatches.length === 0) {
+    throw new Error(`No RGB colors found in gradient: ${backgroundImage}`);
+  }
+
+  const expectedRgb = parseRgbString(rgbTriplet);
+  const gradientContainsExpectedColor = rgbMatches.some(rgb => {
+    const actualRgb = normalizeCssColor(rgb);
+    return actualRgb[0] === expectedRgb[0]
+      && actualRgb[1] === expectedRgb[1]
+      && actualRgb[2] === expectedRgb[2];
+  });
+
+  expect(gradientContainsExpectedColor).toBe(true);
+}
+
+// Usage in tests:
+await expectGradientContainsColor(signUpButton, '52 211 153');
+```
+
+#### Testing Theme-Specific Behavior
+
+```tsx
+test('Aurora theme has magnetic hover', async ({ page }) => {
+  await page.goto('http://localhost:5173');
+
+  // Check CSS variable
+  const magneticEnabled = await page.evaluate(() => {
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue('--motion-enable-magnetic-hover')
+      .trim();
+    return value === 'true';
+  });
+
+  expect(magneticEnabled).toBe(true);
+});
+
+test('Brutalist theme disables magnetic hover', async ({ page }) => {
+  await page.goto('http://127.0.0.1:5173');
+
+  const magneticEnabled = await page.evaluate(() => {
+    const value = getComputedStyle(document.documentElement)
+      .getPropertyValue('--motion-enable-magnetic-hover')
+      .trim();
+    return value === 'true';
+  });
+
+  expect(magneticEnabled).toBe(false);
+});
+```
+
+---
+
+### Motion System Architecture
+
+**Files:**
+- `webapp-v2/src/app/hooks/useThemeConfig.ts` - Reads motion flags from CSS variables
+- `webapp-v2/src/app/hooks/useMagneticHover.ts` - Magnetic cursor-following effect
+- `webapp-v2/src/app/hooks/useScrollReveal.ts` - Scroll-triggered fade-in animations
+- `webapp-v2/src/styles/global.css` - `.fade-up` utility classes
+- `webapp-v2/src/components/ui/Button.tsx` - Magnetic hover integration
+- `webapp-v2/src/components/ui/Card.tsx` - Magnetic hover support
+
+**Theme fixtures** (`packages/shared/src/fixtures/branding-tokens.ts`):
+```typescript
+// Aurora theme - motion enabled
+const auroraMotion: BrandingTokens['motion'] = {
+  enableParallax: true,
+  enableMagneticHover: true,
+  enableScrollReveal: true,
+  defaultDuration: 320,
+  defaultEasing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+};
+
+// Brutalist theme - motion disabled
+const brutalistMotion: BrandingTokens['motion'] = {
+  enableParallax: false,
+  enableMagneticHover: false,
+  enableScrollReveal: false,
+  defaultDuration: 0,
+  defaultEasing: 'linear',
+};
+```
+
+---
+
 ## Stack & Layout
 - **Framework**: Preact + TypeScript on Vite
 - **Routing**: `preact-router` with lazy-loaded pages
@@ -794,11 +1111,13 @@ The system ships with **two distinct demo tenants** for local development:
 
 ### Component Library
 UI kit under `components/ui` provides audited components:
-- `Button` - All variants use semantic tokens
-- `Card` - Surfaces with semantic backgrounds
+- `Button` - All variants use semantic tokens, magnetic hover enabled by default (tenant-controlled)
+- `Card` - Surfaces with semantic backgrounds, optional magnetic hover support
 - `Input` - Form controls with semantic borders/text
 - `Typography` - Text components with semantic colors
 - `Modal`, `Alert`, `Badge` - Status-aware components
+
+**Motion enhancements:** See [Motion Enhancement System](#motion-enhancement-system-phase-2) for details on magnetic hover, scroll reveals, and theme-controlled animations.
 
 ### Creating New Components
 
