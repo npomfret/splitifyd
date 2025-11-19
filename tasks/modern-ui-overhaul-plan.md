@@ -391,17 +391,10 @@ test.describe('Theme Switching', () => {
   - Color contrast checks
   - Add to CI pipeline
 
-- [ ] Day 4-5: Performance audit (2-3 hours)
-  - Measure theme CSS load time
-  - Run Lighthouse on both themes
-  - Optimize CSS size if needed
-  - Add performance budgets to CI
-
 **Acceptance:**
 - ✅ Theme CSS served from Cloud Storage
 - ✅ Custom fonts load correctly
 - ✅ All E2E tests pass
-- ✅ Lighthouse score 90+ on both themes
 - ✅ **Ready to ship to production**
 
 ### Phase 2: Motion Enhancement (1 week)
@@ -743,30 +736,6 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 });
 ```
 
-### Performance Budget Tests
-```typescript
-test('Theme CSS loads within budget', async ({ page }) => {
-  await page.goto('http://localhost:5173');
-
-  const themeCssRequest = await page.waitForResponse(
-    resp => resp.url().includes('/api/theme.css')
-  );
-
-  const cssText = await themeCssRequest.text();
-  const sizeKB = new Blob([cssText]).size / 1024;
-
-  expect(sizeKB).toBeLessThan(50); // <50KB budget
-});
-
-test('Lighthouse performance score', async ({ page }) => {
-  await page.goto('http://localhost:5173');
-  const result = await lighthouse(page.url());
-  expect(result.lhr.categories.performance.score).toBeGreaterThan(0.90);
-});
-```
-
----
-
 ## Success Criteria (Updated)
 
 ### Phase 1: Production Ready
@@ -780,7 +749,6 @@ test('Lighthouse performance score', async ({ page }) => {
 - [x] Cloud Storage for artifacts
 - [x] Custom fonts deployed (Space Grotesk + Geist Mono shipping)
 - [ ] **E2E tests pass (BLOCKER)**
-- [ ] **Lighthouse score 90+ (BLOCKER)**
 
 ### Phase 2: Motion Polish
 - [ ] `useScrollReveal` hook implemented
