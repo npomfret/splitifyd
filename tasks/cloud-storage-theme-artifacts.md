@@ -2,152 +2,78 @@
 
 ## Problem Statement
 
-Theme CSS files are currently stored using `file://` URLs, which works in the emulator but **won't work in production** because:
+Legacy theme publishing wrote CSS/Tokens to `file://` paths under the repo, which failed in production because:
 
 1. Cloud Functions instances don't share a filesystem
 2. Local tmp storage is ephemeral and cleared between cold starts
 3. `file://` URLs aren't web-accessible
 
-**Current Implementation (actual):**
-- `ThemeArtifactStorage.ts` returns `file://` paths that point to `tmp/theme-artifacts/{tenantId}/{hash}/theme.css` under the repo (`process.cwd()`), not `/tmp`.
-- `ThemeHandlers.ts` only supports `file://` URLs and will 503 for any other scheme.
-- Factory always uses `LocalThemeArtifactStorage`, even in prod.
+That limitation has now been addressed—artifacts are uploaded to Cloud Storage in both emulator and production modes—but this document tracks the implementation details and the remaining rollout plan.
 
-**Needed:**
-- Upload artifacts to Cloud Storage
-- Return `https://` URLs instead of `file://` URLs
-- Support both emulator (file://) and production (https://)
+**Legacy Implementation (before migration):**
+- `ThemeArtifactStorage.ts` returned `file://` paths that pointed to `tmp/theme-artifacts/{tenantId}/{hash}/theme.css`.
+- `ThemeHandlers.ts` only understood `file://` URLs.
+- The factory always returned `LocalThemeArtifactStorage`, even in prod.
+
+**Current Implementation (now in main):**
+- `CloudThemeArtifactStorage` (firebase/functions/src/services/storage/CloudThemeArtifactStorage.ts) uploads CSS + tokens to the project bucket, makes them public, and returns `https://` or emulator `http://` URLs.
+- `createThemeArtifactStorage()` (firebase/functions/src/services/storage/ThemeArtifactStorage.ts) now always instantiates the cloud-backed storage.
+- `ThemeHandlers` fetches CSS via HTTP(S), validates cache headers, and no longer accepts `file://` URLs.
+
+**Outstanding Needs (operational/runbook work):**
+- Ensure every environment runs the storage bootstrap script so Cloud Storage CORS + marker files exist.
+- Republish themes after switching to the cloud backend so tenants receive the new URLs.
+- Keep verifying `/theme.css` delivery when onboarding new tenants/environments.
 
 ---
 
 ## Solution Overview
 
-We'll create a Cloud Storage bucket for theme artifacts and migrate from `file://` URLs to `https://` URLs. The solution includes:
+We created a Cloud Storage bucket workflow and migrated from `file://` URLs to HTTP(S) URLs. The solution includes:
 
-1. Script to create/configure the bucket
-2. Cloud Storage implementation
-3. Updated theme handlers to fetch from HTTPS
-4. Integration with existing publish flow
+1. Script to create/configure the bucket (`firebase/scripts/setup-storage-bucket.ts`, exposed via `npm run storage:setup`)
+2. Cloud Storage implementation (`CloudThemeArtifactStorage`)
+3. Updated theme handlers to fetch from HTTPS/HTTP (depending on environment)
+4. Integration with the publish flow + regression tests
+
+The sections below capture what shipped and what still needs operational follow-through.
+
+---
+
+## Status Snapshot
+
+- ✅ Cloud storage save + handler updates landed (see files listed above)
+- ✅ Integration coverage exists under `firebase/functions/src/__tests__/integration/tenant/`
+- ✅ `npm run storage:setup` bootstraps the bucket (CORS + marker file)
+- 🔄 Operations: run the bucket script per environment, republish tenants, and verify `/theme.css` delivery + caching
 
 ---
 
 ## Phase 1: Bucket Setup Script
 
-**Create: `firebase/scripts/setup-theme-storage.ts`**
+**Status:** ✅ Implemented (`firebase/scripts/setup-storage-bucket.ts`, exposed via `npm run storage:setup`)
 
-```typescript
-#!/usr/bin/env npx tsx
+The script already:
+- Initializes Firebase Admin using the selected instance template
+- Verifies the default bucket exists
+- Writes `theme-artifacts/.initialized`
+- Applies permissive CORS headers for GET/HEAD requests
 
-import * as admin from 'firebase-admin';
-import { initializeFirebase, getEnvironment } from './firebase-init';
-import { logger } from './logger';
+**Operational follow-up:**
+Run the script whenever a new environment/instance is provisioned so the bucket metadata stays in sync:
 
-const BUCKET_NAME = 'theme-artifacts';
-
-async function setupThemeStorageBucket(): Promise<void> {
-    const env = getEnvironment();
-    initializeFirebase(env);
-
-    if (env.isEmulator) {
-        logger.info('⚠️  Running in emulator mode - bucket creation skipped');
-        logger.info('   Emulator uses in-memory storage automatically');
-        return;
-    }
-
-    logger.info('🪣 Setting up Cloud Storage bucket for theme artifacts...');
-
-    const storage = admin.storage();
-    const bucket = storage.bucket();
-
-    logger.info(`   Project bucket: ${bucket.name}`);
-
-    // Check if bucket exists
-    const [exists] = await bucket.exists();
-
-    if (!exists) {
-        logger.error('❌ Default bucket does not exist');
-        logger.error('   Create it in Firebase Console: Storage > Get Started');
-        process.exit(1);
-    }
-
-    // Create theme-artifacts directory structure (metadata marker)
-    const markerFile = bucket.file('theme-artifacts/.initialized');
-    const [markerExists] = await markerFile.exists();
-
-    if (!markerExists) {
-        await markerFile.save('Theme artifacts storage initialized', {
-            metadata: {
-                contentType: 'text/plain',
-                cacheControl: 'public, max-age=31536000',
-            },
-        });
-        logger.info('   ✓ Created theme-artifacts directory structure');
-    } else {
-        logger.info('   ✓ theme-artifacts directory already exists');
-    }
-
-    // Set CORS configuration for theme CSS delivery
-    // Allow all origins since files are publicly readable
-    await bucket.setCorsConfiguration([
-        {
-            origin: ['*'],
-            method: ['GET', 'HEAD'],
-            responseHeader: ['Content-Type', 'Cache-Control', 'ETag'],
-            maxAgeSeconds: 3600,
-        },
-    ]);
-    logger.info('   ✓ CORS configuration updated (allows all origins)');
-
-    // Set lifecycle rule to clean up old theme artifacts (optional)
-    await bucket.setMetadata({
-        lifecycle: {
-            rule: [
-                {
-                    action: { type: 'Delete' },
-                    condition: {
-                        age: 90, // Delete artifacts older than 90 days
-                        matchesPrefix: ['theme-artifacts/'],
-                    },
-                },
-            ],
-        },
-    });
-    logger.info('   ✓ Lifecycle rules configured (90-day retention)');
-
-    logger.info('✅ Theme storage bucket ready!');
-    logger.info(`   Bucket: ${bucket.name}`);
-    logger.info('   Path: theme-artifacts/{tenantId}/{hash}/theme.css');
-}
-
-async function main(): Promise<void> {
-    const args = process.argv.slice(2);
-
-    if (args.length === 0) {
-        console.error('❌ Usage: setup-theme-storage.ts <emulator|production>');
-        process.exit(1);
-    }
-
-    await setupThemeStorageBucket();
-}
-
-if (require.main === module) {
-    main().catch((error) => {
-        console.error('❌ Bucket setup failed:', error);
-        process.exit(1);
-    });
-}
+```bash
+cd firebase
+npm run storage:setup production   # or pass the instance profile you switched to
 ```
 
-**Add npm script to `firebase/package.json`:**
-```json
-"storage:setup": "tsx scripts/setup-theme-storage.ts"
-```
+If we want lifecycle pruning (e.g., delete artifacts older than 90 days) we can extend this script in a follow-up—today it only ensures the bucket exists + has CORS configured.
 
 ---
 
 ## Phase 2: Cloud Storage Implementation
 
-**Create: `firebase/functions/src/services/storage/CloudThemeArtifactStorage.ts`**
+**Status:** ✅ Implemented in `firebase/functions/src/services/storage/CloudThemeArtifactStorage.ts`
 
 ```typescript
 import * as admin from 'firebase-admin';
@@ -237,12 +163,7 @@ export class CloudThemeArtifactStorage implements ThemeArtifactStorage {
 
 ## Phase 3: Update Storage Factory
 
-**Update: `firebase/functions/src/services/storage/ThemeArtifactStorage.ts`**
-
-Changes needed:
-1. Import `CloudThemeArtifactStorage` and `getStorage`
-2. Update `createThemeArtifactStorage()` to use Cloud Storage everywhere (dev and prod)
-3. Remove `LocalThemeArtifactStorage` (no longer needed)
+**Status:** ✅ Implemented in `firebase/functions/src/services/storage/ThemeArtifactStorage.ts` (factory now always returns the cloud-backed storage; Local storage helpers only exist in bespoke dev scripts)
 
 ```typescript
 import crypto from 'crypto';
@@ -285,9 +206,7 @@ export function computeSha256(content: string): string {
 
 ## Phase 4: Update Theme Handlers to Support HTTP(S) URLs
 
-**Update: `firebase/functions/src/theme/ThemeHandlers.ts`**
-
-Update the `readCssContent` method to support both `http://` (emulator) and `https://` (production) URLs:
+**Status:** ✅ Implemented in `firebase/functions/src/theme/ThemeHandlers.ts`—handlers now validate HTTP(S) URLs and fetch from Cloud Storage in both emulator and prod
 
 ```typescript
 private async readCssContent(artifact: BrandingArtifactMetadata): Promise<string> {
@@ -317,7 +236,7 @@ private async readCssContent(artifact: BrandingArtifactMetadata): Promise<string
 
 ## Phase 5: Testing Strategy
 
-**Create: `firebase/functions/src/__tests__/integration/theme-storage.test.ts`**
+**Status:** ✅ Coverage in place (see `firebase/functions/src/__tests__/integration/tenant/theme-css.test.ts` and `firebase/functions/src/__tests__/integration/tenant/admin-tenant-publish.test.ts`)—excerpt below kept for reference
 
 ```typescript
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -369,40 +288,34 @@ describe('Cloud Storage Theme Artifacts', () => {
 
 ## Execution Plan
 
-### Step 1: Create Cloud Storage Implementation (1-2 hours)
-- [ ] Create `firebase/functions/src/services/storage/CloudThemeArtifactStorage.ts`
-- [ ] Update `firebase/functions/src/services/storage/ThemeArtifactStorage.ts` factory
-- [ ] Update `firebase/functions/src/theme/ThemeHandlers.ts` to fetch from HTTPS URLs
+### Engineering Deliverables
+- [x] Implement Cloud Storage save logic (`CloudThemeArtifactStorage`)
+- [x] Update `createThemeArtifactStorage()` to return the cloud-backed implementation everywhere
+- [x] Teach `ThemeHandlers` to fetch HTTP(S) URLs and emit correct caching headers
+- [x] Add integration coverage for admin publish + `/theme.css`
+- [x] Expose `npm run storage:setup` (runs `firebase/scripts/setup-storage-bucket.ts`)
 
-### Step 2: Create Bucket Setup Script (1 hour)
-- [ ] Create `firebase/scripts/setup-theme-storage.ts`
-- [ ] Add npm script `storage:setup` to `firebase/package.json`
-- [ ] Test in production: `npm run storage:setup production`
-
-### Step 3: Test & Validate (1-2 hours)
-- [ ] Run bucket setup script
-- [ ] Republish themes: `npm run theme:publish-local`
-- [ ] Verify URLs in Firestore are `https://` not `file://`
-- [ ] Test theme delivery endpoint
-- [ ] Check browser Network tab for successful CSS loads
-
-### Step 4: Add Integration Tests (1 hour)
-- [ ] Create `firebase/functions/src/__tests__/integration/theme-storage.test.ts`
-- [ ] Run tests in both emulator and production
+### Operational Follow-Up
+- [ ] Run `npm run storage:setup production` (and for any other environments) after switching instances, so the bucket marker + CORS config exist
+- [ ] Republish themes via `npm run theme:publish-local` (or the admin API) so tenants receive the new artifact URLs
+- [ ] Spot-check `/theme.css` per tenant (curl or browser) to confirm caching headers + ETag reflect the latest hash
+- [ ] (Optional) Extend the setup script with lifecycle policies once we decide on retention (original plan suggested 90-day cleanup)
 
 ---
 
 ## Files Summary
 
-### Files to Create
-1. `firebase/scripts/setup-theme-storage.ts` - Bucket initialization script
-2. `firebase/functions/src/services/storage/CloudThemeArtifactStorage.ts` - Cloud Storage implementation
-3. `firebase/functions/src/__tests__/integration/theme-storage.test.ts` - Integration tests
+### Key Implementation Files
+1. `firebase/scripts/setup-storage-bucket.ts` – Bucket bootstrapper invoked via `npm run storage:setup`
+2. `firebase/functions/src/services/storage/CloudThemeArtifactStorage.ts` – Uploads CSS/tokens to Cloud Storage
+3. `firebase/functions/src/services/storage/ThemeArtifactStorage.ts` – Factory returning the cloud storage implementation
+4. `firebase/functions/src/theme/ThemeHandlers.ts` – Fetches CSS via HTTP(S) URLs and sets cache headers
 
-### Files to Update
-1. `firebase/functions/src/services/storage/ThemeArtifactStorage.ts` - Factory to use Cloud Storage in prod
-2. `firebase/functions/src/theme/ThemeHandlers.ts` - Support HTTPS URLs
-3. `firebase/package.json` - Add `storage:setup` script
+### Tests & Tooling
+1. `firebase/functions/src/__tests__/integration/tenant/admin-tenant-publish.test.ts` – Verifies publish flow writes artifact metadata
+2. `firebase/functions/src/__tests__/integration/tenant/theme-css.test.ts` – Fetches `/theme.css` and asserts headers/body
+3. `firebase/scripts/publish-local-themes.ts` – Seeds tenants + republish themes locally (uses the admin API)
+4. `scripts/verify-theme-css.ts` – Dev helper (still references `LocalThemeArtifactStorage`; consider updating if this script is revived)
 
 ### Commands
 
@@ -431,14 +344,14 @@ npm run test:integration  # then filter within workspace if needed
 
 ## Success Criteria
 
-- [ ] Cloud Storage bucket created and configured
-- [ ] Theme artifacts upload to Cloud Storage in production
-- [ ] Artifacts return `https://` URLs, not `file://` URLs
-- [ ] Theme CSS serves correctly from Cloud Storage
-- [ ] Emulator still works with `file://` URLs (no regression)
-- [ ] Integration tests pass in both emulator and production
-- [ ] Browser successfully loads theme CSS with proper caching headers
-- [ ] CORS configured correctly for cross-origin CSS delivery
+- [x] Theme artifacts upload to Cloud Storage (dev + prod paths share the same implementation)
+- [x] Artifacts return HTTP(S) URLs (emulator uses `http://`, prod uses `https://`)
+- [x] Theme CSS serves correctly from Cloud Storage via `ThemeHandlers`
+- [x] Emulator continues to work (handlers explicitly allow `http://` URLs)
+- [x] Integration coverage exists for admin publish + `/theme.css`
+- [x] `npm run storage:setup` configures CORS + bucket scaffolding
+- [ ] Operations: run the setup script in every deployed environment (prod + staging, etc.)
+- [ ] Operations: republish tenant themes and spot-check `/theme.css` responses + caching headers with the new URLs
 
 ---
 
