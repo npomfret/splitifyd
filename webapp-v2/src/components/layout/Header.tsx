@@ -73,11 +73,14 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
                     <div class='flex items-center space-x-8'>
                         <button
                             onClick={() => (isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome())}
-                            class='flex items-center'
+                            class='flex items-center gap-3'
                             data-testid='header-logo-link'
                             aria-label={appName}
                         >
                             <img src={logoUrl} alt={appName} class='h-8' />
+                            <span class='text-text-primary font-semibold leading-6 whitespace-nowrap'>
+                                {appName}
+                            </span>
                         </button>
                         {getNavLinks()}
                     </div>
