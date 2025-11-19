@@ -25,10 +25,8 @@ describe('PolicyHandlers - Unit Tests', () => {
             }, userId);
 
             expect(result).toMatchObject({
-                success: true,
                 id: expect.any(String),
                 versionHash: expect.any(String),
-                message: 'Policy created successfully',
             });
         });
 
@@ -195,10 +193,8 @@ describe('PolicyHandlers - Unit Tests', () => {
             }, userId);
 
             expect(result).toMatchObject({
-                success: true,
                 versionHash: expect.any(String),
                 published: false,
-                message: 'Draft version saved',
             });
         });
 
@@ -217,11 +213,9 @@ describe('PolicyHandlers - Unit Tests', () => {
             }, userId);
 
             expect(result).toMatchObject({
-                success: true,
                 versionHash: expect.any(String),
                 currentVersionHash: expect.any(String),
                 published: true,
-                message: 'Policy updated and published',
             });
         });
 
@@ -278,8 +272,6 @@ describe('PolicyHandlers - Unit Tests', () => {
             const result = await appDriver.publishPolicy(created.id, updated.versionHash, userId);
 
             expect(result).toMatchObject({
-                success: true,
-                message: 'Policy published successfully',
                 currentVersionHash: updated.versionHash,
             });
         });
@@ -337,10 +329,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
             const result = await appDriver.deletePolicyVersion(created.id, draft.versionHash, userId);
 
-            expect(result).toMatchObject({
-                success: true,
-                message: 'Policy version deleted successfully',
-            });
+            expect(result).toMatchObject({});
         });
 
         it('should reject deletion of current version', async () => {
@@ -373,10 +362,7 @@ describe('PolicyHandlers - Unit Tests', () => {
 
             const result = await appDriver.deletePolicyVersion(created.id, draft.versionHash, userId);
 
-            expect(result).toMatchObject({
-                success: true,
-                message: 'Policy version deleted successfully',
-            });
+            expect(result).toMatchObject({});
         });
 
         it('should reject deletion for non-existent policy', async () => {

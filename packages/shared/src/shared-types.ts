@@ -137,11 +137,14 @@ export const toPolicyId = (value: string): PolicyId => value as PolicyId;
 
 export type PolicyName = string;
 export type PolicyText = string;
+export type Description = string;
 export type UserId = string;
 export type Email = string;
 export type CurrencyISOCode = string;
 export type VersionHash = string;
 export type ActivityFeedItemId = string;
+
+// todo: add a type for label
 
 /**
  * Zod schema for expense splits
@@ -768,12 +771,12 @@ export interface GroupDTO extends Group, BaseDTO<GroupId> {
 export interface CreateGroupRequest {
     name: GroupName;
     groupDisplayName: DisplayName;
-    description?: string;
+    description?: Description;
 }
 
 export interface UpdateGroupRequest {
     name?: GroupName;
-    description?: string;
+    description?: Description;
 }
 
 export interface UpdateDisplayNameRequest {
@@ -826,7 +829,7 @@ interface Expense extends SoftDeletable {
     paidBy: UserId;
     amount: Amount;
     currency: CurrencyISOCode;
-    description: string;
+    description: Description;
     label: string;
     date: ISOString;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
@@ -848,7 +851,7 @@ export interface ExpenseDTO extends Expense, BaseDTO<ExpenseId> {
 
 export interface CreateExpenseRequest {
     groupId: GroupId;
-    description: string;
+    description: Description;
     amount: Amount;
     currency: CurrencyISOCode;
     paidBy: UserId;
@@ -977,7 +980,7 @@ export interface GenerateShareLinkRequest {
 export interface PreviewGroupResponse {
     groupId: GroupId;
     groupName: GroupName;
-    groupDescription: string;
+    groupDescription: Description;
     memberCount: number;
     isAlreadyMember: boolean;
 }
@@ -1014,8 +1017,6 @@ export interface UserProfileResponse {
 }
 
 export interface AcceptMultiplePoliciesResponse {
-    success: boolean;
-    message: string;
     acceptedPolicies: Array<{
         policyId: PolicyId;
         versionHash: VersionHash;
@@ -1125,29 +1126,21 @@ export interface ListCommentsResponse {
 // ========================================================================
 
 export interface UpdatePolicyResponse {
-    success: boolean;
     versionHash: VersionHash;
     published: boolean;
     currentVersionHash: VersionHash | undefined;
-    message: string;
 }
 
 export interface PublishPolicyResponse {
-    success: boolean;
-    message: string;
     currentVersionHash: VersionHash;
 }
 
 export interface CreatePolicyResponse {
-    success: boolean;
     id: PolicyId;
     versionHash: VersionHash;
-    message: string;
 }
 
 export interface DeletePolicyVersionResponse {
-    success: boolean;
-    message: string;
 }
 
 // ========================================================================
@@ -1232,7 +1225,7 @@ export interface TestSuccessResponse {
  */
 export interface CreateGroupFormData {
     name?: string;
-    description?: string;
+    description?: Description;
 }
 
 /**
@@ -1240,7 +1233,7 @@ export interface CreateGroupFormData {
  * Used in E2E tests for form submission payloads
  */
 export interface ExpenseFormData {
-    description: string;
+    description: Description;
     amount: Amount;
     currency: CurrencyISOCode;
     paidByDisplayName: DisplayName; // Display name (not the uid)
@@ -1265,7 +1258,7 @@ export interface SettlementFormData {
  * Used by webapp to persist unsaved expense forms
  */
 export interface ExpenseDraft {
-    description: string;
+    description: Description;
     amount: Amount;
     currency: CurrencyISOCode;
     date: string; // YYYY-MM-DD format

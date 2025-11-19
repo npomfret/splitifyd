@@ -21,8 +21,6 @@ export class UserHandlers {
         const result = await this.userPolicyService.acceptMultiplePolicies(userId, acceptances);
 
         res.status(HTTP_STATUS.OK).json({
-            success: true,
-            message: 'All policies accepted successfully',
             acceptedPolicies: result,
         });
     };

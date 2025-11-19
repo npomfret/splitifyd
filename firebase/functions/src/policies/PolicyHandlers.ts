@@ -82,11 +82,9 @@ export class PolicyHandlers {
             const result = await this.policyService.updatePolicy(toPolicyId(id), text, publish);
 
             const response: UpdatePolicyResponse = {
-                success: true,
                 versionHash: result.versionHash,
                 currentVersionHash: result.currentVersionHash,
                 published: publish,
-                message: publish ? 'Policy updated and published' : 'Draft version saved',
             };
             res.json(response);
         } catch (error) {
@@ -111,8 +109,6 @@ export class PolicyHandlers {
             const result = await this.policyService.publishPolicy(toPolicyId(id), versionHash);
 
             const response: PublishPolicyResponse = {
-                success: true,
-                message: 'Policy published successfully',
                 currentVersionHash: result.currentVersionHash,
             };
             res.json(response);
@@ -138,10 +134,8 @@ export class PolicyHandlers {
             const result = await this.policyService.createPolicy(policyName, text);
 
             const response: CreatePolicyResponse = {
-                success: true,
                 id: toPolicyId(result.id),
                 versionHash: result.currentVersionHash,
-                message: 'Policy created successfully',
             };
             res.status(HTTP_STATUS.CREATED).json(response);
         } catch (error) {
@@ -163,8 +157,6 @@ export class PolicyHandlers {
             await this.policyService.deletePolicyVersion(toPolicyId(id), hash);
 
             const response: DeletePolicyVersionResponse = {
-                success: true,
-                message: 'Policy version deleted successfully',
             };
             res.json(response);
         } catch (error) {

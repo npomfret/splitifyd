@@ -404,8 +404,6 @@ const UserPolicyStatusResponseSchema = z.object({
 });
 
 const AcceptMultiplePoliciesResponseSchema = z.object({
-    success: z.boolean(),
-    message: z.string().min(1),
     acceptedPolicies: z.array(
         z.object({
             policyId: z.string().min(1),

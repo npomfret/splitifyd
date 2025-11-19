@@ -2712,7 +2712,6 @@ describe('app tests', () => {
                     { policyId: policy1.id, versionHash: policy1.versionHash },
                 ], user1);
 
-                expect(result.success).toBe(true);
                 expect(result.acceptedPolicies).toHaveLength(1);
                 expect(result.acceptedPolicies[0].policyId).toBe(policy1.id);
                 expect(result.acceptedPolicies[0].versionHash).toBe(policy1.versionHash);
@@ -2741,7 +2740,6 @@ describe('app tests', () => {
                     { policyId: policy3.id, versionHash: policy3.versionHash },
                 ], user1);
 
-                expect(result.success).toBe(true);
                 expect(result.acceptedPolicies).toHaveLength(3);
                 expect(result.acceptedPolicies[0].policyId).toBe(policy1.id);
                 expect(result.acceptedPolicies[1].policyId).toBe(policy2.id);
@@ -3720,7 +3718,6 @@ describe('app tests', () => {
             }, policyAdmin);
 
             expect(created).toMatchObject({
-                success: true,
                 id: expect.any(String),
                 versionHash: expect.any(String),
             });
@@ -3731,7 +3728,6 @@ describe('app tests', () => {
             }, policyAdmin);
 
             expect(draftUpdate).toMatchObject({
-                success: true,
                 published: false,
                 versionHash: expect.any(String),
             });
@@ -3742,7 +3738,6 @@ describe('app tests', () => {
             }, policyAdmin);
 
             expect(publishedUpdate).toMatchObject({
-                success: true,
                 published: true,
                 currentVersionHash: expect.any(String),
             });
@@ -3782,7 +3777,6 @@ describe('app tests', () => {
             }, policyAdmin);
 
             expect(update).toMatchObject({
-                success: true,
                 published: true,
                 currentVersionHash: expect.any(String),
             });
