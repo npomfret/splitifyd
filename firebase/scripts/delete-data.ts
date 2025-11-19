@@ -13,6 +13,7 @@ import * as fs from 'fs';
 import { stdin as input, stdout as output } from 'node:process';
 import * as path from 'path';
 import { createInterface } from 'readline/promises';
+import { getFirestore } from '../functions/src/firebase';
 import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
@@ -38,8 +39,7 @@ function resolveProjectId(): string | undefined {
 
 async function resolveFirestore(env: ScriptEnvironment): Promise<Firestore> {
     if (env.isEmulator) {
-        const firebaseModule = await import('../functions/src/firebase');
-        return firebaseModule.getFirestore();
+        return getFirestore();
     }
 
     return admin.firestore();

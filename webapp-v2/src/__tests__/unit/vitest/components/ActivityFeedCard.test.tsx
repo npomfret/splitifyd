@@ -10,7 +10,7 @@ import {
     toSettlementId,
 } from '@billsplit-wl/shared';
 import { ActivityFeedItemBuilder } from '@billsplit-wl/test-support';
-import { type ReadonlySignal, type Signal, signal } from '@preact/signals';
+import { type ReadonlySignal, type Signal } from '@preact/signals';
 import { fireEvent, render, screen } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -24,7 +24,7 @@ vi.mock('@/services/navigation.service', () => ({
 
 // Mock must be defined inline to avoid hoisting issues
 vi.mock('@/app/stores/activity-feed-store', async () => {
-    const { signal } = await import('@preact/signals');
+    const { signal } = await vi.importActual<typeof import('@preact/signals')>('@preact/signals');
     return {
         activityFeedStore: {
             itemsSignal: signal<ActivityFeedItem[]>([]),

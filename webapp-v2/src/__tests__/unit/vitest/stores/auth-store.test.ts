@@ -1,75 +1,73 @@
 import { describe, expect, it, vi } from 'vitest';
+import { getAuthStore } from '@/app/stores/auth-store';
 
-async function setupAuthStore() {
-    vi.resetModules();
+const setPersistenceMock = vi.fn().mockResolvedValue(undefined);
+const signInWithEmailAndPasswordMock = vi.fn().mockResolvedValue(undefined);
+const onAuthStateChangedMock = vi.fn().mockReturnValue(() => {});
 
-    const setPersistenceMock = vi.fn().mockResolvedValue(undefined);
-    const signInWithEmailAndPasswordMock = vi.fn().mockResolvedValue(undefined);
-    const onAuthStateChangedMock = vi.fn().mockReturnValue(() => {});
+const mockAuthGateway = {
+    connect: vi.fn().mockResolvedValue(undefined),
+    onAuthStateChanged: onAuthStateChangedMock,
+    setPersistence: setPersistenceMock,
+    signInWithEmailAndPassword: signInWithEmailAndPasswordMock,
+    sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
+    signOut: vi.fn().mockResolvedValue(undefined),
+    performTokenRefresh: vi.fn().mockResolvedValue('mock-token'),
+    performUserRefresh: vi.fn().mockResolvedValue(undefined),
+};
 
-    const mockAuthGateway = {
-        connect: vi.fn().mockResolvedValue(undefined),
-        onAuthStateChanged: onAuthStateChangedMock,
-        setPersistence: setPersistenceMock,
-        signInWithEmailAndPassword: signInWithEmailAndPasswordMock,
-        sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
-        signOut: vi.fn().mockResolvedValue(undefined),
-        performTokenRefresh: vi.fn().mockResolvedValue('mock-token'),
-        performUserRefresh: vi.fn().mockResolvedValue(undefined),
-    };
+vi.mock('@/app/gateways/auth-gateway', () => ({
+    getDefaultAuthGateway: vi.fn(() => mockAuthGateway),
+}));
 
-    vi.doMock('@/app/gateways/auth-gateway', () => ({
-        getDefaultAuthGateway: vi.fn(() => mockAuthGateway),
-    }));
+vi.mock('@/app/apiClient', () => ({
+    apiClient: {
+        setAuthCallbacks: vi.fn(),
+        setAuthToken: vi.fn(),
+        register: vi.fn(),
+        getUserProfile: vi.fn(),
+    },
+}));
 
-    vi.doMock('@/app/apiClient', () => ({
-        apiClient: {
-            setAuthCallbacks: vi.fn(),
-            setAuthToken: vi.fn(),
-            register: vi.fn(),
-            getUserProfile: vi.fn(),
-        },
-    }));
+vi.mock('@/app/stores/theme-store', () => ({
+    themeStore: {
+        updateCurrentUserTheme: vi.fn(),
+        reset: vi.fn(),
+    },
+}));
 
-    vi.doMock('@/app/stores/theme-store', () => ({
-        themeStore: {
-            updateCurrentUserTheme: vi.fn(),
-            reset: vi.fn(),
-        },
-    }));
+vi.mock('@/app/stores/groups-store-enhanced', () => ({
+    enhancedGroupsStore: {
+        reset: vi.fn(),
+    },
+}));
 
-    vi.doMock('@/app/stores/groups-store-enhanced', () => ({
-        enhancedGroupsStore: {
-            reset: vi.fn(),
-        },
-    }));
+vi.mock('@/app/stores/group-detail-store-enhanced', () => ({
+    enhancedGroupDetailStore: {
+        reset: vi.fn(),
+    },
+}));
 
-    vi.doMock('@/app/stores/group-detail-store-enhanced', () => ({
-        enhancedGroupDetailStore: {
-            reset: vi.fn(),
-        },
-    }));
-
-    vi.doMock('@/app/stores/expense-form-store', () => ({
-        expenseFormStore: {
-            setStorage: vi.fn(),
-            clearStorage: vi.fn(),
-        },
-    }));
-
-    const currencyServiceInstance = {
+vi.mock('@/app/stores/expense-form-store', () => ({
+    expenseFormStore: {
         setStorage: vi.fn(),
         clearStorage: vi.fn(),
-    };
+    },
+}));
 
-    vi.doMock('@/app/services/currencyService', () => ({
-        CurrencyService: {
-            getInstance: () => currencyServiceInstance,
-        },
-    }));
+const currencyServiceInstance = {
+    setStorage: vi.fn(),
+    clearStorage: vi.fn(),
+};
 
-    const authStoreModule = await import('@/app/stores/auth-store');
-    const store = await authStoreModule.getAuthStore();
+vi.mock('@/app/services/currencyService', () => ({
+    CurrencyService: {
+        getInstance: () => currencyServiceInstance,
+    },
+}));
+
+async function setupAuthStore() {
+    const store = await getAuthStore();
 
     return {
         store,

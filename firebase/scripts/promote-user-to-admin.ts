@@ -16,6 +16,7 @@ import { SystemUserRoles, UserId } from '@billsplit-wl/shared';
 import * as admin from 'firebase-admin';
 import { Firestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../functions/src/constants';
+import { getFirestore } from '../functions/src/firebase';
 import { initializeFirebase, parseEnvironment } from './firebase-init';
 
 // Parse command line arguments
@@ -58,9 +59,8 @@ async function initializeAppServices() {
             throw error;
         }
     } else {
-        console.log('🔗 Importing Firebase module for emulator...');
-        const firebaseModule = await import('../functions/src/firebase');
-        firestoreDb = firebaseModule.getFirestore();
+        console.log('🔗 Getting Firestore instance for emulator...');
+        firestoreDb = getFirestore();
         console.log('✅ Emulator Firestore instance obtained');
     }
 }

@@ -1,6 +1,7 @@
 import { logError } from '@/utils/browser-logger.ts';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import * as THREE from 'three';
 import type { Scene, WebGLRenderer } from 'three';
 
 export function Globe() {
@@ -30,11 +31,9 @@ export function Globe() {
         let mounted = true;
         let cleanupFn: (() => void) | undefined;
 
-        // Dynamically import Three.js for code splitting
+        // Initialize Three.js globe
         const initGlobe = async () => {
             try {
-                const THREE = await import('three');
-
                 if (!mounted || !containerRef.current) return;
 
                 const container = containerRef.current;

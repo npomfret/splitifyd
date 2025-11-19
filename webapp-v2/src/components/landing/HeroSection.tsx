@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Globe } from './Globe';
 
 export function HeroSection() {
@@ -11,9 +13,6 @@ export function HeroSection() {
 
     useEffect(() => {
         const initAnimations = async () => {
-            const { gsap } = await import('gsap');
-            const { ScrollTrigger } = await import('gsap/ScrollTrigger');
-
             gsap.registerPlugin(ScrollTrigger);
 
             // Hero animations

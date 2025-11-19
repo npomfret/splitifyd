@@ -4,6 +4,8 @@ import { AppConfigurationBuilder } from '@billsplit-wl/test-support';
 import { render, screen } from '@testing-library/preact';
 import type { ComponentChildren } from 'preact';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useConfig } from '@/hooks/useConfig.ts';
+import { LandingPage } from '@/pages/LandingPage.tsx';
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -31,9 +33,7 @@ vi.mock('@/hooks/useConfig.ts', () => ({
     useConfig: vi.fn(),
 }));
 
-const { useConfig } = await import('@/hooks/useConfig.ts');
 const mockedUseConfig = vi.mocked(useConfig);
-const { LandingPage } = await import('@/pages/LandingPage.tsx');
 
 const enableMarketing = (): AppConfiguration =>
     new AppConfigurationBuilder()

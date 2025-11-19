@@ -530,8 +530,11 @@ const generateRandomExpense = (): TestExpenseTemplate => {
 export async function createDefaultTenant(): Promise<void> {
     console.log('🏢 Creating default fallback tenant only...');
 
+    const { getFirestore } = require('../functions/src/firebase');
+    const firestore = getFirestore();
+
     const { syncTenantConfigs } = await import('./sync-tenant-configs');
-    await syncTenantConfigs({ defaultOnly: true });
+    await syncTenantConfigs(firestore, { defaultOnly: true });
 
     // After syncing the default tenant, publish its theme CSS
     console.log('🎨 Publishing theme CSS for default tenant...');
@@ -542,8 +545,11 @@ export async function createDefaultTenant(): Promise<void> {
 export async function createAllDemoTenants(): Promise<void> {
     console.log('🏢 Syncing all demo tenants from JSON configuration...');
 
+    const { getFirestore } = require('../functions/src/firebase');
+    const firestore = getFirestore();
+
     const { syncTenantConfigs } = await import('./sync-tenant-configs');
-    await syncTenantConfigs();
+    await syncTenantConfigs(firestore);
 
     // After syncing basic tenant configs, publish the theme CSS artifacts
     console.log('🎨 Publishing theme CSS artifacts for all tenants...');

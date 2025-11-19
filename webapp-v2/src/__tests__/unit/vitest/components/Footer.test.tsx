@@ -4,6 +4,7 @@ import { toShowPricingPageFlag } from '@billsplit-wl/shared';
 import { AppConfigurationBuilder } from '@billsplit-wl/test-support';
 import { render, screen } from '@testing-library/preact';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useConfig } from '@/hooks/useConfig.ts';
 
 vi.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -26,7 +27,6 @@ vi.mock('@/hooks/useConfig.ts', () => ({
     useConfig: vi.fn(),
 }));
 
-const { useConfig } = await import('@/hooks/useConfig.ts');
 const mockedUseConfig = vi.mocked(useConfig);
 
 const buildConfig = (showPricingPage: boolean): AppConfiguration =>

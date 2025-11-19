@@ -1,6 +1,8 @@
 import { useNavigation } from '@/hooks/useNavigation';
 import { useEffect, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 export function CTASection() {
     const { t } = useTranslation();
@@ -9,9 +11,6 @@ export function CTASection() {
 
     useEffect(() => {
         const initAnimations = async () => {
-            const { gsap } = await import('gsap');
-            const { ScrollTrigger } = await import('gsap/ScrollTrigger');
-
             gsap.registerPlugin(ScrollTrigger);
 
             if (h2Ref.current) {

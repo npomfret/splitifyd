@@ -3,6 +3,8 @@ import type { AppConfiguration, BrandingConfig } from '@billsplit-wl/shared';
 import { toISOString, toTenantId } from '@billsplit-wl/shared';
 import { BrandingConfigBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { firebaseConfigManager } from '@/app/firebase-config';
+import { syncThemeHash } from '@/utils/theme-bootstrap';
 
 vi.mock('@/app/firebase-config', () => ({
     firebaseConfigManager: {
@@ -14,9 +16,6 @@ vi.mock('@/utils/theme-bootstrap', () => ({
     syncThemeHash: vi.fn(),
     registerThemeServiceWorker: vi.fn(),
 }));
-
-const { firebaseConfigManager } = await import('@/app/firebase-config');
-const { syncThemeHash } = await import('@/utils/theme-bootstrap');
 
 const getMetaThemeColor = (): HTMLMetaElement | null => document.querySelector('meta[name="theme-color"]');
 const getFavicon = (): HTMLLinkElement | null => document.querySelector('link[rel="icon"]');

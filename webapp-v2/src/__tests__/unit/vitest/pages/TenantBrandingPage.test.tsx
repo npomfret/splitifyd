@@ -3,6 +3,9 @@ import type { TenantSettingsResponse } from '@billsplit-wl/shared';
 import { fireEvent, render, screen, waitFor } from '@testing-library/preact';
 import type { ComponentChildren } from 'preact';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired';
+import { apiClient, ApiError } from '@/app/apiClient';
+import { TenantBrandingPage } from '@/pages/TenantBrandingPage';
 
 // Mock dependencies
 vi.mock('react-i18next', () => ({
@@ -33,10 +36,6 @@ vi.mock('@/app/apiClient', async (importOriginal) => {
         },
     };
 });
-
-const { useAuthRequired } = await import('@/app/hooks/useAuthRequired');
-const { apiClient } = await import('@/app/apiClient');
-const { TenantBrandingPage } = await import('@/pages/TenantBrandingPage');
 
 const mockedUseAuthRequired = vi.mocked(useAuthRequired);
 const mockedApiClient = vi.mocked(apiClient);

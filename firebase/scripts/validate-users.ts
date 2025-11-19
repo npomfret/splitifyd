@@ -15,6 +15,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ZodError, type ZodIssue } from 'zod';
 import { FirestoreCollections } from '../functions/src/constants';
+import { getFirestore } from '../functions/src/firebase';
 import { UserDocumentSchema } from '../functions/src/schemas';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
@@ -34,8 +35,7 @@ function parseNumberArg(value: string | undefined, fallback: number, allowInfini
 
 async function resolveFirestore(env: ScriptEnvironment): Promise<Firestore> {
     if (env.isEmulator) {
-        const firebaseModule = await import('../functions/src/firebase');
-        return firebaseModule.getFirestore();
+        return getFirestore();
     }
     return admin.firestore();
 }

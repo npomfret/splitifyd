@@ -11,6 +11,7 @@ import { ComponentBuilder } from './services/ComponentBuilder';
 import { requireInstanceMode } from './shared/instance-mode';
 import { TestUserPoolService } from './test-pool/TestUserPoolService';
 import { getEnhancedConfigResponse } from './utils/config-response';
+import { UpdateTenantBrandingRequestSchema } from './schemas/tenant';
 
 // Handler imports
 import { toPolicyId } from '@billsplit-wl/shared';
@@ -375,9 +376,6 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
                 });
                 return;
             }
-
-            // Import the validation schema
-            const { UpdateTenantBrandingRequestSchema } = await import('./schemas/tenant');
 
             // Validate request body
             const parseResult = UpdateTenantBrandingRequestSchema.safeParse(req.body);

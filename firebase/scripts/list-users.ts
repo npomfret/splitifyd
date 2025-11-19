@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin';
 import type { UserRecord } from 'firebase-admin/auth';
 import { DocumentData, DocumentSnapshot, FieldPath, Firestore, Query, QueryDocumentSnapshot, QuerySnapshot } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '../functions/src/constants';
+import { getFirestore } from '../functions/src/firebase';
 import { initializeFirebase, parseEnvironment } from './firebase-init';
 
 /**
@@ -47,10 +48,9 @@ async function initializeAppServices() {
             throw error;
         }
     } else {
-        // Emulator mode - import everything normally
-        console.log('🔗 Importing Firebase module for emulator...');
-        const firebaseModule = await import('../functions/src/firebase');
-        firestoreDb = firebaseModule.getFirestore();
+        // Emulator mode - use the imported getFirestore function
+        console.log('🔗 Getting Firestore instance for emulator...');
+        firestoreDb = getFirestore();
         console.log('✅ Emulator Firestore instance obtained');
         authService = admin.auth();
     }
