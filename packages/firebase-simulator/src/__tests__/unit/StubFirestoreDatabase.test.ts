@@ -3,6 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'vitest';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { StubFirestoreDatabase } from '../../StubFirestoreDatabase';
 
 describe('StubFirestoreDatabase - Example Usage', () => {
@@ -296,7 +297,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
             await docRef.set({ count: 5, name: 'Test Counter' });
 
-            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
             await docRef.update({ count: FieldValue.increment(3) });
 
             const snapshot = await docRef.get();
@@ -311,7 +311,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
             await docRef.set({ count: 10, name: 'Test' });
 
-            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
             await docRef.set({ count: FieldValue.increment(5) }, { merge: true });
 
             const snapshot = await docRef.get();
@@ -326,7 +325,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
             await docRef.set({ name: 'Test' });
 
-            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
             await docRef.update({ count: FieldValue.increment(7) });
 
             const snapshot = await docRef.get();
@@ -341,7 +339,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
             await docRef.set({ count: 20 });
 
-            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
             await docRef.update({ count: FieldValue.increment(-5) });
 
             const snapshot = await docRef.get();
@@ -353,7 +350,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
             await docRef.set({ stats: { views: 10, likes: 5 } });
 
-            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
             await docRef.update({ 'stats.views': FieldValue.increment(3) });
 
             const snapshot = await docRef.get();
@@ -370,7 +366,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
             await docRef.set({ count1: 5, count2: 10, count3: 15 });
 
-            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
             await docRef.update({
                 count1: FieldValue.increment(2),
                 count2: FieldValue.increment(-3),
@@ -394,7 +389,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
             await doc1.set({ count: 5 });
             await doc2.set({ count: 10 });
 
-            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
             batch.update(doc1, { count: FieldValue.increment(3) });
             batch.update(doc2, { count: FieldValue.increment(-2) });
 
@@ -412,8 +406,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
             await docRef.set({ count: 100 });
 
-            const FieldValue = (await import('firebase-admin/firestore')).FieldValue;
-
             await db.runTransaction(async (transaction) => {
                 const snapshot = await transaction.get(docRef);
                 const data = snapshot.data();
@@ -428,7 +420,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle FieldValue.serverTimestamp() with update', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
             const docRef = db.collection('documents').doc('doc-1');
 
             await docRef.set({ title: 'Test Document', createdAt: Timestamp.now() });
@@ -444,7 +435,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle FieldValue.serverTimestamp() with set merge', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
             const docRef = db.collection('documents').doc('doc-1');
 
             await docRef.set({ title: 'Test Document' });
@@ -459,7 +449,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle FieldValue.serverTimestamp() in initial set', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
             const docRef = db.collection('documents').doc('doc-1');
 
             await docRef.set({
@@ -475,7 +464,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle FieldValue.serverTimestamp() with dot notation', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
             const docRef = db.collection('documents').doc('doc-1');
 
             await docRef.set({ metadata: { title: 'Test' } });
@@ -490,7 +478,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle mixed FieldValue operations (increment + serverTimestamp)', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
             const docRef = db.collection('documents').doc('doc-1');
 
             await docRef.set({ title: 'Test', viewCount: 10 });
@@ -509,7 +496,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle FieldValue.serverTimestamp() in batch operations', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
             const batch = db.batch();
 
             const doc1 = db.collection('documents').doc('doc-1');
@@ -531,7 +517,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle FieldValue.serverTimestamp() in transactions', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
             const docRef = db.collection('documents').doc('doc-1');
 
             await docRef.set({ title: 'Test Document' });
@@ -552,7 +537,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle multiple serverTimestamp fields in single operation', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
             const docRef = db.collection('documents').doc('doc-1');
 
             await docRef.set({
@@ -570,7 +554,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle complex mixed FieldValue operations', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
             const docRef = db.collection('analytics').doc('stats-1');
 
             await docRef.set({
@@ -683,7 +666,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should deep merge with FieldValue.increment() in nested objects', async () => {
-            const { FieldValue } = await import('firebase-admin/firestore');
             const docRef = db.collection('notifications').doc('user-1');
 
             await docRef.set({
@@ -840,7 +822,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
 
     describe('FieldValue.delete() operations', () => {
         it('should delete field using FieldValue.delete() with dot notation', async () => {
-            const { FieldValue } = await import('firebase-admin/firestore');
             const docRef = db.collection('notifications').doc('user-1');
 
             await docRef.set({
@@ -869,7 +850,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should delete multiple fields with FieldValue.delete()', async () => {
-            const { FieldValue } = await import('firebase-admin/firestore');
             const docRef = db.collection('data').doc('doc-1');
 
             await docRef.set({
@@ -894,7 +874,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle delete with increment in same update', async () => {
-            const { FieldValue } = await import('firebase-admin/firestore');
             const docRef = db.collection('notifications').doc('user-1');
 
             await docRef.set({
@@ -924,7 +903,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should delete nested field preserving siblings', async () => {
-            const { FieldValue } = await import('firebase-admin/firestore');
             const docRef = db.collection('settings').doc('user-1');
 
             await docRef.set({
@@ -950,7 +928,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle delete on non-existent field gracefully', async () => {
-            const { FieldValue } = await import('firebase-admin/firestore');
             const docRef = db.collection('data').doc('doc-1');
 
             await docRef.set({
@@ -969,7 +946,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle delete in batch operations', async () => {
-            const { FieldValue } = await import('firebase-admin/firestore');
             const batch = db.batch();
 
             const doc1 = db.collection('notifications').doc('user-1');
@@ -1005,7 +981,6 @@ describe('StubFirestoreDatabase - Example Usage', () => {
         });
 
         it('should handle delete with serverTimestamp in same update', async () => {
-            const { FieldValue, Timestamp } = await import('firebase-admin/firestore');
             const docRef = db.collection('documents').doc('doc-1');
 
             await docRef.set({
