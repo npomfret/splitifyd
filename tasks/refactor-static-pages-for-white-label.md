@@ -187,3 +187,19 @@ Remove built-in policy/legal pages from the application and replace them with co
 - Allow custom link labels per tenant (i18n)
 - Track link click analytics per tenant
 - Support for footer customization (logo, social links, etc.)
+
+## Research Findings & Planning Gaps
+
+1. **External link validation & security** – We still need to specify the exact validation rules for tenant-provided URLs (HTTPS-only, no embedded credentials) and ensure the admin UI/backend sanitize and validate inputs before saving to Firestore so the app never redirects to malicious or broken sites. Document this requirement in the tenant admin guide.
+2. **Policy acceptance / compliance** – Removing the `PolicyAcceptanceModal` shifts explicit consent entirely onto tenants; if we continue recording policy acceptance dates for audit purposes, we need a clear plan for how that data is captured when the policies live off-platform (e.g., via an API call or webhook the tenant calls after their own acceptance flow).
+3. **Fallback behavior** – Decide what the UI should do when external links are absent (e.g., hide the policy section entirely, skip the modal). Without this, tenants with no links could see empty UI elements.
+4. **Admin UI hardening** – Protect the branding form with proper auth, fail-open error handling, and backend checks so a tenant can only edit their own configuration.
+5. **Documentation / communication** – Update both the tenant-facing admin guide and the developer documentation with the new schema, validation expectations, and guidance that tenants are fully responsible for hosting/syncing their policy content.
+
+## Expert Advice & Outstanding Questions
+
+*   Expert review highlighted these next questions: Should the app continue to record policy acceptance timestamps when the policies live externally, and if so how will we surface an API or webhook tenants can call after they complete their own acceptance flows?
+*   What precise validation and sanitization steps will the admin UI run against tenant-supplied URLs (besides requiring HTTPS) to avoid malicious redirects or malformed links?
+*   What should happen when a tenant leaves one or more link fields empty (hide the footer section? still display placeholders?) so we never expose broken UX?
+*   Do we need to keep a lightweight in-app acknowledgement UI or replace it entirely, and if the latter, how does that affect compliance requirements that previously relied on the `PolicyAcceptanceModal`?
+*   Have we communicated these changes in the tenant admin guide and developer docs so operators know the new expectations?
