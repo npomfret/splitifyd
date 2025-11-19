@@ -3,20 +3,31 @@
 /**
  * Conditional build script for Firebase Functions
  *
- * This script runs the production build only when BUILD_MODE=production.
- * During local development, it creates a wrapper that uses tsx to run TypeScript directly.
+ * This script determines compilation strategy based on INSTANCE_NAME:
+ * - dev1-4: Creates tsx wrapper for direct TypeScript execution (no compilation)
+ * - test/prod: Runs full production build (tsc + esbuild)
+ *
+ * INSTANCE_NAME is the single source of truth for both runtime behavior and compilation strategy.
  */
 
 const fs = require('fs');
 const path = require('path');
+const dotenv = require('dotenv');
 
-const buildMode = process.env.BUILD_MODE || 'development';
+// Load INSTANCE_NAME from .env file
+const envPath = path.join(__dirname, '..', '.env');
+if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+}
 
-if (buildMode === 'production' || buildMode === 'test') {
-    console.log('🏗️  Running production build for Firebase Functions...');
+const instanceName = process.env.INSTANCE_NAME || 'dev1';
+const needsCompilation = instanceName === 'prod';
+
+if (needsCompilation) {
+    console.log(`🏗️  Running production build for Firebase Functions (INSTANCE_NAME=${instanceName})...`);
     require('child_process').execSync('npm run build:prod', { stdio: 'inherit' });
 } else {
-    console.log('⚡ Setting up development mode (using tsx for direct TypeScript execution)');
+    console.log(`⚡ Setting up development mode for ${instanceName} (using tsx for direct TypeScript execution)`);
 
     // Ensure lib directory exists
     const libDir = path.join(__dirname, '..', 'lib');
@@ -29,9 +40,9 @@ if (buildMode === 'production' || buildMode === 'test') {
 
 /**
  * Development wrapper for Firebase Functions
- * 
+ *
  * This file allows the Firebase emulator to run TypeScript directly using tsx
- * without requiring compilation. In production, this file is replaced with
+ * without requiring compilation. In production/test, this file is replaced with
  * the actual compiled JavaScript.
  */
 

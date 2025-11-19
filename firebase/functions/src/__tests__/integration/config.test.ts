@@ -258,7 +258,7 @@ describe('Config Endpoint Integration Tests', () => {
 
             expect(jsonString).not.toMatch(/process\.env/);
             expect(jsonString).not.toMatch(/NODE_ENV/);
-            expect(jsonString).not.toMatch(/INSTANCE_MODE/);
+            expect(jsonString).not.toMatch(/INSTANCE_NAME/);
         });
     });
 

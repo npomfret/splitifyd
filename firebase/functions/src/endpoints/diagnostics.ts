@@ -99,7 +99,7 @@ export const buildEnvPayload = () => {
     return {
         status: {
             timestamp: toISOString(new Date().toISOString()),
-            environment: config.instanceMode,
+            environment: config.instanceName,
             nodeVersion: process.version,
             uptimeSeconds,
             memorySummary: {

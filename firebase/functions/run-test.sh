@@ -186,8 +186,8 @@ run_functions_tests() {
 
     if [[ "$test_path" == *"/integration/"* ]]; then
         echo "Preparing build for integration test..."
-        (cd "$WORKSPACE_ROOT" && BUILD_MODE=test npm run build >/dev/null)
-        run_command_loop BUILD_MODE=test -- "${cmd[@]}"
+        (cd "$WORKSPACE_ROOT" && npm run build >/dev/null)
+        run_command_loop -- "${cmd[@]}"
     else
         run_command_loop -- "${cmd[@]}"
     fi

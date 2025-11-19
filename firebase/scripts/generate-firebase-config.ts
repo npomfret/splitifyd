@@ -19,8 +19,8 @@ if (!fs.existsSync(templatePath)) {
 
 let configContent: string = fs.readFileSync(templatePath, 'utf8');
 
-const instanceMode = runtimeConfig.INSTANCE_MODE;
-const isProduction = instanceMode === 'prod';
+const instanceName = runtimeConfig.INSTANCE_NAME;
+const isProduction = instanceName === 'prod';
 
 // Optional staging variables with defaults
 const optionalVars: Record<string, string> = {
@@ -33,7 +33,7 @@ if (isProduction && !process.env.FUNCTIONS_SOURCE) {
     process.exit(1);
 }
 
-const portConfig = resolvePortsForMode(instanceMode);
+const portConfig = resolvePortsForMode(instanceName);
 const portPlaceholders: Record<string, number> = {
     EMULATOR_UI_PORT: portConfig.ui,
     EMULATOR_AUTH_PORT: portConfig.auth,

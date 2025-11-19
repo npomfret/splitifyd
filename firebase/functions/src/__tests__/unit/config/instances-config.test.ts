@@ -14,7 +14,7 @@ describe('instances.json', () => {
     const config = JSON.parse(fileContents) as Record<
         string,
         {
-            instanceMode: string;
+            instanceName: string;
             ports: Record<PortKey, number>;
         }
     >;
@@ -29,8 +29,8 @@ describe('instances.json', () => {
 
     it('defines ports for every emulator service per instance', () => {
         Object.entries(config).forEach(([instance, entry]) => {
-            expect(entry).toHaveProperty('instanceMode');
-            expect(typeof entry.instanceMode).toBe('string');
+            expect(entry).toHaveProperty('instanceName');
+            expect(typeof entry.instanceName).toBe('string');
 
             REQUIRED_PORT_KEYS.forEach((key) => {
                 const value = entry.ports[key];

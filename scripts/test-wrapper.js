@@ -34,7 +34,7 @@ function getTestCommand(scriptType, packageName) {
             test: 'npm run test:unit && npm run test:integration',
             'test:unit': 'vitest run src/__tests__/unit/',
             'test:integration':
-                'BUILD_MODE=test npm run build && vitest run src/__tests__/integration/ --reporter=default --reporter=json --outputFile=integration-test-results.json && node ../../scripts/analyze-test-performance.js integration-test-results.json',
+                'npm run build:prod && vitest run src/__tests__/integration/ --reporter=default --reporter=json --outputFile=integration-test-results.json && node ../../scripts/analyze-test-performance.js integration-test-results.json',
         },
         'webapp-v2': {
             test: 'npm run test:unit && npm run test:integration',
@@ -45,7 +45,7 @@ function getTestCommand(scriptType, packageName) {
             test: 'npm run test:integration',
             'test:unit': 'echo \'No unit tests for e2e-tests package\'',
             'test:integration':
-                'BUILD_MODE=test npm run build && mkdir -p playwright-output/integration/report playwright-output/integration/data && JAVA_TOOL_OPTIONS="-Xmx4g" PLAYWRIGHT_HTML_REPORT=playwright-output/integration/report PLAYWRIGHT_TEST_OUTPUT_DIR=playwright-output/integration/data PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=1 --project=chromium --reporter=html src/__tests__/integration',
+                'npm run build && mkdir -p playwright-output/integration/report playwright-output/integration/data && JAVA_TOOL_OPTIONS="-Xmx4g" PLAYWRIGHT_HTML_REPORT=playwright-output/integration/report PLAYWRIGHT_TEST_OUTPUT_DIR=playwright-output/integration/data PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=1 --project=chromium --reporter=html src/__tests__/integration',
         },
         '@billsplit-wl/shared': {
             test: 'npm run test:unit && npm run test:integration',

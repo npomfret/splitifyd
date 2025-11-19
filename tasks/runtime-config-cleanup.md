@@ -140,16 +140,139 @@ WARNING_BANNER=instance-1
 - Single source of truth for runtime config schema
 - Easier to maintain and extend
 
-### 3. Clarify BUILD_MODE vs INSTANCE_MODE Responsibilities
+### 3. Eliminate BUILD_MODE - Use INSTANCE_MODE as Single Source of Truth ⚙️ IN PROGRESS
 
-**Documentation updates:** (pending)
-- `docs/guides/building.md`: `BUILD_MODE` strictly controls emitted artifacts (conditional-build, deploy)
-- `docs/guides/firebase.md`: `INSTANCE_MODE` selects emulator/prod runtime behavior
-- Add examples showing they are orthogonal concerns
+**Decision: Eliminate BUILD_MODE entirely**
 
-**Add guardrails:**
-- Log active modes at script startup
-- Prevent scripts from inferring build behavior based on `.env` content
+After analysis, we found that BUILD_MODE is redundant with INSTANCE_MODE:
+
+| INSTANCE_MODE | Compilation Strategy | Rationale |
+|---------------|---------------------|-----------|
+| `dev1-4` | tsx wrappers (no compile) | Fast iteration during local development |
+| `test` | Full compile (tsc + esbuild) | Integration tests need production-like behavior |
+| `prod` | Full compile (tsc + esbuild) | Production deployment requires compiled artifacts |
+
+**This is a perfect 1:1 mapping** - we can derive compilation behavior directly from INSTANCE_MODE.
+
+**Problems with BUILD_MODE:**
+- ❌ Creates confusion - developers see two environment concepts (BUILD_MODE + INSTANCE_MODE)
+- ❌ Requires manual setting in test runners and deployment scripts
+- ❌ Not a true "mode" - it's derived from what instance you're working with
+- ❌ Adds cognitive overhead - developers must understand both variables
+
+**Benefits of Elimination:**
+- ✅ **Single source of truth**: INSTANCE_MODE is the only environment variable developers interact with
+- ✅ **Zero manual touchpoints**: `npm run switch-instance dev1` sets up everything
+- ✅ **Simpler mental model**: One variable controls both runtime behavior AND compilation strategy
+- ✅ **Fewer environment variables**: BUILD_MODE completely removed from codebase
+
+**Developer Experience After Change:**
+
+```bash
+# Local development
+npm run switch-instance dev1  # Sets INSTANCE_MODE=dev1 in .env
+npm run dev                    # Automatically uses tsx (no compilation)
+
+# Running tests
+npm test                       # vitest.config.ts sets INSTANCE_MODE=test
+                              # Tests automatically compile via INSTANCE_MODE
+
+# Production deployment
+# Fresh checkout sets INSTANCE_MODE=prod → automatic compilation
+```
+
+**Implementation Plan:**
+
+**Phase 1: Eliminate BUILD_MODE** ✅ COMPLETE
+**Phase 2: Rename INSTANCE_MODE → INSTANCE_NAME** ✅ COMPLETE
+**Phase 3: Create .current-instance Architecture** ⚙️ IN PROGRESS
+
+**Phase 1: Eliminate BUILD_MODE** ✅ COMPLETE
+1. ✅ **Update `conditional-build.js`**: Read INSTANCE_MODE from .env instead of BUILD_MODE
+2. ✅ **Remove BUILD_MODE from all scripts:** test-wrapper.js, prepare-functions-deploy.js, deploy-from-fresh-checkout.ts, run-test.sh
+3. ⚙️ **Update documentation:** building.md, firebase.md
+
+**Phase 2: Rename INSTANCE_MODE → INSTANCE_NAME** ⚙️ IN PROGRESS
+- Rationale: "dev1", "dev2", "prod", "test" are instance identifiers, not "modes"
+- More semantically accurate naming
+- Files to rename/update:
+  - `instance-mode.ts` → `instance-name.ts`
+  - All references in scripts-config.ts, client-config.ts, vitest.config.ts
+  - All script files, all documentation
+
+**Phase 3: Introduce .current-instance Marker File** ⚙️ IN PROGRESS
+- **Problem**: Instance name stored redundantly (filename `.env.instance1` AND content `INSTANCE_MODE=dev1`)
+- **Solution**:
+  - Create `firebase/.current-instance` file containing just "dev1" (no prefix)
+  - Remove INSTANCE_NAME from `.env.instance*` template content
+  - `switch-instance.ts` writes both `.current-instance` AND injects `INSTANCE_NAME` into `.env`
+  - Scripts read from `.current-instance` file as source of truth
+
+**Architecture After Cleanup:**
+
+```
+firebase/
+├── instances.json              # Instance definitions (port mappings)
+├── .current-instance           # Current active instance (e.g., "dev1") - gitignored
+├── functions/
+│   ├── .env                    # Runtime env (generated, gitignored)
+│   ├── .env.instance1          # Template: Firebase keys only, NO INSTANCE_NAME
+│   ├── .env.instance2          # Template: Firebase keys only
+│   ├── .env.instance3          # Template: Firebase keys only
+│   ├── .env.instance4          # Template: Firebase keys only
+│   └── ...
+└── scripts/
+    └── switch-instance.ts      # Writes .current-instance + generates .env
+```
+
+**Changes:**
+
+1. ⚙️ **Create `.current-instance` architecture:**
+   - Add `firebase/.current-instance` to `.gitignore`
+   - Initial file contains "dev1" (default)
+
+2. ⚙️ **Remove INSTANCE_NAME from .env templates:**
+   - Remove `INSTANCE_MODE=dev1` line from `.env.instance1`
+   - Remove `INSTANCE_MODE=dev2` line from `.env.instance2`
+   - Remove `INSTANCE_MODE=dev3` line from `.env.instance3`
+   - Remove `INSTANCE_MODE=dev4` line from `.env.instance4`
+
+3. ⚙️ **Update `switch-instance.ts`:**
+   - Write instance name to `firebase/.current-instance`
+   - Copy `.env.instanceX` to `.env`
+   - Append `INSTANCE_NAME=<name>` to generated `.env`
+
+4. ⚙️ **Update `scripts-config.ts`:**
+   - Read `firebase/.current-instance` to determine active instance
+   - Fall back to `process.env.INSTANCE_NAME` if file missing
+   - Rename all INSTANCE_MODE → INSTANCE_NAME
+
+5. ⚙️ **Rename throughout codebase:**
+   - `instance-mode.ts` → `instance-name.ts`
+   - Update all imports and references
+   - `INSTANCE_MODE` → `INSTANCE_NAME` in all files
+   - Update deployment scripts to set `INSTANCE_NAME=prod`
+
+6. ⚙️ **Update all documentation:**
+   - Replace INSTANCE_MODE → INSTANCE_NAME everywhere
+   - Document `.current-instance` file architecture
+   - Explain single source of truth design
+
+**Files Being Modified:**
+- `firebase/functions/scripts/conditional-build.js` ✅
+- `scripts/test-wrapper.js` ✅
+- `firebase/scripts/prepare-functions-deploy.js` ✅
+- `firebase/scripts/deploy-from-fresh-checkout.ts` ✅
+- `firebase/functions/run-test.sh` ✅
+- `docs/guides/building.md` ⚙️
+- `docs/guides/firebase.md` ⚙️
+- `firebase/functions/src/shared/instance-mode.ts` → `instance-name.ts` ⚙️
+- `firebase/shared/scripts-config.ts` ⚙️
+- `firebase/functions/src/client-config.ts` ⚙️
+- `firebase/functions/vitest.config.ts` ⚙️
+- `firebase/scripts/switch-instance.ts` ⚙️
+- `.env.instance1-4` templates ⚙️
+- All script files referencing INSTANCE_MODE ⚙️
 
 ### 4. File Structure After Cleanup ✅ COMPLETE
 

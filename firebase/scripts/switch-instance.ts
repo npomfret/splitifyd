@@ -3,7 +3,7 @@
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadEnvFile, requireInstanceMode } from '../shared/scripts-config';
+import { loadEnvFile, requireInstanceName } from '../shared/scripts-config';
 import { logger } from './logger';
 import { requireInstanceConfig } from './instances-config';
 
@@ -38,23 +38,30 @@ if (fs.existsSync(targetPath)) {
 }
 
 try {
+    // Copy the template file
     fs.copyFileSync(sourcePath, targetPath);
+
+    // Inject INSTANCE_NAME into the .env file
+    const expectedName = instance === 'prod' ? 'prod' : `dev${instance}`;
+    const envContent = fs.readFileSync(targetPath, 'utf8');
+    const envWithInstanceName = `INSTANCE_NAME=${expectedName}\n${envContent}`;
+    fs.writeFileSync(targetPath, envWithInstanceName);
+
     logger.info(`✅ Switched to instance ${instance} configuration`);
 
     // Load and validate the new configuration
     loadEnvFile(targetPath);
-    const instanceMode = requireInstanceMode();
-    const expectedMode = instance === 'prod' ? 'prod' : `dev${instance}`;
-    if (instanceMode !== expectedMode) {
-        logger.error('❌ INSTANCE_MODE does not match requested instance', {
+    const instanceName = requireInstanceName();
+    if (instanceName !== expectedName) {
+        logger.error('❌ INSTANCE_NAME does not match requested instance', {
             requested: instance,
-            instanceMode,
-            expected: expectedMode,
+            instanceName,
+            expected: expectedName,
         });
         process.exit(1);
     }
 
-    const isProduction: boolean = instanceMode === 'prod';
+    const isProduction: boolean = instanceName === 'prod';
 
     // Generate firebase.json for both emulator and production environments
     execSync('tsx scripts/generate-firebase-config.ts', {
@@ -63,7 +70,7 @@ try {
     });
 
     if (!isProduction) {
-        const ports = requireInstanceConfig(expectedMode).ports;
+        const ports = requireInstanceConfig(expectedName).ports;
         logger.info('📍 Emulator ports configured', {
             ...ports,
             nextStep: 'npm run dev:with-data',

@@ -63,7 +63,7 @@ function runMonorepoBuild(cloneDir: string, env: NodeJS.ProcessEnv): void {
         cwd: cloneDir,
         env: {
             ...env,
-            BUILD_MODE: 'production',
+            INSTANCE_NAME: 'prod',
         },
     });
 }

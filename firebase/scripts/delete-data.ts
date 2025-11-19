@@ -163,14 +163,14 @@ function ensureInstanceModeMatchesTarget(env: ScriptEnvironment): void {
 
     if (env.isEmulator) {
         if (!runtimeEnv.isEmulator) {
-            console.error(`❌ INSTANCE_MODE must be a dev instance when targeting the emulator. Current: ${runtimeEnv.instanceMode}`);
+            console.error(`❌ INSTANCE_NAME must be a dev instance when targeting the emulator. Current: ${runtimeEnv.instanceName}`);
             process.exit(1);
         }
         return;
     }
 
     if (!runtimeEnv.isProduction) {
-        console.error(`❌ INSTANCE_MODE must be "prod" when targeting production. Current: ${runtimeEnv.instanceMode}`);
+        console.error(`❌ INSTANCE_NAME must be "prod" when targeting production. Current: ${runtimeEnv.instanceName}`);
         process.exit(1);
     }
 }

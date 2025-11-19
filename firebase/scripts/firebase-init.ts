@@ -25,7 +25,7 @@ export function parseEnvironment(args: string[]): ScriptEnvironment {
         process.exit(1);
     }
 
-    // Load runtime config to ensure INSTANCE_MODE is validated
+    // Load runtime config to ensure INSTANCE_NAME is validated
     loadRuntimeConfig();
 
     const isEmulator = targetEnvironment === 'emulator';
@@ -49,7 +49,7 @@ export function getEnvironment(args?: string[]): ScriptEnvironment {
         // Called directly - parse command line args
         return parseEnvironment(args || process.argv.slice(2));
     } else {
-        // Called as a module - detect from INSTANCE_MODE
+        // Called as a module - detect from INSTANCE_NAME
         return getEnvironmentForModule();
     }
 }

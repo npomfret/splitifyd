@@ -10,7 +10,7 @@ const stageFunctions = path.join(stageRoot, 'functions');
 
 const productionEnv = {
     ...process.env,
-    BUILD_MODE: 'production',
+    INSTANCE_NAME: 'prod',
 };
 
 const workspacePackages = [

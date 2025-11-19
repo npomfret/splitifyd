@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
 import { logger } from './logger';
 import { validateAppConfiguration } from './middleware/config-validation';
-import { assertValidInstanceMode, type InstanceMode } from './shared/instance-mode';
+import { assertValidInstanceName, type InstanceName } from './shared/instance-name';
 
 // Cache for lazy-loaded configurations
 let cachedConfig: ClientConfig | null = null;
@@ -14,13 +14,13 @@ let cachedAppConfig: AppConfiguration | null = null;
 let cachedEnv: z.infer<typeof envSchema> | null = null;
 
 // Define environment variable schema
-const instanceModeSchema = z
+const instanceNameSchema = z
     .string()
     .optional()
     .default('prod')
     .superRefine((value, ctx) => {
         try {
-            assertValidInstanceMode(value);
+            assertValidInstanceName(value);
         } catch (error) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -28,10 +28,10 @@ const instanceModeSchema = z
             });
         }
     })
-    .transform((value) => value as InstanceMode);
+    .transform((value) => value as InstanceName);
 
 const envSchema = z.object({
-    INSTANCE_MODE: instanceModeSchema,
+    INSTANCE_NAME: instanceNameSchema,
     FUNCTIONS_EMULATOR: z.string().optional(),
     GCLOUD_PROJECT: z.string().optional(),
     CLIENT_API_KEY: z.string().optional(),
@@ -49,7 +49,7 @@ const envSchema = z.object({
 
 // Type for the CONFIG object
 interface ClientConfig {
-    instanceMode: z.infer<typeof instanceModeSchema>;
+    instanceName: z.infer<typeof instanceNameSchema>;
     isProduction: boolean;
     requestBodyLimit: string;
     validation: {
@@ -93,8 +93,8 @@ function getEnv(): z.infer<typeof envSchema> {
 // Build the CONFIG object lazily
 function buildConfig(): ClientConfig {
     const env = getEnv();
-    const mode = env.INSTANCE_MODE;
-    const isProduction = mode === 'prod';
+    const name = env.INSTANCE_NAME;
+    const isProduction = name === 'prod';
 
     // Validate required production variables
     if (isProduction) {
@@ -107,7 +107,7 @@ function buildConfig(): ClientConfig {
     }
 
     return {
-        instanceMode: mode,
+        instanceName: name,
         isProduction,
         requestBodyLimit: '1mb',
         validation: {
@@ -211,7 +211,7 @@ function buildAppConfiguration(): AppConfiguration {
         logger.error('Firebase config is incomplete in production', new Error('Missing required Firebase config'), {
             hasApiKey: !!env.CLIENT_API_KEY,
             hasAuthDomain: !!env.CLIENT_AUTH_DOMAIN,
-            instanceMode: env.INSTANCE_MODE,
+            instanceName: env.INSTANCE_NAME,
         });
         throw new Error('Firebase configuration is incomplete in production');
     }

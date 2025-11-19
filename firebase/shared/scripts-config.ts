@@ -14,7 +14,7 @@
  * const env = getInstanceEnvironment();
  *
  * console.log(`Running in ${env.environment} mode`);
- * console.log(`Instance: ${config.INSTANCE_MODE}`);
+ * console.log(`Instance: ${config.INSTANCE_NAME}`);
  * ```
  */
 
@@ -22,7 +22,7 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { z } from 'zod';
-import { assertValidInstanceMode, isDevInstanceMode, type InstanceMode } from '../functions/src/shared/instance-mode';
+import { assertValidInstanceName, isDevInstanceName, type InstanceName } from '../functions/src/shared/instance-name';
 
 /**
  * Runtime environment variable schema.
@@ -32,13 +32,13 @@ import { assertValidInstanceMode, isDevInstanceMode, type InstanceMode } from '.
  * containing only the variables needed for runtime behavior (not client config).
  */
 const runtimeEnvSchema = z.object({
-    INSTANCE_MODE: z
+    INSTANCE_NAME: z
         .string()
         .optional()
         .default('prod')
         .superRefine((value, ctx) => {
             try {
-                assertValidInstanceMode(value);
+                assertValidInstanceName(value);
             } catch (error) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
@@ -46,7 +46,7 @@ const runtimeEnvSchema = z.object({
                 });
             }
         })
-        .transform((value) => value as InstanceMode),
+        .transform((value) => value as InstanceName),
     GCLOUD_PROJECT: z.string().optional(),
     FUNCTIONS_EMULATOR: z.string().optional(),
     FIRESTORE_EMULATOR_HOST: z.string().optional(),
@@ -66,7 +66,7 @@ export interface ScriptEnvironment {
     isEmulator: boolean;
     isProduction: boolean;
     environment: 'EMULATOR' | 'PRODUCTION' | 'TEST';
-    instanceMode: InstanceMode;
+    instanceName: InstanceName;
 }
 
 /**
@@ -125,7 +125,7 @@ export function loadRuntimeConfig(): RuntimeConfig {
 }
 
 /**
- * Get script environment information based on INSTANCE_MODE.
+ * Get script environment information based on INSTANCE_NAME.
  *
  * This determines whether the script is running against:
  * - Emulator (dev1, dev2, dev3, dev4)
@@ -136,27 +136,26 @@ export function loadRuntimeConfig(): RuntimeConfig {
  */
 export function getInstanceEnvironment(config?: RuntimeConfig): ScriptEnvironment {
     const cfg = config ?? getRuntimeConfig();
-    const mode = cfg.INSTANCE_MODE;
-    const isEmulator = isDevInstanceMode(mode);
-    const isTest = mode === 'test';
-    const isProduction = mode === 'prod';
+    const name = cfg.INSTANCE_NAME;
+    const isEmulator = isDevInstanceName(name);
+    const isProduction = name === 'prod';
 
     return {
         isEmulator,
         isProduction,
-        environment: isTest ? 'TEST' : isEmulator ? 'EMULATOR' : 'PRODUCTION',
-        instanceMode: mode,
+        environment: isEmulator ? 'EMULATOR' : 'PRODUCTION',
+        instanceName: name,
     };
 }
 
 /**
- * Require that INSTANCE_MODE is set and valid.
- * Convenience function for scripts that need instance mode validation.
+ * Require that INSTANCE_NAME is set and valid.
+ * Convenience function for scripts that need instance name validation.
  *
- * @returns The validated instance mode
- * @throws {Error} If INSTANCE_MODE is not set or invalid
+ * @returns The validated instance name
+ * @throws {Error} If INSTANCE_NAME is not set or invalid
  */
-export function requireInstanceMode(): InstanceMode {
+export function requireInstanceName(): InstanceName {
     const config = getRuntimeConfig();
-    return config.INSTANCE_MODE;
+    return config.INSTANCE_NAME;
 }

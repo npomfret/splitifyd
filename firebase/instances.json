@@ -1,6 +1,6 @@
 {
   "dev1": {
-    "instanceMode": "dev1",
+    "instanceName": "dev1",
     "ports": {
       "ui": 6001,
       "auth": 6002,
@@ -11,7 +11,7 @@
     }
   },
   "dev2": {
-    "instanceMode": "dev2",
+    "instanceName": "dev2",
     "ports": {
       "ui": 7001,
       "auth": 7002,
@@ -22,7 +22,7 @@
     }
   },
   "dev3": {
-    "instanceMode": "dev3",
+    "instanceName": "dev3",
     "ports": {
       "ui": 8001,
       "auth": 8002,
@@ -33,7 +33,7 @@
     }
   },
   "dev4": {
-    "instanceMode": "dev4",
+    "instanceName": "dev4",
     "ports": {
       "ui": 9001,
       "auth": 9002,
@@ -44,7 +44,7 @@
     }
   },
   "prod": {
-    "instanceMode": "prod",
+    "instanceName": "prod",
     "ports": {
       "ui": -1,
       "auth": -1,

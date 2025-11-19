@@ -3,24 +3,24 @@ import * as admin from 'firebase-admin';
 import assert from 'node:assert';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { getInstanceMode, isDevInstanceMode } from './shared/instance-mode';
+import { getInstanceName, isDevInstanceName } from './shared/instance-name';
 
 const envPath = join(__dirname, '../.env');
-if (!process.env.INSTANCE_MODE && existsSync(envPath)) {
+if (!process.env.INSTANCE_NAME && existsSync(envPath)) {
     loadEnv({ path: envPath });
 }
 
 export function isEmulator() {
-    const mode = getInstanceMode();
-    return isDevInstanceMode(mode) && process.env.FUNCTIONS_EMULATOR === 'true';
+    const name = getInstanceName();
+    return isDevInstanceName(name) && process.env.FUNCTIONS_EMULATOR === 'true';
 }
 
 function isProduction() {
-    return getInstanceMode() === 'prod';
+    return getInstanceName() === 'prod';
 }
 
 function isTest() {
-    return getInstanceMode() === 'test';
+    return getInstanceName() === 'dev1';
 }
 
 if (!process.env.GCLOUD_PROJECT) {

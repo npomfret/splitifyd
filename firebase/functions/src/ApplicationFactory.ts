@@ -8,7 +8,7 @@ import { logger } from './logger';
 import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
 import type { IAuthService } from './services/auth';
 import { ComponentBuilder } from './services/ComponentBuilder';
-import { requireInstanceMode } from './shared/instance-mode';
+import { requireInstanceName } from './shared/instance-name';
 import { TestUserPoolService } from './test-pool/TestUserPoolService';
 import { getEnhancedConfigResponse } from './utils/config-response';
 import { UpdateTenantBrandingRequestSchema } from './schemas/tenant';
@@ -143,7 +143,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
     const isTestEnvironment = (): boolean => {
         try {
-            return requireInstanceMode() === 'test';
+            return requireInstanceName() === 'dev1';
         } catch {
             return false;
         }

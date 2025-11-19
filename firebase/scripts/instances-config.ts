@@ -11,7 +11,7 @@ export interface InstancePorts {
 }
 
 export interface InstanceConfig {
-    instanceMode: string;
+    instanceName: string;
     ports: InstancePorts;
 }
 
@@ -50,11 +50,11 @@ export function requireInstanceConfig(instanceKey: string): InstanceConfig {
     return entry;
 }
 
-export function resolvePortsForMode(instanceMode: string): InstancePorts {
+export function resolvePortsForMode(instanceName: string): InstancePorts {
     const instances = loadInstancesFile();
-    const entry = Object.values(instances).find((candidate) => candidate.instanceMode === instanceMode);
+    const entry = Object.values(instances).find((candidate) => candidate.instanceName === instanceName);
     if (!entry) {
-        throw new Error(`No port configuration found for INSTANCE_MODE="${instanceMode}"`);
+        throw new Error(`No port configuration found for INSTANCE_NAME="${instanceName}"`);
     }
     return entry.ports;
 }

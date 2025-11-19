@@ -39,7 +39,7 @@ describe('Environment Configuration Validation', () => {
         });
 
         it('should contain all expected core environment variables', () => {
-            const expectedVars = ['INSTANCE_MODE', 'DEV_FORM_EMAIL', 'DEV_FORM_PASSWORD', 'WARNING_BANNER'];
+            const expectedVars = ['DEV_FORM_EMAIL', 'DEV_FORM_PASSWORD', 'WARNING_BANNER'];
 
             expectedVars.forEach((varName) => {
                 expect(templateConfig.variables.has(varName)).toBe(true);
