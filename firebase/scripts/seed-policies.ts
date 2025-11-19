@@ -1,12 +1,11 @@
 #!/usr/bin/env npx tsx
 
-import { PolicyIds } from '@billsplit-wl/shared';
+import { PolicyIds, PolicyName } from '@billsplit-wl/shared';
 import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
-import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
-import { requireInstanceMode } from '../functions/src/shared/instance-mode';
+import { loadRuntimeConfig } from '../shared/scripts-config';
 import { getEnvironment, initializeFirebase } from './firebase-init';
 
 /*
@@ -16,13 +15,8 @@ import { getEnvironment, initializeFirebase } from './firebase-init';
  *   tsx seed-policies.ts production
  */
 
-const envPath = path.join(__dirname, '../functions/.env');
-if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath });
-}
-
-requireInstanceMode();
-
+// Load and validate runtime configuration
+const runtimeConfig = loadRuntimeConfig();
 assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
 
 // Parse environment - handle both direct calls and module calls

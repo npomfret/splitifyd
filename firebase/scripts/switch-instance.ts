@@ -1,10 +1,9 @@
 #!/usr/bin/env npx tsx
 
 import { execSync } from 'child_process';
-import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
-import { requireInstanceMode } from '../functions/src/shared/instance-mode';
+import { loadEnvFile, requireInstanceMode } from '../shared/scripts-config';
 import { logger } from './logger';
 import { requireInstanceConfig } from './instances-config';
 
@@ -42,8 +41,8 @@ try {
     fs.copyFileSync(sourcePath, targetPath);
     logger.info(`✅ Switched to instance ${instance} configuration`);
 
-    dotenv.config({ path: targetPath });
-
+    // Load and validate the new configuration
+    loadEnvFile(targetPath);
     const instanceMode = requireInstanceMode();
     const expectedMode = instance === 'prod' ? 'prod' : `dev${instance}`;
     if (instanceMode !== expectedMode) {

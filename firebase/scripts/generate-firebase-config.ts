@@ -1,13 +1,13 @@
 #!/usr/bin/env npx tsx
 
-import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
-import { requireInstanceMode } from '../functions/src/shared/instance-mode';
+import { loadRuntimeConfig } from '../shared/scripts-config';
 import { logger } from './logger';
 import { resolvePortsForMode } from './instances-config';
 
-dotenv.config({ path: path.join(__dirname, '../functions/.env') });
+// Load and validate runtime configuration
+const runtimeConfig = loadRuntimeConfig();
 
 const templatePath = path.join(__dirname, '../firebase.template.json');
 const configPath = path.join(__dirname, '../firebase.json');
@@ -19,7 +19,7 @@ if (!fs.existsSync(templatePath)) {
 
 let configContent: string = fs.readFileSync(templatePath, 'utf8');
 
-const instanceMode = requireInstanceMode();
+const instanceMode = runtimeConfig.INSTANCE_MODE;
 const isProduction = instanceMode === 'prod';
 
 // Optional staging variables with defaults

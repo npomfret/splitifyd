@@ -8,21 +8,17 @@
  * Defaults: pageSize = 25, maxPages = all
  */
 import { SystemUserRoles } from '@billsplit-wl/shared';
-import * as dotenv from 'dotenv';
 import * as admin from 'firebase-admin';
 import { DocumentSnapshot, FieldPath, FieldValue, Firestore, Query } from 'firebase-admin/firestore';
-import * as fs from 'fs';
-import * as path from 'path';
 import { ZodError, type ZodIssue } from 'zod';
 import { FirestoreCollections } from '../functions/src/constants';
 import { getFirestore } from '../functions/src/firebase';
 import { UserDocumentSchema } from '../functions/src/schemas';
+import { loadRuntimeConfig } from '../shared/scripts-config';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
-const envPath = path.join(__dirname, '../functions/.env');
-if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath });
-}
+// Load and validate runtime configuration
+loadRuntimeConfig();
 
 function parseNumberArg(value: string | undefined, fallback: number, allowInfinity = false): number {
     if (!value) return fallback;

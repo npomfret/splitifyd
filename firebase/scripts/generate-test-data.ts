@@ -1,20 +1,12 @@
 #!/usr/bin/env tsx
 
 import { getProjectId } from '@billsplit-wl/test-support';
-import * as dotenv from 'dotenv';
-import * as fs from 'fs';
-import * as path from 'path';
-import { requireInstanceMode } from '../functions/src/shared/instance-mode';
+import { loadRuntimeConfig } from '../shared/scripts-config';
 import { getEnvironmentForModule, initializeFirebase } from './firebase-init';
 import { generateFullTestData } from './test-data-generator';
 
-// Load environment
-const envPath = path.join(__dirname, '../functions/.env');
-if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath });
-}
-
-requireInstanceMode();
+// Load and validate runtime configuration
+loadRuntimeConfig();
 
 // Set GCLOUD_PROJECT if not already set
 if (!process.env.GCLOUD_PROJECT) {

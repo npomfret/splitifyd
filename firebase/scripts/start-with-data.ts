@@ -3,12 +3,10 @@
 import { getPorts, getProjectId } from '@billsplit-wl/test-support';
 import { ChildProcess } from 'child_process';
 import { exec } from 'child_process';
-import * as dotenv from 'dotenv';
-import * as fs from 'fs';
 import assert from 'node:assert';
 import * as path from 'path';
 import { promisify } from 'util';
-import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
+import { loadRuntimeConfig } from '../shared/scripts-config';
 import { logger } from './logger';
 import { seedPolicies } from './seed-policies';
 import { startEmulator } from './start-emulator';
@@ -83,6 +81,11 @@ async function runEnsureBillSplitterUserStep(): Promise<void> {
     logger.info('🔑 Sign in with test1@test.com to access the emulator');
 }
 
+// Load and validate runtime configuration
+const runtimeConfig = loadRuntimeConfig();
+assert(runtimeConfig.INSTANCE_MODE.startsWith('dev'), `INSTANCE_MODE=${runtimeConfig.INSTANCE_MODE} is not allowed when starting emulators`);
+assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
+
 // Get Firebase configuration using centralized loader
 let UI_PORT: number;
 let FUNCTIONS_PORT: number;
@@ -95,20 +98,6 @@ try {
     logger.error('❌ firebase.json not found. Run the build process first to generate it.', { error });
     process.exit(1);
 }
-
-const envPath = path.join(__dirname, '../functions/.env');
-if (!fs.existsSync(envPath)) {
-    logger.error('❌ .env file not found. Run switch-instance script first to set up environment.');
-    process.exit(1);
-}
-
-// Load environment variables from .env file
-dotenv.config({ path: envPath });
-
-assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
-
-const instanceMode = requireInstanceMode();
-assert(isDevInstanceMode(instanceMode), `INSTANCE_MODE=${instanceMode} is not allowed when starting emulators`);
 
 // Get project ID using centralized loader
 const PROJECT_ID = getProjectId();

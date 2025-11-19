@@ -1,5 +1,5 @@
 import { createFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
-import type { Amount, CreateSettlementRequest, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest } from '@billsplit-wl/shared';
+import type { Amount, CreateSettlementRequest, CurrencyISOCode, DisplayName, GroupDTO, GroupId, GroupMember, GroupPermissions, UpdateExpenseRequest, UpdateSettlementRequest } from '@billsplit-wl/shared';
 import {
     AuthenticatedFirebaseUser,
     compareAmounts,
@@ -10,7 +10,10 @@ import {
     PermissionLevels,
     PREDEFINED_EXPENSE_LABELS,
     subtractAmounts,
+    toAmount,
+    toDisplayName,
     toISOString,
+    toPassword,
     UserRegistration,
     zeroAmount,
 } from '@billsplit-wl/shared';
@@ -121,8 +124,8 @@ const runQueued = <T>(task: () => Promise<T>): Promise<T> => queue.enqueue(task)
 
 const BILL_SPLITTER_REGISTRATION: UserRegistration = {
     email: 'test1@test.com',
-    password: 'passwordpass',
-    displayName: 'Bill Splitter',
+    password: toPassword('passwordpass'),
+    displayName: toDisplayName('Bill Splitter'),
     termsAccepted: true,
     cookiePolicyAccepted: true,
     privacyPolicyAccepted: true,
@@ -301,10 +304,11 @@ const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration
     for (let i = 0; i < remainingCount; i++) {
         users.push({
             ...testUsers[i],
+            displayName: toDisplayName(testUsers[i].displayName),
             termsAccepted: true,
             cookiePolicyAccepted: true,
             privacyPolicyAccepted: true,
-            password: 'passwordpass',
+            password: toPassword('passwordpass'),
         });
     }
 
@@ -530,7 +534,7 @@ const generateRandomExpense = (): TestExpenseTemplate => {
 export async function createDefaultTenant(): Promise<void> {
     console.log('🏢 Creating default fallback tenant only...');
 
-    const { getFirestore } = require('../functions/src/firebase');
+    const { getFirestore } = await import('../functions/src/firebase');
     const firestore = getFirestore();
 
     const { syncTenantConfigs } = await import('./sync-tenant-configs');
@@ -545,7 +549,7 @@ export async function createDefaultTenant(): Promise<void> {
 export async function createAllDemoTenants(): Promise<void> {
     console.log('🏢 Syncing all demo tenants from JSON configuration...');
 
-    const { getFirestore } = require('../functions/src/firebase');
+    const { getFirestore } = await import('../functions/src/firebase');
     const firestore = getFirestore();
 
     const { syncTenantConfigs } = await import('./sync-tenant-configs');
@@ -796,8 +800,8 @@ async function configureLargeGroupAdvancedScenarios(
             key: 'viewer',
             registration: {
                 email: `managed.viewer+${timestampSuffix}@example.com`,
-                password: 'passwordpass',
-                displayName: 'Managed Viewer',
+                password: toPassword('passwordpass'),
+                displayName: toDisplayName('Managed Viewer'),
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
                 privacyPolicyAccepted: true,
@@ -807,8 +811,8 @@ async function configureLargeGroupAdvancedScenarios(
             key: 'reject',
             registration: {
                 email: `managed.reject+${timestampSuffix}@example.com`,
-                password: 'passwordpass',
-                displayName: 'Rejected Applicant',
+                password: toPassword('passwordpass'),
+                displayName: toDisplayName('Rejected Applicant'),
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
                 privacyPolicyAccepted: true,
@@ -818,8 +822,8 @@ async function configureLargeGroupAdvancedScenarios(
             key: 'pending',
             registration: {
                 email: `managed.pending+${timestampSuffix}@example.com`,
-                password: 'passwordpass',
-                displayName: 'Pending Applicant',
+                password: toPassword('passwordpass'),
+                displayName: toDisplayName('Pending Applicant'),
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
                 privacyPolicyAccepted: true,
@@ -1219,9 +1223,9 @@ async function createManySettlementsForLargeGroup(groups: GroupWithInvite[], gro
         const payee = availablePayees[Math.floor(Math.random() * availablePayees.length)];
 
         // Random amount between $10 and $150
-        const currency = Math.random() < 0.5 ? 'GBP' : 'EUR';
+        const currency: CurrencyISOCode = Math.random() < 0.5 ? 'GBP' : 'EUR';
         const rawAmount = Math.random() * 140 + 10;
-        const amount = normalizeAmount(rawAmount, currency);
+        const amount = normalizeAmount(toAmount(rawAmount.toFixed(2)), currency);
 
         const settlementData: CreateSettlementRequest = {
             groupId: largeGroup.id,
@@ -1411,9 +1415,9 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], groupMemb
                     ];
 
                     // Randomly choose between GBP and EUR for settlements
-                    const currency = Math.random() < 0.5 ? 'GBP' : 'EUR';
+                    const currency: CurrencyISOCode = Math.random() < 0.5 ? 'GBP' : 'EUR';
                     const rawPaymentAmount = Math.random() * 45 + 5;
-                    const paymentAmount = normalizeAmount(rawPaymentAmount, currency);
+                    const paymentAmount = normalizeAmount(toAmount(rawPaymentAmount.toFixed(2)), currency);
 
                     const settlementData: CreateSettlementRequest = {
                         groupId: group.id,

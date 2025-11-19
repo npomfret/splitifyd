@@ -1,23 +1,19 @@
 import { getPorts, getProjectId } from '@billsplit-wl/test-support';
-import * as dotenv from 'dotenv';
 import * as admin from 'firebase-admin';
 import * as fs from 'fs';
 import * as path from 'path';
-import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
+import { loadRuntimeConfig, getInstanceEnvironment, type ScriptEnvironment } from '../shared/scripts-config';
+
+export { type ScriptEnvironment } from '../shared/scripts-config';
 
 export function isProduction() {
-    return requireInstanceMode() === 'prod';
+    const env = getInstanceEnvironment();
+    return env.isProduction;
 }
 
 export function isEmulator() {
-    const mode = requireInstanceMode();
-    if (mode === 'test') return false;
-    return isDevInstanceMode(mode);
-}
-
-export interface ScriptEnvironment {
-    isEmulator: boolean;
-    environment: string;
+    const env = getInstanceEnvironment();
+    return env.isEmulator;
 }
 
 export function parseEnvironment(args: string[]): ScriptEnvironment {
@@ -29,20 +25,23 @@ export function parseEnvironment(args: string[]): ScriptEnvironment {
         process.exit(1);
     }
 
+    // Load runtime config to ensure INSTANCE_MODE is validated
+    loadRuntimeConfig();
+
     const isEmulator = targetEnvironment === 'emulator';
+    const env = getInstanceEnvironment();
+
     return {
+        ...env,
         isEmulator,
         environment: isEmulator ? 'EMULATOR' : 'PRODUCTION',
     };
 }
 
 export function getEnvironmentForModule(): ScriptEnvironment {
-    const mode = requireInstanceMode();
-    const isEmulatorEnv = isDevInstanceMode(mode);
-    return {
-        isEmulator: isEmulatorEnv,
-        environment: isEmulatorEnv ? 'EMULATOR' : 'PRODUCTION',
-    };
+    // Load and validate runtime config
+    loadRuntimeConfig();
+    return getInstanceEnvironment();
 }
 
 export function getEnvironment(args?: string[]): ScriptEnvironment {
@@ -89,10 +88,8 @@ export function initializeFirebase(env: ScriptEnvironment): void {
     } else {
         console.log('   Using Firebase Emulator Suite');
 
-        const envPath = path.join(__dirname, '../functions/.env');
-        if (fs.existsSync(envPath)) {
-            dotenv.config({ path: envPath });
-        }
+        // Ensure runtime config is loaded
+        loadRuntimeConfig();
 
         const projectId = process.env.GCLOUD_PROJECT ?? (() => {
             try {

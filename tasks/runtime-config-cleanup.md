@@ -32,6 +32,17 @@ This is a **greenfield cleanup** - no migration needed, no users to disrupt. Goa
 - Port configuration remains explicit and user-editable
 - Structure validation enforced via `firebase/functions/src/__tests__/unit/config/instances-config.test.ts`
 
+**Instance Mode Types:**
+
+| Instance Mode | Type | Description |
+|--------------|------|-------------|
+| `dev1` | firebase-emulator | Development instance 1 (ports 6001-6006) |
+| `dev2` | firebase-emulator | Development instance 2 (ports 7001-7006) |
+| `dev3` | firebase-emulator | Development instance 3 (ports 8001-8006) |
+| `dev4` | firebase-emulator | Development instance 4 (ports 9001-9006) |
+| `prod` | firebase-actual | Production Firebase project |
+| `test` | firebase-emulator | Test environment (configured by test setup) |
+
 **Update `firebase/scripts/generate-firebase-config.ts`:** ✅
 - Reads from `instances.json` for port assignments
 - Keeps existing validation and error handling
@@ -96,21 +107,38 @@ DEV_FORM_PASSWORD=passwordpass
 WARNING_BANNER=instance-1
 ```
 
-### 2. Introduce Shared Config Loader (partially complete)
+### 2. Introduce Shared Config Loader ✅ COMPLETE
 
-**Create `firebase/shared/config.ts`:**
+**Created `firebase/shared/scripts-config.ts`:** ✅
 - Located in `firebase/shared/` (peer to `functions/` and `scripts/`)
-- Exposes `getRuntimeConfig()` and `getInstanceEnvironment()` wrappers over existing Zod schema
-- Single authoritative source for runtime env validation
-- Can be imported cleanly by both functions and scripts without bootstrap ordering issues
+- Exposes `loadRuntimeConfig()`, `getRuntimeConfig()`, and `getInstanceEnvironment()` functions
+- Uses Zod schema for runtime environment validation
+- Single authoritative source for runtime env validation in scripts
+- Separate from `client-config.ts` which handles Firebase Functions runtime config
 
-**Update consuming code:**
-- `start-with-data.ts`
-- `firebase-init.ts`
-- Policy seeders
-- Delete-data scripts
-- Vitest global setup (`firebase/functions/vitest.global-setup.ts`)
-- Replace manual `.env` parsing with centralized loader
+**Key Functions:**
+- `loadEnvFile(path?)` - Loads .env file from firebase/functions (optional path)
+- `loadRuntimeConfig(path?)` - Loads and validates runtime config (combines loadEnvFile + getRuntimeConfig)
+- `getRuntimeConfig()` - Validates process.env against runtime schema
+- `getInstanceEnvironment()` - Returns environment info (isEmulator, isProduction, etc.)
+- `requireInstanceMode()` - Validates and returns INSTANCE_MODE
+
+**Updated consuming code:** ✅
+- `firebase-init.ts` - Uses `loadRuntimeConfig()` and `getInstanceEnvironment()`
+- `start-with-data.ts` - Uses `loadRuntimeConfig()` for validation
+- `seed-policies.ts` - Uses `loadRuntimeConfig()` instead of manual dotenv
+- `delete-data.ts` - Uses `loadRuntimeConfig()` and `getInstanceEnvironment()`
+- `generate-firebase-config.ts` - Uses `loadRuntimeConfig()` for instance mode
+- `switch-instance.ts` - Uses `loadEnvFile()` and `requireInstanceMode()`
+- `validate-users.ts` - Uses `loadRuntimeConfig()`
+- `generate-test-data.ts` - Uses `loadRuntimeConfig()`
+
+**Benefits:**
+- Eliminated 8 instances of manual `dotenv.config()` calls
+- Centralized environment validation logic
+- Consistent error messages across all scripts
+- Single source of truth for runtime config schema
+- Easier to maintain and extend
 
 ### 3. Clarify BUILD_MODE vs INSTANCE_MODE Responsibilities
 
@@ -123,24 +151,32 @@ WARNING_BANNER=instance-1
 - Log active modes at script startup
 - Prevent scripts from inferring build behavior based on `.env` content
 
-### 4. File Structure After Cleanup (target state)
+### 4. File Structure After Cleanup ✅ COMPLETE
 
 ```
 firebase/
-├── instances.json              # Port mappings (committed)
+├── instances.json              # ✅ NEW: Port mappings (committed)
 ├── shared/
-│   └── config.ts               # NEW: Shared runtime config loader
+│   └── scripts-config.ts       # ✅ NEW: Shared runtime config loader for scripts
 ├── functions/
-│   ├── .env.instance1          # MODIFIED: Runtime vars only
-│   ├── .env.instance2          # MODIFIED: Runtime vars only
-│   ├── .env.instance3          # MODIFIED: Runtime vars only
-│   ├── .env.instance4          # MODIFIED: Runtime vars only
+│   ├── .env.instance1          # ✅ MODIFIED: Runtime vars only (4 lines)
+│   ├── .env.instance2          # ✅ MODIFIED: Runtime vars only (4 lines)
+│   ├── .env.instance3          # ✅ MODIFIED: Runtime vars only (4 lines)
+│   ├── .env.instance4          # ✅ MODIFIED: Runtime vars only (4 lines)
 │   └── src/
-│       ├── client-config.ts    # MODIFIED: Uses shared/config.ts
+│       ├── client-config.ts    # NO CHANGE: Functions runtime config (separate concern)
+│       ├── shared/
+│       │   └── instance-mode.ts # NO CHANGE: Type definitions and validators
 │       └── firebase.ts         # NO CHANGE: Already minimal
 ├── scripts/
-│   ├── generate-firebase-config.ts  # MODIFIED: Reads instances.json
-│   └── switch-instance.ts           # MODIFIED: Uses instances.json
+│   ├── generate-firebase-config.ts  # ✅ MODIFIED: Uses scripts-config.ts
+│   ├── switch-instance.ts           # ✅ MODIFIED: Uses scripts-config.ts
+│   ├── firebase-init.ts             # ✅ MODIFIED: Uses scripts-config.ts
+│   ├── start-with-data.ts           # ✅ MODIFIED: Uses scripts-config.ts
+│   ├── seed-policies.ts             # ✅ MODIFIED: Uses scripts-config.ts
+│   ├── delete-data.ts               # ✅ MODIFIED: Uses scripts-config.ts
+│   ├── validate-users.ts            # ✅ MODIFIED: Uses scripts-config.ts
+│   └── generate-test-data.ts        # ✅ MODIFIED: Uses scripts-config.ts
 ```
 
 ### 5. Validation Strategy

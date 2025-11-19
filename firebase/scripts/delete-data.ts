@@ -6,21 +6,16 @@
  * If collection IDs are supplied, only those collections (minus protected ones) are deleted.
  * Otherwise, every non-protected collection will be purged.
  */
-import * as dotenv from 'dotenv';
 import * as admin from 'firebase-admin';
 import type { CollectionReference, Firestore, QueryDocumentSnapshot } from 'firebase-admin/firestore';
-import * as fs from 'fs';
 import { stdin as input, stdout as output } from 'node:process';
-import * as path from 'path';
 import { createInterface } from 'readline/promises';
 import { getFirestore } from '../functions/src/firebase';
-import { isDevInstanceMode, requireInstanceMode } from '../functions/src/shared/instance-mode';
+import { getInstanceEnvironment, loadRuntimeConfig } from '../shared/scripts-config';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
-const envPath = path.join(__dirname, '../functions/.env');
-if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath });
-}
+// Load runtime configuration at the start
+loadRuntimeConfig();
 
 const PROTECTED_COLLECTIONS = new Set(['users']);
 const BATCH_SIZE = 200;
@@ -164,18 +159,18 @@ async function wipeCollections(firestore: Firestore, requestedCollectionIds: str
 }
 
 function ensureInstanceModeMatchesTarget(env: ScriptEnvironment): void {
-    const instanceMode = requireInstanceMode();
+    const runtimeEnv = getInstanceEnvironment();
 
     if (env.isEmulator) {
-        if (!isDevInstanceMode(instanceMode)) {
-            console.error(`❌ INSTANCE_MODE must be a dev instance when targeting the emulator. Current: ${instanceMode}`);
+        if (!runtimeEnv.isEmulator) {
+            console.error(`❌ INSTANCE_MODE must be a dev instance when targeting the emulator. Current: ${runtimeEnv.instanceMode}`);
             process.exit(1);
         }
         return;
     }
 
-    if (instanceMode !== 'prod') {
-        console.error(`❌ INSTANCE_MODE must be "prod" when targeting production. Current: ${instanceMode}`);
+    if (!runtimeEnv.isProduction) {
+        console.error(`❌ INSTANCE_MODE must be "prod" when targeting production. Current: ${runtimeEnv.instanceMode}`);
         process.exit(1);
     }
 }
