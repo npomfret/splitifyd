@@ -92,6 +92,11 @@ function runInnerDeploy(cloneFirebaseDir: string, mode: DeployMode, env: NodeJS.
     run('npm', ['run', scriptName], { cwd: cloneFirebaseDir, env });
 }
 
+function runPostDeploySyncTenant(cloneFirebaseDir: string, env: NodeJS.ProcessEnv): void {
+    console.log('🔄 Syncing default tenant to production Firestore...');
+    run('npm', ['run', 'postdeploy:sync-tenant'], { cwd: cloneFirebaseDir, env });
+}
+
 function removeSecrets(cloneFirebaseDir: string): void {
     rmSync(join(cloneFirebaseDir, 'functions', envTemplateName), { force: true });
     rmSync(join(cloneFirebaseDir, 'functions', '.env'), { force: true });
@@ -131,6 +136,9 @@ function deploy(mode: DeployMode): void {
         }
 
         runInnerDeploy(cloneFirebaseDir, mode, deployEnv);
+
+        // Sync default tenant after successful deployment
+        runPostDeploySyncTenant(cloneFirebaseDir, deployEnv);
 
         removeSecrets(cloneFirebaseDir);
         rmSync(tempRoot, { recursive: true, force: true });

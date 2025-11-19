@@ -30,6 +30,7 @@
     "deploy:rules:inner": "GOOGLE_APPLICATION_CREDENTIALS=\"./service-account-key.json\" bash -c 'tsx scripts/switch-instance.ts prod && firebase deploy --only firestore:rules && rm -f functions/.env'",
     "deploy:indexes:inner": "GOOGLE_APPLICATION_CREDENTIALS=\"./service-account-key.json\" bash -c 'tsx scripts/switch-instance.ts prod && firebase deploy --only firestore:indexes --force && rm -f functions/.env'",
     "download:indexes": "GOOGLE_APPLICATION_CREDENTIALS=\"./service-account-key.json\" firebase firestore:indexes --project splitifyd > firestore.indexes.json",
+    "postdeploy:sync-tenant": "GOOGLE_APPLICATION_CREDENTIALS=\"./service-account-key.json\" bash -c 'tsx scripts/sync-tenant-configs.ts production --default-only && rm -f functions/.env'",
     "seed-policies:prod": "tsx scripts/switch-instance.ts prod && tsx scripts/seed-policies.ts production && rm functions/.env",
     "logs": "firebase functions:log"
   },

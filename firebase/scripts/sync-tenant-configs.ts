@@ -1,3 +1,13 @@
+#!/usr/bin/env npx tsx
+/**
+ * Sync tenant configurations from tenant-configs.json to Firestore.
+ *
+ * Usage:
+ *   ./scripts/sync-tenant-configs.ts <emulator|production> [--default-only]
+ *
+ * Flags:
+ *   --default-only: Only sync the default tenant (isDefault: true)
+ */
 import { createFirestoreDatabase } from '@billsplit-wl/firebase-simulator';
 import {
     toShowLandingPageFlag,
@@ -13,10 +23,12 @@ import {
     toTenantPrimaryColor,
     toTenantSecondaryColor,
 } from '@billsplit-wl/shared';
-import { Timestamp } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
+import { Firestore, Timestamp } from 'firebase-admin/firestore';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FirestoreCollections } from '../functions/src/constants';
+import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from './firebase-init';
 
 interface TenantConfig {
     id: string;
@@ -38,19 +50,15 @@ interface TenantConfig {
     isDefault: boolean;
 }
 
-// Lazy initialization - will be set when Firebase is initialized
-let firestoreDb: ReturnType<typeof createFirestoreDatabase>;
-
-function getFirestoreDb() {
-    if (!firestoreDb) {
-        // Import getFirestore lazily to avoid module-level execution before GCLOUD_PROJECT is set
-        const { getFirestore } = require('../functions/src/firebase');
-        firestoreDb = createFirestoreDatabase(getFirestore());
+async function resolveFirestore(env: ScriptEnvironment): Promise<Firestore> {
+    if (env.isEmulator) {
+        const firebaseModule = await import('../functions/src/firebase');
+        return firebaseModule.getFirestore();
     }
-    return firestoreDb;
+    return admin.firestore();
 }
 
-async function syncTenantConfigs(options?: { defaultOnly?: boolean; }) {
+async function syncTenantConfigs(firestore: Firestore, options?: { defaultOnly?: boolean; }) {
     const configPath = path.join(__dirname, 'tenant-configs.json');
     const configData = fs.readFileSync(configPath, 'utf-8');
     let configs: TenantConfig[] = JSON.parse(configData);
@@ -63,7 +71,7 @@ async function syncTenantConfigs(options?: { defaultOnly?: boolean; }) {
         console.log('🔄 Syncing all tenant configurations from JSON...');
     }
 
-    const db = getFirestoreDb();
+    const db = createFirestoreDatabase(firestore);
     const now = Timestamp.now();
 
     for (const config of configs) {
@@ -114,9 +122,29 @@ async function syncTenantConfigs(options?: { defaultOnly?: boolean; }) {
     console.log('✅ Tenant configurations synced successfully');
 }
 
+async function main(): Promise<void> {
+    const rawArgs = process.argv.slice(2);
+    const defaultOnly = rawArgs.includes('--default-only');
+    const argsWithoutFlags = rawArgs.filter((arg) => !arg.startsWith('--'));
+    const env = parseEnvironment(argsWithoutFlags);
+
+    initializeFirebase(env);
+
+    if (env.isEmulator) {
+        console.log('✅ Connected to Firebase Emulator');
+    } else {
+        console.log('✅ Connected to Production Firebase');
+    }
+
+    const firestore = await resolveFirestore(env);
+    await syncTenantConfigs(firestore, { defaultOnly });
+
+    console.log('✅ Tenant sync complete');
+}
+
 // Run if executed directly
 if (require.main === module) {
-    syncTenantConfigs().catch((error) => {
+    main().catch((error) => {
         console.error('❌ Tenant config sync failed:', error);
         process.exit(1);
     });
