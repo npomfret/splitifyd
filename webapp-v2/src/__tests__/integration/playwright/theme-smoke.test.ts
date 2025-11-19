@@ -1,5 +1,5 @@
 import { appConfigHandler, firebaseInitConfigHandler } from '@/test/msw/handlers';
-import type { Locator, Page } from '@playwright/test';
+import { ThemePage } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
 type ThemeCssVars = {
@@ -54,6 +54,8 @@ const themeMap = new Map(themeFixtures.map((fixture) => [fixture.hashKey, fixtur
 test.describe('Tenant theme smoke suite', () => {
     for (const fixture of themeFixtures) {
         test(`applies ${fixture.label}`, async ({ pageWithLogging: page, msw }) => {
+            const themePage = new ThemePage(page);
+
             // Register config handlers to prevent 404 errors
             await msw.use([firebaseInitConfigHandler(), appConfigHandler()]);
 
@@ -98,17 +100,21 @@ test.describe('Tenant theme smoke suite', () => {
             }, { timeout: 5000 });
 
             // Verify theme CSS variables are applied correctly
-            await expectRootCssVar(page, '--interactive-primary-rgb', fixture.cssVars.interactivePrimary);
-            await expectRootCssVar(page, '--text-primary-rgb', fixture.cssVars.textPrimary);
-            await expectRootCssVar(page, '--surface-base-rgb', fixture.cssVars.surfaceBase);
-            await expectRootCssVar(page, '--border-default-rgb', fixture.cssVars.borderDefault);
+            await themePage.expectRootCssVariable('--interactive-primary-rgb', fixture.cssVars.interactivePrimary);
+            await themePage.expectRootCssVariable('--text-primary-rgb', fixture.cssVars.textPrimary);
+            await themePage.expectRootCssVariable('--surface-base-rgb', fixture.cssVars.surfaceBase);
+            await themePage.expectRootCssVariable('--border-default-rgb', fixture.cssVars.borderDefault);
 
             // Verify theme colors are applied to visible UI elements
             // Check the "Sign Up" button in the header (always visible and styled with theme color)
             const headerSignUpButton = page.getByRole('button', { name: 'Sign Up' }).first();
             await expect(headerSignUpButton).toBeVisible();
+
             // Primary buttons use gradient background-image, so check background-image contains the color
-            await expectGradientContainsColor(headerSignUpButton, fixture.cssVars.interactivePrimary);
+            await themePage.expectGradientContainsColor(
+                'button:has-text("Sign Up")',
+                fixture.cssVars.interactivePrimary,
+            );
 
             // Navigate to login page to check more theme applications
             const loginButton = page.getByText('Login').first();
@@ -118,9 +124,11 @@ test.describe('Tenant theme smoke suite', () => {
             await page.waitForURL('/login');
 
             // Check the "Sign up" link text color on the login page
-            const signUpLink = page.getByTestId('loginpage-signup-button');
-            await expect(signUpLink).toBeVisible();
-            await expectColorMatch(signUpLink, 'color', fixture.cssVars.interactivePrimary);
+            await themePage.expectElementColorMatches(
+                '[data-testid="loginpage-signup-button"]',
+                'color',
+                fixture.cssVars.interactivePrimary,
+            );
         });
     }
 });
@@ -142,69 +150,4 @@ function buildThemeCss(vars: ThemeCssVars): string {
         --gradient-primary: ${gradientPrimary} !important;
         --shadows-md: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
     }`;
-}
-
-async function expectRootCssVar(page: Page, variable: string, expected: string): Promise<void> {
-    const actual = await page.evaluate((name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim(), variable);
-    expect(actual).toBe(expected);
-}
-
-async function expectColorMatch(locator: Locator, cssProperty: string, rgbTriplet: string): Promise<void> {
-    const actual = await locator.evaluate((element, property) => getComputedStyle(element as Element).getPropertyValue(property), cssProperty);
-    expect(normalizeCssColor(actual)).toEqual(parseRgbString(rgbTriplet));
-}
-
-async function expectGradientContainsColor(locator: Locator, rgbTriplet: string): Promise<void> {
-    const backgroundImage = await locator.evaluate((element) => getComputedStyle(element as Element).getPropertyValue('background-image'));
-
-    // Extract RGB values from gradient string
-    // Gradient format: linear-gradient(135deg, rgb(237, 68, 80), rgb(237, 68, 80))
-    const rgbMatches = backgroundImage.match(/rgba?\(([^)]+)\)/g);
-
-    if (!rgbMatches || rgbMatches.length === 0) {
-        throw new Error(`No RGB colors found in background-image: ${backgroundImage}`);
-    }
-
-    const expectedRgb = parseRgbString(rgbTriplet);
-    const gradientContainsExpectedColor = rgbMatches.some((rgbMatch) => {
-        const actualRgb = normalizeCssColor(rgbMatch);
-        return actualRgb[0] === expectedRgb[0] && actualRgb[1] === expectedRgb[1] && actualRgb[2] === expectedRgb[2];
-    });
-
-    expect(gradientContainsExpectedColor).toBe(true);
-}
-
-function normalizeCssColor(colorValue: string): [number, number, number] {
-    const match = colorValue.match(/rgba?\(([^)]+)\)/);
-    if (!match) {
-        throw new Error(`Unexpected color format: ${colorValue}`);
-    }
-
-    const parts = match[1]
-        .replace(/\//g, ' ')
-        .replace(/,/g, ' ')
-        .trim()
-        .split(/\s+/)
-        .map(Number)
-        .filter((value): value is number => Number.isFinite(value));
-
-    if (parts.length < 3) {
-        throw new Error(`Unable to parse CSS color: ${colorValue}`);
-    }
-
-    return [Math.round(parts[0]), Math.round(parts[1]), Math.round(parts[2])];
-}
-
-function parseRgbString(rgb: string): [number, number, number] {
-    const parts = rgb
-        .trim()
-        .split(/\s+/)
-        .map(Number)
-        .filter((value): value is number => Number.isFinite(value));
-
-    if (parts.length !== 3) {
-        throw new Error(`Invalid RGB triplet: ${rgb}`);
-    }
-
-    return [parts[0], parts[1], parts[2]];
 }

@@ -20,3 +20,4 @@ export { SettlementFormPage } from './SettlementFormPage';
 export { ShareGroupModalPage } from './ShareGroupModalPage';
 export { TenantBrandingPage } from './TenantBrandingPage';
 export { TenantEditorModalPage } from './TenantEditorModalPage';
+export { ThemePage } from './ThemePage';
