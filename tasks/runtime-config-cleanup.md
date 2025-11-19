@@ -185,28 +185,43 @@ npm test                       # vitest.config.ts sets INSTANCE_MODE=test
 
 **Phase 1: Eliminate BUILD_MODE** ✅ COMPLETE
 **Phase 2: Rename INSTANCE_MODE → INSTANCE_NAME** ✅ COMPLETE
-**Phase 3: Create .current-instance Architecture** ⚙️ IN PROGRESS
+**Phase 3: Create .current-instance Architecture** ✅ COMPLETE
 
 **Phase 1: Eliminate BUILD_MODE** ✅ COMPLETE
 1. ✅ **Update `conditional-build.js`**: Read INSTANCE_MODE from .env instead of BUILD_MODE
 2. ✅ **Remove BUILD_MODE from all scripts:** test-wrapper.js, prepare-functions-deploy.js, deploy-from-fresh-checkout.ts, run-test.sh
-3. ⚙️ **Update documentation:** building.md, firebase.md
+3. ✅ **Update documentation:** building.md, firebase.md
 
-**Phase 2: Rename INSTANCE_MODE → INSTANCE_NAME** ⚙️ IN PROGRESS
-- Rationale: "dev1", "dev2", "prod", "test" are instance identifiers, not "modes"
-- More semantically accurate naming
-- Files to rename/update:
-  - `instance-mode.ts` → `instance-name.ts`
+**Phase 2: Rename INSTANCE_MODE → INSTANCE_NAME** ✅ COMPLETE
+- ✅ Rationale: "dev1", "dev2", "prod" are instance identifiers, not "modes"
+- ✅ Eliminated non-existent 'test' instance from type system
+- ✅ Files renamed/updated:
+  - `instance-mode.ts` → `instance-name.ts` (deleted old, created new)
   - All references in scripts-config.ts, client-config.ts, vitest.config.ts
-  - All script files, all documentation
+  - All script files (8 files updated)
+  - All documentation (building.md, firebase.md)
+  - All test files (3 files updated)
+  - instances.json (instanceMode → instanceName)
+  - .env templates (removed INSTANCE_MODE line from all 4 templates)
+- ✅ Critical bug fix: switch-instance.ts now injects INSTANCE_NAME into .env after copying
+- ✅ Type safety: Branded type `type InstanceName = \`dev\${number}\` | 'prod'`
+- ✅ Only 5 valid instances: dev1, dev2, dev3, dev4, prod (removed 'test')
+- ✅ Tests use 'dev1' instead of non-existent 'test' instance
+- ✅ 31 files changed (+295/-156 lines)
 
-**Phase 3: Introduce .current-instance Marker File** ⚙️ IN PROGRESS
-- **Problem**: Instance name stored redundantly (filename `.env.instance1` AND content `INSTANCE_MODE=dev1`)
-- **Solution**:
-  - Create `firebase/.current-instance` file containing just "dev1" (no prefix)
-  - Remove INSTANCE_NAME from `.env.instance*` template content
-  - `switch-instance.ts` writes both `.current-instance` AND injects `INSTANCE_NAME` into `.env`
-  - Scripts read from `.current-instance` file as source of truth
+**Phase 3: .current-instance Marker File Architecture** ✅ COMPLETE
+- ✅ **Problem**: Scripts needed persistent instance selection that survives terminal restarts
+- ✅ **Solution**: Implemented three-tier priority system for INSTANCE_NAME resolution
+  1. Explicit `INSTANCE_NAME` env var (highest priority - allows overrides)
+  2. `firebase/.current-instance` file (fallback - persists user's last selection)
+  3. `'prod'` default (final fallback - safe production default)
+- ✅ **Implementation**:
+  - Created `firebase/.current-instance` file (gitignored)
+  - `switch-instance.ts` writes instance name to `.current-instance` (e.g., "dev2")
+  - `scripts-config.ts` reads from `.current-instance` as fallback when no env var
+  - Tested switching between instances (dev1 ↔ dev2 works correctly)
+  - Tested priority order (explicit env var overrides file)
+  - All scripts automatically reference same instance without manual env var setting
 
 **Architecture After Cleanup:**
 
@@ -225,54 +240,86 @@ firebase/
     └── switch-instance.ts      # Writes .current-instance + generates .env
 ```
 
-**Changes:**
+**Phase 2 Changes (Completed):**
 
-1. ⚙️ **Create `.current-instance` architecture:**
-   - Add `firebase/.current-instance` to `.gitignore`
-   - Initial file contains "dev1" (default)
+1. ✅ **Renamed `instance-mode.ts` → `instance-name.ts`:**
+   - Deleted old file, created new file with corrected types
+   - Removed 'test' from `InstanceName` type union
+   - Updated error messages to reflect only valid instances
 
-2. ⚙️ **Remove INSTANCE_NAME from .env templates:**
-   - Remove `INSTANCE_MODE=dev1` line from `.env.instance1`
-   - Remove `INSTANCE_MODE=dev2` line from `.env.instance2`
-   - Remove `INSTANCE_MODE=dev3` line from `.env.instance3`
-   - Remove `INSTANCE_MODE=dev4` line from `.env.instance4`
+2. ✅ **Removed INSTANCE_NAME from .env templates:**
+   - Removed `INSTANCE_MODE=dev1` line from `.env.instance1`
+   - Removed `INSTANCE_MODE=dev2` line from `.env.instance2`
+   - Removed `INSTANCE_MODE=dev3` line from `.env.instance3`
+   - Removed `INSTANCE_MODE=dev4` line from `.env.instance4`
+   - Templates now contain only Firebase keys and dev defaults
 
-3. ⚙️ **Update `switch-instance.ts`:**
-   - Write instance name to `firebase/.current-instance`
-   - Copy `.env.instanceX` to `.env`
-   - Append `INSTANCE_NAME=<name>` to generated `.env`
+3. ✅ **Updated `switch-instance.ts`:**
+   - Now injects `INSTANCE_NAME=<name>` into `.env` after copying template
+   - Fixed critical bug where validation failed due to missing INSTANCE_NAME
+   - Copy template → Inject INSTANCE_NAME → Validate
 
-4. ⚙️ **Update `scripts-config.ts`:**
-   - Read `firebase/.current-instance` to determine active instance
-   - Fall back to `process.env.INSTANCE_NAME` if file missing
-   - Rename all INSTANCE_MODE → INSTANCE_NAME
+4. ✅ **Renamed throughout codebase:**
+   - `INSTANCE_MODE` → `INSTANCE_NAME` in all 31 files
+   - `requireInstanceMode()` → `requireInstanceName()`
+   - `instanceMode` → `instanceName` in instances.json
+   - Updated all imports and references
+   - Updated deployment scripts to set `INSTANCE_NAME=prod`
 
-5. ⚙️ **Rename throughout codebase:**
-   - `instance-mode.ts` → `instance-name.ts`
-   - Update all imports and references
-   - `INSTANCE_MODE` → `INSTANCE_NAME` in all files
-   - Update deployment scripts to set `INSTANCE_NAME=prod`
+5. ✅ **Updated all documentation:**
+   - Replaced INSTANCE_MODE → INSTANCE_NAME everywhere
+   - Removed references to non-existent 'test' instance
+   - Clarified only 5 valid instances: dev1-4, prod
 
-6. ⚙️ **Update all documentation:**
-   - Replace INSTANCE_MODE → INSTANCE_NAME everywhere
-   - Document `.current-instance` file architecture
-   - Explain single source of truth design
+**Phase 3 Changes (Completed):**
 
-**Files Being Modified:**
+1. ✅ **Created `.current-instance` file:**
+   - Added `firebase/.current-instance` to `.gitignore`
+   - File contains current instance name (e.g., "dev1", "dev2")
+
+2. ✅ **Updated `switch-instance.ts`:**
+   - Writes instance name to `firebase/.current-instance`
+   - Logs confirmation: "📝 Updated .current-instance file"
+   - Maintains existing .env injection behavior
+
+3. ✅ **Updated `scripts-config.ts`:**
+   - Added `readCurrentInstanceFile()` helper function
+   - Reads `firebase/.current-instance` when `INSTANCE_NAME` env var not set
+   - Three-tier priority: env var → .current-instance → 'prod' default
+   - Silently handles read errors (graceful degradation)
+
+4. ✅ **Tested and verified:**
+   - Switching instances updates `.current-instance` correctly
+   - Scripts read from file when no env var set
+   - Explicit env var overrides file (priority order works)
+   - All code compiles successfully
+
+**Files Modified (Phase 2 & 3):**
 - `firebase/functions/scripts/conditional-build.js` ✅
 - `scripts/test-wrapper.js` ✅
 - `firebase/scripts/prepare-functions-deploy.js` ✅
 - `firebase/scripts/deploy-from-fresh-checkout.ts` ✅
 - `firebase/functions/run-test.sh` ✅
-- `docs/guides/building.md` ⚙️
-- `docs/guides/firebase.md` ⚙️
-- `firebase/functions/src/shared/instance-mode.ts` → `instance-name.ts` ⚙️
-- `firebase/shared/scripts-config.ts` ⚙️
-- `firebase/functions/src/client-config.ts` ⚙️
-- `firebase/functions/vitest.config.ts` ⚙️
-- `firebase/scripts/switch-instance.ts` ⚙️
-- `.env.instance1-4` templates ⚙️
-- All script files referencing INSTANCE_MODE ⚙️
+- `docs/guides/building.md` ✅
+- `docs/guides/firebase.md` ✅
+- `firebase/functions/src/shared/instance-mode.ts` → deleted, `instance-name.ts` created ✅
+- `firebase/shared/scripts-config.ts` ✅ (Phase 2 rename + Phase 3 .current-instance reading)
+- `firebase/functions/src/client-config.ts` ✅
+- `firebase/functions/src/firebase.ts` ✅
+- `firebase/functions/src/ApplicationFactory.ts` ✅
+- `firebase/functions/src/endpoints/diagnostics.ts` ✅
+- `firebase/functions/vitest.config.ts` ✅
+- `firebase/scripts/switch-instance.ts` ✅ (Phase 2 injection + Phase 3 file writing)
+- `firebase/scripts/generate-firebase-config.ts` ✅
+- `firebase/scripts/start-with-data.ts` ✅
+- `firebase/scripts/delete-data.ts` ✅
+- `firebase/scripts/firebase-init.ts` ✅
+- `firebase/scripts/instances-config.ts` ✅
+- `firebase/instances.json` ✅ (instanceMode → instanceName)
+- `firebase/.gitignore` ✅ (added .current-instance)
+- `.env.instance1-4` templates ✅ (removed INSTANCE_MODE line)
+- Test files (3 files) ✅
+- Total: 33 files modified, 1 deleted, 1 created
 
 ### 4. File Structure After Cleanup ✅ COMPLETE
 

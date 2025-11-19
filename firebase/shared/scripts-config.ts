@@ -25,6 +25,25 @@ import { z } from 'zod';
 import { assertValidInstanceName, isDevInstanceName, type InstanceName } from '../functions/src/shared/instance-name';
 
 /**
+ * Read instance name from .current-instance file if it exists.
+ * This serves as a fallback when INSTANCE_NAME is not in the environment.
+ *
+ * @returns The instance name from the file, or undefined if file doesn't exist
+ */
+function readCurrentInstanceFile(): string | undefined {
+    const currentInstancePath = path.join(__dirname, '../.current-instance');
+    try {
+        if (fs.existsSync(currentInstancePath)) {
+            const content = fs.readFileSync(currentInstancePath, 'utf8').trim();
+            return content || undefined;
+        }
+    } catch (error) {
+        // Silently ignore read errors - we'll fall back to default
+    }
+    return undefined;
+}
+
+/**
  * Runtime environment variable schema.
  * Focused on variables needed by scripts and runtime configuration.
  *
@@ -35,7 +54,17 @@ const runtimeEnvSchema = z.object({
     INSTANCE_NAME: z
         .string()
         .optional()
-        .default('prod')
+        .transform((value) => {
+            // Priority order:
+            // 1. Explicit environment variable (highest priority)
+            // 2. .current-instance file (fallback)
+            // 3. 'prod' (default)
+            if (value) {
+                return value;
+            }
+            const fromFile = readCurrentInstanceFile();
+            return fromFile ?? 'prod';
+        })
         .superRefine((value, ctx) => {
             try {
                 assertValidInstanceName(value);

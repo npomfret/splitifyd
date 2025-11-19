@@ -63,6 +63,11 @@ try {
 
     const isProduction: boolean = instanceName === 'prod';
 
+    // Write current instance to .current-instance file for scripts to reference
+    const currentInstancePath = path.join(__dirname, '../.current-instance');
+    fs.writeFileSync(currentInstancePath, instanceName, 'utf8');
+    logger.info('📝 Updated .current-instance file', { instanceName });
+
     // Generate firebase.json for both emulator and production environments
     execSync('tsx scripts/generate-firebase-config.ts', {
         cwd: path.join(__dirname, '..'),
