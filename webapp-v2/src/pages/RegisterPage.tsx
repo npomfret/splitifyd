@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui';
+import { Input, Button } from '@/components/ui';
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
 import { toDisplayName, toPassword } from '@billsplit-wl/shared';
@@ -299,13 +299,15 @@ export function RegisterPage() {
                 <div class='text-center'>
                     <p class='text-sm text-text-muted'>
                         {t('registerPage.hasAccount')}{' '}
-                        <button
+                        <Button
                             type='button'
                             onClick={() => navigationService.goToLogin()}
-                            class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'
+                            variant='ghost'
+                            size='sm'
+                            className='font-semibold text-interactive-primary inline'
                         >
                             {t('registerPage.signIn')}
-                        </button>
+                        </Button>
                     </p>
                 </div>
             </AuthForm>

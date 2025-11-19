@@ -1,4 +1,4 @@
-import { SidebarCard } from '@/components/ui';
+import { SidebarCard, Button } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { ArchiveBoxArrowDownIcon, ArrowLeftStartOnRectangleIcon, ArrowPathIcon, BanknotesIcon, CogIcon, PlusIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
@@ -35,98 +35,105 @@ export function GroupActions({
     const { t } = useTranslation();
     const commonButtons = (
         <>
-            <button
+            <Button
                 onClick={onAddExpense}
-                className={`bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-4 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hover:shadow-lg hover:scale-[1.02] flex items-center justify-center ${
-                    variant === 'vertical' ? 'w-full' : ''
-                }`}
+                variant='primary'
+                size='md'
+                fullWidth={variant === 'vertical'}
                 data-testid='add-expense-button'
+                className='flex items-center justify-center'
             >
                 <PlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.addExpense')}
-            </button>
-            <button
+            </Button>
+            <Button
                 onClick={onSettleUp}
-                className={`bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-4 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hover:shadow-lg hover:scale-[1.02] flex items-center justify-center ${
-                    variant === 'vertical' ? 'w-full' : ''
-                }`}
+                variant='primary'
+                size='md'
+                fullWidth={variant === 'vertical'}
                 data-testid='settle-up-button'
+                className='flex items-center justify-center'
             >
                 <BanknotesIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.settleUp')}
-            </button>
-            <button
+            </Button>
+            <Button
                 onClick={onShare}
-                className={`bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-4 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hover:shadow-lg hover:scale-[1.02] flex items-center justify-center ${
-                    variant === 'vertical' ? 'w-full' : ''
-                }`}
+                variant='primary'
+                size='md'
+                fullWidth={variant === 'vertical'}
                 data-testid='invite-others-button'
+                className='flex items-center justify-center'
             >
                 <UserPlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.inviteOthers')}
-            </button>
+            </Button>
         </>
     );
 
     const settingsButton = showSettingsButton && onSettings
         ? (
-            <button
+            <Button
                 onClick={onSettings}
-                className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center ${
-                    variant === 'vertical' ? 'w-full' : ''
-                }`}
+                variant='secondary'
+                size='md'
+                fullWidth={variant === 'vertical'}
                 data-testid='group-settings-button'
+                className='flex items-center justify-center'
             >
                 <CogIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.settings')}
-            </button>
+            </Button>
         )
         : null;
 
     const archiveButton = onArchive
         ? (
-            <button
+            <Button
                 onClick={onArchive}
                 disabled={membershipActionDisabled}
-                className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${
-                    variant === 'vertical' ? 'w-full' : ''
-                }`}
+                variant='secondary'
+                size='md'
+                fullWidth={variant === 'vertical'}
                 data-testid='archive-group-button'
+                className='flex items-center justify-center'
             >
                 <ArchiveBoxArrowDownIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.archive')}
-            </button>
+            </Button>
         )
         : null;
 
     const unarchiveButton = onUnarchive
         ? (
-            <button
+            <Button
                 onClick={onUnarchive}
                 disabled={membershipActionDisabled}
-                className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${
-                    variant === 'vertical' ? 'w-full' : ''
-                }`}
+                variant='secondary'
+                size='md'
+                fullWidth={variant === 'vertical'}
                 data-testid='unarchive-group-button'
+                className='flex items-center justify-center'
             >
                 <ArrowPathIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.unarchive')}
-            </button>
+            </Button>
         )
         : null;
 
     const leaveGroupButton = onLeaveGroup && canLeaveGroup
         ? (
-            <button
+            <Button
                 onClick={onLeaveGroup}
-                className={`bg-surface-base border border-border-default text-text-primary px-4 py-2.5 rounded-md transition-all duration-200 text-sm font-medium hover:bg-surface-muted hover:border-interactive-primary/40 flex items-center justify-center ${
-                    variant === 'vertical' ? 'w-full' : ''
-                }`}
+                variant='secondary'
+                size='md'
+                fullWidth={variant === 'vertical'}
                 data-testid='leave-group-button'
+                className='flex items-center justify-center'
             >
                 <ArrowLeftStartOnRectangleIcon className='h-4 w-4 mr-2' aria-hidden='true' />
                 {t('groupActions.leaveGroup')}
-            </button>
+            </Button>
         )
         : null;
 

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Button } from './Button';
 
 interface PaginationProps {
     currentPage: number;
@@ -20,26 +21,25 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
     return (
         <div class='flex items-center justify-between border-t border-border-default px-4 py-3 sm:px-6 mt-4'>
             <div class='flex flex-1 justify-between sm:hidden'>
-                <button
+                <Button
                     onClick={onPrevious}
                     disabled={!hasPrevious || loading}
-                    class={`relative inline-flex items-center rounded-md border border-border-default px-4 py-2 text-sm font-medium ${
-                        !hasPrevious || loading ? 'bg-surface-muted text-text-muted/80 cursor-not-allowed' : 'bg-surface-base text-text-primary hover:bg-surface-muted'
-                    }`}
+                    variant='secondary'
+                    size='md'
                     data-testid='pagination-previous-mobile'
                 >
                     {t('pagination.previous')}
-                </button>
-                <button
+                </Button>
+                <Button
                     onClick={onNext}
                     disabled={!hasMore || loading}
-                    class={`relative ml-3 inline-flex items-center rounded-md border border-border-default px-4 py-2 text-sm font-medium ${
-                        !hasMore || loading ? 'bg-surface-muted text-text-muted/80 cursor-not-allowed' : 'bg-surface-base text-text-primary hover:bg-surface-muted'
-                    }`}
+                    variant='secondary'
+                    size='md'
                     data-testid='pagination-next-mobile'
+                    className='ml-3'
                 >
                     {t('pagination.next')}
-                </button>
+                </Button>
             </div>
             <div class='hidden sm:flex sm:flex-1 sm:items-center sm:justify-between'>
                 <div>
@@ -49,15 +49,15 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                 </div>
                 <div>
                     <nav class='isolate inline-flex -space-x-px rounded-md shadow-sm' aria-label='Pagination'>
-                        <button
+                        <Button
                             onClick={onPrevious}
                             disabled={!hasPrevious || loading}
-                            class={`relative inline-flex items-center rounded-l-md px-2 py-2 text-text-muted/80 ring-1 ring-inset ring-border-default focus:z-20 focus:outline-offset-0 ${
-                                !hasPrevious || loading ? 'bg-surface-muted cursor-not-allowed' : 'hover:bg-surface-muted'
-                            }`}
+                            variant='secondary'
+                            size='sm'
                             data-testid='pagination-previous'
+                            ariaLabel={t('pagination.previous')}
+                            className='rounded-l-md rounded-r-none'
                         >
-                            <span class='sr-only'>{t('pagination.previous')}</span>
                             <svg class='h-5 w-5' viewBox='0 0 20 20' fill='currentColor' aria-hidden='true'>
                                 <path
                                     fill-rule='evenodd'
@@ -65,16 +65,16 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                                     clip-rule='evenodd'
                                 />
                             </svg>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             onClick={onNext}
                             disabled={!hasMore || loading}
-                            class={`relative inline-flex items-center rounded-r-md px-2 py-2 text-text-muted/80 ring-1 ring-inset ring-border-default focus:z-20 focus:outline-offset-0 ${
-                                !hasMore || loading ? 'bg-surface-muted cursor-not-allowed' : 'hover:bg-surface-muted'
-                            }`}
+                            variant='secondary'
+                            size='sm'
                             data-testid='pagination-next'
+                            ariaLabel={t('pagination.next')}
+                            className='rounded-r-md rounded-l-none'
                         >
-                            <span class='sr-only'>{t('pagination.next')}</span>
                             <svg class='h-5 w-5' viewBox='0 0 20 20' fill='currentColor' aria-hidden='true'>
                                 <path
                                     fill-rule='evenodd'
@@ -82,7 +82,7 @@ export function Pagination({ currentPage, hasMore, hasPrevious, onNext, onPrevio
                                     clip-rule='evenodd'
                                 />
                             </svg>
-                        </button>
+                        </Button>
                     </nav>
                 </div>
             </div>

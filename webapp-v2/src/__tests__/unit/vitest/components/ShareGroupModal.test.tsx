@@ -11,6 +11,7 @@ vi.mock('@/app/apiClient.ts', () => ({
 
 vi.mock('@/utils/browser-logger.ts', () => ({
     logError: vi.fn(),
+    logButtonClick: vi.fn(),
 }));
 
 vi.mock('qrcode.react', () => ({

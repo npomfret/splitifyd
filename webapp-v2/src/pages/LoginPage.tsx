@@ -10,6 +10,7 @@ import { DefaultLoginButton } from '../components/auth/DefaultLoginButton';
 import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
+import { Button } from '../components/ui/Button';
 import { logError } from '../utils/browser-logger';
 
 export function LoginPage() {
@@ -139,13 +140,15 @@ export function LoginPage() {
                         <span class='text-sm text-text-primary'>{t('loginPage.rememberMe')}</span>
                     </label>
 
-                    <button
+                    <Button
                         type='button'
                         onClick={() => navigationService.goToResetPassword()}
-                        class='text-sm font-medium text-interactive-primary hover:opacity-80 transition-opacity'
+                        variant='ghost'
+                        size='sm'
+                        className='text-interactive-primary'
                     >
                         {t('loginPage.forgotPassword')}
-                    </button>
+                    </Button>
                 </div>
 
                 <SubmitButton loading={loadingValue} disabled={!isFormValid}>
@@ -157,7 +160,7 @@ export function LoginPage() {
                 <div class='text-center'>
                     <p class='text-sm text-text-muted'>
                         {t('loginPage.noAccount')}{' '}
-                        <button
+                        <Button
                             type='button'
                             data-testid='loginpage-signup-button'
                             onClick={() => {
@@ -171,10 +174,12 @@ export function LoginPage() {
                                     navigationService.goToRegister();
                                 }
                             }}
-                            class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'
+                            variant='ghost'
+                            size='sm'
+                            className='font-semibold text-interactive-primary inline'
                         >
                             {t('loginPage.signUp')}
-                        </button>
+                        </Button>
                     </p>
                 </div>
             </AuthForm>

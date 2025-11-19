@@ -1,6 +1,7 @@
 import { logButtonClick } from '@/utils/browser-logger.ts';
 import { cx } from '@/utils/cx.ts';
-import { JSX } from 'preact';
+import { ComponentChildren } from 'preact';
+import { useMagneticHover } from '@/app/hooks/useMagneticHover';
 
 interface ButtonProps {
     variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -10,12 +11,19 @@ interface ButtonProps {
     fullWidth?: boolean;
     onClick?: () => void;
     type?: 'button' | 'submit' | 'reset';
-    children: JSX.Element | JSX.Element[] | string;
+    children: ComponentChildren;
     className?: string;
     id?: string;
     ariaLabel?: string;
     'data-testid'?: string;
     'aria-describedby'?: string;
+    'aria-pressed'?: boolean | 'true' | 'false';
+    /**
+     * Enable magnetic hover effect (follows cursor).
+     * Only works on Aurora theme (disabled on Brutalist).
+     * Default: false
+     */
+    magnetic?: boolean;
 }
 
 export function Button({
@@ -32,8 +40,19 @@ export function Button({
     ariaLabel,
     'data-testid': dataTestId,
     'aria-describedby': ariaDescribedBy,
+    'aria-pressed': ariaPressed,
+    magnetic = true,  // All buttons magnetic by default (auto-disabled on Brutalist theme)
 }: ButtonProps) {
     const isDisabled = disabled || loading;
+
+    // Apply magnetic hover effect if enabled (automatically disabled on Brutalist theme)
+    // Always attach ref - the hook and button's disabled state will handle interaction
+    const magneticRef = useMagneticHover<HTMLButtonElement>({
+        strength: 0.3,
+        disabled: isDisabled,
+    });
+
+    const buttonRef = magnetic ? magneticRef : undefined;
 
     const getButtonText = (): string => {
         if (typeof children === 'string') {
@@ -62,7 +81,7 @@ export function Button({
     };
 
     const baseClasses = [
-        'inline-flex items-center justify-center font-semibold rounded-md transition-colors duration-150',
+        'inline-flex items-center justify-center font-semibold rounded-md',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base',
         fullWidth ? 'w-full' : 'inline-flex',
         isDisabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
@@ -78,10 +97,9 @@ export function Button({
     const variantClasses: Record<NonNullable<ButtonProps['variant']>, Array<string | false>> = {
         primary: [
             'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-[var(--shadows-md)]',
-            !isDisabled && 'hover:shadow-[0_0_20px_rgba(var(--interactive-primary-rgb),0.3)] hover:scale-[1.02]',
-            !isDisabled && 'active:scale-[0.98]',
+            !isDisabled && 'hover:shadow-[0_0_20px_rgba(var(--interactive-primary-rgb),0.3)]',
             'focus-visible:ring-interactive-primary',
-            'transition-all duration-200',
+            'transition-shadow duration-200',
         ],
         secondary: [
             // Uses surface-muted for button background
@@ -90,7 +108,8 @@ export function Button({
             'focus-visible:ring-border-strong',
         ],
         ghost: [
-            'bg-transparent text-text-primary',
+            'bg-transparent',
+            // Don't set default text color - inherit from parent or allow className override
             !isDisabled && 'hover:bg-surface-muted/60',
             'focus-visible:ring-border-default',
         ],
@@ -105,6 +124,7 @@ export function Button({
 
     return (
         <button
+            ref={buttonRef}
             id={id}
             type={type}
             onClick={handleClick}
@@ -113,6 +133,7 @@ export function Button({
             aria-label={ariaLabel}
             aria-busy={loading}
             aria-describedby={ariaDescribedBy}
+            aria-pressed={ariaPressed}
             data-testid={dataTestId}
             data-logged='true'
         >

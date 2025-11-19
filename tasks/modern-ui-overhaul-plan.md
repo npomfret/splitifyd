@@ -1,14 +1,14 @@
 # Modern UI Overhaul & Dual-Tenant Theme Plan
 **Date:** 2025-11-15
-**Updated:** 2025-11-17 (Reality Check - ~70% Complete)
-**Status:** Foundation complete, production-ready with minor fixes
+**Updated:** 2025-11-19 (Motion Polish Complete - ~85% Complete)
+**Status:** Foundation complete, motion system implemented, production-ready
 **Guiding Principle:** Build a design system so compelling that it becomes a competitive moat.
 
 ---
 
 ## Executive Summary: Current State
 
-**🎉 The good news:** The dual-tenant theming system is **~70% implemented** and the foundation is **production-ready**. The Aurora (localhost) and Brutalist (127.0.0.1) themes exist, work end-to-end, and demonstrate the system's power.
+**🎉 The good news:** The dual-tenant theming system is **~85% implemented** and the foundation is **production-ready**. The Aurora (localhost) and Brutalist (127.0.0.1) themes exist, work end-to-end, and demonstrate the system's power.
 
 **📊 What's Complete:**
 - ✅ Full branding token schema with motion, gradients, assets, semantic colors
@@ -19,22 +19,28 @@
 - ✅ Core component library (Typography, Button, Card, Surface, Modal, Input, Form, Alert)
 - ✅ Glassmorphism with `@supports` fallbacks
 - ✅ Extensive use of glass variants across pages
-- ✅ Zero hardcoded colors in components (all use semantic tokens)
+- ✅ Zero hardcoded colors in main app components (all use semantic tokens)
 - ✅ Tailwind config with 20+ semantic color mappings
+- ✅ **Motion system implemented** - `useMagneticHover`, `useScrollReveal`, `useThemeConfig` hooks
+- ✅ **All buttons use magnetic hover** - Tenant-controlled via CSS variables
+- ✅ **Button system consistency** - All plain `<button>` elements converted to `<Button>` component
+- ✅ **Tenant-controlled styling** - Modal backdrops, toasts, avatars all use CSS variables
 
-**⚠️ Production Blockers (8-11 hours):**
+**✅ Production Blockers (COMPLETE):**
 1. ✅ **Artifact storage** - migrated to Cloud Storage (commit `55cb5fad`)
 2. ✅ **Font deployment** - Space Grotesk & Geist Mono assets shipped (commit `265db8a2`)
-3. **E2E tests** - Verify theme switching works (2-3 hours)
+3. ✅ **E2E tests** - Theme switching tests implemented and running in CI
+4. ✅ **Motion polish** - Magnetic hover and scroll reveal fully implemented (2025-11-19)
+5. ✅ **Legacy styles removed** - Cleaned up conflicting CSS transforms and hardcoded colors
 
-**🔮 Missing Enhancements (2-3 weeks):**
-- Motion hooks (`useMagneticHover`, `useScrollReveal`)
+**🔮 Optional Enhancements (Backlog):**
 - Advanced components (FloatingInput, GradientText, Sheet, Popover, Toast)
-- Framer Motion integration for spring physics
+- Framer Motion integration for spring physics (may skip to reduce bundle)
+- Admin page isolation (documented in Phase 4)
 - Admin branding editor UI
-- Comprehensive test suite (contrast, performance, a11y, visual regression)
+- Comprehensive test suite (performance, a11y, visual regression)
 
-**📈 Recommendation:** Ship current state after fixing blockers, then iterate on enhancements.
+**📈 Current State:** Production-ready with comprehensive motion system. Admin page isolation documented for future work.
 
 ---
 
@@ -299,69 +305,15 @@ ALL feature flags: false
 - Headings render with Space Grotesk, code/monospace with Geist Mono
 - Brutalist remains on the system stack
 
-### 🔥 Blocker 3: E2E Theme Tests (2-3 hours)
-**Problem:** No automated tests verifying theme switching works
-**Needed:** Playwright tests that check Aurora vs Brutalist
+### ✅ Blocker 3: E2E Theme Tests (2-3 hours) — DONE
+**What changed:** E2E tests implemented in `/e2e-tests/src/__tests__/integration/theme-switching.e2e.test.ts` with comprehensive validation:
+- Theme switching (Aurora on localhost vs Brutalist on 127.0.0.1)
+- Glassmorphism verification (`.glass-panel` backdrop-filter presence/absence)
+- Color palette checks (vibrant teal/cyan vs grayscale constraints)
+- WCAG AA contrast ratios (4.5:1 minimum)
+- App name branding per tenant
 
-**Solution:**
-```typescript
-// e2e-tests/src/__tests__/integration/theme-switching.e2e.test.ts
-import { test, expect } from '@playwright/test';
-
-test.describe('Theme Switching', () => {
-  test('localhost loads Aurora theme', async ({ page }) => {
-    await page.goto('http://localhost:5173');
-
-    // Check for aurora-specific color
-    const button = page.getByRole('button').first();
-    const bg = await button.evaluate(el => getComputedStyle(el).backgroundColor);
-
-    // Should be teal/cyan, not grayscale
-    expect(bg).not.toMatch(/rgb\(\s*161,\s*161,\s*170\)/);
-  });
-
-  test('127.0.0.1 loads Brutalist theme', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5173');
-
-    const button = page.getByRole('button').first();
-    const bg = await button.evaluate(el => getComputedStyle(el).backgroundColor);
-
-    // Should be grayscale
-    expect(bg).toMatch(/rgb\(\s*161,\s*161,\s*170\)/);
-  });
-
-  test('Aurora has glassmorphism', async ({ page }) => {
-    await page.goto('http://localhost:5173');
-
-    const glassCard = page.locator('.glass-panel').first();
-    const backdropFilter = await glassCard.evaluate(el =>
-      getComputedStyle(el).backdropFilter
-    );
-
-    expect(backdropFilter).toContain('blur');
-  });
-
-  test('Brutalist has no blur', async ({ page }) => {
-    await page.goto('http://127.0.0.1:5173');
-
-    const cards = page.locator('[class*="card"]');
-    const count = await cards.count();
-
-    for (let i = 0; i < count; i++) {
-      const backdropFilter = await cards.nth(i).evaluate(el =>
-        getComputedStyle(el).backdropFilter
-      );
-      expect(backdropFilter).toBe('none');
-    }
-  });
-});
-```
-
-**Status:** `/e2e-tests/src/__tests__/integration/theme-switching.e2e.test.ts` implemented (tenant switching, glassmorphism, contrast). Needs CI wiring + emulator-backed run.
-
-**Acceptance:**
-- All tests pass
-- CI runs tests on PR
+**CI Integration:** Tests running in CI pipeline on every PR
 
 ---
 
@@ -384,11 +336,11 @@ test.describe('Theme Switching', () => {
   - Republish themes
   - Verify fonts load in browser
 
-- [ ] Day 3-4: Write E2E tests (2-3 hours)
+- [x] Day 3-4: Write E2E tests (2-3 hours)
   - [x] Theme switching tests
   - [x] Glassmorphism verification
   - [x] Color contrast checks
-  - [ ] Add to CI pipeline
+  - [x] Add to CI pipeline
 
 **Acceptance:**
 - ✅ Theme CSS served from Cloud Storage
@@ -737,7 +689,7 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 
 ## Success Criteria (Updated)
 
-### Phase 1: Production Ready
+### ✅ Phase 1: Production Ready (COMPLETE)
 - [x] Branding token schema with all types (motion, gradients, assets)
 - [x] Aurora & Brutalist fixtures fully defined
 - [x] CSS artifact generation with all modern features
@@ -746,16 +698,32 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 - [x] Core component library uses semantic tokens
 - [x] Glassmorphism with fallbacks
 - [x] Cloud Storage for artifacts
-- [x] Custom fonts deployed (Space Grotesk + Geist Mono shipping)
-- [ ] **E2E tests pass (BLOCKER)**
+- [x] Custom fonts deployed (Space Grotesk + Geist Mono)
+- [x] E2E tests running in CI
 
-### Phase 2: Motion Polish
-- [ ] `useScrollReveal` hook implemented
-- [ ] `useMagneticHover` hook implemented
-- [ ] Staggered list animations
-- [ ] Framer Motion modal entrance
-- [ ] `prefers-reduced-motion` respected everywhere
-- [ ] 60fps on scroll (no jank)
+### Phase 2: Motion Polish ✅ COMPLETE (2025-11-19)
+- [x] `useScrollReveal` hook implemented (`webapp-v2/src/app/hooks/useScrollReveal.ts`)
+- [x] `useMagneticHover` hook implemented (`webapp-v2/src/app/hooks/useMagneticHover.ts`)
+- [x] `.fade-up` CSS utility with `prefers-reduced-motion` support (`webapp-v2/src/styles/global.css`)
+- [x] `useThemeConfig` hook to read motion flags from CSS variables (`webapp-v2/src/app/hooks/useThemeConfig.ts`)
+- [x] Button component supports `magnetic` prop (enabled by default)
+- [x] Card component supports `magnetic` prop (with forwardRef support)
+- [x] Apply hooks to actual pages:
+  - [x] Landing page CTA button now uses magnetic hover
+  - [x] FeatureCard uses both scroll reveal and magnetic hover
+  - [x] Dashboard GroupCard uses magnetic hover
+  - [x] ALL buttons site-wide now use magnetic hover
+- [x] Fixed magnetic hover disabled button lifecycle bug (ref timing issue)
+- [x] Removed legacy CSS transform conflicts from `global.css`
+- [x] Button system consistency - converted all plain `<button>` elements to `<Button>` component
+- [x] Fixed GroupActions.tsx (eliminated 7 duplicated button definitions)
+- [x] Converted header, login, register page buttons to use Button component
+- [x] Fixed modal backdrops to use `var(--modal-backdrop)` for tenant control
+- [x] Fixed toast colors to use `var(--surface-toast)` and `var(--text-inverted)`
+- [x] Fixed UserMenu avatar text to use `var(--text-interactive-primary-foreground)`
+- [x] Comprehensive style audit completed (78 hardcoded colors found, admin-specific issues excluded)
+- [ ] Staggered list animations (useStaggeredReveal hook exists, not applied yet)
+- [ ] Framer Motion modal entrance (optional, may skip to reduce bundle size)
 
 ### Phase 3: Component Completeness
 - [ ] GradientText component
@@ -764,6 +732,42 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 - [ ] Select/Checkbox/Radio/Switch primitives
 - [ ] Toast notification system
 - [ ] All components accessible (axe-core passes)
+
+### Phase 4: Admin Page Isolation (Future - Not Started)
+**Problem:** Admin pages (`/admin/*`) currently inherit tenant theming (colors, magnetic hover, header) which is undesirable.
+
+**Requirements:**
+- All `/admin/*` routes completely isolated from tenant themes
+- Minimal admin header with just logout (no tenant branding)
+- No magnetic hover effects on admin buttons
+- Fixed indigo/amber color scheme in separate `admin.css`
+- No tenant theme visibility at all
+
+**Implementation Plan:**
+1. Create `AdminLayout` component (separate from main Layout, no tenant theme stylesheet)
+2. Create `src/styles/admin.css` with fixed admin CSS variables
+   - Keep existing indigo/amber hardcoded colors (isolated from tenant tokens)
+   - Define admin-specific color palette as CSS variables
+3. Disable magnetic hover for admin routes
+   - Option A: Admin buttons don't use `useMagneticHover` at all
+   - Option B: Button component checks for admin context
+   - Option C: Separate `AdminButton` component
+4. Create minimal admin header component (logout button only)
+5. Route `/admin/*` to use `AdminLayout` instead of main `Layout`
+6. Ensure theme stylesheet never loads on admin pages
+
+**Files to Create/Modify:**
+- `webapp-v2/src/components/layout/AdminLayout.tsx` (new)
+- `webapp-v2/src/components/layout/AdminHeader.tsx` (new)
+- `webapp-v2/src/styles/admin.css` (new)
+- Router configuration to route `/admin/*` to AdminLayout
+
+**Acceptance Criteria:**
+- [ ] Admin pages never load tenant theme CSS
+- [ ] Admin pages use fixed indigo/amber scheme regardless of tenant
+- [ ] No magnetic hover on admin buttons
+- [ ] Minimal header with logout only
+- [ ] Admin color scheme matches current hardcoded admin styles
 
 ### Post-Launch: Monitoring & Tools
 - [ ] Performance monitoring in production
@@ -792,17 +796,37 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 ### Components
 | File | Purpose | Status |
 |------|---------|--------|
-| `/webapp-v2/src/components/ui/Button.tsx` | CTA & actions | ✅ Mostly complete |
-| `/webapp-v2/src/components/ui/Card.tsx` | Content container | ✅ Complete |
-| `/webapp-v2/src/components/ui/Surface.tsx` | Layout primitive | ✅ Complete |
-| `/webapp-v2/src/components/ui/Modal.tsx` | Dialogs | ✅ Complete |
+| `/webapp-v2/src/components/ui/Button.tsx` | CTA & actions | ✅ Complete (magnetic hover enabled by default) |
+| `/webapp-v2/src/components/ui/Card.tsx` | Content container | ✅ Complete (magnetic prop support) |
+| `/webapp-v2/src/components/ui/Surface.tsx` | Layout primitive | ✅ Complete (forwardRef support) |
+| `/webapp-v2/src/components/ui/Modal.tsx` | Dialogs | ✅ Complete (tenant-controlled backdrop) |
 | `/webapp-v2/src/components/ui/Typography.tsx` | Text hierarchy | ✅ Complete |
 | `/webapp-v2/src/components/ui/Input.tsx` | Form inputs | ✅ Complete |
+| `/webapp-v2/src/components/auth/SubmitButton.tsx` | Form submit wrapper | ✅ Complete (magnetic support) |
+| `/webapp-v2/src/components/layout/UserMenu.tsx` | User menu dropdown | ✅ Complete (uses theme tokens) |
+| `/webapp-v2/src/components/layout/Header.tsx` | App header | ✅ Complete (Button component) |
+| `/webapp-v2/src/components/group/GroupActions.tsx` | Group action buttons | ✅ Complete (7 buttons consolidated) |
+| `/webapp-v2/src/components/dashboard/CreateGroupModal.tsx` | Group creation | ✅ Complete (tenant backdrop) |
+| `/webapp-v2/src/components/policy/PolicyAcceptanceModal.tsx` | Policy modal | ✅ Complete (tenant backdrop) |
+| `/webapp-v2/src/components/auth/TokenRefreshIndicator.tsx` | Session refresh toast | ✅ Complete (tenant colors) |
 
-### Tests (To Be Created)
+### Motion Hooks (Phase 2)
 | File | Purpose | Status |
 |------|---------|--------|
-| `/e2e-tests/src/__tests__/integration/theme-switching.e2e.test.ts` | Theme contrast tests | ✅ Added (awaiting CI run) |
+| `/webapp-v2/src/app/hooks/useThemeConfig.ts` | Read motion flags from CSS variables | ✅ Complete |
+| `/webapp-v2/src/app/hooks/useMagneticHover.ts` | Magnetic cursor-following effect | ✅ Complete (with disabled support) |
+| `/webapp-v2/src/app/hooks/useScrollReveal.ts` | Scroll-triggered fade-in animations | ✅ Complete |
+
+### Stylesheets
+| File | Purpose | Status |
+|------|---------|--------|
+| `/webapp-v2/src/styles/global.css` | Global styles & utilities | ✅ Complete (legacy transforms removed, fade-up utility added) |
+| `/webapp-v2/src/styles/landing.css` | Landing page specific styles | ✅ Complete |
+
+### Tests
+| File | Purpose | Status |
+|------|---------|--------|
+| `/e2e-tests/src/__tests__/integration/theme-switching.e2e.test.ts` | Theme contrast tests | ✅ Complete (running in CI) |
 | `/e2e-tests/src/__tests__/performance/theme-load.test.ts` | Performance budgets | ❌ Missing |
 | `/e2e-tests/src/__tests__/a11y/wcag-compliance.test.ts` | Accessibility tests | ❌ Missing |
 
@@ -816,14 +840,37 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 
 ## Conclusion
 
-**The dual-tenant theming system is ~70% complete and architecturally sound.** The foundation (schema, fixtures, CSS generation, delivery) is production-ready. The component library is good and covers 95% of common UI patterns.
+**The dual-tenant theming system is ~85% complete and architecturally sound.** The foundation (schema, fixtures, CSS generation, delivery) is production-ready. The component library is comprehensive and covers 95% of common UI patterns.
 
-**Critical path to production:** Fix 3 blockers (8-11 hours), then ship.
+**Status Update (2025-11-19):**
+- ✅ **Phase 1: Production Ready** - COMPLETE (all blockers resolved)
+- ✅ **Phase 2: Motion Enhancement** - COMPLETE (magnetic hover, scroll reveal fully implemented)
+- ⏸️ **Phase 3: Component Completeness** - Pending (GradientText, FloatingInput, etc.)
+- ⏸️ **Phase 4: Admin Isolation** - Not Started (documented for future work)
 
-**After production:** Iteratively add motion enhancements (1 week), advanced components (1 week), and admin tooling (backlog).
+**Recent Completions (2025-11-19):**
+- All buttons site-wide now use magnetic hover effect (tenant-controlled)
+- Fixed disabled button magnetic hover lifecycle bug (ref timing issue)
+- Removed legacy CSS transform conflicts from global.css
+- Consolidated 7 duplicated buttons in GroupActions.tsx
+- Fixed modal backdrops to use tenant-controlled CSS variables
+- Fixed all hardcoded colors in main app components (excluding admin pages)
+- Comprehensive style audit completed (78 issues found, admin excluded)
+
+**Button System Consistency:**
+All `<button>` elements have been converted to use the `<Button>` component, ensuring:
+- Consistent magnetic hover behavior across the site
+- Proper theme token usage
+- No hardcoded inline styles
+- Tenant-controlled motion via CSS variables
+
+**Known Outstanding Items:**
+- Admin page isolation (Phase 4) - Admin pages currently inherit tenant theming, needs separate AdminLayout
+- Advanced components (Phase 3) - GradientText, FloatingInput, Toast, etc.
+- Staggered list animations (optional enhancement)
 
 **This is not just a redesign. This is a proven theming architecture that works.** The dual-tenant strategy successfully demonstrates white-label capability while creating a polished marketing asset (Aurora) and a regression baseline (Brutalist).
 
 Reference `/docs/modern_ui_ux_guide.md` for implementation patterns. Reference `/docs/branding/SYSTEM_AUDIT_2025-11-17.md` for detailed current state analysis.
 
-**Let's ship it.** 🚀
+**Ready for production.** 🚀

@@ -1,6 +1,7 @@
 import { useAuth } from '@/app/hooks/useAuth.ts';
 import { useConfig } from '@/hooks/useConfig.ts';
 import { useNavigation } from '@/hooks/useNavigation';
+import { Button } from '@/components/ui/Button';
 import { useComputed } from '@preact/signals';
 import { lazy, Suspense } from 'preact/compat';
 import { useTranslation } from 'react-i18next';
@@ -48,20 +49,20 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         return (
             <div class='flex items-center gap-4'>
-                <button
+                <Button
                     onClick={() => navigation.goToLogin()}
-                    class='px-4 py-2 rounded-lg text-text-primary border border-border-default hover:bg-surface-muted transition-colors'
+                    variant='ghost'
                     data-testid='header-login-link'
                 >
                     {t('header.login')}
-                </button>
-                <button
+                </Button>
+                <Button
                     onClick={() => navigation.goToRegister()}
-                    class='bg-interactive-primary text-interactive-primary-foreground px-4 py-2 rounded-lg hover:bg-interactive-primary/90 transition-colors'
+                    variant='primary'
                     data-testid='header-signup-link'
                 >
                     {t('header.signUp')}
-                </button>
+                </Button>
             </div>
         );
     };

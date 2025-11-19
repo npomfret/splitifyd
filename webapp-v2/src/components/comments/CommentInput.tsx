@@ -2,7 +2,7 @@ import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { useSignal } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { LoadingSpinner, Tooltip } from '../ui';
+import { Button, Tooltip } from '../ui';
 
 interface CommentInputProps {
     onSubmit: (text: string) => Promise<void>;
@@ -119,24 +119,16 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                     aria-invalid={isOverLimit}
                 />
                 <Tooltip content={t('comments.input.sendAriaLabel')} className='absolute right-2 bottom-2'>
-                    <button
+                    <Button
                         type='submit'
                         disabled={!text.value.trim() || isOverLimit || (disabled && !isEditing.value) || isSubmitting}
-                        className={`
-                        p-1.5 rounded-lg
-                        transition-colors
-                        ${
-                            text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
-                                ? 'text-interactive-primary hover:bg-interactive-primary/10 dark:text-interactive-primary dark:hover:bg-interactive-primary/20'
-                                : 'text-text-muted/80 cursor-not-allowed'
-                        }
-                    `}
-                        aria-label={t('comments.input.sendAriaLabel')}
+                        loading={isSubmitting}
+                        variant='ghost'
+                        size='sm'
+                        ariaLabel={t('comments.input.sendAriaLabel')}
                     >
-                        {isSubmitting
-                            ? <LoadingSpinner size='sm' color='text-current' />
-                            : <PaperAirplaneIcon className='w-4 h-4' aria-hidden='true' />}
-                    </button>
+                        <PaperAirplaneIcon className='w-4 h-4' aria-hidden='true' />
+                    </Button>
                 </Tooltip>
             </div>
 

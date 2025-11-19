@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useScrollReveal } from '@/app/hooks/useScrollReveal';
+import { useMagneticHover } from '@/app/hooks/useMagneticHover';
 
 interface FeatureCardProps {
     icon: string;
@@ -9,31 +10,27 @@ interface FeatureCardProps {
 }
 
 export function FeatureCard({ icon, title, description, iconColor = 'default', delay = 0 }: FeatureCardProps) {
-    const cardRef = useRef<HTMLDivElement>(null);
-    const [isVisible, setIsVisible] = useState(false);
+    // Use our scroll reveal hook (automatically disabled on Brutalist theme)
+    const { ref: scrollRef, isVisible } = useScrollReveal({ threshold: 0.1, delay });
 
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setTimeout(() => setIsVisible(true), delay);
-                }
-            },
-            { threshold: 0.1 },
-        );
+    // Use magnetic hover hook (automatically disabled on Brutalist theme)
+    const magneticRef = useMagneticHover<HTMLDivElement>({ strength: 0.2 });
 
-        if (cardRef.current) {
-            observer.observe(cardRef.current);
+    // Combine refs: we need both scroll reveal tracking and magnetic hover
+    const combinedRef = (el: HTMLDivElement | null) => {
+        if (scrollRef && 'current' in scrollRef) {
+            (scrollRef as any).current = el;
         }
-
-        return () => observer.disconnect();
-    }, [delay]);
+        if (magneticRef && 'current' in magneticRef) {
+            (magneticRef as any).current = el;
+        }
+    };
 
     return (
         <div
-            ref={cardRef}
-            class={`feature-item bg-surface-base border border-border-default rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            ref={combinedRef}
+            class={`feature-item bg-surface-base border border-border-default rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 fade-up ${
+                isVisible ? 'fade-up-visible' : ''
             }`}
             data-icon-color={iconColor}
         >

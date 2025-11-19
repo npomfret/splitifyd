@@ -1,7 +1,8 @@
 import { cx } from '@/utils/cx.ts';
-import type { ComponentChildren, JSX } from 'preact';
+import type { ComponentChildren, JSX, Ref } from 'preact';
+import { forwardRef } from 'preact/compat';
 
-type DivProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, 'className' | 'children'>;
+type DivProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, 'className' | 'children' | 'ref'>;
 
 interface SurfaceProps extends DivProps {
     variant?: 'base' | 'muted' | 'inverted' | 'glass';
@@ -11,6 +12,7 @@ interface SurfaceProps extends DivProps {
     interactive?: boolean;
     children: ComponentChildren;
     className?: string;
+    ref?: Ref<HTMLDivElement>;
 }
 
 const variantClasses = {
@@ -40,30 +42,36 @@ const borderClasses = {
     strong: 'border border-border-strong',
 } as const;
 
-export function Surface({
-    variant = 'base',
-    padding = 'md',
-    shadow = 'sm',
-    border = 'default',
-    interactive = false,
-    className = '',
-    children,
-    ...rest
-}: SurfaceProps) {
-    return (
-        <div
-            {...rest}
-            className={cx(
-                'rounded-xl transition-shadow duration-200',
-                variantClasses[variant],
-                paddingClasses[padding],
-                shadowClasses[shadow],
-                borderClasses[border],
-                interactive && 'cursor-pointer hover:shadow-lg',
-                className,
-            )}
-        >
-            {children}
-        </div>
-    );
-}
+export const Surface = forwardRef<HTMLDivElement, SurfaceProps>(
+    (
+        {
+            variant = 'base',
+            padding = 'md',
+            shadow = 'sm',
+            border = 'default',
+            interactive = false,
+            className = '',
+            children,
+            ...rest
+        },
+        ref
+    ) => {
+        return (
+            <div
+                ref={ref}
+                {...rest}
+                className={cx(
+                    'rounded-xl transition-shadow duration-200',
+                    variantClasses[variant],
+                    paddingClasses[padding],
+                    shadowClasses[shadow],
+                    borderClasses[border],
+                    interactive && 'cursor-pointer hover:shadow-lg',
+                    className,
+                )}
+            >
+                {children}
+            </div>
+        );
+    }
+);

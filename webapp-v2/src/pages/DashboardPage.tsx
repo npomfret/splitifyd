@@ -12,6 +12,7 @@ import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { GroupsList } from '../components/dashboard/GroupsList';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { DashboardGrid } from '../components/layout/DashboardGrid';
+import { Button } from '../components/ui';
 
 export function DashboardPage() {
     const { t } = useTranslation();
@@ -108,39 +109,39 @@ export function DashboardPage() {
                                         role='group'
                                         aria-label={t('dashboard.groupsFilter.label')}
                                     >
-                                        <button
+                                        <Button
                                             type='button'
                                             aria-pressed={!showArchived}
                                             disabled={filterLoading}
                                             onClick={() => changeGroupFilter(false)}
-                                            class={`px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none ${
-                                                !showArchived
-                                                    ? 'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-sm'
-                                                    : 'bg-surface-base text-text-muted hover:bg-surface-muted'
-                                            }`}
+                                            variant={!showArchived ? 'primary' : 'secondary'}
+                                            size='sm'
+                                            className='rounded-none min-w-[90px]'
+                                            magnetic={false}
                                         >
                                             {t('dashboard.groupsFilter.active')}
-                                        </button>
-                                        <button
+                                        </Button>
+                                        <Button
                                             type='button'
                                             aria-pressed={showArchived}
                                             disabled={filterLoading}
                                             onClick={() => changeGroupFilter(true)}
-                                            class={`px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none border-l border-border-default ${
-                                                showArchived
-                                                    ? 'bg-[image:var(--gradient-primary)] text-interactive-primary-foreground shadow-sm'
-                                                    : 'bg-surface-base text-text-muted hover:bg-surface-muted'
-                                            }`}
+                                            variant={showArchived ? 'primary' : 'secondary'}
+                                            size='sm'
+                                            className='rounded-none border-l border-border-default min-w-[90px]'
+                                            magnetic={false}
                                         >
                                             {t('dashboard.groupsFilter.archived')}
-                                        </button>
+                                        </Button>
                                     </div>
-                                    <button
-                                        class='bg-[image:var(--gradient-primary)] text-interactive-primary-foreground px-6 py-2.5 rounded-md shadow-md transition-all duration-200 text-sm font-semibold hidden lg:block hover:shadow-lg hover:scale-[1.02]'
+                                    <Button
+                                        variant='primary'
+                                        size='md'
                                         onClick={() => setIsCreateModalOpen(true)}
+                                        className='hidden lg:block'
                                     >
                                         {t('dashboard.createGroup')}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
 

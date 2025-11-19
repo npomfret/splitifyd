@@ -117,8 +117,17 @@ test.describe('Theme switching smoke tests', () => {
         const signUpButton = page.getByTestId('header-signup-link');
         await expect(signUpButton).toBeVisible();
 
-        const backgroundColor = await signUpButton.evaluate((element) => getComputedStyle(element).backgroundColor);
-        expect(isGrayscale(backgroundColor)).toBe(true);
+        // Primary buttons use gradient background-image, not background-color
+        const backgroundImage = await signUpButton.evaluate((element) => getComputedStyle(element).backgroundImage);
+
+        // Extract RGB colors from gradient
+        const rgbMatches = backgroundImage.match(/rgba?\(([^)]+)\)/g);
+        expect(rgbMatches).toBeTruthy();
+        expect(rgbMatches!.length).toBeGreaterThan(0);
+
+        // Check that all colors in the gradient are grayscale
+        const allGrayscale = rgbMatches!.every((rgb) => isGrayscale(rgb));
+        expect(allGrayscale).toBe(true);
 
         const appName = await fetchTenantAppName(page, BRUTALIST_URL);
         await expectHeaderAppName(page, appName);

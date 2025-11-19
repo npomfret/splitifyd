@@ -31,7 +31,7 @@ export function Modal({ open, onClose, size = 'sm', labelledBy, describedBy, cla
     };
 
     const content = (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4 py-8' onClick={handleBackdropClick} data-testid={dataTestId}>
+        <div className='fixed inset-0 z-50 flex items-center justify-center px-4 py-8' style={{ backgroundColor: 'var(--modal-backdrop, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }} onClick={handleBackdropClick} data-testid={dataTestId}>
             <div
                 role='dialog'
                 aria-modal='true'

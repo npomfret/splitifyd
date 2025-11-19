@@ -1,5 +1,5 @@
 import { apiClient } from '@/app/apiClient.ts';
-import { LoadingSpinner, Tooltip } from '@/components/ui';
+import { Button, LoadingSpinner, Tooltip } from '@/components/ui';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
 import { GroupId } from '@billsplit-wl/shared';
@@ -283,12 +283,14 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                             autoComplete='off'
                                         />
                                         <Tooltip content={copied ? t('shareGroupModal.linkCopied') : t('shareGroupModal.copyLinkTitle')}>
-                                            <button
+                                            <Button
                                                 type='button'
                                                 onClick={copyToClipboard}
-                                                class='absolute right-2 top-1/2 -translate-y-1/2 p-2 text-text-muted hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-md transition-all duration-200'
+                                                variant='ghost'
+                                                size='sm'
                                                 data-testid='copy-link-button'
-                                                aria-label={t('shareGroupModal.copyLinkAriaLabel')}
+                                                ariaLabel={t('shareGroupModal.copyLinkAriaLabel')}
+                                                className='absolute right-2 top-1/2 -translate-y-1/2'
                                             >
                                                 {copied
                                                     ? (
@@ -306,7 +308,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                             />
                                                         </svg>
                                                     )}
-                                            </button>
+                                            </Button>
                                         </Tooltip>
                                     </div>
 
@@ -318,13 +320,15 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                         <p class='text-xs text-text-primary/70 mt-2'>{t('shareGroupModal.qrCodeDescription')}</p>
                                         <div class='w-full flex justify-end mt-2'>
                                             <Tooltip content={t('shareGroupModal.generateNew')}>
-                                                <button
+                                                <Button
                                                     type='button'
                                                     onClick={() => setRefreshCounter((count) => count + 1)}
-                                                    class='p-2 rounded-full text-interactive-primary hover:text-interactive-primary hover:bg-interactive-primary/10 transition disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed'
+                                                    variant='ghost'
+                                                    size='sm'
                                                     data-testid='generate-new-link-button'
                                                     disabled={loading}
-                                                    aria-label={t('shareGroupModal.generateNew')}
+                                                    ariaLabel={t('shareGroupModal.generateNew')}
+                                                    className='rounded-full'
                                                 >
                                                     <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                                         <path
@@ -334,7 +338,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                                             d='M16.023 9.348h4.284m0 0V5.064m0 4.284-2.913-2.913a7.5 7.5 0 10-.255 10.79'
                                                         />
                                                     </svg>
-                                                </button>
+                                                </Button>
                                             </Tooltip>
                                         </div>
                                     </div>
@@ -351,21 +355,18 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                         {SHARE_LINK_EXPIRATION_OPTIONS.map((option) => {
                                             const isSelected = option.id === selectedExpirationId;
                                             return (
-                                                <button
+                                                <Button
                                                     key={option.id}
                                                     type='button'
                                                     data-testid={`share-link-expiration-${option.id}`}
                                                     onClick={() => setSelectedExpirationId(option.id)}
                                                     aria-pressed={isSelected}
-                                                    class={`px-3 py-1.5 rounded-md border text-sm transition ${
-                                                        isSelected
-                                                            ? 'border-interactive-primary bg-interactive-primary/20 text-interactive-primary shadow-sm'
-                                                            : 'border-border-default text-text-primary hover:border-interactive-primary/40 hover:bg-interactive-primary/10 hover:text-interactive-primary'
-                                                    }`}
+                                                    variant={isSelected ? 'primary' : 'secondary'}
+                                                    size='sm'
                                                     disabled={loading && isSelected}
                                                 >
                                                     {t(option.translationKey)}
-                                                </button>
+                                                </Button>
                                             );
                                         })}
                                     </div>

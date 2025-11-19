@@ -209,15 +209,17 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
     const inviteButton = onInviteClick
         ? (
             <Tooltip content={inviteTooltip}>
-                <button
+                <Button
                     type='button'
                     onClick={onInviteClick}
-                    aria-label={inviteAriaLabel}
+                    ariaLabel={inviteAriaLabel}
                     data-testid='invite-members-button'
-                    className='p-1 text-text-muted/80 hover:text-text-muted rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
+                    variant='ghost'
+                    size='sm'
+                    className='rounded-full'
                 >
                     <UserPlusIcon aria-hidden='true' className='h-5 w-5' />
-                </button>
+                </Button>
             </Tooltip>
         )
         : null;
@@ -246,19 +248,21 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                     <div className='flex items-center gap-1.5'>
                         {inviteButton}
                         <Tooltip content={toggleLabel}>
-                            <button
+                            <Button
                                 type='button'
                                 onClick={() => (isCollapsed.value = !isCollapsed.value)}
-                                aria-label={toggleLabel}
+                                ariaLabel={toggleLabel}
                                 aria-expanded={!isCollapsed.value}
                                 data-testid='toggle-members-section'
-                                className='p-1 text-text-muted/80 hover:text-text-muted rounded-full focus:outline-none focus:ring-2 focus:ring-interactive-primary focus:ring-offset-2 transition-colors duration-200'
+                                variant='ghost'
+                                size='sm'
+                                className='rounded-full'
                             >
                                 <ChevronDownIcon
                                     aria-hidden='true'
                                     className={`h-5 w-5 transform transition-transform duration-200 ${isCollapsed.value ? '-rotate-90' : 'rotate-0'}`}
                                 />
-                            </button>
+                            </Button>
                         </Tooltip>
                     </div>
                 </div>

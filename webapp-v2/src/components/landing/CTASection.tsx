@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Button } from '@/components/ui/Button';
 
 export function CTASection() {
     const { t } = useTranslation();
@@ -40,12 +41,15 @@ export function CTASection() {
                 </h2>
                 <p class='text-xl text-interactive-primary-foreground opacity-90 mb-8 max-w-2xl mx-auto'>{t('landing.cta.subtitle')}</p>
 
-                <button
+                <Button
                     onClick={() => navigation.goToRegister()}
-                    class='inline-block bg-surface-base text-interactive-primary font-semibold px-8 py-4 rounded-lg hover:opacity-90 transition-opacity transform hover:scale-105 duration-200'
+                    variant='secondary'
+                    size='lg'
+                    magnetic={true}
+                    className='text-interactive-primary font-semibold'
                 >
                     {t('landing.cta.signUpButton')}
-                </button>
+                </Button>
             </div>
         </section>
     );

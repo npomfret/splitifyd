@@ -107,7 +107,8 @@ test.describe('Tenant theme smoke suite', () => {
             // Check the "Sign Up" button in the header (always visible and styled with theme color)
             const headerSignUpButton = page.getByRole('button', { name: 'Sign Up' }).first();
             await expect(headerSignUpButton).toBeVisible();
-            await expectColorMatch(headerSignUpButton, 'background-color', fixture.cssVars.interactivePrimary);
+            // Primary buttons use gradient background-image, so check background-image contains the color
+            await expectGradientContainsColor(headerSignUpButton, fixture.cssVars.interactivePrimary);
 
             // Navigate to login page to check more theme applications
             const loginButton = page.getByText('Login').first();
@@ -125,6 +126,11 @@ test.describe('Tenant theme smoke suite', () => {
 });
 
 function buildThemeCss(vars: ThemeCssVars): string {
+    // Build gradient using the interactive-primary color
+    const rgbParts = vars.interactivePrimary.split(' ').map(Number);
+    const primaryColor = `rgb(${rgbParts[0]}, ${rgbParts[1]}, ${rgbParts[2]})`;
+    const gradientPrimary = `linear-gradient(135deg, ${primaryColor}, ${primaryColor})`;
+
     return `:root {
         --interactive-primary-rgb: ${vars.interactivePrimary} !important;
         --interactive-primary-foreground-rgb: ${vars.interactivePrimaryForeground} !important;
@@ -133,6 +139,8 @@ function buildThemeCss(vars: ThemeCssVars): string {
         --surface-base-rgb: ${vars.surfaceBase} !important;
         --surface-muted-rgb: ${vars.surfaceMuted} !important;
         --border-default-rgb: ${vars.borderDefault} !important;
+        --gradient-primary: ${gradientPrimary} !important;
+        --shadows-md: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
     }`;
 }
 
@@ -144,6 +152,26 @@ async function expectRootCssVar(page: Page, variable: string, expected: string):
 async function expectColorMatch(locator: Locator, cssProperty: string, rgbTriplet: string): Promise<void> {
     const actual = await locator.evaluate((element, property) => getComputedStyle(element as Element).getPropertyValue(property), cssProperty);
     expect(normalizeCssColor(actual)).toEqual(parseRgbString(rgbTriplet));
+}
+
+async function expectGradientContainsColor(locator: Locator, rgbTriplet: string): Promise<void> {
+    const backgroundImage = await locator.evaluate((element) => getComputedStyle(element as Element).getPropertyValue('background-image'));
+
+    // Extract RGB values from gradient string
+    // Gradient format: linear-gradient(135deg, rgb(237, 68, 80), rgb(237, 68, 80))
+    const rgbMatches = backgroundImage.match(/rgba?\(([^)]+)\)/g);
+
+    if (!rgbMatches || rgbMatches.length === 0) {
+        throw new Error(`No RGB colors found in background-image: ${backgroundImage}`);
+    }
+
+    const expectedRgb = parseRgbString(rgbTriplet);
+    const gradientContainsExpectedColor = rgbMatches.some((rgbMatch) => {
+        const actualRgb = normalizeCssColor(rgbMatch);
+        return actualRgb[0] === expectedRgb[0] && actualRgb[1] === expectedRgb[1] && actualRgb[2] === expectedRgb[2];
+    });
+
+    expect(gradientContainsExpectedColor).toBe(true);
 }
 
 function normalizeCssColor(colorValue: string): [number, number, number] {

@@ -156,10 +156,19 @@ export class ThemeArtifactService {
     private flattenTokens(tokens: BrandingTokens): Array<[string, string]> {
         const entries: Array<[string, string]> = [];
 
+        // Helper to convert camelCase to kebab-case
+        const toKebabCase = (str: string): string => {
+            return str
+                .replace(/[^a-zA-Z0-9]+/g, '-')  // Replace non-alphanumeric with hyphens
+                .replace(/([a-z])([A-Z])/g, '$1-$2')  // Insert hyphen between lowercase and uppercase
+                .toLowerCase()
+                .replace(/^-+|-+$/g, '');  // Remove leading/trailing hyphens
+        };
+
         const walk = (obj: any, prefix: string[]) => {
             Object.entries(obj).forEach(([key, value]) => {
                 const nextPrefix = [...prefix, key]
-                    .map((segment) => segment.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase())
+                    .map((segment) => toKebabCase(segment))
                     .filter(Boolean);
 
                 if (value === null || value === undefined) {

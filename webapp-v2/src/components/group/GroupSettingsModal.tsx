@@ -779,10 +779,11 @@ export function GroupSettingsModal({
                     {(Object.keys(PRESET_PERMISSIONS) as ManagedPreset[]).map((preset) => {
                         const isActive = selectedPreset === preset;
                         return (
-                            <button
+                            <Button
                                 key={preset}
                                 type='button'
                                 onClick={() => applyPreset(preset)}
+                                variant='ghost'
                                 className={`h-full border rounded-lg px-4 py-3 text-left transition ${
                                     isActive
                                         ? 'border-interactive-primary bg-interactive-primary/10 shadow-sm'
@@ -795,7 +796,7 @@ export function GroupSettingsModal({
                                 </div>
                                 <p className='text-sm text-text-primary/70 mt-1'>{t(`securitySettingsModal.presets.${preset}.description`)}</p>
                                 {isActive && <span className='text-xs text-interactive-primary font-medium mt-2 block'>{t('securitySettingsModal.presets.activeBadge')}</span>}
-                            </button>
+                            </Button>
                         );
                     })}
                 </div>

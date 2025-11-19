@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Button } from '../ui';
 
 interface EmptyGroupsStateProps {
     onCreateGroup: () => void;
@@ -22,9 +23,9 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
             <h4 class='text-lg font-medium text-text-primary mb-2'>{t('emptyGroupsState.title')}</h4>
             <p class='text-text-muted mb-6 max-w-md mx-auto'>{t('emptyGroupsState.description')}</p>
 
-            <button onClick={onCreateGroup} class='bg-interactive-primary text-interactive-primary-foreground px-6 py-3 rounded-md hover:bg-interactive-primary/90 transition-colors font-medium'>
+            <Button onClick={onCreateGroup} variant='primary' size='lg' data-testid='create-first-group-button'>
                 {t('emptyGroupsState.createFirstGroup')}
-            </button>
+            </Button>
 
             {/* Additional getting started tips */}
             <div class='mt-8 text-left max-w-2xl mx-auto'>
