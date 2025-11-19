@@ -140,7 +140,7 @@ WARNING_BANNER=instance-1
 - Single source of truth for runtime config schema
 - Easier to maintain and extend
 
-### 3. Eliminate BUILD_MODE - Use INSTANCE_MODE as Single Source of Truth ⚙️ IN PROGRESS
+### 3. Eliminate BUILD_MODE - Use INSTANCE_NAME as Single Source of Truth ✅ COMPLETE
 
 **Decision: Eliminate BUILD_MODE entirely**
 
