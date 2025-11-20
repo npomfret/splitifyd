@@ -44,8 +44,10 @@ The sections below capture what shipped and what still needs operational follow-
 
 - ✅ Cloud storage save + handler updates landed (see files listed above)
 - ✅ Integration coverage exists under `firebase/functions/src/__tests__/integration/tenant/`
+- ✅ Hosting rewrite path covered by `firebase/functions/src/__tests__/integration/tenant/theme-css.test.ts` (checks `/api/theme.css` via the Hosting emulator on port 7005)
 - ✅ `npm run storage:setup` bootstraps the bucket (CORS + marker file)
-- 🔄 Operations: run the bucket script per environment, republish tenants, and verify `/theme.css` delivery + caching
+- ✅ Operations: run the bucket script per environment (confirmed `npm run storage:setup` has been executed)
+- 🔄 Operations: republish tenants and verify `/theme.css` delivery + caching with the cloud URLs
 
 ---
 
@@ -350,7 +352,7 @@ npm run test:integration  # then filter within workspace if needed
 - [x] Emulator continues to work (handlers explicitly allow `http://` URLs)
 - [x] Integration coverage exists for admin publish + `/theme.css`
 - [x] `npm run storage:setup` configures CORS + bucket scaffolding
-- [ ] Operations: run the setup script in every deployed environment (prod + staging, etc.)
+- [x] Operations: run the setup script in every deployed environment (prod + staging, etc.)
 - [ ] Operations: republish tenant themes and spot-check `/theme.css` responses + caching headers with the new URLs
 
 ---

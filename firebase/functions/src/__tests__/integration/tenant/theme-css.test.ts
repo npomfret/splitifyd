@@ -9,7 +9,7 @@ import {
     toTenantSecondaryColor,
     toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
-import { ApiDriver } from '@billsplit-wl/test-support';
+import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { getFirestore } from '../../../firebase';
@@ -66,5 +66,26 @@ describe('Theme CSS delivery', () => {
         expect(response.css).toContain('--palette-primary');
         expect(response.headers.get('cache-control')).toContain('max-age=31536000');
         expect(response.headers.get('etag')).toContain(publishResult.artifact.hash);
+    });
+
+    it('serves CSS via the Firebase Hosting rewrite', async () => {
+        const tenantId = `tenant_hosting_${Date.now()}`;
+        const payload = buildTenantPayload(tenantId);
+
+        await apiDriver.adminUpsertTenant(payload, adminUser.token);
+        const publishResult = await apiDriver.publishTenantTheme({ tenantId }, adminUser.token);
+
+        const emulatorConfig = getFirebaseEmulatorConfig();
+        const hostingDriver = new ApiDriver();
+        hostingDriver.overrideBaseUrl(`http://localhost:${emulatorConfig.hostingPort}/api`);
+
+        const response = await hostingDriver.fetchThemeCss({
+            tenantId,
+            version: publishResult.artifact.hash,
+        });
+
+        expect(response.status).toBe(200);
+        expect(response.css).toContain('--palette-primary');
+        expect(response.headers.get('content-type')).toContain('text/css');
     });
 });
