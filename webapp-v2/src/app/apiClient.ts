@@ -1052,7 +1052,7 @@ class ApiClient implements API<void> {
         });
     }
 
-    async getUserPolicyStatus(signal?: AbortSignal): Promise<UserPolicyStatusResponse> {
+    private getUserPolicyStatusInternal(signal?: AbortSignal): Promise<UserPolicyStatusResponse> {
         return this.request({
             endpoint: '/user/policies/status',
             method: 'GET',
@@ -1060,7 +1060,15 @@ class ApiClient implements API<void> {
         });
     }
 
-    async getCurrentPolicy(policyId: PolicyId, signal?: AbortSignal): Promise<CurrentPolicyResponse> {
+    async getUserPolicyStatus(): Promise<UserPolicyStatusResponse> {
+        return this.getUserPolicyStatusInternal();
+    }
+
+    async getUserPolicyStatusWithAbort(signal?: AbortSignal): Promise<UserPolicyStatusResponse> {
+        return this.getUserPolicyStatusInternal(signal);
+    }
+
+    private getCurrentPolicyInternal(policyId: PolicyId, signal?: AbortSignal): Promise<CurrentPolicyResponse> {
         return this.request({
             endpoint: '/policies/:id/current',
             method: 'GET',
@@ -1068,6 +1076,14 @@ class ApiClient implements API<void> {
             skipAuth: true, // Public endpoint
             signal,
         });
+    }
+
+    async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicyInternal(policyId);
+    }
+
+    async getCurrentPolicyWithAbort(policyId: PolicyId, signal?: AbortSignal): Promise<CurrentPolicyResponse> {
+        return this.getCurrentPolicyInternal(policyId, signal);
     }
 
     async getAppConfig(signal?: AbortSignal): Promise<AppConfiguration> {
@@ -1089,12 +1105,20 @@ class ApiClient implements API<void> {
     }
 
     // User profile management methods
-    async getUserProfile(signal?: AbortSignal): Promise<UserProfileResponse> {
+    private getUserProfileInternal(signal?: AbortSignal): Promise<UserProfileResponse> {
         return this.request({
             endpoint: '/user/profile',
             method: 'GET',
             signal,
         });
+    }
+
+    async getUserProfile(): Promise<UserProfileResponse> {
+        return this.getUserProfileInternal();
+    }
+
+    async getUserProfileWithAbort(signal?: AbortSignal): Promise<UserProfileResponse> {
+        return this.getUserProfileInternal(signal);
     }
 
     async updateUserProfile(data: UpdateUserProfileRequest): Promise<UserProfileResponse> {

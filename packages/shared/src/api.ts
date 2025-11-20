@@ -90,10 +90,10 @@ export interface API<AuthToken> {
     listGroupComments(groupId: GroupId, options?: ListCommentsOptions, token?: AuthToken): Promise<ListCommentsResponse>;
 
     acceptMultiplePolicies(requests: AcceptPolicyRequest[], token?: AuthToken): Promise<AcceptMultiplePoliciesResponse>;
-    getUserPolicyStatus(signal?: unknown, token?: AuthToken): Promise<UserPolicyStatusResponse>;
-    getCurrentPolicy(policyId: PolicyId, signal?: unknown, token?: AuthToken): Promise<CurrentPolicyResponse>;
+    getUserPolicyStatus(token?: AuthToken): Promise<UserPolicyStatusResponse>;
+    getCurrentPolicy(policyId: PolicyId, token?: AuthToken): Promise<CurrentPolicyResponse>;
 
-    getUserProfile(signal?: unknown, token?: AuthToken): Promise<UserProfileResponse>;
+    getUserProfile(token?: AuthToken): Promise<UserProfileResponse>;
     updateUserProfile(request: UpdateUserProfileRequest, token?: AuthToken): Promise<UserProfileResponse>;
     changePassword(request: PasswordChangeRequest, token?: AuthToken): Promise<MessageResponse>;
     changeEmail(request: ChangeEmailRequest, token?: AuthToken): Promise<UserProfileResponse>;
