@@ -10,7 +10,7 @@ import { DefaultLoginButton } from '../components/auth/DefaultLoginButton';
 import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
-import { Button } from '../components/ui/Button';
+import { Button, Checkbox } from '../components/ui';
 import { logError } from '../utils/browser-logger';
 
 export function LoginPage() {
@@ -127,18 +127,13 @@ export function LoginPage() {
                 <PasswordInput value={password} onInput={setPassword} disabled={loadingValue} autoComplete='off' />
 
                 <div class='flex items-center justify-between'>
-                    <label class='flex items-center gap-2 text-text-primary'>
-                        <input
-                            type='checkbox'
-                            data-testid='remember-me-checkbox'
-                            class='h-4 w-4 rounded border border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base transition-colors'
-                            disabled={loadingValue}
-                            checked={rememberMe}
-                            onChange={(event) => setRememberMe((event.currentTarget as HTMLInputElement).checked)}
-                            autoComplete='off'
-                        />
-                        <span class='text-sm text-text-primary'>{t('loginPage.rememberMe')}</span>
-                    </label>
+                    <Checkbox
+                        label={t('loginPage.rememberMe')}
+                        checked={rememberMe}
+                        onChange={setRememberMe}
+                        disabled={loadingValue}
+                        data-testid='remember-me-checkbox'
+                    />
 
                     <Button
                         type='button'

@@ -1,7 +1,7 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { themeStore } from '@/app/stores/theme-store';
-import { CurrencyAmount, SidebarCard, Tooltip } from '@/components/ui';
+import { Checkbox, CurrencyAmount, SidebarCard, Tooltip } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { getGroupDisplayName } from '@/utils/displayName';
 import type { SimplifiedDebt, UserId } from '@billsplit-wl/shared';
@@ -209,16 +209,11 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
             >
                 {/* Filter toggle */}
                 <div className='pb-2 border-b border-border-default mb-2'>
-                    <label className='flex items-center space-x-2 text-sm cursor-pointer'>
-                        <input
-                            type='checkbox'
-                            checked={showAllBalances.value}
-                            onChange={(e) => showAllBalances.value = e.currentTarget.checked}
-                            className='rounded border-border-default text-interactive-primary focus:ring-interactive-primary'
-                            autoComplete='off'
-                        />
-                        <span className='text-text-primary'>{t('balanceSummary.showAll')}</span>
-                    </label>
+                    <Checkbox
+                        label={t('balanceSummary.showAll')}
+                        checked={showAllBalances.value}
+                        onChange={(checked) => showAllBalances.value = checked}
+                    />
                 </div>
                 {content}
             </SidebarCard>
@@ -230,16 +225,11 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
             <div className='flex items-center justify-between mb-4'>
                 <h2 className='text-lg font-semibold'>{t('balanceSummary.title')}</h2>
                 {/* Filter toggle for non-sidebar variant */}
-                <label className='flex items-center space-x-2 text-sm cursor-pointer'>
-                    <input
-                        type='checkbox'
-                        checked={showAllBalances.value}
-                        onChange={(e) => showAllBalances.value = e.currentTarget.checked}
-                        className='rounded border-border-default text-interactive-primary focus:ring-interactive-primary'
-                        autoComplete='off'
-                    />
-                    <span className='text-text-primary'>{t('balanceSummary.showAll')}</span>
-                </label>
+                <Checkbox
+                    label={t('balanceSummary.showAll')}
+                    checked={showAllBalances.value}
+                    onChange={(checked) => showAllBalances.value = checked}
+                />
             </div>
             {content}
         </Card>

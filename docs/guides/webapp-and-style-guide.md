@@ -430,7 +430,7 @@ const auroraSemantics: BrandingTokens['semantics'] = {
 
 **⚠️ CURRENT STATUS (2025-11-19): Admin page isolation is PLANNED but NOT YET IMPLEMENTED.**
 
-Admin pages currently inherit tenant theming (unintended behavior). Full isolation is documented in Phase 4 of the Modern UI Overhaul plan (`tasks/modern-ui-overhaul-plan.md`).
+Admin pages currently inherit tenant theming (unintended behavior). Full isolation is planned for Phase 4 (Admin Page Isolation).
 
 **Target behavior** (planned): Admin pages (tenant management, system configuration, analytics) will have their own **fixed, consistent style** that is **completely separate** from tenant branding.
 
@@ -1110,12 +1110,29 @@ const brutalistMotion: BrandingTokens['motion'] = {
 ## UI Components & Styling
 
 ### Component Library
-UI kit under `components/ui` provides audited components:
+UI kit under `components/ui` provides audited components (all use semantic tokens only):
+
+**Core Components:**
 - `Button` - All variants use semantic tokens, magnetic hover enabled by default (tenant-controlled)
 - `Card` - Surfaces with semantic backgrounds, optional magnetic hover support
 - `Input` - Form controls with semantic borders/text
 - `Typography` - Text components with semantic colors
 - `Modal`, `Alert`, `Badge` - Status-aware components
+
+**Phase 3 Components (Advanced UI):**
+- `Checkbox` - Accessible checkbox with semantic tokens (integrated: LoginPage, BalanceSummary, ExpensesList, SettlementHistory)
+- `Radio` - Radio button groups with horizontal/vertical layouts (ready for use)
+- `Switch` - Toggle switches for settings and preferences (ready for use)
+- `Select` - Styled dropdown component (ready for use)
+- `GradientText` - Text with gradient backgrounds using CSS variables (integrated: HeroSection, AdminPage)
+- `FloatingInput` - Modern input with animated floating labels (ready for use)
+- `EmptyState` - Reusable empty state component with icon, title, description, actions (integrated: EmptyGroupsState)
+- `Toast`/`ToastContainer` - Notification system using Preact signals (integrated: App.tsx)
+
+**Component Status:**
+- **Integrated (10 instances):** Checkbox (6), GradientText (2), EmptyState (1), ToastContainer (1)
+- **Ready for future use:** Radio, Switch, Select, FloatingInput
+- **Note:** Some custom implementations intentionally kept (e.g., card-based radio buttons in SplitTypeSelector, checkboxes with complex labels in RegisterPage) as they require specialized layouts
 
 **Motion enhancements:** See [Motion Enhancement System](#motion-enhancement-system-phase-2) for details on magnetic hover, scroll reveals, and theme-controlled animations.
 
@@ -1217,7 +1234,6 @@ grep -r "style={{" webapp-v2/src/components
 
 ## Further Reading
 
-- **White-label theming**: `tasks/white-label-plan-1.md` - Complete theming architecture
 - **Admin guide**: `docs/guides/white-label-admin-guide.md` - Publishing tenant themes
 - **Developer guide**: `docs/guides/white-label-developer-guide.md` - Using semantic tokens
 - **Debug runbook**: `docs/guides/white-label-debug-runbook.md` - Troubleshooting themes

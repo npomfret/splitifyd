@@ -151,43 +151,36 @@ export class ThemePage extends BasePage {
 
     /**
      * Verify accessible contrast between text and background
+     * Tests that primary semantic tokens have accessible contrast
      */
     async expectAccessibleContrast(): Promise<void> {
-        const [textColor, surfaceColor] = await this.page.evaluate(() => {
-            // Find the main content container that has the actual background color applied
-            const mainElement = document.querySelector('main') || document.body;
-            const mainStyle = getComputedStyle(mainElement);
+        const [textPrimaryColor, surfaceBaseColor] = await this.page.evaluate(() => {
+            // Read the semantic tokens directly from CSS variables
+            const root = document.documentElement;
+            const rootStyle = getComputedStyle(root);
 
-            // Get colors from the main element or fall back to body
-            let bgColor = mainStyle.backgroundColor;
-            let textColor = mainStyle.color;
+            const textPrimary = rootStyle.getPropertyValue('--semantics-colors-text-primary').trim();
+            const surfaceBase = rootStyle.getPropertyValue('--semantics-colors-surface-base').trim();
 
-            // If background is transparent, walk up the tree to find actual background
-            if (bgColor === 'rgba(0, 0, 0, 0)' || bgColor === 'transparent') {
-                let element: Element | null = mainElement;
-                while (element) {
-                    const style = getComputedStyle(element);
-                    if (style.backgroundColor !== 'rgba(0, 0, 0, 0)' && style.backgroundColor !== 'transparent') {
-                        bgColor = style.backgroundColor;
-                        break;
-                    }
-                    element = element.parentElement;
-                }
-                // If still transparent, assume white background (browser default)
-                if (bgColor === 'rgba(0, 0, 0, 0)' || bgColor === 'transparent') {
-                    bgColor = 'rgb(255, 255, 255)';
-                }
-            }
-
-            return [textColor, bgColor];
+            return [textPrimary, surfaceBase];
         });
 
-        expect(textColor).toBeTruthy();
-        expect(surfaceColor).toBeTruthy();
-        expect(textColor).not.toBe('rgba(0, 0, 0, 0)');
-        expect(surfaceColor).not.toBe('rgba(0, 0, 0, 0)');
+        expect(textPrimaryColor).toBeTruthy();
+        expect(surfaceBaseColor).toBeTruthy();
+        expect(textPrimaryColor).not.toBe('');
+        expect(surfaceBaseColor).not.toBe('');
 
-        const ratio = this.calculateContrastRatio(textColor, surfaceColor);
+        const ratio = this.calculateContrastRatio(textPrimaryColor, surfaceBaseColor);
+
+        // Debug output
+        if (ratio < MIN_CONTRAST_RATIO) {
+            console.log(`Contrast check failed:
+  --semantics-colors-text-primary: ${textPrimaryColor}
+  --semantics-colors-surface-base: ${surfaceBaseColor}
+  Ratio: ${ratio}
+  Required: ${MIN_CONTRAST_RATIO}`);
+        }
+
         expect(ratio).toBeGreaterThanOrEqual(MIN_CONTRAST_RATIO);
     }
 

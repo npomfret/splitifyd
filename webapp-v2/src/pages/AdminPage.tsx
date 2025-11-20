@@ -1,4 +1,4 @@
-import { LoadingState } from '@/components/ui';
+import { GradientText, LoadingState } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
@@ -98,8 +98,10 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                                     <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
                                 </svg>
                             </div>
-                            <h1 class='text-3xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-amber-600 bg-clip-text text-transparent'>
-                                System Administration
+                            <h1 class='text-3xl font-bold'>
+                                <GradientText gradient='aurora' as='span'>
+                                    System Administration
+                                </GradientText>
                             </h1>
                         </div>
                         <p class='mt-2 text-indigo-700 ml-13'>Command center for tenants, diagnostics, and system configuration</p>

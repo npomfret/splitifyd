@@ -4,6 +4,7 @@ import { useComputed } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { Checkbox } from '../ui/Checkbox';
 import { Stack } from '../ui/Stack';
 import { ExpenseItem } from './ExpenseItem';
 
@@ -39,17 +40,12 @@ export function ExpensesList({
             <div className='flex justify-between items-center mb-4'>
                 <h2 className='text-lg font-semibold'>{t('expensesList.title')}</h2>
                 {canToggleShowDeleted && onShowDeletedChange && (
-                    <label className='flex items-center space-x-2 text-sm'>
-                        <input
-                            type='checkbox'
-                            data-testid='include-deleted-expenses-checkbox'
-                            checked={showDeletedExpenses}
-                            onChange={(e) => onShowDeletedChange(e.currentTarget.checked)}
-                            className='rounded'
-                            autoComplete='off'
-                        />
-                        <span>{t('common.includeDeleted')}</span>
-                    </label>
+                    <Checkbox
+                        label={t('common.includeDeleted')}
+                        checked={showDeletedExpenses}
+                        onChange={onShowDeletedChange}
+                        data-testid='include-deleted-expenses-checkbox'
+                    />
                 )}
             </div>
             {expenses.value.length === 0 ? <p className='text-text-muted'>{t('expensesList.noExpensesYet')}</p> : (

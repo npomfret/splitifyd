@@ -10,7 +10,7 @@ import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useComputed, useSignal } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { ConfirmDialog, CurrencyAmount, LoadingSpinner, RelativeTime, Tooltip } from '../ui';
+import { Checkbox, ConfirmDialog, CurrencyAmount, LoadingSpinner, RelativeTime, Tooltip } from '../ui';
 import { Avatar } from '../ui/Avatar';
 
 interface SettlementHistoryProps {
@@ -130,29 +130,19 @@ export function SettlementHistory({
     return (
         <div class='space-y-2'>
             <div class='pb-2 border-b border-border-default space-y-2'>
-                <label class='flex items-center space-x-2 text-sm cursor-pointer'>
-                    <input
-                        type='checkbox'
-                        checked={showAllSettlements.value}
-                        onChange={(e) => (showAllSettlements.value = e.currentTarget.checked)}
-                        class='rounded border-border-default text-interactive-primary focus-visible:ring-interactive-primary'
-                        data-testid='show-all-settlements-checkbox'
-                        autoComplete='off'
-                    />
-                    <span class='text-text-primary'>{t('settlementHistory.showAll')}</span>
-                </label>
+                <Checkbox
+                    label={t('settlementHistory.showAll')}
+                    checked={showAllSettlements.value}
+                    onChange={(checked) => (showAllSettlements.value = checked)}
+                    data-testid='show-all-settlements-checkbox'
+                />
                 {canToggleShowDeleted && onShowDeletedChange && (
-                    <label class='flex items-center space-x-2 text-sm cursor-pointer'>
-                        <input
-                            type='checkbox'
-                            data-testid='include-deleted-settlements-checkbox'
-                            checked={showDeletedSettlements}
-                            onChange={(e) => onShowDeletedChange(e.currentTarget.checked)}
-                            class='rounded border-border-default text-interactive-primary focus-visible:ring-interactive-primary'
-                            autoComplete='off'
-                        />
-                        <span class='text-text-primary'>{t('common.includeDeleted')}</span>
-                    </label>
+                    <Checkbox
+                        label={t('common.includeDeleted')}
+                        checked={showDeletedSettlements}
+                        onChange={onShowDeletedChange}
+                        data-testid='include-deleted-settlements-checkbox'
+                    />
                 )}
             </div>
 
