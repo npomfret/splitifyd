@@ -7,6 +7,7 @@ import assert from 'node:assert';
 import * as path from 'path';
 import { loadRuntimeConfig } from '../shared/scripts-config';
 import { getEnvironment, initializeFirebase } from './firebase-init';
+import { signInExistingBillSplitter } from './test-data-generator';
 
 /*
  * This script seeds policy files to either the emulator or production
@@ -98,29 +99,29 @@ async function seedPolicy(policyId: PolicyId, policyName: PolicyName, filename: 
 }
 
 /**
- * Verify policies are accessible via API (only for emulator)
+ * Verify policies are accessible via Admin API (only for emulator)
  */
-async function verifyPoliciesViaApi(): Promise<void> {
+async function verifyPoliciesViaApi(adminToken: string): Promise<void> {
     if (!env.isEmulator) {
         console.log('⏭️  Skipping API verification (not available for production)');
         return;
     }
 
     console.log('\n═══════════════════════════════════════════════════════');
-    console.log('🔍 VERIFYING POLICIES VIA API...');
+    console.log('🔍 VERIFYING POLICIES VIA ADMIN API...');
     console.log('═══════════════════════════════════════════════════════');
 
     const apiDriver = new ApiDriver();
 
     try {
-        // Test 2: Fetch each individual policy
+        // Fetch each individual policy using admin authentication
         const policyIds = [PolicyIds.TERMS_OF_SERVICE, PolicyIds.COOKIE_POLICY, PolicyIds.PRIVACY_POLICY];
 
         for (const policyId of policyIds) {
-            console.log(`\n📄 Fetching policy ${policyId} via API...`);
+            console.log(`\n📄 Fetching policy ${policyId} via Admin API...`);
 
             try {
-                const policy = await apiDriver.getPolicy(policyId);
+                const policy = await apiDriver.getPolicy(policyId, adminToken);
                 const currentVersion = policy.versions[policy.currentVersionHash];
                 console.log(`✅ Successfully fetched policy: ${policy.policyName}`);
                 console.log(`   - ID: ${policy.id}`);
@@ -131,7 +132,7 @@ async function verifyPoliciesViaApi(): Promise<void> {
             }
         }
 
-        console.log('\n✅ API VERIFICATION COMPLETE - All policies are accessible!');
+        console.log('\n✅ ADMIN API VERIFICATION COMPLETE - All policies are accessible!');
     } catch (error) {
         throw error;
     }
@@ -178,8 +179,15 @@ export async function seedPolicies() {
             });
         });
 
-        // Verify policies are accessible via API (emulator only)
-        await verifyPoliciesViaApi();
+        // Verify policies are accessible via Admin API (emulator only)
+        if (env.isEmulator) {
+            console.log('\n🔐 Signing in as Bill Splitter admin to verify API access...');
+            const billSplitterUser = await signInExistingBillSplitter();
+            if (!billSplitterUser) {
+                throw new Error('Bill Splitter admin user not found - run test data generation first');
+            }
+            await verifyPoliciesViaApi(billSplitterUser.token);
+        }
 
         console.log(`\n🎉 ${env.environment} POLICY SEEDING COMPLETED SUCCESSFULLY!`);
     } catch (error) {

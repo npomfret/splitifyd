@@ -138,7 +138,7 @@ interface FirebaseSignInErrorResponse {
     };
 }
 
-async function signInExistingBillSplitter(): Promise<AuthenticatedFirebaseUser | null> {
+export async function signInExistingBillSplitter(): Promise<AuthenticatedFirebaseUser | null> {
     const { identityToolkit } = getFirebaseEmulatorConfig();
     const signInUrl = `${identityToolkit.baseUrl}/v1/accounts:signInWithPassword?key=${identityToolkit.apiKey}`;
 
