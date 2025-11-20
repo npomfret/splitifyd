@@ -23,14 +23,6 @@ function isTest() {
     return getInstanceName() === 'dev1';
 }
 
-if (!process.env.GCLOUD_PROJECT) {
-    if (isTest()) {
-        throw Error('env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment - and make sure you are running from the correct directory!');
-    } else {
-        throw Error('env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment, or by firebase elsewhere');
-    }
-}
-
 // Lazy-initialized app instance - DO NOT initialize at module level
 let app: admin.app.App | undefined;
 
@@ -42,6 +34,15 @@ let app: admin.app.App | undefined;
  */
 function getApp(): admin.app.App {
     if (!app) {
+        // Validate GCLOUD_PROJECT is available (Firebase provides this automatically in production)
+        if (!process.env.GCLOUD_PROJECT) {
+            if (isTest()) {
+                throw Error('env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment - and make sure you are running from the correct directory!');
+            } else {
+                throw Error('env.GCLOUD_PROJECT should be set by Firebase or in your environment');
+            }
+        }
+
         try {
             // Try to get the default app if it exists
             app = admin.app();
