@@ -115,7 +115,7 @@ describe('Admin Tenant Theme Publishing', () => {
         await createTenantWithTokens(tenantId);
 
         // Step 2: Publish theme (adds brandingTokens.artifact)
-        const publishResult = await apiDriver.publishTenantTheme(adminUser.token, { tenantId });
+        const publishResult = await apiDriver.publishTenantTheme({ tenantId }, adminUser.token);
         expect(publishResult.artifact).toBeDefined();
         expect(publishResult.artifact.cssUrl).toBeDefined();
         expect(publishResult.artifact.hash).toBeDefined();
@@ -138,7 +138,7 @@ describe('Admin Tenant Theme Publishing', () => {
             .withDomains([toTenantDomainName(`${tenantId}.example.com`)])
             .build();
 
-        await apiDriver.adminUpsertTenant(adminUser.token, updatedTenantData);
+        await apiDriver.adminUpsertTenant(updatedTenantData, adminUser.token);
 
         // Step 4: Read tenant from Firestore and verify artifact is preserved
         const tenantDoc = await db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();

@@ -4202,7 +4202,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('duplicate-test.local')])
                     .build();
 
-                const firstResult = await appDriver.upsertTenant(adminUser, firstTenant);
+                const firstResult = await appDriver.adminUpsertTenant(firstTenant, adminUser);
                 expect(firstResult.created).toBe(true);
 
                 // Attempt to create second tenant with the same domain
@@ -4212,7 +4212,7 @@ describe('app tests', () => {
                     .build();
 
                 // Should fail with appropriate error
-                await expect(appDriver.upsertTenant(adminUser, secondTenant))
+                await expect(appDriver.adminUpsertTenant(secondTenant, adminUser))
                     .rejects
                     .toMatchObject({
                         code: 'DUPLICATE_DOMAIN',
@@ -4230,7 +4230,7 @@ describe('app tests', () => {
                     ])
                     .build();
 
-                const firstResult = await appDriver.upsertTenant(adminUser, firstTenant);
+                const firstResult = await appDriver.adminUpsertTenant(firstTenant, adminUser);
                 expect(firstResult.created).toBe(true);
 
                 // Attempt to create second tenant with one of those domains
@@ -4243,7 +4243,7 @@ describe('app tests', () => {
                     .build();
 
                 // Should fail - 'shared.test' is already used by first tenant
-                await expect(appDriver.upsertTenant(adminUser, secondTenant))
+                await expect(appDriver.adminUpsertTenant(secondTenant, adminUser))
                     .rejects
                     .toMatchObject({
                         code: 'DUPLICATE_DOMAIN',
@@ -4257,7 +4257,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('update.test')])
                     .build();
 
-                const createResult = await appDriver.upsertTenant(adminUser, createTenant);
+                const createResult = await appDriver.adminUpsertTenant(createTenant, adminUser);
                 expect(createResult.created).toBe(true);
 
                 // Update the same tenant with same domains - should be allowed
@@ -4267,7 +4267,7 @@ describe('app tests', () => {
                     .withDomains([toTenantDomainName('update.test')])
                     .build();
 
-                const updateResult = await appDriver.upsertTenant(adminUser, updateTenant);
+                const updateResult = await appDriver.adminUpsertTenant(updateTenant, adminUser);
                 expect(updateResult.created).toBe(false); // Updated, not created
                 expect(updateResult.tenantId).toBe('tenant_self_update');
             });
