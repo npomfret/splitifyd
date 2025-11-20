@@ -35,7 +35,7 @@ test.describe('Tenant Editor Modal', () => {
         await expect(tenantEditorModal.primaryColorInput).toBeVisible();
         await expect(tenantEditorModal.secondaryColorInput).toBeVisible();
         await expect(tenantEditorModal.accentColorInput).toBeVisible();
-        await expect(tenantEditorModal.primaryDomainInput).toBeVisible();
+        await expect(tenantEditorModal.newDomainInput).toBeVisible();
 
         // Verify tenant ID is editable in create mode
         await expect(tenantEditorModal.tenantIdInput).toBeEnabled();
@@ -72,7 +72,7 @@ test.describe('Tenant Editor Modal', () => {
         await tenantEditorModal.fillTenantId('Invalid-Tenant-ID');
         await tenantEditorModal.fillAppName('Test Tenant');
         await tenantEditorModal.fillLogoUrl('/logo.png');
-        await tenantEditorModal.fillPrimaryDomain('test.example.com');
+        await tenantEditorModal.addDomain('test.example.com');
         await tenantEditorModal.clickSave();
 
         // Should show validation error about lowercase
@@ -93,7 +93,7 @@ test.describe('Tenant Editor Modal', () => {
         await tenantEditorModal.fillTenantId('test-tenant');
         await tenantEditorModal.fillAppName('Test Tenant');
         await tenantEditorModal.fillLogoUrl('/logo.png');
-        await tenantEditorModal.fillPrimaryDomain('invalid domain with spaces');
+        await tenantEditorModal.addDomain('invalid domain with spaces');
         await tenantEditorModal.clickSave();
 
         // Should show validation error about domain
@@ -130,7 +130,7 @@ test.describe('Tenant Editor Modal', () => {
         await tenantEditorModal.verifyModalIsClosed();
     });
 
-    test('should add and remove domain aliases', async ({ systemAdminPage }) => {
+    test('should add and remove domains', async ({ systemAdminPage }) => {
         const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
         const tenantEditorModal = new TenantEditorModalPage(page);
@@ -140,17 +140,17 @@ test.describe('Tenant Editor Modal', () => {
         await page.getByTestId('create-tenant-button').click();
         await tenantEditorModal.waitForModalToBeVisible();
 
-        // Add an alias
-        await tenantEditorModal.addDomainAlias('alias1.example.com');
+        // Add a domain
+        await tenantEditorModal.addDomain('domain1.example.com');
 
-        // Verify alias appears in the list
-        await expect(page.locator('text=alias1.example.com')).toBeVisible();
+        // Verify domain appears in the list
+        await expect(page.locator('text=domain1.example.com')).toBeVisible();
 
-        // Remove the alias
-        await tenantEditorModal.removeDomainAlias(0);
+        // Remove the domain
+        await tenantEditorModal.removeDomain(0);
 
-        // Verify alias is removed
-        await expect(page.locator('text=alias1.example.com')).not.toBeVisible();
+        // Verify domain is removed
+        await expect(page.locator('text=domain1.example.com')).not.toBeVisible();
     });
 
     test('should open modal in edit mode with populated fields', async ({ systemAdminPage }) => {

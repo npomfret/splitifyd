@@ -4156,14 +4156,14 @@ describe('app tests', () => {
                 expect(data?.defaultTenant).toBe(true);
             });
 
-            it('should validate domain normalization', async () => {
+            it('should store multiple domains', async () => {
                 const payload = AdminTenantRequestBuilder
                     .forTenant('tenant_domains')
-                    .withDomains({
-                        primary: toTenantDomainName('example.bar'),
-                        aliases: [toTenantDomainName('www.foo'), toTenantDomainName('example.bar')],
-                        normalized: [toTenantDomainName('example.bar'), toTenantDomainName('www.foo'), toTenantDomainName('example.bar')],
-                    })
+                    .withDomains([
+                        toTenantDomainName('example.bar'),
+                        toTenantDomainName('www.foo'),
+                        toTenantDomainName('alias.bar'),
+                    ])
                     .build();
 
                 const result = await appDriver.upsertTenant(adminUser, payload);
@@ -4174,11 +4174,88 @@ describe('app tests', () => {
                 const tenantDoc = await appDriver.database.collection('tenants').doc('tenant_domains').get();
                 const data = tenantDoc.data();
 
-                expect(data?.domains?.normalized).toEqual([
+                expect(data?.domains).toEqual([
                     'example.bar',
                     'www.foo',
-                    'example.bar',
+                    'alias.bar',
                 ]);
+            });
+
+            it('should reject duplicate domain across different tenants', async () => {
+                // Create first tenant with a domain
+                const firstTenant = AdminTenantRequestBuilder
+                    .forTenant('tenant_duplicate_test_1')
+                    .withDomains([toTenantDomainName('duplicate-test.local')])
+                    .build();
+
+                const firstResult = await appDriver.upsertTenant(adminUser, firstTenant);
+                expect(firstResult.created).toBe(true);
+
+                // Attempt to create second tenant with the same domain
+                const secondTenant = AdminTenantRequestBuilder
+                    .forTenant('tenant_duplicate_test_2')
+                    .withDomains([toTenantDomainName('duplicate-test.local')])
+                    .build();
+
+                // Should fail with appropriate error
+                await expect(appDriver.upsertTenant(adminUser, secondTenant))
+                    .rejects
+                    .toMatchObject({
+                        code: 'DUPLICATE_DOMAIN',
+                    });
+            });
+
+            it('should reject duplicate domain when one tenant has multiple domains', async () => {
+                // Create first tenant with multiple domains
+                const firstTenant = AdminTenantRequestBuilder
+                    .forTenant('tenant_multi_domain_1')
+                    .withDomains([
+                        toTenantDomainName('primary.test'),
+                        toTenantDomainName('shared.test'),
+                        toTenantDomainName('alias.test'),
+                    ])
+                    .build();
+
+                const firstResult = await appDriver.upsertTenant(adminUser, firstTenant);
+                expect(firstResult.created).toBe(true);
+
+                // Attempt to create second tenant with one of those domains
+                const secondTenant = AdminTenantRequestBuilder
+                    .forTenant('tenant_multi_domain_2')
+                    .withDomains([
+                        toTenantDomainName('other.test'),
+                        toTenantDomainName('shared.test'), // Conflicts with first tenant
+                    ])
+                    .build();
+
+                // Should fail - 'shared.test' is already used by first tenant
+                await expect(appDriver.upsertTenant(adminUser, secondTenant))
+                    .rejects
+                    .toMatchObject({
+                        code: 'DUPLICATE_DOMAIN',
+                    });
+            });
+
+            it('should allow updating same tenant with same domains', async () => {
+                // Create tenant
+                const createTenant = AdminTenantRequestBuilder
+                    .forTenant('tenant_self_update')
+                    .withDomains([toTenantDomainName('update.test')])
+                    .build();
+
+                const createResult = await appDriver.upsertTenant(adminUser, createTenant);
+                expect(createResult.created).toBe(true);
+
+                // Update the same tenant with same domains - should be allowed
+                const updateTenant = AdminTenantRequestBuilder
+                    .forTenant('tenant_self_update')
+                    .withAppName('Updated Name')
+                    .withDomains([toTenantDomainName('update.test')])
+                    .build();
+
+                const updateResult = await appDriver.upsertTenant(adminUser, updateTenant);
+                expect(updateResult.created).toBe(false); // Updated, not created
+                expect(updateResult.tenantId).toBe('tenant_self_update');
             });
         });
 

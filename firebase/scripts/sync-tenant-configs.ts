@@ -83,8 +83,7 @@ async function syncTenantConfigs(firestore: Firestore, options?: { defaultOnly?:
             return domain.replace(/:\d+$/, '');
         };
 
-        const normalizedDomains = config.domains.map((d) => toTenantDomainName(normalizeDomain(d)));
-        const primaryDomain = normalizedDomains.length > 0 ? normalizedDomains[0] : toTenantDomainName('localhost');
+        const domains = config.domains.map((d) => toTenantDomainName(normalizeDomain(d)));
 
         if (existingDoc.exists) {
             // For existing tenants, use update() to preserve brandingTokens.artifact (theme CSS)
@@ -97,11 +96,7 @@ async function syncTenantConfigs(firestore: Firestore, options?: { defaultOnly?:
                 'branding.marketingFlags.showLandingPage': toShowLandingPageFlag(config.branding.marketingFlags?.showLandingPage ?? false),
                 'branding.marketingFlags.showMarketingContent': toShowMarketingContentFlag(config.branding.marketingFlags?.showMarketingContent ?? false),
                 'branding.marketingFlags.showPricingPage': toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
-                domains: {
-                    primary: primaryDomain,
-                    aliases: [],
-                    normalized: normalizedDomains,
-                },
+                domains,
                 defaultTenant: toTenantDefaultFlag(config.isDefault),
                 updatedAt: now,
             };
@@ -135,11 +130,7 @@ async function syncTenantConfigs(firestore: Firestore, options?: { defaultOnly?:
                         showPricingPage: toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
                     },
                 },
-                domains: {
-                    primary: primaryDomain,
-                    aliases: [],
-                    normalized: normalizedDomains,
-                },
+                domains,
                 defaultTenant: toTenantDefaultFlag(config.isDefault),
                 createdAt: now,
                 updatedAt: now,

@@ -207,11 +207,7 @@ export class TenantPayloadBuilder {
                     },
                 },
             },
-            domains: {
-                primary: toTenantDomainName('foo'),
-                aliases: [toTenantDomainName('bar')],
-                normalized: [toTenantDomainName('foo'), toTenantDomainName('bar')],
-            },
+            domains: [toTenantDomainName('foo'), toTenantDomainName('bar')],
             defaultTenant: toTenantDefaultFlag(false),
         };
     }
@@ -277,29 +273,8 @@ export class TenantPayloadBuilder {
         return this;
     }
 
-    withPrimaryDomain(domain: TenantDomainName | string): this {
-        const domainName = typeof domain === 'string' ? toTenantDomainName(domain) : domain;
-        this.payload.domains.primary = domainName;
-
-        // Update normalized to include the new primary
-        const normalized = new Set([domainName, ...this.payload.domains.aliases]);
-        this.payload.domains.normalized = Array.from(normalized);
-
-        return this;
-    }
-
-    withDomainAliases(aliases: Array<TenantDomainName | string>): this {
-        this.payload.domains.aliases = aliases.map((alias) => typeof alias === 'string' ? toTenantDomainName(alias) : alias);
-
-        // Update normalized
-        const normalized = new Set([this.payload.domains.primary, ...this.payload.domains.aliases]);
-        this.payload.domains.normalized = Array.from(normalized);
-
-        return this;
-    }
-
-    withDomains(domains: AdminUpsertTenantRequest['domains']): this {
-        this.payload.domains = { ...domains };
+    withDomains(domains: Array<TenantDomainName | string>): this {
+        this.payload.domains = domains.map((d) => typeof d === 'string' ? toTenantDomainName(d) : d);
         return this;
     }
 

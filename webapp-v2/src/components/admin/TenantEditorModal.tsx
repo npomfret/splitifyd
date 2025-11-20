@@ -15,8 +15,7 @@ interface TenantData {
     showLandingPage: boolean;
     showMarketingContent: boolean;
     showPricingPage: boolean;
-    primaryDomain: string;
-    domainAliases: string[];
+    domains: string[];
 }
 
 interface TenantConfig {
@@ -40,7 +39,6 @@ interface TenantConfig {
 
 interface FullTenant {
     tenant: TenantConfig;
-    primaryDomain: string | null;
     domains: string[];
     isDefault: boolean;
 }
@@ -64,8 +62,7 @@ const DEFAULT_TENANT_DATA: TenantData = {
     showLandingPage: true,
     showMarketingContent: true,
     showPricingPage: false,
-    primaryDomain: '',
-    domainAliases: [],
+    domains: [],
 };
 
 export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: TenantEditorModalProps) {
@@ -73,7 +70,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const [newAlias, setNewAlias] = useState('');
+    const [newDomain, setNewDomain] = useState('');
 
     // Update form data when tenant or mode changes
     useEffect(() => {
@@ -89,8 +86,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? true,
                 showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? true,
                 showPricingPage: tenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
-                primaryDomain: tenant.primaryDomain || '',
-                domainAliases: tenant.domains.filter(d => d !== tenant.primaryDomain) || [],
+                domains: tenant.domains || [],
             });
         } else if (mode === 'create') {
             setFormData({ ...DEFAULT_TENANT_DATA });
@@ -141,15 +137,17 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             setErrorMessage('Secondary color is required');
             return;
         }
-        if (!formData.primaryDomain.trim()) {
-            setErrorMessage('Primary domain is required');
+        if (formData.domains.length === 0) {
+            setErrorMessage('At least one domain is required');
             return;
         }
-        // Basic domain validation
+        // Basic domain validation for all domains
         const domainRegex = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$/i;
-        if (!domainRegex.test(formData.primaryDomain)) {
-            setErrorMessage('Primary domain must be a valid domain name (e.g., example.com, app.example.com)');
-            return;
+        for (const domain of formData.domains) {
+            if (!domainRegex.test(domain)) {
+                setErrorMessage(`Invalid domain: ${domain}. Domains must be valid domain names (e.g., example.com, app.example.com)`);
+                return;
+            }
         }
 
         setIsSaving(true);
@@ -157,8 +155,10 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
         setSuccessMessage('');
 
         try {
-            // Compute normalized domains (primary + aliases)
-            const allDomains = [formData.primaryDomain, ...formData.domainAliases].map(d => d.trim().toLowerCase().replace(/:\d+$/, ''));
+            // Normalize and deduplicate domains (trim, lowercase, remove port)
+            const normalizedDomains = Array.from(new Set(
+                formData.domains.map(d => d.trim().toLowerCase().replace(/:\d+$/, ''))
+            ));
 
             const requestData: AdminUpsertTenantRequest = {
                 tenantId: formData.tenantId,
@@ -175,11 +175,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                         showPricingPage: formData.showPricingPage,
                     },
                 },
-                domains: {
-                    primary: formData.primaryDomain.trim().toLowerCase(),
-                    aliases: formData.domainAliases.map(d => d.trim().toLowerCase()),
-                    normalized: allDomains,
-                },
+                domains: normalizedDomains,
             };
 
             const result = await apiClient.adminUpsertTenant(requestData);
@@ -197,6 +193,8 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 ? 'Invalid tenant data. Please check all fields and try again.'
                 : error.code === 'PERMISSION_DENIED'
                 ? 'You do not have permission to modify tenant settings.'
+                : error.code === 'DUPLICATE_DOMAIN'
+                ? error.message || 'One or more domains are already assigned to another tenant.'
                 : error.message || 'Failed to save tenant. Please try again.';
 
             setErrorMessage(userFriendlyMessage);
@@ -209,22 +207,22 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     const handleCancel = () => {
         setFormData({ ...DEFAULT_TENANT_DATA });
         setErrorMessage('');
-        setNewAlias('');
+        setNewDomain('');
         onClose();
     };
 
-    const handleAddAlias = () => {
-        const alias = newAlias.trim().toLowerCase();
-        if (alias && !formData.domainAliases.includes(alias)) {
-            setFormData({ ...formData, domainAliases: [...formData.domainAliases, alias] });
-            setNewAlias('');
+    const handleAddDomain = () => {
+        const domain = newDomain.trim().toLowerCase();
+        if (domain && !formData.domains.includes(domain)) {
+            setFormData({ ...formData, domains: [...formData.domains, domain] });
+            setNewDomain('');
         }
     };
 
-    const handleRemoveAlias = (index: number) => {
-        const updated = [...formData.domainAliases];
+    const handleRemoveDomain = (index: number) => {
+        const updated = [...formData.domains];
         updated.splice(index, 1);
-        setFormData({ ...formData, domainAliases: updated });
+        setFormData({ ...formData, domains: updated });
     };
 
     return (
@@ -409,65 +407,57 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                         {/* Domains Section */}
                         <Card padding='md'>
                             <div class='space-y-4'>
-                                <h3 class='text-lg font-semibold text-text-primary'>Domains</h3>
+                                <div>
+                                    <h3 class='text-lg font-semibold text-text-primary'>Domains</h3>
+                                    <p class='mt-1 text-sm text-text-muted'>
+                                        Add all domains where this tenant should be accessible. At least one domain is required.
+                                    </p>
+                                </div>
 
-                                <Input
-                                    label='Primary Domain'
-                                    value={formData.primaryDomain}
-                                    onChange={(value) => setFormData({ ...formData, primaryDomain: value })}
-                                    placeholder='app.example.com'
-                                    disabled={isSaving}
-                                    required
-                                    data-testid='primary-domain-input'
-                                />
+                                {/* Domain List */}
+                                {formData.domains.length > 0 && (
+                                    <div class='space-y-2'>
+                                        {formData.domains.map((domain, index) => (
+                                            <div key={index} class='flex items-center gap-2 rounded-md border border-border-default bg-surface-muted px-3 py-2'>
+                                                <span class='flex-1 text-sm text-text-primary font-mono'>{domain}</span>
+                                                <button
+                                                    onClick={() => handleRemoveDomain(index)}
+                                                    disabled={isSaving}
+                                                    class='text-text-muted hover:text-error-primary'
+                                                    data-testid={`remove-domain-${index}`}
+                                                >
+                                                    <svg class='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                                                        <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
-                                {/* Domain Aliases */}
+                                {/* Add Domain */}
                                 <div class='space-y-2'>
                                     <label class='block text-sm font-medium leading-6 text-text-primary'>
-                                        Domain Aliases
+                                        Add Domain
                                     </label>
-
-                                    {/* Alias List */}
-                                    {formData.domainAliases.length > 0 && (
-                                        <div class='space-y-2'>
-                                            {formData.domainAliases.map((alias, index) => (
-                                                <div key={index} class='flex items-center gap-2 rounded-md border border-border-default bg-surface-muted px-3 py-2'>
-                                                    <span class='flex-1 text-sm text-text-primary'>{alias}</span>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleRemoveAlias(index)}
-                                                        disabled={isSaving}
-                                                        class='text-text-muted hover:text-error-primary'
-                                                        data-testid={`remove-alias-${index}`}
-                                                    >
-                                                        <svg class='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                                                            <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Add Alias */}
                                     <div class='flex gap-2'>
                                         <input
                                             type='text'
-                                            value={newAlias}
-                                            onInput={(e) => setNewAlias((e.target as HTMLInputElement).value)}
-                                            onKeyPress={(e) => e.key === 'Enter' && handleAddAlias()}
-                                            placeholder='alias.example.com'
+                                            value={newDomain}
+                                            onInput={(e) => setNewDomain((e.target as HTMLInputElement).value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleAddDomain()}
+                                            placeholder='app.example.com'
                                             disabled={isSaving}
                                             class='flex-1 rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary'
-                                            data-testid='new-alias-input'
+                                            data-testid='new-domain-input'
                                         />
                                         <Button
-                                            onClick={handleAddAlias}
-                                            disabled={!newAlias.trim() || isSaving}
+                                            onClick={handleAddDomain}
+                                            disabled={!newDomain.trim() || isSaving}
                                             variant='secondary'
-                                            data-testid='add-alias-button'
+                                            data-testid='add-domain-button'
                                         >
-                                            Add Alias
+                                            Add
                                         </Button>
                                     </div>
                                 </div>

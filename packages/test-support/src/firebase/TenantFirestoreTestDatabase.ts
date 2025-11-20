@@ -99,11 +99,7 @@ export class TenantFirestoreTestDatabase extends StubFirestoreDatabase {
                     showPricingPage: true,
                 },
             },
-            domains: {
-                primary: 'test.example.com',
-                aliases: [],
-                normalized: ['test.example.com'],
-            },
+            domains: ['test.example.com'],
             defaultTenant: false,
             createdAt: now,
             updatedAt: now,

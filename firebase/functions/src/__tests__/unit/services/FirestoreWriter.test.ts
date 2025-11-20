@@ -207,11 +207,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
                     primaryColor: toTenantPrimaryColor('#000000'),
                     secondaryColor: toTenantSecondaryColor('#ffffff'),
                 })
-                .withDomains({
-                    primary: toTenantDomainName('test1.example.com'),
-                    aliases: [],
-                    normalized: [toTenantDomainName('test1.example.com')],
-                })
+                .withDomains([toTenantDomainName('test1.example.com')])
                 .withDefaultTenantFlag(true)
                 .build(),
         );
@@ -229,11 +225,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
                         primaryColor: toTenantPrimaryColor('#000000'),
                         secondaryColor: toTenantSecondaryColor('#ffffff'),
                     })
-                    .withDomains({
-                        primary: toTenantDomainName('test1.example.com'),
-                        aliases: [],
-                        normalized: [toTenantDomainName('test1.example.com')],
-                    })
+                    .withDomains([toTenantDomainName('test1.example.com')])
                     .withDefaultTenantFlag(false)
                     .build(),
             );
@@ -263,11 +255,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
                     primaryColor: toTenantPrimaryColor('#000000'),
                     secondaryColor: toTenantSecondaryColor('#ffffff'),
                 })
-                .withDomains({
-                    primary: toTenantDomainName('test1.example.com'),
-                    aliases: [],
-                    normalized: [toTenantDomainName('test1.example.com')],
-                })
+                .withDomains([toTenantDomainName('test1.example.com')])
                 .withDefaultTenantFlag(true)
                 .build(),
         );
@@ -287,11 +275,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
                     primaryColor: toTenantPrimaryColor('#000000'),
                     secondaryColor: toTenantSecondaryColor('#ffffff'),
                 })
-                .withDomains({
-                    primary: toTenantDomainName('test2.example.com'),
-                    aliases: [],
-                    normalized: [toTenantDomainName('test2.example.com')],
-                })
+                .withDomains([toTenantDomainName('test2.example.com')])
                 .withDefaultTenantFlag(true)
                 .build(),
         );
@@ -320,11 +304,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
                     primaryColor: toTenantPrimaryColor('#000000'),
                     secondaryColor: toTenantSecondaryColor('#ffffff'),
                 })
-                .withDomains({
-                    primary: toTenantDomainName('test1.example.com'),
-                    aliases: [],
-                    normalized: [toTenantDomainName('test1.example.com')],
-                })
+                .withDomains([toTenantDomainName('test1.example.com')])
                 .withDefaultTenantFlag(true)
                 .build(),
         );
@@ -340,11 +320,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
                     primaryColor: toTenantPrimaryColor('#000000'),
                     secondaryColor: toTenantSecondaryColor('#ffffff'),
                 })
-                .withDomains({
-                    primary: toTenantDomainName('test2.example.com'),
-                    aliases: [],
-                    normalized: [toTenantDomainName('test2.example.com')],
-                })
+                .withDomains([toTenantDomainName('test2.example.com')])
                 .withDefaultTenantFlag(false)
                 .build(),
         );
@@ -372,11 +348,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
                     primaryColor: toTenantPrimaryColor('#000000'),
                     secondaryColor: toTenantSecondaryColor('#ffffff'),
                 })
-                .withDomains({
-                    primary: toTenantDomainName('test1.example.com'),
-                    aliases: [],
-                    normalized: [toTenantDomainName('test1.example.com')],
-                })
+                .withDomains([toTenantDomainName('test1.example.com')])
                 .withDefaultTenantFlag(true)
                 .build(),
         );
@@ -390,11 +362,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
                     primaryColor: toTenantPrimaryColor('#000000'),
                     secondaryColor: toTenantSecondaryColor('#ffffff'),
                 })
-                .withDomains({
-                    primary: toTenantDomainName('test2.example.com'),
-                    aliases: [],
-                    normalized: [toTenantDomainName('test2.example.com')],
-                })
+                .withDomains([toTenantDomainName('test2.example.com')])
                 .withDefaultTenantFlag(false)
                 .build(),
         );
@@ -410,11 +378,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
                     primaryColor: toTenantPrimaryColor('#000000'),
                     secondaryColor: toTenantSecondaryColor('#ffffff'),
                 })
-                .withDomains({
-                    primary: toTenantDomainName('test2.example.com'),
-                    aliases: [],
-                    normalized: [toTenantDomainName('test2.example.com')],
-                })
+                .withDomains([toTenantDomainName('test2.example.com')])
                 .withDefaultTenantFlag(false)
                 .build(),
         );

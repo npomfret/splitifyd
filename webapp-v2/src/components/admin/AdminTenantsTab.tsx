@@ -27,7 +27,6 @@ interface TenantConfig {
 
 interface Tenant {
     tenant: TenantConfig;
-    primaryDomain: string | null;
     domains: string[];
     isDefault: boolean;
 }
@@ -158,22 +157,9 @@ export function AdminTenantsTab() {
                                             <span class='text-indigo-600'>Tenant ID:</span> <span class='font-mono text-gray-800'>{tenant.tenant.tenantId}</span>
                                         </div>
 
-                                        {tenant.primaryDomain && (
-                                            <div>
-                                                <span class='text-indigo-600'>Primary Domain:</span>{' '}
-                                                <button
-                                                    onClick={() => handleSwitchTenant(tenant.primaryDomain!)}
-                                                    class='font-mono text-amber-700 hover:text-amber-600 hover:underline cursor-pointer transition-colors'
-                                                    title='Click to switch to this tenant'
-                                                >
-                                                    {tenant.primaryDomain}
-                                                </button>
-                                            </div>
-                                        )}
-
                                         {tenant.domains.length > 0 && (
                                             <div>
-                                                <span class='text-indigo-600'>All Domains:</span>{' '}
+                                                <span class='text-indigo-600'>Domains:</span>{' '}
                                                 <span class='font-mono text-gray-800'>
                                                     {tenant.domains.map((domain, idx) => (
                                                         <>

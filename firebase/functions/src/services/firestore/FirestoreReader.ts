@@ -182,19 +182,10 @@ export class FirestoreReader implements IFirestoreReader {
             updatedAt: updatedAtIso,
         };
 
-        const domainSet = new Map<string, TenantDomainName>();
-        const addDomain = (value?: TenantDomainName) => {
-            if (value) {
-                domainSet.set(value, value);
-            }
-        };
-
-        addDomain(parsed.domains.primary);
-        parsed.domains.aliases.forEach(addDomain);
-        parsed.domains.normalized.forEach(addDomain);
-
-        const domains = Array.from(domainSet.values());
-        const primaryDomain = parsed.domains.primary ?? null;
+        // Domains are now a simple array
+        const domains = parsed.domains;
+        // Primary domain is just the first domain for backward compatibility
+        const primaryDomain = domains.length > 0 ? domains[0] : null;
         const isDefault: TenantDefaultFlag = parsed.defaultTenant ?? toTenantDefaultFlag(false);
 
         return {
@@ -1559,7 +1550,7 @@ export class FirestoreReader implements IFirestoreReader {
             const query = await this
                 .db
                 .collection(FirestoreCollections.TENANTS)
-                .where('domains.normalized', 'array-contains', domain)
+                .where('domains', 'array-contains', domain)
                 .limit(1)
                 .get();
 

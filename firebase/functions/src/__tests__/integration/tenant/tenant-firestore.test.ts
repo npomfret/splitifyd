@@ -39,11 +39,7 @@ describe('Tenant Firestore Integration', () => {
                 primaryColor: toTenantPrimaryColor('#FF5733'),
                 secondaryColor: toTenantSecondaryColor('#33FF57'),
             },
-            domains: {
-                primary: toTenantDomainName(testDomain),
-                aliases: [toTenantDomainName(testAliasDomain)],
-                normalized: [toTenantDomainName(testDomain), toTenantDomainName(testAliasDomain)],
-            },
+            domains: [toTenantDomainName(testDomain), toTenantDomainName(testAliasDomain)],
             defaultTenant: toTenantDefaultFlag(false),
         });
 
@@ -57,20 +53,16 @@ describe('Tenant Firestore Integration', () => {
                 primaryColor: toTenantPrimaryColor('#1a73e8'),
                 secondaryColor: toTenantSecondaryColor('#34a853'),
             },
-            domains: {
-                primary: toTenantDomainName(defaultDomain),
-                aliases: [],
-                normalized: [toTenantDomainName(defaultDomain)],
-            },
+            domains: [toTenantDomainName(defaultDomain)],
             defaultTenant: toTenantDefaultFlag(true),
         });
     });
 
     afterAll(async () => {
-        // Transfer default flag back to the real default tenant
+        // Transfer default flag back to the localhost tenant
         // This ensures subsequent tests have a proper default tenant
         // No direct database deletes - if we can't delete tenants in production, we shouldn't in tests
-        await firestoreWriter.upsertTenant('default-tenant', {
+        await firestoreWriter.upsertTenant('localhost-tenant', {
             branding: {
                 appName: toTenantAppName('Splitifyd'),
                 logoUrl: toTenantLogoUrl('/logo.svg'),
@@ -78,11 +70,7 @@ describe('Tenant Firestore Integration', () => {
                 primaryColor: toTenantPrimaryColor('#3B82F6'),
                 secondaryColor: toTenantSecondaryColor('#8B5CF6'),
             },
-            domains: {
-                primary: toTenantDomainName('localhost'),
-                aliases: [],
-                normalized: [toTenantDomainName('localhost')],
-            },
+            domains: [toTenantDomainName('localhost')],
             defaultTenant: toTenantDefaultFlag(true),
         });
 
@@ -214,11 +202,7 @@ describe('Tenant Branding Updates', () => {
                 primaryColor: toTenantPrimaryColor('#000000'),
                 secondaryColor: toTenantSecondaryColor('#FFFFFF'),
             },
-            domains: {
-                primary: toTenantDomainName(updateTestDomain),
-                aliases: [],
-                normalized: [toTenantDomainName(updateTestDomain)],
-            },
+            domains: [toTenantDomainName(updateTestDomain)],
             defaultTenant: toTenantDefaultFlag(false),
         });
     });

@@ -29,8 +29,7 @@ const buildTenantPayload = (tenantId: string) => {
             themePalette: toTenantThemePaletteName('default'),
         })
         .withBrandingTokens({ tokens })
-        .withPrimaryDomain(`${tenantId}.local.test`)
-        .withDomainAliases([])
+        .withDomains([`${tenantId}.local.test`])
         .build();
 };
 

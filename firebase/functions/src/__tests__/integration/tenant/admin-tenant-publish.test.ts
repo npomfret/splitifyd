@@ -40,8 +40,7 @@ describe('Admin Tenant Theme Publishing', () => {
                 themePalette: toTenantThemePaletteName('default'),
             })
             .withBrandingTokens({ tokens: mockTokens })
-            .withPrimaryDomain(toTenantDomainName('theme.example.com'))
-            .withDomainAliases([])
+            .withDomains([toTenantDomainName(`${tenantId}.example.com`)])
             .build();
 
         await apiDriver.adminUpsertTenant(adminUser.token, tenantData);
@@ -136,8 +135,7 @@ describe('Admin Tenant Theme Publishing', () => {
                 themePalette: toTenantThemePaletteName('default'),
             })
             .withBrandingTokens({ tokens: mockTokens })
-            .withPrimaryDomain(toTenantDomainName('theme.example.com'))
-            .withDomainAliases([])
+            .withDomains([toTenantDomainName(`${tenantId}.example.com`)])
             .build();
 
         await apiDriver.adminUpsertTenant(adminUser.token, updatedTenantData);

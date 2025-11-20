@@ -42,11 +42,7 @@ describe('Config Endpoint Integration Tests', () => {
                         showPricingPage: false,
                     },
                 },
-                domains: {
-                    primary: 'marketing-hidden.example.com',
-                    aliases: [],
-                    normalized: ['marketing-hidden.example.com'],
-                },
+                domains: ['marketing-hidden.example.com'],
                 defaultTenant: false,
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),

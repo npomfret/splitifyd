@@ -52,11 +52,7 @@ const BrandingSchema = z.object({
     marketingFlags: BrandingMarketingFlagsSchema.optional(),
 });
 
-const DomainSchema = z.object({
-    primary: DomainStringSchema,
-    aliases: z.array(DomainStringSchema).default([]),
-    normalized: z.array(DomainStringSchema).default([]),
-});
+const DomainSchema = z.array(DomainStringSchema).min(1, 'At least one domain is required');
 
 export const TenantDocumentSchema = z
     .object({

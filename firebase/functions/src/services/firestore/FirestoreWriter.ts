@@ -1309,6 +1309,27 @@ export class FirestoreWriter implements IFirestoreWriter {
                     const snapshot = await transaction.get(tenantRef);
                     const created = !snapshot.exists;
 
+                    // Check for domain conflicts with other tenants
+                    if (data.domains && data.domains.length > 0) {
+                        // Check each domain for conflicts
+                        for (const domain of data.domains) {
+                            const conflictingTenantsSnapshot = await transaction.get(
+                                this.db.collection(FirestoreCollections.TENANTS)
+                                    .where('domains', 'array-contains', domain),
+                            );
+
+                            // Check if any conflicting tenant is NOT the current tenant
+                            const conflictingDoc = conflictingTenantsSnapshot.docs.find((doc) => doc.id !== tenantId);
+                            if (conflictingDoc) {
+                                throw new ApiError(
+                                    HTTP_STATUS.CONFLICT,
+                                    'DUPLICATE_DOMAIN',
+                                    `Domain '${domain}' is already assigned to tenant '${conflictingDoc.id}'`,
+                                );
+                            }
+                        }
+                    }
+
                     // Enforce default tenant rules
                     if (!created && snapshot.exists) {
                         const existingData = snapshot.data();

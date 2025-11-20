@@ -12,11 +12,7 @@ describe('TenantDocumentSchema', () => {
             primaryColor: '#FF5733',
             secondaryColor: '#33FF57',
         },
-        domains: {
-            primary: 'app.acme.com',
-            aliases: ['acme.com', 'www.acme.com'],
-            normalized: ['app.acme.com', 'acme.com', 'www.acme.com'],
-        },
+        domains: ['app.acme.com', 'acme.com', 'www.acme.com'],
         defaultTenant: false,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
@@ -34,55 +30,43 @@ describe('TenantDocumentSchema', () => {
             const result = TenantDocumentSchema.parse(validTenantData);
 
             expect(result.id).toBe('test-tenant-123');
-            expect(result.domains.primary).toBe('app.acme.com');
+            expect(result.domains[0]).toBe('app.acme.com');
             expect(result.defaultTenant).toBe(false);
         });
 
         it('should normalize domains', () => {
             const dataWithMixedCase = {
                 ...validTenantData,
-                domains: {
-                    primary: 'APP.ACME.COM',
-                    aliases: ['ACME.COM'],
-                    normalized: ['APP.ACME.COM', 'ACME.COM'],
-                },
+                domains: ['APP.ACME.COM', 'ACME.COM'],
             };
 
             const result = TenantDocumentSchema.parse(dataWithMixedCase);
 
-            expect(result.domains.primary).toBe('app.acme.com');
-            expect(result.domains.aliases).toContain('acme.com');
+            expect(result.domains[0]).toBe('app.acme.com');
+            expect(result.domains).toContain('acme.com');
         });
 
         it('should strip ports from domains', () => {
             const dataWithPorts = {
                 ...validTenantData,
-                domains: {
-                    primary: 'app.acme.com:8080',
-                    aliases: ['acme.com:443'],
-                    normalized: ['app.acme.com:8080', 'acme.com:443'],
-                },
+                domains: ['app.acme.com:8080', 'acme.com:443'],
             };
 
             const result = TenantDocumentSchema.parse(dataWithPorts);
 
-            expect(result.domains.primary).toBe('app.acme.com');
-            expect(result.domains.aliases[0]).toBe('acme.com');
+            expect(result.domains[0]).toBe('app.acme.com');
+            expect(result.domains[1]).toBe('acme.com');
         });
 
         it('should handle forwarded host format', () => {
             const dataWithForwarded = {
                 ...validTenantData,
-                domains: {
-                    primary: 'app.acme.com, proxy.internal',
-                    aliases: [],
-                    normalized: ['app.acme.com'],
-                },
+                domains: ['app.acme.com, proxy.internal'],
             };
 
             const result = TenantDocumentSchema.parse(dataWithForwarded);
 
-            expect(result.domains.primary).toBe('app.acme.com');
+            expect(result.domains[0]).toBe('app.acme.com');
         });
     });
 
@@ -98,11 +82,7 @@ describe('TenantDocumentSchema', () => {
                     secondaryColor: '#FFFFFF',
                     // No accentColor, themePalette, customCSS, marketingFlags
                 },
-                domains: {
-                    primary: 'minimal.com',
-                    aliases: [],
-                    normalized: ['minimal.com'],
-                },
+                domains: ['minimal.com'],
                 // No defaultTenant
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
@@ -138,20 +118,16 @@ describe('TenantDocumentSchema', () => {
             expect(result.branding.marketingFlags?.showPricingPage).toBe(false);
         });
 
-        it('should accept empty domain arrays', () => {
-            const dataWithEmptyArrays = {
+        it('should accept single domain', () => {
+            const dataWithSingleDomain = {
                 ...validTenantData,
-                domains: {
-                    primary: 'solo.com',
-                    aliases: [],
-                    normalized: [],
-                },
+                domains: ['solo.com'],
             };
 
-            const result = TenantDocumentSchema.parse(dataWithEmptyArrays);
+            const result = TenantDocumentSchema.parse(dataWithSingleDomain);
 
-            expect(result.domains.aliases).toEqual([]);
-            expect(result.domains.normalized).toEqual([]);
+            expect(result.domains).toEqual(['solo.com']);
+            expect(result.domains.length).toBe(1);
         });
     });
 
@@ -193,28 +169,24 @@ describe('TenantDocumentSchema', () => {
             expect(() => TenantDocumentSchema.parse(dataWithoutDomains)).toThrow();
         });
 
-        it('should reject tenant without primary domain', () => {
-            const { primary, ...domainsWithoutPrimary } = validTenantData.domains;
-            const dataWithIncompleteDomains = {
+        it('should reject tenant with empty domains array', () => {
+            const dataWithEmptyDomains = {
                 ...validTenantData,
-                domains: domainsWithoutPrimary,
+                domains: [],
             };
 
-            expect(() => TenantDocumentSchema.parse(dataWithIncompleteDomains)).toThrow();
+            expect(() => TenantDocumentSchema.parse(dataWithEmptyDomains)).toThrow();
         });
     });
 
     describe('type validation', () => {
-        it('should reject non-array domain aliases', () => {
-            const dataWithInvalidAliases = {
+        it('should reject non-array domains', () => {
+            const dataWithInvalidDomains = {
                 ...validTenantData,
-                domains: {
-                    ...validTenantData.domains,
-                    aliases: 'not-an-array',
-                },
+                domains: 'not-an-array',
             };
 
-            expect(() => TenantDocumentSchema.parse(dataWithInvalidAliases)).toThrow();
+            expect(() => TenantDocumentSchema.parse(dataWithInvalidDomains)).toThrow();
         });
 
         it('should reject empty string URLs', () => {

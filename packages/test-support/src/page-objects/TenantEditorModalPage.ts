@@ -51,16 +51,12 @@ export class TenantEditorModalPage extends BasePage {
         return this.page.getByTestId('show-pricing-page-checkbox');
     }
 
-    get primaryDomainInput() {
-        return this.page.getByTestId('primary-domain-input');
+    get newDomainInput() {
+        return this.page.getByTestId('new-domain-input');
     }
 
-    get newAliasInput() {
-        return this.page.getByTestId('new-alias-input');
-    }
-
-    get addAliasButton() {
-        return this.page.getByTestId('add-alias-button');
+    get addDomainButton() {
+        return this.page.getByTestId('add-domain-button');
     }
 
     get saveTenantButton() {
@@ -108,17 +104,13 @@ export class TenantEditorModalPage extends BasePage {
         await this.faviconUrlInput.fill(value);
     }
 
-    async fillPrimaryDomain(value: string) {
-        await this.primaryDomainInput.fill(value);
+    async addDomain(domain: string) {
+        await this.newDomainInput.fill(domain);
+        await this.addDomainButton.click();
     }
 
-    async addDomainAlias(alias: string) {
-        await this.newAliasInput.fill(alias);
-        await this.addAliasButton.click();
-    }
-
-    async removeDomainAlias(index: number) {
-        await this.page.getByTestId(`remove-alias-${index}`).click();
+    async removeDomain(index: number) {
+        await this.page.getByTestId(`remove-domain-${index}`).click();
     }
 
     async setPrimaryColor(color: string) {
@@ -211,11 +203,14 @@ export class TenantEditorModalPage extends BasePage {
         tenantId: string;
         appName: string;
         logoUrl: string;
-        primaryDomain: string;
+        domains: string[];
     }) {
         await this.fillTenantId(data.tenantId);
         await this.fillAppName(data.appName);
         await this.fillLogoUrl(data.logoUrl);
-        await this.fillPrimaryDomain(data.primaryDomain);
+        // Add each domain
+        for (const domain of data.domains) {
+            await this.addDomain(domain);
+        }
     }
 }

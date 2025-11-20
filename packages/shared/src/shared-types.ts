@@ -1459,11 +1459,7 @@ export interface AdminUpsertTenantRequest {
         };
     };
     brandingTokens?: any; // Optional advanced branding tokens
-    domains: {
-        primary: string;
-        aliases: string[];
-        normalized: string[];
-    };
+    domains: string[];
     defaultTenant?: boolean;
 }
 

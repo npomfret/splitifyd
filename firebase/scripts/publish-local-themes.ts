@@ -61,9 +61,9 @@ async function seedTenant(api: ApiDriver, adminToken: string, seed: TenantSeed):
         throw new Error(`No branding token fixture found for key "${seed.fixture}"`);
     }
 
-    const aliasDomains = seed.aliasDomains?.map(normalizeDomain) ?? [];
     const primaryDomain = normalizeDomain(seed.primaryDomain);
-    const normalizedDomains = Array.from(new Set([primaryDomain, ...aliasDomains]));
+    const aliasDomains = seed.aliasDomains?.map(normalizeDomain) ?? [];
+    const domains = Array.from(new Set([primaryDomain, ...aliasDomains]));
 
     const payload = {
         tenantId: seed.tenantId,
@@ -71,11 +71,7 @@ async function seedTenant(api: ApiDriver, adminToken: string, seed: TenantSeed):
         brandingTokens: {
             tokens,
         },
-        domains: {
-            primary: primaryDomain,
-            aliases: aliasDomains,
-            normalized: normalizedDomains,
-        },
+        domains,
         defaultTenant: seed.defaultTenant,
     };
 
