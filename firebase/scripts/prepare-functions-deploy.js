@@ -64,7 +64,6 @@ const filesToPrune = [
     'package-lock.json',
     'service-account-key.json',
     'test-integration-results.json',
-    'tsconfig.build.json',
     'tsconfig.deploy.json',
     'tsconfig.json',
     'vitest.config.ts',

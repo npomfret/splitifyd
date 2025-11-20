@@ -12,7 +12,7 @@
     "clean:logs": "rm -f firebase/*.log || true",
     "super-clean": "npm run super-clean -ws --if-present && rm -rf node_modules",
     "build:packages": "npm run build -w @billsplit-wl/shared && npm run build -w @billsplit-wl/firebase-simulator",
-    "build:firebase-scripts": "tsc --project firebase/tsconfig.build.json --noEmit",
+    "build:firebase-scripts": "tsc --project firebase/tsconfig.json --noEmit",
     "dev:prep": "npm run clean:logs && npm run build:packages && cd firebase && npm run clean && npm run build",
     "dev": "npm run dev:prep && concurrently \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
     "build": "npm run build:firebase-scripts && npm run build:packages && npm run build -ws --if-present",
