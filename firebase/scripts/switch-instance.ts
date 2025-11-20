@@ -37,9 +37,15 @@ try {
         fs.rmSync(targetPath, { force: true });
     }
 
-    fs.symlinkSync(sourcePath, targetPath, 'file');
-
-    logger.info(`✅ Switched to instance ${instance} configuration via symlink`, { target: targetPath, source: sourcePath });
+    // Production: copy file for deployment clarity
+    // Development: symlink for live updates during dev
+    if (instance === 'prod') {
+        fs.copyFileSync(sourcePath, targetPath);
+        logger.info(`✅ Switched to instance ${instance} configuration via copy`, { target: targetPath, source: sourcePath });
+    } else {
+        fs.symlinkSync(sourcePath, targetPath, 'file');
+        logger.info(`✅ Switched to instance ${instance} configuration via symlink`, { target: targetPath, source: sourcePath });
+    }
 
     // Load and validate the new configuration
     loadEnvFile(targetPath);
