@@ -86,36 +86,67 @@ async function syncTenantConfigs(firestore: Firestore, options?: { defaultOnly?:
         const normalizedDomains = config.domains.map((d) => toTenantDomainName(normalizeDomain(d)));
         const primaryDomain = normalizedDomains.length > 0 ? normalizedDomains[0] : toTenantDomainName('localhost');
 
-        const tenantDoc = {
-            branding: {
-                appName: toTenantAppName(config.branding.appName),
-                logoUrl: toTenantLogoUrl(config.branding.logoUrl),
-                faviconUrl: toTenantFaviconUrl(config.branding.faviconUrl),
-                primaryColor: toTenantPrimaryColor(config.branding.primaryColor),
-                secondaryColor: toTenantSecondaryColor(config.branding.secondaryColor),
-                ...(config.branding.backgroundColor && {
-                    backgroundColor: toTenantBackgroundColor(config.branding.backgroundColor),
-                }),
-                ...(config.branding.headerBackgroundColor && {
-                    headerBackgroundColor: toTenantHeaderBackgroundColor(config.branding.headerBackgroundColor),
-                }),
-                marketingFlags: {
-                    showLandingPage: toShowLandingPageFlag(config.branding.marketingFlags?.showLandingPage ?? false),
-                    showMarketingContent: toShowMarketingContentFlag(config.branding.marketingFlags?.showMarketingContent ?? false),
-                    showPricingPage: toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
+        if (existingDoc.exists) {
+            // For existing tenants, use update() to preserve brandingTokens.artifact (theme CSS)
+            const updateData: Record<string, any> = {
+                'branding.appName': toTenantAppName(config.branding.appName),
+                'branding.logoUrl': toTenantLogoUrl(config.branding.logoUrl),
+                'branding.faviconUrl': toTenantFaviconUrl(config.branding.faviconUrl),
+                'branding.primaryColor': toTenantPrimaryColor(config.branding.primaryColor),
+                'branding.secondaryColor': toTenantSecondaryColor(config.branding.secondaryColor),
+                'branding.marketingFlags.showLandingPage': toShowLandingPageFlag(config.branding.marketingFlags?.showLandingPage ?? false),
+                'branding.marketingFlags.showMarketingContent': toShowMarketingContentFlag(config.branding.marketingFlags?.showMarketingContent ?? false),
+                'branding.marketingFlags.showPricingPage': toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
+                domains: {
+                    primary: primaryDomain,
+                    aliases: [],
+                    normalized: normalizedDomains,
                 },
-            },
-            domains: {
-                primary: primaryDomain,
-                aliases: [],
-                normalized: normalizedDomains,
-            },
-            defaultTenant: toTenantDefaultFlag(config.isDefault),
-            createdAt: existingDoc.exists ? existingDoc.data()?.createdAt : now,
-            updatedAt: now,
-        };
+                defaultTenant: toTenantDefaultFlag(config.isDefault),
+                updatedAt: now,
+            };
 
-        await tenantRef.set(tenantDoc);
+            if (config.branding.backgroundColor) {
+                updateData['branding.backgroundColor'] = toTenantBackgroundColor(config.branding.backgroundColor);
+            }
+            if (config.branding.headerBackgroundColor) {
+                updateData['branding.headerBackgroundColor'] = toTenantHeaderBackgroundColor(config.branding.headerBackgroundColor);
+            }
+
+            await tenantRef.update(updateData);
+        } else {
+            // For new tenants, use set() to create the document
+            const tenantDoc = {
+                branding: {
+                    appName: toTenantAppName(config.branding.appName),
+                    logoUrl: toTenantLogoUrl(config.branding.logoUrl),
+                    faviconUrl: toTenantFaviconUrl(config.branding.faviconUrl),
+                    primaryColor: toTenantPrimaryColor(config.branding.primaryColor),
+                    secondaryColor: toTenantSecondaryColor(config.branding.secondaryColor),
+                    ...(config.branding.backgroundColor && {
+                        backgroundColor: toTenantBackgroundColor(config.branding.backgroundColor),
+                    }),
+                    ...(config.branding.headerBackgroundColor && {
+                        headerBackgroundColor: toTenantHeaderBackgroundColor(config.branding.headerBackgroundColor),
+                    }),
+                    marketingFlags: {
+                        showLandingPage: toShowLandingPageFlag(config.branding.marketingFlags?.showLandingPage ?? false),
+                        showMarketingContent: toShowMarketingContentFlag(config.branding.marketingFlags?.showMarketingContent ?? false),
+                        showPricingPage: toShowPricingPageFlag(config.branding.marketingFlags?.showPricingPage ?? false),
+                    },
+                },
+                domains: {
+                    primary: primaryDomain,
+                    aliases: [],
+                    normalized: normalizedDomains,
+                },
+                defaultTenant: toTenantDefaultFlag(config.isDefault),
+                createdAt: now,
+                updatedAt: now,
+            };
+
+            await tenantRef.set(tenantDoc);
+        }
         console.log(`  ✓ Synced tenant: ${config.id} (${config.branding.appName})`);
     }
 

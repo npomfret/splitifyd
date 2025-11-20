@@ -1365,7 +1365,8 @@ export class FirestoreWriter implements IFirestoreWriter {
                     });
 
                     // Then, set the current tenant
-                    transaction.set(tenantRef, finalData, { merge: false });
+                    // Use merge: true to preserve fields not in finalData (e.g., brandingTokens.artifact)
+                    transaction.set(tenantRef, finalData, { merge: true });
 
                     return {
                         id: tenantId,

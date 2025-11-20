@@ -108,4 +108,49 @@ describe('Admin Tenant Theme Publishing', () => {
             expect(['UNAUTHORIZED', 'FORBIDDEN', 'INVALID_TOKEN']).toContain(error.response.error.code);
         }
     });
+
+    it('should preserve brandingTokens.artifact when upserting tenant', async () => {
+        const tenantId = `tenant_preserve_artifact_${Date.now()}`;
+
+        // Step 1: Create tenant with tokens
+        await createTenantWithTokens(tenantId);
+
+        // Step 2: Publish theme (adds brandingTokens.artifact)
+        const publishResult = await apiDriver.publishTenantTheme(adminUser.token, { tenantId });
+        expect(publishResult.artifact).toBeDefined();
+        expect(publishResult.artifact.cssUrl).toBeDefined();
+        expect(publishResult.artifact.hash).toBeDefined();
+
+        const originalArtifact = publishResult.artifact;
+
+        // Step 3: Upsert tenant again with different branding (simulating config update)
+        const updatedTenantData = AdminTenantRequestBuilder
+            .forTenant(tenantId)
+            .withBranding({
+                appName: toTenantAppName('Updated Theme Tenant'),
+                logoUrl: toTenantLogoUrl('https://foo/branding/updated/logo.svg'),
+                faviconUrl: toTenantFaviconUrl('https://foo/branding/updated/favicon.png'),
+                primaryColor: toTenantPrimaryColor('#dc2626'),
+                secondaryColor: toTenantSecondaryColor('#ea580c'),
+                accentColor: toTenantAccentColor('#16a34a'),
+                themePalette: toTenantThemePaletteName('default'),
+            })
+            .withBrandingTokens({ tokens: mockTokens })
+            .withPrimaryDomain(toTenantDomainName('theme.example.com'))
+            .withDomainAliases([])
+            .build();
+
+        await apiDriver.adminUpsertTenant(adminUser.token, updatedTenantData);
+
+        // Step 4: Read tenant from Firestore and verify artifact is preserved
+        const tenantDoc = await db.collection(FirestoreCollections.TENANTS).doc(tenantId).get();
+        const tenantData = tenantDoc.data();
+
+        expect(tenantData).toBeDefined();
+        expect(tenantData?.branding?.appName).toBe('Updated Theme Tenant');
+        expect(tenantData?.brandingTokens?.artifact).toBeDefined();
+        expect(tenantData?.brandingTokens?.artifact?.cssUrl).toBe(originalArtifact.cssUrl);
+        expect(tenantData?.brandingTokens?.artifact?.hash).toBe(originalArtifact.hash);
+        expect(tenantData?.brandingTokens?.artifact?.version).toBe(originalArtifact.version);
+    });
 });
