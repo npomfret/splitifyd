@@ -104,7 +104,7 @@ async function setupManagedGroupRoutes(page: Page, user: ClientUser): Promise<Ma
 
     await page.route(`**/api/groups/${groupId}/members/pending`, async (route) => {
         if (route.request().method() === 'GET') {
-            await fulfillWithSerialization(route, { body: { members: pendingMembers } });
+            await fulfillWithSerialization(route, { body: pendingMembers });
             return;
         }
 

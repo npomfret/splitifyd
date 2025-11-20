@@ -57,8 +57,6 @@ export class GroupSecurityHandlers {
         const { userId, groupId } = await this.validateAdminRequest(req);
         const pendingMembers = await this.groupMemberService.getPendingMembers(userId, groupId);
 
-        res.status(HTTP_STATUS.OK).json({
-            members: pendingMembers,
-        });
+        res.status(HTTP_STATUS.OK).json(pendingMembers);
     };
 }

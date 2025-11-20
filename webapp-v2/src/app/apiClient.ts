@@ -7,6 +7,7 @@
 
 import { ApiSerializer, ISOString } from '@billsplit-wl/shared';
 import type {
+    API,
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
     ActivityFeedResponse,
@@ -255,7 +256,7 @@ function isAbortError(error: unknown, signal?: AbortSignal | null): boolean {
  *
  * @see IApiClient for the complete list of supported operations
  */
-class ApiClient {
+class ApiClient implements API<void> {
     private authToken: string | null = null;
     private requestInterceptors: RequestInterceptor[] = [];
     private responseInterceptors: ResponseInterceptor[] = [];
@@ -933,11 +934,11 @@ class ApiClient {
     }
 
     async getPendingMembers(groupId: GroupId): Promise<GroupMembershipDTO[]> {
-        const response = await this.request<{ members: GroupMembershipDTO[]; }>({
+        const response = await this.request<GroupMembershipDTO[]>({
             endpoint: `/groups/${groupId}/members/pending`,
             method: 'GET',
         });
-        return Array.isArray(response?.members) ? response.members : [];
+        return Array.isArray(response) ? response : [];
     }
 
     async previewGroupByLink(shareToken: ShareLinkToken | string): Promise<PreviewGroupResponse> {

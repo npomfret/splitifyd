@@ -26,3 +26,5 @@ export * from './base58-normalization';
 
 // Export API serialization utilities
 export * from './api/serialization';
+
+export * from './api'

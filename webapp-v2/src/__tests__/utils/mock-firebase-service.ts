@@ -709,7 +709,7 @@ export async function mockPendingMembersApi(
 
     await registerMswHandlers(
         page,
-        createJsonHandler('GET', `/api/groups/${groupId}/members/pending`, { members }, { delayMs: delay }),
+        createJsonHandler('GET', `/api/groups/${groupId}/members/pending`, members, { delayMs: delay }),
     );
 }
 

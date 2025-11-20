@@ -17,7 +17,6 @@ import {
     ExpenseFullDetailsDTO,
     GetActivityFeedOptions,
     GetGroupFullDetailsOptions,
-    GetPendingMembersResponse,
     GroupDTO,
     GroupFullDetailsDTO,
     GroupId,
@@ -67,6 +66,7 @@ import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
 import { Errors, sendError } from '../../utils/errors';
 import { StubAuthService } from './mocks/StubAuthService';
+import {API, GroupMembershipDTO} from "@billsplit-wl/shared";
 
 /**
  * Extended request interface for authenticated requests in AppDriver
@@ -98,7 +98,7 @@ export type AuthToken = UserId;
  *
  * @see IApiClient for the complete list of supported operations
  */
-export class AppDriver {
+export class AppDriver implements API<AuthToken> {
     private db = new TenantFirestoreTestDatabase();
     private storage = new StubStorage({ defaultBucketName: 'app-driver-test-bucket' });
     private authService = new StubAuthService();
@@ -479,10 +479,10 @@ export class AppDriver {
         return res.getJson() as PreviewGroupResponse;
     }
 
-    async updateGroup(groupId: GroupId | string, updates: Partial<UpdateGroupRequest>, authToken: AuthToken) {
+    async updateGroup(groupId: GroupId | string, updates: UpdateGroupRequest, authToken: AuthToken) {
         const req = createStubRequest(authToken, updates, { id: groupId });
         const res = await this.dispatchByHandler('updateGroup', req);
-        return res.getJson() as GroupDTO;
+        return res.getJson() as MessageResponse;
     }
 
     async deleteGroup(groupId: GroupId | string, authToken: AuthToken) {
@@ -542,10 +542,10 @@ export class AppDriver {
         return res.getJson() as MessageResponse;
     }
 
-    async getPendingMembers(groupId: GroupId | string, authToken: AuthToken): Promise<GetPendingMembersResponse> {
+    async getPendingMembers(groupId: GroupId | string, authToken: AuthToken): Promise<GroupMembershipDTO[]> {
         const req = createStubRequest(authToken, {}, { id: groupId });
         const res = await this.dispatchByHandler('getPendingMembers', req);
-        return res.getJson() as GetPendingMembersResponse;
+        return res.getJson() as GroupMembershipDTO[];
     }
 
     async updateMemberRole(groupId: GroupId | string, memberId: UserId, role: MemberRole, authToken: AuthToken): Promise<MessageResponse> {

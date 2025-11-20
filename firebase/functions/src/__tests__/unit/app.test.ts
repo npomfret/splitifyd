@@ -3362,10 +3362,10 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const pendingMembers = await appDriver.getPendingMembers(group.id, user1);
-            const pendingIds = pendingMembers.members.map((member) => member.uid);
+            const pendingIds = pendingMembers.map((member) => member.uid);
 
             expect(pendingIds.sort()).toEqual([user2, user3].sort());
-            expect(pendingMembers.members.every((member) => member.memberStatus === MemberStatuses.PENDING)).toBe(true);
+            expect(pendingMembers.every((member) => member.memberStatus === MemberStatuses.PENDING)).toBe(true);
 
             await appDriver.approveMember(group.id, user2, user1);
             await appDriver.updateMemberRole(group.id, user2, MemberRoles.ADMIN, user1);
@@ -3382,7 +3382,7 @@ describe('app tests', () => {
             expect(rejectedMember).toBeUndefined();
 
             const pendingAfterActions = await appDriver.getPendingMembers(group.id, user1);
-            expect(pendingAfterActions.members).toHaveLength(0);
+            expect(pendingAfterActions).toHaveLength(0);
         });
     });
 

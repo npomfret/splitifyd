@@ -1192,10 +1192,6 @@ export interface CreatePolicyResult {
     currentVersionHash: VersionHash;
 }
 
-export interface GetPendingMembersResponse {
-    members: GroupMembershipDTO[];
-}
-
 // ========================================================================
 // Test Pool Response Types
 // ========================================================================

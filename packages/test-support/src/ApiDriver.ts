@@ -54,6 +54,7 @@ import { PolicyText } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
+import type {API} from "@billsplit-wl/shared";
 
 const randomLetters = (min: number, max: number): string => {
     const length = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -91,7 +92,7 @@ export type AuthToken = string;
  *
  * @see IApiClient for the complete list of supported operations
  */
-export class ApiDriver {
+export class ApiDriver implements API<AuthToken> {
     private baseUrl: string;
     private readonly authPort: number;
     private readonly firebaseApiKey: string;
@@ -364,7 +365,7 @@ export class ApiDriver {
 
     async getPendingMembers(groupId: GroupId | string, token: AuthToken): Promise<GroupMembershipDTO[]> {
         const response = await this.apiRequest(`/groups/${groupId}/members/pending`, 'GET', null, token);
-        return Array.isArray(response?.members) ? (response.members as GroupMembershipDTO[]) : [];
+        return Array.isArray(response) ? (response as GroupMembershipDTO[]) : [];
     }
 
     async listGroups(params: ListGroupsOptions | undefined = undefined, token: AuthToken): Promise<ListGroupsResponse> {

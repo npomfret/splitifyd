@@ -60,7 +60,7 @@ async function setupGroupRoutes(page: Page, user: ClientUser, options: GroupTest
     await mockGroupCommentsApi(page, groupId);
 
     await page.route(`**/api/groups/${groupId}/members/pending`, async (route) => {
-        await fulfillWithSerialization(route, { body: { members: [] } });
+        await fulfillWithSerialization(route, { body: [] });
     });
 
     await page.route(`**/api/groups/${groupId}/members/display-name`, async (route) => {

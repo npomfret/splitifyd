@@ -2,6 +2,15 @@
 
 _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS function). All routes are served beneath the `api` Cloud Function; Hosting rewrites add a `/api` prefix that is stripped by middleware before routing._
 
+## Shared API Interface
+
+The core authenticated endpoints implement the `API<AuthToken>` interface defined in `packages/shared/src/api.ts`. This interface is shared across:
+- **Web client** (`webapp-v2/src/app/apiClient.ts`)
+- **HTTP integration driver** (`packages/test-support/src/ApiDriver.ts`)
+- **In-memory app driver** (`firebase/functions/src/__tests__/unit/AppDriver.ts`)
+
+See `packages/shared/src/api.ts` for the complete TypeScript interface definition including all method signatures, request types, and response types.
+
 ## Security Conventions
 
 ### Authentication Middleware
@@ -75,7 +84,7 @@ _Source: `firebase/functions/src/index.ts` (Express app inside the `api` HTTPS f
 | POST | `/groups/:id/archive` | Archive group for current user. | `authenticate` | Path `:id`. | `200` JSON `{ success, archivedAt }`. |
 | POST | `/groups/:id/unarchive` | Remove archive flag for current user. | `authenticate` | Path `:id`. | `200` JSON `{ success }`. |
 | PUT | `/groups/:id/members/display-name` | Update caller’s member display name. | `authenticate` | Body `{ displayName }`. | `200` `{ message }`. |
-| GET | `/groups/:id/members/pending` | List pending join requests. | `authenticate` | Path `:id`. | `200` `{ members: PendingMemberDTO[] }`. |
+| GET | `/groups/:id/members/pending` | List pending join requests. | `authenticate` | Path `:id`. | `200` `PendingMemberDTO[]`. |
 | PATCH | `/groups/:id/members/:memberId/role` | Update member role. | `authenticate` | Body `{ role }`. | `200` `{ success }`. |
 | POST | `/groups/:id/members/:memberId/approve` | Approve pending member. | `authenticate` | Path params as shown. | `200` `{ success }`. |
 | POST | `/groups/:id/members/:memberId/reject` | Reject pending member. | `authenticate` | Path params as shown. | `200` `{ success }`. |
