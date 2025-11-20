@@ -16,6 +16,13 @@ async function setupStorageBucket(): Promise<void> {
     logger.info(`   Environment: ${env.environment}`);
     logger.info(`   Bucket: ${bucket.name}`);
 
+    // Skip setup for emulator - buckets are auto-created on first write
+    if (env.isEmulator) {
+        logger.info('   ℹ️  Emulator mode: bucket will be auto-created on first write');
+        logger.info('✅ Storage bucket setup skipped for emulator');
+        return;
+    }
+
     // Check if bucket exists
     const [exists] = await bucket.exists();
 

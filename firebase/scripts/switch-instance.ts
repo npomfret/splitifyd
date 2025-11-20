@@ -31,23 +31,15 @@ if (!fs.existsSync(sourcePath)) {
     process.exit(1);
 }
 
-if (fs.existsSync(targetPath)) {
-    logger.warn('⚠️  Existing .env file found - this will be overwritten', {
-        note: 'If this is a production environment, ensure settings are backed up in .env.prod',
-    });
-}
-
 try {
-    // Copy the template file
-    fs.copyFileSync(sourcePath, targetPath);
-
-    // Inject INSTANCE_NAME into the .env file
     const expectedName = instance === 'prod' ? 'prod' : `dev${instance}`;
-    const envContent = fs.readFileSync(targetPath, 'utf8');
-    const envWithInstanceName = `INSTANCE_NAME=${expectedName}\n${envContent}`;
-    fs.writeFileSync(targetPath, envWithInstanceName);
+    if (fs.existsSync(targetPath)) {
+        fs.rmSync(targetPath, { force: true });
+    }
 
-    logger.info(`✅ Switched to instance ${instance} configuration`);
+    fs.symlinkSync(sourcePath, targetPath, 'file');
+
+    logger.info(`✅ Switched to instance ${instance} configuration via symlink`, { target: targetPath, source: sourcePath });
 
     // Load and validate the new configuration
     loadEnvFile(targetPath);

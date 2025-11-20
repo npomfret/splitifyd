@@ -45,9 +45,9 @@ async function runSetupStorageBucketStep(): Promise<void> {
         if (stderr) logger.error(stderr.trim());
 
         logger.info('');
-        logger.info('✅ Cloud Storage bucket is ready!');
+        logger.info('✅ Cloud Storage bucket setup complete!');
     } catch (error) {
-        logger.warn('⚠️  Could not setup storage bucket (may already exist)', {
+        logger.warn('⚠️  Storage bucket setup script failed (bucket will be auto-created on first use)', {
             error: error instanceof Error ? error.message : String(error),
         });
     }
