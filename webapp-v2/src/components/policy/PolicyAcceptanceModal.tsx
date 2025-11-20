@@ -2,6 +2,7 @@ import { apiClient, type PolicyAcceptanceStatusDTO } from '@/app/apiClient.ts';
 import { ErrorState, LoadingSpinner, Tooltip } from '@/components/ui';
 import { logError } from '@/utils/browser-logger.ts';
 import { PolicyId } from '@billsplit-wl/shared';
+import { createPortal } from 'preact/compat';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
@@ -112,10 +113,15 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
         return null;
     }
 
+    // Guard against SSR
+    if (typeof document === 'undefined') {
+        return null;
+    }
+
     const titleId = 'policy-modal-title';
     const subtitleId = 'policy-modal-subtitle';
 
-    return (
+    const modalContent = (
         <div className='fixed inset-0 flex items-center justify-center p-4 z-50' style={{ backgroundColor: 'var(--modal-backdrop, rgba(0, 0, 0, 0.4))', backdropFilter: 'blur(4px)' }} data-testid='policy-modal-overlay'>
             <div
                 className='bg-surface-base border-border-default rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col opacity-100'
@@ -296,4 +302,6 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }
