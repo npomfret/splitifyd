@@ -2,13 +2,20 @@ import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
     ActivityFeedResponse,
+    AdminUpsertTenantRequest,
+    AdminUpsertTenantResponse,
+    AddTenantDomainRequest,
+    AuthUser,
     ChangeEmailRequest,
     CommentDTO,
     CommentText,
     CreateExpenseRequest,
     CreateGroupRequest,
+    CreatePolicyRequest,
+    CreatePolicyResponse,
     CreateSettlementRequest,
     CurrentPolicyResponse,
+    DeletePolicyVersionResponse,
     DisplayName,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
@@ -22,34 +29,68 @@ import type {
     GroupPermissions,
     ISOString,
     JoinGroupResponse,
+    ListAllTenantsResponse,
+    ListAuthUsersOptions,
+    ListAuthUsersResponse,
     ListCommentsOptions,
     ListCommentsResponse,
+    ListFirestoreUsersOptions,
+    ListFirestoreUsersResponse,
     ListGroupsOptions,
     ListGroupsResponse,
+    ListPoliciesResponse,
     MemberRole,
     MessageResponse,
     PasswordChangeRequest,
+    PolicyDTO,
     PolicyId,
+    PolicyVersion,
     PreviewGroupResponse,
+    PublishPolicyResponse,
+    PublishTenantThemeRequest,
+    PublishTenantThemeResponse,
     SettlementDTO,
     SettlementId,
     SettlementWithMembers,
     ShareLinkResponse,
     ShareLinkToken,
+    TenantDomainsResponse,
+    TenantSettingsResponse,
     UpdateExpenseRequest,
     UpdateGroupRequest,
+    UpdatePolicyRequest,
+    UpdatePolicyResponse,
     UpdateSettlementRequest,
+    UpdateTenantBrandingRequest,
     UpdateUserProfileRequest,
+    UpdateUserRoleRequest,
+    UpdateUserStatusRequest,
     UserId,
     UserPolicyStatusResponse,
     UserProfileResponse,
+    VersionHash,
 } from './shared-types';
 
 export type AuthToken = string | void;
 
 /**
+ * Public API operations that don't require authentication.
+ *
+ * These endpoints are accessible without a valid auth token.
+ */
+export interface PublicAPI {
+    /**
+     * Get the current published version of a policy
+     * Public endpoint - no authentication required
+     */
+    getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse>;
+}
+
+/**
+ * Authenticated API operations for regular users.
+ *
  * Contract shared by all API consumers (web app client, HTTP integration driver, in-memory app driver).
- * Implementations that manage authentication internally can ignore the optional token parameter.
+ * All methods require authentication. Implementations that manage authentication internally can ignore the optional token parameter.
  */
 export interface API<AuthToken> {
     listGroups(options?: ListGroupsOptions, token?: AuthToken): Promise<ListGroupsResponse>;
@@ -91,10 +132,131 @@ export interface API<AuthToken> {
 
     acceptMultiplePolicies(requests: AcceptPolicyRequest[], token?: AuthToken): Promise<AcceptMultiplePoliciesResponse>;
     getUserPolicyStatus(token?: AuthToken): Promise<UserPolicyStatusResponse>;
-    getCurrentPolicy(policyId: PolicyId, token?: AuthToken): Promise<CurrentPolicyResponse>;
 
     getUserProfile(token?: AuthToken): Promise<UserProfileResponse>;
     updateUserProfile(request: UpdateUserProfileRequest, token?: AuthToken): Promise<UserProfileResponse>;
     changePassword(request: PasswordChangeRequest, token?: AuthToken): Promise<MessageResponse>;
     changeEmail(request: ChangeEmailRequest, token?: AuthToken): Promise<UserProfileResponse>;
+}
+
+/**
+ * Admin-only API operations.
+ *
+ * These methods require elevated permissions (system_admin, tenant_admin, or system_user roles).
+ * Implementations must rely on backend enforcement of authorization - this interface does not enforce permissions.
+ *
+ * This is a separate standalone interface that can be implemented alongside the regular API interface.
+ */
+export interface AdminAPI<AuthToken> {
+    // ===== POLICY MANAGEMENT (system_admin only) =====
+
+    /**
+     * Create a new policy with its first version
+     * Requires: system_admin role
+     */
+    createPolicy(request: CreatePolicyRequest, token?: AuthToken): Promise<CreatePolicyResponse>;
+
+    /**
+     * List all policies with version metadata
+     * Requires: system_admin role
+     */
+    listPolicies(token?: AuthToken): Promise<ListPoliciesResponse>;
+
+    /**
+     * Get specific policy version content
+     * Requires: system_admin role
+     */
+    getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash }>;
+
+    /**
+     * Create new draft version (optionally publish immediately)
+     * Requires: system_admin role
+     */
+    updatePolicy(policyId: PolicyId, request: UpdatePolicyRequest, token?: AuthToken): Promise<UpdatePolicyResponse>;
+
+    /**
+     * Publish a draft version as the current version
+     * Requires: system_admin role
+     */
+    publishPolicy(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PublishPolicyResponse>;
+
+    /**
+     * Delete an archived policy version
+     * Requires: system_admin role
+     */
+    deletePolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<DeletePolicyVersionResponse>;
+
+    // ===== USER MANAGEMENT (system_admin only) =====
+
+    /**
+     * Update user account status (enable/disable)
+     * Requires: system_admin role
+     */
+    updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AuthUser>;
+
+    /**
+     * Update user role (system_admin, tenant_admin, or regular user)
+     * Requires: system_admin role
+     */
+    updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AuthUser>;
+
+    // ===== USER/TENANT BROWSING (system_user or system_admin role) =====
+
+    /**
+     * List Firebase Auth users with role enrichment
+     * Requires: system_user or system_admin role
+     */
+    listAuthUsers(options: ListAuthUsersOptions, token?: AuthToken): Promise<ListAuthUsersResponse>;
+
+    /**
+     * List Firestore user documents
+     * Requires: system_user or system_admin role
+     */
+    listFirestoreUsers(options: ListFirestoreUsersOptions, token?: AuthToken): Promise<ListFirestoreUsersResponse>;
+
+    /**
+     * List all tenant configurations
+     * Requires: system_user or system_admin role
+     */
+    listAllTenants(token?: AuthToken): Promise<ListAllTenantsResponse>;
+
+    // ===== TENANT MANAGEMENT (system_admin only) =====
+
+    /**
+     * Create or update full tenant configuration
+     * Requires: system_admin role
+     */
+    adminUpsertTenant(request: AdminUpsertTenantRequest, token?: AuthToken): Promise<AdminUpsertTenantResponse>;
+
+    /**
+     * Publish tenant theme to CDN/storage
+     * Requires: system_admin role
+     */
+    publishTenantTheme(request: PublishTenantThemeRequest, token?: AuthToken): Promise<PublishTenantThemeResponse>;
+
+    // ===== TENANT SETTINGS (tenant_admin or system_admin role) =====
+
+    /**
+     * Get tenant settings for current tenant
+     * Requires: tenant_admin or system_admin role
+     */
+    getTenantSettings(token?: AuthToken): Promise<TenantSettingsResponse>;
+
+    /**
+     * Update tenant branding configuration
+     * Requires: tenant_admin or system_admin role
+     */
+    updateTenantBranding(request: UpdateTenantBrandingRequest, token?: AuthToken): Promise<MessageResponse>;
+
+    /**
+     * List tenant domains
+     * Requires: tenant_admin or system_admin role
+     */
+    getTenantDomains(token?: AuthToken): Promise<TenantDomainsResponse>;
+
+    /**
+     * Add a new tenant domain
+     * Requires: tenant_admin or system_admin role
+     */
+    addTenantDomain(request: AddTenantDomainRequest, token?: AuthToken): Promise<MessageResponse>;
 }

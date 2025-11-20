@@ -76,11 +76,11 @@ async function seedTenant(api: ApiDriver, adminToken: string, seed: TenantSeed):
     };
 
     logger.info(`→ Upserting ${seed.tenantId} (${seed.displayName})`);
-    await api.adminUpsertTenant(adminToken, payload);
+    await api.adminUpsertTenant(payload, adminToken);
     logger.info(`   ✓ Upserted`);
 
     logger.info(`→ Publishing theme for ${seed.tenantId}`);
-    const publishResult = await api.publishTenantTheme(adminToken, { tenantId: seed.tenantId });
+    const publishResult = await api.publishTenantTheme({ tenantId: seed.tenantId }, adminToken);
     logger.info(`   ✓ Published hash ${publishResult.artifact.hash}`);
 }
 

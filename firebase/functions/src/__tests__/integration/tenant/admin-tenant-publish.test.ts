@@ -43,12 +43,12 @@ describe('Admin Tenant Theme Publishing', () => {
             .withDomains([toTenantDomainName(`${tenantId}.example.com`)])
             .build();
 
-        await apiDriver.adminUpsertTenant(adminUser.token, tenantData);
+        await apiDriver.adminUpsertTenant(tenantData, adminUser.token);
     };
 
     it('should reject request without tenant ID', async () => {
         try {
-            await apiDriver.publishTenantTheme(adminUser.token, {} as any);
+            await apiDriver.publishTenantTheme({} as any, adminUser.token);
             expect.fail('Should have thrown error');
         } catch (error: any) {
             expect(error.status).toBe(400);
@@ -98,7 +98,7 @@ describe('Admin Tenant Theme Publishing', () => {
         // Attempt to publish tenant theme with non-admin user
         // Should be rejected (not authorized to perform this action)
         try {
-            const result = await apiDriver.publishTenantTheme(idToken, { tenantId });
+            const result = await apiDriver.publishTenantTheme({ tenantId }, idToken);
             throw new Error(`Expected request to be rejected but it succeeded with result: ${JSON.stringify(result)}`);
         } catch (error: any) {
             // Should be rejected - accepting 401/403 status codes

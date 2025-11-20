@@ -10,12 +10,17 @@ import {
     SystemUserRoles,
     toAmount,
     toGroupName,
+    toShowLandingPageFlag,
+    toShowPricingPageFlag,
+    toTenantAppName,
     toTenantDomainName,
+    toTenantLogoUrl,
+    toTenantPrimaryColor,
     UserBalance,
     toCurrencyISOCode,
     USD,
 } from '@billsplit-wl/shared';
-import type { UserId } from '@billsplit-wl/shared';
+import type { ShareLinkToken, UserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { toExpenseId } from '@billsplit-wl/shared';
 import { toPassword } from '@billsplit-wl/shared';
@@ -1162,7 +1167,7 @@ describe('app tests', () => {
         });
 
         it('should reject share link previews with invalid tokens', async () => {
-            await expect(appDriver.previewGroupByLink('invalid-token-123', user1))
+            await expect(appDriver.previewGroupByLink('invalid-token-123' as ShareLinkToken, user1))
                 .rejects
                 .toMatchObject({ code: 'INVALID_LINK' });
         });
@@ -3850,7 +3855,7 @@ describe('app tests', () => {
 
         describe('GET /settings/tenant/domains', () => {
             it('should allow tenant admin to list domains', async () => {
-                const result = await appDriver.listTenantDomains(tenantAdmin);
+                const result = await appDriver.getTenantDomains(tenantAdmin);
 
                 expect(result).toMatchObject({
                     domains: expect.any(Array),
@@ -3862,7 +3867,7 @@ describe('app tests', () => {
             });
 
             it('should deny regular user access to list domains', async () => {
-                const result = await appDriver.listTenantDomains(regularUser);
+                const result = await appDriver.getTenantDomains(regularUser);
                 expect(result).toMatchObject({
                     error: {
                         code: 'FORBIDDEN',
@@ -3874,11 +3879,11 @@ describe('app tests', () => {
         describe('PUT /settings/tenant/branding', () => {
             it('should allow tenant admin to update branding', async () => {
                 const brandingData = {
-                    appName: 'Custom Brand',
-                    primaryColor: '#FF0000',
+                    appName: toTenantAppName('Custom Brand'),
+                    primaryColor: toTenantPrimaryColor('#FF0000'),
                 };
 
-                const result = await appDriver.updateTenantBranding(tenantAdmin, brandingData);
+                const result = await appDriver.updateTenantBranding(brandingData, tenantAdmin);
 
                 expect(result).toMatchObject({
                     message: 'Tenant branding updated successfully',
@@ -3891,9 +3896,9 @@ describe('app tests', () => {
             });
 
             it('should update partial branding fields', async () => {
-                const result = await appDriver.updateTenantBranding(tenantAdmin, {
-                    logoUrl: 'https://custom.com/logo.svg',
-                });
+                const result = await appDriver.updateTenantBranding({
+                    logoUrl: toTenantLogoUrl('https://custom.com/logo.svg'),
+                }, tenantAdmin);
 
                 expect(result).toMatchObject({
                     message: 'Tenant branding updated successfully',
@@ -3904,12 +3909,12 @@ describe('app tests', () => {
             });
 
             it('should update marketing flags', async () => {
-                const result = await appDriver.updateTenantBranding(tenantAdmin, {
+                const result = await appDriver.updateTenantBranding({
                     marketingFlags: {
-                        showLandingPage: false,
-                        showPricingPage: true,
+                        showLandingPage: toShowLandingPageFlag(false),
+                        showPricingPage: toShowPricingPageFlag(true),
                     },
-                });
+                }, tenantAdmin);
 
                 expect(result).toMatchObject({
                     message: 'Tenant branding updated successfully',
@@ -3922,10 +3927,10 @@ describe('app tests', () => {
 
             it('should reject invalid branding data', async () => {
                 const invalidData = {
-                    appName: '', // Empty string not allowed
+                    appName: toTenantAppName(''), // Empty string not allowed
                 };
 
-                const result = await appDriver.updateTenantBranding(tenantAdmin, invalidData);
+                const result = await appDriver.updateTenantBranding(invalidData, tenantAdmin);
 
                 expect(result).toMatchObject({
                     error: {
@@ -3937,11 +3942,11 @@ describe('app tests', () => {
 
             it('should reject extra fields', async () => {
                 const invalidData = {
-                    appName: 'Valid',
+                    appName: toTenantAppName('Valid'),
                     unexpectedField: 'should fail',
                 };
 
-                const result = await appDriver.updateTenantBranding(tenantAdmin, invalidData);
+                const result = await appDriver.updateTenantBranding(invalidData, tenantAdmin);
 
                 expect(result).toMatchObject({
                     error: {
@@ -3952,10 +3957,10 @@ describe('app tests', () => {
 
             it('should deny regular user access to update branding', async () => {
                 const brandingData = {
-                    appName: 'Custom Brand',
+                    appName: toTenantAppName('Custom Brand'),
                 };
 
-                const result = await appDriver.updateTenantBranding(regularUser, brandingData);
+                const result = await appDriver.updateTenantBranding(brandingData, regularUser);
                 expect(result).toMatchObject({
                     error: {
                         code: 'FORBIDDEN',
@@ -3967,9 +3972,9 @@ describe('app tests', () => {
                 const systemAdmin = user3;
                 appDriver.seedAdminUser(systemAdmin, {});
 
-                const result = await appDriver.updateTenantBranding(systemAdmin, {
-                    appName: 'System Admin Updated',
-                });
+                const result = await appDriver.updateTenantBranding({
+                    appName: toTenantAppName('System Admin Updated'),
+                }, systemAdmin);
 
                 expect(result).toMatchObject({
                     message: 'Tenant branding updated successfully',
@@ -3980,10 +3985,10 @@ describe('app tests', () => {
         describe('POST /settings/tenant/domains', () => {
             it('should return 501 not implemented for domain addition', async () => {
                 const domainData = {
-                    domain: 'custom.example.com',
+                    domain: toTenantDomainName('custom.example.com'),
                 };
 
-                const result = await appDriver.addTenantDomain(tenantAdmin, domainData);
+                const result = await appDriver.addTenantDomain(domainData, tenantAdmin);
 
                 expect(result).toMatchObject({
                     error: {
@@ -3995,10 +4000,10 @@ describe('app tests', () => {
 
             it('should deny regular user access to add domain', async () => {
                 const domainData = {
-                    domain: 'custom.example.com',
+                    domain: toTenantDomainName('custom.example.com'),
                 };
 
-                const result = await appDriver.addTenantDomain(regularUser, domainData);
+                const result = await appDriver.addTenantDomain(domainData, regularUser);
                 expect(result).toMatchObject({
                     error: {
                         code: 'FORBIDDEN',
@@ -4025,7 +4030,7 @@ describe('app tests', () => {
             });
 
             it('should allow system admin to list domains', async () => {
-                const result = await appDriver.listTenantDomains(systemAdmin);
+                const result = await appDriver.getTenantDomains(systemAdmin);
 
                 expect(result).toMatchObject({
                     domains: expect.any(Array),
@@ -4042,11 +4047,11 @@ describe('app tests', () => {
             appDriver.seedAdminUser(adminUser, {});
         });
 
-        describe('POST /api/admin/tenants - upsertTenant', () => {
+        describe('POST /api/admin/tenants - adminUpsertTenant', () => {
             it('should create a new tenant when it does not exist', async () => {
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_new_test').build();
 
-                const result = await appDriver.upsertTenant(adminUser, payload);
+                const result = await appDriver.adminUpsertTenant(payload, adminUser);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_new_test',
@@ -4058,7 +4063,7 @@ describe('app tests', () => {
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_existing_test').build();
 
                 // Create tenant first
-                const createResult = await appDriver.upsertTenant(adminUser, payload);
+                const createResult = await appDriver.adminUpsertTenant(payload, adminUser);
                 expect(createResult.created).toBe(true);
 
                 // Update the same tenant
@@ -4067,7 +4072,7 @@ describe('app tests', () => {
                     .withAppName('Updated Tenant App')
                     .build();
 
-                const updateResult = await appDriver.upsertTenant(adminUser, updatedPayload);
+                const updateResult = await appDriver.adminUpsertTenant(updatedPayload, adminUser);
 
                 expect(updateResult).toMatchObject({
                     tenantId: 'tenant_existing_test',
@@ -4081,7 +4086,7 @@ describe('app tests', () => {
                     .withPaletteColor('primary', 'not-a-hex-color') // Invalid hex color
                     .build();
 
-                await expect(appDriver.upsertTenant(adminUser, invalidPayload)).rejects.toThrow();
+                await expect(appDriver.adminUpsertTenant(invalidPayload, adminUser)).rejects.toThrow();
             });
 
             it('should reject missing required fields', async () => {
@@ -4093,7 +4098,7 @@ describe('app tests', () => {
                     },
                 } as any;
 
-                await expect(appDriver.upsertTenant(adminUser, invalidPayload)).rejects.toThrow();
+                await expect(appDriver.adminUpsertTenant(invalidPayload, adminUser)).rejects.toThrow();
             });
 
             it('should reject non-admin user', async () => {
@@ -4102,7 +4107,7 @@ describe('app tests', () => {
 
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_unauthorized').build();
 
-                const result = await appDriver.upsertTenant(regularUser, payload);
+                const result = await appDriver.adminUpsertTenant(payload, regularUser);
                 expect(result).toMatchObject({
                     error: {
                         code: 'FORBIDDEN',
@@ -4116,7 +4121,7 @@ describe('app tests', () => {
 
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_system_admin').build();
 
-                const result = await appDriver.upsertTenant(systemAdmin, payload);
+                const result = await appDriver.adminUpsertTenant(payload, systemAdmin);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_system_admin',
@@ -4131,7 +4136,7 @@ describe('app tests', () => {
                     .withLetterSpacing('tight', '-0.02rem')
                     .build();
 
-                const result = await appDriver.upsertTenant(adminUser, payload);
+                const result = await appDriver.adminUpsertTenant(payload, adminUser);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_negative_css',
@@ -4151,7 +4156,7 @@ describe('app tests', () => {
                     .asDefaultTenant()
                     .build();
 
-                const result = await appDriver.upsertTenant(adminUser, payloadWithDefault);
+                const result = await appDriver.adminUpsertTenant(payloadWithDefault, adminUser);
 
                 expect(result).toMatchObject({
                     tenantId: 'tenant_default_flag',
@@ -4175,7 +4180,7 @@ describe('app tests', () => {
                     ])
                     .build();
 
-                const result = await appDriver.upsertTenant(adminUser, payload);
+                const result = await appDriver.adminUpsertTenant(payload, adminUser);
 
                 expect(result.tenantId).toBe('tenant_domains');
 
@@ -4284,7 +4289,7 @@ describe('app tests', () => {
             });
 
             it('should publish theme artifacts and record metadata', async () => {
-                const result = await appDriver.publishTenantTheme(systemAdmin, { tenantId });
+                const result = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
 
                 // URLs may be emulator format (with URL encoding) or production format
                 // Decode to handle both cases
@@ -4324,8 +4329,8 @@ describe('app tests', () => {
             });
 
             it('should increment artifact version on subsequent publishes', async () => {
-                const first = await appDriver.publishTenantTheme(systemAdmin, { tenantId });
-                const second = await appDriver.publishTenantTheme(systemAdmin, { tenantId });
+                const first = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+                const second = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
 
                 expect(second.artifact.version).toBe(first.artifact.version + 1);
 
@@ -4338,13 +4343,13 @@ describe('app tests', () => {
                 const tenantWithoutTokens = 'tenant_no_tokens';
                 appDriver.seedTenantDocument(tenantWithoutTokens, {});
 
-                await expect(appDriver.publishTenantTheme(systemAdmin, { tenantId: tenantWithoutTokens }))
+                await expect(appDriver.publishTenantTheme({ tenantId: tenantWithoutTokens }, systemAdmin))
                     .rejects
                     .toMatchObject({ code: 'TENANT_TOKENS_MISSING' });
             });
 
             it('should reject when tenant does not exist', async () => {
-                await expect(appDriver.publishTenantTheme(systemAdmin, { tenantId: 'unknown-tenant' }))
+                await expect(appDriver.publishTenantTheme({ tenantId: 'unknown-tenant' }, systemAdmin))
                     .rejects
                     .toMatchObject({ code: 'TENANT_NOT_FOUND' });
             });
@@ -4368,7 +4373,7 @@ describe('app tests', () => {
 
         describe('PUT /api/admin/users/:uid - updateUser (disable/enable)', () => {
             it('should allow admin to disable a user account', async () => {
-                const result = await appDriver.adminUpdateUser(regularUser, { disabled: true }, adminUser);
+                const result = await appDriver.updateUser(regularUser, { disabled: true }, adminUser);
 
                 expect(result).toMatchObject({
                     uid: regularUser,
@@ -4379,10 +4384,10 @@ describe('app tests', () => {
 
             it('should allow admin to enable a disabled user account', async () => {
                 // First disable the user
-                await appDriver.adminUpdateUser(regularUser, { disabled: true }, adminUser);
+                await appDriver.updateUser(regularUser, { disabled: true }, adminUser);
 
                 // Then enable them
-                const result = await appDriver.adminUpdateUser(regularUser, { disabled: false }, adminUser);
+                const result = await appDriver.updateUser(regularUser, { disabled: false }, adminUser);
 
                 expect(result).toMatchObject({
                     uid: regularUser,
@@ -4392,7 +4397,7 @@ describe('app tests', () => {
             });
 
             it('should reject non-admin user', async () => {
-                const result = await appDriver.adminUpdateUser(regularUser, { disabled: true }, regularUser);
+                const result = await appDriver.updateUser(regularUser, { disabled: true }, regularUser);
                 expect(result).toMatchObject({
                     error: {
                         code: 'FORBIDDEN',
@@ -4402,7 +4407,7 @@ describe('app tests', () => {
 
             it('should reject invalid UID', async () => {
                 await expect(
-                    appDriver.adminUpdateUser('', { disabled: true }, adminUser),
+                    appDriver.updateUser('', { disabled: true }, adminUser),
                 )
                     .rejects
                     .toThrow();
@@ -4410,7 +4415,7 @@ describe('app tests', () => {
 
             it('should reject non-existent user', async () => {
                 await expect(
-                    appDriver.adminUpdateUser('nonexistent-user', { disabled: true }, adminUser),
+                    appDriver.updateUser('nonexistent-user', { disabled: true }, adminUser),
                 )
                     .rejects
                     .toThrow();
@@ -4419,7 +4424,7 @@ describe('app tests', () => {
 
         describe('PUT /api/admin/users/:uid/role - updateUserRole', () => {
             it('should allow admin to promote user to system_admin', async () => {
-                const result = await appDriver.adminUpdateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
+                const result = await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
 
                 expect(result).toMatchObject({
                     uid: regularUser,
@@ -4433,7 +4438,7 @@ describe('app tests', () => {
             });
 
             it('should allow admin to promote user to tenant_admin', async () => {
-                const result = await appDriver.adminUpdateUserRole(regularUser, { role: SystemUserRoles.TENANT_ADMIN }, adminUser);
+                const result = await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.TENANT_ADMIN }, adminUser);
 
                 expect(result).toMatchObject({
                     uid: regularUser,
@@ -4448,10 +4453,10 @@ describe('app tests', () => {
 
             it('should allow admin to demote user by setting role to null', async () => {
                 // First promote the user
-                await appDriver.adminUpdateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
+                await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser);
 
                 // Then demote them
-                const result = await appDriver.adminUpdateUserRole(regularUser, { role: null }, adminUser);
+                const result = await appDriver.updateUserRole(regularUser, { role: null }, adminUser);
 
                 expect(result).toMatchObject({
                     uid: regularUser,
@@ -4466,14 +4471,14 @@ describe('app tests', () => {
 
             it('should reject invalid role value', async () => {
                 await expect(
-                    appDriver.adminUpdateUserRole(regularUser, { role: 'invalid_role' } as any, adminUser),
+                    appDriver.updateUserRole(regularUser, { role: 'invalid_role' } as any, adminUser),
                 )
                     .rejects
                     .toThrow();
             });
 
             it('should reject non-admin user', async () => {
-                const result = await appDriver.adminUpdateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, regularUser);
+                const result = await appDriver.updateUserRole(regularUser, { role: SystemUserRoles.SYSTEM_ADMIN }, regularUser);
                 expect(result).toMatchObject({
                     error: {
                         code: 'FORBIDDEN',
@@ -4483,7 +4488,7 @@ describe('app tests', () => {
 
             it('should reject invalid UID', async () => {
                 await expect(
-                    appDriver.adminUpdateUserRole('', { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
+                    appDriver.updateUserRole('', { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
                 )
                     .rejects
                     .toThrow();
@@ -4491,7 +4496,7 @@ describe('app tests', () => {
 
             it('should reject non-existent user', async () => {
                 await expect(
-                    appDriver.adminUpdateUserRole('nonexistent-user', { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
+                    appDriver.updateUserRole('nonexistent-user', { role: SystemUserRoles.SYSTEM_ADMIN }, adminUser),
                 )
                     .rejects
                     .toThrow();

@@ -45,8 +45,8 @@ describe('Theme CSS delivery', () => {
         const tenantId = `tenant_theme_${Date.now()}`;
         const payload = buildTenantPayload(tenantId);
 
-        await apiDriver.adminUpsertTenant(adminUser.token, payload);
-        const publishResult = await apiDriver.publishTenantTheme(adminUser.token, { tenantId });
+        await apiDriver.adminUpsertTenant(payload, adminUser.token);
+        const publishResult = await apiDriver.publishTenantTheme({ tenantId }, adminUser.token);
 
         const tenantDoc = await getFirestore().collection(FirestoreCollections.TENANTS).doc(tenantId).get();
         expect(tenantDoc.data()?.brandingTokens?.artifact?.hash).toBe(publishResult.artifact.hash);

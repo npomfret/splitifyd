@@ -121,10 +121,11 @@ async function verifyPoliciesViaApi(): Promise<void> {
 
             try {
                 const policy = await apiDriver.getPolicy(policyId);
+                const currentVersion = policy.versions[policy.currentVersionHash];
                 console.log(`✅ Successfully fetched policy: ${policy.policyName}`);
                 console.log(`   - ID: ${policy.id}`);
                 console.log(`   - Hash: ${policy.currentVersionHash}`);
-                console.log(`   - Text length: ${policy.text.length} characters`);
+                console.log(`   - Text length: ${currentVersion?.text.length || 0} characters`);
             } catch (error) {
                 throw new Error(`Failed to fetch policy ${policyId}: ${error instanceof Error ? error.message : error}`);
             }

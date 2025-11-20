@@ -3,38 +3,15 @@ import { TenantEditorModal } from '@/components/admin/TenantEditorModal';
 import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
 import { configStore } from '@/stores/config-store.ts';
 import { logError } from '@/utils/browser-logger';
+import type { TenantConfig } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 
-interface TenantBranding {
-    appName: string;
-    logoUrl?: string;
-    faviconUrl?: string;
-    primaryColor?: string;
-    secondaryColor?: string;
-    marketingFlags?: {
-        showLandingPage?: boolean;
-        showMarketingContent?: boolean;
-        showPricingPage?: boolean;
-    };
-}
-
-interface TenantConfig {
-    tenantId: string;
-    branding: TenantBranding;
-    createdAt: string;
-    updatedAt: string;
-}
-
-interface Tenant {
+// Extended tenant type with computed fields from the backend
+type Tenant = TenantConfig & {
     tenant: TenantConfig;
     domains: string[];
     isDefault: boolean;
-}
-
-interface TenantsResponse {
-    tenants: Tenant[];
-    count: number;
-}
+};
 
 export function AdminTenantsTab() {
     const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -56,8 +33,8 @@ export function AdminTenantsTab() {
         setError(null);
 
         try {
-            const response = await apiClient.listAllTenants<TenantsResponse>();
-            setTenants(response.tenants);
+            const response = await apiClient.listAllTenants();
+            setTenants(response.tenants as Tenant[]);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load tenants');
             logError('Failed to load tenants', err);

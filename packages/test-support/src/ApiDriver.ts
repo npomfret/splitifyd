@@ -3,14 +3,24 @@ import {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
     type ActivityFeedResponse,
+    type AdminAPI,
+    type AdminUpsertTenantRequest,
+    type AdminUpsertTenantResponse,
+    type AddTenantDomainRequest,
+    type API,
+    type PublicAPI,
     ApiSerializer,
+    type AuthUser,
     AuthenticatedFirebaseUser,
     ChangeEmailRequest,
     CommentDTO,
     type CreateExpenseRequest,
     type CreateGroupRequest,
+    type CreatePolicyRequest,
+    type CreatePolicyResponse,
     type CreateSettlementRequest,
     CurrentPolicyResponse,
+    type DeletePolicyVersionResponse,
     DisplayName,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
@@ -24,37 +34,55 @@ import {
     type GroupMembershipDTO,
     type GroupPermissions,
     JoinGroupResponse,
+    type ListAllTenantsResponse,
+    type ListAuthUsersOptions,
+    type ListAuthUsersResponse,
     type ListCommentsOptions,
     ListCommentsResponse,
+    type ListFirestoreUsersOptions,
+    type ListFirestoreUsersResponse,
     type ListGroupsOptions,
     ListGroupsResponse,
+    type ListPoliciesResponse,
     type MemberRole,
     MessageResponse,
     PasswordChangeRequest,
+    type PolicyDTO,
     PolicyId,
+    PolicyText,
+    type PolicyVersion,
     PooledTestUser,
     type PreviewGroupResponse,
+    type PublishPolicyResponse,
+    type PublishTenantThemeRequest,
+    type PublishTenantThemeResponse,
     RegisterResponse,
     type SettlementDTO,
     SettlementId,
     SettlementWithMembers,
     ShareLinkResponse,
+    type TenantDomainsResponse,
+    type TenantSettingsResponse,
     toDisplayName,
     toGroupName,
     type UpdateExpenseRequest,
     type UpdateGroupRequest,
+    type UpdatePolicyRequest,
+    type UpdatePolicyResponse,
     type UpdateSettlementRequest,
-    UpdateUserProfileRequest,
+    type UpdateTenantBrandingRequest,
+    type UpdateUserProfileRequest,
+    type UpdateUserRoleRequest,
+    type UpdateUserStatusRequest,
     UserPolicyStatusResponse,
     UserProfileResponse,
     UserRegistration,
     UserToken,
+    type VersionHash,
 } from '@billsplit-wl/shared';
-import { PolicyText } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from './builders';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { Matcher, PollOptions, pollUntil } from './Polling';
-import type {API} from "@billsplit-wl/shared";
 
 const randomLetters = (min: number, max: number): string => {
     const length = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -92,7 +120,7 @@ export type AuthToken = string;
  *
  * @see IApiClient for the complete list of supported operations
  */
-export class ApiDriver implements API<AuthToken> {
+export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken> {
     private baseUrl: string;
     private readonly authPort: number;
     private readonly firebaseApiKey: string;
@@ -264,7 +292,7 @@ export class ApiDriver implements API<AuthToken> {
         return await this.apiRequest('/groups/join', 'POST', { shareToken, groupDisplayName: displayName }, token);
     }
 
-    async previewGroupByLink(shareToken: ShareLinkToken | string, token: AuthToken): Promise<PreviewGroupResponse> {
+    async previewGroupByLink(shareToken: ShareLinkToken, token?: AuthToken): Promise<PreviewGroupResponse> {
         return await this.apiRequest('/groups/preview', 'POST', { shareToken }, token);
     }
 
@@ -410,12 +438,8 @@ export class ApiDriver implements API<AuthToken> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
-    async getPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
-        return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
-    }
-
     async getCurrentPolicy(policyId: PolicyId): Promise<CurrentPolicyResponse> {
-        return this.getPolicy(policyId);
+        return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
     }
 
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[], token: AuthToken): Promise<AcceptMultiplePoliciesResponse> {
@@ -470,11 +494,20 @@ export class ApiDriver implements API<AuthToken> {
         return response;
     }
 
+    // ===== ADMIN API: USER MANAGEMENT =====
+
     /**
      * Update user account status (admin-only)
      */
-    async updateUser(uid: string, updates: { disabled: boolean; }, token: AuthToken): Promise<any> {
-        return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token);
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AuthUser> {
+        return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token || null) as AuthUser;
+    }
+
+    /**
+     * Update user role (admin-only)
+     */
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AuthUser> {
+        return await this.apiRequest(`/admin/users/${uid}/role`, 'PUT', updates, token || null) as AuthUser;
     }
 
     private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
@@ -592,29 +625,87 @@ export class ApiDriver implements API<AuthToken> {
         await this.apiRequest('/user/clear-policy-acceptances', 'POST', {}, token);
     }
 
-    // Policy administration methods for testing
-    async updatePolicy(policyId: PolicyId, text: PolicyText, publish: boolean = true, adminToken?: AuthToken): Promise<any> {
-        // Try with the adminToken first, then fall back to regular token
-        return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', {
-            text,
-            publish,
-        }, adminToken);
+    // ===== ADMIN API: POLICY MANAGEMENT =====
+
+    async createPolicy(request: CreatePolicyRequest, token?: AuthToken): Promise<CreatePolicyResponse> {
+        return await this.apiRequest('/admin/policies', 'POST', request, token || null) as CreatePolicyResponse;
     }
 
-    async createPolicy(policyName: PolicyName, text: PolicyText, adminToken?: AuthToken): Promise<any> {
-        // Try with the adminToken first, then fall back to regular token
-        return await this.apiRequest('/admin/policies', 'POST', {
-            policyName,
-            text,
-        }, adminToken);
+    async listPolicies(token?: AuthToken): Promise<ListPoliciesResponse> {
+        return await this.apiRequest('/admin/policies', 'GET', null, token || null) as ListPoliciesResponse;
     }
 
-    async adminUpsertTenant(token: AuthToken, tenantData: any): Promise<any> {
-        return this.apiRequest('/admin/tenants', 'POST', tenantData, token);
+    /**
+     * Helper method to get a single policy by ID with all its versions.
+     * Not part of the AdminAPI interface - used internally by tests/scripts.
+     */
+    async getPolicy(policyId: PolicyId, token?: AuthToken): Promise<PolicyDTO> {
+        const response = await this.listPolicies(token);
+        const policy = response.policies.find(p => p.id === policyId);
+        if (!policy) {
+            throw new Error(`Policy not found: ${policyId}`);
+        }
+        return policy;
     }
 
-    async publishTenantTheme(token: AuthToken, payload: { tenantId: string; }): Promise<any> {
-        return this.apiRequest('/admin/tenants/publish', 'POST', payload, token);
+    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PolicyVersion & { versionHash: VersionHash }> {
+        return await this.apiRequest(`/admin/policies/${policyId}/versions/${versionHash}`, 'GET', null, token || null) as PolicyVersion & { versionHash: VersionHash };
+    }
+
+    async updatePolicy(policyId: PolicyId, request: UpdatePolicyRequest, token?: AuthToken): Promise<UpdatePolicyResponse> {
+        return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', request, token || null) as UpdatePolicyResponse;
+    }
+
+    async publishPolicy(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<PublishPolicyResponse> {
+        return await this.apiRequest(`/admin/policies/${policyId}/publish`, 'POST', { versionHash }, token || null) as PublishPolicyResponse;
+    }
+
+    async deletePolicyVersion(policyId: PolicyId, versionHash: VersionHash, token?: AuthToken): Promise<DeletePolicyVersionResponse> {
+        return await this.apiRequest(`/admin/policies/${policyId}/versions/${versionHash}`, 'DELETE', null, token || null) as DeletePolicyVersionResponse;
+    }
+
+    // ===== ADMIN API: USER/TENANT BROWSING =====
+
+    async listAuthUsers(options: ListAuthUsersOptions, token?: AuthToken): Promise<ListAuthUsersResponse> {
+        const query = `?${new URLSearchParams(options as any).toString()}`;
+        return await this.apiRequest(`/admin/browser/users/auth${query}`, 'GET', null, token || null) as ListAuthUsersResponse;
+    }
+
+    async listFirestoreUsers(options: ListFirestoreUsersOptions, token?: AuthToken): Promise<ListFirestoreUsersResponse> {
+        const query = `?${new URLSearchParams(options as any).toString()}`;
+        return await this.apiRequest(`/admin/browser/users/firestore${query}`, 'GET', null, token || null) as ListFirestoreUsersResponse;
+    }
+
+    async listAllTenants(token?: AuthToken): Promise<ListAllTenantsResponse> {
+        return await this.apiRequest('/admin/browser/tenants', 'GET', null, token || null) as ListAllTenantsResponse;
+    }
+
+    // ===== ADMIN API: TENANT MANAGEMENT =====
+
+    async adminUpsertTenant(request: AdminUpsertTenantRequest, token?: AuthToken): Promise<AdminUpsertTenantResponse> {
+        return await this.apiRequest('/admin/tenants', 'POST', request, token || null) as AdminUpsertTenantResponse;
+    }
+
+    async publishTenantTheme(request: PublishTenantThemeRequest, token?: AuthToken): Promise<PublishTenantThemeResponse> {
+        return await this.apiRequest('/admin/tenants/publish', 'POST', request, token || null) as PublishTenantThemeResponse;
+    }
+
+    // ===== ADMIN API: TENANT SETTINGS =====
+
+    async getTenantSettings(token?: AuthToken): Promise<TenantSettingsResponse> {
+        return await this.apiRequest('/settings/tenant', 'GET', null, token || null) as TenantSettingsResponse;
+    }
+
+    async updateTenantBranding(request: UpdateTenantBrandingRequest, token?: AuthToken): Promise<MessageResponse> {
+        return await this.apiRequest('/settings/tenant/branding', 'PUT', request, token || null) as MessageResponse;
+    }
+
+    async getTenantDomains(token?: AuthToken): Promise<TenantDomainsResponse> {
+        return await this.apiRequest('/settings/tenant/domains', 'GET', null, token || null) as TenantDomainsResponse;
+    }
+
+    async addTenantDomain(request: AddTenantDomainRequest, token?: AuthToken): Promise<MessageResponse> {
+        return await this.apiRequest('/settings/tenant/domains', 'POST', request, token || null) as MessageResponse;
     }
 
     async fetchThemeCss(options?: { tenantId?: string; version?: string; }): Promise<{ status: number; css: string; headers: Headers; }> {

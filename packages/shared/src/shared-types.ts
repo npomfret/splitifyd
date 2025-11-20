@@ -1473,3 +1473,108 @@ export interface AdminUpsertTenantResponse {
     tenantId: string;
     created: boolean;
 }
+
+/**
+ * Auth user record (from Firebase Auth)
+ * Used in admin browser endpoints
+ *
+ * @deprecated This type is redundant with RegisteredUser and should be removed.
+ * Fields are kept optional for backwards compatibility but should all be required.
+ */
+export interface AuthUser {
+    uid: UserId;
+    email?: Email | null;
+    emailVerified?: boolean;
+    displayName?: DisplayName | null;
+    disabled?: boolean;
+    metadata?: any; // Firebase Auth metadata (creationTime, lastSignInTime, etc.)
+    role?: SystemUserRole; // Enriched from Firestore by listAuthUsers endpoint
+}
+
+/**
+ * List Auth users response
+ * Returned by GET /admin/browser/users/auth endpoint (system_admin only)
+ */
+export interface ListAuthUsersResponse {
+    users: AuthUser[];
+    nextPageToken?: string;
+    hasMore: boolean;
+}
+
+/**
+ * Firestore user document
+ * Used in admin browser endpoints
+ *
+ * @deprecated This type is redundant with RegisteredUser and should be removed.
+ * Fields are kept optional for backwards compatibility but should all be required.
+ */
+export interface FirestoreUser {
+    uid: UserId;
+    email?: Email | null;
+    displayName?: DisplayName | null;
+    role?: SystemUserRole;
+    disabled?: boolean;
+    createdAt?: ISOString;
+    lastLoginAt?: ISOString;
+}
+
+/**
+ * List Firestore users response
+ * Returned by GET /admin/browser/users/firestore endpoint (system_admin only)
+ */
+export interface ListFirestoreUsersResponse {
+    users: FirestoreUser[];
+    nextCursor?: string;
+    hasMore: boolean;
+}
+
+/**
+ * List all tenants response
+ * Returned by GET /admin/browser/tenants endpoint (system_admin only)
+ */
+export interface ListAllTenantsResponse {
+    tenants: TenantConfig[];
+}
+
+/**
+ * Publish tenant theme response
+ * Returned by POST /admin/tenants/publish endpoint (system_admin only)
+ */
+export interface PublishTenantThemeResponse {
+    success: boolean;
+    message: string;
+    publicUrl?: string;
+    cssUrl: string;
+    tokensUrl: string;
+    artifact: {
+        version: number;
+        hash: string;
+        generatedBy: UserId;
+        cssUrl: string;
+        tokensUrl: string;
+    };
+}
+
+/**
+ * Publish tenant theme request
+ * Used for POST /admin/tenants/publish endpoint (system_admin only)
+ */
+export interface PublishTenantThemeRequest {
+    tenantId: string;
+}
+
+/**
+ * Update user status request
+ * Used for PUT /admin/users/:uid endpoint (system_admin only)
+ */
+export interface UpdateUserStatusRequest {
+    disabled: boolean;
+}
+
+/**
+ * Update user role request
+ * Used for PUT /admin/users/:uid/role endpoint (system_admin only)
+ */
+export interface UpdateUserRoleRequest {
+    role: SystemUserRole | null;
+}

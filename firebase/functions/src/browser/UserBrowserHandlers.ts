@@ -43,18 +43,13 @@ function parseLimit(raw: unknown, fallback: number, max: number): number {
 }
 
 function serializeUserRecord(record: UserRecord) {
-    const base = record.toJSON();
     return {
-        ...base,
         uid: record.uid,
         email: record.email ?? null,
         emailVerified: record.emailVerified ?? false,
         displayName: record.displayName ?? null,
-        phoneNumber: record.phoneNumber ?? null,
         disabled: record.disabled ?? false,
         metadata: record.metadata,
-        customClaims: record.customClaims ?? {},
-        providerData: record.providerData ?? [],
     };
 }
 

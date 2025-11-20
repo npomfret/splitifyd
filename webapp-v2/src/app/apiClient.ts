@@ -12,15 +12,21 @@ import type {
     AcceptPolicyRequest,
     ActivityFeedResponse,
     AddTenantDomainRequest,
+    AdminAPI,
+    PublicAPI,
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
     AppConfiguration,
+    AuthUser,
     ChangeEmailRequest,
     CommentDTO,
     CreateExpenseRequest,
     CreateGroupRequest,
+    CreatePolicyRequest,
+    CreatePolicyResponse,
     CreateSettlementRequest,
     CurrentPolicyResponse,
+    DeletePolicyVersionResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     GenerateShareLinkRequest,
@@ -31,17 +37,27 @@ import type {
     GroupMembershipDTO,
     GroupPermissions,
     JoinGroupResponse,
+    ListAllTenantsResponse,
     ListAuthUsersOptions,
+    ListAuthUsersResponse,
     ListCommentsOptions,
     ListCommentsResponse,
     ListFirestoreUsersOptions,
+    ListFirestoreUsersResponse,
     ListGroupsOptions,
     ListGroupsResponse,
+    ListPoliciesResponse,
     MemberRole,
     MessageResponse,
     PasswordChangeRequest,
     PolicyAcceptanceStatusDTO,
+    PolicyDTO,
+    PolicyId,
+    PolicyVersion,
     PreviewGroupResponse,
+    PublishPolicyResponse,
+    PublishTenantThemeRequest,
+    PublishTenantThemeResponse,
     RegisterResponse,
     SettlementDTO,
     SettlementWithMembers,
@@ -51,19 +67,23 @@ import type {
     TenantSettingsResponse,
     UpdateExpenseRequest,
     UpdateGroupRequest,
+    UpdatePolicyRequest,
+    UpdatePolicyResponse,
     UpdateTenantBrandingRequest,
     UpdateUserProfileRequest,
+    UpdateUserRoleRequest,
+    UpdateUserStatusRequest,
     UserId,
     UserPolicyStatusResponse,
     UserProfileResponse,
     UserRegistration,
+    VersionHash,
 } from '@billsplit-wl/shared';
 import { ApiErrorResponseSchema, responseSchemas } from '@billsplit-wl/shared';
 import type { UpdateSettlementRequest } from '@billsplit-wl/shared';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { SettlementId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
-import { PolicyId } from '@billsplit-wl/shared';
 import type { CommentText } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
@@ -175,11 +195,9 @@ const AuthUserSchema = z
         email: z.string().email().nullable().optional(),
         emailVerified: z.boolean().optional(),
         displayName: z.string().nullable().optional(),
-        phoneNumber: z.string().nullable().optional(),
         disabled: z.boolean().optional(),
         metadata: z.any(),
-        customClaims: z.record(z.string(), z.any()).optional(),
-        providerData: z.array(z.any()).optional(),
+        role: z.string().optional(),
     })
     .passthrough();
 
@@ -256,7 +274,7 @@ function isAbortError(error: unknown, signal?: AbortSignal | null): boolean {
  *
  * @see IApiClient for the complete list of supported operations
  */
-class ApiClient implements API<void> {
+class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
     private authToken: string | null = null;
     private requestInterceptors: RequestInterceptor[] = [];
     private responseInterceptors: ResponseInterceptor[] = [];
@@ -966,19 +984,21 @@ class ApiClient implements API<void> {
         });
     }
 
-    async listAuthUsers(params: ListAuthUsersOptions = {}) {
+    // ===== ADMIN API: USER/TENANT BROWSING =====
+
+    async listAuthUsers(options: ListAuthUsersOptions): Promise<ListAuthUsersResponse> {
         const query: Record<string, string> = {};
-        if (params.limit !== undefined) {
-            query.limit = String(params.limit);
+        if (options?.limit !== undefined) {
+            query.limit = String(options.limit);
         }
-        if (params.pageToken) {
-            query.pageToken = params.pageToken;
+        if (options?.pageToken) {
+            query.pageToken = options.pageToken;
         }
-        if (params.email) {
-            query.email = params.email;
+        if (options?.email) {
+            query.email = options.email;
         }
-        if (params.uid) {
-            query.uid = params.uid;
+        if (options?.uid) {
+            query.uid = options.uid;
         }
 
         return this.request({
@@ -986,61 +1006,79 @@ class ApiClient implements API<void> {
             method: 'GET',
             query: Object.keys(query).length > 0 ? query : undefined,
             schema: ListAuthUsersResponseSchema,
-        });
+        }) as Promise<ListAuthUsersResponse>;
     }
 
-    async listFirestoreUsers(params: ListFirestoreUsersOptions = {}) {
+    async listFirestoreUsers(options?: ListFirestoreUsersOptions): Promise<ListFirestoreUsersResponse> {
         const query: Record<string, string> = {};
-        if (params.limit !== undefined) {
-            query.limit = String(params.limit);
+        if (options?.limit !== undefined) {
+            query.limit = String(options.limit);
         }
-        if (params.cursor) {
-            query.cursor = params.cursor;
+        if (options?.cursor) {
+            query.cursor = options.cursor;
         }
-        if (params.email) {
-            query.email = params.email;
+        if (options?.email) {
+            query.email = options.email;
         }
-        if (params.uid) {
-            query.uid = params.uid;
+        if (options?.uid) {
+            query.uid = options.uid;
         }
-        if (params.displayName) {
-            query.displayName = params.displayName;
+        if (options?.displayName) {
+            query.displayName = options.displayName;
         }
 
-        return this.request({
+        const response = await this.request({
             endpoint: '/admin/browser/users/firestore',
             method: 'GET',
             query: Object.keys(query).length > 0 ? query : undefined,
             schema: ListFirestoreUsersResponseSchema,
         });
+
+        // Map 'id' field to 'uid' to match FirestoreUser interface
+        return {
+            ...response,
+            users: response.users.map((user: any) => ({
+                ...user,
+                uid: user.id || user.uid,
+            })),
+        } as ListFirestoreUsersResponse;
     }
+
+    async listAllTenants(): Promise<ListAllTenantsResponse> {
+        return this.request({
+            endpoint: '/admin/browser/tenants',
+            method: 'GET',
+        });
+    }
+
+    // ===== ADMIN API: USER MANAGEMENT =====
 
     /**
      * Update user account status (enable/disable)
      * Admin-only endpoint
      */
-    async updateUser(uid: string, updates: { disabled: boolean; }) {
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest): Promise<AuthUser> {
         return this.request({
             endpoint: '/admin/users/:uid',
             method: 'PUT',
             params: { uid },
             body: updates,
             schema: AuthUserSchema,
-        });
+        }) as Promise<AuthUser>;
     }
 
     /**
      * Update user role (system_admin, tenant_admin, or regular user)
      * Admin-only endpoint
      */
-    async updateUserRole(uid: string, updates: { role: string | null; }) {
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest): Promise<AuthUser> {
         return this.request({
             endpoint: '/admin/users/:uid/role',
             method: 'PUT',
             params: { uid },
             body: updates,
             schema: AuthUserSchema,
-        });
+        }) as Promise<AuthUser>;
     }
 
     // User policy acceptance methods
@@ -1190,53 +1228,104 @@ class ApiClient implements API<void> {
         });
     }
 
-    // Tenant settings methods (tenant-admin only)
-    async getTenantSettings(signal?: AbortSignal): Promise<TenantSettingsResponse> {
-        return this.request({
-            endpoint: '/settings/tenant',
-            method: 'GET',
-            signal,
-        });
-    }
+    // ===== ADMIN API: POLICY MANAGEMENT =====
 
-    async updateTenantBranding(data: UpdateTenantBrandingRequest): Promise<MessageResponse> {
+    async createPolicy(request: CreatePolicyRequest): Promise<CreatePolicyResponse> {
         return this.request({
-            endpoint: '/settings/tenant/branding',
-            method: 'PUT',
-            body: data,
-        });
-    }
-
-    async getTenantDomains(signal?: AbortSignal): Promise<TenantDomainsResponse> {
-        return this.request({
-            endpoint: '/settings/tenant/domains',
-            method: 'GET',
-            signal,
-        });
-    }
-
-    async addTenantDomain(data: AddTenantDomainRequest): Promise<MessageResponse> {
-        return this.request({
-            endpoint: '/settings/tenant/domains',
+            endpoint: '/admin/policies',
             method: 'POST',
-            body: data,
+            body: request,
         });
     }
 
-    // Admin methods (system-admin only)
-    async listAllTenants<T = any>(signal?: AbortSignal): Promise<T> {
+    async listPolicies(): Promise<ListPoliciesResponse> {
         return this.request({
-            endpoint: '/admin/browser/tenants',
+            endpoint: '/admin/policies',
             method: 'GET',
-            signal,
         });
     }
 
-    async adminUpsertTenant(data: AdminUpsertTenantRequest): Promise<AdminUpsertTenantResponse> {
+    async getPolicyVersion(policyId: PolicyId, versionHash: VersionHash): Promise<PolicyVersion & { versionHash: VersionHash }> {
+        return this.request({
+            endpoint: '/admin/policies/:id/versions/:hash',
+            method: 'GET',
+            params: { id: policyId, hash: versionHash },
+        });
+    }
+
+    async updatePolicy(policyId: PolicyId, request: UpdatePolicyRequest): Promise<UpdatePolicyResponse> {
+        return this.request({
+            endpoint: '/admin/policies/:id',
+            method: 'PUT',
+            params: { id: policyId },
+            body: request,
+        });
+    }
+
+    async publishPolicy(policyId: PolicyId, versionHash: VersionHash): Promise<PublishPolicyResponse> {
+        return this.request({
+            endpoint: '/admin/policies/:id/publish',
+            method: 'POST',
+            params: { id: policyId },
+            body: { versionHash },
+        });
+    }
+
+    async deletePolicyVersion(policyId: PolicyId, versionHash: VersionHash): Promise<DeletePolicyVersionResponse> {
+        return this.request({
+            endpoint: '/admin/policies/:id/versions/:hash',
+            method: 'DELETE',
+            params: { id: policyId, hash: versionHash },
+        });
+    }
+
+    // ===== ADMIN API: TENANT MANAGEMENT =====
+
+    async adminUpsertTenant(request: AdminUpsertTenantRequest): Promise<AdminUpsertTenantResponse> {
         return this.request({
             endpoint: '/admin/tenants',
             method: 'POST',
-            body: data,
+            body: request,
+        });
+    }
+
+    async publishTenantTheme(request: PublishTenantThemeRequest): Promise<PublishTenantThemeResponse> {
+        return this.request({
+            endpoint: '/admin/tenants/publish',
+            method: 'POST',
+            body: request,
+        });
+    }
+
+    // ===== ADMIN API: TENANT SETTINGS =====
+
+    async getTenantSettings(): Promise<TenantSettingsResponse> {
+        return this.request({
+            endpoint: '/settings/tenant',
+            method: 'GET',
+        });
+    }
+
+    async updateTenantBranding(request: UpdateTenantBrandingRequest): Promise<MessageResponse> {
+        return this.request({
+            endpoint: '/settings/tenant/branding',
+            method: 'PUT',
+            body: request,
+        });
+    }
+
+    async getTenantDomains(): Promise<TenantDomainsResponse> {
+        return this.request({
+            endpoint: '/settings/tenant/domains',
+            method: 'GET',
+        });
+    }
+
+    async addTenantDomain(request: AddTenantDomainRequest): Promise<MessageResponse> {
+        return this.request({
+            endpoint: '/settings/tenant/domains',
+            method: 'POST',
+            body: request,
         });
     }
 }

@@ -2,6 +2,7 @@ import { apiClient } from '@/app/apiClient';
 import { useAuth } from '@/app/hooks/useAuth';
 import { Alert, Button, Card, Input, LoadingState, Pagination } from '@/components/ui';
 import { logError, logInfo } from '@/utils/browser-logger';
+import type { AuthUser, SystemUserRole } from '@billsplit-wl/shared';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import { computed, useSignal, useSignalEffect } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +19,7 @@ export function AdminUsersTab() {
     }
 
     // State
-    const users = useSignal<Array<Record<string, unknown>>>([]);
+    const users = useSignal<AuthUser[]>([]);
     const loading = useSignal(false);
     const error = useSignal<string | null>(null);
     const nextPageToken = useSignal<string | undefined>(undefined);
@@ -195,7 +196,7 @@ export function AdminUsersTab() {
             return;
         }
 
-        const newRole = roleOptions[selectedIndex].value || null;
+        const newRole = (roleOptions[selectedIndex].value || null) as SystemUserRole | null;
 
         if (newRole === currentRole) {
             window.alert('Role unchanged');
@@ -321,7 +322,7 @@ export function AdminUsersTab() {
                                     const metadata = authUser.metadata;
                                     const uid = String(authUser.uid ?? '');
                                     const isCurrentUser = uid === user.uid;
-                                    const role = typeof authUser.role === 'string' ? authUser.role : null;
+                                    const role = authUser.role ?? null;
 
                                     return (
                                         <tr key={uid} class={isCurrentUser ? 'bg-blue-50' : ''}>
