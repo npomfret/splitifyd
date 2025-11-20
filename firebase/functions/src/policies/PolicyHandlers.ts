@@ -1,5 +1,4 @@
-import { CreatePolicyResponse, DeletePolicyVersionResponse, PublishPolicyResponse, UpdatePolicyResponse } from '@billsplit-wl/shared';
-import { toPolicyId } from '@billsplit-wl/shared';
+import { CreatePolicyResponse, DeletePolicyVersionResponse, PublishPolicyResponse, toPolicyId, toPolicyText, toVersionHash, UpdatePolicyResponse } from '@billsplit-wl/shared';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
@@ -55,7 +54,7 @@ export class PolicyHandlers {
         const { id, hash } = req.params;
 
         try {
-            const version = await this.policyService.getPolicyVersion(toPolicyId(id), hash);
+            const version = await this.policyService.getPolicyVersion(toPolicyId(id), toVersionHash(hash));
 
             res.json(version);
         } catch (error) {
@@ -79,7 +78,7 @@ export class PolicyHandlers {
         const { text, publish = false } = validatedData;
 
         try {
-            const result = await this.policyService.updatePolicy(toPolicyId(id), text, publish);
+            const result = await this.policyService.updatePolicy(toPolicyId(id), toPolicyText(text), publish);
 
             const response: UpdatePolicyResponse = {
                 versionHash: result.versionHash,
@@ -154,7 +153,7 @@ export class PolicyHandlers {
         const { id, hash } = req.params;
 
         try {
-            await this.policyService.deletePolicyVersion(toPolicyId(id), hash);
+            await this.policyService.deletePolicyVersion(toPolicyId(id), toVersionHash(hash));
 
             const response: DeletePolicyVersionResponse = {
             };

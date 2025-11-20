@@ -24,6 +24,8 @@ import { ApiError } from '../utils/errors';
 import { LoggerContext } from '../utils/logger-context';
 import { IFirestoreReader } from './firestore';
 import { IFirestoreWriter } from './firestore';
+import {PolicyText} from "@billsplit-wl/shared";
+import {toVersionHash} from "@billsplit-wl/shared";
 
 /**
  * Service for managing policy operations
@@ -64,8 +66,12 @@ export class PolicyService {
     /**
      * Calculate SHA-256 hash of policy text
      */
-    private calculatePolicyHash(text: string): string {
-        return crypto.createHash('sha256').update(text, 'utf8').digest('hex');
+    private calculatePolicyHash(text: string): VersionHash {
+        return PolicyService.makeVersionHash(text);
+    }
+
+    static makeVersionHash(text: string) {
+        return toVersionHash(crypto.createHash('sha256').update(text, 'utf8').digest('hex'));
     }
 
     /**
@@ -111,7 +117,7 @@ export class PolicyService {
     /**
      * Get specific version content
      */
-    async getPolicyVersion(id: PolicyId, hash: string): Promise<PolicyVersionResponse> {
+    async getPolicyVersion(id: PolicyId, hash: VersionHash): Promise<PolicyVersionResponse> {
         try {
             const policy = await this.firestoreReader.getPolicy(id);
 
@@ -144,11 +150,11 @@ export class PolicyService {
     /**
      * Create new draft version (not published)
      */
-    async updatePolicy(id: PolicyId, text: string, publish: boolean = false): Promise<UpdatePolicyResult> {
+    async updatePolicy(id: PolicyId, text: PolicyText, publish: boolean = false): Promise<UpdatePolicyResult> {
         return measureDb('PolicyService.updatePolicy', async () => this._updatePolicy(id, text, publish));
     }
 
-    private async _updatePolicy(id: PolicyId, text: string, publish: boolean = false): Promise<UpdatePolicyResult> {
+    private async _updatePolicy(id: PolicyId, text: PolicyText, publish: boolean = false): Promise<UpdatePolicyResult> {
         LoggerContext.update({ policyId: id, operation: 'update-policy', publish });
         const timer = new PerformanceTimer();
 
@@ -189,7 +195,7 @@ export class PolicyService {
             };
 
             // If publish is true, also update currentVersionHash
-            let currentVersionHash: string | undefined;
+            let currentVersionHash: VersionHash | undefined;
             if (publish) {
                 updates.currentVersionHash = versionHash;
                 currentVersionHash = versionHash;
@@ -302,7 +308,7 @@ export class PolicyService {
     /**
      * Create a new policy (internal helper)
      */
-    async createPolicyInternal(policyName: PolicyName, text: string, customId?: PolicyId): Promise<CreatePolicyResult> {
+    async createPolicyInternal(policyName: PolicyName, text: PolicyText, customId?: PolicyId): Promise<CreatePolicyResult> {
         if (!policyName || !text) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_FIELDS', 'Policy name and text are required');
         }
@@ -369,11 +375,11 @@ export class PolicyService {
     /**
      * Create a new policy
      */
-    async createPolicy(policyName: PolicyName, text: string, customId?: PolicyId): Promise<CreatePolicyResult> {
+    async createPolicy(policyName: PolicyName, text: PolicyText, customId?: PolicyId): Promise<CreatePolicyResult> {
         return measureDb('PolicyService.createPolicy', async () => this._createPolicy(policyName, text, customId));
     }
 
-    private async _createPolicy(policyName: PolicyName, text: string, customId?: PolicyId): Promise<CreatePolicyResult> {
+    private async _createPolicy(policyName: PolicyName, text: PolicyText, customId?: PolicyId): Promise<CreatePolicyResult> {
         LoggerContext.update({ operation: 'create-policy', policyName, customId });
 
         return this.createPolicyInternal(policyName, text, customId);
@@ -382,7 +388,7 @@ export class PolicyService {
     /**
      * Delete a policy version
      */
-    async deletePolicyVersion(id: PolicyId, hash: string): Promise<void> {
+    async deletePolicyVersion(id: PolicyId, hash: VersionHash): Promise<void> {
         try {
             const timer = new PerformanceTimer();
 

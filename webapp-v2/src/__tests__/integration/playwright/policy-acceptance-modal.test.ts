@@ -1,5 +1,5 @@
 import { createJsonHandler, policiesStatusHandler } from '@/test/msw/handlers.ts';
-import { toPolicyId } from '@billsplit-wl/shared';
+import { toPolicyId, toPolicyName, toVersionHash } from '@billsplit-wl/shared';
 import { ClientUserBuilder, LoginPage, PolicyAcceptanceModalPage } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupsApi } from '../../utils/mock-firebase-service';
@@ -28,16 +28,16 @@ test.describe('Policy Acceptance Modal', () => {
         const pendingPolicies = [
             {
                 policyId: toPolicyId('terms-of-service'),
-                policyName: 'Terms of Service',
-                currentVersionHash: 'tos-hash-v2',
-                userAcceptedHash: 'tos-hash-v1',
+                policyName: toPolicyName('Terms of Service'),
+                currentVersionHash: toVersionHash('tos-hash-v2'),
+                userAcceptedHash: toVersionHash('tos-hash-v1'),
                 needsAcceptance: true,
             },
             {
                 policyId: toPolicyId('privacy-policy'),
-                policyName: 'Privacy Policy',
-                currentVersionHash: 'privacy-hash-v3',
-                userAcceptedHash: 'privacy-hash-v2',
+                policyName: toPolicyName('Privacy Policy'),
+                currentVersionHash: toVersionHash('privacy-hash-v3'),
+                userAcceptedHash: toVersionHash('privacy-hash-v2'),
                 needsAcceptance: true,
             },
         ];

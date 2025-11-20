@@ -1,4 +1,4 @@
-import { toExpenseId } from '@billsplit-wl/shared';
+import { toExpenseId, toVersionHash } from '@billsplit-wl/shared';
 import {
     ActivityFeedItemBuilder,
     ClientUserBuilder,
@@ -407,7 +407,7 @@ describe('Firestore Security Rules (Production)', () => {
                     const policy = new PolicyDocumentBuilder()
                         .withId(policyId)
                         .withPolicyName('privacy')
-                        .withVersionText('v1.0.0', 'Privacy policy content...')
+                        .withVersionText(toVersionHash('v1.0.0'), 'Privacy policy content...')
                         .build();
 
                     await setDoc(doc(db, 'policies', policyId), policy);

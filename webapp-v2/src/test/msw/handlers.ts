@@ -1,5 +1,5 @@
-import type { ClientUser, GroupId, ListGroupsResponse, UserPolicyStatusResponse } from '@billsplit-wl/shared';
-import { toPolicyId } from '@billsplit-wl/shared';
+import {ClientUser, GroupId, ListGroupsResponse, toVersionHash, UserPolicyStatusResponse} from '@billsplit-wl/shared';
+import { toPolicyId, toPolicyName } from '@billsplit-wl/shared';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
 
 interface HandlerOptions {
@@ -54,17 +54,17 @@ export function acceptedPoliciesHandler(options: HandlerOptions = {}): Serialize
             policies: [
                 {
                     policyId: toPolicyId('terms-of-service'),
-                    currentVersionHash: 'hash123',
-                    userAcceptedHash: 'hash123',
+                    currentVersionHash: toVersionHash('hash123'),
+                    userAcceptedHash: toVersionHash('hash123'),
                     needsAcceptance: false,
-                    policyName: 'Terms of Service',
+                    policyName: toPolicyName('Terms of Service'),
                 },
                 {
                     policyId: toPolicyId('cookie-policy'),
-                    currentVersionHash: 'hash456',
-                    userAcceptedHash: 'hash456',
+                    currentVersionHash: toVersionHash('hash456'),
+                    userAcceptedHash: toVersionHash('hash456'),
                     needsAcceptance: false,
-                    policyName: 'Cookie Policy',
+                    policyName: toPolicyName('Cookie Policy'),
                 },
             ],
             totalPending: 0,

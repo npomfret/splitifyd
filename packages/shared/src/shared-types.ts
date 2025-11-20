@@ -135,13 +135,19 @@ export const toDisplayName = (value: string): DisplayName => value as DisplayNam
 export type PolicyId = Brand<string, 'PolicyId'>;
 export const toPolicyId = (value: string): PolicyId => value as PolicyId;
 
-export type PolicyName = string;
-export type PolicyText = string;
+export type PolicyName = Brand<string, 'PolicyName'>;
+export const toPolicyName = (value: string): PolicyName => value as PolicyName;
+
+export type PolicyText = Brand<string, 'PolicyText'>;
+export const toPolicyText = (value: string): PolicyText => value as PolicyText;
+
+export type VersionHash = Brand<string, 'VersionHash'>;
+export const toVersionHash = (value: string): VersionHash => value as VersionHash;
+
 export type Description = string;
 export type UserId = string;
 export type Email = string;
 export type CurrencyISOCode = string;
-export type VersionHash = string;
 export type ActivityFeedItemId = string;
 
 // todo: add a type for label
@@ -469,7 +475,7 @@ export interface FormDefaults {
 }
 
 export interface ThemeConfig {
-    hash: VersionHash;
+    hash: string;
     generatedAtEpochMs?: number;
 }
 
@@ -554,7 +560,7 @@ export interface RegisteredUser extends FirebaseUser {
     termsAcceptedAt?: ISOString;
     cookiePolicyAcceptedAt?: ISOString;
     privacyPolicyAcceptedAt?: ISOString;
-    acceptedPolicies?: Record<string, VersionHash>; // Map of policyId -> versionHash
+    acceptedPolicies?: Record<PolicyId, VersionHash>; // Map of policyId -> versionHash
 
     // User preferences
     preferredLanguage?: string; // User's preferred language code (e.g., 'en', 'es', 'fr')

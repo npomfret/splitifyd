@@ -119,7 +119,7 @@ export class UserPolicyService {
             allPolicies.forEach((policy) => {
                 const policyId = policy.id;
                 const currentVersionHash = policy.currentVersionHash;
-                const userAcceptedHash = userAcceptedPolicies[policyId];
+                const userAcceptedHash = userAcceptedPolicies[policyId] as VersionHash | undefined;
                 const needsAcceptance = !userAcceptedHash || userAcceptedHash !== currentVersionHash;
 
                 if (needsAcceptance) {

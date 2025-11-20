@@ -1,4 +1,4 @@
-import { SystemUserRoles } from '@billsplit-wl/shared';
+import { PolicyIdSchema, VersionHashSchema, SystemUserRoles } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { createDocumentSchemas, FirestoreTimestampSchema, OptionalAuditFieldsSchema } from './common';
 
@@ -14,7 +14,7 @@ const BaseUserSchema = z
         email: z.string().email().optional(), // Email might be in Auth only
         preferredLanguage: z.string().optional(),
         role: z.nativeEnum(SystemUserRoles).optional(),
-        acceptedPolicies: z.record(z.string(), z.string()).optional(),
+        acceptedPolicies: z.record(PolicyIdSchema, VersionHashSchema).optional(),
         termsAcceptedAt: FirestoreTimestampSchema.optional(),
         cookiePolicyAcceptedAt: FirestoreTimestampSchema.optional(),
         privacyPolicyAcceptedAt: FirestoreTimestampSchema.optional(),

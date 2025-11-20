@@ -1,6 +1,8 @@
-import { ISOString, PolicyDTO, PolicyId, VersionHash } from '@billsplit-wl/shared';
+import { ISOString, PolicyDTO, PolicyId, PolicyName, toPolicyName, VersionHash } from '@billsplit-wl/shared';
 import { toPolicyId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId } from '../test-helpers';
+import {PolicyText, toPolicyText} from "@billsplit-wl/shared";
+import {toVersionHash} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating PolicyDTO objects for tests
@@ -10,14 +12,14 @@ export class PolicyDocumentBuilder {
     private policy: PolicyDTO;
 
     constructor() {
-        const versionHash = 'v1-hash';
+        const versionHash = toVersionHash('v1-hash');
         this.policy = {
             id: toPolicyId(`policy-${generateShortId()}`),
-            policyName: 'privacy',
+            policyName: toPolicyName('privacy'),
             currentVersionHash: versionHash,
             versions: {
                 [versionHash]: {
-                    text: 'Default policy content for testing...',
+                    text: toPolicyText('Default policy content for testing...'),
                     createdAt: convertToISOString(new Date()),
                 },
             },
@@ -31,16 +33,16 @@ export class PolicyDocumentBuilder {
         return this;
     }
 
-    withPolicyName(name: string): this {
-        this.policy.policyName = name;
+    withPolicyName(name: PolicyName  | string): this {
+        this.policy.policyName = typeof name === 'string' ? toPolicyName(name) : name;
         return this;
     }
 
-    withVersionText(versionHash: VersionHash, text: string): this {
+    withVersionText(versionHash: VersionHash, text: PolicyText | string): this {
         this.policy.currentVersionHash = versionHash;
         this.policy.versions = {
             [versionHash]: {
-                text,
+                text: typeof text === 'string' ? toPolicyText(text) : text,
                 createdAt: convertToISOString(new Date()),
             },
         };

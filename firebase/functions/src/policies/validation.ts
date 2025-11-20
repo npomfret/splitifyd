@@ -4,6 +4,7 @@ import {
     CreatePolicyRequestSchema,
     type PolicyId,
     PolicyName,
+    PolicyText,
     PublishPolicyRequestSchema,
     UpdatePolicyRequestSchema,
     VersionHash,
@@ -60,12 +61,12 @@ export const validateAcceptMultiplePolicies = (body: unknown): AcceptMultiplePol
 
 interface CreatePolicyRequest {
     policyName: PolicyName;
-    text: string;
+    text: PolicyText;
     publish?: boolean;
 }
 
 interface UpdatePolicyRequest {
-    text: string;
+    text: PolicyText;
     publish?: boolean;
 }
 
@@ -123,7 +124,7 @@ export const validateCreatePolicy = createRequestValidator({
     preValidate: (payload: unknown) => payload ?? {},
     transform: (value) => ({
         policyName: sanitizeInputString(value.policyName),
-        text: value.text,
+        text: sanitizeInputString(value.text),
         publish: value.publish,
     }),
     mapError: (error) => mapPolicyError(error),
