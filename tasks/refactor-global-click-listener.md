@@ -30,3 +30,18 @@ This refactoring will result in a more robust, performant, and maintainable appl
 2.  **Enhanced Performance**: Click handlers will only be attached to elements that are actually interactive, eliminating the overhead of the global listener.
 3.  **Code Quality and Consistency**: Enforces a single, consistent pattern for handling user interactions and logging, improving overall code quality.
 4.  **Developer Experience**: Provides clear, reusable components (`Button`, `Clickable`) for handling user interactions, making development faster and less error-prone.
+
+## Updated Plan (2025-11-20)
+
+**Design direction**
+- Introduce a small `Clickable` wrapper that forwards refs/ARIA, accepts `eventName`/`eventProps`, and calls `logUserAction` (or `logButtonClick` parity) before delegating to its `onClick`. Keep payload fields aligned with `Button` (`buttonText`, `page`, `variant`, `id`) to avoid dashboard regressions.
+- Keep `Button` as-is for now; share event-schema constants between `Button` and `Clickable` once added.
+
+**Migration steps**
+1. Add `Clickable` + unit tests (passes through props, logs once, respects disabled-like props if provided).
+2. Replace ad-hoc `onClick` on non-button elements with `Clickable`, starting with low-risk views; ensure icon-only controls carry `aria-label`.
+3. After coverage is high, remove the global capture listener from `webapp-v2/src/main.tsx`.
+
+**Guardrails**
+- Consider ESLint rule to flag `onClick` on elements that are not `Button`/`Clickable`.
+- Verify a few key analytics payloads against current outputs before removing the listener.
