@@ -1,3 +1,157 @@
+import { toCurrencyISOCode } from './shared-types';
+
+/**
+ * Pre-converted currency code constants for use in tests and type-safe code.
+ * Use these instead of repeatedly calling toCurrencyISOCode('XXX').
+ *
+ * @example
+ * ```typescript
+ * import { USD, EUR, GBP } from '@billsplit-wl/shared';
+ * calculateEqualSplits(amount, USD, participants);
+ * ```
+ */
+export const AED = toCurrencyISOCode('AED');
+export const AFN = toCurrencyISOCode('AFN');
+export const ALL = toCurrencyISOCode('ALL');
+export const AMD = toCurrencyISOCode('AMD');
+export const ANG = toCurrencyISOCode('ANG');
+export const AOA = toCurrencyISOCode('AOA');
+export const ARS = toCurrencyISOCode('ARS');
+export const AUD = toCurrencyISOCode('AUD');
+export const AWG = toCurrencyISOCode('AWG');
+export const BAM = toCurrencyISOCode('BAM');
+export const BBD = toCurrencyISOCode('BBD');
+export const BDT = toCurrencyISOCode('BDT');
+export const BGN = toCurrencyISOCode('BGN');
+export const BHD = toCurrencyISOCode('BHD');
+export const BIF = toCurrencyISOCode('BIF');
+export const BMD = toCurrencyISOCode('BMD');
+export const BND = toCurrencyISOCode('BND');
+export const BOB = toCurrencyISOCode('BOB');
+export const BRL = toCurrencyISOCode('BRL');
+export const BSD = toCurrencyISOCode('BSD');
+export const BTN = toCurrencyISOCode('BTN');
+export const BWP = toCurrencyISOCode('BWP');
+export const BYN = toCurrencyISOCode('BYN');
+export const BZD = toCurrencyISOCode('BZD');
+export const CAD = toCurrencyISOCode('CAD');
+export const CDF = toCurrencyISOCode('CDF');
+export const CHF = toCurrencyISOCode('CHF');
+export const CLP = toCurrencyISOCode('CLP');
+export const CNY = toCurrencyISOCode('CNY');
+export const COP = toCurrencyISOCode('COP');
+export const CRC = toCurrencyISOCode('CRC');
+export const CUP = toCurrencyISOCode('CUP');
+export const CVE = toCurrencyISOCode('CVE');
+export const CZK = toCurrencyISOCode('CZK');
+export const DJF = toCurrencyISOCode('DJF');
+export const DKK = toCurrencyISOCode('DKK');
+export const DOP = toCurrencyISOCode('DOP');
+export const DZD = toCurrencyISOCode('DZD');
+export const EGP = toCurrencyISOCode('EGP');
+export const ETB = toCurrencyISOCode('ETB');
+export const EUR = toCurrencyISOCode('EUR');
+export const FJD = toCurrencyISOCode('FJD');
+export const GBP = toCurrencyISOCode('GBP');
+export const GEL = toCurrencyISOCode('GEL');
+export const GHS = toCurrencyISOCode('GHS');
+export const GMD = toCurrencyISOCode('GMD');
+export const GNF = toCurrencyISOCode('GNF');
+export const GTQ = toCurrencyISOCode('GTQ');
+export const GYD = toCurrencyISOCode('GYD');
+export const HKD = toCurrencyISOCode('HKD');
+export const HNL = toCurrencyISOCode('HNL');
+export const HTG = toCurrencyISOCode('HTG');
+export const HUF = toCurrencyISOCode('HUF');
+export const IDR = toCurrencyISOCode('IDR');
+export const ILS = toCurrencyISOCode('ILS');
+export const INR = toCurrencyISOCode('INR');
+export const IQD = toCurrencyISOCode('IQD');
+export const IRR = toCurrencyISOCode('IRR');
+export const ISK = toCurrencyISOCode('ISK');
+export const JMD = toCurrencyISOCode('JMD');
+export const JOD = toCurrencyISOCode('JOD');
+export const JPY = toCurrencyISOCode('JPY');
+export const KES = toCurrencyISOCode('KES');
+export const KHR = toCurrencyISOCode('KHR');
+export const KMF = toCurrencyISOCode('KMF');
+export const KRW = toCurrencyISOCode('KRW');
+export const KWD = toCurrencyISOCode('KWD');
+export const KYD = toCurrencyISOCode('KYD');
+export const KZT = toCurrencyISOCode('KZT');
+export const LAK = toCurrencyISOCode('LAK');
+export const LBP = toCurrencyISOCode('LBP');
+export const LKR = toCurrencyISOCode('LKR');
+export const LRD = toCurrencyISOCode('LRD');
+export const LSL = toCurrencyISOCode('LSL');
+export const LYD = toCurrencyISOCode('LYD');
+export const MAD = toCurrencyISOCode('MAD');
+export const MDL = toCurrencyISOCode('MDL');
+export const MGA = toCurrencyISOCode('MGA');
+export const MKD = toCurrencyISOCode('MKD');
+export const MMK = toCurrencyISOCode('MMK');
+export const MOP = toCurrencyISOCode('MOP');
+export const MRU = toCurrencyISOCode('MRU');
+export const MUR = toCurrencyISOCode('MUR');
+export const MVR = toCurrencyISOCode('MVR');
+export const MWK = toCurrencyISOCode('MWK');
+export const MXN = toCurrencyISOCode('MXN');
+export const MYR = toCurrencyISOCode('MYR');
+export const MZN = toCurrencyISOCode('MZN');
+export const NAD = toCurrencyISOCode('NAD');
+export const NGN = toCurrencyISOCode('NGN');
+export const NIO = toCurrencyISOCode('NIO');
+export const NOK = toCurrencyISOCode('NOK');
+export const NPR = toCurrencyISOCode('NPR');
+export const NZD = toCurrencyISOCode('NZD');
+export const OMR = toCurrencyISOCode('OMR');
+export const PAB = toCurrencyISOCode('PAB');
+export const PEN = toCurrencyISOCode('PEN');
+export const PGK = toCurrencyISOCode('PGK');
+export const PHP = toCurrencyISOCode('PHP');
+export const PKR = toCurrencyISOCode('PKR');
+export const PLN = toCurrencyISOCode('PLN');
+export const PYG = toCurrencyISOCode('PYG');
+export const QAR = toCurrencyISOCode('QAR');
+export const RON = toCurrencyISOCode('RON');
+export const RSD = toCurrencyISOCode('RSD');
+export const RUB = toCurrencyISOCode('RUB');
+export const RWF = toCurrencyISOCode('RWF');
+export const SAR = toCurrencyISOCode('SAR');
+export const SBD = toCurrencyISOCode('SBD');
+export const SCR = toCurrencyISOCode('SCR');
+export const SDG = toCurrencyISOCode('SDG');
+export const SEK = toCurrencyISOCode('SEK');
+export const SGD = toCurrencyISOCode('SGD');
+export const SHP = toCurrencyISOCode('SHP');
+export const SLL = toCurrencyISOCode('SLL');
+export const SOS = toCurrencyISOCode('SOS');
+export const SRD = toCurrencyISOCode('SRD');
+export const STN = toCurrencyISOCode('STN');
+export const SZL = toCurrencyISOCode('SZL');
+export const THB = toCurrencyISOCode('THB');
+export const TJS = toCurrencyISOCode('TJS');
+export const TMT = toCurrencyISOCode('TMT');
+export const TND = toCurrencyISOCode('TND');
+export const TOP = toCurrencyISOCode('TOP');
+export const TRY = toCurrencyISOCode('TRY');
+export const TTD = toCurrencyISOCode('TTD');
+export const TWD = toCurrencyISOCode('TWD');
+export const TZS = toCurrencyISOCode('TZS');
+export const UAH = toCurrencyISOCode('UAH');
+export const UGX = toCurrencyISOCode('UGX');
+export const USD = toCurrencyISOCode('USD');
+export const UYU = toCurrencyISOCode('UYU');
+export const UZS = toCurrencyISOCode('UZS');
+export const VES = toCurrencyISOCode('VES');
+export const VND = toCurrencyISOCode('VND');
+export const XCD = toCurrencyISOCode('XCD');
+export const XOF = toCurrencyISOCode('XOF');
+export const XPF = toCurrencyISOCode('XPF');
+export const YER = toCurrencyISOCode('YER');
+export const ZAR = toCurrencyISOCode('ZAR');
+export const ZMW = toCurrencyISOCode('ZMW');
+
 export default [
     {
         acronym: 'AED',
@@ -1006,4 +1160,4 @@ export default [
         decimal_digits: 2,
         countries: ['Zambia'],
     },
-];
+] as const;

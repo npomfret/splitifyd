@@ -6,6 +6,7 @@ import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { SettlementHandlers } from '../../../settlements/SettlementHandlers';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
+import { toCurrencyISOCode, USD } from "@billsplit-wl/shared";
 
 describe('SettlementHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
@@ -45,7 +46,7 @@ describe('SettlementHandlers - Unit Tests', () => {
                 payerId,
                 payeeId,
                 amount: '100.5',
-                currency: 'USD',
+                currency: USD,
                 note: 'Test settlement',
             });
         });
@@ -522,7 +523,7 @@ describe('SettlementHandlers - Unit Tests', () => {
         it('should reject update with invalid amount precision when currency provided', async () => {
             const updateRequest = {
                 amount: '100.50',
-                currency: 'JPY',
+                currency: toCurrencyISOCode('JPY'),
             };
 
             await expect(appDriver.updateSettlement('test-settlement', updateRequest, 'test-user')).rejects.toThrow(

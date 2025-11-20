@@ -32,7 +32,7 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         // Current user owes Alice $25
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-2', 'Alice', 25.0)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-2', 'Alice', 25.0, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()
@@ -83,7 +83,7 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         // Bob owes current user $30 (reverse debt)
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt('user-2', 'Bob', user.uid, user.displayName, 30.0)
+            .withSimpleTwoPersonDebt('user-2', 'Bob', user.uid, user.displayName, 30.0, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()
@@ -135,7 +135,7 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         // Current user owes Charlie $42.50
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-2', 'Charlie', 42.50)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-2', 'Charlie', 42.50, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()
@@ -203,8 +203,8 @@ test.describe('Group Detail - Balance Settlement Button', () => {
         // Current user owes both David and Emma
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-2', 'David', 15.0)
-            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-3', 'Emma', 20.0)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-2', 'David', 15.0, 'USD')
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-3', 'Emma', 20.0, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()

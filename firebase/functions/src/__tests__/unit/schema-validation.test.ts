@@ -1,4 +1,4 @@
-import { ApiErrorResponseSchema, responseSchemas } from '@billsplit-wl/shared';
+import { ApiErrorResponseSchema, responseSchemas, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { GroupDTOBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 
@@ -30,7 +30,7 @@ const buildGroupResponse = () => {
         balance: {
             balancesByCurrency: {
                 USD: {
-                    currency: 'USD',
+                    currency: USD,
                     netBalance: '25.00',
                     owes: { 'user-456': '12.50' },
                 },

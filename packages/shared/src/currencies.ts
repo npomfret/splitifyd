@@ -2,11 +2,14 @@
 import currencyData from './currency-data';
 import { CurrencyISOCode } from './shared-types';
 
+// Re-export all currency code constants from currency-data
+export * from './currency-data';
+
 /**
  * Currency interface matching the structure in currencies.json
  */
 export interface Currency {
-    acronym: string;
+    acronym: CurrencyISOCode;
     name: string;
     symbol: string;
     decimal_digits: number;
@@ -16,7 +19,7 @@ export interface Currency {
 /**
  * All available currencies (read-only array)
  */
-export const CURRENCIES: readonly Currency[] = currencyData as Currency[];
+export const CURRENCIES: readonly Currency[] = currencyData as unknown as Currency[];
 
 /**
  * Currency lookup map for fast access by currency code
@@ -30,7 +33,7 @@ const currencyMap = new Map<string, Currency>(CURRENCIES.map((currency) => [curr
  * @returns Currency object
  * @throws Error if currency not found (fail-fast principle)
  */
-export function getCurrency(code: CurrencyISOCode): Currency {
+export function getCurrency(code: CurrencyISOCode | string): Currency {
     const upperCode = code.toUpperCase();
     const currency = currencyMap.get(upperCode);
 

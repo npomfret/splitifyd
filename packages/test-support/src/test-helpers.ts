@@ -1,5 +1,5 @@
 // Import currency utilities from shared package
-import { CurrencyISOCode, toAmount, toPassword } from '@billsplit-wl/shared';
+import { CurrencyISOCode, toAmount, toCurrencyISOCode, toPassword } from '@billsplit-wl/shared';
 import { Amount, getCurrencyDecimals, roundToCurrencyPrecision } from '@billsplit-wl/shared';
 import { ISOString, toISOString } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
@@ -98,11 +98,11 @@ export { getCurrencyDecimals, roundToCurrencyPrecision };
  */
 export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500): { currency: CurrencyISOCode; amount: Amount; } {
     // Currency lists by decimal precision (excluding USD)
-    const currenciesByDecimals: Record<number, string[]> = {
-        0: ['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'PYG'], // Zero decimals
-        1: ['MGA', 'MRU'], // One decimal
-        2: ['EUR', 'GBP', 'CAD', 'AUD', 'CHF', 'SEK', 'NOK', 'DKK', 'PLN'], // Two decimals (excluding USD)
-        3: ['BHD', 'KWD', 'OMR', 'JOD', 'TND'], // Three decimals
+    const currenciesByDecimals: Record<number, CurrencyISOCode[]> = {
+        0: ['JPY', 'KRW', 'VND', 'CLP', 'ISK', 'PYG'].map(item => toCurrencyISOCode(item)), // Zero decimals
+        1: ['MGA', 'MRU'].map(item => toCurrencyISOCode(item)), // One decimal
+        2: ['EUR', 'GBP', 'CAD', 'AUD', 'CHF', 'SEK', 'NOK', 'DKK', 'PLN'].map(item => toCurrencyISOCode(item)), // Two decimals (excluding USD)
+        3: ['BHD', 'KWD', 'OMR', 'JOD', 'TND'].map(item => toCurrencyISOCode(item)), // Three decimals
     };
 
     // Pick a random decimal precision group
@@ -110,7 +110,7 @@ export function randomValidCurrencyAmountPair(min: number = 5, max: number = 500
     const selectedDecimals: number = randomChoice<number>(decimalOptions);
 
     // Pick a random currency from that group
-    const currencyList: string[] = currenciesByDecimals[selectedDecimals];
+    const currencyList: CurrencyISOCode[] = currenciesByDecimals[selectedDecimals];
     const currency: CurrencyISOCode = randomChoice<CurrencyISOCode>(currencyList);
 
     // Generate amount with correct decimal precision

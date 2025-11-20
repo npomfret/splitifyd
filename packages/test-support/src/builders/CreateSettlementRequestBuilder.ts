@@ -4,6 +4,7 @@ import { GroupId, UserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
+import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomDate, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class CreateSettlementRequestBuilder {
@@ -37,8 +38,8 @@ export class CreateSettlementRequestBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
-        this.settlement.currency = currency;
+    withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
+        this.settlement.currency = typeof currency === "string" ? toCurrencyISOCode(currency) : currency;
         this.settlement.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }

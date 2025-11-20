@@ -309,7 +309,7 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
 
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'member-2', 'Alexandra Verylongname', 37.25)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'member-2', 'Alexandra Verylongname', 37.25, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()
@@ -363,7 +363,7 @@ test.describe('Settlement Form - Quick Settle Shortcuts', () => {
 
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'member-2', 'Alexandra Verylongname', 37.25)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'member-2', 'Alexandra Verylongname', 37.25, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()
@@ -417,7 +417,7 @@ test.describe('Settlement Form - Amount Warnings', () => {
 
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'member-2', 'Alexandra Verylongname', 50.0)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'member-2', 'Alexandra Verylongname', 50.0, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()

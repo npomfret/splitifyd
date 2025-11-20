@@ -43,7 +43,6 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withDescription(expenseDescription)
                 .withAmount(100, 'EUR')
                 .withPaidByDisplayName(user1DisplayName)
-                .withCurrency('EUR')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
@@ -118,7 +117,6 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withDescription(`Multi-currency ${uniqueId}`)
                 .withAmount(124, 'JPY') // Divides evenly: ¥62 each
                 .withPaidByDisplayName(user1DisplayName)
-                .withCurrency('JPY')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
@@ -134,7 +132,6 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withDescription(`Multi-currency BHD ${uniqueId}`)
                 .withAmount(31.000, 'BHD')
                 .withPaidByDisplayName(user1DisplayName)
-                .withCurrency('BHD')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
@@ -152,7 +149,6 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withDescription(`Multi-currency KWD ${uniqueId}`)
                 .withAmount(6.000, 'KWD')
                 .withPaidByDisplayName(user1DisplayName)
-                .withCurrency('KWD')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
@@ -257,7 +253,6 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withDescription('Large User1 Payment')
                 .withAmount(300, 'EUR')
                 .withPaidByDisplayName(user1DisplayName)
-                .withCurrency('EUR')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
@@ -276,7 +271,6 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withDescription('Small User2 Payment')
                 .withAmount(100, 'EUR')
                 .withPaidByDisplayName(user2DisplayName)
-                .withCurrency('EUR')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
@@ -309,7 +303,6 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withDescription('Final Test Expense')
                 .withAmount(50, 'EUR')
                 .withPaidByDisplayName(user1DisplayName)
-                .withCurrency('EUR')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
@@ -348,7 +341,6 @@ simpleTest.describe('Expense and Balance Lifecycle - Comprehensive Integration',
                 .withDescription(expenseDescription)
                 .withAmount(120, 'JPY')
                 .withPaidByDisplayName(user1DisplayName)
-                .withCurrency('JPY')
                 .withSplitType('equal')
                 .withParticipants([user1DisplayName, user2DisplayName, user3DisplayName])
                 .build(),

@@ -1,13 +1,14 @@
 import { ActivityFeedActions, ActivityFeedEventTypes, MemberRoles, MemberStatuses } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { GroupBalanceDTOBuilder, GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
+import { GroupDTOBuilder, GroupMemberDocumentBuilder, ThemeBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, test } from 'vitest';
 import { ActivityFeedService } from '../../../services/ActivityFeedService';
 import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreWriter } from '../../../services/firestore';
 import { GroupMemberService } from '../../../services/GroupMemberService';
+import { GroupBalanceDTOBuilder } from '../../builders/GroupBalanceDTOBuilder';
 
 describe('GroupMemberService - Consolidated Unit Tests', () => {
     let groupMemberService: GroupMemberService;

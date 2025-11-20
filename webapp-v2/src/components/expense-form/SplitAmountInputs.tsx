@@ -1,6 +1,6 @@
 import { getCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { Amount, amountToSmallestUnit, smallestUnitToAmountString, ZERO } from '@billsplit-wl/shared';
+import { Amount, amountToSmallestUnit, smallestUnitToAmountString, toCurrencyISOCode, ZERO } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, CurrencyAmount } from '../ui';
 
@@ -44,7 +44,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
 
     let totalUnits: number;
     try {
-        totalUnits = amountToSmallestUnit(normalizedAmount, currency);
+        totalUnits = amountToSmallestUnit(normalizedAmount, toCurrencyISOCode(currency));
     } catch {
         return null;
     }
@@ -71,7 +71,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                 <span className='text-sm font-medium text-text-primary dark:text-text-muted/60'>{memberName}</span>
                             </div>
                             <div className='flex items-center gap-2'>
-                                <span className='text-text-muted'>{getCurrency(currency)!.symbol}</span>
+                                <span className='text-text-muted'>{getCurrency(toCurrencyISOCode(currency))!.symbol}</span>
                                 <input
                                     type='text'
                                     inputMode='decimal'
@@ -94,7 +94,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                         <span
                             className={`font-medium ${
                                 (() => {
-                                    const splitUnits = splits.reduce((sum, s) => sum + amountToSmallestUnit(s.amount, currency), 0);
+                                    const splitUnits = splits.reduce((sum, s) => sum + amountToSmallestUnit(s.amount, toCurrencyISOCode(currency)), 0);
                                     return splitUnits === totalUnits ? 'text-semantic-success dark:text-semantic-success' : 'text-semantic-error dark:text-semantic-error/80';
                                 })()
                             }`}
@@ -102,12 +102,12 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                         >
                             <CurrencyAmount
                                 amount={smallestUnitToAmountString(
-                                    splits.reduce((sum, s) => sum + amountToSmallestUnit(s.amount, currency), 0),
-                                    currency,
+                                    splits.reduce((sum, s) => sum + amountToSmallestUnit(s.amount, toCurrencyISOCode(currency)), 0),
+                                    toCurrencyISOCode(currency),
                                 )}
-                                currency={currency}
+                                currency={toCurrencyISOCode(currency)}
                             />{' '}
-                            / <CurrencyAmount amount={amount} currency={currency} />
+                            / <CurrencyAmount amount={amount} currency={toCurrencyISOCode(currency)} />
                         </span>
                     </div>
                 </div>
@@ -150,7 +150,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                 />
                                 <span className='text-text-muted'>{t('expenseComponents.splitAmountInputs.percentSign')}</span>
                                 <span className='text-xs text-text-muted w-16 text-right'>
-                                    <CurrencyAmount amount={split?.amount ?? ZERO} currency={currency} />
+                                    <CurrencyAmount amount={split?.amount ?? ZERO} currency={toCurrencyISOCode(currency)} />
                                 </span>
                             </div>
                         </div>
@@ -189,7 +189,7 @@ export function SplitAmountInputs({ splitType, amount, currency, participants, s
                                     <span className='text-sm text-text-muted dark:text-text-muted/80'>{memberName}</span>
                                 </div>
                                 <span className='text-sm font-medium text-text-primary dark:text-white'>
-                                    <CurrencyAmount amount={split.amount} currency={currency} />
+                                    <CurrencyAmount amount={split.amount} currency={toCurrencyISOCode(currency)} />
                                 </span>
                             </div>
                         );

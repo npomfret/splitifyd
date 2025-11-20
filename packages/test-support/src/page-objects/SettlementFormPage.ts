@@ -159,7 +159,7 @@ export class SettlementFormPage extends BasePage {
         }
     }
 
-    async selectCurrency(currency: CurrencyISOCode): Promise<void> {
+    async selectCurrency(currency: CurrencyISOCode | string): Promise<void> {
         await this.waitForReady();
 
         const currencyButton = this.getCurrencyButton();
@@ -281,7 +281,7 @@ export class SettlementFormPage extends BasePage {
         }, value);
     }
 
-    async fillAndSubmitSettlement(payeeName: string, amount: string, currency: CurrencyISOCode, note?: string): Promise<void> {
+    async fillAndSubmitSettlement(payeeName: string, amount: string, currency: CurrencyISOCode | string, note?: string): Promise<void> {
         await this.waitForReady();
 
         await this.selectCurrency(currency);

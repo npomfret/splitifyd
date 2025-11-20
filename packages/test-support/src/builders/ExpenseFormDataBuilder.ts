@@ -1,4 +1,4 @@
-import type { ExpenseFormData } from '@billsplit-wl/shared';
+import {ExpenseFormData, toCurrencyISOCode} from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
@@ -30,14 +30,9 @@ export class ExpenseFormDataBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
-        this.expense.currency = currency;
+    withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
+        this.expense.currency = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
         this.expense.amount = typeof amount === 'number' ? amount.toString() : amount;
-        return this;
-    }
-
-    withCurrency(currency: CurrencyISOCode): this {
-        this.expense.currency = currency;
         return this;
     }
 

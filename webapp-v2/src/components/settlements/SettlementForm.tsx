@@ -16,6 +16,7 @@ import {
     SettlementWithMembers,
     SimplifiedDebt,
     smallestUnitToAmountString,
+    toCurrencyISOCode,
     UserId,
     ZERO,
 } from '@billsplit-wl/shared';
@@ -30,7 +31,7 @@ import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip } from '../u
  * Example: JPY (0 decimals) -> '999999', USD (2 decimals) -> '999999.99'
  */
 function getMaxAmountForCurrency(currency: string): string {
-    const decimals = getCurrencyDecimals(currency);
+    const decimals = getCurrencyDecimals(toCurrencyISOCode(currency));
     if (decimals === 0) {
         return '999999';
     }
@@ -193,15 +194,15 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return;
         }
 
-        const normalizedAmount = normalizeAmount(amount, currency);
-        const amountUnits = amountToSmallestUnit(normalizedAmount, currency);
+        const normalizedAmount = normalizeAmount(amount, toCurrencyISOCode(currency));
+        const amountUnits = amountToSmallestUnit(normalizedAmount, toCurrencyISOCode(currency));
         if (amountUnits <= 0) {
             setWarningMessage(null);
             return;
         }
 
-        const currentDebt = normalizeAmount(getCurrentDebt(), currency);
-        const currentDebtUnits = amountToSmallestUnit(currentDebt, currency);
+        const currentDebt = normalizeAmount(getCurrentDebt(), toCurrencyISOCode(currency));
+        const currentDebtUnits = amountToSmallestUnit(currentDebt, toCurrencyISOCode(currency));
 
         if (currentDebtUnits === 0) {
             const payerName = getMemberName(payerId);
@@ -217,8 +218,8 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 t('settlementForm.warnings.overpayment', {
                     payer: payerName,
                     payee: payeeName,
-                    debt: formatCurrency(currentDebt, currency),
-                    amount: formatCurrency(normalizedAmount, currency),
+                    debt: formatCurrency(currentDebt, toCurrencyISOCode(currency)),
+                    amount: formatCurrency(normalizedAmount, toCurrencyISOCode(currency)),
                 }),
             );
             return;
@@ -228,13 +229,13 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             const payerName = getMemberName(payerId);
             const payeeName = getMemberName(payeeId);
             const remainingUnits = currentDebtUnits - amountUnits;
-            const remainingAmount = smallestUnitToAmountString(remainingUnits, currency);
+            const remainingAmount = smallestUnitToAmountString(remainingUnits, toCurrencyISOCode(currency));
             setWarningMessage(
                 t('settlementForm.warnings.underpayment', {
                     payer: payerName,
                     payee: payeeName,
-                    amount: formatCurrency(normalizedAmount, currency),
-                    remaining: formatCurrency(remainingAmount, currency),
+                    amount: formatCurrency(normalizedAmount, toCurrencyISOCode(currency)),
+                    remaining: formatCurrency(remainingAmount, toCurrencyISOCode(currency)),
                 }),
             );
             return;
@@ -249,7 +250,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return;
         }
 
-        const precisionMessage = getAmountPrecisionError(amountValue, currencyCode);
+        const precisionMessage = getAmountPrecisionError(amountValue, toCurrencyISOCode(currencyCode));
         setAmountPrecisionError(precisionMessage);
     };
 
@@ -280,15 +281,15 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return t('settlementForm.validation.validAmountRequired');
         }
 
-        const precisionError = getAmountPrecisionError(amount, currency);
+        const precisionError = getAmountPrecisionError(amount, toCurrencyISOCode(currency));
         if (precisionError) {
             return precisionError;
         }
 
         let amountUnits: number;
         try {
-            const normalizedAmount = normalizeAmount(amount, currency);
-            amountUnits = amountToSmallestUnit(normalizedAmount, currency);
+            const normalizedAmount = normalizeAmount(amount, toCurrencyISOCode(currency));
+            amountUnits = amountToSmallestUnit(normalizedAmount, toCurrencyISOCode(currency));
         } catch {
             return t('settlementForm.validation.validAmountRequired');
         }
@@ -297,7 +298,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return t('settlementForm.validation.validAmountRequired');
         }
 
-        if (currency && amountUnits > amountToSmallestUnit(getMaxAmountForCurrency(currency), currency)) {
+        if (currency && amountUnits > amountToSmallestUnit(getMaxAmountForCurrency(currency), toCurrencyISOCode(currency))) {
             return t('settlementForm.validation.amountTooLarge');
         }
 
@@ -330,7 +331,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                 // Update existing settlement - only send fields that can be updated
                 const updateData = {
                     amount: amount,
-                    currency: currency,
+                    currency: toCurrencyISOCode(currency),
                     date: getUTCMidnight(date), // Always send UTC to server
                     note: note.trim() || undefined,
                 };
@@ -342,7 +343,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                     payerId: payerId,
                     payeeId: payeeId,
                     amount: amount,
-                    currency: currency,
+                    currency: toCurrencyISOCode(currency),
                     date: getUTCMidnight(date), // Always send UTC to server
                     note: note.trim() || undefined,
                 };
@@ -383,14 +384,14 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
             return false;
         }
 
-        if (getAmountPrecisionError(amount, currency)) {
+        if (getAmountPrecisionError(amount, toCurrencyISOCode(currency))) {
             return false;
         }
 
         try {
-            const normalizedAmount = normalizeAmount(amount, currency);
-            const amountUnits = amountToSmallestUnit(normalizedAmount, currency);
-            const maxUnits = amountToSmallestUnit(getMaxAmountForCurrency(currency), currency);
+            const normalizedAmount = normalizeAmount(amount, toCurrencyISOCode(currency));
+            const amountUnits = amountToSmallestUnit(normalizedAmount, toCurrencyISOCode(currency));
+            const maxUnits = amountToSmallestUnit(getMaxAmountForCurrency(currency), toCurrencyISOCode(currency));
             return amountUnits > 0 && amountUnits <= maxUnits;
         } catch (error) {
             // If amount validation fails, form is invalid
@@ -447,7 +448,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                             recalculatePrecisionError(debt.amount, debt.currency);
                                         }}
                                         class='inline-flex items-center justify-start gap-2 px-4 py-2 bg-interactive-primary/10 border border-border-default rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted hover:border-interactive-primary transition-colors focus:outline-none focus:ring-2 focus-visible:ring-interactive-primary w-full sm:w-[280px]'
-                                        title={`${formatCurrency(debt.amount, debt.currency)} → ${getGroupDisplayName(payeeMember)}`}
+                                        title={`${formatCurrency(debt.amount, toCurrencyISOCode(debt.currency))} → ${getGroupDisplayName(payeeMember)}`}
                                     >
                                         {/* Avatar */}
                                         <div
@@ -535,7 +536,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                 }}
                                 onCurrencyChange={(value) => {
                                     setCurrency(value);
-                                    CurrencyService.getInstance().addToRecentCurrencies(value);
+                                    CurrencyService.getInstance().addToRecentCurrencies(toCurrencyISOCode(value));
                                     recalculatePrecisionError(amount, value);
                                 }}
                                 label={t('settlementForm.amountLabel')}

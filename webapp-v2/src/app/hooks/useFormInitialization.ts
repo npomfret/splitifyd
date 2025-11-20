@@ -1,7 +1,7 @@
 import { ROUTES } from '@/constants/routes';
 import { logError, logInfo } from '@/utils/browser-logger.ts';
 import { extractTimeFromISO } from '@/utils/dateUtils.ts';
-import { amountToSmallestUnit } from '@billsplit-wl/shared';
+import {amountToSmallestUnit, CurrencyISOCode, toCurrencyISOCode} from '@billsplit-wl/shared';
 import { ExpenseId, GroupId } from '@billsplit-wl/shared';
 import { useComputed, useSignal } from '@preact/signals';
 import { route } from 'preact-router';
@@ -123,14 +123,14 @@ export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMo
 
         // Detect currency from existing group expenses (same logic as settlement form)
         const expenses = enhancedGroupDetailStore.expenses;
-        let detectedCurrency = '';
+        let detectedCurrency: CurrencyISOCode = toCurrencyISOCode('USD'); // Default to USD... todo: have this as a defult for each user
 
         // Try to get currency from most recent expense
         if (expenses && expenses.length > 0) {
             detectedCurrency = expenses[0].currency;
         }
 
-        // Set detected currency (will be empty string if no expenses exist - forcing user to select)
+        // Set detected currency (defaults to USD if no expenses exist)
         expenseFormStore.updateField('currency', detectedCurrency);
     };
 

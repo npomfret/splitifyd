@@ -1,12 +1,9 @@
 import type { Amount, SimplifiedDebt, UserBalance } from '@billsplit-wl/shared';
-import { addAmounts, compareAmounts, isZeroAmount, subtractAmounts, toAmount, zeroAmount } from '@billsplit-wl/shared';
+import { addAmounts, compareAmounts, isZeroAmount, subtractAmounts, toAmount, zeroAmount, USD, EUR } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { DebtScenarios, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
 import { simplifyDebts } from '../../utils/debtSimplifier';
-
-const USD = 'USD';
-const EUR = 'EUR';
 
 const buildDebt = (from: string, to: string, amount: Amount | number, currency: CurrencyISOCode = USD) =>
     new SimplifiedDebtBuilder()
@@ -236,6 +233,6 @@ describe('simplifyDebts', () => {
             zero,
         );
 
-        expectAmountEqual(totalToUser4, '100.00', 'USD');
+        expectAmountEqual(totalToUser4, '100.00', USD);
     });
 });

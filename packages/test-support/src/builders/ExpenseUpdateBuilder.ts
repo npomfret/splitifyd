@@ -1,5 +1,5 @@
 import type { UpdateExpenseRequest, UserId } from '@billsplit-wl/shared';
-import { Amount } from '@billsplit-wl/shared';
+import { Amount, toCurrencyISOCode } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
 import { convertToISOString, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
@@ -31,8 +31,8 @@ export class ExpenseUpdateBuilder {
         return new ExpenseUpdateBuilder(false);
     }
 
-    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
-        this.update.currency = currency;
+    withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
+        this.update.currency = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
         this.update.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }

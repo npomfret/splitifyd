@@ -7,9 +7,13 @@ import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
+import { toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 
 describe('ExpenseHandlers - Unit Tests', () => {
     let appDriver: AppDriver;
+    const usd = USD;
+    const eur = toCurrencyISOCode('EUR');
+    const jpy = toCurrencyISOCode('JPY');
 
     beforeEach(() => {
         appDriver = new AppDriver();
@@ -186,8 +190,8 @@ describe('ExpenseHandlers - Unit Tests', () => {
         it('should reject expense with excessive precision for JPY', async () => {
             const userId = 'test-user';
             const expenseRequest = new CreateExpenseRequestBuilder()
-                .withAmount(100.50, 'JPY')
-                .withCurrency('JPY')
+                .withAmount(100.50, jpy)
+                .withCurrency(jpy)
                 .build();
 
             await expect(appDriver.createExpense(expenseRequest, userId)).rejects.toThrow(
@@ -273,7 +277,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
         it('should reject update with invalid amount precision when currency provided', async () => {
             const updateRequest: UpdateExpenseRequest = {
                 amount: '100.50',
-                currency: 'JPY',
+                currency: jpy,
             };
 
             await expect(appDriver.updateExpense('test-expense', updateRequest, 'test-user')).rejects.toThrow(
@@ -542,10 +546,10 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const created = await appDriver.createExpense(expenseData, user1);
 
-            const updateData = {
+            const updateData: UpdateExpenseRequest = {
                 description: 'Updated Test Expense',
                 amount: '150.50',
-                currency: 'USD',
+                currency: usd,
                 label: 'food',
                 participants: [user1, user2],
                 splitType: 'equal' as const,
@@ -581,7 +585,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const createData = new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
-                .withAmount(60, 'EUR')
+                .withAmount(60, eur)
                 .withPaidBy(user1)
                 .withParticipants([user1, user2])
                 .withSplitType('equal')
@@ -589,9 +593,9 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
             const created = await appDriver.createExpense(createData, user1);
 
-            const updatePayload = {
+            const updatePayload: UpdateExpenseRequest = {
                 amount: '60.00',
-                currency: 'EUR',
+                currency: eur,
                 paidBy: user2,
                 participants: [user1, user2],
                 splitType: 'equal' as const,
@@ -604,7 +608,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             await appDriver.updateExpense(created.id, updatePayload, user1);
 
             const balances = await appDriver.getGroupBalances(group.id, user1);
-            const currencyBalances = balances.balancesByCurrency?.EUR;
+            const currencyBalances = balances.balancesByCurrency?.[eur];
             expect(currencyBalances).toBeDefined();
 
             const user1Balance = currencyBalances![user1];
@@ -644,7 +648,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             // Creator should be able to update
             await appDriver.updateExpense(created.id, {
                 amount: '150.00',
-                currency: 'USD',
+                currency: usd,
                 participants: [admin, member1],
                 splitType: 'equal' as const,
                 splits: [
@@ -657,7 +661,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
             const updated = await appDriver.updateExpense(created.id, {
                 description: 'Updated by non-creator',
                 amount: '120.00',
-                currency: 'USD',
+                currency: usd,
                 participants: [admin, member1],
                 splitType: 'equal' as const,
                 splits: [
@@ -889,7 +893,7 @@ describe('ExpenseHandlers - Unit Tests', () => {
                 payerId: user2,
                 payeeId: user1,
                 amount: '30.00',
-                currency: 'USD',
+                currency: usd,
                 note: 'Settling up before leaving',
             }, user2);
 

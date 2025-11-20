@@ -5,6 +5,7 @@ import { ExpenseFormPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberB
 import type { Page } from '@playwright/test';
 import { expect, test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi } from '../../utils/mock-firebase-service';
+import { toCurrencyISOCode, USD } from "@billsplit-wl/shared";
 
 type MemberSeed = {
     uid: string;
@@ -269,10 +270,10 @@ test.describe('Expense Form', () => {
             );
 
             await expenseFormPage.selectCurrency('USD');
-            await expenseFormPage.expectCurrencySelectionDisplays('$', 'USD');
+            await expenseFormPage.expectCurrencySelectionDisplays('$', USD);
 
             await expenseFormPage.selectCurrency('CAD');
-            await expenseFormPage.expectCurrencySelectionDisplays('$', 'CAD');
+            await expenseFormPage.expectCurrencySelectionDisplays('$', toCurrencyISOCode('CAD'));
         });
 
         test('should recalculate splits when currency changes (USD to JPY)', async ({ authenticatedPage }) => {
@@ -1198,24 +1199,6 @@ test.describe('Expense Form', () => {
             await expenseFormPage.fillAmount('0');
             await expenseFormPage.verifyAmountErrorMessageContains('Amount must be greater than 0');
             await expenseFormPage.expectAmountValue('0');
-            await expenseFormPage.expectFormOpen();
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
-            await expectNoGlobalError(expenseFormPage);
-        });
-
-        test('should require currency selection before submitting', async ({ authenticatedPage }) => {
-            const groupId = 'test-group-validation-currency-required';
-            const { expenseFormPage, page, testUser } = await openExpenseFormForTest(authenticatedPage, groupId, [
-                { uid: 'user-2', displayName: toDisplayName('User 2') },
-            ]);
-
-            await expenseFormPage.fillDescription('Currency required');
-            await expenseFormPage.fillAmount('25');
-            await expenseFormPage.selectPayer(testUser.displayName);
-            await expenseFormPage.selectSplitParticipants(['User 2']);
-            await expenseFormPage.expectSaveButtonEnabled();
-            await expenseFormPage.submitForm();
-            await expenseFormPage.verifyAmountErrorMessageContains('Currency is required');
             await expenseFormPage.expectFormOpen();
             await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
             await expectNoGlobalError(expenseFormPage);

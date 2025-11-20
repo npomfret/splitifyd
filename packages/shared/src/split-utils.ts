@@ -1,5 +1,5 @@
 import { getCurrency } from './currencies';
-import { Amount, CurrencyISOCode, ExpenseSplit } from './shared-types';
+import { Amount, CurrencyISOCode, ExpenseSplit, UserId } from './shared-types';
 
 /**
  * Get the decimal precision for a currency
@@ -67,9 +67,9 @@ export function parseMonetaryAmount(amount: string | number): number {
  * @returns Amount rounded to currency precision as a string
  *
  * @example
- * roundToCurrencyPrecision(33.333333, 'JPY') // "33" (0 decimals)
- * roundToCurrencyPrecision(33.333333, 'USD') // "33.33" (2 decimals)
- * roundToCurrencyPrecision(33.333333, 'BHD') // "33.333" (3 decimals)
+ * roundToCurrencyPrecision(33.333333, toCurrencyISOCode('JPY')) // "33" (0 decimals)
+ * roundToCurrencyPrecision(33.333333, toCurrencyISOCode('USD')) // "33.33" (2 decimals)
+ * roundToCurrencyPrecision(33.333333, toCurrencyISOCode('BHD')) // "33.333" (3 decimals)
  */
 export function roundToCurrencyPrecision(amount: Amount, currencyCode: CurrencyISOCode): string {
     const numericAmount = parseMonetaryAmount(amount);
@@ -100,7 +100,7 @@ export function roundToCurrencyPrecision(amount: Amount, currencyCode: CurrencyI
 export function calculateEqualSplits(
     totalAmount: Amount,
     currencyCode: CurrencyISOCode,
-    participantIds: string[],
+    participantIds: UserId[],
     rotationSeed?: number,
 ): ExpenseSplit[] {
     if (participantIds.length === 0) {

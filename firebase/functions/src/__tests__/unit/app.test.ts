@@ -12,6 +12,8 @@ import {
     toGroupName,
     toTenantDomainName,
     UserBalance,
+    toCurrencyISOCode,
+    USD,
 } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
@@ -89,68 +91,69 @@ describe('app tests', () => {
             const createdExpense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100, 'EUR')
+                    .withAmount(100, toCurrencyISOCode('EUR'))
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(100), 'EUR', participants))
+                    .withSplits(calculateEqualSplits(toAmount(100), toCurrencyISOCode('EUR'), participants))
                     .build(),
                 user1,
             );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+            const eur = toCurrencyISOCode('EUR');
 
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owedBy[user2]).toBe('50.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('50.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('50.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-50.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].owedBy[user2]).toBe('50.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].netBalance).toBe('50.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('50.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('-50.00');
 
             await appDriver.updateExpense(
                 createdExpense.id,
                 ExpenseUpdateBuilder
                     .minimal()
-                    .withAmount(150.5, 'EUR')
+                    .withAmount(150.5, toCurrencyISOCode('EUR'))
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(150.5), 'EUR', participants))
+                    .withSplits(calculateEqualSplits(toAmount(150.5), toCurrencyISOCode('EUR'), participants))
                     .build(),
                 user1,
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            expect(groupDetails.balances.balancesByCurrency?.EUR).toBeDefined();
-            expect((groupDetails.balances.balancesByCurrency!.EUR)![user1]).toBeDefined();
-            expect((groupDetails.balances.balancesByCurrency!.EUR)![user1].owedBy[user2]).toBe('75.25');
-            expect((groupDetails.balances.balancesByCurrency!.EUR)![user1].netBalance).toBe('75.25');
-            expect((groupDetails.balances.balancesByCurrency!.EUR)![user2].owes[user1]).toBe('75.25');
-            expect((groupDetails.balances.balancesByCurrency!.EUR)![user2].netBalance).toBe('-75.25');
+            expect(groupDetails.balances.balancesByCurrency?.[eur]).toBeDefined();
+            expect((groupDetails.balances.balancesByCurrency![eur])![user1]).toBeDefined();
+            expect((groupDetails.balances.balancesByCurrency![eur])![user1].owedBy[user2]).toBe('75.25');
+            expect((groupDetails.balances.balancesByCurrency![eur])![user1].netBalance).toBe('75.25');
+            expect((groupDetails.balances.balancesByCurrency![eur])![user2].owes[user1]).toBe('75.25');
+            expect((groupDetails.balances.balancesByCurrency![eur])![user2].netBalance).toBe('-75.25');
 
             await appDriver.createSettlement(
                 new CreateSettlementRequestBuilder()
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(50.25, 'EUR')
+                    .withAmount(50.25, toCurrencyISOCode('EUR'))
                     .build(),
                 user2,
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owedBy[user2]).toBe('25.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('25.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('25.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-25.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].owedBy[user2]).toBe('25.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].netBalance).toBe('25.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('25.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('-25.00');
 
             await appDriver.deleteExpense(createdExpense.id, user1);
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owes[user2]).toBe('50.25');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('-50.25');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owedBy[user1]).toBe('50.25');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('50.25');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].owes[user2]).toBe('50.25');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].netBalance).toBe('-50.25');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].owedBy[user1]).toBe('50.25');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('50.25');
         });
 
         it('should paginate expenses and settlements via group full details', async () => {
@@ -168,11 +171,11 @@ describe('app tests', () => {
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
                         .withDescription(`Paginated expense ${index}`)
-                        .withAmount(amount, 'USD')
+                        .withAmount(amount, USD)
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(toAmount(amount), 'USD', participants))
+                        .withSplits(calculateEqualSplits(toAmount(amount), USD, participants))
                         .build(),
                     user1,
                 );
@@ -188,7 +191,7 @@ describe('app tests', () => {
                         .withGroupId(groupId)
                         .withPayerId(user2)
                         .withPayeeId(user1)
-                        .withAmount(amount, 'USD')
+                        .withAmount(amount, USD)
                         .build(),
                     user2,
                 );
@@ -270,11 +273,11 @@ describe('app tests', () => {
 
             const participants = [user1, user2, user3];
 
-            const kwdSplits = calculateEqualSplits(toAmount(12.345), 'KWD', participants);
+            const kwdSplits = calculateEqualSplits(toAmount(12.345), toCurrencyISOCode('KWD'), participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(12.345, 'KWD')
+                    .withAmount(12.345, toCurrencyISOCode('KWD'))
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -285,21 +288,21 @@ describe('app tests', () => {
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            const kwdBalances = groupDetails.balances.balancesByCurrency?.KWD;
+            const kwdBalances = groupDetails.balances.balancesByCurrency?.[toCurrencyISOCode('KWD')];
             expect(kwdBalances).toBeDefined();
             expect(kwdBalances![user1].owedBy[user2]).toBe(amountFor(kwdSplits, user2));
             expect(kwdBalances![user1].owedBy[user3]).toBe(amountFor(kwdSplits, user3));
-            expect(kwdBalances![user1].netBalance).toBe(netBalanceForPayer(kwdSplits, user1, 'KWD'));
+            expect(kwdBalances![user1].netBalance).toBe(netBalanceForPayer(kwdSplits, user1, toCurrencyISOCode('KWD')));
             expect(kwdBalances![user2].owes[user1]).toBe(amountFor(kwdSplits, user2));
             expect(kwdBalances![user3].owes[user1]).toBe(amountFor(kwdSplits, user3));
             expect(kwdBalances![user2].netBalance).toBe(`-${amountFor(kwdSplits, user2)}`);
             expect(kwdBalances![user3].netBalance).toBe(`-${amountFor(kwdSplits, user3)}`);
 
-            const jpySplits = calculateEqualSplits(toAmount(303), 'JPY', participants);
+            const jpySplits = calculateEqualSplits(toAmount(303), toCurrencyISOCode('JPY'), participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(303, 'JPY')
+                    .withAmount(303, toCurrencyISOCode('JPY'))
                     .withPaidBy(user2)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -310,21 +313,21 @@ describe('app tests', () => {
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            const jpyBalances = groupDetails.balances.balancesByCurrency?.JPY;
+            const jpyBalances = groupDetails.balances.balancesByCurrency?.[toCurrencyISOCode('JPY')];
             expect(jpyBalances).toBeDefined();
             expect(jpyBalances![user2].owedBy[user1]).toBe(amountFor(jpySplits, user1));
             expect(jpyBalances![user2].owedBy[user3]).toBe(amountFor(jpySplits, user3));
-            expect(jpyBalances![user2].netBalance).toBe(netBalanceForPayer(jpySplits, user2, 'JPY'));
+            expect(jpyBalances![user2].netBalance).toBe(netBalanceForPayer(jpySplits, user2, toCurrencyISOCode('JPY')));
             expect(jpyBalances![user1].owes[user2]).toBe(amountFor(jpySplits, user1));
             expect(jpyBalances![user3].owes[user2]).toBe(amountFor(jpySplits, user3));
             expect(jpyBalances![user1].netBalance).toBe(`-${amountFor(jpySplits, user1)}`);
             expect(jpyBalances![user3].netBalance).toBe(`-${amountFor(jpySplits, user3)}`);
 
-            const gbpSplits = calculateEqualSplits(toAmount(45.67), 'GBP', participants);
+            const gbpSplits = calculateEqualSplits(toAmount(45.67), toCurrencyISOCode('GBP'), participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(45.67, 'GBP')
+                    .withAmount(45.67, toCurrencyISOCode('GBP'))
                     .withPaidBy(user3)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -335,18 +338,18 @@ describe('app tests', () => {
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            const gbpBalances = groupDetails.balances.balancesByCurrency?.GBP;
+            const gbpBalances = groupDetails.balances.balancesByCurrency?.[toCurrencyISOCode('GBP')];
             expect(gbpBalances).toBeDefined();
             expect(gbpBalances![user3].owedBy[user1]).toBe(amountFor(gbpSplits, user1));
             expect(gbpBalances![user3].owedBy[user2]).toBe(amountFor(gbpSplits, user2));
-            expect(gbpBalances![user3].netBalance).toBe(netBalanceForPayer(gbpSplits, user3, 'GBP'));
+            expect(gbpBalances![user3].netBalance).toBe(netBalanceForPayer(gbpSplits, user3, toCurrencyISOCode('GBP')));
             expect(gbpBalances![user1].owes[user3]).toBe(amountFor(gbpSplits, user1));
             expect(gbpBalances![user2].owes[user3]).toBe(amountFor(gbpSplits, user2));
             expect(gbpBalances![user1].netBalance).toBe(`-${amountFor(gbpSplits, user1)}`);
             expect(gbpBalances![user2].netBalance).toBe(`-${amountFor(gbpSplits, user2)}`);
 
-            expect(groupDetails.balances.balancesByCurrency!.KWD![user1].owedBy[user2]).toBe(amountFor(kwdSplits, user2));
-            expect(groupDetails.balances.balancesByCurrency!.KWD![user1].owedBy[user3]).toBe(amountFor(kwdSplits, user3));
+            expect(groupDetails.balances.balancesByCurrency![toCurrencyISOCode('KWD')]![user1].owedBy[user2]).toBe(amountFor(kwdSplits, user2));
+            expect(groupDetails.balances.balancesByCurrency![toCurrencyISOCode('KWD')]![user1].owedBy[user3]).toBe(amountFor(kwdSplits, user3));
         });
 
         it('should support exact split expenses with manual allocations', async () => {
@@ -370,7 +373,7 @@ describe('app tests', () => {
             const createdExpense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(275.25, 'USD')
+                    .withAmount(275.25, USD)
                     .withPaidBy(user2)
                     .withParticipants(participants)
                     .withSplitType('exact')
@@ -381,11 +384,11 @@ describe('app tests', () => {
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
             expect(usdBalances).toBeDefined();
             expect(usdBalances![user2].owedBy[user1]).toBe(amountFor(exactSplits, user1));
             expect(usdBalances![user2].owedBy[user3]).toBe(amountFor(exactSplits, user3));
-            expect(usdBalances![user2].netBalance).toBe(netBalanceForPayer(exactSplits, user2, 'USD'));
+            expect(usdBalances![user2].netBalance).toBe(netBalanceForPayer(exactSplits, user2, USD));
             expect(usdBalances![user1].owes[user2]).toBe(amountFor(exactSplits, user1));
             expect(usdBalances![user3].owes[user2]).toBe(amountFor(exactSplits, user3));
             expect(usdBalances![user1].netBalance).toBe(`-${amountFor(exactSplits, user1)}`);
@@ -395,7 +398,7 @@ describe('app tests', () => {
             expect(recordedExpense).toBeDefined();
             expect(recordedExpense!.splitType).toBe('exact');
             expect(recordedExpense!.amount).toBe('275.25');
-            expect(recordedExpense!.currency).toBe('USD');
+            expect(recordedExpense!.currency).toBe(USD);
             expect(recordedExpense!.paidBy).toBe(user2);
             expect(recordedExpense!.splits).toEqual(exactSplits);
         });
@@ -411,12 +414,12 @@ describe('app tests', () => {
 
             const participants = [user1, user2, user3];
 
-            const percentageSplits = calculatePercentageSplits(toAmount(200), 'EUR', participants);
+            const percentageSplits = calculatePercentageSplits(toAmount(200), toCurrencyISOCode('EUR'), participants);
             const createdExpense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Team Outing EUR')
-                    .withAmount(200, 'EUR')
+                    .withAmount(200, toCurrencyISOCode('EUR'))
                     .withPaidBy(user3)
                     .withParticipants(participants)
                     .withSplitType('percentage')
@@ -426,12 +429,13 @@ describe('app tests', () => {
             );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user3);
+            const eur = toCurrencyISOCode('EUR');
 
-            const eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+            const eurBalances = groupDetails.balances.balancesByCurrency?.[eur];
             expect(eurBalances).toBeDefined();
             expect(eurBalances![user3].owedBy[user1]).toBe(amountFor(percentageSplits, user1));
             expect(eurBalances![user3].owedBy[user2]).toBe(amountFor(percentageSplits, user2));
-            expect(eurBalances![user3].netBalance).toBe(netBalanceForPayer(percentageSplits, user3, 'EUR'));
+            expect(eurBalances![user3].netBalance).toBe(netBalanceForPayer(percentageSplits, user3, toCurrencyISOCode('EUR')));
             expect(eurBalances![user1].owes[user3]).toBe(amountFor(percentageSplits, user1));
             expect(eurBalances![user2].owes[user3]).toBe(amountFor(percentageSplits, user2));
             expect(eurBalances![user1].netBalance).toBe(`-${amountFor(percentageSplits, user1)}`);
@@ -440,18 +444,18 @@ describe('app tests', () => {
             const recordedExpenseBeforeUpdate = groupDetails.expenses.expenses.find((expense) => expense.id === createdExpense.id);
             expect(recordedExpenseBeforeUpdate).toBeDefined();
             expect(recordedExpenseBeforeUpdate!.splitType).toBe('percentage');
-            expect(recordedExpenseBeforeUpdate!.currency).toBe('EUR');
+            expect(recordedExpenseBeforeUpdate!.currency).toBe(toCurrencyISOCode('EUR'));
             expect(recordedExpenseBeforeUpdate!.splits.map((split) => split.amount)).toEqual(percentageSplits.map((split) => split.amount));
             expect(recordedExpenseBeforeUpdate!.splits.map((split) => split.percentage)).toEqual(percentageSplits.map((split) => split.percentage));
 
             const updatedParticipants = [user1, user2];
-            const updatedSplits = calculateEqualSplits(toAmount(303), 'JPY', updatedParticipants);
+            const updatedSplits = calculateEqualSplits(toAmount(303), toCurrencyISOCode('JPY'), updatedParticipants);
             await appDriver.updateExpense(
                 createdExpense.id,
                 ExpenseUpdateBuilder
                     .minimal()
                     .withDescription('Team Outing JPY')
-                    .withAmount(303, 'JPY')
+                    .withAmount(303, toCurrencyISOCode('JPY'))
                     .withPaidBy(user1)
                     .withParticipants(updatedParticipants)
                     .withSplitType('equal')
@@ -462,17 +466,17 @@ describe('app tests', () => {
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            const jpyBalances = groupDetails.balances.balancesByCurrency?.JPY;
+            const jpyBalances = groupDetails.balances.balancesByCurrency?.[toCurrencyISOCode('JPY')];
             expect(jpyBalances).toBeDefined();
             expect(jpyBalances![user1].owedBy[user2]).toBe(amountFor(updatedSplits, user2));
-            expect(jpyBalances![user1].netBalance).toBe(netBalanceForPayer(updatedSplits, user1, 'JPY'));
+            expect(jpyBalances![user1].netBalance).toBe(netBalanceForPayer(updatedSplits, user1, toCurrencyISOCode('JPY')));
             expect(jpyBalances![user2].owes[user1]).toBe(amountFor(updatedSplits, user2));
             expect(jpyBalances![user2].netBalance).toBe(`-${amountFor(updatedSplits, user2)}`);
             expect(jpyBalances![user3].netBalance).toBe('0');
             expect(jpyBalances![user3].owedBy).toEqual({});
             expect(jpyBalances![user3].owes).toEqual({});
 
-            const eurBalancesAfterUpdate = groupDetails.balances.balancesByCurrency?.EUR;
+            const eurBalancesAfterUpdate = groupDetails.balances.balancesByCurrency?.[eur];
             expect(eurBalancesAfterUpdate).toBeDefined();
             Object.entries(eurBalancesAfterUpdate!).forEach(([uid, balance]) => {
                 expect([user1, user2, user3]).toContain(uid);
@@ -484,7 +488,7 @@ describe('app tests', () => {
             const recordedExpenseAfterUpdate = groupDetails.expenses.expenses.find((expense) => expense.id === createdExpense.id);
             expect(recordedExpenseAfterUpdate).toBeDefined();
             expect(recordedExpenseAfterUpdate!.description).toBe('Team Outing JPY');
-            expect(recordedExpenseAfterUpdate!.currency).toBe('JPY');
+            expect(recordedExpenseAfterUpdate!.currency).toBe(toCurrencyISOCode('JPY'));
             expect(recordedExpenseAfterUpdate!.amount).toBe('303');
             expect(recordedExpenseAfterUpdate!.paidBy).toBe(user1);
             expect(recordedExpenseAfterUpdate!.splitType).toBe('equal');
@@ -537,12 +541,12 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
-            const usdSplits = calculateEqualSplits(toAmount(90), 'USD', participants);
+            const usdSplits = calculateEqualSplits(toAmount(90), USD, participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Beach house deposit')
-                    .withAmount(90, 'USD')
+                    .withAmount(90, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -558,9 +562,9 @@ describe('app tests', () => {
 
             const summaryForUser1 = listResponseUser1.groups.find((item) => item.id === groupId);
             expect(summaryForUser1).toBeDefined();
-            expect(summaryForUser1!.balance?.balancesByCurrency?.USD?.netBalance).toBe('60.00');
-            expect(summaryForUser1!.balance?.balancesByCurrency?.USD?.totalOwed).toBe('60.00');
-            expect(summaryForUser1!.balance?.balancesByCurrency?.USD?.totalOwing).toBe('0.00');
+            expect(summaryForUser1!.balance?.balancesByCurrency?.[USD]?.netBalance).toBe('60.00');
+            expect(summaryForUser1!.balance?.balancesByCurrency?.[USD]?.totalOwed).toBe('60.00');
+            expect(summaryForUser1!.balance?.balancesByCurrency?.[USD]?.totalOwing).toBe('0.00');
 
             const listResponseUser2 = await appDriver.listGroups({}, user2);
             expect(listResponseUser2.count).toBe(1);
@@ -568,9 +572,9 @@ describe('app tests', () => {
 
             const summaryForUser2 = listResponseUser2.groups.find((item) => item.id === groupId);
             expect(summaryForUser2).toBeDefined();
-            expect(summaryForUser2!.balance?.balancesByCurrency?.USD?.netBalance).toBe('-30.00');
-            expect(summaryForUser2!.balance?.balancesByCurrency?.USD?.totalOwed).toBe('0.00');
-            expect(summaryForUser2!.balance?.balancesByCurrency?.USD?.totalOwing).toBe('30.00');
+            expect(summaryForUser2!.balance?.balancesByCurrency?.[USD]?.netBalance).toBe('-30.00');
+            expect(summaryForUser2!.balance?.balancesByCurrency?.[USD]?.totalOwed).toBe('0.00');
+            expect(summaryForUser2!.balance?.balancesByCurrency?.[USD]?.totalOwing).toBe('30.00');
 
             const listResponseUser3 = await appDriver.listGroups({}, user3);
             expect(listResponseUser3.count).toBe(1);
@@ -578,9 +582,9 @@ describe('app tests', () => {
 
             const summaryForUser3 = listResponseUser3.groups.find((item) => item.id === groupId);
             expect(summaryForUser3).toBeDefined();
-            expect(summaryForUser3!.balance?.balancesByCurrency?.USD?.netBalance).toBe('-30.00');
-            expect(summaryForUser3!.balance?.balancesByCurrency?.USD?.totalOwed).toBe('0.00');
-            expect(summaryForUser3!.balance?.balancesByCurrency?.USD?.totalOwing).toBe('30.00');
+            expect(summaryForUser3!.balance?.balancesByCurrency?.[USD]?.netBalance).toBe('-30.00');
+            expect(summaryForUser3!.balance?.balancesByCurrency?.[USD]?.totalOwed).toBe('0.00');
+            expect(summaryForUser3!.balance?.balancesByCurrency?.[USD]?.totalOwing).toBe('30.00');
         });
 
         it('should allow sequential settlements to clear shared expense balances', async () => {
@@ -593,11 +597,11 @@ describe('app tests', () => {
 
             const participants = [user1, user2];
 
-            const firstExpenseSplits = calculateEqualSplits(toAmount(120), 'USD', participants);
+            const firstExpenseSplits = calculateEqualSplits(toAmount(120), USD, participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(120, 'USD')
+                    .withAmount(120, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -608,28 +612,28 @@ describe('app tests', () => {
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBe('60.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].netBalance).toBe('60.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBe('60.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].netBalance).toBe('-60.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].owedBy[user2]).toBe('60.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].netBalance).toBe('60.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].owes[user1]).toBe('60.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].netBalance).toBe('-60.00');
 
             await appDriver.createSettlement(
                 new CreateSettlementRequestBuilder()
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(10, 'USD')
-                    .withCurrency('USD')
+                    .withAmount(10, USD)
+                    .withCurrency(USD)
                     .build(),
                 user2,
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBe('50.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].netBalance).toBe('50.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBe('50.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].netBalance).toBe('-50.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].owedBy[user2]).toBe('50.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].netBalance).toBe('50.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].owes[user1]).toBe('50.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].netBalance).toBe('-50.00');
             expect(groupDetails.settlements.settlements).toHaveLength(1);
             expect(groupDetails.settlements.settlements[0].amount).toBe('10');
 
@@ -638,19 +642,19 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(50, 'USD')
+                    .withAmount(50, USD)
                     .build(),
                 user2,
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBeUndefined();
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].owes[user2]).toBeUndefined();
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].netBalance).toBe('0.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBeUndefined();
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].owedBy[user1]).toBeUndefined();
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].netBalance).toBe('0.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].owedBy[user2]).toBeUndefined();
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].owes[user2]).toBeUndefined();
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].netBalance).toBe('0.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].owes[user1]).toBeUndefined();
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].owedBy[user1]).toBeUndefined();
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].netBalance).toBe('0.00');
             expect(groupDetails.settlements.settlements).toHaveLength(2);
             const settlementAmounts = groupDetails
                 .settlements
@@ -669,13 +673,13 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            const metadataSplits = calculateEqualSplits(toAmount(80), 'USD', participants);
+            const metadataSplits = calculateEqualSplits(toAmount(80), USD, participants);
 
             const metadataExpense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Hotel booking with receipt')
-                    .withAmount(80, 'USD')
+                    .withAmount(80, USD)
                     .withPaidBy(user1)
                     .withLabel('Travel')
                     .withDate('2024-06-15T12:30:00.000Z')
@@ -687,12 +691,12 @@ describe('app tests', () => {
                 user1,
             );
 
-            const secondarySplits = calculateEqualSplits(toAmount(50), 'USD', participants);
+            const secondarySplits = calculateEqualSplits(toAmount(50), USD, participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Fuel stop')
-                    .withAmount(50, 'USD')
+                    .withAmount(50, USD)
                     .withPaidBy(user2)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -719,10 +723,10 @@ describe('app tests', () => {
             expect(groupDetails.expenses.expenses).toHaveLength(1);
             expect(groupDetails.expenses.expenses[0].description).toBe('Fuel stop');
             expect(groupDetails.expenses.expenses[0].splits).toEqual(secondarySplits);
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].owes[user2]).toBe('25.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].netBalance).toBe('-25.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].owedBy[user1]).toBe('25.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].netBalance).toBe('25.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].owes[user2]).toBe('25.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].netBalance).toBe('-25.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].owedBy[user1]).toBe('25.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].netBalance).toBe('25.00');
         });
 
         it('should allow members to leave and rejoin via share link', async () => {
@@ -873,11 +877,11 @@ describe('app tests', () => {
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100, 'USD')
+                    .withAmount(100, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
                     .build(),
                 user1,
             );
@@ -887,7 +891,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(30.00, 'USD')
+                    .withAmount(30.00, USD)
                     .withNote('Initial payment')
                     .build(),
                 user2,
@@ -895,16 +899,16 @@ describe('app tests', () => {
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = groupDetails.settlements.settlements[0].id;
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBe('20.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBe('20.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].owedBy[user2]).toBe('20.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].owes[user1]).toBe('20.00');
 
-            await appDriver.updateSettlement(settlementId, new SettlementUpdateBuilder().withAmount('50.00', 'USD').withNote('Adjusted amount').build(), user2);
+            await appDriver.updateSettlement(settlementId, new SettlementUpdateBuilder().withAmount('50.00', USD).withNote('Adjusted amount').build(), user2);
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].owedBy[user2]).toBeUndefined();
-            expect(groupDetails.balances.balancesByCurrency!.USD![user1].netBalance).toBe('0.00');
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].owes[user1]).toBeUndefined();
-            expect(groupDetails.balances.balancesByCurrency!.USD![user2].netBalance).toBe('0.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].owedBy[user2]).toBeUndefined();
+            expect(groupDetails.balances.balancesByCurrency![USD]![user1].netBalance).toBe('0.00');
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].owes[user1]).toBeUndefined();
+            expect(groupDetails.balances.balancesByCurrency![USD]![user2].netBalance).toBe('0.00');
             expect(groupDetails.settlements.settlements[0].amount).toBe('50.00');
             expect(groupDetails.settlements.settlements[0].note).toBe('Adjusted amount');
         });
@@ -922,11 +926,11 @@ describe('app tests', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Lunch at cafe')
-                    .withAmount(60, 'USD')
+                    .withAmount(60, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(60), 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(60), USD, participants))
                     .build(),
                 user1,
             );
@@ -975,37 +979,38 @@ describe('app tests', () => {
             const createdExpense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100, 'EUR')
+                    .withAmount(100, toCurrencyISOCode('EUR'))
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(100), 'EUR', participants))
+                    .withSplits(calculateEqualSplits(toAmount(100), toCurrencyISOCode('EUR'), participants))
                     .build(),
                 user1,
             );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
+            const eur = toCurrencyISOCode('EUR');
 
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owedBy[user2]).toBe('50.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('50.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('50.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-50.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].owedBy[user2]).toBe('50.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].netBalance).toBe('50.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('50.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('-50.00');
 
             await appDriver.updateExpense(
                 createdExpense.id,
                 ExpenseUpdateBuilder
                     .minimal()
-                    .withAmount(150.5, 'EUR')
+                    .withAmount(150.5, toCurrencyISOCode('EUR'))
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(150.5), 'EUR', participants))
+                    .withSplits(calculateEqualSplits(toAmount(150.5), toCurrencyISOCode('EUR'), participants))
                     .build(),
                 user1,
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            const eurBalancesAfterUpdate = groupDetails.balances.balancesByCurrency?.EUR;
+            const eurBalancesAfterUpdate = groupDetails.balances.balancesByCurrency?.[eur];
             expect(eurBalancesAfterUpdate).toBeDefined();
             expect(eurBalancesAfterUpdate![user1]).toBeDefined();
             expect(eurBalancesAfterUpdate![user1].owedBy[user2]).toBe('75.25');
@@ -1018,7 +1023,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(50.25, 'EUR')
+                    .withAmount(50.25, toCurrencyISOCode('EUR'))
                     .build(),
                 user2,
             );
@@ -1026,19 +1031,19 @@ describe('app tests', () => {
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = groupDetails.settlements.settlements[0].id;
 
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owedBy[user2]).toBe('25.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('25.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('25.00');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-25.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].owedBy[user2]).toBe('25.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].netBalance).toBe('25.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('25.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('-25.00');
 
             await appDriver.deleteSettlement(settlementId, user1);
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].owedBy[user2]).toBe('75.25');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user1].netBalance).toBe('75.25');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('75.25');
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].netBalance).toBe('-75.25');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].owedBy[user2]).toBe('75.25');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user1].netBalance).toBe('75.25');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('75.25');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].netBalance).toBe('-75.25');
         });
     });
 
@@ -1053,11 +1058,11 @@ describe('app tests', () => {
             const participants = [user1, user2];
             const baseExpense = new CreateExpenseRequestBuilder()
                 .withGroupId(groupId)
-                .withAmount(100, 'USD')
+                .withAmount(100, USD)
                 .withPaidBy(user1)
                 .withParticipants(participants)
                 .withSplitType('exact')
-                .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
+                .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
                 .build();
 
             const invalidExpense = {
@@ -1083,11 +1088,11 @@ describe('app tests', () => {
             const participants = [user1, user2];
             const baseExpense = new CreateExpenseRequestBuilder()
                 .withGroupId(groupId)
-                .withAmount(12, 'JPY')
+                .withAmount(12, toCurrencyISOCode('JPY'))
                 .withPaidBy(user1)
                 .withParticipants(participants)
                 .withSplitType('exact')
-                .withSplits(calculateEqualSplits(toAmount(12), 'JPY', participants))
+                .withSplits(calculateEqualSplits(toAmount(12), toCurrencyISOCode('JPY'), participants))
                 .build();
 
             const invalidExpense = {
@@ -1141,11 +1146,11 @@ describe('app tests', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Confidential dinner')
-                    .withAmount(50, 'USD')
+                    .withAmount(50, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(50), 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(50), USD, participants))
                     .build(),
                 user1,
             );
@@ -1172,11 +1177,11 @@ describe('app tests', () => {
             const participants = [user1, user2];
             const expenseRequest = new CreateExpenseRequestBuilder()
                 .withGroupId(groupId)
-                .withAmount(40, 'USD')
+                .withAmount(40, USD)
                 .withPaidBy(user1)
                 .withParticipants(participants)
                 .withSplitType('equal')
-                .withSplits(calculateEqualSplits(toAmount(40), 'USD', participants))
+                .withSplits(calculateEqualSplits(toAmount(40), USD, participants))
                 .build();
 
             await expect(appDriver.createExpense(expenseRequest, user3))
@@ -1203,11 +1208,11 @@ describe('app tests', () => {
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(120, 'USD')
+                    .withAmount(120, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(120), 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(120), USD, participants))
                     .build(),
                 user1,
             );
@@ -1217,7 +1222,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(60.00, 'USD')
+                    .withAmount(60.00, USD)
                     .build(),
                 user2,
             );
@@ -1225,7 +1230,7 @@ describe('app tests', () => {
             const details = await appDriver.getGroupFullDetails(groupId, {}, user1);
             const settlementId = details.settlements.settlements[0].id;
 
-            await expect(appDriver.updateSettlement(settlementId, new SettlementUpdateBuilder().withAmount('20.123', 'USD').withCurrency('USD').build(), user2))
+            await expect(appDriver.updateSettlement(settlementId, new SettlementUpdateBuilder().withAmount('20.123', USD).withCurrency(USD).build(), user2))
                 .rejects
                 .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
@@ -1254,11 +1259,11 @@ describe('app tests', () => {
             const expense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(30, 'USD')
+                    .withAmount(30, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(30), 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(30), USD, participants))
                     .build(),
                 user1,
             );
@@ -1293,12 +1298,12 @@ describe('app tests', () => {
             const expense = new CreateExpenseRequestBuilder()
                 .withGroupId(groupId)
                 .withDescription('Invalid receipt URL')
-                .withAmount(40, 'USD')
+                .withAmount(40, USD)
                 .withPaidBy(user1)
                 .withReceiptUrl('not-a-url')
                 .withParticipants(participants)
                 .withSplitType('equal')
-                .withSplits(calculateEqualSplits(toAmount(40), 'USD', participants))
+                .withSplits(calculateEqualSplits(toAmount(40), USD, participants))
                 .build();
 
             await expect(appDriver.createExpense(expense, user1))
@@ -1317,23 +1322,23 @@ describe('app tests', () => {
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription('Original expense')
-                    .withAmount(60, 'USD')
+                    .withAmount(60, USD)
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(60), 'USD', [user1, user2]))
+                    .withSplits(calculateEqualSplits(toAmount(60), USD, [user1, user2]))
                     .build(),
                 user1,
             );
 
             const updatedParticipants = [user1, user2, user4];
-            const updatedSplits = calculateEqualSplits(toAmount(90), 'USD', updatedParticipants);
+            const updatedSplits = calculateEqualSplits(toAmount(90), USD, updatedParticipants);
 
             await expect(appDriver.updateExpense(
                 baseExpense.id,
                 ExpenseUpdateBuilder
                     .minimal()
-                    .withAmount(90, 'USD')
+                    .withAmount(90, USD)
                     .withParticipants(updatedParticipants)
                     .withSplits(updatedSplits)
                     .withSplitType('equal')
@@ -1355,11 +1360,11 @@ describe('app tests', () => {
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(80, 'USD')
+                    .withAmount(80, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(80), 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(80), USD, participants))
                     .build(),
                 user1,
             );
@@ -1369,7 +1374,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(40.00, 'USD')
+                    .withAmount(40.00, USD)
                     .build(),
                 user2,
             );
@@ -1422,7 +1427,7 @@ describe('app tests', () => {
                 .withGroupId(groupId)
                 .withPayerId(user4)
                 .withPayeeId(user1)
-                .withAmount(20.00, 'USD')
+                .withAmount(20.00, USD)
                 .build();
 
             await expect(appDriver.createSettlement(settlement, user1))
@@ -1441,11 +1446,11 @@ describe('app tests', () => {
             const expense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(50, 'USD')
+                    .withAmount(50, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(50), 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(50), USD, participants))
                     .build(),
                 user1,
             );
@@ -1475,7 +1480,7 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
 
             const participants = [user1, user2];
-            const CURRENCY = 'USD';
+            const CURRENCY = USD;
 
             const testCase1Splits = calculateEqualSplits('0.10', CURRENCY, participants);
             await appDriver.createExpense(
@@ -1504,7 +1509,7 @@ describe('app tests', () => {
             );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            let usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            let usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
             expect(usdBalances).toBeDefined();
             verifyBalanceConsistency(usdBalances!, CURRENCY, 'after 0.10 + 0.20');
@@ -1527,7 +1532,7 @@ describe('app tests', () => {
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
             expect(usdBalances).toBeDefined();
             verifyBalanceConsistency(usdBalances!, CURRENCY, 'after 0.10 + 0.20 + 0.70');
@@ -1552,7 +1557,7 @@ describe('app tests', () => {
             }
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
             expect(usdBalances).toBeDefined();
             verifyBalanceConsistency(usdBalances!, CURRENCY, 'after 100 × 0.10');
@@ -1566,7 +1571,7 @@ describe('app tests', () => {
         it('should maintain precision across many small equal splits', async () => {
             const SMALL_AMOUNT = '0.03';
             const NUM_OPERATIONS = 100;
-            const CURRENCY = 'USD';
+            const CURRENCY = USD;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
@@ -1595,7 +1600,7 @@ describe('app tests', () => {
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: NUM_OPERATIONS,
             }, user1);
-            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
             expect(usdBalances, 'USD balances should exist after many small operations').toBeDefined();
             verifyBalanceConsistency(usdBalances!, CURRENCY, 'many small equal splits');
@@ -1611,7 +1616,7 @@ describe('app tests', () => {
 
         it('should handle large monetary amounts without precision loss', async () => {
             const LARGE_AMOUNT = toAmount(1234567.88);
-            const CURRENCY = 'USD';
+            const CURRENCY = USD;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
@@ -1635,7 +1640,7 @@ describe('app tests', () => {
             );
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
             expect(usdBalances).toBeDefined();
             verifyBalanceConsistency(usdBalances!, CURRENCY, 'large amount expense');
@@ -1651,7 +1656,7 @@ describe('app tests', () => {
             const SECOND_SETTLEMENT = '15.00';
             const THIRD_SETTLEMENT = '12.50';
             const FOURTH_SETTLEMENT = '12.50';
-            const CURRENCY = 'EUR';
+            const CURRENCY = toCurrencyISOCode('EUR');
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
@@ -1673,7 +1678,8 @@ describe('app tests', () => {
             );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('50.00');
+            const eur = toCurrencyISOCode('EUR');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('50.00');
 
             await appDriver.createSettlement(
                 new CreateSettlementRequestBuilder()
@@ -1686,7 +1692,7 @@ describe('app tests', () => {
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('40.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('40.00');
 
             await appDriver.createSettlement(
                 new CreateSettlementRequestBuilder()
@@ -1699,7 +1705,7 @@ describe('app tests', () => {
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            expect(groupDetails.balances.balancesByCurrency!.EUR![user2].owes[user1]).toBe('25.00');
+            expect(groupDetails.balances.balancesByCurrency![eur]![user2].owes[user1]).toBe('25.00');
 
             await appDriver.createSettlement(
                 new CreateSettlementRequestBuilder()
@@ -1712,7 +1718,7 @@ describe('app tests', () => {
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            let eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+            let eurBalances = groupDetails.balances.balancesByCurrency?.[eur];
             expect(eurBalances![user2].owes[user1]).toBe('12.50');
 
             await appDriver.createSettlement(
@@ -1726,7 +1732,7 @@ describe('app tests', () => {
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+            eurBalances = groupDetails.balances.balancesByCurrency?.[eur];
 
             expect(eurBalances).toBeDefined();
             expect(eurBalances![user1].netBalance).toBe('0.00');
@@ -1739,7 +1745,7 @@ describe('app tests', () => {
 
         it('should correctly calculate circular debt balances', async () => {
             const CIRCULAR_AMOUNT = toAmount(90);
-            const CURRENCY = 'USD';
+            const CURRENCY = USD;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
@@ -1785,7 +1791,7 @@ describe('app tests', () => {
             );
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
             expect(usdBalances).toBeDefined();
 
@@ -1800,17 +1806,18 @@ describe('app tests', () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
             const groupId = group.id;
+            const eur = toCurrencyISOCode('EUR');
             const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
             await appDriver.joinGroupByLink(shareToken, undefined, user2);
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
 
-            const usdExpense1Splits = calculateEqualSplits(toAmount(150), 'USD', participants);
+            const usdExpense1Splits = calculateEqualSplits(toAmount(150), USD, participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(150, 'USD')
+                    .withAmount(150, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1819,11 +1826,11 @@ describe('app tests', () => {
                 user1,
             );
 
-            const eurExpense1Splits = calculateEqualSplits(toAmount(200), 'EUR', participants);
+            const eurExpense1Splits = calculateEqualSplits(toAmount(200), toCurrencyISOCode('EUR'), participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(200, 'EUR')
+                    .withAmount(200, toCurrencyISOCode('EUR'))
                     .withPaidBy(user2)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1832,11 +1839,11 @@ describe('app tests', () => {
                 user2,
             );
 
-            const gbpExpense1Splits = calculateEqualSplits(toAmount(75.50), 'GBP', participants);
+            const gbpExpense1Splits = calculateEqualSplits(toAmount(75.50), toCurrencyISOCode('GBP'), participants);
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(75.50, 'GBP')
+                    .withAmount(75.50, toCurrencyISOCode('GBP'))
                     .withPaidBy(user3)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1850,7 +1857,7 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(50.00, 'USD')
+                    .withAmount(50.00, USD)
                     .build(),
                 user2,
             );
@@ -1860,24 +1867,24 @@ describe('app tests', () => {
                     .withGroupId(groupId)
                     .withPayerId(user3)
                     .withPayeeId(user2)
-                    .withAmount(66.67, 'EUR')
+                    .withAmount(66.67, toCurrencyISOCode('EUR'))
                     .build(),
                 user3,
             );
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
 
-            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
-            const eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
-            const gbpBalances = groupDetails.balances.balancesByCurrency?.GBP;
+            const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
+            const eurBalances = groupDetails.balances.balancesByCurrency?.[eur];
+            const gbpBalances = groupDetails.balances.balancesByCurrency?.[toCurrencyISOCode('GBP')];
 
             expect(usdBalances).toBeDefined();
             expect(eurBalances).toBeDefined();
             expect(gbpBalances).toBeDefined();
 
-            verifyBalanceConsistency(usdBalances!, 'USD', 'USD after settlements');
-            verifyBalanceConsistency(eurBalances!, 'EUR', 'EUR after settlements');
-            verifyBalanceConsistency(gbpBalances!, 'GBP', 'GBP without settlements');
+            verifyBalanceConsistency(usdBalances!, USD, 'USD after settlements');
+            verifyBalanceConsistency(eurBalances!, toCurrencyISOCode('EUR'), 'EUR after settlements');
+            verifyBalanceConsistency(gbpBalances!, toCurrencyISOCode('GBP'), 'GBP without settlements');
 
             expect(groupDetails.expenses.expenses).toHaveLength(3);
             expect(groupDetails.settlements.settlements).toHaveLength(2);
@@ -1899,12 +1906,12 @@ describe('app tests', () => {
             for (let i = 0; i < OPERATIONS_COUNT; i++) {
                 const amount = (i + 1) * 10;
                 const payer = payers[i % payers.length];
-                const splits = calculateEqualSplits(toAmount(amount), 'USD', participants);
+                const splits = calculateEqualSplits(toAmount(amount), USD, participants);
 
                 await appDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(amount, 'USD')
+                        .withAmount(amount, USD)
                         .withPaidBy(payer)
                         .withParticipants(participants)
                         .withSplitType('equal')
@@ -1917,10 +1924,10 @@ describe('app tests', () => {
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {
                 expenseLimit: OPERATIONS_COUNT,
             }, user1);
-            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
             expect(usdBalances).toBeDefined();
-            verifyBalanceConsistency(usdBalances!, 'USD', 'many expense operations');
+            verifyBalanceConsistency(usdBalances!, USD, 'many expense operations');
 
             expect(groupDetails.expenses.expenses).toHaveLength(OPERATIONS_COUNT);
         });
@@ -1934,7 +1941,7 @@ describe('app tests', () => {
             await appDriver.joinGroupByLink(shareToken, undefined, user3);
 
             const participants = [user1, user2, user3];
-            const splits = calculateEqualSplits(toAmount(100), 'JPY', participants, 2);
+            const splits = calculateEqualSplits(toAmount(100), toCurrencyISOCode('JPY'), participants, 2);
 
             expect(splits[0].amount).toBe('33');
             expect(splits[1].amount).toBe('33');
@@ -1943,7 +1950,7 @@ describe('app tests', () => {
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
-                    .withAmount(100, 'JPY')
+                    .withAmount(100, toCurrencyISOCode('JPY'))
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('equal')
@@ -1953,10 +1960,10 @@ describe('app tests', () => {
             );
 
             const groupDetails = await appDriver.getGroupFullDetails(group.id, {}, user1);
-            const jpyBalances = groupDetails.balances.balancesByCurrency?.JPY;
+            const jpyBalances = groupDetails.balances.balancesByCurrency?.[toCurrencyISOCode('JPY')];
 
             expect(jpyBalances, 'JPY balances should exist').toBeDefined();
-            verifyBalanceConsistency(jpyBalances!, 'JPY', 'indivisible JPY split');
+            verifyBalanceConsistency(jpyBalances!, toCurrencyISOCode('JPY'), 'indivisible JPY split');
 
             // User1 paid 100, owes themselves 33 = net +67
             expect(jpyBalances![user1].netBalance).toBe('67');
@@ -1968,7 +1975,8 @@ describe('app tests', () => {
 
         it('should maintain precision when converting between split types', async () => {
             const AMOUNT = toAmount(100);
-            const CURRENCY = 'EUR';
+            const CURRENCY = toCurrencyISOCode('EUR');
+            const eur = CURRENCY;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
@@ -1993,7 +2001,7 @@ describe('app tests', () => {
             );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            let eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+            let eurBalances = groupDetails.balances.balancesByCurrency?.[eur];
 
             expect(eurBalances).toBeDefined();
             verifyBalanceConsistency(eurBalances!, CURRENCY, 'after equal split');
@@ -2014,7 +2022,7 @@ describe('app tests', () => {
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+            eurBalances = groupDetails.balances.balancesByCurrency?.[eur];
 
             expect(eurBalances).toBeDefined();
             verifyBalanceConsistency(eurBalances!, CURRENCY, 'after equal → percentage conversion');
@@ -2039,7 +2047,7 @@ describe('app tests', () => {
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+            eurBalances = groupDetails.balances.balancesByCurrency?.[eur];
 
             expect(eurBalances).toBeDefined();
             verifyBalanceConsistency(eurBalances!, CURRENCY, 'after percentage → exact conversion');
@@ -2061,7 +2069,7 @@ describe('app tests', () => {
             );
 
             groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+            eurBalances = groupDetails.balances.balancesByCurrency?.[eur];
 
             expect(eurBalances).toBeDefined();
             verifyBalanceConsistency(eurBalances!, CURRENCY, 'after exact → equal conversion');
@@ -2071,7 +2079,7 @@ describe('app tests', () => {
         });
 
         it('should prevent removal of member with outstanding balance', async () => {
-            const CURRENCY = 'USD';
+            const CURRENCY = USD;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const groupId = group.id;
@@ -2095,7 +2103,7 @@ describe('app tests', () => {
             );
 
             const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+            const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
             expect(usdBalances).toBeDefined();
             expect(usdBalances![user3].netBalance).not.toBe('0.00');
@@ -2109,7 +2117,8 @@ describe('app tests', () => {
         });
 
         it('should allow removal of member with zero balance', async () => {
-            const CURRENCY = 'EUR';
+            const CURRENCY = toCurrencyISOCode('EUR');
+            const eur = CURRENCY;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const groupId = group.id;
@@ -2131,7 +2140,7 @@ describe('app tests', () => {
             );
 
             let groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-            const eurBalances = groupDetails.balances.balancesByCurrency?.EUR;
+            const eurBalances = groupDetails.balances.balancesByCurrency?.[eur];
 
             expect(eurBalances).toBeDefined();
             expect(eurBalances![user3].netBalance).toBe('0.00');
@@ -2289,7 +2298,7 @@ describe('app tests', () => {
 
                 const expenseRequest = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100, 'USD')
+                    .withAmount(100, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('percentage')
@@ -2317,7 +2326,7 @@ describe('app tests', () => {
 
                 const expenseRequest = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100, 'USD')
+                    .withAmount(100, USD)
                     .withPaidBy(user1)
                     .withParticipants(participants)
                     .withSplitType('percentage')
@@ -2339,11 +2348,11 @@ describe('app tests', () => {
                 const participants = [user1, user2];
                 const expenseRequest = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100, 'USD')
+                    .withAmount(100, USD)
                     .withPaidBy(user3)
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
                     .build();
 
                 await expect(appDriver.createExpense(expenseRequest, user1))
@@ -2356,12 +2365,12 @@ describe('app tests', () => {
                 const groupId = group.id;
 
                 const singleParticipant = [user1];
-                const splits = calculateEqualSplits(toAmount(100), 'USD', singleParticipant);
+                const splits = calculateEqualSplits(toAmount(100), USD, singleParticipant);
 
                 const expense = await appDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(100, 'USD')
+                        .withAmount(100, USD)
                         .withPaidBy(user1)
                         .withParticipants(singleParticipant)
                         .withSplitType('equal')
@@ -2373,7 +2382,7 @@ describe('app tests', () => {
                 expect(expense.id).toBeDefined();
 
                 const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-                const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+                const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
                 expect(usdBalances).toBeDefined();
                 expect(usdBalances![user1].netBalance).toBe('0.00');
@@ -2385,7 +2394,7 @@ describe('app tests', () => {
         describe('boundary and limit testing', () => {
             it('should handle very large expense amounts', async () => {
                 const LARGE_AMOUNT = toAmount(9999999.99);
-                const CURRENCY = 'USD';
+                const CURRENCY = USD;
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
@@ -2410,7 +2419,7 @@ describe('app tests', () => {
                 expect(expense.amount).toBe(String(LARGE_AMOUNT));
 
                 const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-                const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+                const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
                 expect(usdBalances).toBeDefined();
                 verifyBalanceConsistency(usdBalances!, CURRENCY, 'very large amount');
@@ -2418,7 +2427,7 @@ describe('app tests', () => {
 
             it('should handle minimum valid amounts', async () => {
                 const MIN_AMOUNT = toAmount(0.02);
-                const CURRENCY = 'USD';
+                const CURRENCY = USD;
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
                 const groupId = group.id;
@@ -2443,7 +2452,7 @@ describe('app tests', () => {
                 expect(expense.amount).toBe(String(MIN_AMOUNT));
 
                 const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-                const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+                const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
                 expect(usdBalances).toBeDefined();
                 verifyBalanceConsistency(usdBalances!, CURRENCY, 'minimum valid amount');
@@ -2477,11 +2486,11 @@ describe('app tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(groupId)
                             .withDescription(longDescription)
-                            .withAmount(100, 'USD')
+                            .withAmount(100, USD)
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
-                            .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
+                            .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
                             .build(),
                         user1,
                     ),
@@ -2509,7 +2518,7 @@ describe('app tests', () => {
                 }
 
                 const AMOUNT = toAmount(1000);
-                const CURRENCY = 'USD';
+                const CURRENCY = USD;
                 const splits = calculateEqualSplits(AMOUNT, CURRENCY, manyUsers);
 
                 const expense = await appDriver.createExpense(
@@ -2527,7 +2536,7 @@ describe('app tests', () => {
                 expect(expense.id).toBeDefined();
 
                 const groupDetails = await appDriver.getGroupFullDetails(groupId, {}, user1);
-                const usdBalances = groupDetails.balances.balancesByCurrency?.USD;
+                const usdBalances = groupDetails.balances.balancesByCurrency?.[USD];
 
                 expect(usdBalances).toBeDefined();
                 verifyBalanceConsistency(usdBalances!, CURRENCY, 'many participants');
@@ -2547,11 +2556,11 @@ describe('app tests', () => {
                     appDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(groupId)
-                            .withAmount(100, 'USD')
+                            .withAmount(100, USD)
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
-                            .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
+                            .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
                             .build(),
                         user1,
                     ),
@@ -2591,7 +2600,7 @@ describe('app tests', () => {
                     appDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(groupId)
-                            .withAmount(0, 'USD')
+                            .withAmount(0, USD)
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
@@ -2613,7 +2622,7 @@ describe('app tests', () => {
                     appDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(groupId)
-                            .withAmount(-100, 'USD')
+                            .withAmount(-100, USD)
                             .withPaidBy(user1)
                             .withParticipants(participants)
                             .withSplitType('equal')
@@ -2636,11 +2645,11 @@ describe('app tests', () => {
                 await appDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(100, 'USD')
+                        .withAmount(100, USD)
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
+                        .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
                         .build(),
                     user1,
                 );
@@ -2651,7 +2660,7 @@ describe('app tests', () => {
                             .withGroupId(groupId)
                             .withPayerId(user2)
                             .withPayeeId(user1)
-                            .withAmount(0.00, 'USD')
+                            .withAmount(0.00, USD)
                             .build(),
                         user2,
                     ),
@@ -2670,11 +2679,11 @@ describe('app tests', () => {
                 await appDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
-                        .withAmount(100, 'USD')
+                        .withAmount(100, USD)
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(toAmount(100), 'USD', participants))
+                        .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
                         .build(),
                     user1,
                 );
@@ -2685,7 +2694,7 @@ describe('app tests', () => {
                             .withGroupId(groupId)
                             .withPayerId(user2)
                             .withPayeeId(user1)
-                            .withAmount('-25.00', 'USD')
+                            .withAmount('-25.00', USD)
                             .build(),
                         user2,
                     ),
@@ -3059,11 +3068,11 @@ describe('app tests', () => {
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
-                    .withAmount(100, 'USD')
+                    .withAmount(100, USD)
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(100), 'USD', [user1, user2]))
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, [user1, user2]))
                     .build(),
                 user1,
             );
@@ -3087,7 +3096,7 @@ describe('app tests', () => {
                     .withGroupId(group.id)
                     .withPayerId(user2)
                     .withPayeeId(user1)
-                    .withAmount(50, 'USD')
+                    .withAmount(50, USD)
                     .build(),
                 user2,
             );
@@ -3125,11 +3134,11 @@ describe('app tests', () => {
             const expense = await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
-                    .withAmount(100, 'USD')
+                    .withAmount(100, USD)
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(100), 'USD', [user1, user2]))
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, [user1, user2]))
                     .build(),
                 user1,
             );
@@ -3153,11 +3162,11 @@ describe('app tests', () => {
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
-                    .withAmount(100, 'USD')
+                    .withAmount(100, USD)
                     .withPaidBy(user1)
                     .withParticipants([user1, user2])
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(100), 'USD', [user1, user2]))
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, [user1, user2]))
                     .build(),
                 user1,
             );
@@ -3230,11 +3239,11 @@ describe('app tests', () => {
                 await appDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(group.id)
-                        .withAmount(30, 'USD')
+                        .withAmount(30, USD)
                         .withPaidBy(user1)
                         .withParticipants(participants)
                         .withSplitType('equal')
-                        .withSplits(calculateEqualSplits(toAmount(30), 'USD', participants))
+                        .withSplits(calculateEqualSplits(toAmount(30), USD, participants))
                         .withDescription(`Deletion Feed Expense ${i}`)
                         .build(),
                     user1,
@@ -3286,12 +3295,12 @@ describe('app tests', () => {
             await appDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
-                    .withAmount(42.5, 'USD')
+                    .withAmount(42.5, USD)
                     .withPaidBy(user1)
                     .withDescription('Activity Feed Expense')
                     .withParticipants(participants)
                     .withSplitType('equal')
-                    .withSplits(calculateEqualSplits(toAmount(42.5), 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(42.5), USD, participants))
                     .build(),
                 user1,
             );

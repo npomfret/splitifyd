@@ -1,5 +1,5 @@
 import type { SimplifiedDebt } from '@billsplit-wl/shared';
-import { Amount } from '@billsplit-wl/shared';
+import { Amount, USD, toCurrencyISOCode } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 
 /**
@@ -21,7 +21,7 @@ export class SimplifiedDebtBuilder {
                 uid: 'user-2',
             },
             amount: '50.0',
-            currency: 'USD',
+            currency: USD,
         };
     }
 
@@ -41,8 +41,8 @@ export class SimplifiedDebtBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
-        this.debt.currency = currency;
+    withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
+        this.debt.currency = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
         this.debt.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }

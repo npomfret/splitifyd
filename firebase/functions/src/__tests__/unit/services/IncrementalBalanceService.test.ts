@@ -1,11 +1,12 @@
-import { calculateEqualSplits, toAmount } from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { ExpenseDTOBuilder, ExpenseSplitBuilder, GroupBalanceDTOBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
+import { ExpenseDTOBuilder, ExpenseSplitBuilder, SettlementDTOBuilder, SimplifiedDebtBuilder, UserBalanceBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { GroupBalanceDTO } from '../../../schemas';
 import { IncrementalBalanceService } from '../../../services/balance/IncrementalBalanceService';
 import { FirestoreWriter } from '../../../services/firestore';
+import { GroupBalanceDTOBuilder } from '../../builders/GroupBalanceDTOBuilder';
 
 describe('IncrementalBalanceService - Unit Tests', () => {
     let service: IncrementalBalanceService;
@@ -67,10 +68,11 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
                 // Verify balance was updated
                 const updatedBalance = await getBalance();
+                const usdCurrency = USD;
                 expect(updatedBalance.version).toBe(1);
-                expect(updatedBalance.balancesByCurrency.USD).toBeDefined();
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('50.00'); // User1 paid 100, owes 50
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('-50.00'); // User2 owes 50
+                expect(updatedBalance.balancesByCurrency[usdCurrency]).toBeDefined();
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('50.00'); // User1 paid 100, owes 50
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('-50.00'); // User2 owes 50
                 expect(updatedBalance.simplifiedDebts).toHaveLength(1);
                 expect(updatedBalance.simplifiedDebts[0].amount).toBe('50.00');
             });
@@ -95,11 +97,12 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
                 // Verify balance was updated
                 const updatedBalance = await getBalance();
+                const usdCurrency = USD;
                 expect(updatedBalance.version).toBe(2);
                 // User1 was owed $50, now owes $30, net = $20 owed to User1
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('20.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('20.00');
                 // User2 owed $50, now is owed $30, net = -$20 (owes $20)
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('-20.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('-20.00');
             });
 
             it('should handle three-way split correctly', async () => {
@@ -121,9 +124,10 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
-                expect(updatedBalance.balancesByCurrency.EUR[userId1].netBalance).toBe('60.00'); // Paid 90, owes 30
-                expect(updatedBalance.balancesByCurrency.EUR[userId2].netBalance).toBe('-30.00'); // Owes 30
-                expect(updatedBalance.balancesByCurrency.EUR[userId3].netBalance).toBe('-30.00'); // Owes 30
+                const eurCurrency = toCurrencyISOCode('EUR');
+                expect(updatedBalance.balancesByCurrency[eurCurrency][userId1].netBalance).toBe('60.00'); // Paid 90, owes 30
+                expect(updatedBalance.balancesByCurrency[eurCurrency][userId2].netBalance).toBe('-30.00'); // Owes 30
+                expect(updatedBalance.balancesByCurrency[eurCurrency][userId3].netBalance).toBe('-30.00'); // Owes 30
             });
         });
 
@@ -147,21 +151,23 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
+                const usdCurrency = USD;
                 expect(updatedBalance.version).toBe(2);
                 // After removing expense: User1 owed $50, minus expense ($50 owed), net = $0
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('0.00');
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('0.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('0.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('0.00');
                 expect(updatedBalance.simplifiedDebts).toHaveLength(0);
             });
 
             it('should handle deletion leaving non-zero balance', async () => {
                 // Setup: User1 is owed $50 by User2
                 const initialBalance = createBalanceWithUSD();
+                const usdCurrency = USD;
                 // Modify to have User1 owed $100 (we'll delete an expense for $50)
-                initialBalance.balancesByCurrency.USD[userId1].netBalance = '100';
-                initialBalance.balancesByCurrency.USD[userId1].owedBy[userId2] = '100';
-                initialBalance.balancesByCurrency.USD[userId2].netBalance = '-100';
-                initialBalance.balancesByCurrency.USD[userId2].owes[userId1] = '100';
+                initialBalance.balancesByCurrency[usdCurrency][userId1].netBalance = '100';
+                initialBalance.balancesByCurrency[usdCurrency][userId1].owedBy[userId2] = '100';
+                initialBalance.balancesByCurrency[usdCurrency][userId2].netBalance = '-100';
+                initialBalance.balancesByCurrency[usdCurrency][userId2].owes[userId1] = '100';
                 stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
                 const expense = new ExpenseDTOBuilder()
@@ -180,12 +186,12 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
                 const updatedBalance = await getBalance();
                 // User1 was owed $100, delete expense reduces by $50, net = $50
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('50.00');
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('-50.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('50.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('-50.00');
             });
 
             it('should flip owes/owedBy when deleting expense leaving settlement debt', async () => {
-                const currency = 'EUR';
+                const currency = toCurrencyISOCode('EUR');
                 const participants = [userId1, userId2];
 
                 const currentBalance = new GroupBalanceDTOBuilder()
@@ -227,7 +233,8 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
-                const eurBalances = updatedBalance.balancesByCurrency?.EUR;
+                const eurCurrency = toCurrencyISOCode('EUR');
+                const eurBalances = updatedBalance.balancesByCurrency?.[eurCurrency];
                 expect(eurBalances).toBeDefined();
                 expect(eurBalances![userId1].owes[userId2]).toBe('50.25');
                 expect(eurBalances![userId1].owedBy[userId2]).toBeUndefined();
@@ -236,7 +243,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
             });
 
             it('should reproduce expense lifecycle debt expectations', async () => {
-                const currency = 'EUR';
+                const currency = toCurrencyISOCode('EUR');
                 const participants = [userId1, userId2];
 
                 const initialBalance = createEmptyBalance();
@@ -290,7 +297,8 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const finalBalance = await getBalance();
-                const eurBalances = finalBalance.balancesByCurrency?.EUR;
+                const eurCurrency = toCurrencyISOCode('EUR');
+                const eurBalances = finalBalance.balancesByCurrency?.[eurCurrency];
                 expect(eurBalances).toBeDefined();
                 expect(eurBalances![userId1].owes[userId2]).toBe('50.25');
                 expect(eurBalances![userId2].owedBy[userId1]).toBe('50.25');
@@ -327,10 +335,11 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
+                const usdCurrency = USD;
                 // Net change: old expense removed (-50), new expense added (+60), delta = +10
                 // User1 was owed $50, now owed $60, net = $60
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('60.00');
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('-60.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('60.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('-60.00');
             });
 
             it('should handle payer change correctly', async () => {
@@ -362,12 +371,13 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
+                const usdCurrency = USD;
                 // Old: User1 owed $50 by User2
                 // Remove old: User1 owed $50, after removal = $0
                 // Add new: User2 paid, User1 owes $50
                 // Net: User1 owes $50, User2 is owed $50
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('-50.00');
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('50.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('-50.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('50.00');
             });
 
             it('should handle currency change correctly', async () => {
@@ -399,11 +409,13 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
+                const usdCurrency = USD;
+                const eurCurrency = toCurrencyISOCode('EUR');
                 // Old USD expense removed: $0 balance in USD
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('0.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('0.00');
                 // New EUR expense added
-                expect(updatedBalance.balancesByCurrency.EUR[userId1].netBalance).toBe('40.00');
-                expect(updatedBalance.balancesByCurrency.EUR[userId2].netBalance).toBe('-40.00');
+                expect(updatedBalance.balancesByCurrency[eurCurrency][userId1].netBalance).toBe('40.00');
+                expect(updatedBalance.balancesByCurrency[eurCurrency][userId2].netBalance).toBe('-40.00');
             });
         });
     });
@@ -428,9 +440,10 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
+                const usdCurrency = USD;
                 // User2 owed $50, pays $30, now owes $20
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('20.00');
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('-20.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('20.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('-20.00');
                 expect(updatedBalance.simplifiedDebts[0].amount).toBe('20.00');
             });
 
@@ -452,8 +465,9 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('0.00');
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('0.00');
+                const usdCurrency = USD;
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('0.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('0.00');
                 expect(updatedBalance.simplifiedDebts).toHaveLength(0);
             });
 
@@ -475,9 +489,10 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
+                const usdCurrency = USD;
                 // User2 owed $50, pays $70, now User1 owes $20
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('-20.00');
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('20.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('-20.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('20.00');
             });
         });
 
@@ -494,10 +509,11 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
                 // Setup: User1 is owed $20 (after a $30 settlement was applied)
                 const initialBalance = createBalanceWithUSD();
-                initialBalance.balancesByCurrency.USD[userId1].netBalance = '20';
-                initialBalance.balancesByCurrency.USD[userId1].owedBy[userId2] = '20';
-                initialBalance.balancesByCurrency.USD[userId2].netBalance = '-20';
-                initialBalance.balancesByCurrency.USD[userId2].owes[userId1] = '20';
+                const usdCurrency = USD;
+                initialBalance.balancesByCurrency[usdCurrency][userId1].netBalance = '20';
+                initialBalance.balancesByCurrency[usdCurrency][userId1].owedBy[userId2] = '20';
+                initialBalance.balancesByCurrency[usdCurrency][userId2].netBalance = '-20';
+                initialBalance.balancesByCurrency[usdCurrency][userId2].owes[userId1] = '20';
                 stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
@@ -506,8 +522,8 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
                 const updatedBalance = await getBalance();
                 // Reversing $30 settlement: User1 owed $20, add back $30, now owed $50
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('50.00');
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('-50.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('50.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('-50.00');
             });
         });
 
@@ -539,11 +555,12 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
+                const usdCurrency = USD;
                 // Initial: User1 owed $50
                 // Reverse old $30 settlement: $50 + $30 = $80 (undoing a payment increases debt)
                 // Apply new $40 settlement: $80 - $40 = $40
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('40.00');
-                expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('-40.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('40.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('-40.00');
             });
 
             it('should handle settlement currency change', async () => {
@@ -573,13 +590,15 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 });
 
                 const updatedBalance = await getBalance();
+                const usdCurrency = USD;
+                const eurCurrency = toCurrencyISOCode('EUR');
                 // Initial: User1 owed $50 (USD)
                 // Reverse old $30 USD settlement: $50 + $30 = $80
                 // Apply new $30 EUR settlement: EUR goes from 0 to User1 owes EUR 30
-                expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('80.00');
+                expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('80.00');
                 // New EUR settlement applied
-                expect(updatedBalance.balancesByCurrency.EUR[userId1].netBalance).toBe('-30.00');
-                expect(updatedBalance.balancesByCurrency.EUR[userId2].netBalance).toBe('30.00');
+                expect(updatedBalance.balancesByCurrency[eurCurrency][userId1].netBalance).toBe('-30.00');
+                expect(updatedBalance.balancesByCurrency[eurCurrency][userId2].netBalance).toBe('30.00');
             });
         });
     });
@@ -666,11 +685,13 @@ describe('IncrementalBalanceService - Unit Tests', () => {
             updatedBalance = await getBalance();
 
             // USD: User1 is owed $50
-            expect(updatedBalance.balancesByCurrency.USD[userId1].netBalance).toBe('50.00');
-            expect(updatedBalance.balancesByCurrency.USD[userId2].netBalance).toBe('-50.00');
+            const usdCurrency = USD;
+            const eurCurrency = toCurrencyISOCode('EUR');
+            expect(updatedBalance.balancesByCurrency[usdCurrency][userId1].netBalance).toBe('50.00');
+            expect(updatedBalance.balancesByCurrency[usdCurrency][userId2].netBalance).toBe('-50.00');
             // EUR: User2 is owed €40
-            expect(updatedBalance.balancesByCurrency.EUR[userId1].netBalance).toBe('-40.00');
-            expect(updatedBalance.balancesByCurrency.EUR[userId2].netBalance).toBe('40.00');
+            expect(updatedBalance.balancesByCurrency[eurCurrency][userId1].netBalance).toBe('-40.00');
+            expect(updatedBalance.balancesByCurrency[eurCurrency][userId2].netBalance).toBe('40.00');
             // Should have 2 debts (one per currency)
             expect(updatedBalance.simplifiedDebts).toHaveLength(2);
         });

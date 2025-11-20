@@ -1,5 +1,5 @@
 import { GroupCard } from '@/components/dashboard/GroupCard';
-import type { GroupDTO } from '@billsplit-wl/shared';
+import {toCurrencyISOCode, type GroupDTO } from '@billsplit-wl/shared';
 import { GroupDTOBuilder } from '@billsplit-wl/test-support';
 import { render, screen } from '@testing-library/preact';
 import { describe, expect, it, vi } from 'vitest';
@@ -75,7 +75,7 @@ describe('GroupCard', () => {
             balance: {
                 balancesByCurrency: {
                     USD: {
-                        currency: 'USD',
+                        currency: toCurrencyISOCode('USD'),
                         netBalance: '0',
                         totalOwed: '0',
                         totalOwing: '0',
@@ -95,13 +95,13 @@ describe('GroupCard', () => {
             balance: {
                 balancesByCurrency: {
                     USD: {
-                        currency: 'USD',
+                        currency: toCurrencyISOCode('USD'),
                         netBalance: '50',
                         totalOwed: '50',
                         totalOwing: '0',
                     },
                     CAD: {
-                        currency: 'CAD',
+                        currency: toCurrencyISOCode('CAD'),
                         netBalance: '-75',
                         totalOwed: '0',
                         totalOwing: '75',
@@ -121,13 +121,13 @@ describe('GroupCard', () => {
             balance: {
                 balancesByCurrency: {
                     EUR: {
-                        currency: 'EUR',
+                        currency: toCurrencyISOCode('EUR'),
                         netBalance: '-10',
                         totalOwed: '0',
                         totalOwing: '10',
                     },
                     GBP: {
-                        currency: 'GBP',
+                        currency: toCurrencyISOCode('GBP'),
                         netBalance: '25',
                         totalOwed: '25',
                         totalOwing: '0',

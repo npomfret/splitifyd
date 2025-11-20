@@ -1,4 +1,4 @@
-import { calculateEqualSplits, PooledTestUser, toAmount } from '@billsplit-wl/shared';
+import { calculateEqualSplits, PooledTestUser, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import {
     ApiDriver,
     borrowTestUsers,
@@ -142,12 +142,14 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
         test('should handle concurrent expense operations', async () => {
             const testGroup = await apiDriver.createGroupWithMembers(`Expense Locking Test ${uuidv4()}`, [users[0], users[1]], users[0].token);
 
+            const usd = USD;
+
             // Create an expense first
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription('Test Expense')
-                    .withAmount(100, 'USD')
+                    .withAmount(100, usd)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
@@ -161,18 +163,18 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
                 apiDriver.updateExpense(
                     expense.id,
                     new ExpenseUpdateBuilder()
-                        .withAmount(200, 'USD')
+                        .withAmount(200, usd)
                         .withParticipants(concurrentParticipants)
-                        .withSplits(calculateEqualSplits(toAmount(200), 'USD', concurrentParticipants))
+                        .withSplits(calculateEqualSplits(toAmount(200), usd, concurrentParticipants))
                         .build(),
                     users[0].token,
                 ),
                 apiDriver.updateExpense(
                     expense.id,
                     new ExpenseUpdateBuilder()
-                        .withAmount(300, 'USD')
+                        .withAmount(300, usd)
                         .withParticipants(concurrentParticipants)
-                        .withSplits(calculateEqualSplits(toAmount(300), 'USD', concurrentParticipants))
+                        .withSplits(calculateEqualSplits(toAmount(300), usd, concurrentParticipants))
                         .build(),
                     users[0].token,
                 ),
@@ -202,11 +204,13 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
         test('should handle concurrent expense deletion and modification', async () => {
             const testGroup = await apiDriver.createGroupWithMembers(`Expense Delete Test ${uuidv4()}`, [users[0], users[1]], users[0].token);
 
+            const usd = USD;
+
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription('Test Expense for Deletion')
-                    .withAmount(50, 'USD')
+                    .withAmount(50, usd)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
@@ -221,9 +225,9 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
                 apiDriver.updateExpense(
                     expense.id,
                     new ExpenseUpdateBuilder()
-                        .withAmount(75, 'USD')
+                        .withAmount(75, usd)
                         .withParticipants(deleteUpdateParticipants)
-                        .withSplits(calculateEqualSplits(toAmount(75), 'USD', deleteUpdateParticipants))
+                        .withSplits(calculateEqualSplits(toAmount(75), usd, deleteUpdateParticipants))
                         .build(),
                     users[0].token,
                 ),
@@ -256,12 +260,14 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
         test('should handle concurrent settlement operations', async () => {
             const testGroup = await apiDriver.createGroupWithMembers(`Settlement Test ${uuidv4()}`, [users[0], users[1]], users[0].token);
 
+            const usd = USD;
+
             const settlement = await apiDriver.createSettlement(
                 new CreateSettlementRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPayerId(users[0].uid)
                     .withPayeeId(users[1].uid)
-                    .withAmount(50, 'USD')
+                    .withAmount(50, usd)
                     .withNote('Test settlement')
                     .build(),
                 users[0].token,
@@ -272,14 +278,14 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
                 apiDriver.updateSettlement(
                     settlement.id,
                     new SettlementUpdateBuilder()
-                        .withAmount(75, 'USD')
+                        .withAmount(75, usd)
                         .build(),
                     users[0].token,
                 ),
                 apiDriver.updateSettlement(
                     settlement.id,
                     new SettlementUpdateBuilder()
-                        .withAmount(100, 'USD')
+                        .withAmount(100, usd)
                         .build(),
                     users[0].token,
                 ),
@@ -320,13 +326,14 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             const shareLink = await apiDriver.generateShareableLink(testGroup.id, undefined, users[0].token);
 
             // User joins while expense is being created simultaneously
+            const usd = USD;
             const promises = [
                 apiDriver.joinGroupByLink(shareLink.shareToken, users[1].token),
                 apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
                         .withDescription('Race condition expense')
-                        .withAmount(100, 'USD')
+                        .withAmount(100, usd)
                         .withPaidBy(users[0].uid)
                         .withParticipants([users[0].uid])
                         .withSplitType('equal')
@@ -403,10 +410,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
 
             // Create an expense
+            const usd = USD;
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Expense to be deleted')
-                .withAmount(50, 'USD')
+                .withAmount(50, usd)
                 .withPaidBy(user1.uid)
                 .withParticipants([user1.uid, user2.uid])
                 .withSplitType('equal')
@@ -456,12 +464,13 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Create multiple expenses and soft-delete them all
             const expenseIds: string[] = [];
+            const usd = USD;
 
             for (let i = 1; i <= 3; i++) {
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription(`Expense ${i}`)
-                    .withAmount(30.0 * i, 'USD')
+                    .withAmount(30.0 * i, usd)
                     .withPaidBy(groupUsers[i - 1].uid)
                     .withParticipants([user1.uid, user2.uid, user3.uid])
                     .withSplitType('equal')
@@ -548,10 +557,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
             await apiDriver.joinGroupByLink(shareResponse.shareToken, user2.token);
 
             // Create an active expense (don't delete it)
+            const usd = USD;
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Active expense')
-                .withAmount(75, 'USD')
+                .withAmount(75, usd)
                 .withPaidBy(user1.uid)
                 .withParticipants([user1.uid, user2.uid])
                 .withSplitType('equal')
@@ -600,10 +610,11 @@ describe('Groups Management - Concurrent Operations and Deletion Tests', () => {
 
             // Create multiple expenses (both active and soft-deleted) to populate various collections
             const expenses = [];
+            const usd = USD;
             for (let i = 1; i <= 4; i++) {
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
-                    .withAmount(100 * i, 'USD')
+                    .withAmount(100 * i, usd)
                     .withPaidBy(groupUsers[i - 1].uid)
                     .withParticipants([owner.uid, member1.uid, member2.uid, member3.uid])
                     .withSplitType('equal')

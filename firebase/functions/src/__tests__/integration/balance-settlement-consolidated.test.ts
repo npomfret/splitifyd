@@ -1,4 +1,4 @@
-import { PooledTestUser } from '@billsplit-wl/shared';
+import { PooledTestUser, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, test } from 'vitest';
 
@@ -54,9 +54,10 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
             const populatedBalances = await apiDriver.waitForBalanceUpdate(testGroup.id, users[0].token);
             expect(populatedBalances.groupId).toBe(testGroup.id);
-            expect(Object.keys(populatedBalances.balancesByCurrency.USD)).toContain(users[0].uid);
-            expect(populatedBalances.balancesByCurrency.USD[users[0].uid]).toHaveProperty('netBalance');
-            expect(parseFloat(populatedBalances.balancesByCurrency.USD[users[0].uid].netBalance)).toBeGreaterThan(0); // User 0 should be owed money
+            const usd = USD;
+            expect(Object.keys(populatedBalances.balancesByCurrency[usd])).toContain(users[0].uid);
+            expect(populatedBalances.balancesByCurrency[usd][users[0].uid]).toHaveProperty('netBalance');
+            expect(parseFloat(populatedBalances.balancesByCurrency[usd][users[0].uid].netBalance)).toBeGreaterThan(0); // User 0 should be owed money
         });
 
         test('should handle authentication and authorization correctly', async () => {

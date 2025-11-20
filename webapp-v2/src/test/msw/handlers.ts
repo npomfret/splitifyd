@@ -1,4 +1,4 @@
-import {ClientUser, GroupId, ListGroupsResponse, toVersionHash, UserPolicyStatusResponse} from '@billsplit-wl/shared';
+import {ClientUser, GroupId, ListGroupsResponse, toCurrencyISOCode, toVersionHash, UserPolicyStatusResponse} from '@billsplit-wl/shared';
 import { toPolicyId, toPolicyName } from '@billsplit-wl/shared';
 import type { HttpMethod, SerializedBodyMatcher, SerializedMswHandler, UrlMatchKind } from './types.ts';
 
@@ -197,7 +197,7 @@ export function appConfigHandler(options: HandlerOptions = {}): SerializedMswHan
                 apiUrl: 'http://localhost:5001',
             },
             formDefaults: {
-                currency: 'USD',
+                currency: toCurrencyISOCode('USD'),
                 splitType: 'equal',
             },
             tenant: {

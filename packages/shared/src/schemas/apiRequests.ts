@@ -10,7 +10,7 @@
 
 import { z } from 'zod';
 import { getCurrency } from '../currencies';
-import { type Amount, CurrencyISOCode, SplitTypes, toDisplayName, toGroupName } from '../shared-types';
+import { type Amount, CurrencyISOCode, SplitTypes, toDisplayName, toGroupName, toCurrencyISOCode } from '../shared-types';
 import { parseMonetaryAmount } from '../split-utils';
 import { createDisplayNameSchema, DisplayNameSchema, type DisplayNameSchemaOptions } from './primitives';
 
@@ -120,7 +120,8 @@ export const CurrencyCodeSchema = z
     .string()
     .trim()
     .length(3, 'Currency must be a 3-letter ISO code')
-    .transform((value) => value.toUpperCase());
+    .transform((value) => value.toUpperCase())
+    .transform(toCurrencyISOCode);
 
 const UTC_FORMAT_REGEX = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?(Z|[+-]00:00)$/;
 

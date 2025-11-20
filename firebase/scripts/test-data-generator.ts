@@ -11,6 +11,7 @@ import {
     PREDEFINED_EXPENSE_LABELS,
     subtractAmounts,
     toAmount,
+    toCurrencyISOCode,
     toDisplayName,
     toISOString,
     toPassword,
@@ -879,11 +880,14 @@ async function configureLargeGroupAdvancedScenarios(
     console.log(`Large Group advanced configuration complete: ${members.members.length} active members, ${pendingAfter.length} pending members awaiting action`);
 }
 
+const GBP = toCurrencyISOCode('GBP');
+const EUR = toCurrencyISOCode('EUR');
+
 async function createTestExpenseTemplate(groupId: GroupId, expense: TestExpenseTemplate, participants: AuthenticatedFirebaseUser[], createdBy: AuthenticatedFirebaseUser): Promise<any> {
     const participantIds = participants.map((p) => p.uid);
 
     // Randomly choose between GBP and EUR
-    const currency = Math.random() < 0.5 ? 'GBP' : 'EUR';
+    const currency = Math.random() < 0.5 ? toCurrencyISOCode(GBP) : toCurrencyISOCode(EUR);
     const normalizedAmount = normalizeAmount(expense.amount, currency);
 
     const expenseData = new CreateExpenseRequestBuilder()
@@ -972,14 +976,14 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
 
     // Create various expenses in both currencies
     const expenseScenarios = [
-        { description: 'Restaurant dinner', amount: '120', currency: 'GBP', label: 'food' },
-        { description: 'Hotel booking', amount: '350', currency: 'EUR', label: 'accommodation' },
-        { description: 'Concert tickets', amount: '180', currency: 'GBP', label: 'entertainment' },
-        { description: 'Car rental', amount: '240', currency: 'EUR', label: 'transport' },
-        { description: 'Grocery shopping', amount: '85', currency: 'GBP', label: 'food' },
-        { description: 'Train tickets', amount: '150', currency: 'EUR', label: 'transport' },
-        { description: 'Museum passes', amount: '60', currency: 'GBP', label: 'entertainment' },
-        { description: 'Wine tasting tour', amount: '180', currency: 'EUR', label: 'entertainment' },
+        { description: 'Restaurant dinner', amount: '120', currency: GBP, label: 'food' },
+        { description: 'Hotel booking', amount: '350', currency: EUR, label: 'accommodation' },
+        { description: 'Concert tickets', amount: '180', currency: GBP, label: 'entertainment' },
+        { description: 'Car rental', amount: '240', currency: EUR, label: 'transport' },
+        { description: 'Grocery shopping', amount: '85', currency: GBP, label: 'food' },
+        { description: 'Train tickets', amount: '150', currency: EUR, label: 'transport' },
+        { description: 'Museum passes', amount: '60', currency: GBP, label: 'entertainment' },
+        { description: 'Wine tasting tour', amount: '180', currency: EUR, label: 'entertainment' },
     ];
 
     // Create expenses with different payers and participants
@@ -1036,7 +1040,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
     // Create settlements to zero out all balances
     const settlementPromises: Array<Promise<void>> = [];
 
-    for (const currency of ['GBP', 'EUR']) {
+    for (const currency of [GBP, EUR]) {
         const currencyBalances = balancesByCurrency[currency];
         if (!currencyBalances) continue;
 
@@ -1088,7 +1092,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
                     runQueued(async () => {
                         try {
                             await driver.createSettlement(settlementData, debtor.user.token);
-                            const symbol = currency === 'GBP' ? '£' : '€';
+                            const symbol = currency === GBP ? '£' : '€';
                             console.log(`Created settlement: ${debtor.user.displayName} → ${creditor.user.displayName} ${symbol}${settlementAmount}`);
                         } catch (error) {
                             const message = error instanceof Error ? error.message : String(error);
@@ -1121,7 +1125,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
     const finalBalances = await runQueued(() => driver.getGroupBalances(settledGroup.id, groupMembers[0].token));
 
     console.log('Final balances in Settled Group (should all be ~0):');
-    for (const currency of ['GBP', 'EUR']) {
+    for (const currency of [GBP, EUR]) {
         const currencyBalances = finalBalances.balancesByCurrency?.[currency];
         if (currencyBalances) {
             const zero = zeroAmount(currency);
@@ -1129,7 +1133,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
             for (const member of groupMembers) {
                 const balance = currencyBalances[member.uid];
                 if (balance) {
-                    const symbol = currency === 'GBP' ? '£' : '€';
+                    const symbol = currency === GBP ? '£' : '€';
                     const netBalance = normalizeAmount(balance.netBalance ?? zero, currency);
                     console.log(`    ${member.displayName}: ${symbol}${netBalance}`);
                 }
@@ -1223,7 +1227,7 @@ async function createManySettlementsForLargeGroup(groups: GroupWithInvite[], gro
         const payee = availablePayees[Math.floor(Math.random() * availablePayees.length)];
 
         // Random amount between $10 and $150
-        const currency: CurrencyISOCode = Math.random() < 0.5 ? 'GBP' : 'EUR';
+        const currency: CurrencyISOCode = Math.random() < 0.5 ? GBP : EUR;
         const rawAmount = Math.random() * 140 + 10;
         const amount = normalizeAmount(toAmount(rawAmount.toFixed(2)), currency);
 
@@ -1313,7 +1317,7 @@ async function finalizeLargeGroupAdvancedData(groups: GroupWithInvite[], groupMe
     const viewerMember = memberDetails.find((member) => member.memberRole === MemberRoles.VIEWER);
 
     const balancesByCurrency = fullDetails.balances.balancesByCurrency ?? {};
-    const balanceCurrencies = Object.keys(balancesByCurrency);
+    const balanceCurrencies: CurrencyISOCode[] = Object.keys(balancesByCurrency).map(item => toCurrencyISOCode(item));
     const membersWithZeroBalance = new Set<string>(
         memberDetails
             .filter((member) =>
@@ -1415,7 +1419,7 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], groupMemb
                     ];
 
                     // Randomly choose between GBP and EUR for settlements
-                    const currency: CurrencyISOCode = Math.random() < 0.5 ? 'GBP' : 'EUR';
+                    const currency: CurrencyISOCode = Math.random() < 0.5 ? GBP : EUR;
                     const rawPaymentAmount = Math.random() * 45 + 5;
                     const paymentAmount = normalizeAmount(toAmount(rawPaymentAmount.toFixed(2)), currency);
 
@@ -1430,7 +1434,7 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], groupMemb
                     };
 
                     await runQueued(() => driver.createSettlement(settlementData, payer.token));
-                    const currencySymbol = currency === 'GBP' ? '£' : '€';
+                    const currencySymbol = currency === GBP ? '£' : '€';
                     console.log(`Created small payment: ${payer.displayName} → ${payee.displayName} ${currencySymbol}${paymentAmount} in ${group.name}`);
                     await new Promise((resolve) => setTimeout(resolve, 50));
                 }
@@ -1481,7 +1485,7 @@ async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], groupMemb
         for (const expense of expensesToDelete) {
             await runQueued(() => driver.deleteExpense(expense.id, deleter.token));
             totalDeleted++;
-            const currencySymbol = expense.currency === 'GBP' ? '£' : expense.currency === 'EUR' ? '€' : '$';
+            const currencySymbol = expense.currency === GBP ? '£' : expense.currency === EUR ? '€' : '$';
             console.log(`Deleted expense: "${expense.description}" (${currencySymbol}${expense.amount}) from ${group.name}`);
         }
 

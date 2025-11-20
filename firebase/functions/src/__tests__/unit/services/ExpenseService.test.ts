@@ -1,5 +1,5 @@
 import { StubStorage } from '@billsplit-wl/test-support';
-import { toExpenseId, toGroupId } from '@billsplit-wl/shared';
+import { toExpenseId, toGroupId, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { convertToISOString, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, ExpenseSplitBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -72,7 +72,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 createdBy: 'creator-id',
                 paidBy: 'payer-id',
                 amount: '100.5',
-                currency: 'USD',
+                currency: USD,
                 description: 'Test expense',
                 label: 'Food',
                 date: expect.any(String), // ISO string
@@ -480,7 +480,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 createdBy: userId,
                 paidBy: userId,
                 amount: '100.5',
-                currency: 'USD',
+                currency: USD,
                 description: 'Test expense',
                 label: 'Food',
                 date: expect.any(String), // ISO string

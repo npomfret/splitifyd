@@ -3,7 +3,7 @@ import { Avatar, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip } 
 import { navigationService } from '@/services/navigation.service';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember } from '@billsplit-wl/shared';
+import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember, toCurrencyISOCode } from '@billsplit-wl/shared';
 import { batch, useComputed, useSignal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -125,7 +125,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
             navigator
                 .share({
                     title: `${t('pages.expenseDetailPage.expenseLabel')}${expense.value?.description}`,
-                    text: `${t('pages.expenseDetailPage.checkOutExpense')}${expense.value?.description} - ${formatCurrency(expense.value?.amount ?? '0', expense.value?.currency || 'USD')}`,
+                    text: `${t('pages.expenseDetailPage.checkOutExpense')}${expense.value?.description} - ${formatCurrency(expense.value?.amount ?? '0', toCurrencyISOCode(expense.value?.currency || 'USD'))}`,
                     url: url,
                 })
                 .catch((error) => {
@@ -192,9 +192,9 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
     return (
         <BaseLayout
-            title={`${truncateDescription(expense.value.description)}${t('pages.expenseDetailPage.titleSeparator')}${formatCurrency(expense.value.amount, expense.value.currency)}`}
+            title={`${truncateDescription(expense.value.description)}${t('pages.expenseDetailPage.titleSeparator')}${formatCurrency(expense.value.amount, toCurrencyISOCode(expense.value.currency))}`}
             description={`${t('pages.expenseDetailPage.expenseFor')}${expense.value.description}${t('pages.expenseDetailPage.titleSeparator')}${
-                formatCurrency(expense.value.amount, expense.value.currency)
+                formatCurrency(expense.value.amount, toCurrencyISOCode(expense.value.currency))
             }`}
             headerVariant='dashboard'
         >

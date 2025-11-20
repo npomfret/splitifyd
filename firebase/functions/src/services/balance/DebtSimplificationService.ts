@@ -1,4 +1,4 @@
-import { isZeroAmount, SimplifiedDebt, UserBalance } from '@billsplit-wl/shared';
+import { isZeroAmount, SimplifiedDebt, toCurrencyISOCode, UserBalance } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ParsedCurrencyBalances as CurrencyBalances } from '../../schemas';
 import { simplifyDebts } from '../../utils/debtSimplifier';
@@ -7,7 +7,8 @@ export class DebtSimplificationService {
     simplifyDebtsForAllCurrencies(balancesByCurrency: CurrencyBalances): SimplifiedDebt[] {
         const allSimplifiedDebts: SimplifiedDebt[] = [];
 
-        for (const currency of Object.keys(balancesByCurrency)) {
+        for (const currencyStr of Object.keys(balancesByCurrency)) {
+            const currency = toCurrencyISOCode(currencyStr);
             const currencyBalances = balancesByCurrency[currency];
 
             // Only simplify if there are actual balances

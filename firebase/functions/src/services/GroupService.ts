@@ -18,6 +18,7 @@ import {
     MessageResponse,
     SecurityPresets,
     smallestUnitToAmountString,
+    toCurrencyISOCode,
     toGroupId,
     toISOString,
     UpdateGroupRequest,
@@ -82,7 +83,8 @@ export class GroupService {
         > = {};
 
         if (groupBalance.balancesByCurrency) {
-            for (const [currency, currencyBalances] of Object.entries(groupBalance.balancesByCurrency)) {
+            for (const [currencyStr, currencyBalances] of Object.entries(groupBalance.balancesByCurrency)) {
+                const currency = toCurrencyISOCode(currencyStr);
                 const currencyUserBalance = currencyBalances[userId];
                 if (currencyUserBalance) {
                     const netBalanceUnits = amountToSmallestUnit(currencyUserBalance.netBalance, currency);
@@ -93,7 +95,12 @@ export class GroupService {
                     const totalOwedUnits = netBalanceUnits > 0 ? netBalanceUnits : 0;
                     const totalOwingUnits = netBalanceUnits < 0 ? Math.abs(netBalanceUnits) : 0;
 
-                    const currencyDisplayData = {
+                    const currencyDisplayData: {
+                        currency: CurrencyISOCode;
+                        netBalance: Amount;
+                        totalOwed: Amount;
+                        totalOwing: Amount;
+                    } = {
                         currency,
                         netBalance: smallestUnitToAmountString(netBalanceUnits, currency),
                         totalOwed: smallestUnitToAmountString(totalOwedUnits, currency),
@@ -101,19 +108,19 @@ export class GroupService {
                     };
 
                     // Validate the currency display data structure
-                    const validatedCurrencyData = CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
-                    balancesByCurrency[currency] = validatedCurrencyData;
+                    CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
+                    balancesByCurrency[currency] = currencyDisplayData;
                 }
             }
         }
 
         // Create and validate the complete balance display data
         const balanceDisplay = { balancesByCurrency };
-        const validatedBalanceDisplay = BalanceDisplaySchema.parse(balanceDisplay);
+        BalanceDisplaySchema.parse(balanceDisplay);
 
         return {
             ...group,
-            balance: validatedBalanceDisplay,
+            balance: balanceDisplay,
             lastActivity,
         };
     }
@@ -194,7 +201,8 @@ export class GroupService {
 
         if (groupBalances.balancesByCurrency) {
             // groupBalances is already validated by GroupBalanceDTO from getGroupBalance()
-            for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
+            for (const [currencyStr, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
+                const currency = toCurrencyISOCode(currencyStr);
                 const currencyUserBalance = currencyBalances[userId];
                 if (currencyUserBalance) {
                     const netBalanceUnits = amountToSmallestUnit(currencyUserBalance.netBalance, currency);
@@ -202,14 +210,19 @@ export class GroupService {
                         continue;
                     }
 
-                    const currencyDisplayData = {
+                    const currencyDisplayData: {
+                        currency: CurrencyISOCode;
+                        netBalance: Amount;
+                        totalOwed: Amount;
+                        totalOwing: Amount;
+                    } = {
                         currency,
                         ...this.calculateBalanceBreakdown(currencyUserBalance.netBalance, currency),
                     };
 
                     // Validate the currency display data structure
-                    const validatedCurrencyData = CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
-                    balancesByCurrency[currency] = validatedCurrencyData;
+                    CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
+                    balancesByCurrency[currency] = currencyDisplayData;
                 }
             }
         }
@@ -219,11 +232,11 @@ export class GroupService {
 
         // Create and validate the complete balance display data
         const balanceDisplay = { balancesByCurrency };
-        const validatedBalanceDisplay = BalanceDisplaySchema.parse(balanceDisplay);
+        BalanceDisplaySchema.parse(balanceDisplay);
 
         return {
             ...group,
-            balance: validatedBalanceDisplay,
+            balance: balanceDisplay,
             lastActivity,
         };
     }

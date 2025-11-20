@@ -1,5 +1,5 @@
 import type { ExpenseDTO, SettlementDTO, UserBalance } from '@billsplit-wl/shared';
-import { amountToSmallestUnit, negateAmount, smallestUnitToAmountString, subtractAmounts, sumAmounts, zeroAmount } from '@billsplit-wl/shared';
+import { amountToSmallestUnit, negateAmount, smallestUnitToAmountString, subtractAmounts, sumAmounts, toCurrencyISOCode, zeroAmount } from '@billsplit-wl/shared';
 import { negateNormalizedAmount } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
@@ -160,10 +160,9 @@ export class IncrementalBalanceService {
         memberIds: string[],
         sign: 1 | -1,
     ): CurrencyBalances {
-        const currencies = new Set<string>([
-            ...Object.keys(existing || {}),
-            ...Object.keys(delta || {}),
-        ]);
+        const existingKeys = Object.keys(existing || {}).map(k => toCurrencyISOCode(k));
+        const deltaKeys = Object.keys(delta || {}).map(k => toCurrencyISOCode(k));
+        const currencies = new Set<CurrencyISOCode>([...existingKeys, ...deltaKeys]);
 
         const result: CurrencyBalances = {};
 

@@ -20,12 +20,13 @@ import { ReadonlySignal, signal } from '@preact/signals';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
 import { enhancedGroupsStore as groupsStore } from './groups-store-enhanced';
+import {toCurrencyISOCode} from "@billsplit-wl/shared";
 
 interface ExpenseFormStore {
     // Form fields
     description: string;
     amount: Amount;
-    currency: CurrencyISOCode;
+    currency: string;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
     paidBy: UserId;
@@ -253,9 +254,9 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         splits: ExpenseSplit[];
     } | null = null;
 
-    private getActiveCurrency(): string | null {
+    private getActiveCurrency(): CurrencyISOCode | null {
         const currency = this.#currencySignal.value;
-        return currency ? currency : null;
+        return currency ? toCurrencyISOCode(currency) : null;
     }
 
     private toUnits(amount: Amount): number {
@@ -646,7 +647,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     calculateEqualSplits(): void {
         const participants = this.#participantsSignal.value;
         const amount = this.#amountSignal.value;
-        const currency = this.#currencySignal.value;
+        const currency = this.getActiveCurrency();
 
         if (participants.length === 0 || this.toUnits(amount) <= 0 || !currency) {
             this.#splitsSignal.value = [];
@@ -730,7 +731,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     private handleSplitTypeChange(newType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE): void {
         const participants = this.#participantsSignal.value;
         const amount = this.#amountSignal.value;
-        const currency = this.#currencySignal.value;
+        const currency = this.getActiveCurrency();
 
         if (participants.length === 0 || this.toUnits(amount) <= 0 || !currency) {
             this.#splitsSignal.value = [];
@@ -785,7 +786,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 }
 
                 // Validate currency precision if currency is set
-                const currency = this.#currencySignal.value;
+                const currency = this.getActiveCurrency();
                 if (currency) {
                     const precisionError = getAmountPrecisionError(amountValue, currency);
                     if (precisionError) {
@@ -916,7 +917,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 groupId,
                 description: this.#descriptionSignal.value.trim(),
                 amount: amount,
-                currency: this.#currencySignal.value,
+                currency: toCurrencyISOCode(this.#currencySignal.value),
                 paidBy: this.#paidBySignal.value,
                 label: this.#labelSignal.value,
                 date: utcDateTime,

@@ -1,7 +1,7 @@
 // Unit tests for departed member transaction locking
 // Tests that expenses and settlements involving departed members become read-only (locked)
 
-import { calculateEqualSplits, GroupId, toAmount } from '@billsplit-wl/shared';
+import { calculateEqualSplits, GroupId, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, SettlementUpdateBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { AppDriver } from '../AppDriver';
@@ -9,6 +9,8 @@ import { AppDriver } from '../AppDriver';
 describe('Departed Member Transaction Locking - Unit Tests', () => {
     let appDriver: AppDriver;
     const userIds = ['user-0', 'user-1', 'user-2', 'user-3'];
+    const usd = USD;
+    const eur = toCurrencyISOCode('EUR');
 
     beforeEach(() => {
         appDriver = new AppDriver();
@@ -231,7 +233,7 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withAmount(120, 'USD')
                 .withDescription('Attempted update')
                 .withParticipants([userIds[0], userIds[1], userIds[2]])
-                .withSplits(calculateEqualSplits(toAmount(120), 'USD', [userIds[0], userIds[1], userIds[2]]))
+                .withSplits(calculateEqualSplits(toAmount(120), usd, [userIds[0], userIds[1], userIds[2]]))
                 .build();
 
             await expect(appDriver.updateExpense(expense.id, updateData, userIds[0])).rejects.toThrow(
@@ -262,7 +264,7 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                 .withAmount(120, 'USD')
                 .withDescription('Updated successfully')
                 .withParticipants([userIds[0], userIds[1], userIds[2]])
-                .withSplits(calculateEqualSplits(toAmount(120), 'USD', [userIds[0], userIds[1], userIds[2]]))
+                .withSplits(calculateEqualSplits(toAmount(120), usd, [userIds[0], userIds[1], userIds[2]]))
                 .build();
 
             await expect(appDriver.updateExpense(expense.id, updateData, userIds[0])).resolves.toBeDefined();
@@ -680,7 +682,7 @@ describe('Departed Member Transaction Locking - Unit Tests', () => {
                     new ExpenseUpdateBuilder()
                         .withAmount(150, 'USD')
                         .withParticipants(userIds)
-                        .withSplits(calculateEqualSplits(toAmount(150), 'USD', userIds))
+                        .withSplits(calculateEqualSplits(toAmount(150), usd, userIds))
                         .build(),
                     userIds[0],
                 ),

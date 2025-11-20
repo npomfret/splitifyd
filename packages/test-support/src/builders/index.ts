@@ -18,7 +18,6 @@ export { ExpenseFullDetailsBuilder } from './ExpenseFullDetailsBuilder';
 export { ExpenseSplitBuilder } from './ExpenseSplitBuilder';
 export { ExpenseUpdateBuilder } from './ExpenseUpdateBuilder';
 export { GroupBalanceDocumentBuilder } from './GroupBalanceDocumentBuilder';
-export { GroupBalanceDTOBuilder } from './GroupBalanceDTOBuilder';
 export { GroupBalancesBuilder } from './GroupBalancesBuilder';
 export { GroupDTOBuilder } from './GroupDTOBuilder';
 export { GroupFullDetailsBuilder } from './GroupFullDetailsBuilder';

@@ -1,4 +1,4 @@
-import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses, toAmount } from '@billsplit-wl/shared';
+import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses, toAmount, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { toGroupName } from '@billsplit-wl/shared';
 import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
@@ -313,16 +313,16 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
             // Balances are user-relative: owner is owed $50, member owes $50
             expect(ownerView.group.balance).toBeDefined();
-            expect(ownerView.group.balance?.balancesByCurrency.USD).toEqual({
-                currency: 'USD',
+            expect(ownerView.group.balance?.balancesByCurrency[USD]).toEqual({
+                currency: USD,
                 netBalance: '50.00',
                 totalOwed: '50.00',
                 totalOwing: '0.00',
             });
 
             expect(memberView.group.balance).toBeDefined();
-            expect(memberView.group.balance?.balancesByCurrency.USD).toEqual({
-                currency: 'USD',
+            expect(memberView.group.balance?.balancesByCurrency[USD]).toEqual({
+                currency: USD,
                 netBalance: '-50.00',
                 totalOwed: '0.00',
                 totalOwing: '50.00',
@@ -530,8 +530,9 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             expect(expenses.expenses).toHaveLength(0);
 
             const balances = await appDriver.getGroupBalances(group.id, owner.id);
-            if (balances.balancesByCurrency?.['EUR']) {
-                expect(Number(balances.balancesByCurrency['EUR'].netBalance)).toBe(0);
+            for (const currencyStr of Object.keys(balances.balancesByCurrency)) {
+                const currency = toCurrencyISOCode(currencyStr);
+                expect(Number(balances.balancesByCurrency[currency].netBalance)).toBe(0);
             }
         });
 
@@ -565,8 +566,9 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             expect(expenses.expenses).toHaveLength(3);
 
             const groupSummary = await appDriver.getGroup(group.id, owner.id);
-            if (groupSummary.balance?.balancesByCurrency?.['USD']) {
-                expect(Number(groupSummary.balance.balancesByCurrency['USD'].netBalance)).toBe(0);
+            const usdCurrency = USD;
+            if (groupSummary.balance?.balancesByCurrency?.[usdCurrency]) {
+                expect(Number(groupSummary.balance.balancesByCurrency[usdCurrency].netBalance)).toBe(0);
             }
         });
 
@@ -622,8 +624,9 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             const details = await appDriver.getGroupFullDetails(group.id, {}, owner.id);
             expect(details.expenses.expenses).toHaveLength(1);
 
-            if (details.group.balance?.balancesByCurrency?.['USD']) {
-                expect(Number(details.group.balance.balancesByCurrency['USD'].netBalance)).toBe(0);
+            const usdCurrency = USD;
+            if (details.group.balance?.balancesByCurrency?.[usdCurrency]) {
+                expect(Number(details.group.balance.balancesByCurrency[usdCurrency].netBalance)).toBe(0);
             }
         });
 
@@ -653,7 +656,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
                     .withAmount(80, 'USD')
                     .withDescription('Updated Expense')
                     .withParticipants(participants)
-                    .withSplits(calculateEqualSplits(toAmount(80), 'USD', participants))
+                    .withSplits(calculateEqualSplits(toAmount(80), USD, participants))
                     .build(),
                 owner.id,
             );

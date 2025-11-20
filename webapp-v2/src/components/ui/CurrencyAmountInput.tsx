@@ -1,6 +1,6 @@
 import { useCurrencySelector } from '@/app/hooks/useCurrencySelector';
 import { type Currency, CurrencyService } from '@/app/services/currencyService';
-import { Amount } from '@billsplit-wl/shared';
+import { Amount, toCurrencyISOCode } from '@billsplit-wl/shared';
 import { useCallback, useMemo, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
@@ -64,7 +64,7 @@ export function CurrencyAmountInput({
 
     // Calculate min and step values based on currency decimal digits using service
     const { minValue, stepValue } = useMemo(() => {
-        return currency ? currencyService.getCurrencyInputConfig(currency) : { minValue: '0.01', stepValue: '0.01' };
+        return currency ? currencyService.getCurrencyInputConfig(toCurrencyISOCode(currency)) : { minValue: '0.01', stepValue: '0.01' };
     }, [currency, currencyService]);
 
     const handleAmountChange = useCallback(

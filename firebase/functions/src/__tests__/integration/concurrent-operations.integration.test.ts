@@ -1,9 +1,8 @@
-import { amountToSmallestUnit, GroupDTO, toDisplayName } from '@billsplit-wl/shared';
-import { PooledTestUser } from '@billsplit-wl/shared';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support';
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
-import { getAuth, getFirestore, getStorage } from '../../firebase';
-import { ComponentBuilder } from '../../services/ComponentBuilder';
+import {amountToSmallestUnit, GroupDTO, PooledTestUser, toCurrencyISOCode, toDisplayName, USD} from '@billsplit-wl/shared';
+import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, getFirebaseEmulatorConfig} from '@billsplit-wl/test-support';
+import {beforeAll, beforeEach, describe, expect, test} from 'vitest';
+import {getAuth, getFirestore, getStorage} from '../../firebase';
+import {ComponentBuilder} from '../../services/ComponentBuilder';
 
 async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>, limit: number): Promise<PromiseSettledResult<T>[]> {
     if (operations.length === 0) {
@@ -317,7 +316,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(payer.uid)
-                            .withAmount(amount, 'USD')
+                            .withAmount(amount, USD)
                             .withParticipants(participants)
                             .withSplitType('equal')
                             .build(),
@@ -329,7 +328,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withGroupId(testGroup.id)
                             .withPayerId(payerId)
                             .withPayeeId(payeeId)
-                            .withAmount(amount, 'USD')
+                            .withAmount(amount, USD)
                             .build(),
                         token,
                     )
@@ -344,11 +343,11 @@ describe('Concurrent Operations Integration Tests', () => {
 
             const balances = await apiDriver.getGroupBalances(testGroup.id, testUser1.token);
 
-            expect(balances.balancesByCurrency.USD).toBeDefined();
-            const currencyBalances = balances.balancesByCurrency.USD;
+            expect(balances.balancesByCurrency[USD]).toBeDefined();
+            const currencyBalances = balances.balancesByCurrency[USD];
 
             const totalUnits = Object.values(currencyBalances).reduce(
-                (sum, balance: any) => sum + amountToSmallestUnit(balance.netBalance, 'USD'),
+                (sum, balance: any) => sum + amountToSmallestUnit(balance.netBalance, USD),
                 0,
             );
             expect(totalUnits).toBe(0);
@@ -367,13 +366,14 @@ describe('Concurrent Operations Integration Tests', () => {
             const { shareToken } = await groupShareService.generateShareableLink(testUser1.uid, testGroup.id);
             await groupShareService.joinGroupByLink(testUser2.uid, shareToken, toDisplayName('Test User 2'));
 
+            const usd = USD;
             const operations = Array.from({ length: 8 }, (_, i) => () =>
                 expenseService.createExpense(
                     testUser1.uid,
                     new CreateExpenseRequestBuilder()
                         .withGroupId(testGroup.id)
                         .withPaidBy(testUser1.uid)
-                        .withAmount(50 + i, 'USD')
+                        .withAmount(50 + i, usd)
                         .withParticipants([testUser1.uid, testUser2.uid])
                         .withSplitType('equal')
                         .build(),
@@ -390,9 +390,9 @@ describe('Concurrent Operations Integration Tests', () => {
 
             const balances = await apiDriver.getGroupBalances(testGroup.id, testUser1.token);
 
-            expect(balances.balancesByCurrency.USD).toBeDefined();
-            expect(balances.balancesByCurrency.USD[testUser2.uid].netBalance).toBeCloseTo(-expectedDebt, 2);
-            expect(balances.balancesByCurrency.USD[testUser1.uid].netBalance).toBeCloseTo(expectedDebt, 2);
+            expect(balances.balancesByCurrency[usd]).toBeDefined();
+            expect(balances.balancesByCurrency[usd][testUser2.uid].netBalance).toBeCloseTo(-expectedDebt, 2);
+            expect(balances.balancesByCurrency[usd][testUser1.uid].netBalance).toBeCloseTo(expectedDebt, 2);
         });
 
         test('should maintain correct multi-currency balances under concurrent operations', async () => {
@@ -409,6 +409,10 @@ describe('Concurrent Operations Integration Tests', () => {
             await groupShareService.joinGroupByLink(testUser2.uid, shareToken, toDisplayName('Test User 2'));
             await groupShareService.joinGroupByLink(testUser3.uid, shareToken, toDisplayName('Test User 3'));
 
+            const usd = USD;
+            const eur = toCurrencyISOCode('EUR');
+            const gbp = toCurrencyISOCode('GBP');
+
             const operations = [
                 () =>
                     expenseService.createExpense(
@@ -416,7 +420,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser1.uid)
-                            .withAmount(100, 'USD')
+                            .withAmount(100, usd)
                             .withParticipants([testUser1.uid, testUser2.uid])
                             .withSplitType('equal')
                             .build(),
@@ -427,7 +431,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser2.uid)
-                            .withAmount(80, 'EUR')
+                            .withAmount(80, eur)
                             .withParticipants([testUser2.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
@@ -438,7 +442,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser3.uid)
-                            .withAmount(60, 'GBP')
+                            .withAmount(60, gbp)
                             .withParticipants([testUser1.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
@@ -449,7 +453,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser1.uid)
-                            .withAmount(120, 'USD')
+                            .withAmount(120, usd)
                             .withParticipants([testUser1.uid, testUser2.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
@@ -460,7 +464,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser2.uid)
-                            .withAmount(90, 'EUR')
+                            .withAmount(90, eur)
                             .withParticipants([testUser1.uid, testUser2.uid])
                             .withSplitType('equal')
                             .build(),
@@ -471,7 +475,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withGroupId(testGroup.id)
                             .withPayerId(testUser2.uid)
                             .withPayeeId(testUser1.uid)
-                            .withAmount(25, 'USD')
+                            .withAmount(25, usd)
                             .build(),
                         testUser2.token,
                     ),
@@ -481,7 +485,7 @@ describe('Concurrent Operations Integration Tests', () => {
                             .withGroupId(testGroup.id)
                             .withPayerId(testUser3.uid)
                             .withPayeeId(testUser2.uid)
-                            .withAmount(30, 'EUR')
+                            .withAmount(30, eur)
                             .build(),
                         testUser3.token,
                     ),
@@ -491,7 +495,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser3.uid)
-                            .withAmount(75, 'GBP')
+                            .withAmount(75, gbp)
                             .withParticipants([testUser2.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
@@ -502,7 +506,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         new CreateExpenseRequestBuilder()
                             .withGroupId(testGroup.id)
                             .withPaidBy(testUser1.uid)
-                            .withAmount(110, 'USD')
+                            .withAmount(110, usd)
                             .withParticipants([testUser1.uid, testUser3.uid])
                             .withSplitType('equal')
                             .build(),
@@ -520,7 +524,8 @@ describe('Concurrent Operations Integration Tests', () => {
             const currencies = Object.keys(balances.balancesByCurrency);
             expect(currencies.length).toBeGreaterThan(0);
 
-            currencies.forEach((currency) => {
+            currencies.forEach((currencyStr) => {
+                const currency = toCurrencyISOCode(currencyStr);
                 const currencyBalances = balances.balancesByCurrency[currency];
                 const sumUnits = Object.values(currencyBalances).reduce(
                     (total, userBal: any) => total + amountToSmallestUnit(userBal.netBalance, currency),

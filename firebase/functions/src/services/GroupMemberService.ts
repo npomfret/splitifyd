@@ -9,6 +9,7 @@ import {
     MemberRoles,
     MemberStatuses,
     MessageResponse,
+    toCurrencyISOCode,
     UserId,
 } from '@billsplit-wl/shared';
 import { toISOString } from '@billsplit-wl/shared';
@@ -378,7 +379,8 @@ export class GroupMemberService {
             const groupBalance = await this.firestoreReader.getGroupBalance(groupId);
             const balancesByCurrency = groupBalance.balancesByCurrency;
 
-            for (const currency in balancesByCurrency) {
+            for (const currencyStr in balancesByCurrency) {
+                const currency = toCurrencyISOCode(currencyStr);
                 const targetBalance = balancesByCurrency[currency][targetUserId];
                 if (targetBalance) {
                     const balanceUnits = amountToSmallestUnit(targetBalance.netBalance, currency);

@@ -144,10 +144,12 @@ export const toPolicyText = (value: string): PolicyText => value as PolicyText;
 export type VersionHash = Brand<string, 'VersionHash'>;
 export const toVersionHash = (value: string): VersionHash => value as VersionHash;
 
+export type CurrencyISOCode = Brand<string, 'CurrencyISOCode'>;
+export const toCurrencyISOCode = (value: string): CurrencyISOCode => value as CurrencyISOCode;
+
 export type Description = string;
 export type UserId = string;
 export type Email = string;
-export type CurrencyISOCode = string;
 export type ActivityFeedItemId = string;
 
 // todo: add a type for label
@@ -1069,7 +1071,7 @@ export interface GroupBalances {
     userBalances: Record<UserId, UserBalance>;
     simplifiedDebts: SimplifiedDebt[];
     lastUpdated: ISOString;
-    balancesByCurrency: Record<string, Record<UserId, UserBalance>>;
+    balancesByCurrency: Record<CurrencyISOCode, Record<UserId, UserBalance>>;
 }
 
 // ========================================================================

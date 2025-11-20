@@ -1,22 +1,8 @@
 import type { ISOString, SimplifiedDebt, UserBalance, UserId } from '@billsplit-wl/shared';
-import { Amount } from '@billsplit-wl/shared';
-import { negateNormalizedAmount, toISOString, ZERO } from '@billsplit-wl/shared';
-import { GroupId } from '@billsplit-wl/shared';
+import { Amount, negateNormalizedAmount, toISOString, ZERO, GroupId, toGroupId, toCurrencyISOCode, USD } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
-import { toGroupId } from '@billsplit-wl/shared';
-import { generateShortId } from '../test-helpers';
-
-/**
- * Group balance DTO structure for testing
- * Matches the GroupBalanceDTO type from firebase/functions/src/schemas/group-balance.ts
- */
-interface GroupBalanceDTO {
-    groupId: GroupId;
-    balancesByCurrency: Record<string, Record<string, UserBalance>>;
-    simplifiedDebts: SimplifiedDebt[];
-    lastUpdatedAt: ISOString;
-    version: number;
-}
+import type { GroupBalanceDTO } from '../../schemas/group-balance';
+import { generateShortId } from '@billsplit-wl/test-support';
 
 /**
  * Builder for creating GroupBalanceDTO objects for unit testing balance calculations
@@ -54,7 +40,7 @@ export class GroupBalanceDTOBuilder {
      * Add a user balance for a specific currency
      * Creates the currency structure if it doesn't exist
      */
-    withUserBalance(currency: CurrencyISOCode, userId: UserId, balance: Partial<UserBalance>): this {
+    withUserBalance(currency: CurrencyISOCode | string, userId: UserId, balance: Partial<UserBalance>): this {
         if (!this.balance.balancesByCurrency[currency]) {
             this.balance.balancesByCurrency[currency] = {};
         }
@@ -122,7 +108,7 @@ export class GroupBalanceDTOBuilder {
                 from: { uid: user2 },
                 to: { uid: user1 },
                 amount,
-                currency: 'USD',
+                currency: USD,
             });
 
         return this;

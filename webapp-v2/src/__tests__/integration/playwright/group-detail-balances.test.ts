@@ -122,7 +122,7 @@ test.describe('Group Detail - Balance Display: With Debts', () => {
 
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-2', 'Alice', 25.0)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-2', 'Alice', 25.0, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()
@@ -170,7 +170,7 @@ test.describe('Group Detail - Balance Display: With Debts', () => {
         // Alice owes the test user
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt('user-2', 'Alice', user.uid, user.displayName, 30.0)
+            .withSimpleTwoPersonDebt('user-2', 'Alice', user.uid, user.displayName, 30.0, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()
@@ -232,8 +232,8 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
         // Bob owes Test user $15
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-2', 'Alice', 20.0)
-            .withSimpleTwoPersonDebt('user-3', 'Bob', user.uid, user.displayName, 15.0)
+            .withSimpleTwoPersonDebt(user.uid, user.displayName, 'user-2', 'Alice', 20.0, 'USD')
+            .withSimpleTwoPersonDebt('user-3', 'Bob', user.uid, user.displayName, 15.0, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()
@@ -293,7 +293,7 @@ test.describe('Group Detail - Balance Display: Complex Multi-Person Debts', () =
         // This represents the simplified result after debt optimization
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt('user-3', 'Bob', 'user-2', 'Alice', 10.0)
+            .withSimpleTwoPersonDebt('user-3', 'Bob', 'user-2', 'Alice', 10.0, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()
@@ -402,7 +402,7 @@ test.describe('Group Detail - Balance Display: With Expenses', () => {
 
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt('user-2', 'Alice', user.uid, user.displayName, 50.0)
+            .withSimpleTwoPersonDebt('user-2', 'Alice', user.uid, user.displayName, 50.0, 'USD')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()

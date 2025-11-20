@@ -6,6 +6,7 @@ import { toGroupId } from '@billsplit-wl/shared';
 import { SettlementId, toSettlementId } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomValidCurrencyAmountPair } from '../test-helpers';
 import { GroupMemberBuilder } from './GroupMemberBuilder';
+import {toCurrencyISOCode} from "@billsplit-wl/shared";
 
 /**
  * Builder for creating SettlementWithMembers objects for tests
@@ -81,8 +82,8 @@ export class SettlementWithMembersBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
-        this.settlement.currency = currency;
+    withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
+        this.settlement.currency = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
         this.settlement.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }

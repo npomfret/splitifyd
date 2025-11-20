@@ -5,6 +5,7 @@ import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import { ExpenseId, toExpenseId } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
+import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 /**
@@ -79,8 +80,8 @@ export class ExpenseDTOBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
-        this.expense.currency = currency;
+    withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
+        this.expense.currency = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
         const normalizedAmount = typeof amount === 'number' ? amount.toString() : amount;
         this.expense.amount = normalizedAmount;
 

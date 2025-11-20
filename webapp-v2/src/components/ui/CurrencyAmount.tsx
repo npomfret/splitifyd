@@ -1,5 +1,5 @@
 import { formatCurrency, type FormatOptions } from '@/utils/currency';
-import { type Amount, toAmount } from '@billsplit-wl/shared';
+import { type Amount, toAmount, toCurrencyISOCode } from '@billsplit-wl/shared';
 import type { JSX } from 'preact';
 import { Tooltip } from './Tooltip';
 
@@ -24,8 +24,8 @@ export function CurrencyAmount({
     as: Tag = 'span',
     ...rest
 }: CurrencyAmountProps) {
-    const formatted = formatCurrency(toAmount(amount), currency, displayOptions);
-    const tooltipContent = formatCurrency(toAmount(amount), currency, {
+    const formatted = formatCurrency(toAmount(amount), toCurrencyISOCode(currency), displayOptions);
+    const tooltipContent = formatCurrency(toAmount(amount), toCurrencyISOCode(currency), {
         ...tooltipOptions,
         includeCurrencyCode: true,
     });

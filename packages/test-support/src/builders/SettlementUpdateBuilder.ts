@@ -2,6 +2,7 @@ import type { UpdateSettlementRequest } from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
+import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomDate, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class SettlementUpdateBuilder {
@@ -18,8 +19,8 @@ export class SettlementUpdateBuilder {
         };
     }
 
-    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
-        this.update.currency = currency;
+    withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
+        this.update.currency = typeof currency === "string" ? toCurrencyISOCode(currency): currency;
         this.update.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }

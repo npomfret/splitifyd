@@ -4,6 +4,7 @@ import { GroupId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode, UserId } from '@billsplit-wl/shared';
 import { toGroupId } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
+import { toCurrencyISOCode } from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomChoice, randomDate, randomLabel, randomString, randomValidCurrencyAmountPair } from '../test-helpers';
 
 export class CreateExpenseRequestBuilder {
@@ -50,8 +51,8 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withAmount(amount: Amount | number, currency: CurrencyISOCode): this {
-        this.expense.currency = currency;
+    withAmount(amount: Amount | number, currency: CurrencyISOCode | string): this {
+        this.expense.currency = typeof currency === "string" ? toCurrencyISOCode(currency) : currency;
         this.expense.amount = typeof amount === 'number' ? amount.toString() : amount;
         return this;
     }
@@ -87,8 +88,8 @@ export class CreateExpenseRequestBuilder {
         return this;
     }
 
-    withCurrency(currency: CurrencyISOCode): this {
-        this.expense.currency = currency;
+    withCurrency(currency: CurrencyISOCode | string): this {
+        this.expense.currency = typeof currency === 'string' ? toCurrencyISOCode(currency) : currency;
         return this;
     }
 

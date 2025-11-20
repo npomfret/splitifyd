@@ -409,7 +409,7 @@ test.describe('Group Detail - Sidebar Sections', () => {
 
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(memberSelf.uid, memberSelf.groupDisplayName ?? 'Member One', memberTwo.uid, memberTwo.groupDisplayName ?? 'Member Two', 42)
+            .withSimpleTwoPersonDebt(memberSelf.uid, memberSelf.groupDisplayName ?? 'Member One', memberTwo.uid, memberTwo.groupDisplayName ?? 'Member Two', 42, 'EUR')
             .build();
 
         const sidebarComment = new CommentBuilder()
@@ -695,7 +695,7 @@ test.describe('Group Detail - Balance Display', () => {
 
         const balances = new GroupBalancesBuilder()
             .withGroupId(groupId)
-            .withSimpleTwoPersonDebt(testUser.uid, testUser.displayName, 'user-2', 'Alice', 25.0)
+            .withSimpleTwoPersonDebt(testUser.uid, testUser.displayName, 'user-2', 'Alice', 25.0, 'EUR')
             .build();
 
         const fullDetails = new GroupFullDetailsBuilder()

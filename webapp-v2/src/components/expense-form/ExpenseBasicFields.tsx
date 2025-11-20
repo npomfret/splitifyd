@@ -1,6 +1,6 @@
 import { CurrencyService } from '@/app/services/currencyService.ts';
 import { getLastNight, getThisMorning, getToday, getYesterday } from '@/utils/dateUtils.ts';
-import { Amount, ExpenseLabel } from '@billsplit-wl/shared';
+import { Amount, ExpenseLabel, toCurrencyISOCode } from '@billsplit-wl/shared';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 import { Button, Card, CurrencyAmount, CurrencyAmountInput, LabelSuggestionInput, TimeInput, Tooltip } from '../ui';
@@ -73,7 +73,7 @@ export function ExpenseBasicFields(
                             onAmountBlur={() => validateOnBlur('amount')}
                             onCurrencyChange={(value) => {
                                 updateField('currency', value);
-                                currencyService.addToRecentCurrencies(value);
+                                currencyService.addToRecentCurrencies(toCurrencyISOCode(value));
                             }}
                             label={t('expenseBasicFields.amountLabel')}
                             required
@@ -95,7 +95,7 @@ export function ExpenseBasicFields(
                                             onClick={() => updateField('amount', amt)}
                                             className='px-2 py-1 text-xs bg-surface-base/50 border border-border-default/50 text-text-primary rounded hover:bg-surface-muted hover:border-interactive-primary/40 transition-all duration-200'
                                         >
-                                            <CurrencyAmount amount={amt} currency={currency} />
+                                            <CurrencyAmount amount={amt} currency={toCurrencyISOCode(currency)} />
                                         </button>
                                     ))}
                                 </div>

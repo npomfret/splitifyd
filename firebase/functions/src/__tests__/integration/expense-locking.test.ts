@@ -11,7 +11,7 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { calculateEqualSplits, toAmount, UserToken } from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount, toCurrencyISOCode, UserToken } from '@billsplit-wl/shared';
 import { borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
 import { ApiDriver } from '@billsplit-wl/test-support';
 
@@ -37,12 +37,14 @@ describe('Expense Locking - Firebase Transaction Behavior', () => {
             user1.token,
         );
 
+        const eur = toCurrencyISOCode('EUR');
+
         // Create an expense
         const expense = await apiDriver.createExpense(
             new CreateExpenseRequestBuilder()
                 .withGroupId(group.id)
                 .withDescription('Test Expense')
-                .withAmount(100, 'EUR')
+                .withAmount(100, eur)
                 .withPaidBy(user1.uid)
                 .withLabel('food')
                 .withDate(new Date().toISOString())
@@ -64,18 +66,18 @@ describe('Expense Locking - Firebase Transaction Behavior', () => {
             apiDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
-                    .withAmount(200, 'EUR')
+                    .withAmount(200, eur)
                     .withParticipants(lockingTestParticipants)
-                    .withSplits(calculateEqualSplits(toAmount(200), 'EUR', lockingTestParticipants))
+                    .withSplits(calculateEqualSplits(toAmount(200), eur, lockingTestParticipants))
                     .build(),
                 user1.token,
             ),
             apiDriver.updateExpense(
                 expense.id,
                 new ExpenseUpdateBuilder()
-                    .withAmount(300, 'EUR')
+                    .withAmount(300, eur)
                     .withParticipants(lockingTestParticipants)
-                    .withSplits(calculateEqualSplits(toAmount(300), 'EUR', lockingTestParticipants))
+                    .withSplits(calculateEqualSplits(toAmount(300), eur, lockingTestParticipants))
                     .build(),
                 user1.token,
             ),

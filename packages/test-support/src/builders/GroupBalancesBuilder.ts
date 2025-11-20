@@ -1,4 +1,4 @@
-import type { GroupBalances, ISOString, SimplifiedDebt, UserBalance } from '@billsplit-wl/shared';
+import {GroupBalances, ISOString, SimplifiedDebt, toCurrencyISOCode, UserBalance} from '@billsplit-wl/shared';
 import { Amount } from '@billsplit-wl/shared';
 import { negateNormalizedAmount, ZERO } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
@@ -104,12 +104,12 @@ export class GroupBalancesBuilder {
     /**
      * Add a simplified debt entry
      */
-    addSimplifiedDebt(from: { uid: string; displayName?: string; }, to: { uid: string; displayName?: string; }, amount: Amount, currency: CurrencyISOCode = 'USD'): this {
+    addSimplifiedDebt(from: { uid: string; displayName?: string; }, to: { uid: string; displayName?: string; }, amount: Amount, currency: CurrencyISOCode | string): this {
         this.balances.simplifiedDebts.push({
             from,
             to,
             amount,
-            currency,
+            currency: typeof currency === "string" ? toCurrencyISOCode(currency) : currency,
         });
         return this;
     }
@@ -139,7 +139,7 @@ export class GroupBalancesBuilder {
      * Convenience method: Set up a simple two-person debt scenario
      * User 'from' owes user 'to' the specified amount
      */
-    withSimpleTwoPersonDebt(fromUid: string, fromName: string, toUid: string, toName: string, amount: Amount | number, currency: CurrencyISOCode = 'USD'): this {
+    withSimpleTwoPersonDebt(fromUid: string, fromName: string, toUid: string, toName: string, amount: Amount | number, currency: CurrencyISOCode | string): this {
         const amt: Amount = typeof amount === 'number' ? amount.toString() : amount;
 
         // Add user balances
