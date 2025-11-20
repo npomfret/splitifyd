@@ -20,6 +20,13 @@ export class GroupSecurityHandlers {
         return { userId, groupId };
     }
 
+    private async validateMemberApprovalRequest(req: AuthenticatedRequest): Promise<{ userId: UserId; groupId: GroupId; }> {
+        const userId = validateUserAuth(req);
+        const groupId = validateGroupId(req.params.id);
+        await this.groupMemberService.ensureCanManagePendingMembers(groupId, userId);
+        return { userId, groupId };
+    }
+
     updateGroupPermissions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
         const { userId, groupId } = await this.validateAdminRequest(req);
         const updates = validateUpdateGroupPermissionsRequest(req.body);
@@ -38,7 +45,7 @@ export class GroupSecurityHandlers {
     };
 
     approveMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { userId, groupId } = await this.validateAdminRequest(req);
+        const { userId, groupId } = await this.validateMemberApprovalRequest(req);
         const memberId = validateMemberId(req.params.memberId);
 
         const result = await this.groupMemberService.approveMember(userId, groupId, memberId);
@@ -46,7 +53,7 @@ export class GroupSecurityHandlers {
     };
 
     rejectMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { userId, groupId } = await this.validateAdminRequest(req);
+        const { userId, groupId } = await this.validateMemberApprovalRequest(req);
         const memberId = validateMemberId(req.params.memberId);
 
         const result = await this.groupMemberService.rejectMember(userId, groupId, memberId);
@@ -54,7 +61,7 @@ export class GroupSecurityHandlers {
     };
 
     getPendingMembers = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-        const { userId, groupId } = await this.validateAdminRequest(req);
+        const { userId, groupId } = await this.validateMemberApprovalRequest(req);
         const pendingMembers = await this.groupMemberService.getPendingMembers(userId, groupId);
 
         res.status(HTTP_STATUS.OK).json(pendingMembers);

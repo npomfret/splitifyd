@@ -41,3 +41,9 @@ The `403 Forbidden` error occurs because the backend's `ensureActiveGroupAdmin` 
 The authorization logic between the frontend and backend needs to be aligned. The recommended course of action is to update the backend to respect the more granular permissions model.
 
 The `validateAdminRequest` middleware in `GroupSecurityHandlers.ts` should be replaced or modified. A new validation function should be created that checks if the user is either a group admin OR if the group's settings permit non-admins to approve members (which is likely the logic behind the frontend's `canApproveMembers` prop). This would bring the backend's authorization policy in line with the frontend's expectations.
+
+## Progress
+
+- Added regression coverage in `firebase/functions/src/__tests__/unit/app.test.ts` so that non-admin members in auto-approval groups must be allowed to call `/groups/:id/members/pending`, while admin-required groups must still block them. This test now fails against the old backend and passes with the fix implemented below.
+- Introduced `validateMemberApprovalRequest` in `firebase/functions/src/groups/GroupSecurityHandlers.ts` and wired it into the pending-member routes, so the backend no longer assumes “admin-only” for view/approve/reject flows.
+- Implemented `GroupMemberService.ensureCanManagePendingMembers` (using `PermissionEngineAsync`) and refactored `getPendingMembers`, `approveMember`, and `rejectMember` to call it, aligning server-side authorization with the frontend’s `canApproveMembers` flag.

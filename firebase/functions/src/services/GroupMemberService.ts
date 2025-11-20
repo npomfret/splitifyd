@@ -20,6 +20,7 @@ import * as measure from '../monitoring/measure';
 import { PerformanceTimer } from '../monitoring/PerformanceTimer';
 import { ApiError, Errors } from '../utils/errors';
 import { newTopLevelMembershipDocId } from '../utils/idGenerator';
+import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { ActivityFeedService } from './ActivityFeedService';
 import type { IFirestoreReader, IFirestoreWriter } from './firestore';
 import { GroupTransactionContext, GroupTransactionManager, GroupTransactionOptions } from './transactions/GroupTransactionManager';
@@ -108,6 +109,28 @@ export class GroupMemberService {
         };
     }
 
+    async ensureCanManagePendingMembers(
+        groupId: GroupId,
+        userId: UserId | null | undefined,
+        options: AdminGuardOptions = {},
+    ): Promise<{ group: GroupDTO; actorMember: GroupMembershipDTO; }> {
+        if (!userId) {
+            throw options.unauthorizedErrorFactory?.() ?? Errors.UNAUTHORIZED();
+        }
+
+        const { group, actorMember } = await this.getGroupAccessContext(groupId, userId, {
+            notFoundErrorFactory: () => Errors.NOT_FOUND('Group'),
+            forbiddenErrorFactory: options.forbiddenErrorFactory ?? (() => Errors.FORBIDDEN()),
+        });
+
+        const canApproveMembers = PermissionEngineAsync.checkPermission(actorMember, group, userId, 'memberApproval');
+        if (!canApproveMembers) {
+            throw options.forbiddenErrorFactory?.() ?? Errors.FORBIDDEN();
+        }
+
+        return { group, actorMember };
+    }
+
     async leaveGroup(userId: UserId, groupId: GroupId): Promise<MessageResponse> {
         return measure.measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));
     }
@@ -178,12 +201,9 @@ export class GroupMemberService {
                 throw Errors.MISSING_FIELD('memberId');
             }
 
-            await this.ensureActiveGroupAdmin(groupId, requestingUserId);
+            const { group } = await this.ensureCanManagePendingMembers(groupId, requestingUserId);
 
-            const [targetMembership, group] = await Promise.all([
-                this.firestoreReader.getGroupMember(groupId, targetUserId),
-                this.firestoreReader.getGroup(groupId),
-            ]);
+            const targetMembership = await this.firestoreReader.getGroupMember(groupId, targetUserId);
 
             if (!targetMembership) {
                 throw Errors.NOT_FOUND('Group member');
@@ -191,10 +211,6 @@ export class GroupMemberService {
 
             if (targetMembership.memberStatus === MemberStatuses.ACTIVE) {
                 return { message: 'Member is already active' };
-            }
-
-            if (!group) {
-                throw Errors.NOT_FOUND('Group');
             }
 
             const actorDisplayName = targetMembership.groupDisplayName;
@@ -275,7 +291,7 @@ export class GroupMemberService {
                 throw Errors.MISSING_FIELD('memberId');
             }
 
-            await this.ensureActiveGroupAdmin(groupId, requestingUserId);
+            await this.ensureCanManagePendingMembers(groupId, requestingUserId);
 
             const targetMembership = await this.firestoreReader.getGroupMember(groupId, targetUserId);
             if (!targetMembership) {
@@ -307,7 +323,7 @@ export class GroupMemberService {
 
     async getPendingMembers(requestingUserId: UserId, groupId: GroupId): Promise<GroupMembershipDTO[]> {
         return measure.measureDb('GroupMemberService.getPendingMembers', async () => {
-            await this.ensureActiveGroupAdmin(groupId, requestingUserId);
+            await this.ensureCanManagePendingMembers(groupId, requestingUserId);
 
             const members = await this.firestoreReader.getAllGroupMembers(groupId);
             return members.filter((member) => member.memberStatus === MemberStatuses.PENDING);

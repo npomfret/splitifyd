@@ -3362,6 +3362,83 @@ describe('app tests', () => {
     });
 
     describe('group security endpoints', () => {
+        it('should allow non-admin members to load pending members when approvals are automatic', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            const joinResult = await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            expect(joinResult.memberStatus).toBe(MemberStatuses.ACTIVE);
+
+            const pendingMembersForMember = await appDriver.getPendingMembers(group.id, user2);
+            expect(pendingMembersForMember).toEqual([]);
+        });
+
+        it('should still block non-admin members when admin approval is required', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            await appDriver.updateGroupPermissions(
+                group.id,
+                {
+                    memberApproval: 'admin-required',
+                },
+                user1,
+            );
+
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            await expect(appDriver.getPendingMembers(group.id, user2)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
+        it('should allow non-admin members to reject pending members when approvals are automatic', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+
+            // Start with admin-required so we get a pending member
+            await appDriver.updateGroupPermissions(group.id, { memberApproval: 'admin-required' }, user1);
+
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+
+            // User2 joins and gets approved
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.approveMember(group.id, user2, user1);
+
+            // User3 joins - should be pending
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
+
+            // Switch to automatic mode
+            await appDriver.updateGroupPermissions(group.id, { memberApproval: 'automatic' }, user1);
+
+            // User2 (non-admin) should be able to reject user3
+            const rejectResult = await appDriver.rejectMember(group.id, user3, user2);
+            expect(rejectResult.message).toBe('Member rejected successfully');
+
+            // Verify user3 was removed
+            const pendingMembers = await appDriver.getPendingMembers(group.id, user1);
+            expect(pendingMembers.find(m => m.uid === user3)).toBeUndefined();
+        });
+
+        it('should block non-admin members from rejecting when admin approval is required', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            await appDriver.updateGroupPermissions(
+                group.id,
+                {
+                    memberApproval: 'admin-required',
+                },
+                user1,
+            );
+
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+
+            // User2 joins and becomes active (admin approves)
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+            await appDriver.approveMember(group.id, user2, user1);
+
+            // User3 joins - should be pending
+            await appDriver.joinGroupByLink(shareToken, undefined, user3);
+
+            // User2 (non-admin) should NOT be able to reject user3
+            await expect(appDriver.rejectMember(group.id, user3, user2)).rejects.toMatchObject({ code: 'FORBIDDEN' });
+        });
+
         it('should manage permissions and pending members through security handlers', async () => {
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
