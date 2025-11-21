@@ -1,4 +1,10 @@
-import type { BrandingTokens, TenantBranding, TenantDomainName, TenantId } from '@billsplit-wl/shared';
+import type {
+    AdminUpsertTenantRequest,
+    BrandingTokens,
+    TenantBranding,
+    TenantDomainName,
+    TenantId,
+} from '@billsplit-wl/shared';
 import {
     toTenantAccentColor,
     toTenantAppName,
@@ -11,7 +17,6 @@ import {
     toTenantSecondaryColor,
     toTenantThemePaletteName,
 } from '@billsplit-wl/shared';
-import type { AdminUpsertTenantRequest } from '../../schemas/tenant';
 
 /**
  * Builder for creating AdminUpsertTenantRequest for admin API endpoints.

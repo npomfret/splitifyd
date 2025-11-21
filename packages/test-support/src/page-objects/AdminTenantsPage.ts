@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { TenantEditorModalPage } from './TenantEditorModalPage';
 
 /**
  * Page Object Model for the Admin Tenants page.
@@ -123,9 +124,13 @@ export class AdminTenantsPage extends BasePage {
         await this.getRefreshButton().click();
     }
 
-    async clickEditButtonForFirstTenant(): Promise<void> {
+    async clickEditButtonForFirstTenant<T = TenantEditorModalPage>(
+        pageFactory?: (page: Page) => T,
+    ): Promise<T> {
         const firstEditButton = this.page.locator('[data-testid^="edit-tenant-"]').first();
         await firstEditButton.click();
+        const modal = pageFactory ? pageFactory(this.page) : (new TenantEditorModalPage(this.page) as unknown as T);
+        return modal;
     }
 
     /**

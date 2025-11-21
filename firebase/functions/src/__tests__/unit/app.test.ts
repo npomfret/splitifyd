@@ -38,9 +38,9 @@ import {
     RegisterRequestBuilder,
     SettlementUpdateBuilder,
     UserUpdateBuilder,
+    AdminTenantRequestBuilder,
 } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
-import { AdminTenantRequestBuilder } from './AdminTenantRequestBuilder';
 import { AppDriver } from './AppDriver';
 
 const amountFor = (splits: Array<{ uid: string; amount: string; }>, uid: string) => splits.find((split) => split.uid === uid)!.amount;

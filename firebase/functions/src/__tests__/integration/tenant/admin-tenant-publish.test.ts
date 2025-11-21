@@ -13,7 +13,7 @@ import { ApiDriver, getFirebaseEmulatorConfig } from '@billsplit-wl/test-support
 import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections } from '../../../constants';
 import { getAuth, getFirestore } from '../../../firebase';
-import { AdminTenantRequestBuilder } from '../../unit/AdminTenantRequestBuilder';
+import { AdminTenantRequestBuilder } from '@billsplit-wl/test-support';
 
 describe('Admin Tenant Theme Publishing', () => {
     const apiDriver = new ApiDriver();
