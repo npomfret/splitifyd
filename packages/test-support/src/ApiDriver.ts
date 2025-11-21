@@ -63,6 +63,7 @@ import {
     ShareLinkResponse,
     type TenantDomainsResponse,
     type TenantSettingsResponse,
+    type TestAPI,
     toDisplayName,
     toGroupName,
     type UpdateExpenseRequest,
@@ -120,7 +121,7 @@ export type AuthToken = string;
  *
  * @see IApiClient for the complete list of supported operations
  */
-export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken> {
+export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>, TestAPI {
     private baseUrl: string;
     private readonly authPort: number;
     private readonly firebaseApiKey: string;

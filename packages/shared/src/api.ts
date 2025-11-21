@@ -17,6 +17,7 @@ import type {
     CurrentPolicyResponse,
     DeletePolicyVersionResponse,
     DisplayName,
+    Email,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
     ExpenseId,
@@ -45,6 +46,7 @@ import type {
     PolicyDTO,
     PolicyId,
     PolicyVersion,
+    PooledTestUser,
     PreviewGroupResponse,
     PublishPolicyResponse,
     PublishTenantThemeRequest,
@@ -259,4 +261,36 @@ export interface AdminAPI<AuthToken> {
      * Requires: tenant_admin or system_admin role
      */
     addTenantDomain(request: AddTenantDomainRequest, token?: AuthToken): Promise<MessageResponse>;
+}
+
+/**
+ * Test-only API operations.
+ *
+ * These endpoints are ONLY available in emulator or test environments.
+ * They provide utilities for integration and E2E testing such as user pool management.
+ *
+ * ⚠️ These endpoints will never be available in production and should only be used
+ * in test code, never in application code.
+ *
+ * This is a separate standalone interface that can be implemented alongside other API interfaces.
+ */
+export interface TestAPI {
+    /**
+     * Borrow a test user from the pool
+     * Creates a new pooled user if none are available
+     *
+     * Test environments only - endpoint returns 403 in production
+     *
+     * @returns PooledTestUser with uid, email, password, and authentication token
+     */
+    borrowTestUser(): Promise<PooledTestUser>;
+
+    /**
+     * Return a test user to the pool for reuse
+     *
+     * Test environments only - endpoint returns 403 in production
+     *
+     * @param email - Email address of the test user to return
+     */
+    returnTestUser(email: Email): Promise<void>;
 }
