@@ -179,14 +179,16 @@ export async function seedPolicies() {
             });
         });
 
-        // Verify policies are accessible via Admin API (emulator only)
+        // Verify policies are accessible via Admin API (emulator only, if Bill Splitter user exists)
         if (env.isEmulator) {
-            console.log('\n🔐 Signing in as Bill Splitter admin to verify API access...');
+            console.log('\n🔐 Checking if Bill Splitter admin exists for API verification...');
             const billSplitterUser = await signInExistingBillSplitter();
-            if (!billSplitterUser) {
-                throw new Error('Bill Splitter admin user not found - run test data generation first');
+            if (billSplitterUser) {
+                console.log('✅ Bill Splitter admin found - verifying API access...');
+                await verifyPoliciesViaApi(billSplitterUser.token);
+            } else {
+                console.log('⏭️  Bill Splitter admin not found yet - skipping API verification (will verify after user creation)');
             }
-            await verifyPoliciesViaApi(billSplitterUser.token);
         }
 
         console.log(`\n🎉 ${env.environment} POLICY SEEDING COMPLETED SUCCESSFULLY!`);

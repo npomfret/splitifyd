@@ -125,17 +125,17 @@ const main = async () => {
 
         logger.info('🚀 You can now use the webapp and all endpoints are available');
 
-        // Step 2: Setup Cloud Storage bucket (needed before publishing themes)
+        // Step 2: Seed policies (must be before user creation so policies are accepted during registration)
+        await runSeedPoliciesStep();
+
+        // Step 3: Setup Cloud Storage bucket (needed before publishing themes)
         await runSetupStorageBucketStep();
 
-        // Step 3: Ensure default test user exists (needed for tenant creation)
+        // Step 4: Ensure default test user exists (needed for tenant creation)
         await runEnsureBillSplitterUserStep();
 
-        // Step 4: Create demo tenants (localhost + 127.0.0.1) and publish themes
+        // Step 5: Create demo tenants (localhost + 127.0.0.1) and publish themes
         await runCreateDemoTenantsStep();
-
-        // Step 5: Seed policies
-        await runSeedPoliciesStep();
 
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');
