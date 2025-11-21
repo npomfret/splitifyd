@@ -31,3 +31,6 @@ export {
     type TriggerDefinition,
     type TriggerOperation,
 } from './triggers';
+export type { ICloudTasksClient } from './cloudtasks-types';
+export { createCloudTasksClient } from './admin-cloudtasks';
+export { type EnqueuedTask, StubCloudTasksClient } from './StubCloudTasksClient';
