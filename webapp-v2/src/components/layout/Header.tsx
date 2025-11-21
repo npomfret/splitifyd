@@ -2,6 +2,7 @@ import { useAuth } from '@/app/hooks/useAuth.ts';
 import { useConfig } from '@/hooks/useConfig.ts';
 import { useNavigation } from '@/hooks/useNavigation';
 import { Button } from '@/components/ui/Button';
+import { Clickable } from '@/components/ui/Clickable';
 import { useComputed } from '@preact/signals';
 import { lazy, Suspense } from 'preact/compat';
 import { useTranslation } from 'react-i18next';
@@ -72,17 +73,19 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
             <div class='max-w-7xl mx-auto px-4'>
                 <nav class='flex items-center justify-between h-16 relative'>
                     <div class='flex items-center space-x-8'>
-                        <button
+                        <Clickable
                             onClick={() => (isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome())}
-                            class='flex items-center gap-3'
+                            className='flex items-center gap-3'
                             data-testid='header-logo-link'
                             aria-label={appName}
+                            eventName='header_logo_click'
+                            eventProps={{ destination: isAuthenticated.value ? 'dashboard' : 'home' }}
                         >
                             <img src={logoUrl} alt={appName} class='h-8' />
                             <span class='text-text-primary font-semibold leading-6 whitespace-nowrap'>
                                 {appName}
                             </span>
-                        </button>
+                        </Clickable>
                         {getNavLinks()}
                     </div>
                     {getAuthSection()}

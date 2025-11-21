@@ -1,5 +1,6 @@
 import { apiClient } from '@/app/apiClient.ts';
 import { Button, LoadingSpinner, Tooltip } from '@/components/ui';
+import { Clickable } from '@/components/ui/Clickable';
 import { logError } from '@/utils/browser-logger.ts';
 import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
 import { GroupId } from '@billsplit-wl/shared';
@@ -234,17 +235,20 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                                 )}
                             </div>
                             <Tooltip content={t('shareGroupModal.closeButtonAriaLabel')}>
-                                <button
+                                <Clickable
+                                    as='button'
                                     type='button'
                                     onClick={onClose}
-                                    class='text-text-muted/80 hover:text-text-muted transition-colors rounded-full p-1 hover:bg-surface-muted'
+                                    className='text-text-muted/80 hover:text-text-muted transition-colors rounded-full p-1 hover:bg-surface-muted'
                                     data-testid='close-share-modal-button'
                                     aria-label={t('shareGroupModal.closeButtonAriaLabel')}
+                                    eventName='modal_close'
+                                    eventProps={{ modalName: 'share_group', method: 'x_button' }}
                                 >
                                     <svg class='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                         <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
                                     </svg>
-                                </button>
+                                </Clickable>
                             </Tooltip>
                         </div>
                     </div>

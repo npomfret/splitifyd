@@ -1,5 +1,6 @@
 import { CommentsSection } from '@/components/comments';
 import { Avatar, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip } from '@/components/ui';
+import { Clickable } from '@/components/ui/Clickable';
 import { navigationService } from '@/services/navigation.service';
 import { formatCurrency } from '@/utils/currency';
 import { getGroupDisplayName } from '@/utils/displayName';
@@ -292,13 +293,19 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                 <Stack spacing='md'>
                                     <h3 className='font-semibold text-text-primary'>{t('pages.expenseDetailPage.receipt')}</h3>
                                     <div className='text-center'>
-                                        <img
-                                            src={expense.value.receiptUrl}
-                                            alt='Receipt'
-                                            className='max-w-full h-auto rounded-lg shadow-md mx-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity'
-                                            loading='lazy'
+                                        <Clickable
                                             onClick={() => setShowReceiptModal(true)}
-                                        />
+                                            aria-label='View receipt in full size'
+                                            eventName='receipt_view'
+                                            eventProps={{ expenseId }}
+                                        >
+                                            <img
+                                                src={expense.value.receiptUrl}
+                                                alt='Receipt'
+                                                className='max-w-full h-auto rounded-lg shadow-md mx-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity'
+                                                loading='lazy'
+                                            />
+                                        </Clickable>
                                         <p className='text-sm text-text-muted mt-2'>{t('pages.expenseDetailPage.clickToViewFullSize')}</p>
                                     </div>
                                 </Stack>
@@ -346,22 +353,32 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                     >
                         <div className='relative max-w-4xl max-h-full'>
                             <Tooltip content={t('pages.expenseDetailPage.closeReceiptViewer')}>
-                                <button
+                                <Clickable
+                                    as='button'
+                                    type='button'
                                     onClick={() => setShowReceiptModal(false)}
                                     className='absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-white'
                                     aria-label={t('pages.expenseDetailPage.closeReceiptViewer')}
+                                    eventName='receipt_modal_close'
+                                    eventProps={{ expenseId }}
                                 >
                                     <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                                     </svg>
-                                </button>
+                                </Clickable>
                             </Tooltip>
-                            <img
-                                src={expense.value.receiptUrl}
-                                alt={t('pages.expenseDetailPage.receiptFullSize')}
-                                className='max-w-full max-h-full object-contain rounded-lg'
-                                onClick={(e) => e.stopPropagation()}
-                            />
+                            <Clickable
+                                onClick={(e: MouseEvent) => e.stopPropagation()}
+                                aria-label='Receipt image'
+                                eventName='receipt_image_click'
+                                eventProps={{ expenseId }}
+                            >
+                                <img
+                                    src={expense.value.receiptUrl}
+                                    alt={t('pages.expenseDetailPage.receiptFullSize')}
+                                    className='max-w-full max-h-full object-contain rounded-lg'
+                                />
+                            </Clickable>
                         </div>
                     </div>
                 )}

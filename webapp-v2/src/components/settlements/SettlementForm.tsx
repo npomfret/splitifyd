@@ -24,6 +24,7 @@ import { useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, CurrencyAmount, CurrencyAmountInput, Form, Tooltip } from '../ui';
+import { Clickable } from '@/components/ui/Clickable';
 
 /**
  * Get the maximum allowed amount string for a given currency
@@ -415,11 +416,19 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         {editMode ? t('settlementForm.updateSettlement') : t('settlementForm.recordSettlement')}
                     </h2>
                     <Tooltip content={t('settlementForm.closeModal')}>
-                        <button onClick={onClose} class='text-text-muted hover:text-text-muted' aria-label={t('settlementForm.closeModal')}>
+                        <Clickable
+                            as='button'
+                            type='button'
+                            onClick={onClose}
+                            className='text-text-muted hover:text-text-muted'
+                            aria-label={t('settlementForm.closeModal')}
+                            eventName='modal_close'
+                            eventProps={{ modalName: 'settlement_form', method: 'x_button' }}
+                        >
                             <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                 <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
                             </svg>
-                        </button>
+                        </Clickable>
                     </Tooltip>
                 </div>
 

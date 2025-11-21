@@ -1105,6 +1105,7 @@ UI kit under `components/ui` provides audited components (all use semantic token
 
 **Core Components:**
 - `Button` - All variants use semantic tokens, magnetic hover enabled by default (tenant-controlled)
+- `Clickable` - Generic wrapper for interactive elements with analytics logging (see below)
 - `Card` - Surfaces with semantic backgrounds, optional magnetic hover support
 - `Input` - Form controls with semantic borders/text
 - `Typography` - Text components with semantic colors
@@ -1127,25 +1128,144 @@ UI kit under `components/ui` provides audited components (all use semantic token
 
 **Motion enhancements:** See [Motion Enhancement System](#motion-enhancement-system-phase-2) for details on magnetic hover, scroll reveals, and theme-controlled animations.
 
+### Interactive Elements & Analytics
+
+**Component-Based Click Logging:**
+All interactive elements must use `Button` or `Clickable` components to ensure consistent analytics tracking. **Never use naked `onClick` handlers** on native HTML elements.
+
+#### Button Component
+Use for standard button actions:
+```tsx
+import { Button } from '@/components/ui/Button';
+
+<Button
+  onClick={handleSubmit}
+  variant="primary"
+  aria-label="Submit form"
+>
+  Submit
+</Button>
+```
+
+#### Clickable Component
+Use for non-button interactive elements (links, icons, images, custom clickables):
+
+```tsx
+import { Clickable } from '@/components/ui/Clickable';
+
+// Modal close button
+<Clickable
+  as="button"              // Render as button element (important for tests!)
+  type="button"            // Prevent form submission
+  onClick={handleClose}
+  className="p-2 rounded-full hover:bg-interactive-primary/10"
+  aria-label="Close modal"
+  eventName="modal_close"
+  eventProps={{ modalName: 'ShareGroup' }}
+>
+  <XIcon className="w-5 h-5" />
+</Clickable>
+
+// Clickable card
+<Clickable
+  onClick={handleNavigate}
+  className="p-4 rounded-lg hover:bg-surface-raised"
+  aria-label="View group details"
+  eventName="group_card_click"
+  eventProps={{ groupId: '123', groupName: 'Trip' }}
+>
+  <div>Card content</div>
+</Clickable>
+
+// Footer link (non-button semantics)
+<Clickable
+  onClick={handleNavigation}
+  className="text-text-secondary hover:text-interactive-primary"
+  aria-label="View pricing"
+  eventName="footer_link_click"
+  eventProps={{ destination: 'pricing' }}
+>
+  Pricing
+</Clickable>
+```
+
+**Key Props:**
+- `as` - Element type to render (`'button'`, `'span'`, `'div'`, `'a'`, `'img'`). **Use `'button'` for button-like elements!**
+- `type` - For buttons, use `'button'` to prevent form submission
+- `onClick` - Click handler
+- `eventName` - Analytics event name (e.g., `'modal_close'`, `'nav_link_click'`)
+- `eventProps` - Additional context (e.g., `{ modalName, groupId, destination }`)
+- `aria-label` - Required for accessibility
+- `disabled` - Disables interaction and logging
+- `className` - Styling classes (use semantic tokens)
+
+**When to Use Each:**
+- **Button component**: Standard button actions (submit, cancel, confirm)
+- **Clickable with `as="button"`**: Icon buttons, close buttons, action buttons that need custom styling
+- **Clickable without `as`**: Clickable text, images, or container elements (defaults to `span`)
+
+**❌ Anti-patterns:**
+```tsx
+// NEVER: Naked onClick on native elements
+<button onClick={handleClick}>...</button>
+<div onClick={handleClick}>...</div>
+<img onClick={handleClick} />
+
+// NEVER: Missing `as="button"` when replacing <button>
+<Clickable onClick={handleClose}>  {/* Renders as span! */}
+  <XIcon />
+</Clickable>
+
+// NEVER: Missing aria-label for icon-only buttons
+<Clickable as="button" onClick={handleClose}>
+  <XIcon />  {/* Screen readers can't describe this! */}
+</Clickable>
+```
+
+**✅ Correct patterns:**
+```tsx
+// Button-like elements MUST use as="button"
+<Clickable
+  as="button"
+  type="button"
+  onClick={handleClose}
+  aria-label="Close dialog"
+  eventName="modal_close"
+>
+  <XIcon />
+</Clickable>
+
+// Clickable text/links can use default span
+<Clickable
+  onClick={handleNavigate}
+  aria-label="Go to dashboard"
+  eventName="nav_link_click"
+  eventProps={{ destination: 'dashboard' }}
+>
+  Dashboard
+</Clickable>
+```
+
 ### Creating New Components
 
 1. **Use semantic tokens only**
 2. **Add TypeScript types**
 3. **Include accessibility attributes**
 4. **Add data-testid for E2E tests**
-5. **Log user interactions** (via `logUserAction`)
+5. **Use Button or Clickable for interactions** (no naked onClick handlers)
 
 Example:
 ```tsx
-import { logUserAction } from '@/utils/browser-logger';
+import { Clickable } from '@/components/ui/Clickable';
 
 export interface CardProps {
   children: ComponentChildren;
   variant?: 'default' | 'elevated' | 'glass';
+  onClick?: () => void;
   className?: string;
 }
 
-export function Card({ children, variant = 'default', className = '' }: CardProps) {
+export function Card({ children, variant = 'default', onClick, className = '' }: CardProps) {
   const baseClasses = 'rounded-lg border';
 
   const variantClasses = {
@@ -1154,14 +1274,26 @@ export function Card({ children, variant = 'default', className = '' }: CardProp
     glass: 'bg-surface-glass border-border-subtle backdrop-blur-xl',
   };
 
-  return (
-    <div
-      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
-      data-testid="card"
-    >
+  const content = (
+    <div className={`${baseClasses} ${variantClasses[variant]} ${className}`}>
       {children}
     </div>
   );
+
+  // If clickable, wrap in Clickable component
+  if (onClick) {
+    return (
+      <Clickable
+        onClick={onClick}
+        aria-label="Card"
+        eventName="card_click"
+      >
+        {content}
+      </Clickable>
+    );
+  }
+
+  return content;
 }
 ```
 

@@ -2,6 +2,7 @@ import { navigationService } from '@/services/navigation.service';
 import { useComputed } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../app/hooks/useAuth';
+import { Clickable } from '@/components/ui/Clickable';
 
 interface NotFoundPageProps {
     path?: string;
@@ -30,22 +31,30 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
                 <div className='space-x-4'>
                     {isAuthenticated.value
                         ? (
-                            <button
+                            <Clickable
+                                as='button'
                                 onClick={() => navigationService.goToDashboard()}
                                 className='px-6 py-3 bg-interactive-primary text-interactive-primary-foreground rounded-lg hover:bg-interactive-primary/90 transition-colors inline-block'
                                 data-testid='go-to-dashboard-link'
+                                aria-label='Go to dashboard'
+                                eventName='not_found_navigate'
+                                eventProps={{ destination: 'dashboard' }}
                             >
                                 {t('notFoundPage.goToDashboard')}
-                            </button>
+                            </Clickable>
                         )
                         : (
-                            <button
+                            <Clickable
+                                as='button'
                                 onClick={() => navigationService.goHome()}
                                 className='px-6 py-3 bg-interactive-primary text-interactive-primary-foreground rounded-lg hover:bg-interactive-primary/90 transition-colors inline-block'
                                 data-testid='go-home-link'
+                                aria-label='Go to home page'
+                                eventName='not_found_navigate'
+                                eventProps={{ destination: 'home' }}
                             >
                                 {t('notFoundPage.goHome')}
-                            </button>
+                            </Clickable>
                         )}
                 </div>
             </div>

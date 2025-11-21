@@ -2,6 +2,7 @@ import { useNavigation } from '@/hooks/useNavigation';
 import { configStore } from '@/stores/config-store';
 import { useTranslation } from 'react-i18next';
 import { StaticPageLayout } from '../../components/StaticPageLayout';
+import { Clickable } from '@/components/ui/Clickable';
 
 export function PricingPage() {
     const { t } = useTranslation();
@@ -68,12 +69,17 @@ export function PricingPage() {
                             ))}
                         </ul>
 
-                        <button
+                        <Clickable
+                            as='button'
+                            type='button'
                             onClick={() => navigation.goToRegister()}
-                            class='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'
+                            className='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'
+                            aria-label='Get started with free plan'
+                            eventName='pricing_plan_select'
+                            eventProps={{ plan: 'starter' }}
                         >
                             {t('pricing.plans.starter.button')}
-                        </button>
+                        </Clickable>
                     </div>
 
                     {/* I'm Basically a Pro Plan */}
@@ -105,12 +111,17 @@ export function PricingPage() {
                             ))}
                         </ul>
 
-                        <button
+                        <Clickable
+                            as='button'
+                            type='button'
                             onClick={() => navigation.goToRegister()}
-                            class='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'
+                            className='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'
+                            aria-label='Get started with pro plan'
+                            eventName='pricing_plan_select'
+                            eventProps={{ plan: 'pro' }}
                         >
                             {t('pricing.plans.pro.button')}
-                        </button>
+                        </Clickable>
                     </div>
 
                     {/* I'm a Philanthropist Plan */}
@@ -139,12 +150,17 @@ export function PricingPage() {
                             ))}
                         </ul>
 
-                        <button
+                        <Clickable
+                            as='button'
+                            type='button'
                             onClick={() => navigation.goToRegister()}
-                            class='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'
+                            className='block w-full bg-interactive-primary text-interactive-primary-foreground text-center py-2 px-4 rounded-lg hover:opacity-90 transition-opacity'
+                            aria-label='Get started with philanthropist plan'
+                            eventName='pricing_plan_select'
+                            eventProps={{ plan: 'philanthropist' }}
                         >
                             {t('pricing.plans.philanthropist.button')}
-                        </button>
+                        </Clickable>
                     </div>
                 </div>
 

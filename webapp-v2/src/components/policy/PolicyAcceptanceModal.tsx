@@ -1,5 +1,6 @@
 import { apiClient, type PolicyAcceptanceStatusDTO } from '@/app/apiClient.ts';
 import { ErrorState, LoadingSpinner, Tooltip } from '@/components/ui';
+import { Clickable } from '@/components/ui/Clickable';
 import { logError } from '@/utils/browser-logger.ts';
 import { PolicyId } from '@billsplit-wl/shared';
 import { createPortal } from 'preact/compat';
@@ -148,11 +149,19 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                     </div>
                     {onClose && (
                         <Tooltip content={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}>
-                            <button onClick={onClose} className='text-text-muted hover:text-text-primary transition-colors' aria-label={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}>
+                            <Clickable
+                                as='button'
+                                type='button'
+                                onClick={onClose}
+                                className='text-text-muted hover:text-text-primary transition-colors'
+                                aria-label={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}
+                                eventName='modal_close'
+                                eventProps={{ modalName: 'policy_acceptance', method: 'x_button' }}
+                            >
                                 <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                                 </svg>
-                            </button>
+                            </Clickable>
                         </Tooltip>
                     )}
                 </div>

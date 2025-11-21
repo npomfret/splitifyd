@@ -4,6 +4,7 @@ import { ExpenseDTO, GroupMember } from '@billsplit-wl/shared';
 import { DELETED_AT_FIELD } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 import { Avatar, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
+import { Clickable } from '../ui/Clickable';
 
 interface ExpenseItemProps {
     expense: ExpenseDTO;
@@ -81,10 +82,12 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                     {/* Copy button - only show if not deleted and onCopy is provided */}
                     {!isDeleted && onCopy && (
                         <Tooltip content={t('expenseItem.copyExpense')}>
-                            <button
+                            <Clickable
                                 onClick={handleCopyClick}
                                 className='opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 hover:bg-interactive-primary/10 rounded text-text-muted hover:text-interactive-primary'
                                 aria-label={t('expenseItem.copyExpense')}
+                                eventName='expense_copy'
+                                eventProps={{ expenseId: expense.id, label: expense.label }}
                             >
                                 <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                     <path
@@ -94,7 +97,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                                         d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
                                     />
                                 </svg>
-                            </button>
+                            </Clickable>
                         </Tooltip>
                     )}
                 </div>

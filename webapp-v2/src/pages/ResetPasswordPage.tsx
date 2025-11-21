@@ -1,4 +1,5 @@
 import { Button, Card, Stack, Typography } from '@/components/ui';
+import { Clickable } from '@/components/ui/Clickable';
 import { navigationService } from '@/services/navigation.service';
 import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
@@ -118,9 +119,16 @@ export function ResetPasswordPage() {
                 </SubmitButton>
 
                 <div class='text-center'>
-                    <button type='button' onClick={() => navigationService.goToLogin()} class='text-sm text-text-muted hover:text-text-primary transition-colors'>
+                    <Clickable
+                        as='button'
+                        type='button'
+                        onClick={() => navigationService.goToLogin()}
+                        className='text-sm text-text-muted hover:text-text-primary transition-colors'
+                        aria-label='Back to sign in'
+                        eventName='reset_password_back_to_login'
+                    >
                         {t('pages.resetPasswordPage.backToSignIn')}
-                    </button>
+                    </Clickable>
                 </div>
             </AuthForm>
         </AuthLayout>

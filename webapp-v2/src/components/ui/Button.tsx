@@ -135,7 +135,6 @@ export function Button({
             aria-describedby={ariaDescribedBy}
             aria-pressed={ariaPressed}
             data-testid={dataTestId}
-            data-logged='true'
         >
             {loading && (
                 <svg className='h-4 w-4 animate-spin text-current' viewBox='0 0 24 24' role='presentation' aria-hidden='true' focusable='false' data-testid='loading-spinner'>

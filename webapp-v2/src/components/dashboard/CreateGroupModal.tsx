@@ -7,6 +7,7 @@ import { signal, useComputed } from '@preact/signals';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, Tooltip } from '../ui';
+import { Clickable } from '@/components/ui/Clickable';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
@@ -208,7 +209,8 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                         {t('createGroupModal.title')}
                     </h3>
                     <Tooltip content={t('createGroupModal.closeButtonAriaLabel')}>
-                        <button
+                        <Clickable
+                            as='button'
                             type='button'
                             onClick={() => {
                                 emitModalDebugLog('[CreateGroupModal] Closing modal: X button clicked', {
@@ -216,14 +218,16 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 });
                                 onClose();
                             }}
-                            class='text-text-muted hover:text-text-primary transition-colors'
+                            className='text-text-muted hover:text-text-primary transition-colors'
                             disabled={isSubmitting}
                             aria-label={t('createGroupModal.closeButtonAriaLabel')}
+                            eventName='modal_close'
+                            eventProps={{ modalName: 'create_group', method: 'x_button' }}
                         >
                             <svg class='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                 <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
                             </svg>
-                        </button>
+                        </Clickable>
                     </Tooltip>
                 </div>
 

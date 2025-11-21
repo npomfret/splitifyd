@@ -1,4 +1,5 @@
 import { LoadingSpinner } from '@/components/ui';
+import { Clickable } from '@/components/ui/Clickable';
 import { logError } from '@/utils/browser-logger.ts';
 import { createContext } from 'preact';
 import type { ComponentChildren } from 'preact';
@@ -62,9 +63,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
                         {t('authProvider.authenticationError')}
                     </h2>
                     <p class='text-text-muted mb-4'>{initError}</p>
-                    <button onClick={() => window.location.reload()} class='px-4 py-2 bg-interactive-primary text-white rounded hover:bg-interactive-primary'>
+                    <Clickable
+                        as='button'
+                        type='button'
+                        onClick={() => window.location.reload()}
+                        className='px-4 py-2 bg-interactive-primary text-white rounded hover:bg-interactive-primary'
+                        aria-label='Retry authentication'
+                        eventName='auth_error_retry'
+                        eventProps={{ error: initError }}
+                    >
                         {t('authProvider.retry')}
-                    </button>
+                    </Clickable>
                 </div>
             </div>
         );

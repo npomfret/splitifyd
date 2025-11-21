@@ -1,5 +1,6 @@
 import { TenantEditorModal } from '@/components/admin/TenantEditorModal';
 import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
+import { Clickable } from '@/components/ui/Clickable';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
 import type { TenantConfig } from '@billsplit-wl/shared';
@@ -155,13 +156,16 @@ export function AdminTenantsPage() {
                                                         {tenant.primaryDomain && (
                                                             <div>
                                                                 <span class='text-slate-400'>Primary Domain:</span>{' '}
-                                                                <button
+                                                                <Clickable
                                                                     onClick={() => handleSwitchTenant(tenant.primaryDomain!)}
-                                                                    class='font-mono text-blue-400 hover:text-blue-300 hover:underline cursor-pointer'
+                                                                    className='font-mono text-blue-400 hover:text-blue-300 hover:underline cursor-pointer'
                                                                     title='Click to switch to this tenant'
+                                                                    aria-label={`Switch to tenant ${tenant.primaryDomain}`}
+                                                                    eventName='admin_switch_tenant'
+                                                                    eventProps={{ domain: tenant.primaryDomain }}
                                                                 >
                                                                     {tenant.primaryDomain}
-                                                                </button>
+                                                                </Clickable>
                                                             </div>
                                                         )}
 
@@ -172,13 +176,16 @@ export function AdminTenantsPage() {
                                                                     {tenant.domains.map((domain, idx) => (
                                                                         <>
                                                                             {idx > 0 && ', '}
-                                                                            <button
+                                                                            <Clickable
                                                                                 onClick={() => handleSwitchTenant(domain)}
-                                                                                class='text-blue-400 hover:text-blue-300 hover:underline cursor-pointer'
+                                                                                className='text-blue-400 hover:text-blue-300 hover:underline cursor-pointer'
                                                                                 title='Click to switch to this tenant'
+                                                                                aria-label={`Switch to tenant ${domain}`}
+                                                                                eventName='admin_switch_tenant'
+                                                                                eventProps={{ domain }}
                                                                             >
                                                                                 {domain}
-                                                                            </button>
+                                                                            </Clickable>
                                                                         </>
                                                                     ))}
                                                                 </span>

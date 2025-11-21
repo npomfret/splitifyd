@@ -7,6 +7,7 @@ import { useComputed } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button, Form, Input, LoadingSpinner, Tooltip } from '../ui';
+import { Clickable } from '@/components/ui/Clickable';
 
 const PRESET_PERMISSIONS: Record<Exclude<SecurityPreset, 'custom'>, GroupPermissions> = {
     open: {
@@ -929,16 +930,20 @@ export function GroupSettingsModal({
                             </h2>
                         </div>
                         <Tooltip content={t('groupHeader.groupSettingsAriaLabel')}>
-                            <button
+                            <Clickable
+                                as='button'
+                                type='button'
                                 onClick={onClose}
                                 className='text-text-muted/80 hover:text-text-muted rounded-full p-1 hover:bg-surface-muted'
                                 aria-label={t('groupHeader.groupSettingsAriaLabel')}
                                 data-testid='close-group-settings-button'
+                                eventName='modal_close'
+                                eventProps={{ modalName: 'group_settings', method: 'x_button' }}
                             >
                                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                     <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12' />
                                 </svg>
-                            </button>
+                            </Clickable>
                         </Tooltip>
                     </div>
 
@@ -948,7 +953,8 @@ export function GroupSettingsModal({
                                 {availableTabs.map((tab) => {
                                     const isActive = tab === activeTab;
                                     return (
-                                        <button
+                                        <Clickable
+                                            as='button'
                                             key={tab}
                                             type='button'
                                             onClick={() => setActiveTab(tab)}
@@ -958,9 +964,12 @@ export function GroupSettingsModal({
                                                     : 'border-transparent text-text-muted hover:text-text-primary hover:border-border-default'
                                             }`}
                                             data-testid={`group-settings-tab-${tab}`}
+                                            aria-label={`Switch to ${tab} tab`}
+                                            eventName='modal_tab_change'
+                                            eventProps={{ modalName: 'group_settings', tab }}
                                         >
                                             {t(`groupSettingsModal.tabs.${tab}`)}
-                                        </button>
+                                        </Clickable>
                                     );
                                 })}
                             </div>

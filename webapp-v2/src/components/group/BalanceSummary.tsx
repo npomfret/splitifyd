@@ -3,6 +3,7 @@ import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanc
 import { themeStore } from '@/app/stores/theme-store';
 import { Checkbox, CurrencyAmount, SidebarCard, Tooltip } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
+import { Clickable } from '@/components/ui/Clickable';
 import { getGroupDisplayName } from '@/utils/displayName';
 import type { SimplifiedDebt, UserId } from '@billsplit-wl/shared';
 import { BanknotesIcon, ScaleIcon } from '@heroicons/react/24/outline';
@@ -156,17 +157,23 @@ export function BalanceSummary({ variant = 'default', onSettleUp }: BalanceSumma
                                         {/* Settlement button - only show if current user owes this debt and onSettleUp is provided */}
                                         {isCurrentUserFrom && onSettleUp && (
                                             <Tooltip content={t('balanceSummary.settleUpButton')}>
-                                                <button
-                                                    type='button'
+                                                <Clickable
+                                                    as='button'
                                                     onClick={() => onSettleUp(debt)}
                                                     className='p-1.5 text-interactive-primary hover:text-interactive-primary hover:bg-interactive-primary/10 rounded transition-colors flex-shrink-0 flex items-center gap-1'
                                                     aria-label={t('balanceSummary.settleUpButton')}
+                                                    eventName='settle_up_click'
+                                                    eventProps={{
+                                                        fromUserId: debt.from.uid,
+                                                        toUserId: debt.to.uid,
+                                                        amount: debt.amount
+                                                    }}
                                                 >
                                                     <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24' aria-hidden='true' focusable='false'>
                                                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M13 7l5 5m0 0l-5 5m5-5H6' />
                                                     </svg>
                                                     <BanknotesIcon className='w-4 h-4' aria-hidden='true' />
-                                                </button>
+                                                </Clickable>
                                             </Tooltip>
                                         )}
                                     </div>

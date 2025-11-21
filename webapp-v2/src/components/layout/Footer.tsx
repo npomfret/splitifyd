@@ -1,6 +1,7 @@
 import { useConfig } from '@/hooks/useConfig.ts';
 import { useNavigation } from '@/hooks/useNavigation';
 import { useTranslation } from 'react-i18next';
+import { Clickable } from '@/components/ui/Clickable';
 
 export function Footer() {
     const { t } = useTranslation();
@@ -26,13 +27,18 @@ export function Footer() {
                             <h3 class='font-semibold text-text-primary mb-3'>{t('footer.productSection')}</h3>
                             <ul class='space-y-2'>
                                 <li>
-                                    <button
+                                    <Clickable
+                                        as='button'
+                                        type='button'
                                         onClick={() => navigation.goToPricing()}
-                                        class='text-sm text-text-muted hover:text-interactive-primary transition-colors'
+                                        className='text-sm text-text-muted hover:text-interactive-primary transition-colors'
                                         data-testid='footer-pricing-link'
+                                        aria-label='Go to pricing page'
+                                        eventName='footer_link_click'
+                                        eventProps={{ destination: 'pricing' }}
                                     >
                                         {t('footer.pricing')}
-                                    </button>
+                                    </Clickable>
                                 </li>
                             </ul>
                         </div>
@@ -43,27 +49,46 @@ export function Footer() {
                         <h3 class='font-semibold text-text-primary mb-3'>{t('footer.legalSection')}</h3>
                         <ul class='space-y-2'>
                             <li>
-                                <button onClick={() => navigation.goToTerms()} class='text-sm text-text-muted hover:text-interactive-primary transition-colors' data-testid='footer-terms-link'>
+                                <Clickable
+                                    as='button'
+                                    type='button'
+                                    onClick={() => navigation.goToTerms()}
+                                    className='text-sm text-text-muted hover:text-interactive-primary transition-colors'
+                                    data-testid='footer-terms-link'
+                                    aria-label='Go to terms of service'
+                                    eventName='footer_link_click'
+                                    eventProps={{ destination: 'terms' }}
+                                >
                                     {t('footer.termsOfService')}
-                                </button>
+                                </Clickable>
                             </li>
                             <li>
-                                <button
+                                <Clickable
+                                    as='button'
+                                    type='button'
                                     onClick={() => navigation.goToPrivacyPolicy()}
-                                    class='text-sm text-text-muted hover:text-interactive-primary transition-colors'
+                                    className='text-sm text-text-muted hover:text-interactive-primary transition-colors'
                                     data-testid='footer-privacy-link'
+                                    aria-label='Go to privacy policy'
+                                    eventName='footer_link_click'
+                                    eventProps={{ destination: 'privacy' }}
                                 >
                                     {t('footer.privacyPolicy')}
-                                </button>
+                                </Clickable>
                             </li>
                             <li>
-                                <button
+                                <Clickable
+                                    as='button'
+                                    type='button'
                                     onClick={() => navigation.goToCookiePolicy()}
-                                    class='text-sm text-text-muted hover:text-interactive-primary transition-colors'
+                                    className='text-sm text-text-muted hover:text-interactive-primary transition-colors'
                                     data-testid='footer-cookies-link'
+                                    aria-label='Go to cookie policy'
+                                    eventName='footer_link_click'
+                                    eventProps={{ destination: 'cookies' }}
                                 >
                                     {t('footer.cookiePolicy')}
-                                </button>
+                                </Clickable>
                             </li>
                         </ul>
                     </div>
