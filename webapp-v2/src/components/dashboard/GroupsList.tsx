@@ -1,4 +1,5 @@
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
+import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { navigationService } from '@/services/navigation.service';
 import { GroupId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +16,9 @@ interface GroupsListProps {
 export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsListProps) {
     const { t } = useTranslation();
     const showArchived = enhancedGroupsStore.showArchived;
+
+    // Staggered reveal animation for group cards
+    const { ref: gridRef, visibleIndices } = useStaggeredReveal(enhancedGroupsStore.groups.length, 75);
 
     const handleNextPage = async () => {
         await enhancedGroupsStore.loadNextPage();
@@ -84,15 +88,18 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
 
     return (
         <>
-            <div class='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' data-testid='groups-grid'>
+            <div class='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' data-testid='groups-grid' ref={gridRef}>
                 {enhancedGroupsStore.isCreatingGroup && (
                     <div class='border-2 border-dashed border-border-default rounded-lg p-8 flex items-center justify-center transition-all duration-200'>
                         <LoadingSpinner />
                         <span class='ml-3 text-text-muted'>{t('dashboardComponents.groupsList.creating')}</span>
                     </div>
                 )}
-                {enhancedGroupsStore.groups.map((group) => (
-                    <div key={group.id} class='relative'>
+                {enhancedGroupsStore.groups.map((group, index) => (
+                    <div
+                        key={group.id}
+                        class={`relative fade-up ${visibleIndices.has(index) ? 'fade-up-visible' : ''}`}
+                    >
                         {enhancedGroupsStore.updatingGroupIds.has(group.id) && (
                             <div class='absolute inset-0 bg-interactive-primary/10 bg-opacity-75 rounded-lg flex items-center justify-center z-10'>
                                 <LoadingSpinner />

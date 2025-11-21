@@ -1111,20 +1111,22 @@ UI kit under `components/ui` provides audited components (all use semantic token
 - `Typography` - Text components with semantic colors
 - `Modal`, `Alert`, `Badge` - Status-aware components
 
-**Phase 3 Components (Advanced UI):**
+**Phase 3 Components (Advanced UI - COMPLETE 2025-11-21):**
 - `Checkbox` - Accessible checkbox with semantic tokens (integrated: LoginPage, BalanceSummary, ExpensesList, SettlementHistory)
-- `Radio` - Radio button groups with horizontal/vertical layouts (ready for use)
-- `Switch` - Toggle switches for settings and preferences (ready for use)
-- `Select` - Styled dropdown component (ready for use)
+- `Radio` - Radio button groups with horizontal/vertical layouts (implemented, ready for integration)
+- `Switch` - Toggle switches for settings and preferences (implemented, ready for integration)
+- `Select` - Styled dropdown component with custom arrow (implemented, ready for integration)
+- `FloatingInput` - Modern input with animated floating labels (implemented, integrated: EmailInput)
+- `FloatingPasswordInput` - Password input with visibility toggle and strength meter (implemented, ready for integration)
+- `FormField` - Compound wrapper for consistent form layouts with label, error, helper text (implemented, ready for use)
 - `GradientText` - Text with gradient backgrounds using CSS variables (integrated: HeroSection, AdminPage)
-- `FloatingInput` - Modern input with animated floating labels (ready for use)
 - `EmptyState` - Reusable empty state component with icon, title, description, actions (integrated: EmptyGroupsState)
 - `Toast`/`ToastContainer` - Notification system using Preact signals (integrated: App.tsx)
 
-**Component Status:**
-- **Integrated:** `Checkbox`, `GradientText`, `EmptyState`, `ToastContainer` are implemented and used in the app.
-- **Not Yet Implemented:** `Radio`, `Switch`, `Select`, `FloatingInput` components have not been created yet.
-- **Note:** Some custom checkbox/radio implementations exist for specialized layouts (e.g., card-based radio buttons in `SplitTypeSelector`). These should be migrated to the standard components once they are built.
+**Component Status (Updated 2025-11-21):**
+- **Integrated:** `Checkbox`, `FloatingInput`, `GradientText`, `EmptyState`, `ToastContainer` are implemented and actively used in the app.
+- **Ready for Integration:** `Radio`, `Switch`, `Select`, `FloatingPasswordInput`, `FormField` are fully implemented with semantic tokens, accessibility, and TypeScript types. They are exported from `components/ui/index.ts` and ready to be used in forms.
+- **Note:** Some custom checkbox/radio implementations exist for specialized layouts (e.g., card-based radio buttons in `SplitTypeSelector`). These can be migrated to the standard components in future refactoring.
 
 **Motion enhancements:** See [Motion Enhancement System](#motion-enhancement-system-phase-2) for details on magnetic hover, scroll reveals, and theme-controlled animations.
 

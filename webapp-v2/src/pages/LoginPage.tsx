@@ -8,7 +8,7 @@ import { AuthForm } from '../components/auth/AuthForm';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { DefaultLoginButton } from '../components/auth/DefaultLoginButton';
 import { EmailInput } from '../components/auth/EmailInput';
-import { PasswordInput } from '../components/auth/PasswordInput';
+import { FloatingPasswordInput } from '../components/auth/FloatingPasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { Button, Checkbox } from '../components/ui';
 import { logError } from '../utils/browser-logger';
@@ -124,7 +124,7 @@ export function LoginPage() {
             <AuthForm onSubmit={handleSubmit} error={errorValue} disabled={loadingValue}>
                 <EmailInput value={email} onInput={setEmail} autoFocus disabled={loadingValue} />
 
-                <PasswordInput value={password} onInput={setPassword} disabled={loadingValue} autoComplete='off' />
+                <FloatingPasswordInput value={password} onInput={setPassword} disabled={loadingValue} autoComplete='off' />
 
                 <div class='flex items-center justify-between'>
                     <Checkbox

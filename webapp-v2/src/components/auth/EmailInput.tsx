@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
-import { Input } from '../ui';
+import { FloatingInput } from '../ui/FloatingInput';
 
 interface EmailInputProps {
     value: string;
@@ -43,7 +43,7 @@ export function EmailInput({ value, onInput, error, placeholder, required = true
     const hasError = !!displayError;
 
     return (
-        <Input
+        <FloatingInput
             type='email'
             id='email-input'
             label={t('auth.emailInput.label')}

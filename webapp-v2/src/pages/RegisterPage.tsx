@@ -1,4 +1,5 @@
-import { Input, Button } from '@/components/ui';
+import { Button, Checkbox } from '@/components/ui';
+import { FloatingInput } from '@/components/ui/FloatingInput';
 import { STORAGE_KEYS } from '@/constants.ts';
 import { navigationService } from '@/services/navigation.service';
 import { toDisplayName, toPassword } from '@billsplit-wl/shared';
@@ -8,7 +9,7 @@ import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { AuthForm } from '../components/auth/AuthForm';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { EmailInput } from '../components/auth/EmailInput';
-import { PasswordInput } from '../components/auth/PasswordInput';
+import { FloatingPasswordInput } from '../components/auth/FloatingPasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { logError } from '../utils/browser-logger';
 
@@ -151,7 +152,7 @@ export function RegisterPage() {
     return (
         <AuthLayout title={t('registerPage.title')} description={t('registerPage.description')}>
             <AuthForm onSubmit={handleSubmit} error={displayError} disabled={isSubmitting}>
-                <Input
+                <FloatingInput
                     id='fullname-input'
                     label={t('registerPage.fullNameLabel')}
                     value={name}
@@ -186,7 +187,7 @@ export function RegisterPage() {
                     disabled={isSubmitting}
                 />
 
-                <PasswordInput
+                <FloatingPasswordInput
                     id='password-input'
                     value={password}
                     onInput={(value) => {
@@ -198,7 +199,7 @@ export function RegisterPage() {
                     showStrength
                 />
 
-                <PasswordInput
+                <FloatingPasswordInput
                     id='confirm-password-input'
                     value={confirmPassword}
                     onInput={(value) => {
@@ -210,86 +211,71 @@ export function RegisterPage() {
                 />
 
                 <div class='space-y-3'>
-                    <label class='flex items-start gap-3 text-text-primary'>
-                        <input
-                            type='checkbox'
-                            data-testid='terms-checkbox'
-                            checked={agreeToTerms}
-                            onChange={(e) => {
-                                const checked = (e.target as HTMLInputElement).checked;
-                                setAgreeToTerms(checked);
-                                try {
-                                    sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_TERMS, checked.toString());
-                                } catch {
-                                    // Ignore sessionStorage errors
-                                }
-                            }}
-                            class='h-4 w-4 rounded border border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base mt-1 flex-shrink-0 transition-colors'
-                            disabled={isSubmitting}
-                            required
-                            autoComplete='off'
-                        />
-                        <span class='text-sm text-text-primary'>
-                            {t('registerPage.acceptTerms')}{' '}
-                            <a href='/terms' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
-                                {t('registerPage.termsOfService')}
-                            </a>
-                        </span>
-                    </label>
+                    <Checkbox
+                        label={
+                            <span class='text-sm text-text-primary'>
+                                {t('registerPage.acceptTerms')}{' '}
+                                <a href='/terms' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
+                                    {t('registerPage.termsOfService')}
+                                </a>
+                            </span>
+                        }
+                        checked={agreeToTerms}
+                        onChange={(checked) => {
+                            setAgreeToTerms(checked);
+                            try {
+                                sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_TERMS, checked.toString());
+                            } catch {
+                                // Ignore sessionStorage errors
+                            }
+                        }}
+                        disabled={isSubmitting}
+                        data-testid='terms-checkbox'
+                    />
 
-                    <label class='flex items-start gap-3 text-text-primary'>
-                        <input
-                            type='checkbox'
-                            data-testid='cookies-checkbox'
-                            checked={agreeToCookies}
-                            onChange={(e) => {
-                                const checked = (e.target as HTMLInputElement).checked;
-                                setAgreeToCookies(checked);
-                                try {
-                                    sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES, checked.toString());
-                                } catch {
-                                    // Ignore sessionStorage errors
-                                }
-                            }}
-                            class='h-4 w-4 rounded border border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base mt-1 flex-shrink-0 transition-colors'
-                            disabled={isSubmitting}
-                            required
-                            autoComplete='off'
-                        />
-                        <span class='text-sm text-text-primary'>
-                            {t('registerPage.acceptTerms')}{' '}
-                            <a href='/cookies' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
-                                {t('registerPage.cookiePolicy')}
-                            </a>
-                        </span>
-                    </label>
+                    <Checkbox
+                        label={
+                            <span class='text-sm text-text-primary'>
+                                {t('registerPage.acceptTerms')}{' '}
+                                <a href='/cookies' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
+                                    {t('registerPage.cookiePolicy')}
+                                </a>
+                            </span>
+                        }
+                        checked={agreeToCookies}
+                        onChange={(checked) => {
+                            setAgreeToCookies(checked);
+                            try {
+                                sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_COOKIES, checked.toString());
+                            } catch {
+                                // Ignore sessionStorage errors
+                            }
+                        }}
+                        disabled={isSubmitting}
+                        data-testid='cookies-checkbox'
+                    />
 
-                    <label class='flex items-start gap-3 text-text-primary'>
-                        <input
-                            type='checkbox'
-                            data-testid='privacy-checkbox'
-                            checked={agreeToPrivacy}
-                            onChange={(e) => {
-                                const checked = (e.target as HTMLInputElement).checked;
-                                setAgreeToPrivacy(checked);
-                                try {
-                                    sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY, checked.toString());
-                                } catch {
-                                    // Ignore sessionStorage errors
-                                }
-                            }}
-                            class='h-4 w-4 rounded border border-border-default text-interactive-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base mt-1 flex-shrink-0 transition-colors'
-                            disabled={isSubmitting}
-                            required
-                            autoComplete='off'
-                        />
-                        <span class='text-sm text-text-primary'>
-                            {t('registerPage.acceptTerms')}{' '}
-                            <a href='/privacy-policy' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
-                                {t('registerPage.privacyPolicy')}
-                            </a>
-                        </span>
-                    </label>
+                    <Checkbox
+                        label={
+                            <span class='text-sm text-text-primary'>
+                                {t('registerPage.acceptTerms')}{' '}
+                                <a href='/privacy-policy' target='_blank' class='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
+                                    {t('registerPage.privacyPolicy')}
+                                </a>
+                            </span>
+                        }
+                        checked={agreeToPrivacy}
+                        onChange={(checked) => {
+                            setAgreeToPrivacy(checked);
+                            try {
+                                sessionStorage.setItem(STORAGE_KEYS.REGISTER_AGREE_PRIVACY, checked.toString());
+                            } catch {
+                                // Ignore sessionStorage errors
+                            }
+                        }}
+                        disabled={isSubmitting}
+                        data-testid='privacy-checkbox'
+                    />
                 </div>
 
                 <SubmitButton loading={isSubmitting} disabled={!isFormValid}>

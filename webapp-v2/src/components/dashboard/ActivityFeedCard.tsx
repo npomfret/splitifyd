@@ -1,4 +1,5 @@
 import { activityFeedStore } from '@/app/stores/activity-feed-store.ts';
+import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { RelativeTime } from '@/components/ui/RelativeTime.tsx';
 import { routes } from '@/constants/routes.ts';
 import { navigationService } from '@/services/navigation.service.ts';
@@ -21,6 +22,9 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
     const error = useComputed(() => activityFeedStore.errorSignal.value);
     const hasMore = useComputed(() => activityFeedStore.hasMoreSignal.value);
     const loadingMore = useComputed(() => activityFeedStore.loadingMoreSignal.value);
+
+    // Staggered reveal animation for activity items
+    const { ref: listRef, visibleIndices } = useStaggeredReveal(items.value.length, 60);
 
     useEffect(() => {
         if (!userId) {
@@ -85,8 +89,8 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
 
                 {items.value.length > 0
                     ? (
-                        <ul className='space-y-3'>
-                            {items.value.map((item) => {
+                        <ul className='space-y-3' ref={listRef}>
+                            {items.value.map((item, index) => {
                                 const handleNavigate = getActivityNavigationHandler(item);
                                 const description = renderEventDescription(item, userId, t);
                                 const groupLabel = item.groupName ?? t('activityFeed.labels.unknownGroup');
@@ -104,7 +108,12 @@ export function ActivityFeedCard({ userId }: ActivityFeedCardProps) {
                                 );
 
                                 return (
-                                    <li key={item.id} className='relative' data-testid='activity-feed-item' data-event-type={item.eventType}>
+                                    <li
+                                        key={item.id}
+                                        className={`relative fade-up ${visibleIndices.has(index) ? 'fade-up-visible' : ''}`}
+                                        data-testid='activity-feed-item'
+                                        data-event-type={item.eventType}
+                                    >
                                         {handleNavigate
                                             ? (
                                                 <button

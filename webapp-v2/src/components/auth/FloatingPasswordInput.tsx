@@ -4,7 +4,7 @@ import { useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from '../ui';
 
-interface PasswordInputProps {
+interface FloatingPasswordInputProps {
     value: string;
     onInput: (value: string) => void;
     error?: string | null;
@@ -19,7 +19,7 @@ interface PasswordInputProps {
 
 type PasswordStrength = 'weak' | 'medium' | 'strong';
 
-export function PasswordInput({
+export function FloatingPasswordInput({
     value,
     onInput,
     error,
@@ -30,10 +30,14 @@ export function PasswordInput({
     showStrength = false,
     autoComplete = 'off',
     id = 'password-input',
-}: PasswordInputProps) {
+}: FloatingPasswordInputProps) {
     const { t } = useTranslation();
     const [showPassword, setShowPassword] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
     const localError = signal<string | null>(null);
+
+    const hasValue = value && value.length > 0;
+    const isLabelFloating = isFocused || hasValue;
 
     const calculatePasswordStrength = (password: string): PasswordStrength => {
         if (password.length < 12) return 'weak';
@@ -67,7 +71,12 @@ export function PasswordInput({
         localError.value = validatePassword(newValue);
     };
 
+    const handleFocus = () => {
+        setIsFocused(true);
+    };
+
     const handleBlur = () => {
+        setIsFocused(false);
         localError.value = validatePassword(value);
     };
 
@@ -102,30 +111,37 @@ export function PasswordInput({
     };
 
     const inputClasses = cx(
-        'block w-full rounded-md border border-border-default bg-surface-raised backdrop-blur-sm px-3 py-2 pr-10 shadow-sm',
-        'text-text-primary placeholder:text-text-muted/70 transition-colors duration-200',
+        'block w-full rounded-md border border-border-default bg-surface-raised backdrop-blur-sm px-3 pt-6 pb-2 pr-10 shadow-sm',
+        'text-text-primary placeholder:text-transparent transition-all duration-[var(--motion-duration-fast)] ease-[var(--motion-easing-standard)]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
         disabled && 'opacity-60 cursor-not-allowed bg-surface-muted text-text-muted',
         hasError && 'border-border-error text-semantic-error focus-visible:ring-semantic-error focus-visible:border-semantic-error',
     );
 
+    const baseLabelClasses = [
+        'absolute left-3 text-text-secondary pointer-events-none',
+        'transition-all duration-[var(--motion-duration-fast)] ease-[var(--motion-easing-standard)]',
+        'origin-left',
+    ];
+
+    const labelPositionClasses = isLabelFloating ? 'top-1.5 text-xs font-medium' : 'top-1/2 -translate-y-1/2 text-sm';
+
+    const labelFocusClasses = isFocused && !hasError ? 'text-interactive-primary' : '';
+    const labelErrorClasses = hasError ? 'text-semantic-error' : '';
+
+    const labelClasses = cx(...baseLabelClasses, labelPositionClasses, labelFocusClasses, labelErrorClasses);
+
     return (
         <div class='space-y-1'>
-            <label for={id} class='block text-sm font-medium text-text-primary'>
-                {label || t('auth.passwordInput.label')} {required && (
-                    <span class='text-semantic-error' data-testid='required-indicator'>
-                        {t('auth.passwordInput.requiredIndicator')}
-                    </span>
-                )}
-            </label>
             <div class='relative'>
                 <input
                     id={id}
                     type={showPassword ? 'text' : 'password'}
                     value={value}
                     onInput={handleInput}
+                    onFocus={handleFocus}
                     onBlur={handleBlur}
-                    placeholder={placeholder || t('auth.passwordInput.placeholder')}
+                    placeholder={placeholder || label || t('auth.passwordInput.placeholder')}
                     required={required}
                     disabled={disabled}
                     autoComplete={autoComplete}
@@ -135,12 +151,20 @@ export function PasswordInput({
                     aria-describedby={hasError ? `${id}-error` : undefined}
                     class={inputClasses}
                 />
+                <label for={id} class={labelClasses}>
+                    {label || t('auth.passwordInput.label')}{' '}
+                    {required && (
+                        <span data-testid='required-indicator'>
+                            *
+                        </span>
+                    )}
+                </label>
                 <button
                     type='button'
                     onClick={togglePasswordVisibility}
                     disabled={disabled}
                     aria-label={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}
-                    class='absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-primary disabled:opacity-50'
+                    class='absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-primary disabled:opacity-50 z-10'
                 >
                     <Tooltip content={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}>
                         {showPassword

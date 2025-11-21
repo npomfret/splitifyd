@@ -18,11 +18,12 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css}\" \"scripts/**/*.{js,json}\" \"*.{html,json,js}\""
   },
   "dependencies": {
+    "@billsplit-wl/shared": "*",
     "@heroicons/react": "^2.2.0",
     "@preact/signals": "^2.2.1",
-    "@billsplit-wl/shared": "*",
     "@types/three": "^0.178.1",
     "firebase": "^12.0.0",
+    "framer-motion": "^12.23.24",
     "gsap": "^3.13.0",
     "i18next": "^25.4.0",
     "preact": "^10.19.3",
@@ -33,9 +34,9 @@
     "zod": "^4.1.5"
   },
   "devDependencies": {
+    "@billsplit-wl/test-support": "*",
     "@playwright/test": "^1.55.0",
     "@preact/preset-vite": "^2.8.1",
-    "@billsplit-wl/test-support": "*",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/preact": "^3.2.4",
     "@types/node": "^20.11.5",

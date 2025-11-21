@@ -1,9 +1,9 @@
 import { cx } from '@/utils/cx.ts';
-import type { Ref } from 'preact';
+import type { ComponentChildren, Ref } from 'preact';
 
 interface CheckboxProps {
-    /** Checkbox label */
-    label?: string;
+    /** Checkbox label (can be a string or JSX) */
+    label?: string | ComponentChildren;
     /** Checked state */
     checked: boolean;
     /** Change handler */

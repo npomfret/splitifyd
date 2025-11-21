@@ -14,7 +14,7 @@ export interface UseScrollRevealReturn {
     /**
      * Ref to attach to the element you want to reveal on scroll.
      */
-    ref: Ref<HTMLElement>;
+    ref: Ref<any>;
 
     /**
      * Whether the element is visible (has entered viewport and been revealed).
@@ -45,7 +45,7 @@ export interface UseScrollRevealReturn {
  * ```
  */
 export function useScrollReveal(options?: UseScrollRevealOptions): UseScrollRevealReturn {
-    const ref = useRef<HTMLElement>(null);
+    const ref = useRef<any>(null);
     const [isVisible, setIsVisible] = useState(false);
     const { motion } = useThemeConfig();
 
