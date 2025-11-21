@@ -6,7 +6,7 @@ import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { AdminDiagnosticsTab } from '../components/admin/AdminDiagnosticsTab';
 import { AdminTenantsTab } from '../components/admin/AdminTenantsTab';
 import { AdminUsersTab } from '../components/admin/AdminUsersTab';
-import { BaseLayout } from '../components/layout/BaseLayout';
+import { AdminLayout } from '../components/layout/AdminLayout';
 
 type AdminTab = 'tenants' | 'diagnostics' | 'users';
 
@@ -76,11 +76,11 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
     ];
 
     return (
-        <BaseLayout title='System Admin'>
+        <AdminLayout>
             {/* Admin-specific background with grid pattern */}
-            <div class='relative min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-gray-100'>
+            <div class='relative min-h-screen admin-gradient-mixed'>
                 {/* Decorative grid overlay */}
-                <div class='absolute inset-0 bg-[linear-gradient(to_right,#e0e7ff_1px,transparent_1px),linear-gradient(to_bottom,#e0e7ff_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-30'></div>
+                <div class='absolute inset-0 admin-grid-pattern'></div>
 
                 {/* Content */}
                 <div class='relative max-w-7xl mx-auto px-4 py-8'>
@@ -159,6 +159,6 @@ export function AdminPage({ tab: initialTab }: AdminPageProps) {
                     </div>
                 </div>
             </div>
-        </BaseLayout>
+        </AdminLayout>
     );
 }

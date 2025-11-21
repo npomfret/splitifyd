@@ -428,11 +428,11 @@ const auroraSemantics: BrandingTokens['semantics'] = {
 
 ### Admin Pages DO NOT Follow Tenant Branding
 
-**⚠️ CURRENT STATUS (2025-11-19): Admin page isolation is PLANNED but NOT YET IMPLEMENTED.**
+**✅ CURRENT STATUS (2025-11-21): Admin page isolation is FULLY IMPLEMENTED.**
 
-Admin pages currently inherit tenant theming (unintended behavior). Full isolation is planned for Phase 4 (Admin Page Isolation).
+Admin pages are now completely isolated from tenant theming via AdminLayout component and admin.css stylesheet. Phase 4 (Admin Page Isolation) is complete.
 
-**Target behavior** (planned): Admin pages (tenant management, system configuration, analytics) will have their own **fixed, consistent style** that is **completely separate** from tenant branding.
+**Current behavior** (implemented): Admin pages (tenant management, system configuration, analytics) have their own **fixed, consistent style** that is **completely separate** from tenant branding.
 
 **Why this matters:**
 - Admins need a consistent experience across all tenants
@@ -539,18 +539,19 @@ webapp-v2/src/components/dashboard/GroupCard.tsx
 
 ### Admin Page Checklist
 
-**⚠️ NOTE:** Since admin isolation is not yet implemented, these are **target guidelines** for when Phase 4 is complete.
+**✅ NOTE:** Admin isolation is fully implemented as of Phase 4 completion (2025-11-21).
 
-When creating an admin page (future state):
+When creating an admin page (current implementation):
 
-- [ ] File is in `src/pages/admin/` or `src/components/admin/`
-- [ ] Uses fixed Tailwind colors (slate, blue, red, green)
-- [ ] Does NOT use semantic tokens (`bg-surface-*`, `text-text-*`)
-- [ ] Does NOT load `/api/theme.css` styling
-- [ ] Has clear "Admin" header or indicator
-- [ ] Uses consistent admin color palette across all admin pages
+- [x] File is in `src/pages/admin/` or `src/components/admin/`
+- [x] Wrapped in `<AdminLayout>` component (not BaseLayout)
+- [x] Uses fixed Tailwind colors (gray, indigo, amber) or admin.css variables
+- [x] Does NOT use semantic tokens (`bg-surface-*`, `text-text-*`)
+- [x] Does NOT load `/api/theme.css` styling (AdminLayout disables it)
+- [x] Has AdminHeader with "System Admin" title and logout button
+- [x] Uses consistent admin color palette from admin.css
 
-When creating a user page (current requirement):
+When creating a user page (mandatory requirement):
 
 - [ ] File is NOT in `/admin/` directory
 - [ ] Uses ONLY semantic tokens

@@ -8,7 +8,7 @@ import { SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { apiClient } from '../app/apiClient';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { BaseLayout } from '../components/layout/BaseLayout';
+import { AdminLayout } from '../components/layout/AdminLayout';
 import { configStore } from '../stores/config-store';
 
 export function AdminTenantsPage() {
@@ -90,7 +90,7 @@ export function AdminTenantsPage() {
     }
 
     return (
-        <BaseLayout title='System Admin - Tenants'>
+        <AdminLayout>
             <div class='max-w-7xl mx-auto px-4 py-8 bg-slate-900 min-h-screen'>
                 <div class='mb-6'>
                     <h1 class='text-3xl font-bold text-white'>Tenant Management</h1>
@@ -230,6 +230,6 @@ export function AdminTenantsPage() {
                 tenant={selectedTenant || undefined}
                 mode={modalMode}
             />
-        </BaseLayout>
+        </AdminLayout>
     );
 }

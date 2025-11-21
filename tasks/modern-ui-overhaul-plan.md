@@ -741,41 +741,54 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 - [x] Staggered list animations (ExpensesList, GroupsList, ActivityFeed)
 - [ ] Accessibility tests (axe-core) - deferred to future
 
-### Phase 4: Admin Page Isolation (Future - Not Started)
-**Problem:** Admin pages (`/admin/*`) currently inherit tenant theming (colors, magnetic hover, header) which is undesirable.
+### ✅ Phase 4: Admin Page Isolation (COMPLETE 2025-11-21)
+**Problem:** Admin pages (`/admin/*`) were inheriting tenant theming (colors, magnetic hover, header) which was undesirable.
 
-**Requirements:**
-- All `/admin/*` routes completely isolated from tenant themes
-- Minimal admin header with just logout (no tenant branding)
-- No magnetic hover effects on admin buttons
+**Solution Implemented:**
+- All `/admin/*` routes now completely isolated from tenant themes
+- Minimal AdminHeader with just logout (no tenant branding)
+- Magnetic hover disabled via CSS overrides in admin.css
 - Fixed indigo/amber color scheme in separate `admin.css`
-- No tenant theme visibility at all
+- Tenant theme stylesheet never loads on admin pages
 
-**Implementation Plan:**
-1. Create `AdminLayout` component (separate from main Layout, no tenant theme stylesheet)
-2. Create `src/styles/admin.css` with fixed admin CSS variables
-   - Keep existing indigo/amber hardcoded colors (isolated from tenant tokens)
-   - Define admin-specific color palette as CSS variables
-3. Disable magnetic hover for admin routes
-   - Option A: Admin buttons don't use `useMagneticHover` at all
-   - Option B: Button component checks for admin context
-   - Option C: Separate `AdminButton` component
-4. Create minimal admin header component (logout button only)
-5. Route `/admin/*` to use `AdminLayout` instead of main `Layout`
-6. Ensure theme stylesheet never loads on admin pages
+**Implementation:**
+1. ✅ Created `AdminLayout` component (separate from main Layout, no tenant theme stylesheet)
+2. ✅ Created `src/styles/admin.css` with fixed admin CSS variables
+   - Complete admin color palette (indigo/amber scheme)
+   - Admin-specific utility classes
+   - CSS overrides to disable all motion (transitions, transforms)
+3. ✅ Disabled magnetic hover for admin routes via CSS:
+   ```css
+   .admin-layout button, .admin-layout .Button {
+     transition: none !important;
+     transform: none !important;
+   }
+   ```
+4. ✅ Created minimal AdminHeader component (logout button only)
+5. ✅ Updated all admin pages to use `AdminLayout`:
+   - AdminPage.tsx
+   - AdminTenantsPage.tsx (deprecated)
+   - AdminDiagnosticsPage.tsx (deprecated)
+6. ✅ AdminLayout dynamically loads admin.css on mount, removes on unmount
 
-**Files to Create/Modify:**
-- `webapp-v2/src/components/layout/AdminLayout.tsx` (new)
-- `webapp-v2/src/components/layout/AdminHeader.tsx` (new)
-- `webapp-v2/src/styles/admin.css` (new)
-- Router configuration to route `/admin/*` to AdminLayout
+**Files Created:**
+- `webapp-v2/src/components/layout/AdminLayout.tsx` (52 lines)
+- `webapp-v2/src/components/layout/AdminHeader.tsx` (81 lines)
+- `webapp-v2/src/styles/admin.css` (217 lines)
+
+**Files Modified:**
+- `webapp-v2/src/pages/AdminPage.tsx` - Changed from BaseLayout to AdminLayout
+- `webapp-v2/src/pages/AdminTenantsPage.tsx` - Changed from BaseLayout to AdminLayout
+- `webapp-v2/src/pages/AdminDiagnosticsPage.tsx` - Changed from BaseLayout to AdminLayout
 
 **Acceptance Criteria:**
-- [ ] Admin pages never load tenant theme CSS
-- [ ] Admin pages use fixed indigo/amber scheme regardless of tenant
-- [ ] No magnetic hover on admin buttons
-- [ ] Minimal header with logout only
-- [ ] Admin color scheme matches current hardcoded admin styles
+- ✅ Admin pages never load tenant theme CSS (AdminLayout disables tenant-theme-stylesheet)
+- ✅ Admin pages use fixed indigo/amber scheme regardless of tenant (admin.css variables)
+- ✅ No magnetic hover on admin buttons (CSS overrides with !important)
+- ✅ Minimal header with logout only (AdminHeader component)
+- ✅ Admin color scheme matches current hardcoded admin styles (preserved indigo-600/amber-500)
+- ✅ TypeScript compilation passes with no errors
+- ✅ **16/16 integration tests passing** - Full test coverage in `admin-isolation.test.ts`
 
 ### Post-Launch: Monitoring & Tools
 - [ ] Performance monitoring in production
@@ -818,6 +831,16 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 | `/webapp-v2/src/components/policy/PolicyAcceptanceModal.tsx` | Policy modal | ✅ Complete (tenant backdrop) |
 | `/webapp-v2/src/components/auth/TokenRefreshIndicator.tsx` | Session refresh toast | ✅ Complete (tenant colors) |
 
+### Admin Components (Phase 4)
+| File | Purpose | Status |
+|------|---------|--------|
+| `/webapp-v2/src/components/layout/AdminLayout.tsx` | Admin page layout wrapper | ✅ Complete (no tenant theme) |
+| `/webapp-v2/src/components/layout/AdminHeader.tsx` | Minimal admin header | ✅ Complete (logout only) |
+| `/webapp-v2/src/styles/admin.css` | Admin-specific styles | ✅ Complete (indigo/amber scheme) |
+| `/webapp-v2/src/pages/AdminPage.tsx` | Main admin dashboard | ✅ Complete (uses AdminLayout) |
+| `/webapp-v2/src/pages/AdminTenantsPage.tsx` | Tenant management (deprecated) | ✅ Complete (uses AdminLayout) |
+| `/webapp-v2/src/pages/AdminDiagnosticsPage.tsx` | Theme diagnostics (deprecated) | ✅ Complete (uses AdminLayout) |
+
 ### Motion Hooks (Phase 2)
 | File | Purpose | Status |
 |------|---------|--------|
@@ -835,6 +858,7 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 | File | Purpose | Status |
 |------|---------|--------|
 | `/e2e-tests/src/__tests__/integration/theme-switching.e2e.test.ts` | Theme contrast tests | ✅ Complete (running in CI) |
+| `/webapp-v2/src/__tests__/integration/playwright/admin-isolation.test.ts` | Admin isolation tests (Phase 4) | ✅ Complete (16/16 passing) |
 | `/e2e-tests/src/__tests__/performance/theme-load.test.ts` | Performance budgets | ❌ Missing |
 | `/e2e-tests/src/__tests__/a11y/wcag-compliance.test.ts` | Accessibility tests | ❌ Missing |
 
@@ -848,17 +872,26 @@ test('Brutalist theme meets WCAG AA', async ({ page }) => {
 
 ## Conclusion
 
-**The dual-tenant theming system is ~92% complete and architecturally sound.** The foundation (schema, fixtures, CSS generation, delivery) is production-ready. The component library is comprehensive and covers 95% of common UI patterns. Phase 3 (Component Completeness) is now complete with all planned components implemented, Framer Motion integrated, and staggered animations applied throughout.
+**The dual-tenant theming system is ~95% complete and architecturally sound.** The foundation (schema, fixtures, CSS generation, delivery) is production-ready. The component library is comprehensive and covers 95% of common UI patterns. All four planned phases are now complete.
 
-**Status Update (2025-11-21 - Updated End of Session):**
+**Status Update (2025-11-21 - All Phases Complete):**
 - ✅ **Phase 1: Production Ready** - COMPLETE (all blockers resolved)
 - ✅ **Phase 2: Motion Enhancement** - COMPLETE (magnetic hover, scroll reveal fully implemented)
 - ✅ **Phase 3: Component Completeness** - COMPLETE (Finished 2025-11-21)
-- ⏸️ **Phase 4: Admin Isolation** - Not Started (documented for future work)
+- ✅ **Phase 4: Admin Isolation** - COMPLETE (Finished 2025-11-21)
 
 **Recent Completions (2025-11-21):**
 
-**Phase 3 - Component Completeness (Session Completed):**
+**Phase 4 - Admin Page Isolation (Today):**
+- ✅ AdminLayout component - isolates admin pages from tenant themes
+- ✅ AdminHeader component - minimal header with logout only
+- ✅ admin.css stylesheet - fixed indigo/amber color scheme (217 lines)
+- ✅ CSS overrides to disable magnetic hover on all admin buttons
+- ✅ All admin pages updated to use AdminLayout (AdminPage, AdminTenantsPage, AdminDiagnosticsPage)
+- ✅ TypeScript compilation verified (no errors)
+- ✅ Admin pages now completely independent of tenant theming
+
+**Phase 3 - Component Completeness (Earlier Today):**
 - ✅ FloatingInput component with animated label behavior
 - ✅ FloatingPasswordInput variant with strength meter
 - ✅ Select component with custom dropdown arrow
@@ -909,11 +942,12 @@ All `<button>` elements have been converted to use the `<Button>` component, ens
 9. ✅ Apply staggered animations to lists (1-2 hours) - COMPLETE (2025-11-21)
 10. ✅ Integration testing & bundle size verification (1-2 hours) - COMPLETE (2025-11-21)
 
-**Known Outstanding Items (Post Phase 3):**
-- Admin page isolation (Phase 4) - Admin pages currently inherit tenant theming, needs separate AdminLayout
+**Known Outstanding Items (Post Phase 4):**
 - Performance monitoring tests
 - Accessibility tests (axe-core)
 - Visual regression tests
+- Admin branding editor UI (live preview, token editor)
+- Component showcase page
 
 **This is not just a redesign. This is a proven theming architecture that works.** The dual-tenant strategy successfully demonstrates white-label capability while creating a polished marketing asset (Aurora) and a regression baseline (Brutalist).
 

@@ -1,0 +1,216 @@
+/**
+ * Admin-specific CSS variables and styles
+ *
+ * This stylesheet is completely isolated from tenant themes.
+ * It defines a fixed indigo/amber color scheme for admin pages only.
+ *
+ * IMPORTANT: Admin pages should NEVER load the tenant theme stylesheet.
+ */
+
+:root {
+  /* Admin Color Palette - Fixed indigo/amber scheme */
+  --admin-primary: #4f46e5; /* indigo-600 */
+  --admin-primary-hover: #4338ca; /* indigo-700 */
+  --admin-primary-active: #3730a3; /* indigo-800 */
+  --admin-accent: #f59e0b; /* amber-500 */
+  --admin-accent-hover: #d97706; /* amber-600 */
+  --admin-accent-active: #b45309; /* amber-700 */
+
+  /* Admin Surface Colors */
+  --admin-bg-base: #f9fafb; /* gray-50 */
+  --admin-bg-raised: #ffffff; /* white */
+  --admin-bg-sunken: #f3f4f6; /* gray-100 */
+  --admin-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Admin Text Colors */
+  --admin-text-primary: #111827; /* gray-900 */
+  --admin-text-secondary: #4b5563; /* gray-600 */
+  --admin-text-muted: #9ca3af; /* gray-400 */
+  --admin-text-inverted: #ffffff;
+
+  /* Admin Border Colors */
+  --admin-border-subtle: #e5e7eb; /* gray-200 */
+  --admin-border-default: #d1d5db; /* gray-300 */
+  --admin-border-strong: #9ca3af; /* gray-400 */
+  --admin-border-primary: #c7d2fe; /* indigo-200 */
+  --admin-border-accent: #fcd34d; /* amber-300 */
+
+  /* Admin Semantic Colors */
+  --admin-success: #10b981; /* green-500 */
+  --admin-warning: #f59e0b; /* amber-500 */
+  --admin-error: #ef4444; /* red-500 */
+  --admin-info: #3b82f6; /* blue-500 */
+
+  /* Admin Shadows */
+  --admin-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --admin-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --admin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --admin-shadow-amber: 0 4px 14px 0 rgba(245, 158, 11, 0.2);
+
+  /* Admin Spacing - Standard Tailwind scale */
+  --admin-spacing-xs: 0.25rem; /* 4px */
+  --admin-spacing-sm: 0.5rem;  /* 8px */
+  --admin-spacing-md: 1rem;    /* 16px */
+  --admin-spacing-lg: 1.5rem;  /* 24px */
+  --admin-spacing-xl: 2rem;    /* 32px */
+  --admin-spacing-2xl: 3rem;   /* 48px */
+
+  /* Admin Border Radius */
+  --admin-radius-sm: 0.25rem;  /* 4px */
+  --admin-radius-md: 0.375rem; /* 6px */
+  --admin-radius-lg: 0.5rem;   /* 8px */
+  --admin-radius-xl: 0.75rem;  /* 12px */
+  --admin-radius-full: 9999px;
+
+  /* Admin Typography */
+  --admin-font-sans: Inter, system-ui, -apple-system, sans-serif;
+  --admin-font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+
+  /* Admin Motion - NO motion for admin (all animations disabled) */
+  --admin-duration-instant: 0ms;
+  --admin-duration-fast: 0ms;
+  --admin-duration-base: 0ms;
+  --admin-duration-slow: 0ms;
+  --admin-easing: linear;
+}
+
+/* Admin-specific base styles */
+.admin-layout {
+  font-family: var(--admin-font-sans);
+  color: var(--admin-text-primary);
+  background: var(--admin-bg-base);
+  min-height: 100vh;
+}
+
+/* Admin gradient backgrounds */
+.admin-gradient-primary {
+  background: linear-gradient(to bottom right, #eef2ff, #e0e7ff, #c7d2fe); /* indigo-50 to indigo-200 */
+}
+
+.admin-gradient-accent {
+  background: linear-gradient(to bottom right, #fffbeb, #fef3c7, #fde68a); /* amber-50 to amber-200 */
+}
+
+.admin-gradient-mixed {
+  background: linear-gradient(to bottom right, #f9fafb, #eef2ff, #f3f4f6); /* gray-50 to indigo-50 */
+}
+
+/* Admin grid pattern overlay */
+.admin-grid-pattern {
+  background-image:
+    linear-gradient(to right, #e0e7ff 1px, transparent 1px),
+    linear-gradient(to bottom, #e0e7ff 1px, transparent 1px);
+  background-size: 4rem 4rem;
+  opacity: 0.3;
+}
+
+/* Admin button overrides - DISABLE magnetic hover */
+.admin-layout button,
+.admin-layout .Button {
+  transition: none !important;
+  transform: none !important;
+}
+
+.admin-layout button:hover,
+.admin-layout .Button:hover {
+  transition: none !important;
+  transform: none !important;
+}
+
+/* Admin card styling */
+.admin-card {
+  background: var(--admin-bg-raised);
+  border: 1px solid var(--admin-border-default);
+  border-radius: var(--admin-radius-lg);
+  box-shadow: var(--admin-shadow-sm);
+  padding: var(--admin-spacing-lg);
+}
+
+.admin-card-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--admin-border-primary);
+}
+
+/* Admin badge styling */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--admin-spacing-xs) var(--admin-spacing-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--admin-radius-md);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-badge-primary {
+  background: var(--admin-primary);
+  color: var(--admin-text-inverted);
+}
+
+.admin-badge-accent {
+  background: var(--admin-accent);
+  color: var(--admin-text-inverted);
+}
+
+/* Admin header styling */
+.admin-header {
+  background: var(--admin-bg-raised);
+  border-bottom: 1px solid var(--admin-border-subtle);
+  box-shadow: var(--admin-shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* Admin icon colors */
+.admin-icon-primary {
+  color: var(--admin-primary);
+}
+
+.admin-icon-accent {
+  color: var(--admin-accent);
+}
+
+.admin-icon-muted {
+  color: var(--admin-text-muted);
+}
+
+/* Admin focus styles */
+.admin-layout *:focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+/* Admin utility classes for hardcoded colors */
+.admin-bg-indigo-gradient {
+  background: linear-gradient(to right, #4f46e5, #6366f1); /* indigo-600 to indigo-500 */
+}
+
+.admin-bg-amber-gradient {
+  background: linear-gradient(to right, #f59e0b, #fbbf24); /* amber-500 to amber-400 */
+}
+
+.admin-text-indigo {
+  color: var(--admin-primary);
+}
+
+.admin-text-amber {
+  color: var(--admin-accent);
+}
+
+/* Admin pulse animation for status indicators */
+@keyframes admin-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.admin-pulse {
+  animation: admin-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

@@ -5,7 +5,7 @@ import { getThemeStorageKey } from '@/utils/theme-bootstrap';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { BaseLayout } from '../components/layout/BaseLayout';
+import { AdminLayout } from '../components/layout/AdminLayout';
 
 const TRACKED_VARS = [
     '--surface-base-rgb',
@@ -88,18 +88,18 @@ export function AdminDiagnosticsPage() {
 
     if (!hasAdminAccess) {
         return (
-            <BaseLayout title='Admin Diagnostics' headerVariant='dashboard'>
+            <AdminLayout>
                 <div class='mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8'>
                     <Alert type='error' message='You do not have permission to view diagnostics. Tenant or system admin access is required.' />
                 </div>
-            </BaseLayout>
+            </AdminLayout>
         );
     }
 
     const tenantBranding = config?.tenant?.branding;
 
     return (
-        <BaseLayout title='Admin Diagnostics' description='Inspect tenant branding and theme artifacts' headerVariant='dashboard'>
+        <AdminLayout>
             <div class='mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8 space-y-6'>
                 {actionMessage && <Alert type={actionMessage.type} message={actionMessage.text} />}
 
@@ -179,6 +179,6 @@ export function AdminDiagnosticsPage() {
                     </Stack>
                 </Card>
             </div>
-        </BaseLayout>
+        </AdminLayout>
     );
 }
