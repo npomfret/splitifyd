@@ -5,7 +5,7 @@
  * This ensures the server response matches our expected types
  */
 
-import { ApiSerializer, ISOString } from '@billsplit-wl/shared';
+import { ApiSerializer, ISOString, SystemUserRoles, toDisplayName } from '@billsplit-wl/shared';
 import type {
     API,
     AcceptMultiplePoliciesResponse,
@@ -17,7 +17,7 @@ import type {
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
     AppConfiguration,
-    AuthUser,
+    RegisteredUser,
     ChangeEmailRequest,
     CommentDTO,
     CreateExpenseRequest,
@@ -189,20 +189,20 @@ type RequestInterceptor = (config: RequestConfig) => RequestConfig | Promise<Req
 type ResponseInterceptor = <T>(response: T, config: RequestConfig) => T | Promise<T>;
 
 // Retry configuration
-const AuthUserSchema = z
+const RegisteredUserSchema: z.ZodType<RegisteredUser> = z
     .object({
         uid: z.string(),
-        email: z.string().email().nullable().optional(),
-        emailVerified: z.boolean().optional(),
-        displayName: z.string().nullable().optional(),
+        email: z.string().email(),
+        emailVerified: z.boolean(),
+        displayName: z.string().nullable().optional().transform((value) => toDisplayName(value ?? '')),
         disabled: z.boolean().optional(),
         metadata: z.any(),
-        role: z.string().optional(),
+        role: z.nativeEnum(SystemUserRoles).optional(),
     })
     .passthrough();
 
-const ListAuthUsersResponseSchema = z.object({
-    users: z.array(AuthUserSchema),
+const ListAuthUsersResponseSchema: z.ZodType<ListAuthUsersResponse> = z.object({
+    users: z.array(RegisteredUserSchema),
     nextPageToken: z.string().optional(),
     hasMore: z.boolean(),
 });
@@ -1001,12 +1001,12 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
             query.uid = options.uid;
         }
 
-        return this.request({
+        return this.request<ListAuthUsersResponse>({
             endpoint: '/admin/browser/users/auth',
             method: 'GET',
             query: Object.keys(query).length > 0 ? query : undefined,
             schema: ListAuthUsersResponseSchema,
-        }) as Promise<ListAuthUsersResponse>;
+        });
     }
 
     async listFirestoreUsers(options?: ListFirestoreUsersOptions): Promise<ListFirestoreUsersResponse> {
@@ -1057,28 +1057,36 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
      * Update user account status (enable/disable)
      * Admin-only endpoint
      */
-    async updateUser(uid: UserId, updates: UpdateUserStatusRequest): Promise<AuthUser> {
-        return this.request({
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest): Promise<RegisteredUser> {
+        return this.request<RegisteredUser>({
             endpoint: '/admin/users/:uid',
             method: 'PUT',
             params: { uid },
             body: updates,
-            schema: AuthUserSchema,
-        }) as Promise<AuthUser>;
+            schema: RegisteredUserSchema,
+        });
     }
 
     /**
      * Update user role (system_admin, tenant_admin, or regular user)
      * Admin-only endpoint
      */
-    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest): Promise<AuthUser> {
-        return this.request({
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest): Promise<RegisteredUser> {
+        return this.request<RegisteredUser>({
             endpoint: '/admin/users/:uid/role',
             method: 'PUT',
             params: { uid },
             body: updates,
-            schema: AuthUserSchema,
-        }) as Promise<AuthUser>;
+            schema: RegisteredUserSchema,
+        });
+    }
+
+    async promoteUserToAdmin(uid: UserId): Promise<MessageResponse> {
+        return this.request<MessageResponse>({
+            endpoint: '/test/promote-user-to-admin',
+            method: 'POST',
+            body: { uid },
+        });
     }
 
     // User policy acceptance methods

@@ -891,6 +891,50 @@ export async function mockAdminTenantsApi(
 }
 
 /**
+ * Mocks the admin tenant upsert API
+ * @param page - Playwright page instance
+ */
+export async function mockAdminUpsertTenantApi(page: Page): Promise<void> {
+    await registerMswHandlers(
+        page,
+        createJsonHandler(
+            'POST',
+            '/api/admin/tenants',
+            {
+                tenantId: 'mock-tenant',
+                created: true,
+            },
+        ),
+    );
+}
+
+/**
+ * Mocks the admin tenant theme publish API
+ * @param page - Playwright page instance
+ */
+export async function mockAdminPublishTenantThemeApi(page: Page): Promise<void> {
+    await registerMswHandlers(
+        page,
+        createJsonHandler(
+            'POST',
+            '/api/admin/tenants/publish',
+            {
+                artifact: {
+                    hash: 'mock-hash-123',
+                    cssUrl: 'https://storage.example.com/themes/mock-theme.css',
+                    tokensUrl: 'https://storage.example.com/themes/mock-tokens.json',
+                    version: 1,
+                    generatedAtEpochMs: Date.now(),
+                    generatedBy: 'test-admin',
+                },
+                cssUrl: 'https://storage.example.com/themes/mock-theme.css',
+                tokensUrl: 'https://storage.example.com/themes/mock-tokens.json',
+            },
+        ),
+    );
+}
+
+/**
  * Creates successful API mocks for authenticated user flows
  * Commonly used pattern for tests that need authenticated users with accepted policies
  *
@@ -919,6 +963,12 @@ export async function setupSuccessfulApiMocks(page: Page, user?: ClientUser): Pr
 
     // Mock admin tenants API: /api/admin/browser/tenants -> default tenant
     await mockAdminTenantsApi(page);
+
+    // Mock admin tenant upsert API: POST /api/admin/tenants
+    await mockAdminUpsertTenantApi(page);
+
+    // Mock admin tenant theme publish API: POST /api/admin/tenants/publish
+    await mockAdminPublishTenantThemeApi(page);
 
     // Mock user profile API if user provided
     if (user) {

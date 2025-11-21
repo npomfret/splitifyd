@@ -9,7 +9,7 @@ import {
     AdminUpsertTenantResponse,
     AddTenantDomainRequest,
     API,
-    AuthUser,
+    RegisteredUser,
     PublicAPI,
     ChangeEmailRequest,
     CommentDTO,
@@ -118,6 +118,11 @@ export type AuthToken = UserId;
  *
  * @see IApiClient for the complete list of supported operations
  */
+type SeedUserData = Omit<Partial<UserRecord>, 'metadata'> & {
+    role?: typeof SystemUserRoles[keyof typeof SystemUserRoles];
+    metadata?: RegisteredUser['metadata'];
+};
+
 export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken> {
     private db = new TenantFirestoreTestDatabase();
     private storage = new StubStorage({ defaultBucketName: 'app-driver-test-bucket' });
@@ -362,7 +367,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return res;
     }
 
-    seedUser(userId: UserId, userData: Partial<UserRecord>) {
+    seedUser(userId: UserId, userData: SeedUserData = {}) {
         const user = this.db.seedUser(userId, userData);
 
         this.authService.setUser(userId, {
@@ -737,16 +742,22 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     // ===== ADMIN API: USER MANAGEMENT =====
 
-    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AuthUser> {
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<RegisteredUser> {
         const req = createStubRequest(token || '', updates, { uid });
         const res = await this.dispatchByHandler('updateUserAdmin', req);
-        return res.getJson() as AuthUser;
+        return res.getJson() as RegisteredUser;
     }
 
-    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AuthUser> {
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<RegisteredUser> {
         const req = createStubRequest(token || '', updates, { uid });
         const res = await this.dispatchByHandler('updateUserRoleAdmin', req);
-        return res.getJson() as AuthUser;
+        return res.getJson() as RegisteredUser;
+    }
+
+    async promoteUserToAdmin(uid: UserId): Promise<MessageResponse> {
+        const req = createStubRequest('', { uid });
+        const res = await this.dispatchByHandler('promoteTestUserToAdmin', req);
+        return res.getJson() as MessageResponse;
     }
 
     async registerUser(registration: UserRegistration): Promise<RegisterUserResult> {
@@ -976,19 +987,55 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     // ===== ADMIN API: USER/TENANT BROWSING =====
 
-    async listAuthUsers(options: ListAuthUsersOptions, token?: AuthToken): Promise<ListAuthUsersResponse> {
-        // TODO: Implement when browser endpoint handlers are added to route-config
-        throw new Error('listAuthUsers not yet implemented in AppDriver');
+    async listAuthUsers(options: ListAuthUsersOptions = {}, token?: AuthToken): Promise<ListAuthUsersResponse> {
+        const req = createStubRequest(token || '', {});
+        const query: Record<string, string | number> = {};
+        if (options.limit !== undefined) {
+            query.limit = options.limit;
+        }
+        if (options.pageToken) {
+            query.pageToken = options.pageToken;
+        }
+        if (options.email) {
+            query.email = options.email;
+        }
+        if (options.uid) {
+            query.uid = options.uid;
+        }
+
+        req.query = query;
+        const res = await this.dispatchByHandler('listAuthUsers', req);
+        return res.getJson() as ListAuthUsersResponse;
     }
 
-    async listFirestoreUsers(options: ListFirestoreUsersOptions, token?: AuthToken): Promise<ListFirestoreUsersResponse> {
-        // TODO: Implement when browser endpoint handlers are added to route-config
-        throw new Error('listFirestoreUsers not yet implemented in AppDriver');
+    async listFirestoreUsers(options: ListFirestoreUsersOptions = {}, token?: AuthToken): Promise<ListFirestoreUsersResponse> {
+        const req = createStubRequest(token || '', {});
+        const query: Record<string, string | number> = {};
+        if (options.limit !== undefined) {
+            query.limit = options.limit;
+        }
+        if (options.cursor) {
+            query.cursor = options.cursor;
+        }
+        if (options.email) {
+            query.email = options.email;
+        }
+        if (options.uid) {
+            query.uid = options.uid;
+        }
+        if (options.displayName) {
+            query.displayName = options.displayName;
+        }
+
+        req.query = query;
+        const res = await this.dispatchByHandler('listFirestoreUsers', req);
+        return res.getJson() as ListFirestoreUsersResponse;
     }
 
     async listAllTenants(token?: AuthToken): Promise<ListAllTenantsResponse> {
-        // TODO: Implement when browser endpoint handlers are added to route-config
-        throw new Error('listAllTenants not yet implemented in AppDriver');
+        const req = createStubRequest(token || '', {});
+        const res = await this.dispatchByHandler('listAllTenants', req);
+        return res.getJson() as ListAllTenantsResponse;
     }
 
     // ===== ADMIN API: TENANT MANAGEMENT =====

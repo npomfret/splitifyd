@@ -10,7 +10,7 @@ import {
     type API,
     type PublicAPI,
     ApiSerializer,
-    type AuthUser,
+    RegisteredUser,
     AuthenticatedFirebaseUser,
     ChangeEmailRequest,
     CommentDTO,
@@ -500,15 +500,15 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     /**
      * Update user account status (admin-only)
      */
-    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AuthUser> {
-        return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token || null) as AuthUser;
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<RegisteredUser> {
+        return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token || null) as RegisteredUser;
     }
 
     /**
      * Update user role (admin-only)
      */
-    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AuthUser> {
-        return await this.apiRequest(`/admin/users/${uid}/role`, 'PUT', updates, token || null) as AuthUser;
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<RegisteredUser> {
+        return await this.apiRequest(`/admin/users/${uid}/role`, 'PUT', updates, token || null) as RegisteredUser;
     }
 
     private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
@@ -624,6 +624,11 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async clearUserPolicyAcceptances(token: AuthToken): Promise<void> {
         // Clear all policy acceptances for the user to reset their state
         await this.apiRequest('/user/clear-policy-acceptances', 'POST', {}, token);
+    }
+
+    async promoteUserToAdmin(uid: UserId): Promise<MessageResponse> {
+        // Promote user to system_admin role (test/emulator only)
+        return (await this.apiRequest('/test-pool/promote-to-admin', 'POST', { uid })) as MessageResponse;
     }
 
     // ===== ADMIN API: POLICY MANAGEMENT =====

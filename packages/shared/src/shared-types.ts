@@ -1,6 +1,7 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
 import { z } from 'zod';
+import type { TenantBranding } from './types/branding';
 import type { ColorPattern } from './user-colors';
 
 // ========================================================================
@@ -557,6 +558,15 @@ export interface RegisteredUser extends FirebaseUser {
 
     // System administration
     role?: SystemUserRole; // Role field for admin access control
+
+    // Auth metadata (optional)
+    disabled?: boolean;
+    metadata?: {
+        creationTime?: string;
+        lastSignInTime?: string;
+        [key: string]: unknown;
+        toJSON?: () => Record<string, unknown>;
+    };
 
     // Policy acceptance tracking
     termsAcceptedAt?: ISOString;
@@ -1460,7 +1470,7 @@ export interface AdminUpsertTenantRequest {
             showPricingPage?: boolean;
         };
     };
-    brandingTokens?: any; // Optional advanced branding tokens
+    brandingTokens?: TenantBranding;
     domains: string[];
     defaultTenant?: boolean;
 }
@@ -1475,28 +1485,11 @@ export interface AdminUpsertTenantResponse {
 }
 
 /**
- * Auth user record (from Firebase Auth)
- * Used in admin browser endpoints
- *
- * @deprecated This type is redundant with RegisteredUser and should be removed.
- * Fields are kept optional for backwards compatibility but should all be required.
- */
-export interface AuthUser {
-    uid: UserId;
-    email?: Email | null;
-    emailVerified?: boolean;
-    displayName?: DisplayName | null;
-    disabled?: boolean;
-    metadata?: any; // Firebase Auth metadata (creationTime, lastSignInTime, etc.)
-    role?: SystemUserRole; // Enriched from Firestore by listAuthUsers endpoint
-}
-
-/**
  * List Auth users response
  * Returned by GET /admin/browser/users/auth endpoint (system_admin only)
  */
 export interface ListAuthUsersResponse {
-    users: AuthUser[];
+    users: RegisteredUser[];
     nextPageToken?: string;
     hasMore: boolean;
 }
@@ -1504,18 +1497,12 @@ export interface ListAuthUsersResponse {
 /**
  * Firestore user document
  * Used in admin browser endpoints
- *
- * @deprecated This type is redundant with RegisteredUser and should be removed.
- * Fields are kept optional for backwards compatibility but should all be required.
  */
-export interface FirestoreUser {
-    uid: UserId;
-    email?: Email | null;
-    displayName?: DisplayName | null;
-    role?: SystemUserRole;
+export interface FirestoreUser extends RegisteredUser {
     disabled?: boolean;
     createdAt?: ISOString;
     lastLoginAt?: ISOString;
+    id?: string;
 }
 
 /**
@@ -1528,12 +1515,21 @@ export interface ListFirestoreUsersResponse {
     hasMore: boolean;
 }
 
+export interface TenantBrowserRecord {
+    tenant: TenantConfig;
+    primaryDomain: TenantDomainName | null;
+    domains: TenantDomainName[];
+    isDefault: TenantDefaultFlag;
+    brandingTokens?: TenantBranding;
+}
+
 /**
  * List all tenants response
  * Returned by GET /admin/browser/tenants endpoint (system_admin only)
  */
 export interface ListAllTenantsResponse {
-    tenants: TenantConfig[];
+    tenants: TenantBrowserRecord[];
+    count: number;
 }
 
 /**

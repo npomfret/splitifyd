@@ -12,10 +12,12 @@ import {
     toGroupName,
     toShowLandingPageFlag,
     toShowPricingPageFlag,
+    toTenantAccentColor,
     toTenantAppName,
     toTenantDomainName,
     toTenantLogoUrl,
     toTenantPrimaryColor,
+    toTenantSecondaryColor,
     UserBalance,
     toCurrencyISOCode,
     USD,
@@ -4178,6 +4180,25 @@ describe('app tests', () => {
                 await expect(appDriver.adminUpsertTenant(invalidPayload, adminUser)).rejects.toThrow();
             });
 
+            it('should auto-generate brandingTokens when not provided', async () => {
+                const payload = AdminTenantRequestBuilder.forTenant('tenant_without_tokens').build();
+                const request = { ...payload };
+                delete request.brandingTokens;
+
+                const result = await appDriver.adminUpsertTenant(request, adminUser);
+
+                expect(result).toMatchObject({
+                    tenantId: 'tenant_without_tokens',
+                    created: true,
+                });
+
+                // Verify tokens were auto-generated from branding colors
+                const tenantDoc = await appDriver.database.collection('tenants').doc('tenant_without_tokens').get();
+                expect(tenantDoc.exists).toBe(true);
+                expect(tenantDoc.data()?.brandingTokens).toBeDefined();
+                expect(tenantDoc.data()?.brandingTokens?.tokens?.palette?.primary).toBe(request.branding.primaryColor);
+            });
+
             it('should reject non-admin user', async () => {
                 const regularUser = 'regular-user';
                 appDriver.seedUser(regularUser, { displayName: 'Regular User', email: 'regular@test.com' });
@@ -4348,6 +4369,169 @@ describe('app tests', () => {
                 expect(updateResult.created).toBe(false); // Updated, not created
                 expect(updateResult.tenantId).toBe('tenant_self_update');
             });
+
+            it('should reject empty appName', async () => {
+                const payload = AdminTenantRequestBuilder
+                    .forTenant('tenant_empty_name')
+                    .withAppName('')
+                    .withDomains([toTenantDomainName('test.local')])
+                    .build();
+
+                await expect(appDriver.adminUpsertTenant(payload, adminUser))
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_TENANT_PAYLOAD' });
+            });
+
+            it('should accept partial branding update', async () => {
+                // Create tenant with all fields
+                const createPayload = AdminTenantRequestBuilder
+                    .forTenant('tenant_partial_update')
+                    .withAppName('Initial App')
+                    .withPrimaryColor('#ff0000')
+                    .withSecondaryColor('#00ff00')
+                    .withAccentColor('#0000ff')
+                    .withDomains([toTenantDomainName('partial.test')])
+                    .build();
+
+                await appDriver.adminUpsertTenant(createPayload, adminUser);
+
+                // Update with new colors
+                const updatePayload = AdminTenantRequestBuilder
+                    .forTenant('tenant_partial_update')
+                    .withAppName('Updated App')
+                    .withPrimaryColor('#ff00ff')
+                    .withSecondaryColor('#00ff00')
+                    .withAccentColor('#0000ff')
+                    .withDomains([toTenantDomainName('partial.test')])
+                    .build();
+
+                const result = await appDriver.adminUpsertTenant(updatePayload, adminUser);
+
+                expect(result).toMatchObject({
+                    tenantId: 'tenant_partial_update',
+                    created: false,
+                });
+
+                // Verify the tenant was updated
+                const tenantDoc = await appDriver.database.collection('tenants').doc('tenant_partial_update').get();
+                const data = tenantDoc.data();
+                expect(data?.branding?.appName).toBe('Updated App');
+            });
+
+            it('should generate different brandingTokens for different color inputs', async () => {
+                const tenant1 = AdminTenantRequestBuilder
+                    .forTenant('tenant_tokens_1')
+                    .withPrimaryColor('#ff0000')
+                    .withDomains([toTenantDomainName('tokens1.test')])
+                    .build();
+
+                await appDriver.adminUpsertTenant(tenant1, adminUser);
+
+                const tenant2 = AdminTenantRequestBuilder
+                    .forTenant('tenant_tokens_2')
+                    .withPrimaryColor('#00ff00')
+                    .withDomains([toTenantDomainName('tokens2.test')])
+                    .build();
+
+                await appDriver.adminUpsertTenant(tenant2, adminUser);
+
+                const doc1 = await appDriver.database.collection('tenants').doc('tenant_tokens_1').get();
+                const doc2 = await appDriver.database.collection('tenants').doc('tenant_tokens_2').get();
+
+                const tokens1 = doc1.data()?.brandingTokens;
+                const tokens2 = doc2.data()?.brandingTokens;
+
+                // Tokens should be different because colors are different
+                expect(tokens1).toBeDefined();
+                expect(tokens2).toBeDefined();
+                expect(tokens1?.tokens?.palette?.primary).toBe('#ff0000');
+                expect(tokens2?.tokens?.palette?.primary).toBe('#00ff00');
+            });
+
+            it('should preserve explicitly provided brandingTokens instead of generating', async () => {
+                const explicitTokens = AdminTenantRequestBuilder.forTenant('explicit').buildTokens();
+                explicitTokens.palette.primary = '#123456' as `#${string}`;
+
+                const payload = AdminTenantRequestBuilder
+                    .forTenant('tenant_explicit_tokens')
+                    .withDomains([toTenantDomainName('explicit.test')])
+                    .build();
+
+                payload.brandingTokens = { tokens: explicitTokens };
+
+                await appDriver.adminUpsertTenant(payload, adminUser);
+
+                const doc = await appDriver.database.collection('tenants').doc('tenant_explicit_tokens').get();
+                const data = doc.data();
+
+                // Should use the explicit tokens, not generate from branding colors
+                expect(data?.brandingTokens?.tokens?.palette?.primary).toBe('#123456');
+            });
+
+            it('should reject tenant with no domains', async () => {
+                const payload = {
+                    tenantId: 'tenant_no_domains',
+                    branding: {
+                        appName: toTenantAppName('Test App'),
+                        logoUrl: toTenantLogoUrl('https://example.com/logo.png'),
+                        primaryColor: toTenantPrimaryColor('#ff0000'),
+                        secondaryColor: toTenantSecondaryColor('#00ff00'),
+                        accentColor: toTenantAccentColor('#0000ff'),
+                    },
+                    domains: [] as any,
+                };
+
+                await expect(appDriver.adminUpsertTenant(payload, adminUser))
+                    .rejects
+                    .toMatchObject({ code: 'INVALID_TENANT_PAYLOAD' });
+            });
+
+            it('should accept reasonably long appName', async () => {
+                const longName = 'A'.repeat(200);
+
+                const payload = AdminTenantRequestBuilder
+                    .forTenant('tenant_long_name')
+                    .withAppName(longName)
+                    .withDomains([toTenantDomainName('longname.test')])
+                    .build();
+
+                const result = await appDriver.adminUpsertTenant(payload, adminUser);
+
+                expect(result).toMatchObject({
+                    tenantId: 'tenant_long_name',
+                    created: true,
+                });
+            });
+
+            it('should update appName without affecting colors', async () => {
+                const initialPayload = AdminTenantRequestBuilder
+                    .forTenant('tenant_name_only_update')
+                    .withAppName('Initial Name')
+                    .withAccentColor('#ff0000')
+                    .withDomains([toTenantDomainName('nameonly.test')])
+                    .build();
+
+                const createResult = await appDriver.adminUpsertTenant(initialPayload, adminUser);
+                expect(createResult.created).toBe(true);
+
+                // Update with different app name
+                const updatePayload = AdminTenantRequestBuilder
+                    .forTenant('tenant_name_only_update')
+                    .withAppName('Updated Name Only')
+                    .withAccentColor('#ff0000')
+                    .withDomains([toTenantDomainName('nameonly.test')])
+                    .build();
+
+                const updateResult = await appDriver.adminUpsertTenant(updatePayload, adminUser);
+
+                // Verify update succeeded
+                expect(updateResult.created).toBe(false);
+                expect(updateResult.tenantId).toBe('tenant_name_only_update');
+
+                const doc = await appDriver.database.collection('tenants').doc('tenant_name_only_update').get();
+                expect(doc.exists).toBe(true);
+                expect(doc.data()?.brandingTokens?.tokens?.palette?.accent).toBe('#ff0000');
+            });
         });
 
         describe('POST /api/admin/tenants/publish - publishTenantTheme', () => {
@@ -4430,6 +4614,245 @@ describe('app tests', () => {
                     .rejects
                     .toMatchObject({ code: 'TENANT_NOT_FOUND' });
             });
+
+            it('should use updated branding colors when publishing theme', async () => {
+                // Create a tenant with initial branding colors using the builder methods
+                // that update BOTH branding AND brandingTokens
+                const testTenantId = 'tenant-color-update-test';
+                const initialAccentColor = '#22d3ee'; // Teal
+                const updatedAccentColor = '#ff00ff'; // Magenta
+
+                const initialPayload = AdminTenantRequestBuilder
+                    .forTenant(testTenantId)
+                    .withDomains([`${testTenantId}.test`])
+                    .withAppName('Test App')
+                    .withLogoUrl('/logo.svg')
+                    .withPrimaryColor('#2563eb')
+                    .withSecondaryColor('#7c3aed')
+                    .withAccentColor(initialAccentColor)
+                    .build();
+
+                await appDriver.adminUpsertTenant(initialPayload, systemAdmin);
+
+                // Update only the branding colors WITHOUT updating brandingTokens
+                // This simulates what happens when using the UI tenant editor
+                const updatedPayload = {
+                    tenantId: testTenantId,
+                    branding: {
+                        appName: toTenantAppName('Test App'),
+                        logoUrl: toTenantLogoUrl('/logo.svg'),
+                        primaryColor: toTenantPrimaryColor('#2563eb'),
+                        secondaryColor: toTenantPrimaryColor('#7c3aed'),
+                        accentColor: toTenantPrimaryColor(updatedAccentColor), // NEW COLOR
+                    },
+                    domains: [toTenantDomainName(`${testTenantId}.test`)],
+                };
+
+                await appDriver.adminUpsertTenant(updatedPayload, systemAdmin);
+
+                // Publish the theme
+                const publishResult = await appDriver.publishTenantTheme({ tenantId: testTenantId }, systemAdmin);
+
+                // Get the published CSS from storage
+                const bucketName = appDriver.storageStub.bucket().name;
+                const cssPath = `theme-artifacts/${testTenantId}/${publishResult.artifact.hash}/theme.css`;
+                const cssFile = appDriver.storageStub.getFile(bucketName, cssPath);
+
+                expect(cssFile).toBeDefined();
+                const cssContent = cssFile!.content.toString('utf8').toLowerCase();
+
+                // The published CSS should contain the UPDATED accent color
+                // because brandingTokens are regenerated when branding is updated
+                expect(cssContent).toContain(updatedAccentColor.toLowerCase());
+                expect(cssContent).not.toContain(initialAccentColor.toLowerCase());
+            });
+
+            it('should reject publish from non-admin user', async () => {
+                const regularUser = 'regular-publish-user';
+                appDriver.seedUser(regularUser, { displayName: 'Regular User', email: 'regular@test.com' });
+
+                const result = await appDriver.publishTenantTheme({ tenantId }, regularUser);
+                expect(result).toMatchObject({
+                    error: {
+                        code: 'FORBIDDEN',
+                    },
+                });
+            });
+
+            it('should generate valid CSS with CSS custom properties', async () => {
+                const result = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+
+                const bucketName = appDriver.storageStub.bucket().name;
+                const cssPath = `theme-artifacts/${tenantId}/${result.artifact.hash}/theme.css`;
+                const cssFile = appDriver.storageStub.getFile(bucketName, cssPath);
+
+                expect(cssFile).toBeDefined();
+                const cssContent = cssFile!.content.toString('utf8');
+
+                // Verify it contains CSS with :root and custom properties format
+                expect(cssContent).toContain(':root');
+                expect(cssContent).toContain('--');
+                expect(cssContent.length).toBeGreaterThan(100);
+            });
+
+            it('should generate valid JSON tokens file', async () => {
+                const result = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+
+                const bucketName = appDriver.storageStub.bucket().name;
+                const tokensPath = `theme-artifacts/${tenantId}/${result.artifact.hash}/tokens.json`;
+                const tokensFile = appDriver.storageStub.getFile(bucketName, tokensPath);
+
+                expect(tokensFile).toBeDefined();
+                const tokensContent = tokensFile!.content.toString('utf8');
+
+                // Should be valid JSON
+                const tokens = JSON.parse(tokensContent);
+                expect(tokens).toHaveProperty('palette');
+                expect(tokens).toHaveProperty('typography');
+                expect(tokens).toHaveProperty('spacing');
+                expect(tokens).toHaveProperty('semantics');
+            });
+
+            it('should generate consistent hash for same tokens', async () => {
+                const result1 = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+                const result2 = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+
+                // Same tokens should produce same hash
+                expect(result1.artifact.hash).toBe(result2.artifact.hash);
+            });
+
+            it('should generate different hash after token update', async () => {
+                const result1 = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+
+                // Update tenant with different color
+                const updatePayload = {
+                    tenantId,
+                    branding: {
+                        appName: toTenantAppName('Test App'),
+                        logoUrl: toTenantLogoUrl('/logo.svg'),
+                        primaryColor: toTenantPrimaryColor('#ff0000'), // Different color
+                        secondaryColor: toTenantPrimaryColor('#7c3aed'),
+                        accentColor: toTenantPrimaryColor('#f97316'),
+                        backgroundColor: toTenantPrimaryColor('#ffffff'),
+                        headerBackgroundColor: toTenantPrimaryColor('#111827'),
+                    },
+                    domains: [toTenantDomainName(`${tenantId}.test`)],
+                };
+
+                await appDriver.adminUpsertTenant(updatePayload, systemAdmin);
+
+                const result2 = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+
+                // Different tokens should produce different hash
+                expect(result1.artifact.hash).not.toBe(result2.artifact.hash);
+            });
+
+            it('should make published files publicly accessible', async () => {
+                const result = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+
+                const bucketName = appDriver.storageStub.bucket().name;
+                const cssPath = `theme-artifacts/${tenantId}/${result.artifact.hash}/theme.css`;
+                const tokensPath = `theme-artifacts/${tenantId}/${result.artifact.hash}/tokens.json`;
+
+                const cssFile = appDriver.storageStub.getFile(bucketName, cssPath);
+                const tokensFile = appDriver.storageStub.getFile(bucketName, tokensPath);
+
+                expect(cssFile?.public).toBe(true);
+                expect(tokensFile?.public).toBe(true);
+            });
+
+            it('should record correct metadata in published files', async () => {
+                const result = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+
+                const bucketName = appDriver.storageStub.bucket().name;
+                const cssPath = `theme-artifacts/${tenantId}/${result.artifact.hash}/theme.css`;
+
+                const cssFile = appDriver.storageStub.getFile(bucketName, cssPath);
+
+                expect(cssFile?.metadata?.metadata?.tenantId).toBe(tenantId);
+                expect(cssFile?.metadata?.contentType).toContain('text/css');
+                expect(cssFile?.public).toBe(true);
+            });
+
+            it('should include operator ID in artifact metadata', async () => {
+                const result = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+
+                expect(result.artifact.generatedBy).toBe(systemAdmin);
+
+                // Verify it's stored in Firestore
+                const tenantDoc = await appDriver.database.collection('tenants').doc(tenantId).get();
+                const data = tenantDoc.data();
+                expect(data?.brandingTokens?.artifact?.generatedBy).toBe(systemAdmin);
+            });
+
+            it('should handle publishing same theme multiple times', async () => {
+                const result1 = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+                const result2 = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+                const result3 = await appDriver.publishTenantTheme({ tenantId }, systemAdmin);
+
+                expect(result1.artifact.version).toBe(1);
+                expect(result2.artifact.version).toBe(2);
+                expect(result3.artifact.version).toBe(3);
+
+                // All should have the same hash (since tokens haven't changed)
+                expect(result1.artifact.hash).toBe(result2.artifact.hash);
+                expect(result2.artifact.hash).toBe(result3.artifact.hash);
+            });
+        });
+    });
+
+    describe('Admin browser endpoints', () => {
+        const browserAdmin = 'browser-admin';
+
+        beforeEach(() => {
+            appDriver.seedAdminUser(browserAdmin, {
+                email: 'browser-admin@test.com',
+                displayName: 'Browser Admin',
+            });
+        });
+
+        it('lists all tenants for system users', async () => {
+            appDriver.seedTenantDocument('tenant-browser-1');
+            appDriver.seedTenantDocument('tenant-browser-2');
+
+            const result = await appDriver.listAllTenants(browserAdmin);
+
+            expect(result.tenants.length).toBe(2);
+            expect(result.count).toBe(2);
+            const tenantIds = result.tenants.map((entry) => entry.tenant.tenantId);
+            expect(tenantIds).toEqual(expect.arrayContaining(['tenant-browser-1', 'tenant-browser-2']));
+        });
+
+        it('rejects tenant listing for users without a system role', async () => {
+            const regularUser = 'browser-regular';
+            appDriver.seedUser(regularUser, { email: 'browser-regular@test.com' });
+
+            const result = await appDriver.listAllTenants(regularUser);
+
+            expect((result as any).error?.code).toBe('FORBIDDEN');
+        });
+
+        it('enriches auth users with their Firestore roles', async () => {
+            const browserSystemUser = 'browser-system-user';
+            appDriver.seedUser(browserSystemUser, { role: SystemUserRoles.SYSTEM_USER });
+
+            const response = await appDriver.listAuthUsers({ uid: browserSystemUser }, browserAdmin);
+
+            expect(response.users).toHaveLength(1);
+            expect(response.users[0].uid).toBe(browserSystemUser);
+            expect(response.users[0].role).toBe(SystemUserRoles.SYSTEM_USER);
+            expect(response.hasMore).toBe(false);
+        });
+
+        it('filters Firestore users by uid', async () => {
+            const browserSystemUser = 'browser-firestore-user';
+            appDriver.seedUser(browserSystemUser, { role: SystemUserRoles.SYSTEM_USER });
+
+            const response = await appDriver.listFirestoreUsers({ uid: browserSystemUser }, browserAdmin);
+
+            expect(response.users).toHaveLength(1);
+            expect(response.users[0].id).toBe(browserSystemUser);
+            expect(response.hasMore).toBe(false);
         });
     });
 

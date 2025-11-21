@@ -3,7 +3,7 @@ import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
-import type { TenantConfig } from '@billsplit-wl/shared';
+import type { TenantBrowserRecord, TenantConfig } from '@billsplit-wl/shared';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { apiClient } from '../app/apiClient';
@@ -11,30 +11,29 @@ import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { configStore } from '../stores/config-store';
 
-// Extended tenant type with computed fields from the backend
-type Tenant = TenantConfig & {
-    tenant: TenantConfig;
-    primaryDomain: string | null;
-    domains: string[];
-    isDefault: boolean;
-};
-
 export function AdminTenantsPage() {
     const authStore = useAuthRequired();
-    const [tenants, setTenants] = useState<Tenant[]>([]);
+    const [tenants, setTenants] = useState<TenantBrowserRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-    const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+    const [selectedTenant, setSelectedTenant] = useState<TenantBrowserRecord | null>(null);
 
     const user = authStore.user;
     const isSystemAdmin = user?.role === SystemUserRoles.SYSTEM_ADMIN;
+    // Wait for both auth initialization AND role to be loaded (role will be undefined initially)
+    const isAuthLoading = authStore.loading || !authStore.initialized || (user !== null && user.role === undefined);
 
     // Get current tenant ID from config
     const currentTenantId = configStore.config?.tenant?.tenantId;
 
     useEffect(() => {
+        // Wait for auth to finish loading AND role to be loaded before checking access
+        if (isAuthLoading) {
+            return;
+        }
+
         // Redirect if not system admin
         if (!isSystemAdmin) {
             navigationService.goToDashboard();
@@ -42,15 +41,15 @@ export function AdminTenantsPage() {
         }
 
         loadTenants();
-    }, [isSystemAdmin]);
+    }, [isSystemAdmin, isAuthLoading]);
 
     const loadTenants = async () => {
         setIsLoading(true);
         setError(null);
 
         try {
-            const response = await apiClient.listAllTenants();
-            setTenants(response.tenants as Tenant[]);
+        const response = await apiClient.listAllTenants();
+        setTenants(response.tenants);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load tenants');
             logError('Failed to load tenants', err);
@@ -70,7 +69,7 @@ export function AdminTenantsPage() {
         setIsModalOpen(true);
     };
 
-    const handleEditTenant = (tenant: Tenant) => {
+    const handleEditTenant = (tenant: TenantBrowserRecord) => {
         setModalMode('edit');
         setSelectedTenant(tenant);
         setIsModalOpen(true);

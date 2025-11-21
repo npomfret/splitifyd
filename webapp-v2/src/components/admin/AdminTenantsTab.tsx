@@ -3,16 +3,12 @@ import { TenantEditorModal } from '@/components/admin/TenantEditorModal';
 import { Alert, Button, Card, LoadingSpinner } from '@/components/ui';
 import { configStore } from '@/stores/config-store.ts';
 import { logError } from '@/utils/browser-logger';
-import type { TenantConfig } from '@billsplit-wl/shared';
+import type { TenantBrowserRecord, TenantConfig } from '@billsplit-wl/shared';
+
+type Tenant = TenantBrowserRecord;
 import { useEffect, useState } from 'preact/hooks';
 
 // Extended tenant type with computed fields from the backend
-type Tenant = TenantConfig & {
-    tenant: TenantConfig;
-    domains: string[];
-    isDefault: boolean;
-};
-
 export function AdminTenantsTab() {
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -33,8 +29,8 @@ export function AdminTenantsTab() {
         setError(null);
 
         try {
-            const response = await apiClient.listAllTenants();
-            setTenants(response.tenants as Tenant[]);
+        const response = await apiClient.listAllTenants();
+        setTenants(response.tenants);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load tenants');
             logError('Failed to load tenants', err);
@@ -54,7 +50,7 @@ export function AdminTenantsTab() {
         setIsModalOpen(true);
     };
 
-    const handleEditTenant = (tenant: Tenant) => {
+    const handleEditTenant = (tenant: TenantBrowserRecord) => {
         setModalMode('edit');
         setSelectedTenant(tenant);
         setIsModalOpen(true);

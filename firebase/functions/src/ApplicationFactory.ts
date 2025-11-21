@@ -201,6 +201,32 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         }
     };
 
+    const promoteTestUserToAdmin: RequestHandler = async (req, res) => {
+        if (!isPoolEnabled()) {
+            res.status(403).json({ error: 'Test pool only available in emulator or test environments' });
+            return;
+        }
+
+        const { uid } = req.body;
+
+        if (!uid) {
+            res.status(400).json({ error: 'User ID required' });
+            return;
+        }
+
+        try {
+            // Update Firestore document only
+            await firestoreWriter.promoteUserToAdmin(uid);
+            res.json({ message: 'User promoted to admin', uid });
+        } catch (error: any) {
+            logger.error('Failed to promote user to admin', error);
+            res.status(500).json({
+                error: 'Failed to promote user to admin',
+                details: error.message,
+            });
+        }
+    };
+
     const clearUserPolicyAcceptances: RequestHandler = async (req, res) => {
         if (config.isProduction) {
             const response: TestErrorResponse = {
@@ -569,6 +595,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         // Test endpoint handlers
         borrowTestUser,
         returnTestUser,
+        promoteTestUserToAdmin,
         clearUserPolicyAcceptances,
         testPromoteToAdmin,
 

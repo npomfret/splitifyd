@@ -35,6 +35,10 @@ test.describe('Tenant Editor Modal', () => {
         await expect(tenantEditorModal.primaryColorInput).toBeVisible();
         await expect(tenantEditorModal.secondaryColorInput).toBeVisible();
         await expect(tenantEditorModal.accentColorInput).toBeVisible();
+        await expect(tenantEditorModal.backgroundColorInput).toBeVisible();
+        await expect(tenantEditorModal.headerBackgroundColorInput).toBeVisible();
+        await expect(tenantEditorModal.themePaletteInput).toBeVisible();
+        await expect(tenantEditorModal.customCssInput).toBeVisible();
         await expect(tenantEditorModal.newDomainInput).toBeVisible();
 
         // Verify tenant ID is editable in create mode
@@ -178,6 +182,23 @@ test.describe('Tenant Editor Modal', () => {
         expect(appNameValue.length).toBeGreaterThan(0);
     });
 
+    test('should offer a publish option when editing', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
+        const adminTenantsPage = new AdminTenantsPage(page);
+        const tenantEditorModal = new TenantEditorModalPage(page);
+
+        await adminTenantsPage.navigate();
+        await adminTenantsPage.waitForTenantsLoaded();
+
+        const firstEditButton = page.locator('[data-testid^="edit-tenant-"]').first();
+        await firstEditButton.click();
+        await tenantEditorModal.waitForModalToBeVisible();
+
+        await tenantEditorModal.clickPublish();
+
+        await tenantEditorModal.verifySuccessMessage('Theme published successfully!');
+    });
+
     test('should toggle marketing flags', async ({ systemAdminPage }) => {
         const { page } = systemAdminPage;
         const adminTenantsPage = new AdminTenantsPage(page);
@@ -198,5 +219,35 @@ test.describe('Tenant Editor Modal', () => {
         // Toggle it back on
         await tenantEditorModal.toggleShowLandingPage(true);
         await expect(tenantEditorModal.showLandingPageCheckbox).toBeChecked();
+    });
+
+    test('should create a tenant after filling required fields', async ({ systemAdminPage }) => {
+        const { page } = systemAdminPage;
+        const adminTenantsPage = new AdminTenantsPage(page);
+        const tenantEditorModal = new TenantEditorModalPage(page);
+
+        const tenantId = `playwright-tenant-${Date.now()}`;
+
+        await adminTenantsPage.navigate();
+        await adminTenantsPage.waitForTenantsLoaded();
+        await page.getByTestId('create-tenant-button').click();
+        await tenantEditorModal.waitForModalToBeVisible();
+
+        await tenantEditorModal.fillTenantId(tenantId);
+        await tenantEditorModal.fillAppName('Playwright Tenant');
+        await tenantEditorModal.fillLogoUrl('/logo.svg');
+        await tenantEditorModal.fillFaviconUrl('/favicon.svg');
+        await tenantEditorModal.setPrimaryColor('#0f172a');
+        await tenantEditorModal.setSecondaryColor('#1e3a8a');
+        await tenantEditorModal.setAccentColor('#f97316');
+        await tenantEditorModal.addDomain(`${tenantId}.example.com`);
+
+        await tenantEditorModal.clickSave();
+
+        await tenantEditorModal.verifySuccessMessage();
+        await tenantEditorModal.verifyModalIsClosed();
+
+        // Note: Cannot verify tenant appears in list since we're using static MSW mocks
+        // The actual tenant list refresh is tested in e2e tests against real emulator
     });
 });

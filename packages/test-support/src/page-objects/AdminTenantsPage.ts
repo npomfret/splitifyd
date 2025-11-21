@@ -123,6 +123,11 @@ export class AdminTenantsPage extends BasePage {
         await this.getRefreshButton().click();
     }
 
+    async clickEditButtonForFirstTenant(): Promise<void> {
+        const firstEditButton = this.page.locator('[data-testid^="edit-tenant-"]').first();
+        await firstEditButton.click();
+    }
+
     /**
      * Verification Methods
      */

@@ -12,6 +12,10 @@ interface TenantData {
     primaryColor: string;
     secondaryColor: string;
     accentColor: string;
+    backgroundColor: string;
+    headerBackgroundColor: string;
+    themePalette: string;
+    customCSS: string;
     showLandingPage: boolean;
     showMarketingContent: boolean;
     showPricingPage: boolean;
@@ -59,6 +63,10 @@ const DEFAULT_TENANT_DATA: TenantData = {
     primaryColor: '#1a73e8',
     secondaryColor: '#34a853',
     accentColor: '#fbbc04',
+    backgroundColor: '#ffffff',
+    headerBackgroundColor: '#111827',
+    themePalette: 'default',
+    customCSS: '',
     showLandingPage: true,
     showMarketingContent: true,
     showPricingPage: false,
@@ -70,11 +78,13 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [isPublishing, setIsPublishing] = useState(false);
     const [newDomain, setNewDomain] = useState('');
 
     // Update form data when tenant or mode changes
     useEffect(() => {
         if (mode === 'edit' && tenant) {
+            const branding = tenant.tenant.branding as any;
             setFormData({
                 tenantId: tenant.tenant.tenantId || '',
                 appName: tenant.tenant.branding?.appName || '',
@@ -83,9 +93,13 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 primaryColor: tenant.tenant.branding?.primaryColor || '#1a73e8',
                 secondaryColor: tenant.tenant.branding?.secondaryColor || '#34a853',
                 accentColor: tenant.tenant.branding?.accentColor || '#fbbc04',
-                showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? true,
-                showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? true,
-                showPricingPage: tenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
+            backgroundColor: branding?.backgroundColor || '#ffffff',
+            headerBackgroundColor: branding?.headerBackgroundColor || '#111827',
+            themePalette: branding?.themePalette || 'default',
+            customCSS: branding?.customCSS || '',
+            showLandingPage: tenant.tenant.branding?.marketingFlags?.showLandingPage ?? true,
+            showMarketingContent: tenant.tenant.branding?.marketingFlags?.showMarketingContent ?? true,
+            showPricingPage: tenant.tenant.branding?.marketingFlags?.showPricingPage ?? false,
                 domains: tenant.domains || [],
             });
         } else if (mode === 'create') {
@@ -160,34 +174,53 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 formData.domains.map(d => d.trim().toLowerCase().replace(/:\d+$/, ''))
             ));
 
-            const requestData: AdminUpsertTenantRequest = {
-                tenantId: formData.tenantId,
-                branding: {
-                    appName: formData.appName,
-                    logoUrl: formData.logoUrl,
-                    faviconUrl: formData.faviconUrl || formData.logoUrl,
-                    primaryColor: formData.primaryColor,
-                    secondaryColor: formData.secondaryColor,
-                    accentColor: formData.accentColor,
-                    marketingFlags: {
-                        showLandingPage: formData.showLandingPage,
-                        showMarketingContent: formData.showMarketingContent,
-                        showPricingPage: formData.showPricingPage,
-                    },
+            const branding: Record<string, unknown> = {
+                appName: formData.appName,
+                logoUrl: formData.logoUrl,
+                faviconUrl: formData.faviconUrl || formData.logoUrl,
+                primaryColor: formData.primaryColor,
+                secondaryColor: formData.secondaryColor,
+                accentColor: formData.accentColor,
+                marketingFlags: {
+                    showLandingPage: formData.showLandingPage,
+                    showMarketingContent: formData.showMarketingContent,
+                    showPricingPage: formData.showPricingPage,
                 },
-                domains: normalizedDomains,
             };
+
+            if (formData.backgroundColor.trim()) {
+                branding.backgroundColor = formData.backgroundColor;
+            }
+            if (formData.headerBackgroundColor.trim()) {
+                branding.headerBackgroundColor = formData.headerBackgroundColor;
+            }
+            if (formData.themePalette.trim()) {
+                branding.themePalette = formData.themePalette;
+            }
+            if (formData.customCSS.trim()) {
+                branding.customCSS = formData.customCSS;
+            }
+
+            const requestData = {
+                tenantId: formData.tenantId,
+                branding,
+                domains: normalizedDomains,
+            } as AdminUpsertTenantRequest;
 
             const result = await apiClient.adminUpsertTenant(requestData);
             const action = result.created ? 'created' : 'updated';
             setSuccessMessage(`Tenant ${action} successfully!`);
 
             // Close modal after short delay to show success message
-            setTimeout(() => {
+            if (mode === 'create') {
+                setTimeout(() => {
+                    onSave();
+                    onClose();
+                    setFormData({ ...DEFAULT_TENANT_DATA });
+                }, 1500);
+            } else {
                 onSave();
-                onClose();
-                setFormData({ ...DEFAULT_TENANT_DATA });
-            }, 1500);
+            }
         } catch (error: any) {
             const userFriendlyMessage = error.code === 'INVALID_TENANT_PAYLOAD'
                 ? 'Invalid tenant data. Please check all fields and try again.'
@@ -201,6 +234,32 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             logError('Failed to save tenant', error);
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handlePublish = async () => {
+        if (!formData.tenantId) {
+            setErrorMessage('Tenant ID is required for publishing');
+            return;
+        }
+
+        setIsPublishing(true);
+        setErrorMessage('');
+        setSuccessMessage('');
+
+        try {
+            await apiClient.publishTenantTheme({ tenantId: formData.tenantId });
+            setSuccessMessage('Theme published successfully!');
+        } catch (error: any) {
+            const userFriendlyMessage = error.code === 'TENANT_NOT_FOUND'
+                ? 'Tenant does not exist. Save it before publishing.'
+                : error.code === 'TENANT_TOKENS_MISSING'
+                ? 'Tenant is missing branding tokens. Please configure branding and save first.'
+                : error.message || 'Failed to publish theme. Please try again.';
+            setErrorMessage(userFriendlyMessage);
+            logError('Failed to publish tenant theme', error);
+        } finally {
+            setIsPublishing(false);
         }
     };
 
@@ -358,6 +417,62 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                                     </div>
                                 </div>
 
+                                <div class='grid grid-cols-2 gap-4'>
+                                    <div>
+                                        <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
+                                            Background Color
+                                        </label>
+                                        <input
+                                            type='color'
+                                            value={formData.backgroundColor}
+                                            onInput={(e) => setFormData({ ...formData, backgroundColor: (e.target as HTMLInputElement).value })}
+                                            disabled={isSaving}
+                                            class='block h-10 w-full rounded-md border border-border-default bg-surface-base cursor-pointer'
+                                            data-testid='background-color-input'
+                                        />
+                                        <p class='mt-1 text-xs text-text-muted'>{formData.backgroundColor}</p>
+                                    </div>
+
+                                    <div>
+                                        <label class='block text-sm font-medium leading-6 text-text-primary mb-2'>
+                                            Header Background Color
+                                        </label>
+                                        <input
+                                            type='color'
+                                            value={formData.headerBackgroundColor}
+                                            onInput={(e) => setFormData({ ...formData, headerBackgroundColor: (e.target as HTMLInputElement).value })}
+                                            disabled={isSaving}
+                                            class='block h-10 w-full rounded-md border border-border-default bg-surface-base cursor-pointer'
+                                            data-testid='header-background-color-input'
+                                        />
+                                        <p class='mt-1 text-xs text-text-muted'>{formData.headerBackgroundColor}</p>
+                                    </div>
+                                </div>
+
+                                <Input
+                                    label='Theme Palette'
+                                    value={formData.themePalette}
+                                    onChange={(value) => setFormData({ ...formData, themePalette: value })}
+                                    placeholder='default'
+                                    disabled={isSaving}
+                                    data-testid='theme-palette-input'
+                                />
+
+                                <div class='space-y-1'>
+                                    <label class='block text-sm font-medium leading-6 text-text-primary'>
+                                        Custom CSS
+                                    </label>
+                                    <textarea
+                                        value={formData.customCSS}
+                                        onInput={(event) => setFormData({ ...formData, customCSS: (event.target as HTMLTextAreaElement).value })}
+                                        placeholder='/* Optional tenant-specific CSS */'
+                                        disabled={isSaving}
+                                        rows={4}
+                                        class='w-full rounded-md border border-border-default bg-surface-base px-3 py-2 text-sm text-text-primary'
+                                        data-testid='custom-css-input'
+                                    />
+                                </div>
+
                                 {/* Marketing Flags */}
                                 <div class='space-y-2'>
                                     <label class='block text-sm font-medium leading-6 text-text-primary'>
@@ -471,11 +586,22 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     <Button
                         onClick={handleCancel}
                         variant='secondary'
-                        disabled={isSaving}
+                        disabled={isSaving || isPublishing}
                         data-testid='cancel-button'
                     >
                         Cancel
                     </Button>
+                    {mode === 'edit' && (
+                        <Button
+                            onClick={handlePublish}
+                            variant='primary'
+                            disabled={isSaving || isPublishing}
+                            loading={isPublishing}
+                            data-testid='publish-theme-button'
+                        >
+                            {isPublishing ? 'Publishing...' : 'Publish Theme'}
+                        </Button>
+                    )}
                     <Button
                         onClick={handleSave}
                         loading={isSaving}

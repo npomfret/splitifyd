@@ -5,7 +5,7 @@ import type {
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
     AddTenantDomainRequest,
-    AuthUser,
+    RegisteredUser,
     ChangeEmailRequest,
     CommentDTO,
     CommentText,
@@ -194,13 +194,19 @@ export interface AdminAPI<AuthToken> {
      * Update user account status (enable/disable)
      * Requires: system_admin role
      */
-    updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AuthUser>;
+    updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<RegisteredUser>;
 
     /**
      * Update user role (system_admin, tenant_admin, or regular user)
      * Requires: system_admin role
      */
-    updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AuthUser>;
+    updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<RegisteredUser>;
+
+    /**
+     * Promote user to system_admin role (test/emulator only)
+     * Only available in emulator or test environments
+     */
+    promoteUserToAdmin(uid: UserId): Promise<MessageResponse>;
 
     // ===== USER/TENANT BROWSING (system_user or system_admin role) =====
 

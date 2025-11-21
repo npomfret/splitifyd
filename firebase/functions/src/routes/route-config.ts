@@ -117,6 +117,13 @@ const routeDefinitions: RouteDefinition[] = [
     },
     {
         method: 'POST',
+        path: '/test-pool/promote-to-admin',
+        handlerName: 'promoteTestUserToAdmin',
+        category: 'test',
+        testOnly: true,
+    },
+    {
+        method: 'POST',
         path: '/user/clear-policy-acceptances',
         handlerName: 'clearUserPolicyAcceptances',
         category: 'user',

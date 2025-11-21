@@ -26,6 +26,10 @@ export class HeaderPage extends BasePage {
         return this.page.locator('[data-testid="user-menu-dashboard-link"]');
     }
 
+    protected getAdminLink(): Locator {
+        return this.page.locator('[data-testid="user-menu-admin-link"]');
+    }
+
     /**
      * Open the user menu dropdown using reliable ARIA-based state detection.
      */
@@ -49,6 +53,20 @@ export class HeaderPage extends BasePage {
             // If aria-expanded not available or false, check for dropdown content visibility
             await expect(dropdownMenu).toBeVisible();
         }
+    }
+
+    /**
+     * Close the user menu dropdown by clicking the user menu button.
+     */
+    async closeUserMenu(): Promise<void> {
+        const userMenuButton = this.getUserMenuButton();
+        const dropdownMenu = this.getUserDropdownMenu();
+
+        // Click to close dropdown
+        await userMenuButton.click();
+
+        // Wait for dropdown to be hidden
+        await expect(dropdownMenu).not.toBeVisible();
     }
 
     /**
@@ -152,5 +170,18 @@ export class HeaderPage extends BasePage {
 
     async verifyDashboardLinkVisible(): Promise<void> {
         await expect(this.getDashboardLink()).toBeVisible();
+    }
+
+    async verifyAdminLinkVisible(): Promise<void> {
+        await expect(this.getAdminLink()).toBeVisible();
+    }
+
+    /**
+     * Open user menu and verify admin link is visible.
+     * Useful for verifying user has been promoted to admin role.
+     */
+    async openUserMenuAndVerifyAdminLinkVisible(): Promise<void> {
+        await this.openUserMenu();
+        await this.verifyAdminLinkVisible();
     }
 }

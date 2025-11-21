@@ -39,6 +39,22 @@ export class TenantEditorModalPage extends BasePage {
         return this.page.getByTestId('accent-color-input');
     }
 
+    get backgroundColorInput() {
+        return this.page.getByTestId('background-color-input');
+    }
+
+    get headerBackgroundColorInput() {
+        return this.page.getByTestId('header-background-color-input');
+    }
+
+    get themePaletteInput() {
+        return this.page.getByTestId('theme-palette-input');
+    }
+
+    get customCssInput() {
+        return this.page.getByTestId('custom-css-input');
+    }
+
     get showLandingPageCheckbox() {
         return this.page.getByTestId('show-landing-page-checkbox');
     }
@@ -69,6 +85,10 @@ export class TenantEditorModalPage extends BasePage {
 
     get closeModalButton() {
         return this.page.getByTestId('close-modal-button');
+    }
+
+    get publishButton() {
+        return this.page.getByTestId('publish-theme-button');
     }
 
     get successAlert() {
@@ -125,6 +145,36 @@ export class TenantEditorModalPage extends BasePage {
         await this.accentColorInput.fill(color);
     }
 
+    async setBackgroundColor(color: string) {
+        await this.backgroundColorInput.fill(color);
+    }
+
+    async setHeaderBackgroundColor(color: string) {
+        await this.headerBackgroundColorInput.fill(color);
+    }
+
+    async setThemePalette(palette: string) {
+        await this.themePaletteInput.fill(palette);
+    }
+
+    async setCustomCss(css: string) {
+        await this.customCssInput.fill(css);
+    }
+
+    async fillAllRequiredColors(colors: {
+        primary: string;
+        secondary: string;
+        accent: string;
+        background: string;
+        headerBackground: string;
+    }) {
+        await this.setPrimaryColor(colors.primary);
+        await this.setSecondaryColor(colors.secondary);
+        await this.setAccentColor(colors.accent);
+        await this.setBackgroundColor(colors.background);
+        await this.setHeaderBackgroundColor(colors.headerBackground);
+    }
+
     async toggleShowLandingPage(checked: boolean) {
         const checkbox = this.showLandingPageCheckbox;
         const isCurrentlyChecked = await checkbox.isChecked();
@@ -161,13 +211,18 @@ export class TenantEditorModalPage extends BasePage {
         await this.closeModalButton.click();
     }
 
+    async clickPublish() {
+        await this.publishButton.click();
+    }
+
     // Verifications
     async verifyModalIsOpen() {
         await this.modal.waitFor({ state: 'visible' });
     }
 
     async verifyModalIsClosed() {
-        await this.modal.waitFor({ state: 'hidden' });
+        // Modal closes after 1.5s delay in create mode to show success message
+        await this.modal.waitFor({ state: 'hidden', timeout: 3000 });
     }
 
     async verifyTenantIdDisabled() {
@@ -177,8 +232,11 @@ export class TenantEditorModalPage extends BasePage {
         });
     }
 
-    async verifySuccessMessage() {
+    async verifySuccessMessage(message?: string) {
         await this.successAlert.waitFor({ state: 'visible' });
+        if (message) {
+            await this.page.waitForSelector(`text="${message}"`);
+        }
     }
 
     async verifyErrorMessage(message?: string) {
