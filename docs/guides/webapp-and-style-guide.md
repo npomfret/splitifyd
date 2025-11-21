@@ -888,33 +888,24 @@ export function RevealCard() {
 
 ### Button Component - Magnetic Hover
 
-The `Button` component has **magnetic hover enabled by default**:
+The `Button` component has **magnetic hover enabled by default** via `magnetic={true}`.
 
 ```tsx
 import { Button } from '@/components/ui/Button';
 
-// ✅ Magnetic hover enabled (default)
+// ✅ Magnetic hover is enabled by default
 <Button onClick={handleClick}>
   Hover me
 </Button>
 
-// ✅ Explicitly enable magnetic hover
+// ❌ Redundant: This is the default behavior
 <Button magnetic={true} onClick={handleClick}>
   Magnetic button
 </Button>
 
-// ✅ Disable magnetic hover (for toggle buttons, etc.)
+// ✅ Correct way to disable magnetic hover
 <Button magnetic={false} onClick={handleToggle}>
   Toggle Option
-</Button>
-
-// ✅ Toggle button support
-<Button
-  magnetic={false}
-  aria-pressed={isActive}
-  onClick={handleToggle}
->
-  Active: {isActive ? 'Yes' : 'No'}
 </Button>
 ```
 
@@ -1130,9 +1121,9 @@ UI kit under `components/ui` provides audited components (all use semantic token
 - `Toast`/`ToastContainer` - Notification system using Preact signals (integrated: App.tsx)
 
 **Component Status:**
-- **Integrated (10 instances):** Checkbox (6), GradientText (2), EmptyState (1), ToastContainer (1)
-- **Ready for future use:** Radio, Switch, Select, FloatingInput
-- **Note:** Some custom implementations intentionally kept (e.g., card-based radio buttons in SplitTypeSelector, checkboxes with complex labels in RegisterPage) as they require specialized layouts
+- **Integrated:** `Checkbox`, `GradientText`, `EmptyState`, `ToastContainer` are implemented and used in the app.
+- **Not Yet Implemented:** `Radio`, `Switch`, `Select`, `FloatingInput` components have not been created yet.
+- **Note:** Some custom checkbox/radio implementations exist for specialized layouts (e.g., card-based radio buttons in `SplitTypeSelector`). These should be migrated to the standard components once they are built.
 
 **Motion enhancements:** See [Motion Enhancement System](#motion-enhancement-system-phase-2) for details on magnetic hover, scroll reveals, and theme-controlled animations.
 
