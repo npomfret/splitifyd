@@ -80,7 +80,10 @@ class FirebaseActivityFeedGateway implements ActivityFeedGateway {
             if (!timestamp) {
                 throw new Error('Activity feed document missing timestamp');
             }
-            const createdAt = this.toISOString(data.createdAt, 'createdAt', true);
+            const createdAt = this.toISOString(data.createdAt, 'createdAt');
+            if (!createdAt) {
+                throw new Error('Activity feed document missing createdAt');
+            }
             const action = typeof data.action === 'string'
                 ? (data.action as ActivityFeedItem['action'])
                 : deriveActivityFeedAction(data.eventType);
@@ -96,7 +99,7 @@ class FirebaseActivityFeedGateway implements ActivityFeedGateway {
                 actorName: data.actorName,
                 timestamp,
                 details: typeof data.details === 'object' && data.details !== null ? { ...data.details } : {},
-                createdAt: createdAt ?? undefined,
+                createdAt,
             };
         } catch (error) {
             logError('ActivityFeedGateway: failed to parse realtime document', error, {

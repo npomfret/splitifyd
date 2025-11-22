@@ -241,7 +241,7 @@ export interface ActivityFeedItem {
     actorName: string;
     timestamp: ISOString;
     details: ActivityFeedItemDetails;
-    createdAt?: ISOString;
+    createdAt: ISOString; // Always present - set via AuditFieldsSchema in backend
 }
 
 export interface ActivityFeedResponse {
@@ -555,13 +555,14 @@ export interface AuthenticatedFirebaseUser extends FirebaseUser, UserToken {}
  * Note: The canonical storage type is UserDocument in firebase/functions/src/schemas/user.ts
  */
 export interface RegisteredUser extends FirebaseUser {
+    // Core required fields (explicitly declared for clarity)
+    displayName: DisplayName; // Inherited from FirebaseUser -> BaseUser, but explicitly required
     email: Email;
+    role: SystemUserRole; // Required for all registered users (default: SYSTEM_USER)
+
     // Firebase Auth fields
     photoURL?: string | null; // Profile photo URL from Firebase Auth
     emailVerified: boolean; // Email verification status
-
-    // System administration
-    role: SystemUserRole; // Role field for admin access control
 
     // Auth metadata (optional)
     disabled?: boolean;
@@ -868,7 +869,7 @@ interface Expense extends SoftDeletable {
  * which uses Firestore Timestamp objects.
  */
 export interface ExpenseDTO extends Expense, BaseDTO<ExpenseId> {
-    isLocked?: boolean; // True if any participant has left the group
+    isLocked: boolean; // True if any participant has left the group (computed field, always present)
 }
 
 export interface CreateExpenseRequest {
@@ -913,7 +914,7 @@ interface Settlement extends SoftDeletable {
  * which uses Firestore Timestamp objects.
  */
 export interface SettlementDTO extends Settlement, BaseDTO<SettlementId> {
-    isLocked?: boolean; // True if payer or payee has left the group
+    isLocked: boolean; // True if payer or payee has left the group (computed field, always present)
 }
 
 export interface CreateSettlementRequest {
@@ -958,7 +959,7 @@ export interface SettlementWithMembers extends SoftDeletable {
     date: ISOString;
     note?: string;
     createdAt: ISOString;
-    isLocked?: boolean; // True if payer or payee has left the group
+    isLocked: boolean; // True if payer or payee has left the group (computed field, always present)
 }
 
 // ========================================================================

@@ -529,6 +529,7 @@ export class UserService {
                 email: (userRecord.email ?? userRegistration.email) as Email,
                 emailVerified: userRecord.emailVerified ?? false,
                 photoURL: userRecord.photoURL ?? null,
+                role: SystemUserRoles.SYSTEM_USER,
             } as RegisteredUser;
         } catch (error: unknown) {
             // If user was created but firestore failed, clean up the orphaned auth record

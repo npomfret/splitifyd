@@ -118,7 +118,8 @@ export class SettlementService {
         const now = toISOString(new Date().toISOString());
         const settlementDate = settlementData.date || now;
 
-        const settlementDataToCreate: Omit<SettlementDTO, 'id'> = {
+        // Data to store in Firestore (without computed fields like isLocked)
+        const settlementDataToCreate = {
             groupId: settlementData.groupId,
             payerId: settlementData.payerId,
             payeeId: settlementData.payeeId,
@@ -176,7 +177,7 @@ export class SettlementService {
 
             timer.startPhase('transaction:applyBalance');
             // Apply incremental balance update
-            const settlementToApply: SettlementDTO = { id: settlementId, ...settlementDataToCreate };
+            const settlementToApply: SettlementDTO = { id: settlementId, ...settlementDataToCreate, isLocked: false };
             this.incrementalBalanceService.applySettlementCreated(transaction, settlementData.groupId, currentBalance, settlementToApply, memberIds);
             timer.endPhase();
 
@@ -218,18 +219,22 @@ export class SettlementService {
             timings: timer.getTimings(),
         });
 
-        // Build the complete settlement object for the response
-        const settlement = {
+        // Build the complete settlement object for the response with computed isLocked field
+        const settlementForLockCheck: SettlementDTO = {
             id: settlementId,
             ...settlementDataToCreate,
-        };
-
-        return {
-            ...settlement,
             date: settlementDate,
             createdAt: now,
             updatedAt: now,
+            isLocked: false,
         };
+
+        const settlement: SettlementDTO = {
+            ...settlementForLockCheck,
+            isLocked: await this.isSettlementLocked(settlementForLockCheck, settlementData.groupId),
+        };
+
+        return settlement;
     }
 
     /**
@@ -400,7 +405,7 @@ export class SettlementService {
             timings: timer.getTimings(),
         });
 
-        return {
+        const settlementWithMembers: SettlementWithMembers = {
             id: settlementId,
             groupId: updatedSettlement!.groupId,
             payer: payerData,
@@ -412,7 +417,15 @@ export class SettlementService {
             createdAt: updatedSettlement!.createdAt,
             deletedAt: updatedSettlement!.deletedAt,
             deletedBy: updatedSettlement!.deletedBy,
+            // Compute isLocked by checking if payer or payee has left the group
+            isLocked: false, // Will be set below
         };
+
+        // Add computed isLocked field
+        const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(settlement.groupId);
+        settlementWithMembers.isLocked = !currentMemberIds.includes(payerData.uid) || !currentMemberIds.includes(payeeData.uid);
+
+        return settlementWithMembers;
     }
 
     /**

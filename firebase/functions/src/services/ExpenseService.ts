@@ -136,11 +136,11 @@ export class ExpenseService {
         return measure.measureDb('ExpenseService.createExpense', async () => this._createExpense(userId, expenseData));
     }
 
-    private async _createExpense(userId: UserId, expenseData: CreateExpenseRequest): Promise<ExpenseDTO> {
+    private async _createExpense(userId: UserId, requestData: CreateExpenseRequest): Promise<ExpenseDTO> {
         const timer = new PerformanceTimer();
 
         // Validate the input data early
-        const validatedExpenseData = expenseValidation.validateCreateExpense(expenseData);
+        const validatedExpenseData = expenseValidation.validateCreateExpense(requestData);
 
         // Parallelize all pre-transaction reads for maximum performance
         timer.startPhase('query');
@@ -182,7 +182,8 @@ export class ExpenseService {
         // Generate expense ID early (local operation, no DB call)
         const expenseId = toExpenseId(this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES));
 
-        const expense: ExpenseDTO = {
+        // Data to store in Firestore (without computed fields like isLocked)
+        const expenseData: Omit<ExpenseDTO, 'isLocked'> = {
             id: expenseId,
             groupId: validatedExpenseData.groupId,
             createdBy: userId,
@@ -203,7 +204,7 @@ export class ExpenseService {
 
         // Only add receiptUrl if it's defined
         if (validatedExpenseData.receiptUrl !== undefined) {
-            expense.receiptUrl = validatedExpenseData.receiptUrl;
+            expenseData.receiptUrl = validatedExpenseData.receiptUrl;
         }
 
         // Use transaction to create expense atomically and update balance
@@ -237,7 +238,7 @@ export class ExpenseService {
                 transaction,
                 FirestoreCollections.EXPENSES,
                 expenseId, // Use the specific ID we generated
-                expense,
+                expenseData,
             );
             timer.endPhase();
 
@@ -247,8 +248,9 @@ export class ExpenseService {
             timer.endPhase();
 
             timer.startPhase('transaction:applyBalance');
-            // Apply incremental balance update
-            this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expense, memberIds);
+            // Apply incremental balance update (needs isLocked for type compatibility)
+            const expenseForBalance: ExpenseDTO = { ...expenseData, isLocked: false };
+            this.incrementalBalanceService.applyExpenseCreated(transaction, expenseData.groupId, currentBalance, expenseForBalance, memberIds);
             timer.endPhase();
 
             timer.startPhase('transaction:buildActivityItem');
@@ -264,7 +266,7 @@ export class ExpenseService {
                 details: this.activityFeedService.buildDetails({
                     expense: {
                         id: expenseId,
-                        description: expense.description,
+                        description: expenseData.description,
                     },
                 }),
             });
@@ -292,6 +294,13 @@ export class ExpenseService {
             groupId: expenseData.groupId,
             timings: timer.getTimings(),
         });
+
+        // Build the complete ExpenseDTO with computed isLocked field
+        const expenseWithLock: ExpenseDTO = { ...expenseData, isLocked: false };
+        const expense: ExpenseDTO = {
+            ...expenseData,
+            isLocked: await this.isExpenseLocked(expenseWithLock),
+        };
 
         return expense;
     }
@@ -470,7 +479,12 @@ export class ExpenseService {
         });
 
         // The expense from IFirestoreReader is already validated and includes the ID
-        return this.normalizeValidatedExpense(updatedExpense);
+        const normalizedExpense = this.normalizeValidatedExpense(updatedExpense);
+
+        // Add computed isLocked field
+        normalizedExpense.isLocked = await this.isExpenseLocked(normalizedExpense);
+
+        return normalizedExpense;
     }
 
     /**
