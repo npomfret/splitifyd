@@ -73,7 +73,7 @@ run_command_loop() {
 
     for ((run=1; run<=repeat; run++)); do
         echo "Run ${run}/${repeat}: ${cmd[*]}"
-        if ! (cd "$WORKSPACE_ROOT" && env "${env_vars[@]}" "${cmd[@]}"); then
+        if ! (cd "$WORKSPACE_ROOT" && env "${env_vars[@]+"${env_vars[@]}"}" "${cmd[@]}"); then
             echo "Run ${run} failed" >&2
             return 1
         fi
@@ -182,7 +182,7 @@ run_functions_tests() {
         "src/__tests__/unit/${pattern}.test.ts")
 
     local -a cmd=(npx vitest run "$test_path")
-    [ -n "$TEST_NAME" ] && cmd+=(--grep "$TEST_NAME")
+    [ -n "$TEST_NAME" ] && cmd+=(-t "$TEST_NAME")
 
     if [[ "$test_path" == *"/integration/"* ]]; then
         echo "Preparing build for integration test..."
@@ -204,7 +204,7 @@ run_generic_vitest() {
         "src/__tests__/${pattern}.test.ts")
 
     local -a cmd=(npx vitest run "$test_path")
-    [ -n "$TEST_NAME" ] && cmd+=(--grep "$TEST_NAME")
+    [ -n "$TEST_NAME" ] && cmd+=(-t "$TEST_NAME")
     [ -n "$config_path" ] && cmd+=(--config "$config_path")
 
     run_command_loop -- "${cmd[@]}"
