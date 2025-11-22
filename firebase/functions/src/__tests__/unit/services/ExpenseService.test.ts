@@ -1,76 +1,60 @@
-import { StubStorage } from '@billsplit-wl/test-support';
-import { toExpenseId, toGroupId, toCurrencyISOCode, USD, toUserId } from '@billsplit-wl/shared';
-import { convertToISOString, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { CreateExpenseRequestBuilder, ExpenseDTOBuilder, ExpenseSplitBuilder, GroupMemberDocumentBuilder } from '@billsplit-wl/test-support';
+import { toExpenseId, toGroupId, USD, toUserId } from '@billsplit-wl/shared';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ExpenseSplitBuilder, UserRegistrationBuilder, StubStorage } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { ExpenseService } from '../../../services/ExpenseService';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 
 describe('ExpenseService - Consolidated Unit Tests', () => {
     let expenseService: ExpenseService;
-    let db: TenantFirestoreTestDatabase;
-
-    const testUserId = toUserId('test-user-id');
-    const otherUserId = toUserId('other-user');
-    const nonParticipantUserId = toUserId('non-participant-user');
-    const participantUserId = toUserId('participant-user');
-    const participant1UserId = toUserId('participant-1');
-    const participant2UserId = toUserId('participant-2');
-    const userId1 = toUserId('user1');
-    const outsiderUserId = toUserId('outsider-user');
+    let appDriver: AppDriver;
 
     beforeEach(() => {
-        db = new TenantFirestoreTestDatabase();
-        const stubAuth = new StubAuthService();
-        const applicationBuilder = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
-        expenseService = applicationBuilder.buildExpenseService();
-    });
+        // Create AppDriver which sets up all real services
+        appDriver = new AppDriver();
 
-    // Helper to seed group membership with minimal data
-    const seedMembership = (groupId: string, userId: string) => {
-        db.seedGroupMember(
-            toGroupId(groupId),
-            userId,
-            new GroupMemberDocumentBuilder()
-                .withUserId(userId as any)
-                .withGroupId(toGroupId(groupId))
-                .withGroupDisplayName(`User ${userId}`)
-                .buildDocument(),
-        );
-    };
+        // Use ComponentBuilder to create the service with proper dependencies
+        const stubAuth = new StubAuthService();
+        const componentBuilder = new ComponentBuilder(stubAuth, appDriver.database, appDriver.storageStub);
+        expenseService = componentBuilder.buildExpenseService();
+    });
 
     describe('Data Transformation and Validation', () => {
         it('should transform expense document to response format correctly', async () => {
             // Arrange
-            const expenseId = toExpenseId('test-expense-id');
-            const userId = testUserId;
-            const now = convertToISOString(new Date());
+            const user1 = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user1.user.uid);
 
-            const mockExpense = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withGroupId('test-group-id')
-                .withCreatedBy('creator-id')
-                .withPaidBy('payer-id')
-                .withAmount(100.5, 'USD')
-                .withDescription('Test expense')
-                .withLabel('Food')
-                .withSplitType('equal')
-                .withParticipants([userId, otherUserId])
-                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '50.25' }, { uid: otherUserId, amount: '50.25' }]).build())
-                .withReceiptUrl('https://example.com/receipt.jpg')
-                .withCreatedAt(now)
-                .withUpdatedAt(now)
-                .build();
+            const user2 = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const otherUserId = toUserId(user2.user.uid);
 
-            // Seed group and membership for access control
-            db.seedGroup(toGroupId('test-group-id'), { name: 'Test Group' });
-            seedMembership('test-group-id', userId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            // Seed the expense with Timestamp objects
-            db.seedExpense(expenseId, mockExpense);
+            // Add second user to group
+            await appDriver.addMembersToGroup(groupId, userId, [otherUserId]);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId, otherUserId])
+                    .withAmount(100.5, 'USD')
+                    .withDescription('Test expense')
+                    .withLabel('Food')
+                    .withSplitType('equal')
+                    .withSplits(ExpenseSplitBuilder.exactSplit([
+                        { uid: userId, amount: '50.25' },
+                        { uid: otherUserId, amount: '50.25' }
+                    ]).build())
+                    .withReceiptUrl('https://example.com/receipt.jpg')
+                    .build(),
+                userId
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -78,9 +62,9 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             // Assert
             expect(result).toEqual({
                 id: expenseId,
-                groupId: 'test-group-id',
-                createdBy: 'creator-id',
-                paidBy: 'payer-id',
+                groupId: groupId,
+                createdBy: userId,
+                paidBy: userId,
                 amount: '100.5',
                 currency: USD,
                 description: 'Test expense',
@@ -103,21 +87,21 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should handle expense without receipt URL', async () => {
             // Arrange
-            const expenseId = toExpenseId('test-expense-id');
-            const userId = testUserId;
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            const mockExpense = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withParticipants([userId])
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            // Seed group and membership for access control
-            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
-            seedMembership(mockExpense.groupId, userId);
-
-            db.seedExpense(expenseId, mockExpense);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -130,48 +114,57 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Access Control and Security', () => {
         it('should allow access for non-participants', async () => {
             // Arrange
-            const expenseId = toExpenseId('test-expense-id');
-            const participantId = participantUserId;
-            const nonParticipantId = nonParticipantUserId;
+            const participant = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const participantId = toUserId(participant.user.uid);
 
-            const mockExpense = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withParticipants([participantId])
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const nonParticipant = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const nonParticipantId = toUserId(nonParticipant.user.uid);
 
-            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
-            seedMembership(mockExpense.groupId, nonParticipantId);
-            seedMembership(mockExpense.groupId, participantId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), participantId);
+            const groupId = toGroupId(group.id);
 
-            db.seedExpense(expenseId, mockExpense);
+            // Add non-participant to the group
+            await appDriver.addMembersToGroup(groupId, participantId, [nonParticipantId]);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(participantId)
+                    .withParticipants([participantId])
+                    .build(),
+                participantId
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act & Assert
-            const expense = await expenseService.getExpense(expenseId, nonParticipantId);
-            expect(expense.id).toBe(expenseId);
-            expect(expense.participants).toEqual([participantId]);
+            const result = await expenseService.getExpense(expenseId, nonParticipantId);
+            expect(result.id).toBe(expenseId);
+            expect(result.participants).toEqual([participantId]);
         });
 
         it('should allow access for all participants', async () => {
             // Arrange
-            const expenseId = toExpenseId('test-expense-id');
-            const participant1 = participant1UserId;
-            const participant2 = participant2UserId;
+            const user1 = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const participant1 = toUserId(user1.user.uid);
 
-            const mockExpense = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withParticipants([participant1, participant2])
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const user2 = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const participant2 = toUserId(user2.user.uid);
 
-            // Seed group and membership for access control
-            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
-            seedMembership(mockExpense.groupId, participant1);
-            seedMembership(mockExpense.groupId, participant2);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), participant1);
+            const groupId = toGroupId(group.id);
 
-            db.seedExpense(expenseId, mockExpense);
+            // Add second participant to group
+            await appDriver.addMembersToGroup(groupId, participant1, [participant2]);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(participant1)
+                    .withParticipants([participant1, participant2])
+                    .build(),
+                participant1
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act - Both participants should be able to access
             const result1 = await expenseService.getExpense(expenseId, participant1);
@@ -186,18 +179,24 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should reject access to soft-deleted expenses', async () => {
             // Arrange
-            const expenseId = toExpenseId('deleted-expense-id');
-            const userId = testUserId;
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            const mockDeletedExpense = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withParticipants([userId])
-                .withDeletedAt(convertToISOString(new Date()))
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            db.seedExpense(expenseId, mockDeletedExpense);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId
+            );
+            const expenseId = toExpenseId(expense.id);
+
+            // Delete the expense (soft delete)
+            await appDriver.deleteExpense(expenseId, userId);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow(
@@ -212,12 +211,11 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Error Handling', () => {
         it('should handle non-existent expense gracefully', async () => {
             // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
             const nonExistentId = toExpenseId('non-existent-expense');
-            const userId = testUserId;
 
-            // Don't seed any data - expense doesn't exist
-
-            // Act & Assert
+            // Act & Assert - expense doesn't exist
             await expect(expenseService.getExpense(nonExistentId, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
@@ -230,23 +228,24 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Edge Cases', () => {
         it('should handle decimal precision in amounts and splits correctly', async () => {
             // Arrange
-            const expenseId = toExpenseId('decimal-precision-expense');
-            const userId = testUserId;
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            const mockExpense = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withAmount(100.33, 'USD')
-                .withParticipants([userId])
-                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '100.33' }]).build())
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            // Seed group and membership for access control
-            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
-            seedMembership(mockExpense.groupId, userId);
-
-            db.seedExpense(expenseId, mockExpense);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withAmount(100.33, 'USD')
+                    .withSplitType('exact')
+                    .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '100.33' }]).build())
+                    .build(),
+                userId
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -260,20 +259,26 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Validation Logic - Business Logic', () => {
         it('should require positive expense amount', async () => {
             // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
+
             const mockExpenseRequest = new CreateExpenseRequestBuilder()
-                .withGroupId('test-group')
+                .withGroupId(groupId)
                 .withDescription('Negative amount test')
-                .withAmount(-50, 'USD') // Invalid negative amount                .withCurrency('USD')
+                .withAmount(-50, 'USD') // Invalid negative amount
                 .withLabel('Food')
-                .withPaidBy(userId1)
-                .withParticipants([userId1])
+                .withPaidBy(userId)
+                .withParticipants([userId])
                 .withSplitType('equal')
-                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId1, amount: '-50' }]).build())
+                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '-50' }]).build())
                 .withDate(new Date().toISOString())
                 .build();
 
             // Act & Assert - Real validation should reject negative amounts
-            await expect(expenseService.createExpense(userId1, mockExpenseRequest)).rejects.toThrow(
+            await expect(expenseService.createExpense(userId, mockExpenseRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                 }),
@@ -282,20 +287,26 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should validate currency format', async () => {
             // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
+
             const mockExpenseRequest = new CreateExpenseRequestBuilder()
-                .withGroupId('test-group')
+                .withGroupId(groupId)
                 .withDescription('Invalid currency test')
                 .withAmount(100, 'INVALID_CURRENCY') // Invalid currency code
                 .withLabel('Food')
-                .withPaidBy(userId1)
-                .withParticipants([userId1])
+                .withPaidBy(userId)
+                .withParticipants([userId])
                 .withSplitType('equal')
-                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId1, amount: '100' }]).build())
+                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '100' }]).build())
                 .withDate(new Date().toISOString())
                 .build();
 
             // Act & Assert - Real validation should reject invalid currency
-            await expect(expenseService.createExpense(userId1, mockExpenseRequest)).rejects.toThrow(
+            await expect(expenseService.createExpense(userId, mockExpenseRequest)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                 }),
@@ -306,22 +317,22 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Label and Metadata Handling', () => {
         it('should handle expense labels correctly', async () => {
             // Arrange
-            const expenseId = toExpenseId('categorized-expense');
-            const userId = testUserId;
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            const mockExpense = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withLabel('Food & Dining')
-                .withParticipants([userId])
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            // Seed group and membership for access control
-            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
-            seedMembership(mockExpense.groupId, userId);
-
-            db.seedExpense(expenseId, mockExpense);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withLabel('Food & Dining')
+                    .build(),
+                userId
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -332,23 +343,23 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should preserve receipt URLs correctly', async () => {
             // Arrange
-            const expenseId = toExpenseId('receipt-expense');
-            const userId = testUserId;
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
             const receiptUrl = 'https://storage.example.com/receipts/receipt123.jpg';
 
-            const mockExpense = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withReceiptUrl(receiptUrl)
-                .withParticipants([userId])
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            // Seed group and membership for access control
-            db.seedGroup(mockExpense.groupId, { name: 'Test Group' });
-            seedMembership(mockExpense.groupId, userId);
-
-            db.seedExpense(expenseId, mockExpense);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withReceiptUrl(receiptUrl)
+                    .build(),
+                userId
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -361,10 +372,12 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Database Error Handling', () => {
         it('should handle database read failures gracefully', async () => {
             // Arrange
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
             const expenseId = toExpenseId('failing-expense');
-            const userId = testUserId;
 
             // Make the database throw an error by overriding collection method
+            const db = appDriver.database;
             db.collection = () => {
                 throw new Error('Database connection failed');
             };
@@ -377,22 +390,22 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Focused Access Control Scenarios', () => {
         it('should allow participants to access expense (focused)', async () => {
             // Arrange
-            const participantId = participantUserId;
-            const expenseId = toExpenseId('test-expense');
+            const participant = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const participantId = toUserId(participant.user.uid);
 
-            const expenseData = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withDescription('Test expense')
-                .withParticipants([participantId])
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), participantId);
+            const groupId = toGroupId(group.id);
 
-            // Seed group and membership for access control
-            db.seedGroup(expenseData.groupId, { name: 'Test Group' });
-            seedMembership(expenseData.groupId, participantId);
-
-            db.seedExpense(expenseId, expenseData);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(participantId)
+                    .withParticipants([participantId])
+                    .withDescription('Test expense')
+                    .build(),
+                participantId
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act
             const result = await expenseService.getExpense(expenseId, participantId);
@@ -405,23 +418,27 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should allow access to non-participants (focused)', async () => {
             // Arrange
-            const participantId = participantUserId;
-            const outsiderId = outsiderUserId;
-            const expenseId = toExpenseId('test-expense');
+            const participant = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const participantId = toUserId(participant.user.uid);
 
-            const expenseData = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withParticipants([participantId])
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const outsider = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const outsiderId = toUserId(outsider.user.uid);
 
-            // Seed group and membership for access control (outsider is still a group member)
-            db.seedGroup(expenseData.groupId, { name: 'Test Group' });
-            seedMembership(expenseData.groupId, outsiderId);
-            seedMembership(expenseData.groupId, participantId);
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), participantId);
+            const groupId = toGroupId(group.id);
 
-            db.seedExpense(expenseId, expenseData);
+            // Add outsider to group (they're a member but not a participant in the expense)
+            await appDriver.addMembersToGroup(groupId, participantId, [outsiderId]);
+
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(participantId)
+                    .withParticipants([participantId])
+                    .build(),
+                participantId
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act
             const result = await expenseService.getExpense(expenseId, outsiderId);
@@ -433,18 +450,24 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should handle soft-deleted expenses correctly (focused)', async () => {
             // Arrange
-            const userId = testUserId;
-            const expenseId = toExpenseId('deleted-expense');
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            const deletedExpense = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withParticipants([userId])
-                .withDeletedAt(convertToISOString(new Date()))
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            db.seedExpense(expenseId, deletedExpense);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId
+            );
+            const expenseId = toExpenseId(expense.id);
+
+            // Delete the expense
+            await appDriver.deleteExpense(expenseId, userId);
 
             // Act & Assert
             await expect(expenseService.getExpense(expenseId, userId)).rejects.toThrow();
@@ -454,31 +477,27 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
     describe('Focused Data Transformation Scenarios', () => {
         it('should transform expense data correctly (focused)', async () => {
             // Arrange
-            const userId = testUserId;
-            const expenseId = toExpenseId('test-expense');
-            const now = convertToISOString(new Date());
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            const expenseData = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withGroupId('test-group')
-                .withCreatedBy(userId)
-                .withPaidBy(userId)
-                .withAmount(100.5, 'USD')
-                .withDescription('Test expense')
-                .withLabel('Food')
-                .withSplitType('equal')
-                .withParticipants([userId])
-                .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '100.5' }]).build())
-                .withReceiptUrl('https://example.com/receipt.jpg')
-                .withCreatedAt(now)
-                .withUpdatedAt(now)
-                .build();
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            // Seed group and membership for access control
-            db.seedGroup(toGroupId('test-group'), { name: 'Test Group' });
-            seedMembership('test-group', userId);
-
-            db.seedExpense(expenseId, expenseData);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .withAmount(100.5, 'USD')
+                    .withDescription('Test expense')
+                    .withLabel('Food')
+                    .withSplitType('equal')
+                    .withSplits(ExpenseSplitBuilder.exactSplit([{ uid: userId, amount: '100.5' }]).build())
+                    .withReceiptUrl('https://example.com/receipt.jpg')
+                    .build(),
+                userId
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
@@ -486,7 +505,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
             // Assert
             expect(result).toEqual({
                 id: expenseId,
-                groupId: 'test-group',
+                groupId: groupId,
                 createdBy: userId,
                 paidBy: userId,
                 amount: '100.5',
@@ -508,21 +527,21 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
 
         it('should handle expense without receipt URL (focused)', async () => {
             // Arrange
-            const userId = testUserId;
-            const expenseId = toExpenseId('test-expense');
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            const expenseData = new ExpenseDTOBuilder()
-                .withExpenseId(expenseId)
-                .withParticipants([userId])
-                .withCreatedAt(convertToISOString(new Date()))
-                .withUpdatedAt(convertToISOString(new Date()))
-                .build();
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
+            const groupId = toGroupId(group.id);
 
-            // Seed group and membership for access control
-            db.seedGroup(expenseData.groupId, { name: 'Test Group' });
-            seedMembership(expenseData.groupId, userId);
-
-            db.seedExpense(expenseId, expenseData);
+            const expense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPaidBy(userId)
+                    .withParticipants([userId])
+                    .build(),
+                userId
+            );
+            const expenseId = toExpenseId(expense.id);
 
             // Act
             const result = await expenseService.getExpense(expenseId, userId);
