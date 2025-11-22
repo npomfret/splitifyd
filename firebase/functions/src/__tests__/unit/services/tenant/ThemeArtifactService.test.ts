@@ -1,11 +1,24 @@
 import type { BrandingTokens } from '@billsplit-wl/shared';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import type { ThemeArtifactStorage } from '../../../../services/storage/ThemeArtifactStorage';
 import { ThemeArtifactService } from '../../../../services/tenant/ThemeArtifactService';
 
+// Simple stub for storage - returns fixed URLs
+class StubThemeArtifactStorage implements ThemeArtifactStorage {
+    public lastSavedData: { tenantId: string; hash: string; cssContent: string; tokensJson: string } | null = null;
+
+    async save(data: { tenantId: string; hash: string; cssContent: string; tokensJson: string }) {
+        this.lastSavedData = data;
+        return {
+            cssUrl: 'https://storage.example.com/theme.css',
+            tokensUrl: 'https://storage.example.com/tokens.json',
+        };
+    }
+}
+
 describe('ThemeArtifactService', () => {
     let service: ThemeArtifactService;
-    let mockStorage: ThemeArtifactStorage;
+    let storage: StubThemeArtifactStorage;
 
     const mockTokens: BrandingTokens = {
         version: 1,
@@ -162,14 +175,8 @@ describe('ThemeArtifactService', () => {
     };
 
     beforeEach(() => {
-        mockStorage = {
-            save: vi.fn().mockResolvedValue({
-                cssUrl: 'https://storage.example.com/theme.css',
-                tokensUrl: 'https://storage.example.com/tokens.json',
-            }),
-        };
-
-        service = new ThemeArtifactService(mockStorage);
+        storage = new StubThemeArtifactStorage();
+        service = new ThemeArtifactService(storage);
     });
 
     describe('generate', () => {
@@ -204,8 +211,8 @@ describe('ThemeArtifactService', () => {
         it('should save artifacts via storage', async () => {
             await service.generate('test-tenant', mockTokens);
 
-            expect(mockStorage.save).toHaveBeenCalledOnce();
-            expect(mockStorage.save).toHaveBeenCalledWith({
+            expect(storage.lastSavedData).not.toBeNull();
+            expect(storage.lastSavedData).toMatchObject({
                 tenantId: 'test-tenant',
                 hash: expect.any(String),
                 cssContent: expect.any(String),
@@ -324,9 +331,13 @@ describe('ThemeArtifactService', () => {
 
         it('should propagate storage errors', async () => {
             const error = new Error('Storage failed');
-            vi.mocked(mockStorage.save).mockRejectedValue(error);
+            const failingStorage = new StubThemeArtifactStorage();
+            failingStorage.save = async () => {
+                throw error;
+            };
+            const failingService = new ThemeArtifactService(failingStorage);
 
-            await expect(service.generate('test-tenant', mockTokens)).rejects.toThrow('Storage failed');
+            await expect(failingService.generate('test-tenant', mockTokens)).rejects.toThrow('Storage failed');
         });
 
         it('should handle minimal token set', async () => {

@@ -1,18 +1,20 @@
 import { SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
-import { RegisteredUserBuilder } from '@billsplit-wl/test-support';
+import { RegisteredUserBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
 import type { Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UserAdminHandlers } from '../../../admin/UserAdminHandlers';
 import type { AuthenticatedRequest } from '../../../auth/middleware';
 import { HTTP_STATUS } from '../../../constants';
-import type { IFirestoreWriter } from '../../../services/firestore';
+import { FirestoreReader, FirestoreWriter } from '../../../services/firestore';
 import { ApiError } from '../../../utils/errors';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 describe('UserAdminHandlers - Unit Tests', () => {
     let handlers: UserAdminHandlers;
     let authService: StubAuthService;
-    let mockFirestoreWriter: IFirestoreWriter;
+    let db: TenantFirestoreTestDatabase;
+    let firestoreReader: FirestoreReader;
+    let firestoreWriter: FirestoreWriter;
     let mockReq: Partial<AuthenticatedRequest>;
     let mockRes: Partial<Response>;
     let jsonSpy: ReturnType<typeof vi.fn>;
@@ -29,14 +31,12 @@ describe('UserAdminHandlers - Unit Tests', () => {
     }
 
     beforeEach(() => {
+        db = new TenantFirestoreTestDatabase();
         authService = new StubAuthService();
+        firestoreReader = new FirestoreReader(db);
+        firestoreWriter = new FirestoreWriter(db);
 
-        // Create mock FirestoreWriter
-        mockFirestoreWriter = {
-            updateUser: vi.fn().mockResolvedValue({ id: 'test-user', success: true }),
-        } as any;
-
-        handlers = new UserAdminHandlers(authService, mockFirestoreWriter);
+        handlers = new UserAdminHandlers(authService, firestoreWriter);
 
         // Setup mock request and response
         jsonSpy = vi.fn();
@@ -218,11 +218,6 @@ describe('UserAdminHandlers - Unit Tests', () => {
     });
 
     describe('updateUserRole', () => {
-        beforeEach(() => {
-            // Reset mock before each test
-            vi.clearAllMocks();
-        });
-
         it('should successfully update user role to system_admin', async () => {
             // Setup: Create a user
             const user = new RegisteredUserBuilder()
@@ -232,6 +227,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .build();
 
             authService.setUser(user.uid, toUserRecord(user));
+            db.seedUser('user1', {
+                email: user.email,
+                displayName: user.displayName,
+                role: SystemUserRoles.SYSTEM_USER,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
 
             // Setup request to promote to system_admin
             mockReq.params = { uid: 'user1' };
@@ -241,8 +243,9 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Execute
             await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
 
-            // Verify FirestoreWriter was called with correct role
-            expect(mockFirestoreWriter.updateUser).toHaveBeenCalledWith('user1', { role: SystemUserRoles.SYSTEM_ADMIN });
+            // Verify actual database state
+            const updatedUser = await firestoreReader.getUser(toUserId('user1'));
+            expect(updatedUser?.role).toBe(SystemUserRoles.SYSTEM_ADMIN);
 
             // Verify response
             expect(jsonSpy).toHaveBeenCalledWith(
@@ -262,6 +265,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .build();
 
             authService.setUser(user.uid, toUserRecord(user));
+            db.seedUser('user2', {
+                email: user.email,
+                displayName: user.displayName,
+                role: SystemUserRoles.SYSTEM_USER,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
 
             // Setup request to promote to tenant_admin
             mockReq.params = { uid: 'user2' };
@@ -271,8 +281,9 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Execute
             await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
 
-            // Verify FirestoreWriter was called with correct role
-            expect(mockFirestoreWriter.updateUser).toHaveBeenCalledWith('user2', { role: SystemUserRoles.TENANT_ADMIN });
+            // Verify actual database state
+            const updatedUser = await firestoreReader.getUser(toUserId('user2'));
+            expect(updatedUser?.role).toBe(SystemUserRoles.TENANT_ADMIN);
 
             // Verify response
             expect(jsonSpy).toHaveBeenCalledWith(
@@ -291,6 +302,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .build();
 
             authService.setUser(user.uid, toUserRecord(user));
+            db.seedUser('user3', {
+                email: user.email,
+                displayName: user.displayName,
+                role: SystemUserRoles.SYSTEM_ADMIN,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
 
             // Setup request to remove role
             mockReq.params = { uid: 'user3' };
@@ -300,8 +318,9 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Execute
             await handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response);
 
-            // Verify FirestoreWriter was called with SYSTEM_USER (null defaults to system_user)
-            expect(mockFirestoreWriter.updateUser).toHaveBeenCalledWith('user3', { role: SystemUserRoles.SYSTEM_USER });
+            // Verify actual database state (null defaults to system_user)
+            const updatedUser = await firestoreReader.getUser(toUserId('user3'));
+            expect(updatedUser?.role).toBe(SystemUserRoles.SYSTEM_USER);
 
             // Verify response
             expect(jsonSpy).toHaveBeenCalled();
@@ -311,6 +330,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Setup: Create a user
             const user = new RegisteredUserBuilder().withUid('user1').build();
             authService.setUser(user.uid, toUserRecord(user));
+            db.seedUser('user1', {
+                email: user.email,
+                displayName: user.displayName,
+                role: SystemUserRoles.SYSTEM_USER,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
 
             // Setup request with invalid role
             mockReq.params = { uid: 'user1' };
@@ -327,8 +353,9 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
             }
 
-            // Verify FirestoreWriter was NOT called
-            expect(mockFirestoreWriter.updateUser).not.toHaveBeenCalled();
+            // Verify database state was NOT changed
+            const unchangedUser = await firestoreReader.getUser(toUserId('user1'));
+            expect(unchangedUser?.role).toBe(SystemUserRoles.SYSTEM_USER);
         });
 
         it('should reject request with invalid UID', async () => {
@@ -340,15 +367,19 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Execute and expect error
             await expect(handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response)).rejects.toThrow(ApiError);
             await expect(handlers.updateUserRole(mockReq as AuthenticatedRequest, mockRes as Response)).rejects.toThrow('User ID is required');
-
-            // Verify FirestoreWriter was NOT called
-            expect(mockFirestoreWriter.updateUser).not.toHaveBeenCalled();
         });
 
         it('should reject request with extra fields', async () => {
             // Setup
             const user = new RegisteredUserBuilder().withUid('user1').build();
             authService.setUser(user.uid, toUserRecord(user));
+            db.seedUser('user1', {
+                email: user.email,
+                displayName: user.displayName,
+                role: SystemUserRoles.SYSTEM_USER,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
 
             mockReq.params = { uid: 'user1' };
             mockReq.body = { role: SystemUserRoles.SYSTEM_ADMIN, email: 'new@test.com' }; // Extra field
@@ -364,8 +395,9 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
             }
 
-            // Verify FirestoreWriter was NOT called
-            expect(mockFirestoreWriter.updateUser).not.toHaveBeenCalled();
+            // Verify database state was NOT changed
+            const unchangedUser = await firestoreReader.getUser(toUserId('user1'));
+            expect(unchangedUser?.role).toBe(SystemUserRoles.SYSTEM_USER);
         });
 
         it('should prevent user from changing their own role', async () => {
@@ -376,6 +408,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .build();
 
             authService.setUser(user.uid, toUserRecord(user));
+            db.seedUser('user1', {
+                email: user.email,
+                displayName: user.displayName,
+                role: SystemUserRoles.SYSTEM_USER,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
 
             // Setup request where user tries to change their own role
             mockReq.params = { uid: 'user1' };
@@ -392,8 +431,9 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.CONFLICT);
             }
 
-            // Verify FirestoreWriter was NOT called
-            expect(mockFirestoreWriter.updateUser).not.toHaveBeenCalled();
+            // Verify database state was NOT changed
+            const unchangedUser = await firestoreReader.getUser(toUserId('user1'));
+            expect(unchangedUser?.role).toBe(SystemUserRoles.SYSTEM_USER);
         });
 
         it('should return 404 for non-existent user', async () => {
@@ -412,9 +452,6 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.NOT_FOUND);
                 expect((error as ApiError).code).toBe('USER_NOT_FOUND');
             }
-
-            // Verify FirestoreWriter was NOT called
-            expect(mockFirestoreWriter.updateUser).not.toHaveBeenCalled();
         });
 
         it('should validate that UID is a non-empty string', async () => {
