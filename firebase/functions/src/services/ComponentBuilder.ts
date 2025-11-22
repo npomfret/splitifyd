@@ -16,6 +16,11 @@ import {SettlementService} from './SettlementService';
 import {CloudThemeArtifactStorage} from './storage/CloudThemeArtifactStorage';
 import {type ThemeArtifactStorage} from './storage/ThemeArtifactStorage';
 import {TenantRegistryService} from './tenant/TenantRegistryService';
+import {ThemeArtifactService} from './tenant/ThemeArtifactService';
+import {TenantAdminService} from './tenant/TenantAdminService';
+import {UserBrowserHandlers} from '../browser/UserBrowserHandlers';
+import {TenantBrowserHandlers} from '../browser/TenantBrowserHandlers';
+import {GroupSecurityHandlers} from '../groups/GroupSecurityHandlers';
 import {GroupTransactionManager} from './transactions/GroupTransactionManager';
 import {UserPolicyService} from './UserPolicyService';
 import {UserService} from './UserService2';
@@ -39,6 +44,11 @@ export class ComponentBuilder {
     private activityFeedService?: ActivityFeedService;
     private tenantRegistryService?: TenantRegistryService;
     private themeArtifactStorage?: ThemeArtifactStorage;
+    private themeArtifactService?: ThemeArtifactService;
+    private tenantAdminService?: TenantAdminService;
+    private userBrowserHandlers?: UserBrowserHandlers;
+    private tenantBrowserHandlers?: TenantBrowserHandlers;
+    private groupSecurityHandlers?: GroupSecurityHandlers;
     private mergeService?: MergeService;
     private readonly firestoreReader: IFirestoreReader;
     private readonly firestoreWriter: IFirestoreWriter;
@@ -254,7 +264,51 @@ export class ComponentBuilder {
         return this.mergeService;
     }
 
-    getDatabase(): IFirestoreDatabase {
-        return this.db;
+    buildThemeArtifactService(): ThemeArtifactService {
+        if (!this.themeArtifactService) {
+            this.themeArtifactService = new ThemeArtifactService(this.buildThemeArtifactStorage());
+        }
+        return this.themeArtifactService;
+    }
+
+    buildTenantAdminService(): TenantAdminService {
+        if (!this.tenantAdminService) {
+            this.tenantAdminService = new TenantAdminService(
+                this.buildFirestoreWriter(),
+                this.buildFirestoreReader(),
+                this.buildThemeArtifactService(),
+            );
+        }
+        return this.tenantAdminService;
+    }
+
+    buildUserBrowserHandlers(): UserBrowserHandlers {
+        if (!this.userBrowserHandlers) {
+            this.userBrowserHandlers = new UserBrowserHandlers(
+                this.buildAuthService(),
+                this.db,
+                this.buildFirestoreReader(),
+            );
+        }
+        return this.userBrowserHandlers;
+    }
+
+    buildTenantBrowserHandlers(): TenantBrowserHandlers {
+        if (!this.tenantBrowserHandlers) {
+            this.tenantBrowserHandlers = new TenantBrowserHandlers(
+                this.buildFirestoreReader(),
+            );
+        }
+        return this.tenantBrowserHandlers;
+    }
+
+    buildGroupSecurityHandlers(): GroupSecurityHandlers {
+        if (!this.groupSecurityHandlers) {
+            this.groupSecurityHandlers = new GroupSecurityHandlers(
+                this.buildGroupService(),
+                this.buildGroupMemberService(),
+            );
+        }
+        return this.groupSecurityHandlers;
     }
 }

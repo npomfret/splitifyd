@@ -3,7 +3,6 @@ import type { RequestHandler } from 'express';
 import { getConfig as getClientConfig, getConfig as getServerConfig } from './client-config';
 import { buildEnvPayload, buildHealthPayload, resolveHealthStatusCode, runHealthChecks } from './endpoints/diagnostics';
 import { isEmulator } from './firebase';
-import type { IFirestoreDatabase } from './firestore-wrapper';
 import { logger } from './logger';
 import { metrics, toAggregatedReport } from './monitoring/lightweight-metrics';
 import type { IAuthService } from './services/auth';
@@ -17,18 +16,13 @@ import { UpdateTenantBrandingRequestSchema } from './schemas/tenant';
 import { toPolicyId } from '@billsplit-wl/shared';
 import { ActivityFeedHandlers } from './activity/ActivityHandlers';
 import { UserAdminHandlers } from './admin/UserAdminHandlers';
-import { TenantBrowserHandlers } from './browser/TenantBrowserHandlers';
-import { UserBrowserHandlers } from './browser/UserBrowserHandlers';
 import { CommentHandlers } from './comments/CommentHandlers';
 import { ExpenseHandlers } from './expenses/ExpenseHandlers';
 import { GroupHandlers } from './groups/GroupHandlers';
 import { GroupMemberHandlers } from './groups/GroupMemberHandlers';
-import { GroupSecurityHandlers } from './groups/GroupSecurityHandlers';
 import { GroupShareHandlers } from './groups/GroupShareHandlers';
 import { PolicyHandlers } from './policies/PolicyHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
-import { TenantAdminService } from './services/tenant/TenantAdminService';
-import { ThemeArtifactService } from './services/tenant/ThemeArtifactService';
 import { SettlementHandlers } from './settlements/SettlementHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';
@@ -45,7 +39,6 @@ import {toUserId} from "@billsplit-wl/shared";
 export function createHandlerRegistry(componentBuilder: ComponentBuilder): Record<string, RequestHandler> {
     // Create ComponentBuilder with injected dependencies
     const authService: IAuthService = componentBuilder.buildAuthService();
-    const db: IFirestoreDatabase = componentBuilder.getDatabase();
 
     // Instantiate all handler classes
     const settlementHandlers = new SettlementHandlers(componentBuilder.buildSettlementService());
@@ -58,18 +51,9 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const policyHandlers = new PolicyHandlers(componentBuilder.buildPolicyService());
     const policyUserHandlers = new PolicyUserHandlers(componentBuilder.buildUserPolicyService());
     const activityFeedHandlers = new ActivityFeedHandlers(componentBuilder.buildActivityFeedService());
-    const groupSecurityHandlers = new GroupSecurityHandlers(
-        componentBuilder.buildGroupService(),
-        componentBuilder.buildGroupMemberService(),
-    );
-    const userBrowserHandlers = new UserBrowserHandlers(
-        authService,
-        db,
-        componentBuilder.buildFirestoreReader(),
-    );
-    const tenantBrowserHandlers = new TenantBrowserHandlers(
-        componentBuilder.buildFirestoreReader(),
-    );
+    const groupSecurityHandlers = componentBuilder.buildGroupSecurityHandlers();
+    const userBrowserHandlers = componentBuilder.buildUserBrowserHandlers();
+    const tenantBrowserHandlers = componentBuilder.buildTenantBrowserHandlers();
 
     // Services for inline handlers
     const userService = componentBuilder.buildUserService();
@@ -78,12 +62,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const firestoreReader = componentBuilder.buildFirestoreReader();
     const userAdminHandlers = new UserAdminHandlers(authService, firestoreWriter, firestoreReader);
     const tenantRegistryService = componentBuilder.buildTenantRegistryService();
-    const tenantAdminService = new TenantAdminService(
-        componentBuilder.buildFirestoreWriter(),
-        componentBuilder.buildFirestoreReader(),
-        new ThemeArtifactService(componentBuilder.buildThemeArtifactStorage()),
-    );
-    const tenantAdminHandlers = new TenantAdminHandlers(tenantAdminService);
+    const tenantAdminHandlers = new TenantAdminHandlers(componentBuilder.buildTenantAdminService());
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader());
 
     // Inline diagnostic handlers
