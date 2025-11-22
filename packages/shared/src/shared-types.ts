@@ -590,19 +590,6 @@ export interface RegisteredUser extends BaseUserProfile {
 }
 
 /**
- * Admin user profile type for admin endpoints.
- * Includes Firebase Auth admin metadata not available in regular user profiles.
- */
-export interface AdminUserProfile extends BaseUserProfile {
-    disabled: boolean;
-    metadata: {
-        creationTime: string;
-        lastSignInTime: string;
-        lastRefreshTime?: string;
-    };
-}
-
-/**
  * Minimal user data for authentication context.
  * Used in middleware and request context where only auth fields are needed.
  */
