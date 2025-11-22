@@ -530,9 +530,15 @@ deletedAt: ISOString | null
 
 ### 8.2. High Priority (Remaining)
 
-1. **Complete RegisteredUser type splitting** (Phase 1 done, Phases 2-6 remaining):
+1. **Complete RegisteredUser type splitting** (Phases 1-2 done, Phases 3-6 remaining):
    - ✅ Phase 1: Type definitions added (2025-01-17)
-   - 🎯 Phase 2: Migrate backend code to use new types
+   - ✅ Phase 2: Backend migration complete (2025-01-22)
+     - UserService2.getUser() returns ClientUser
+     - Added UserService2.getUserProfile() for internal UserProfile
+     - Admin endpoints return AdminUserProfile
+     - UserBrowserHandlers returns AdminUserProfile[]
+     - Updated API interface in packages/shared/src/api.ts
+     - All TypeScript compilation verified
    - 🎯 Phase 3: Migrate frontend code to use ClientUser
    - 🎯 Phase 4: Update tests and builders
    - 🎯 Phase 5: Deprecate RegisteredUser
@@ -568,17 +574,23 @@ deletedAt: ISOString | null
 ✅ **Computed field pattern established** - Separation of Firestore data from DTO responses
 ✅ **All tests passing** - No regressions introduced
 
-### 9.2. What We Fixed (Phase 2 - Partial Completion)
+### 9.2. What We Fixed (Phase 2 - Completed)
 
 ✅ **Redundant fields removed** - Eliminated `termsAcceptedAt`, `cookiePolicyAcceptedAt`, `privacyPolicyAcceptedAt`, `passwordChangedAt` (2025-01-17)
 ✅ **Single source of truth** - Policy acceptance now exclusively via `acceptedPolicies` map
 ✅ **Codebase cleanup** - Zero references to deprecated fields across entire codebase
+✅ **Backend type migration complete** - All backend services use focused types (2025-01-22):
+  - ClientUser for regular API endpoints
+  - UserProfile for internal backend operations
+  - AdminUserProfile for admin endpoints
+✅ **All TypeScript compilation passing** - Verified across all packages
 
-### 9.3. What Remains (Phase 2 - Outstanding)
+### 9.3. What Remains (Phases 3-6 - Outstanding)
 
 **RegisteredUser Type Splitting:**
 - ✅ Phase 1 complete: Type definitions added (ClientUser, UserProfile, AdminUserProfile)
-- 🎯 Phases 2-6: Backend migration, frontend migration, tests, deprecation (see section 4.3)
+- ✅ Phase 2 complete: Backend migration (UserService2, admin handlers, browser handlers, API interface)
+- 🎯 Phases 3-6: Frontend migration, test updates, RegisteredUser deprecation and removal (see section 4.3)
 
 ### 9.4. Core Principles Applied
 

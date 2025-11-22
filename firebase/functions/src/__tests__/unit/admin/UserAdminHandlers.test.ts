@@ -36,7 +36,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
         firestoreReader = new FirestoreReader(db);
         firestoreWriter = new FirestoreWriter(db);
 
-        handlers = new UserAdminHandlers(authService, firestoreWriter);
+        handlers = new UserAdminHandlers(authService, firestoreWriter, firestoreReader);
 
         // Setup mock request and response
         jsonSpy = vi.fn();
@@ -64,6 +64,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .build();
 
             authService.setUser(user.uid, toUserRecord(user));
+            db.seedUser('user1', {
+                email: user.email,
+                displayName: user.displayName,
+                role: SystemUserRoles.SYSTEM_USER,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
 
             // Setup request to disable user
             mockReq.params = { uid: 'user1' };
@@ -96,6 +103,13 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .build();
 
             authService.setUser(user.uid, { ...toUserRecord(user), disabled: true });
+            db.seedUser('user1', {
+                email: user.email,
+                displayName: user.displayName,
+                role: SystemUserRoles.SYSTEM_USER,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
 
             // Setup request to enable user
             mockReq.params = { uid: 'user1' };

@@ -7,6 +7,7 @@ import {
     AdminAPI,
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
+    AdminUserProfile,
     AddTenantDomainRequest,
     API,
     RegisteredUser,
@@ -747,16 +748,16 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     // ===== ADMIN API: USER MANAGEMENT =====
 
-    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<RegisteredUser> {
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AdminUserProfile> {
         const req = createStubRequest(token || '', updates, { uid });
         const res = await this.dispatchByHandler('updateUserAdmin', req);
-        return res.getJson() as RegisteredUser;
+        return res.getJson() as AdminUserProfile;
     }
 
-    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<RegisteredUser> {
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AdminUserProfile> {
         const req = createStubRequest(token || '', updates, { uid });
         const res = await this.dispatchByHandler('updateUserRoleAdmin', req);
-        return res.getJson() as RegisteredUser;
+        return res.getJson() as AdminUserProfile;
     }
 
     async promoteUserToAdmin(uid: UserId): Promise<MessageResponse> {

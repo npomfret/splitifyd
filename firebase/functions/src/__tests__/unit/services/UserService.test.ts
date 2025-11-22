@@ -215,8 +215,6 @@ describe('UserService - Consolidated Unit Tests', () => {
             expect(profile.emailVerified).toBe(true);
             expect(profile.photoURL).toBe('https://example.com/photo.jpg');
             expect(profile.preferredLanguage).toBe('en');
-            expect(profile.createdAt).toBeDefined();
-            expect(profile.updatedAt).toBeDefined();
         });
 
         it('should throw NOT_FOUND for non-existent user', async () => {

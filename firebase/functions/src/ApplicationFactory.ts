@@ -75,7 +75,8 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     const userService = componentBuilder.buildUserService();
     const policyService = componentBuilder.buildPolicyService();
     const firestoreWriter = componentBuilder.buildFirestoreWriter();
-    const userAdminHandlers = new UserAdminHandlers(authService, firestoreWriter);
+    const firestoreReader = componentBuilder.buildFirestoreReader();
+    const userAdminHandlers = new UserAdminHandlers(authService, firestoreWriter, firestoreReader);
     const tenantRegistryService = componentBuilder.buildTenantRegistryService();
     const tenantAdminService = new TenantAdminService(
         componentBuilder.buildFirestoreWriter(),

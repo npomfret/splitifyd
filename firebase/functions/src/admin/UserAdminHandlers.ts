@@ -1,9 +1,9 @@
-import { SystemUserRoles, toUserId } from '@billsplit-wl/shared';
+import { AdminUserProfile, SystemUserRoles, toDisplayName, toEmail, toUserId } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
 import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
-import type { IFirestoreWriter } from '../services/firestore';
+import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
 import { ApiError } from '../utils/errors';
 
 /**
@@ -13,7 +13,61 @@ export class UserAdminHandlers {
     constructor(
         private readonly authService: IAuthService,
         private readonly firestoreWriter: IFirestoreWriter,
+        private readonly firestoreReader: IFirestoreReader,
     ) {}
+
+    /**
+     * Build AdminUserProfile from Firebase Auth UserRecord and Firestore data
+     */
+    private async buildAdminUserProfile(userRecord: any, userId: string): Promise<AdminUserProfile> {
+        // Validate required fields
+        if (!userRecord.email) {
+            throw new ApiError(
+                HTTP_STATUS.INTERNAL_ERROR,
+                'INVALID_USER_DATA',
+                'User record missing required email field',
+            );
+        }
+        if (!userRecord.displayName) {
+            throw new ApiError(
+                HTTP_STATUS.INTERNAL_ERROR,
+                'INVALID_USER_DATA',
+                'User record missing required displayName field',
+            );
+        }
+
+        // Get Firestore user data - MUST exist for data consistency
+        const firestoreData = await this.firestoreReader.getUser(toUserId(userId));
+        if (!firestoreData) {
+            logger.error('Data consistency error: user exists in Auth but missing Firestore document', {
+                userId,
+            });
+            throw new ApiError(
+                HTTP_STATUS.INTERNAL_ERROR,
+                'DATA_CONSISTENCY_ERROR',
+                'User missing Firestore document',
+            );
+        }
+
+        return {
+            uid: toUserId(userRecord.uid),
+            displayName: toDisplayName(userRecord.displayName),
+            email: toEmail(userRecord.email),
+            emailVerified: userRecord.emailVerified ?? false,
+            photoURL: userRecord.photoURL || null,
+            role: firestoreData.role,
+            disabled: userRecord.disabled ?? false,
+            metadata: {
+                creationTime: userRecord.metadata.creationTime,
+                lastSignInTime: userRecord.metadata.lastSignInTime,
+            },
+            // Firestore fields
+            createdAt: firestoreData.createdAt,
+            updatedAt: firestoreData.updatedAt,
+            preferredLanguage: firestoreData.preferredLanguage,
+            acceptedPolicies: firestoreData.acceptedPolicies as any,
+        };
+    }
 
     /**
      * Update user account status (enable/disable)
@@ -87,15 +141,9 @@ export class UserAdminHandlers {
                 action,
             });
 
-            // Return updated user record
-            res.json({
-                uid: updatedUser.uid,
-                email: updatedUser.email ?? null,
-                emailVerified: updatedUser.emailVerified ?? false,
-                displayName: updatedUser.displayName ?? null,
-                disabled: updatedUser.disabled ?? false,
-                metadata: updatedUser.metadata,
-            });
+            // Build and return AdminUserProfile
+            const adminProfile = await this.buildAdminUserProfile(updatedUser, uid);
+            res.json(adminProfile);
         } catch (error) {
             // Re-throw ApiError as-is
             if (error instanceof ApiError) {
@@ -200,15 +248,9 @@ export class UserAdminHandlers {
                 newRole,
             });
 
-            // Return updated user record
-            res.json({
-                uid: updatedUser.uid,
-                email: updatedUser.email ?? null,
-                emailVerified: updatedUser.emailVerified ?? false,
-                displayName: updatedUser.displayName ?? null,
-                disabled: updatedUser.disabled ?? false,
-                metadata: updatedUser.metadata,
-            });
+            // Build and return AdminUserProfile
+            const adminProfile = await this.buildAdminUserProfile(updatedUser, uid);
+            res.json(adminProfile);
         } catch (error) {
             // Re-throw ApiError as-is
             if (error instanceof ApiError) {

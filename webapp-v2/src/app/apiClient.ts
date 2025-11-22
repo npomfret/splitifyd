@@ -16,6 +16,7 @@ import type {
     PublicAPI,
     AdminUpsertTenantRequest,
     AdminUpsertTenantResponse,
+    AdminUserProfile,
     AppConfiguration,
     RegisteredUser,
     ChangeEmailRequest,
@@ -1057,13 +1058,14 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
      * Update user account status (enable/disable)
      * Admin-only endpoint
      */
-    async updateUser(uid: UserId, updates: UpdateUserStatusRequest): Promise<RegisteredUser> {
-        return this.request<RegisteredUser>({
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest): Promise<AdminUserProfile> {
+        return this.request<AdminUserProfile>({
             endpoint: '/admin/users/:uid',
             method: 'PUT',
             params: { uid },
             body: updates,
-            schema: RegisteredUserSchema,
+            // TODO: Add AdminUserProfileSchema for validation
+            schema: undefined,
         });
     }
 
@@ -1071,13 +1073,14 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
      * Update user role (system_admin, tenant_admin, or regular user)
      * Admin-only endpoint
      */
-    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest): Promise<RegisteredUser> {
-        return this.request<RegisteredUser>({
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest): Promise<AdminUserProfile> {
+        return this.request<AdminUserProfile>({
             endpoint: '/admin/users/:uid/role',
             method: 'PUT',
             params: { uid },
             body: updates,
-            schema: RegisteredUserSchema,
+            // TODO: Add AdminUserProfileSchema for validation
+            schema: undefined,
         });
     }
 

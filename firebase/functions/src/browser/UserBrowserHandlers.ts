@@ -1,4 +1,4 @@
-import {DisplayName, Email, SystemUserRoles, toDisplayName, UserId} from '@billsplit-wl/shared';
+import {AdminUserProfile, DisplayName, Email, PolicyId, SystemUserRoles, toDisplayName, UserId, VersionHash} from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { FirestoreCollections } from '../constants';
@@ -89,27 +89,66 @@ export class UserBrowserHandlers {
     ) {}
 
     /**
-     * Enrich auth users with their Firestore roles
+     * Enrich auth users with their Firestore data to create complete AdminUserProfile
      */
-    private async enrichWithFirestoreRoles(users: UserRecord[]): Promise<any[]> {
+    private async enrichWithFirestoreRoles(users: UserRecord[]): Promise<AdminUserProfile[]> {
         if (!this.firestoreReader) {
-            // If no firestoreReader, return auth users without role enrichment
-            return users.map(serializeUserRecord);
+            // If no firestoreReader, return auth users with minimal data (no Firestore fields)
+            return users.map((authUser) => {
+                if (!authUser.email || !authUser.displayName) {
+                    throw new Error(`User ${authUser.uid} missing required fields`);
+                }
+                return {
+                    uid: toUserId(authUser.uid),
+                    displayName: toDisplayName(authUser.displayName),
+                    email: toEmail(authUser.email),
+                    emailVerified: authUser.emailVerified ?? false,
+                    photoURL: authUser.photoURL || null,
+                    role: SystemUserRoles.SYSTEM_USER,
+                    disabled: authUser.disabled ?? false,
+                    metadata: {
+                        creationTime: authUser.metadata.creationTime,
+                        lastSignInTime: authUser.metadata.lastSignInTime,
+                    },
+                };
+            });
         }
 
         // Fetch Firestore user documents for all users in parallel
         const firestoreUsers = await Promise.all(
-            users.map((user) => this.firestoreReader!.getUser(toUserId(user.uid)).catch(() => null)),
+            users.map((user) => this.firestoreReader!.getUser(toUserId(user.uid))),
         );
 
-        // Merge auth users with their Firestore roles
+        // Merge auth users with their Firestore data to create AdminUserProfile
         return users.map((authUser, index) => {
             const firestoreUser = firestoreUsers[index];
-            const role = firestoreUser?.role ?? SystemUserRoles.SYSTEM_USER;
+
+            if (!authUser.email || !authUser.displayName) {
+                throw new Error(`User ${authUser.uid} missing required fields`);
+            }
+
+            // Firestore document MUST exist for data consistency
+            if (!firestoreUser) {
+                throw new Error(`Data consistency error: user ${authUser.uid} exists in Auth but missing Firestore document`);
+            }
 
             return {
-                ...serializeUserRecord(authUser),
-                role,
+                uid: toUserId(authUser.uid),
+                displayName: toDisplayName(authUser.displayName),
+                email: toEmail(authUser.email),
+                emailVerified: authUser.emailVerified ?? false,
+                photoURL: authUser.photoURL || null,
+                role: firestoreUser.role,
+                disabled: authUser.disabled ?? false,
+                metadata: {
+                    creationTime: authUser.metadata.creationTime,
+                    lastSignInTime: authUser.metadata.lastSignInTime,
+                },
+                // Firestore fields
+                createdAt: firestoreUser.createdAt,
+                updatedAt: firestoreUser.updatedAt,
+                preferredLanguage: firestoreUser.preferredLanguage,
+                acceptedPolicies: firestoreUser.acceptedPolicies as Record<PolicyId, VersionHash> | undefined,
             };
         });
     }

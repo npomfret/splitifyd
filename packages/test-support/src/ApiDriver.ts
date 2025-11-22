@@ -6,6 +6,7 @@ import {
     type AdminAPI,
     type AdminUpsertTenantRequest,
     type AdminUpsertTenantResponse,
+    AdminUserProfile,
     type AddTenantDomainRequest,
     type API,
     type PublicAPI,
@@ -501,15 +502,15 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     /**
      * Update user account status (admin-only)
      */
-    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<RegisteredUser> {
-        return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token || null) as RegisteredUser;
+    async updateUser(uid: UserId, updates: UpdateUserStatusRequest, token?: AuthToken): Promise<AdminUserProfile> {
+        return await this.apiRequest(`/admin/users/${uid}`, 'PUT', updates, token || null) as AdminUserProfile;
     }
 
     /**
      * Update user role (admin-only)
      */
-    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<RegisteredUser> {
-        return await this.apiRequest(`/admin/users/${uid}/role`, 'PUT', updates, token || null) as RegisteredUser;
+    async updateUserRole(uid: UserId, updates: UpdateUserRoleRequest, token?: AuthToken): Promise<AdminUserProfile> {
+        return await this.apiRequest(`/admin/users/${uid}/role`, 'PUT', updates, token || null) as AdminUserProfile;
     }
 
     private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {

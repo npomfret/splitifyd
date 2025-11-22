@@ -1,4 +1,5 @@
-import { RegisteredUser, SystemUserRoles, toISOString, UserProfileResponse, UserRegistration } from '@billsplit-wl/shared';
+import { ClientUser, PolicyId, RegisteredUser, SystemUserRoles, toISOString, UserProfile, UserProfileResponse, UserRegistration, VersionHash } from '@billsplit-wl/shared';
+import type { UserDocument } from '../schemas';
 import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
@@ -56,34 +57,33 @@ export class UserService {
     }
 
     /**
-     * Creates a RegisteredUser from Firebase Auth record and Firestore data
+     * Creates a ClientUser from Firebase Auth record and Firestore data
+     * Returns minimal client-facing profile suitable for regular API endpoints
      */
-    private createUserProfile(userRecord: UserRecord & { email: Email; displayName: DisplayName; }, firestoreData: any): RegisteredUser {
+    private createUserProfile(userRecord: UserRecord & { email: Email; displayName: DisplayName; }, firestoreData: UserDocument): ClientUser {
         return {
             uid: toUserId(userRecord.uid),
             displayName: userRecord.displayName,
             email: userRecord.email,
             photoURL: userRecord.photoURL || null,
             emailVerified: userRecord.emailVerified,
-            role: firestoreData?.role,
-            acceptedPolicies: firestoreData?.acceptedPolicies,
-            preferredLanguage: firestoreData?.preferredLanguage,
-            createdAt: firestoreData?.createdAt,
-            updatedAt: firestoreData?.updatedAt,
+            role: firestoreData.role,
+            preferredLanguage: firestoreData.preferredLanguage,
         };
     }
 
     /**
      * Get a single user's profile by their ID
+     * Returns minimal client-facing profile suitable for regular API endpoints
      * @param userId - The Firebase UID of the user
-     * @returns The user's profile data
+     * @returns The user's profile data as ClientUser
      * @throws If user is not found or an error occurs
      */
-    async getUser(userId: UserId): Promise<RegisteredUser> {
+    async getUser(userId: UserId): Promise<ClientUser> {
         return measureDb('UserService2.getUser', async () => this._getUser(userId));
     }
 
-    private async _getUser(userId: UserId): Promise<RegisteredUser> {
+    private async _getUser(userId: UserId): Promise<ClientUser> {
         LoggerContext.update({ userId });
 
         try {
@@ -102,7 +102,11 @@ export class UserService {
             // Get additional user data from Firestore via reader
             const userData = await this.firestoreReader.getUser(userId);
 
-            // User data is already validated by FirestoreReader
+            // User MUST exist in both Auth and Firestore - data consistency check
+            if (!userData) {
+                logger.error('Data consistency error: user exists in Auth but missing Firestore document', new Error(`User ${userId} has no Firestore document`));
+                throw Errors.INTERNAL_ERROR();
+            }
 
             const profile = this.createUserProfile(userRecord, userData);
 
@@ -116,6 +120,71 @@ export class UserService {
             }
 
             logger.error('Failed to get user profile', error as Error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get complete user profile with all Firestore fields for internal server use
+     * This includes createdAt, updatedAt, acceptedPolicies, etc.
+     * Use this for backend business logic that needs full user data.
+     *
+     * @param userId - The Firebase UID of the user
+     * @returns The complete user profile as UserProfile
+     * @throws If user is not found or an error occurs
+     * @see getUser for client-facing minimal profile (ClientUser)
+     */
+    async getUserProfile(userId: UserId): Promise<UserProfile> {
+        return measureDb('UserService2.getUserProfile', async () => this._getUserProfile(userId));
+    }
+
+    private async _getUserProfile(userId: UserId): Promise<UserProfile> {
+        LoggerContext.update({ userId });
+
+        try {
+            // Get user from Firebase Auth
+            const userRecord = await this.authService.getUser(userId);
+
+            // Check if user exists
+            if (!userRecord) {
+                logger.error('User not found in Firebase Auth', new Error(`User ${userId} not found`));
+                throw Errors.NOT_FOUND('User not found');
+            }
+
+            // Ensure required fields are present
+            this.validateUserRecord(userRecord);
+
+            // Get additional user data from Firestore via reader
+            const userData = await this.firestoreReader.getUser(userId);
+
+            // User MUST exist in both Auth and Firestore - data consistency check
+            if (!userData) {
+                logger.error('Data consistency error: user exists in Auth but missing Firestore document', new Error(`User ${userId} has no Firestore document`));
+                throw Errors.INTERNAL_ERROR();
+            }
+
+            // Return complete UserProfile with all fields
+            return {
+                uid: toUserId(userRecord.uid),
+                displayName: userRecord.displayName,
+                email: userRecord.email,
+                photoURL: userRecord.photoURL || null,
+                emailVerified: userRecord.emailVerified,
+                role: userData.role,
+                createdAt: userData.createdAt,
+                updatedAt: userData.updatedAt,
+                preferredLanguage: userData.preferredLanguage,
+                acceptedPolicies: userData.acceptedPolicies as Record<PolicyId, VersionHash> | undefined,
+            };
+        } catch (error) {
+            // Check if error is from Firebase Auth (user not found)
+            const firebaseError = error as { code?: string; };
+            if (firebaseError.code === 'auth/user-not-found') {
+                logger.error('User not found in Firebase Auth', error as Error);
+                throw Errors.NOT_FOUND('User not found');
+            }
+
+            logger.error('Failed to get complete user profile', error as Error);
             throw error;
         }
     }
@@ -471,7 +540,7 @@ export class UserService {
         };
     }
 
-    async createUserDirect(userRegistration: UserRegistration): Promise<RegisteredUser> {
+    async createUserDirect(userRegistration: UserRegistration): Promise<ClientUser> {
         let userRecord: UserRecord | null = null;
 
         try {
@@ -506,13 +575,13 @@ export class UserService {
             // Initialize notification document for new user
 
             return {
-                uid: userRecord.uid,
+                uid: toUserId(userRecord.uid),
                 displayName: userRecord.displayName ?? userRegistration.displayName,
                 email: (userRecord.email ?? userRegistration.email) as Email,
                 emailVerified: userRecord.emailVerified ?? false,
                 photoURL: userRecord.photoURL ?? null,
                 role: SystemUserRoles.SYSTEM_USER,
-            } as RegisteredUser;
+            } as ClientUser;
         } catch (error: unknown) {
             // If user was created but firestore failed, clean up the orphaned auth record
             if (userRecord) {
