@@ -9,17 +9,11 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 
 describe('SettlementService - Unit Tests', () => {
-    let settlementService: SettlementService;
     let appDriver: AppDriver;
 
     beforeEach(() => {
         // Create AppDriver which sets up all real services
         appDriver = new AppDriver();
-
-        // Use ComponentBuilder to create the service with proper dependencies
-        const stubAuth = new StubAuthService();
-        const componentBuilder = new ComponentBuilder(stubAuth, appDriver.database, appDriver.storageStub);
-        settlementService = componentBuilder.buildSettlementService();
     });
 
     describe('Settlement Creation Validation', () => {

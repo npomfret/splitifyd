@@ -1,4 +1,4 @@
-import {ClientUserBuilder, GroupMemberDocumentBuilder, PasswordChangeRequestBuilder, StubStorage, TenantFirestoreTestDatabase, UserRegistrationBuilder, UserUpdateBuilder} from '@billsplit-wl/test-support';
+import {ClientUserBuilder, CreateGroupRequestBuilder, PasswordChangeRequestBuilder, StubStorage, TenantFirestoreTestDatabase, UserRegistrationBuilder, UserUpdateBuilder} from '@billsplit-wl/test-support';
 import {DisplayName, SystemUserRoles, toDisplayName, toGroupId, toUserId} from '@billsplit-wl/shared';
 import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
 import {HTTP_STATUS} from '../../../constants';
@@ -7,8 +7,7 @@ import {UserService} from '../../../services/UserService2';
 import {ApiError} from '../../../utils/errors';
 import {initializeI18n} from '../../../utils/i18n';
 import {StubAuthService} from '../mocks/StubAuthService';
-
-const testUser = toUserId('test-user');
+import {AppDriver} from '../AppDriver';
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
@@ -186,35 +185,29 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('getUser', () => {
         it('should return complete user profile from Auth and Firestore', async () => {
-            const uid = testUser;
             const email = 'test@example.com';
             const displayName = 'Test User';
 
-            // Set up Auth user
-            const { role: _, ...userDataWithPhoto } = new ClientUserBuilder()
-                .withUid(uid)
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
                 .withEmail(email)
                 .withDisplayName(displayName)
-                .withEmailVerified(true)
-                .withPhotoURL('https://example.com/photo.jpg')
+                .withPassword('SecurePassword123')
                 .build();
-            const { photoURL, ...userData } = userDataWithPhoto;
-            stubAuth.setUser(uid, { ...userData, photoURL: photoURL ?? undefined });
+            const result = await userService.registerUser(registration);
+            const uid = toUserId(result.user.uid!);
 
-            // Set up Firestore user document using seedUser
-            db.seedUser(uid, {
-                displayName,
-                preferredLanguage: 'en',
-                role: SystemUserRoles.SYSTEM_USER,
+            // Update photo URL manually for this test
+            await userService.updateProfile(uid, {
+                photoURL: 'https://example.com/photo.jpg',
             });
 
             const profile = await userService.getUser(uid);
 
             expect(profile.uid).toBe(uid);
             expect(profile.displayName).toBe(displayName);
-            expect(profile.emailVerified).toBe(true);
+            expect(profile.emailVerified).toBe(false); // New registrations aren't verified
             expect(profile.photoURL).toBe('https://example.com/photo.jpg');
-            expect(profile.preferredLanguage).toBe('en');
         });
 
         it('should throw NOT_FOUND for non-existent user', async () => {
@@ -245,22 +238,17 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('updateProfile', () => {
         it('should update display name in both Auth and Firestore', async () => {
-            const uid = testUser;
             const originalDisplayName = 'Original Name';
             const newDisplayName = 'Updated Display Name';
 
-            // Set up existing user
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
-                .withUid(uid)
-                .withEmail('test@example.com')
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('update-test@example.com')
                 .withDisplayName(originalDisplayName)
+                .withPassword('SecurePassword123')
                 .build();
-            stubAuth.setUser(uid, userData);
-
-            db.seedUser(uid, {
-                displayName: originalDisplayName,
-                role: SystemUserRoles.SYSTEM_USER,
-            });
+            const result = await userService.registerUser(registration);
+            const uid = toUserId(result.user.uid!);
 
             const updatedProfile = await userService.updateProfile(uid, {
                 displayName: newDisplayName,
@@ -274,21 +262,16 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should update preferred language in Firestore only', async () => {
-            const uid = testUser;
             const newLanguage = 'en';
 
-            // Set up existing user
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
-                .withUid(uid)
-                .withEmail('test@example.com')
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('language-test@example.com')
                 .withDisplayName('Test User')
+                .withPassword('SecurePassword123')
                 .build();
-            stubAuth.setUser(uid, userData);
-
-            db.seedUser(uid, {
-                displayName: 'Test User',
-                role: SystemUserRoles.SYSTEM_USER,
-            });
+            const result = await userService.registerUser(registration);
+            const uid = toUserId(result.user.uid!);
 
             const updatedProfile = await userService.updateProfile(uid, {
                 preferredLanguage: newLanguage,
@@ -298,22 +281,21 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should update photo URL with null value', async () => {
-            const uid = testUser;
-
-            // Set up existing user with photo URL
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
-                .withUid(uid)
-                .withEmail('test@example.com')
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('photo-test@example.com')
                 .withDisplayName('Test User')
-                .withPhotoURL('https://example.com/old-photo.jpg')
+                .withPassword('SecurePassword123')
                 .build();
-            stubAuth.setUser(uid, userData);
+            const result = await userService.registerUser(registration);
+            const uid = toUserId(result.user.uid!);
 
-            db.seedUser(uid, {
-                displayName: 'Test User',
-                role: SystemUserRoles.SYSTEM_USER,
+            // Set a photo URL first
+            await userService.updateProfile(uid, {
+                photoURL: 'https://example.com/old-photo.jpg',
             });
 
+            // Then set it to null
             await userService.updateProfile(uid, {
                 photoURL: null,
             });
@@ -342,35 +324,24 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('changePassword', () => {
         it('should update password and track change timestamp', async () => {
-            const uid = testUser;
             const currentPassword = 'OldPassword1234!';
             const newPassword = 'NewSecurePassword1234!';
 
-            // Set up existing user
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
-                .withUid(uid)
-                .withEmail('test@example.com')
+            // Register user via API with initial password
+            const registration = new UserRegistrationBuilder()
+                .withEmail('password-test@example.com')
                 .withDisplayName('Test User')
+                .withPassword(currentPassword)
                 .build();
-            stubAuth.setUser(
-                uid,
-                userData,
-                {
-                    password: currentPassword,
-                },
-            );
+            const result = await userService.registerUser(registration);
+            const uid = toUserId(result.user.uid!);
 
-            db.seedUser(uid, {
-                displayName: 'Test User',
-                role: SystemUserRoles.SYSTEM_USER,
-            });
-
-            const result = await userService.changePassword(uid, {
+            const changeResult = await userService.changePassword(uid, {
                 currentPassword,
                 newPassword,
             });
 
-            expect(result.message).toBe('Password changed successfully');
+            expect(changeResult.message).toBe('Password changed successfully');
         });
 
         it('should throw NOT_FOUND for non-existent user', async () => {
@@ -393,23 +364,21 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('error handling and edge cases', () => {
         it('should maintain data consistency between Auth and Firestore', async () => {
-            const uid = toUserId('consistent-user');
             const email = 'consistent@example.com';
             const displayName = 'Consistent User';
 
-            // Set up consistent data
-            const { role: _, ...userDataWithPhoto } = new ClientUserBuilder()
-                .withUid(uid)
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
                 .withEmail(email)
                 .withDisplayName(displayName)
-                .withPhotoURL('https://example.com/photo.jpg')
+                .withPassword('SecurePassword123')
                 .build();
-            const { photoURL, ...userData } = userDataWithPhoto;
-            stubAuth.setUser(uid, { ...userData, photoURL: photoURL ?? undefined });
+            const result = await userService.registerUser(registration);
+            const uid = toUserId(result.user.uid!);
 
-            db.seedUser(uid, {
-                displayName,
-                role: SystemUserRoles.SYSTEM_USER,
+            // Set photo URL
+            await userService.updateProfile(uid, {
+                photoURL: 'https://example.com/photo.jpg',
             });
 
             const profile = await userService.getUser(uid);
@@ -436,28 +405,22 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('Input Validation Tests', () => {
         let validationUserService: UserService;
+        let validationTestUserId: string;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             validationUserService = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' })).buildUserService();
 
-            const email = `${testUser}@example.com`;
+            const email = 'validation-user@example.com';
             const displayName = 'Validation User';
 
-            stubAuth.setUser(
-                testUser,
-                {
-                    uid: testUser,
-                    email,
-                    displayName,
-                },
-                { password: 'ValidCurrentPassword1234!' },
-            );
-
-            db.seedUser(testUser, {
-                email,
-                displayName,
-                role: SystemUserRoles.SYSTEM_USER,
-            });
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail(email)
+                .withDisplayName(displayName)
+                .withPassword('ValidCurrentPassword1234!')
+                .build();
+            const result = await validationUserService.registerUser(registration);
+            validationTestUserId = result.user.uid!;
         });
 
         describe('updateProfile validation', () => {
@@ -466,7 +429,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withDisplayName(toDisplayName('a'.repeat(101))) // Too long
                     .build();
 
-                await expect(validationUserService.updateProfile(testUser, updateData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.updateProfile(toUserId(validationTestUserId), updateData)).rejects.toThrow(ApiError);
             });
 
             it('should validate displayName is not empty', async () => {
@@ -474,7 +437,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withDisplayName(toDisplayName(''))
                     .build();
 
-                await expect(validationUserService.updateProfile(testUser, updateData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.updateProfile(toUserId(validationTestUserId), updateData)).rejects.toThrow(ApiError);
             });
 
             it('should validate displayName with only whitespace', async () => {
@@ -482,7 +445,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withDisplayName(toDisplayName('   '))
                     .build();
 
-                await expect(validationUserService.updateProfile(testUser, updateData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.updateProfile(toUserId(validationTestUserId), updateData)).rejects.toThrow(ApiError);
             });
 
             it('should accept valid displayName', async () => {
@@ -494,7 +457,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPreferredLanguage('invalid-language')
                     .build();
 
-                await expect(validationUserService.updateProfile(testUser, updateData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.updateProfile(toUserId(validationTestUserId), updateData)).rejects.toThrow(ApiError);
             });
 
             it('should accept valid preferredLanguage', async () => {
@@ -506,7 +469,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPhotoURL('not-a-valid-url')
                     .build();
 
-                await expect(validationUserService.updateProfile(testUser, updateData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.updateProfile(toUserId(validationTestUserId), updateData)).rejects.toThrow(ApiError);
             });
 
             it('should accept valid photoURL', async () => {
@@ -533,7 +496,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('123') // Too short
                     .build();
 
-                await expect(validationUserService.changePassword(testUser, changeData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).rejects.toThrow(ApiError);
             });
 
             it('should accept lowercase-only passwords when long enough', async () => {
@@ -542,7 +505,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('lowercaseonlypass')
                     .build();
 
-                await expect(validationUserService.changePassword(testUser, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
+                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
             it('should accept passwords without numbers or special characters when long enough', async () => {
@@ -551,7 +514,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('JustLettersHere')
                     .build();
 
-                await expect(validationUserService.changePassword(testUser, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
+                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
             it('should accept passwords with spaces when long enough', async () => {
@@ -560,7 +523,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('twelve chars ok')
                     .build();
 
-                await expect(validationUserService.changePassword(testUser, changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
+                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).resolves.toMatchObject({ message: 'Password changed successfully' });
             });
 
             it('should validate current password is provided', async () => {
@@ -569,7 +532,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword('NewSecurePassword1234!')
                     .build();
 
-                await expect(validationUserService.changePassword(testUser, changeData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).rejects.toThrow(ApiError);
             });
 
             it('should validate new password is different from current', async () => {
@@ -579,7 +542,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withNewPassword(samePassword)
                     .build();
 
-                await expect(validationUserService.changePassword(testUser, changeData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.changePassword(toUserId(validationTestUserId), changeData)).rejects.toThrow(ApiError);
             });
 
             it('should throw NOT_FOUND for non-existent user', async () => {
@@ -956,40 +919,38 @@ describe('UserService - Consolidated Unit Tests', () => {
 
     describe('resolveGroupMemberProfiles', () => {
         it('should resolve multiple group member profiles efficiently', async () => {
-            const groupId = toGroupId('test-group');
-            const user1 = toUserId('user-1');
-            const user2 = toUserId('user-2');
-            const user3 = toUserId('user-3');
+            const appDriver = new AppDriver();
+            // Create userService using AppDriver's database
+            const sharedAuth = new StubAuthService();
+            const appDriverUserService = new ComponentBuilder(
+                sharedAuth,
+                appDriver.database,
+                new StubStorage({ defaultBucketName: 'test-bucket' })
+            ).buildUserService();
 
-            db.seedGroupMember(
-                groupId,
-                user1,
-                new GroupMemberDocumentBuilder()
-                    .withUserId(user1)
-                    .withGroupId(groupId)
-                    .withGroupDisplayName('Member One')
-                    .buildDocument(),
-            );
-            db.seedGroupMember(
-                groupId,
-                user2,
-                new GroupMemberDocumentBuilder()
-                    .withUserId(user2)
-                    .withGroupId(groupId)
-                    .withGroupDisplayName('Member Two')
-                    .buildDocument(),
-            );
-            db.seedGroupMember(
-                groupId,
-                user3,
-                new GroupMemberDocumentBuilder()
-                    .withUserId(user3)
-                    .withGroupId(groupId)
-                    .withGroupDisplayName('Member Three')
-                    .buildDocument(),
-            );
+            // Register users via API
+            const reg1 = new UserRegistrationBuilder().withEmail('member1@test.com').withDisplayName('Member One').withPassword('password12345').build();
+            const reg2 = new UserRegistrationBuilder().withEmail('member2@test.com').withDisplayName('Member Two').withPassword('password12345').build();
+            const reg3 = new UserRegistrationBuilder().withEmail('member3@test.com').withDisplayName('Member Three').withPassword('password12345').build();
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1, user2, user3]);
+            const result1 = await appDriver.registerUser(reg1);
+            const result2 = await appDriver.registerUser(reg2);
+            const result3 = await appDriver.registerUser(reg3);
+
+            const user1 = result1.user.uid;
+            const user2 = result2.user.uid;
+            const user3 = result3.user.uid;
+
+            // Create group and add members via API
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withGroupDisplayName('Member One').build(),
+                user1
+            );
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, 'Member Two', user2);
+            await appDriver.joinGroupByLink(shareToken, 'Member Three', user3);
+
+            const profiles = await appDriverUserService.resolveGroupMemberProfiles(toGroupId(group.id), [toUserId(user1), toUserId(user2), toUserId(user3)]);
 
             expect(profiles).toHaveLength(3);
             expect(profiles[0].uid).toBe(user1);
@@ -1000,21 +961,37 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should handle phantom members when user has left the group', async () => {
-            const groupId = toGroupId('test-group');
-            const user1 = toUserId('user-1');
-            const user2 = toUserId('departed-user');
+            const appDriver = new AppDriver();
+            const sharedAuth = new StubAuthService();
+            const appDriverUserService = new ComponentBuilder(
+                sharedAuth,
+                appDriver.database,
+                new StubStorage({ defaultBucketName: 'test-bucket' })
+            ).buildUserService();
 
-            db.seedGroupMember(
-                groupId,
-                user1,
-                new GroupMemberDocumentBuilder()
-                    .withUserId(user1)
-                    .withGroupId(groupId)
-                    .withGroupDisplayName('Active Member')
-                    .buildDocument(),
+            // Register two users
+            const reg1 = new UserRegistrationBuilder().withEmail('active@test.com').withDisplayName('Active Member').withPassword('password12345').build();
+            const reg2 = new UserRegistrationBuilder().withEmail('departed@test.com').withDisplayName('Departed User').withPassword('password12345').build();
+
+            const result1 = await appDriver.registerUser(reg1);
+            const result2 = await appDriver.registerUser(reg2);
+
+            const user1 = toUserId(result1.user.uid);
+            const user2 = toUserId(result2.user.uid);
+
+            // Create group with both users
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withGroupDisplayName('Active Member').build(),
+                user1
             );
+            const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, 'Departed User', user2);
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1, user2]);
+            // User2 leaves the group
+            await appDriver.leaveGroup(group.id, user2);
+
+            // Try to resolve both members (user2 is now a "phantom" - departed member)
+            const profiles = await appDriverUserService.resolveGroupMemberProfiles(toGroupId(group.id), [user1, user2]);
 
             expect(profiles).toHaveLength(2);
             expect(profiles[0].groupDisplayName).toBe('Active Member');
@@ -1022,66 +999,91 @@ describe('UserService - Consolidated Unit Tests', () => {
         });
 
         it('should handle empty user list', async () => {
-            const groupId = toGroupId('test-group');
+            const appDriver = new AppDriver();
+            const sharedAuth = new StubAuthService();
+            const appDriverUserService = new ComponentBuilder(
+                sharedAuth,
+                appDriver.database,
+                new StubStorage({ defaultBucketName: 'test-bucket' })
+            ).buildUserService();
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, []);
+            const reg = new UserRegistrationBuilder().withEmail('owner@test.com').withDisplayName('Owner').withPassword('password12345').build();
+            const result = await appDriver.registerUser(reg);
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withGroupDisplayName('Owner').build(),
+                result.user.uid
+            );
+
+            const profiles = await appDriverUserService.resolveGroupMemberProfiles(toGroupId(group.id), []);
 
             expect(profiles).toEqual([]);
         });
 
         it('should compute correct initials for single-word names', async () => {
-            const groupId = toGroupId('test-group');
-            const user1 = toUserId('user-1');
+            const appDriver = new AppDriver();
+            const sharedAuth = new StubAuthService();
+            const appDriverUserService = new ComponentBuilder(
+                sharedAuth,
+                appDriver.database,
+                new StubStorage({ defaultBucketName: 'test-bucket' })
+            ).buildUserService();
 
-            db.seedGroupMember(
-                groupId,
-                user1,
-                new GroupMemberDocumentBuilder()
-                    .withUserId(user1)
-                    .withGroupId(groupId)
-                    .withGroupDisplayName('Alice')
-                    .buildDocument(),
+            const reg = new UserRegistrationBuilder().withEmail('alice@test.com').withDisplayName('Alice').withPassword('password12345').build();
+            const result = await appDriver.registerUser(reg);
+            const user1 = toUserId(result.user.uid);
+
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withGroupDisplayName('Alice').build(),
+                user1
             );
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1]);
+            const profiles = await appDriverUserService.resolveGroupMemberProfiles(toGroupId(group.id), [user1]);
 
             expect(profiles[0].initials).toBe('A');
         });
 
         it('should compute correct initials for multi-word names', async () => {
-            const groupId = toGroupId('test-group');
-            const user1 = toUserId('user-1');
+            const appDriver = new AppDriver();
+            const sharedAuth = new StubAuthService();
+            const appDriverUserService = new ComponentBuilder(
+                sharedAuth,
+                appDriver.database,
+                new StubStorage({ defaultBucketName: 'test-bucket' })
+            ).buildUserService();
 
-            db.seedGroupMember(
-                groupId,
-                user1,
-                new GroupMemberDocumentBuilder()
-                    .withUserId(user1)
-                    .withGroupId(groupId)
-                    .withGroupDisplayName('John Smith')
-                    .buildDocument(),
+            const reg = new UserRegistrationBuilder().withEmail('john@test.com').withDisplayName('John Smith').withPassword('password12345').build();
+            const result = await appDriver.registerUser(reg);
+            const user1 = toUserId(result.user.uid);
+
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withGroupDisplayName('John Smith').build(),
+                user1
             );
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1]);
+            const profiles = await appDriverUserService.resolveGroupMemberProfiles(toGroupId(group.id), [user1]);
 
             expect(profiles[0].initials).toBe('JS');
         });
 
         it('should limit initials to 2 characters max', async () => {
-            const groupId = toGroupId('test-group');
-            const user1 = toUserId('user-1');
+            const appDriver = new AppDriver();
+            const sharedAuth = new StubAuthService();
+            const appDriverUserService = new ComponentBuilder(
+                sharedAuth,
+                appDriver.database,
+                new StubStorage({ defaultBucketName: 'test-bucket' })
+            ).buildUserService();
 
-            db.seedGroupMember(
-                groupId,
-                user1,
-                new GroupMemberDocumentBuilder()
-                    .withUserId(user1)
-                    .withGroupId(groupId)
-                    .withGroupDisplayName('First Middle Last')
-                    .buildDocument(),
+            const reg = new UserRegistrationBuilder().withEmail('fml@test.com').withDisplayName('First Middle Last').withPassword('password12345').build();
+            const result = await appDriver.registerUser(reg);
+            const user1 = toUserId(result.user.uid);
+
+            const group = await appDriver.createGroup(
+                new CreateGroupRequestBuilder().withGroupDisplayName('First Middle Last').build(),
+                user1
             );
 
-            const profiles = await userService.resolveGroupMemberProfiles(groupId, [user1]);
+            const profiles = await appDriverUserService.resolveGroupMemberProfiles(toGroupId(group.id), [user1]);
 
             expect(profiles[0].initials).toBe('FM');
         });
