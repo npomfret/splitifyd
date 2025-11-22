@@ -1,5 +1,5 @@
 import { StubStorage } from '@billsplit-wl/test-support';
-import { PasswordChangeRequestBuilder, RegisteredUserBuilder, TenantFirestoreTestDatabase, UserUpdateBuilder } from '@billsplit-wl/test-support';
+import { PasswordChangeRequestBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -8,7 +8,7 @@ import { initializeI18n } from '../../../utils/i18n';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
-describe('UserHandlers - Unit Tests', () => {
+describe('UserHandlers - Integration Tests', () => {
     let appDriver: AppDriver;
 
     beforeEach(async () => {
@@ -18,15 +18,13 @@ describe('UserHandlers - Unit Tests', () => {
 
     describe('updateUserProfile', () => {
         it('should update display name successfully', async () => {
-            const userId = 'test-user-123';
-
-            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
-                .withUid(userId)
-                .withDisplayName('Original Name')
-                .withPreferredLanguage('en')
-                .build();
-
-            appDriver.seedUser(userId, firestoreUser);
+            // Register user via API instead of seeding
+            const user = await appDriver.registerUser(
+                new UserRegistrationBuilder()
+                    .withDisplayName('Original Name')
+                    .build()
+            );
+            const userId = user.user.uid;
 
             const updateRequest = new UserUpdateBuilder()
                 .withDisplayName('New Name')
@@ -40,15 +38,13 @@ describe('UserHandlers - Unit Tests', () => {
         });
 
         it('should update preferredLanguage successfully', async () => {
-            const userId = 'test-user-123';
-
-            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
-                .withUid(userId)
-                .withDisplayName('Test User')
-                .withPreferredLanguage('en')
-                .build();
-
-            appDriver.seedUser(userId, firestoreUser);
+            // Register user via API instead of seeding
+            const user = await appDriver.registerUser(
+                new UserRegistrationBuilder()
+                    .withDisplayName('Test User')
+                    .build()
+            );
+            const userId = user.user.uid;
 
             const updateRequest = new UserUpdateBuilder()
                 .withPreferredLanguage('en')
@@ -58,15 +54,13 @@ describe('UserHandlers - Unit Tests', () => {
         });
 
         it('should update multiple fields at once', async () => {
-            const userId = 'test-user-123';
-
-            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
-                .withUid(userId)
-                .withDisplayName('Original Name')
-                .withPreferredLanguage('en')
-                .build();
-
-            appDriver.seedUser(userId, firestoreUser);
+            // Register user via API instead of seeding
+            const user = await appDriver.registerUser(
+                new UserRegistrationBuilder()
+                    .withDisplayName('Original Name')
+                    .build()
+            );
+            const userId = user.user.uid;
 
             const updateRequest = new UserUpdateBuilder()
                 .withDisplayName('New Name')
@@ -138,14 +132,14 @@ describe('UserHandlers - Unit Tests', () => {
 
     describe('changePassword', () => {
         it('should change password successfully with valid current password', async () => {
-            const userId = 'test-user-123';
-
-            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
-                .withUid(userId)
-                .withDisplayName('Test User')
-                .build();
-
-            appDriver.seedUser(userId, firestoreUser);
+            // Register user via API instead of seeding
+            const user = await appDriver.registerUser(
+                new UserRegistrationBuilder()
+                    .withDisplayName('Test User')
+                    .withPassword('ValidPass123!')
+                    .build()
+            );
+            const userId = user.user.uid;
 
             const passwordRequest = new PasswordChangeRequestBuilder()
                 .withCurrentPassword('ValidPass123!')
@@ -160,13 +154,14 @@ describe('UserHandlers - Unit Tests', () => {
         });
 
         it('should allow lowercase-only passwords when they meet the length requirement', async () => {
-            const userId = 'test-user-123';
-            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
-                .withUid(userId)
-                .withDisplayName('Test User')
-                .build();
-
-            appDriver.seedUser(userId, firestoreUser);
+            // Register user via API instead of seeding
+            const user = await appDriver.registerUser(
+                new UserRegistrationBuilder()
+                    .withDisplayName('Test User')
+                    .withPassword('ValidPass123!')
+                    .build()
+            );
+            const userId = user.user.uid;
 
             const passwordRequest = new PasswordChangeRequestBuilder()
                 .withCurrentPassword('ValidPass123!')
@@ -179,13 +174,14 @@ describe('UserHandlers - Unit Tests', () => {
         });
 
         it('should allow passwords without numbers or special characters when long enough', async () => {
-            const userId = 'test-user-123';
-            const { uid, emailVerified, photoURL, ...firestoreUser } = new RegisteredUserBuilder()
-                .withUid(userId)
-                .withDisplayName('Test User')
-                .build();
-
-            appDriver.seedUser(userId, firestoreUser);
+            // Register user via API instead of seeding
+            const user = await appDriver.registerUser(
+                new UserRegistrationBuilder()
+                    .withDisplayName('Test User')
+                    .withPassword('ValidPass123!')
+                    .build()
+            );
+            const userId = user.user.uid;
 
             const passwordRequest = new PasswordChangeRequestBuilder()
                 .withCurrentPassword('ValidPass123!')
