@@ -28,10 +28,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should transform expense document to response format correctly', async () => {
             // Arrange
             const user1 = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user1.user.uid);
+            const userId = user1.user.uid;
 
             const user2 = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const otherUserId = toUserId(user2.user.uid);
+            const otherUserId = user2.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -90,7 +90,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle expense without receipt URL', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -117,10 +117,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should allow access for non-participants', async () => {
             // Arrange
             const participant = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const participantId = toUserId(participant.user.uid);
+            const participantId = participant.user.uid;
 
             const nonParticipant = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const nonParticipantId = toUserId(nonParticipant.user.uid);
+            const nonParticipantId = nonParticipant.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), participantId);
             const groupId = toGroupId(group.id);
@@ -147,10 +147,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should allow access for all participants', async () => {
             // Arrange
             const user1 = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const participant1 = toUserId(user1.user.uid);
+            const participant1 = user1.user.uid;
 
             const user2 = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const participant2 = toUserId(user2.user.uid);
+            const participant2 = user2.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), participant1);
             const groupId = toGroupId(group.id);
@@ -182,7 +182,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should reject access to soft-deleted expenses', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -214,7 +214,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle non-existent expense gracefully', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
             const nonExistentId = toExpenseId('non-existent-expense');
 
             // Act & Assert - expense doesn't exist
@@ -231,7 +231,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle decimal precision in amounts and splits correctly', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -262,7 +262,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should require positive expense amount', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -290,7 +290,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should validate currency format', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -320,7 +320,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle expense labels correctly', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -346,7 +346,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should preserve receipt URLs correctly', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
             const receiptUrl = 'https://storage.example.com/receipts/receipt123.jpg';
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
@@ -375,7 +375,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle database read failures gracefully', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
             const expenseId = toExpenseId('failing-expense');
 
             // Make the database throw an error by overriding collection method
@@ -393,7 +393,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should allow participants to access expense (focused)', async () => {
             // Arrange
             const participant = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const participantId = toUserId(participant.user.uid);
+            const participantId = participant.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), participantId);
             const groupId = toGroupId(group.id);
@@ -421,10 +421,10 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should allow access to non-participants (focused)', async () => {
             // Arrange
             const participant = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const participantId = toUserId(participant.user.uid);
+            const participantId = participant.user.uid;
 
             const outsider = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const outsiderId = toUserId(outsider.user.uid);
+            const outsiderId = outsider.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), participantId);
             const groupId = toGroupId(group.id);
@@ -453,7 +453,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle soft-deleted expenses correctly (focused)', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -480,7 +480,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should transform expense data correctly (focused)', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -530,7 +530,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
         it('should handle expense without receipt URL (focused)', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);

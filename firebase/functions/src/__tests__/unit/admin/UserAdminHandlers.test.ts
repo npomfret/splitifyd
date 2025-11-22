@@ -23,7 +23,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .withDisplayName('User One')
                 .build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
 
             // Disable the user via admin API
             const result = await appDriver.updateUser(userId, { disabled: true }, adminToken);
@@ -43,7 +43,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .withDisplayName('User One')
                 .build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
 
             // First disable the user
             await appDriver.updateUser(userId, { disabled: true }, adminToken);
@@ -70,7 +70,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Create a user via API
             const registration = new UserRegistrationBuilder().build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
 
             // Try to update with invalid disabled value
             await expect(
@@ -82,7 +82,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Create a user via API
             const registration = new UserRegistrationBuilder().build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
 
             // Try to update with extra fields
             await expect(
@@ -96,7 +96,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .withEmail('user1@test.com')
                 .build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
             const userToken = registered.user.uid;
 
             await appDriver.promoteUserToAdmin(userId);
@@ -131,7 +131,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Create a user via API
             const registration = new UserRegistrationBuilder().build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
 
             // Try to update without disabled field
             await expect(
@@ -148,7 +148,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .withDisplayName('User One')
                 .build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
 
             // Update role to system_admin
             const result = await appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
@@ -168,7 +168,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .withEmail('user2@test.com')
                 .build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
 
             // Update role to tenant_admin
             const result = await appDriver.updateUserRole(userId, { role: SystemUserRoles.TENANT_ADMIN }, adminToken);
@@ -187,7 +187,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .withEmail('user3@test.com')
                 .build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
 
             // First promote to admin
             await appDriver.updateUserRole(userId, { role: SystemUserRoles.SYSTEM_ADMIN }, adminToken);
@@ -203,7 +203,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Create a user via API
             const registration = new UserRegistrationBuilder().build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
 
             // Try to set invalid role
             try {
@@ -227,7 +227,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
             // Create a user via API
             const registration = new UserRegistrationBuilder().build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
 
             // Try to update with extra fields
             await expect(
@@ -241,7 +241,7 @@ describe('UserAdminHandlers - Unit Tests', () => {
                 .withEmail('user1@test.com')
                 .build();
             const registered = await appDriver.registerUser(registration);
-            const userId = toUserId(registered.user.uid);
+            const userId = registered.user.uid;
             const userToken = registered.user.uid;
 
             await appDriver.promoteUserToAdmin(userId);

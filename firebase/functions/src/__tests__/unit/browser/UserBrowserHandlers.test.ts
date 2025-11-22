@@ -53,7 +53,7 @@ describe('UserBrowserHandlers - Integration Tests', () => {
             await appDriver.registerUser(new UserRegistrationBuilder().withEmail('user2@test.com').build());
 
             // Act
-            const result = await appDriver.listAuthUsers({ uid: toUserId(user1.user.uid) }, adminId);
+            const result = await appDriver.listAuthUsers({ uid: user1.user.uid }, adminId);
 
             // Assert
             expect(result.users).toEqual([expect.objectContaining({ uid: user1.user.uid })]);
@@ -108,7 +108,7 @@ describe('UserBrowserHandlers - Integration Tests', () => {
             await appDriver.registerUser(new UserRegistrationBuilder().withEmail('user2@test.com').build());
 
             // Act
-            const result = await appDriver.listFirestoreUsers({ uid: toUserId(user1.user.uid) }, adminId);
+            const result = await appDriver.listFirestoreUsers({ uid: user1.user.uid }, adminId);
 
             // Assert
             expect(result.users).toEqual([expect.objectContaining({ uid: user1.user.uid })]);

@@ -42,7 +42,7 @@ describe('GroupService - Unit Tests', () => {
         it('should respect the includeDeletedExpenses flag when retrieving expenses', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -99,7 +99,7 @@ describe('GroupService - Unit Tests', () => {
         it('should update group successfully when user is owner', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -122,7 +122,7 @@ describe('GroupService - Unit Tests', () => {
         it('should delete group successfully when user is owner', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -140,7 +140,7 @@ describe('GroupService - Unit Tests', () => {
         it('should return user groups successfully', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             // Create a test group for this user
             await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
@@ -157,7 +157,7 @@ describe('GroupService - Unit Tests', () => {
         it('should return empty array when user has no groups', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             // Act
             const result = await groupService.listGroups(userId);

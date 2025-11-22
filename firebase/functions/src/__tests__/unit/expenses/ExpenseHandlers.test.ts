@@ -1,6 +1,6 @@
 import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
 import type { UpdateExpenseRequest } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ExpenseHandlers } from '../../../expenses/ExpenseHandlers';
@@ -16,12 +16,6 @@ describe('ExpenseHandlers - Unit Tests', () => {
     const usd = USD;
     const eur = toCurrencyISOCode('EUR');
     const jpy = toCurrencyISOCode('JPY');
-    const userId1 = toUserId('user-1');
-    const userId2 = toUserId('user-2');
-    const userId3 = toUserId('user-3');
-    const adminUserId = toUserId('admin-user');
-    const memberId1 = toUserId('member-1');
-    const memberId2 = toUserId('member-2');
 
     beforeEach(() => {
         appDriver = new AppDriver();
@@ -29,11 +23,20 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('createExpense', () => {
         it('should create an expense successfully with valid data', async () => {
-            const userId = 'test-user';
-            const payerId = 'payer-user';
+            // Register users via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, {});
-            appDriver.seedUser(payerId, {});
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer@example.com')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -55,9 +58,13 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should create expense with receipt URL', async () => {
-            const userId = 'test-user';
-
-            appDriver.seedUser(userId, {});
+            // Register user via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('receipt@example.com')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -213,9 +220,13 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('updateExpense', () => {
         it('should update expense description successfully', async () => {
-            const userId = 'test-user';
-
-            appDriver.seedUser(userId, {});
+            // Register user via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('updatedesc@example.com')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -237,9 +248,13 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should update expense label successfully', async () => {
-            const userId = 'test-user';
-
-            appDriver.seedUser(userId, {});
+            // Register user via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('updatelabel@example.com')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -325,9 +340,13 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('deleteExpense', () => {
         it('should soft delete expense successfully', async () => {
-            const userId = 'test-user';
-
-            appDriver.seedUser(userId, {});
+            // Register user via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('deleteuser@example.com')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -364,11 +383,20 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should allow group admin to delete expense created by another user', async () => {
-            const adminId = adminUserId;
-            const creatorId = 'creator-user';
+            // Register users via API
+            const adminReg = new UserRegistrationBuilder()
+                .withEmail('admin@example.com')
+                .withPassword('password12345')
+                .build();
+            const adminResult = await appDriver.registerUser(adminReg);
+            const adminId = adminResult.user.uid;
 
-            appDriver.seedUser(adminId, {});
-            appDriver.seedUser(creatorId, {});
+            const creatorReg = new UserRegistrationBuilder()
+                .withEmail('creator@example.com')
+                .withPassword('password12345')
+                .build();
+            const creatorResult = await appDriver.registerUser(creatorReg);
+            const creatorId = creatorResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, adminId);
@@ -392,9 +420,13 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('getExpenseFullDetails', () => {
         it('should get full expense details successfully', async () => {
-            const userId = 'test-user';
-
-            appDriver.seedUser(userId, {});
+            // Register user via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('fulldetails@example.com')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -462,13 +494,27 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('Expense Creation and Basic Operations', () => {
         it('should create expense with equal splits and retrieve it', async () => {
-            const user1 = userId1;
-            const user2 = userId2;
-            const user3 = userId3;
+            // Register users via API
+            const user1Reg = new UserRegistrationBuilder()
+                .withEmail('user1@example.com')
+                .withPassword('password12345')
+                .build();
+            const user1Result = await appDriver.registerUser(user1Reg);
+            const user1 = user1Result.user.uid;
 
-            appDriver.seedUser(user1, {});
-            appDriver.seedUser(user2, {});
-            appDriver.seedUser(user3, {});
+            const user2Reg = new UserRegistrationBuilder()
+                .withEmail('user2@example.com')
+                .withPassword('password12345')
+                .build();
+            const user2Result = await appDriver.registerUser(user2Reg);
+            const user2 = user2Result.user.uid;
+
+            const user3Reg = new UserRegistrationBuilder()
+                .withEmail('user3@example.com')
+                .withPassword('password12345')
+                .build();
+            const user3Result = await appDriver.registerUser(user3Reg);
+            const user3 = user3Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
@@ -497,13 +543,27 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should list and paginate group expenses', async () => {
-            const user1 = userId1;
-            const user2 = userId2;
-            const user3 = userId3;
+            // Register users via API
+            const user1Reg = new UserRegistrationBuilder()
+                .withEmail('list1@example.com')
+                .withPassword('password12345')
+                .build();
+            const user1Result = await appDriver.registerUser(user1Reg);
+            const user1 = user1Result.user.uid;
 
-            appDriver.seedUser(user1, {});
-            appDriver.seedUser(user2, {});
-            appDriver.seedUser(user3, {});
+            const user2Reg = new UserRegistrationBuilder()
+                .withEmail('list2@example.com')
+                .withPassword('password12345')
+                .build();
+            const user2Result = await appDriver.registerUser(user2Reg);
+            const user2 = user2Result.user.uid;
+
+            const user3Reg = new UserRegistrationBuilder()
+                .withEmail('list3@example.com')
+                .withPassword('password12345')
+                .build();
+            const user3Result = await appDriver.registerUser(user3Reg);
+            const user3 = user3Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
@@ -540,11 +600,20 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('Expense Updates and Edit History', () => {
         it('should update expenses and track edit history', async () => {
-            const user1 = userId1;
-            const user2 = userId2;
+            // Register users via API
+            const user1Reg = new UserRegistrationBuilder()
+                .withEmail('update1@example.com')
+                .withPassword('password12345')
+                .build();
+            const user1Result = await appDriver.registerUser(user1Reg);
+            const user1 = user1Result.user.uid;
 
-            appDriver.seedUser(user1, {});
-            appDriver.seedUser(user2, {});
+            const user2Reg = new UserRegistrationBuilder()
+                .withEmail('update2@example.com')
+                .withPassword('password12345')
+                .build();
+            const user2Result = await appDriver.registerUser(user2Reg);
+            const user2 = user2Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
@@ -587,11 +656,20 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should flip balance direction when payer changes', async () => {
-            const user1 = userId1;
-            const user2 = userId2;
+            // Register users via API
+            const user1Reg = new UserRegistrationBuilder()
+                .withEmail('flip1@example.com')
+                .withPassword('password12345')
+                .build();
+            const user1Result = await appDriver.registerUser(user1Reg);
+            const user1 = user1Result.user.uid;
 
-            appDriver.seedUser(user1, {});
-            appDriver.seedUser(user2, {});
+            const user2Reg = new UserRegistrationBuilder()
+                .withEmail('flip2@example.com')
+                .withPassword('password12345')
+                .build();
+            const user2Result = await appDriver.registerUser(user2Reg);
+            const user2 = user2Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
@@ -635,13 +713,27 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should enforce update permissions for group members', async () => {
-            const admin = adminUserId;
-            const member1 = memberId1;
-            const member2 = memberId2;
+            // Register users via API
+            const adminReg = new UserRegistrationBuilder()
+                .withEmail('permadmin@example.com')
+                .withPassword('password12345')
+                .build();
+            const adminResult = await appDriver.registerUser(adminReg);
+            const admin = adminResult.user.uid;
 
-            appDriver.seedUser(admin, {});
-            appDriver.seedUser(member1, {});
-            appDriver.seedUser(member2, {});
+            const member1Reg = new UserRegistrationBuilder()
+                .withEmail('member1@example.com')
+                .withPassword('password12345')
+                .build();
+            const member1Result = await appDriver.registerUser(member1Reg);
+            const member1 = member1Result.user.uid;
+
+            const member2Reg = new UserRegistrationBuilder()
+                .withEmail('member2@example.com')
+                .withPassword('password12345')
+                .build();
+            const member2Result = await appDriver.registerUser(member2Reg);
+            const member2 = member2Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), admin);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, admin);
@@ -690,13 +782,27 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('Expense Deletion and Soft Delete Behavior', () => {
         it('should handle expense deletion with proper access control', async () => {
-            const user1 = userId1;
-            const user2 = userId2;
-            const user3 = userId3;
+            // Register users via API
+            const user1Reg = new UserRegistrationBuilder()
+                .withEmail('del1@example.com')
+                .withPassword('password12345')
+                .build();
+            const user1Result = await appDriver.registerUser(user1Reg);
+            const user1 = user1Result.user.uid;
 
-            appDriver.seedUser(user1, {});
-            appDriver.seedUser(user2, {});
-            appDriver.seedUser(user3, {});
+            const user2Reg = new UserRegistrationBuilder()
+                .withEmail('del2@example.com')
+                .withPassword('password12345')
+                .build();
+            const user2Result = await appDriver.registerUser(user2Reg);
+            const user2 = user2Result.user.uid;
+
+            const user3Reg = new UserRegistrationBuilder()
+                .withEmail('del3@example.com')
+                .withPassword('password12345')
+                .build();
+            const user3Result = await appDriver.registerUser(user3Reg);
+            const user3 = user3Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
@@ -723,9 +829,13 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should filter deleted expenses from listings', async () => {
-            const user1 = userId1;
-
-            appDriver.seedUser(user1, {});
+            // Register user via API
+            const user1Reg = new UserRegistrationBuilder()
+                .withEmail('filter@example.com')
+                .withPassword('password12345')
+                .build();
+            const user1Result = await appDriver.registerUser(user1Reg);
+            const user1 = user1Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
@@ -768,13 +878,27 @@ describe('ExpenseHandlers - Unit Tests', () => {
 
     describe('Full Details API and Complex Data Handling', () => {
         it('should return consolidated expense data with group and members', async () => {
-            const user1 = userId1;
-            const user2 = userId2;
-            const user3 = userId3;
+            // Register users via API
+            const user1Reg = new UserRegistrationBuilder()
+                .withEmail('consol1@example.com')
+                .withPassword('password12345')
+                .build();
+            const user1Result = await appDriver.registerUser(user1Reg);
+            const user1 = user1Result.user.uid;
 
-            appDriver.seedUser(user1, {});
-            appDriver.seedUser(user2, {});
-            appDriver.seedUser(user3, {});
+            const user2Reg = new UserRegistrationBuilder()
+                .withEmail('consol2@example.com')
+                .withPassword('password12345')
+                .build();
+            const user2Result = await appDriver.registerUser(user2Reg);
+            const user2 = user2Result.user.uid;
+
+            const user3Reg = new UserRegistrationBuilder()
+                .withEmail('consol3@example.com')
+                .withPassword('password12345')
+                .build();
+            const user3Result = await appDriver.registerUser(user3Reg);
+            const user3 = user3Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
@@ -808,13 +932,27 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should handle complex split scenarios in full details', async () => {
-            const user1 = userId1;
-            const user2 = userId2;
-            const user3 = userId3;
+            // Register users via API
+            const user1Reg = new UserRegistrationBuilder()
+                .withEmail('complex1@example.com')
+                .withPassword('password12345')
+                .build();
+            const user1Result = await appDriver.registerUser(user1Reg);
+            const user1 = user1Result.user.uid;
 
-            appDriver.seedUser(user1, {});
-            appDriver.seedUser(user2, {});
-            appDriver.seedUser(user3, {});
+            const user2Reg = new UserRegistrationBuilder()
+                .withEmail('complex2@example.com')
+                .withPassword('password12345')
+                .build();
+            const user2Result = await appDriver.registerUser(user2Reg);
+            const user2 = user2Result.user.uid;
+
+            const user3Reg = new UserRegistrationBuilder()
+                .withEmail('complex3@example.com')
+                .withPassword('password12345')
+                .build();
+            const user3Result = await appDriver.registerUser(user3Reg);
+            const user3 = user3Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);
@@ -846,11 +984,20 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should allow non-participants to view full details', async () => {
-            const user1 = userId1;
-            const user2 = userId2;
+            // Register users via API
+            const user1Reg = new UserRegistrationBuilder()
+                .withEmail('nonpart1@example.com')
+                .withPassword('password12345')
+                .build();
+            const user1Result = await appDriver.registerUser(user1Reg);
+            const user1 = user1Result.user.uid;
 
-            appDriver.seedUser(user1, {});
-            appDriver.seedUser(user2, {});
+            const user2Reg = new UserRegistrationBuilder()
+                .withEmail('nonpart2@example.com')
+                .withPassword('password12345')
+                .build();
+            const user2Result = await appDriver.registerUser(user2Reg);
+            const user2 = user2Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
 
@@ -876,13 +1023,27 @@ describe('ExpenseHandlers - Unit Tests', () => {
         });
 
         it('should view expense details after a participant leaves the group', async () => {
-            const user1 = userId1;
-            const user2 = userId2;
-            const user3 = userId3;
+            // Register users via API
+            const user1Reg = new UserRegistrationBuilder()
+                .withEmail('leave1@example.com')
+                .withPassword('password12345')
+                .build();
+            const user1Result = await appDriver.registerUser(user1Reg);
+            const user1 = user1Result.user.uid;
 
-            appDriver.seedUser(user1, {});
-            appDriver.seedUser(user2, {});
-            appDriver.seedUser(user3, {});
+            const user2Reg = new UserRegistrationBuilder()
+                .withEmail('leave2@example.com')
+                .withPassword('password12345')
+                .build();
+            const user2Result = await appDriver.registerUser(user2Reg);
+            const user2 = user2Result.user.uid;
+
+            const user3Reg = new UserRegistrationBuilder()
+                .withEmail('leave3@example.com')
+                .withPassword('password12345')
+                .build();
+            const user3Result = await appDriver.registerUser(user3Reg);
+            const user3 = user3Result.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, user1);

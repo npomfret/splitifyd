@@ -32,7 +32,7 @@ describe('CommentService - Consolidated Tests', () => {
         it('should return empty list when no comments exist', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -48,7 +48,7 @@ describe('CommentService - Consolidated Tests', () => {
         it('should throw error when user lacks access', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             // Act & Assert - No group or membership data set up, so access should be denied
             await expect(commentService.listGroupComments(toGroupId('nonexistent-group'), userId)).rejects.toThrow();
@@ -59,7 +59,7 @@ describe('CommentService - Consolidated Tests', () => {
         it('should return paginated comments', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -85,7 +85,7 @@ describe('CommentService - Consolidated Tests', () => {
         it('should throw error when user lacks access', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             // Act & Assert - No expense or membership data set up, so access should be denied
             await expect(commentService.listExpenseComments(toExpenseId('nonexistent-expense'), userId)).rejects.toThrow();
@@ -96,7 +96,7 @@ describe('CommentService - Consolidated Tests', () => {
         it('should create a GROUP comment successfully', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -118,7 +118,7 @@ describe('CommentService - Consolidated Tests', () => {
         it('should throw error when user lacks access', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             // Act & Assert - Don't set up any group data
             await expect(
@@ -135,7 +135,7 @@ describe('CommentService - Consolidated Tests', () => {
         it('should use injected FirestoreReader for group reads', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -150,7 +150,7 @@ describe('CommentService - Consolidated Tests', () => {
         it('should use injected FirestoreReader for expense reads', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -178,7 +178,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should create a comment using the group display name', async () => {
                 // Arrange
                 const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-                const userId = toUserId(user.user.uid);
+                const userId = user.user.uid;
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
                 const groupId = toGroupId(group.id);
@@ -202,7 +202,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should create a comment even when auth service has no record', async () => {
                 // Arrange
                 const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-                const userId = toUserId(user.user.uid);
+                const userId = user.user.uid;
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
                 const groupId = toGroupId(group.id);
@@ -219,7 +219,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should throw error when user is not a group member', async () => {
                 // Arrange
                 const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-                const userId = toUserId(user.user.uid);
+                const userId = user.user.uid;
 
                 const commentData = new CreateGroupCommentRequestBuilder().withGroupId('group-123').withText('Test comment').build();
 
@@ -230,7 +230,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should throw error when group data is missing', async () => {
                 // Arrange
                 const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-                const userId = toUserId(user.user.uid);
+                const userId = user.user.uid;
 
                 const commentData = new CreateGroupCommentRequestBuilder().withGroupId('group-456').withText('Test comment').build();
 
@@ -243,7 +243,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should list comments successfully when group exists', async () => {
                 // Arrange
                 const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-                const userId = toUserId(user.user.uid);
+                const userId = user.user.uid;
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
                 const groupId = toGroupId(group.id);
@@ -261,7 +261,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should return empty list when no comments exist', async () => {
                 // Arrange
                 const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-                const userId = toUserId(user.user.uid);
+                const userId = user.user.uid;
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
                 const groupId = toGroupId(group.id);
@@ -277,7 +277,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should throw error when access verification fails', async () => {
                 // Arrange
                 const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-                const userId = toUserId(user.user.uid);
+                const userId = user.user.uid;
 
                 // Act & Assert - Access should be denied since no proper setup
                 await expect(commentService.listGroupComments(toGroupId('group-456'), userId)).rejects.toThrow(ApiError);
@@ -288,7 +288,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should support group comments', async () => {
                 // Arrange
                 const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-                const userId = toUserId(user.user.uid);
+                const userId = user.user.uid;
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
                 const groupId = toGroupId(group.id);
@@ -306,7 +306,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should support expense comments', async () => {
                 // Arrange
                 const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-                const userId = toUserId(user.user.uid);
+                const userId = user.user.uid;
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
                 const groupId = toGroupId(group.id);
@@ -336,7 +336,7 @@ describe('CommentService - Consolidated Tests', () => {
             it('should maintain consistency between create and list operations', async () => {
                 // Arrange
                 const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-                const userId = toUserId(user.user.uid);
+                const userId = user.user.uid;
 
                 const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
                 const groupId = toGroupId(group.id);

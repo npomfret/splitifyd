@@ -40,6 +40,7 @@ import {
     SettlementUpdateBuilder,
     UserUpdateBuilder,
     AdminTenantRequestBuilder,
+    UserRegistrationBuilder,
 } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, it } from 'vitest';
 import { AppDriver } from './AppDriver';
@@ -67,18 +68,46 @@ const verifyBalanceConsistency = (balances: Record<string, UserBalance>, currenc
 describe('app tests', () => {
     let appDriver: AppDriver;
 
-    const user1 = toUserId('user-1');
-    const user2 = toUserId('user-2');
-    const user3 = toUserId('user-3');
-    const user4 = toUserId('user-4');
+    let user1: UserId;
+    let user2: UserId;
+    let user3: UserId;
+    let user4: UserId;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         appDriver = new AppDriver();
 
-        appDriver.seedUser(user1, { displayName: 'User one', email: 'user1@example.com', role: SystemUserRoles.SYSTEM_USER });
-        appDriver.seedUser(user2, { displayName: 'User two', email: 'user2@example.com', role: SystemUserRoles.SYSTEM_USER });
-        appDriver.seedUser(user3, { displayName: 'User three', email: 'user3@example.com', role: SystemUserRoles.SYSTEM_USER });
-        appDriver.seedUser(user4, { displayName: 'User four', email: 'user4@example.com', role: SystemUserRoles.SYSTEM_USER });
+        // Register users via API
+        const user1Reg = new UserRegistrationBuilder()
+            .withEmail('user1@example.com')
+            .withDisplayName('User one')
+            .withPassword('password12345')
+            .build();
+        const user1Result = await appDriver.registerUser(user1Reg);
+        user1 = toUserId(user1Result.user.uid);
+
+        const user2Reg = new UserRegistrationBuilder()
+            .withEmail('user2@example.com')
+            .withDisplayName('User two')
+            .withPassword('password12345')
+            .build();
+        const user2Result = await appDriver.registerUser(user2Reg);
+        user2 = toUserId(user2Result.user.uid);
+
+        const user3Reg = new UserRegistrationBuilder()
+            .withEmail('user3@example.com')
+            .withDisplayName('User three')
+            .withPassword('password12345')
+            .build();
+        const user3Result = await appDriver.registerUser(user3Reg);
+        user3 = toUserId(user3Result.user.uid);
+
+        const user4Reg = new UserRegistrationBuilder()
+            .withEmail('user4@example.com')
+            .withDisplayName('User four')
+            .withPassword('password12345')
+            .build();
+        const user4Result = await appDriver.registerUser(user4Reg);
+        user4 = toUserId(user4Result.user.uid);
     });
 
     afterEach(() => {
@@ -2519,8 +2548,14 @@ describe('app tests', () => {
 
                 const manyUsers = [user1, user2, user3, user4];
                 for (let i = 5; i <= 20; i++) {
-                    const userId = toUserId(`user-${i}`);
-                    appDriver.seedUser(userId, { displayName: `User ${i}`, role: SystemUserRoles.SYSTEM_USER });
+                    // Register user via API
+                    const userReg = new UserRegistrationBuilder()
+                        .withEmail(`user${i}@example.com`)
+                        .withDisplayName(`User ${i}`)
+                        .withPassword('password12345')
+                        .build();
+                    const userResult = await appDriver.registerUser(userReg);
+                    const userId = toUserId(userResult.user.uid);
                     await appDriver.joinGroupByLink(shareToken, undefined, userId);
                     manyUsers.push(userId);
                 }
@@ -2714,10 +2749,6 @@ describe('app tests', () => {
     });
 
     describe('policy acceptance and status', () => {
-        beforeEach(() => {
-            // Seed admin user for creating policies in tests
-            appDriver.seedAdminUser(user1, {});
-        });
         describe('acceptMultiplePolicies - happy path', () => {
             it('should accept a single policy', async () => {
                 const policy1 = await appDriver.createPolicy({
@@ -3503,7 +3534,7 @@ describe('app tests', () => {
             expect(registrationResult.success).toBe(true);
             expect(registrationResult.user.displayName).toBe('Registered User');
 
-            const newUserId = toUserId(registrationResult.user.uid);
+            const newUserId = registrationResult.user.uid;
             const profile = await appDriver.getUserProfile(newUserId);
 
             expect(profile.displayName).toBe('Registered User');
@@ -3797,10 +3828,6 @@ describe('app tests', () => {
     });
 
     describe('policy administration flows', () => {
-        beforeEach(() => {
-            // Seed admin user for policy administration tests
-            appDriver.seedAdminUser(policyAdmin, {});
-        });
         const policyAdmin = user1;
 
         it('should allow admin to create, update, and publish policies', async () => {
@@ -4050,7 +4077,6 @@ describe('app tests', () => {
 
             it('should allow system admin to update branding', async () => {
                 const systemAdmin = user3;
-                appDriver.seedAdminUser(systemAdmin, {});
 
                 const result = await appDriver.updateTenantBranding({
                     appName: toTenantAppName('System Admin Updated'),
@@ -4095,11 +4121,6 @@ describe('app tests', () => {
         describe('authorization - system admin access', () => {
             const systemAdmin = user3;
 
-            beforeEach(() => {
-                // System admin should also have access to tenant settings
-                appDriver.seedAdminUser(systemAdmin, {});
-            });
-
             it('should allow system admin to access tenant settings', async () => {
                 const settings = await appDriver.getTenantSettings(systemAdmin);
 
@@ -4121,10 +4142,16 @@ describe('app tests', () => {
     });
 
     describe('Admin Tenant Management', () => {
-        const adminUser = 'admin-user';
+        let adminUser: string;
 
-        beforeEach(() => {
-            appDriver.seedAdminUser(adminUser, {});
+        beforeEach(async () => {
+            const adminReg = new UserRegistrationBuilder()
+                .withEmail('tenantadmin@example.com')
+                .withDisplayName('Tenant Admin User')
+                .withPassword('password12345')
+                .build();
+            const adminResult = await appDriver.registerUser(adminReg);
+            adminUser = adminResult.user.uid;
         });
 
         describe('POST /api/admin/tenants - adminUpsertTenant', () => {
@@ -4201,8 +4228,14 @@ describe('app tests', () => {
             });
 
             it('should reject non-admin user', async () => {
-                const regularUser = toUserId('regular-user');
-                appDriver.seedUser(regularUser, { displayName: 'Regular User', email: 'regular@test.com', role: SystemUserRoles.SYSTEM_USER });
+                // Register regular user via API
+                const regularUserReg = new UserRegistrationBuilder()
+                    .withEmail('regular@test.com')
+                    .withDisplayName('Regular User')
+                    .withPassword('password12345')
+                    .build();
+                const regularUserResult = await appDriver.registerUser(regularUserReg);
+                const regularUser = toUserId(regularUserResult.user.uid);
 
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_unauthorized').build();
 
@@ -4215,8 +4248,13 @@ describe('app tests', () => {
             });
 
             it('should allow system admin to upsert tenant', async () => {
-                const systemAdmin = 'system-admin';
-                appDriver.seedAdminUser(systemAdmin, {});
+                const systemAdminReg = new UserRegistrationBuilder()
+                    .withEmail('systemadmin@example.com')
+                    .withDisplayName('System Admin')
+                    .withPassword('password12345')
+                    .build();
+                const systemAdminResult = await appDriver.registerUser(systemAdminReg);
+                const systemAdmin = systemAdminResult.user.uid;
 
                 const payload = AdminTenantRequestBuilder.forTenant('tenant_system_admin').build();
 
@@ -4536,12 +4574,18 @@ describe('app tests', () => {
         });
 
         describe('POST /api/admin/tenants/publish - publishTenantTheme', () => {
-            const systemAdmin = 'tenant-theme-admin';
+            let systemAdmin: string;
             const tenantId = 'tenant_publish_unit';
 
-            beforeEach(() => {
+            beforeEach(async () => {
                 appDriver.storageStub.clear();
-                appDriver.seedAdminUser(systemAdmin, { email: 'theme-admin@test.com' });
+                const systemAdminReg = new UserRegistrationBuilder()
+                    .withEmail('theme-admin@test.com')
+                    .withDisplayName('Theme Admin')
+                    .withPassword('password12345')
+                    .build();
+                const systemAdminResult = await appDriver.registerUser(systemAdminReg);
+                systemAdmin = systemAdminResult.user.uid;
                 const tokens = AdminTenantRequestBuilder.forTenant(tenantId).buildTokens();
                 appDriver.seedTenantDocument(tenantId, {
                     brandingTokens: {
@@ -4669,8 +4713,14 @@ describe('app tests', () => {
             });
 
             it('should reject publish from non-admin user', async () => {
-                const regularUser = toUserId('regular-publish-user');
-                appDriver.seedUser(regularUser, { displayName: 'Regular User', email: 'regular@test.com', role: SystemUserRoles.SYSTEM_USER });
+                // Register regular user via API
+                const regularUserReg = new UserRegistrationBuilder()
+                    .withEmail('regularpublish@test.com')
+                    .withDisplayName('Regular User')
+                    .withPassword('password12345')
+                    .build();
+                const regularUserResult = await appDriver.registerUser(regularUserReg);
+                const regularUser = toUserId(regularUserResult.user.uid);
 
                 const result = await appDriver.publishTenantTheme({ tenantId }, regularUser);
                 expect(result).toMatchObject({
@@ -4803,13 +4853,16 @@ describe('app tests', () => {
     });
 
     describe('Admin browser endpoints', () => {
-        const browserAdmin = 'browser-admin';
+        let browserAdmin: string;
 
-        beforeEach(() => {
-            appDriver.seedAdminUser(browserAdmin, {
-                email: 'browser-admin@test.com',
-                displayName: 'Browser Admin',
-            });
+        beforeEach(async () => {
+            const browserAdminReg = new UserRegistrationBuilder()
+                .withEmail('browser-admin@test.com')
+                .withDisplayName('Browser Admin')
+                .withPassword('password12345')
+                .build();
+            const browserAdminResult = await appDriver.registerUser(browserAdminReg);
+            browserAdmin = browserAdminResult.user.uid;
         });
 
         it('lists all tenants for system users', async () => {
@@ -4825,8 +4878,14 @@ describe('app tests', () => {
         });
 
         it('rejects tenant listing for users without a system role', async () => {
-            const regularUser = toUserId('browser-regular');
-            appDriver.seedUser(regularUser, { email: 'browser-regular@test.com', role: SystemUserRoles.SYSTEM_USER });
+            // Register regular user via API
+            const regularUserReg = new UserRegistrationBuilder()
+                .withEmail('browser-regular@test.com')
+                .withDisplayName('Browser Regular')
+                .withPassword('password12345')
+                .build();
+            const regularUserResult = await appDriver.registerUser(regularUserReg);
+            const regularUser = toUserId(regularUserResult.user.uid);
 
             const result = await appDriver.listAllTenants(regularUser);
 
@@ -4834,8 +4893,13 @@ describe('app tests', () => {
         });
 
         it('enriches auth users with their Firestore roles', async () => {
-            const browserSystemUser = toUserId('browser-system-user');
-            appDriver.seedUser(browserSystemUser, { role: SystemUserRoles.SYSTEM_USER });
+            const browserSystemUserReg = new UserRegistrationBuilder()
+                .withEmail('browsersystemuser@example.com')
+                .withDisplayName('Browser System User')
+                .withPassword('password12345')
+                .build();
+            const browserSystemUserResult = await appDriver.registerUser(browserSystemUserReg);
+            const browserSystemUser = toUserId(browserSystemUserResult.user.uid);
 
             const response = await appDriver.listAuthUsers({ uid: browserSystemUser }, browserAdmin);
 
@@ -4846,8 +4910,13 @@ describe('app tests', () => {
         });
 
         it('filters Firestore users by uid', async () => {
-            const browserSystemUser = toUserId('browser-firestore-user');
-            appDriver.seedUser(browserSystemUser, { role: SystemUserRoles.SYSTEM_USER });
+            const browserSystemUserReg = new UserRegistrationBuilder()
+                .withEmail('browserfirestoreuser@example.com')
+                .withDisplayName('Browser Firestore User')
+                .withPassword('password12345')
+                .build();
+            const browserSystemUserResult = await appDriver.registerUser(browserSystemUserReg);
+            const browserSystemUser = toUserId(browserSystemUserResult.user.uid);
 
             const response = await appDriver.listFirestoreUsers({ uid: browserSystemUser }, browserAdmin);
 
@@ -4858,19 +4927,25 @@ describe('app tests', () => {
     });
 
     describe('Admin User Management', () => {
-        const adminUser = 'admin-user';
-        const regularUser = toUserId('regular-user');
+        let adminUser: string;
+        let regularUser: UserId;
 
-        beforeEach(() => {
-            appDriver.seedAdminUser(adminUser, {
-                email: 'admin@test.com',
-                displayName: 'Admin User',
-            });
-            appDriver.seedUser(regularUser, {
-                email: 'regular@test.com',
-                displayName: 'Regular User',
-                role: SystemUserRoles.SYSTEM_USER,
-            });
+        beforeEach(async () => {
+            const adminReg = new UserRegistrationBuilder()
+                .withEmail('admin@test.com')
+                .withDisplayName('Admin User')
+                .withPassword('password12345')
+                .build();
+            const adminResult = await appDriver.registerUser(adminReg);
+            adminUser = adminResult.user.uid;
+
+            const regularUserReg = new UserRegistrationBuilder()
+                .withEmail('regular@test.com')
+                .withDisplayName('Regular User')
+                .withPassword('password12345')
+                .build();
+            const regularUserResult = await appDriver.registerUser(regularUserReg);
+            regularUser = toUserId(regularUserResult.user.uid);
         });
 
         describe('PUT /api/admin/users/:uid - updateUser (disable/enable)', () => {

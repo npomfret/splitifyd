@@ -30,8 +30,8 @@ export interface RegisterUserResult {
     success: boolean;
     message: string;
     user: {
-        uid: string;
-        displayName: DisplayName | undefined;
+        uid: UserId;
+        displayName: DisplayName;
     };
 }
 

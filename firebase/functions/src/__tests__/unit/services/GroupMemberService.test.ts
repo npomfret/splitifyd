@@ -35,13 +35,13 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should return all members for a group', async () => {
             // Arrange
             const user1 = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId1 = toUserId(user1.user.uid);
+            const userId1 = user1.user.uid;
 
             const user2 = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId2 = toUserId(user2.user.uid);
+            const userId2 = user2.user.uid;
 
             const user3 = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId3 = toUserId(user3.user.uid);
+            const userId3 = user3.user.uid;
 
             // Create group (user1 becomes owner/admin automatically)
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId1);
@@ -94,7 +94,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should return true for existing group member', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -109,10 +109,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should return false for non-existent group member', async () => {
             // Arrange
             const owner = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const ownerId = toUserId(owner.user.uid);
+            const ownerId = owner.user.uid;
 
             const nonMember = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const nonMemberId = toUserId(nonMember.user.uid);
+            const nonMemberId = nonMember.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), ownerId);
             const groupId = toGroupId(group.id);
@@ -127,7 +127,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should return false for invalid group ID', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
             const invalidGroupId = toGroupId('');
 
             // Act
@@ -140,7 +140,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should return false for invalid user ID', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -159,10 +159,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should allow admin to promote a member to admin', async () => {
             // Arrange
             const admin = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const adminUserId = toUserId(admin.user.uid);
+            const adminUserId = admin.user.uid;
 
             const member = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const memberUserId = toUserId(member.user.uid);
+            const memberUserId = member.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminUserId);
             const groupId = toGroupId(group.id);
@@ -183,7 +183,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should prevent removing the last active admin', async () => {
             // Arrange
             const admin = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const adminUserId = toUserId(admin.user.uid);
+            const adminUserId = admin.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminUserId);
             const groupId = toGroupId(group.id);
@@ -204,10 +204,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             // Arrange
             const admin = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const adminUserId = toUserId(admin.user.uid);
+            const adminUserId = admin.user.uid;
 
             const newUser = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const newUserId = toUserId(newUser.user.uid);
+            const newUserId = newUser.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminUserId);
             const groupId = toGroupId(group.id);
@@ -229,10 +229,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         it('should reject pending members', async () => {
             // Arrange
             const admin = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const adminUserId = toUserId(admin.user.uid);
+            const adminUserId = admin.user.uid;
 
             const pendingUser = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const pendingUserId = toUserId(pendingUser.user.uid);
+            const pendingUserId = pendingUser.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminUserId);
             const groupId = toGroupId(group.id);
@@ -257,10 +257,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
 
             // Arrange
             const admin = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const adminUserId = toUserId(admin.user.uid);
+            const adminUserId = admin.user.uid;
 
             const newUser = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const newUserId = toUserId(newUser.user.uid);
+            const newUserId = newUser.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminUserId);
             const groupId = toGroupId(group.id);
@@ -286,7 +286,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should prevent group creator from leaving', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -298,10 +298,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should prevent leaving with outstanding balance', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const member = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const memberId = toUserId(member.user.uid);
+            const memberId = member.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -328,13 +328,13 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should allow member to leave when balance is settled', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const member = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const memberId = toUserId(member.user.uid);
+            const memberId = member.user.uid;
 
             const other = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const otherId = toUserId(other.user.uid);
+            const otherId = other.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -372,7 +372,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should reject unauthorized leave request', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -384,7 +384,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should reject leave request for non-existent group', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             // Act & Assert - No group created
             await expect(appDriver.leaveGroup(toGroupId('nonexistent-group-id'), userId)).rejects.toThrow(/Group not found/);
@@ -393,10 +393,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should reject leave request for non-member', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const nonMember = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const nonMemberId = toUserId(nonMember.user.uid);
+            const nonMemberId = nonMember.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -410,13 +410,13 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should prevent non-creator from removing members', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const member = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const memberId = toUserId(member.user.uid);
+            const memberId = member.user.uid;
 
             const target = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const targetId = toUserId(target.user.uid);
+            const targetId = target.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -431,7 +431,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should prevent removing the group creator', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -443,10 +443,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should prevent removing member with outstanding balance', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const member = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const memberId = toUserId(member.user.uid);
+            const memberId = member.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -473,10 +473,10 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should allow creator to remove member with settled balance', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const member = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const memberId = toUserId(member.user.uid);
+            const memberId = member.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -514,7 +514,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should reject removal of non-existent member', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -526,7 +526,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should require valid member ID for removal', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -540,7 +540,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should handle empty user ID in leave request', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -552,7 +552,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should handle null user ID in leave request', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -564,7 +564,7 @@ describe('GroupMemberService - Consolidated Unit Tests', () => {
         test('should handle undefined user ID in leave request', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);

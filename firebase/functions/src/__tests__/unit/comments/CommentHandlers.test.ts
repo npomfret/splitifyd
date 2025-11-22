@@ -182,7 +182,7 @@ describe('CommentHandlers - Integration Tests', () => {
                 cookiePolicyAccepted: true,
                 privacyPolicyAccepted: true,
             });
-            const userId = toUserId(registrationResult.user.uid);
+            const userId = registrationResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -214,7 +214,7 @@ describe('CommentHandlers - Integration Tests', () => {
             const creatorResult = await appDriver.registerUser(
                 new UserRegistrationBuilder().build()
             );
-            const creatorId = toUserId(creatorResult.user.uid);
+            const creatorId = creatorResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
 
@@ -414,7 +414,7 @@ describe('CommentHandlers - Integration Tests', () => {
             const userResult = await appDriver.registerUser(
                 new UserRegistrationBuilder().build()
             );
-            const userId = toUserId(userResult.user.uid);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -440,7 +440,7 @@ describe('CommentHandlers - Integration Tests', () => {
             const userResult = await appDriver.registerUser(
                 new UserRegistrationBuilder().build()
             );
-            const userId = toUserId(userResult.user.uid);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -464,12 +464,12 @@ describe('CommentHandlers - Integration Tests', () => {
             const userResult = await appDriver.registerUser(
                 new UserRegistrationBuilder().build()
             );
-            const userId = toUserId(userResult.user.uid);
+            const userId = userResult.user.uid;
 
             const creatorResult = await appDriver.registerUser(
                 new UserRegistrationBuilder().build()
             );
-            const creatorId = toUserId(creatorResult.user.uid);
+            const creatorId = creatorResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
 
@@ -510,7 +510,7 @@ describe('CommentHandlers - Integration Tests', () => {
             const userResult = await appDriver.registerUser(
                 new UserRegistrationBuilder().build()
             );
-            const userId = toUserId(userResult.user.uid);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -545,7 +545,7 @@ describe('CommentHandlers - Integration Tests', () => {
             const userResult = await appDriver.registerUser(
                 new UserRegistrationBuilder().build()
             );
-            const userId = toUserId(userResult.user.uid);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -585,7 +585,7 @@ describe('CommentHandlers - Integration Tests', () => {
             const userResult = await appDriver.registerUser(
                 new UserRegistrationBuilder().build()
             );
-            const userId = toUserId(userResult.user.uid);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 

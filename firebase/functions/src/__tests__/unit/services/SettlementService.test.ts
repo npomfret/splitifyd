@@ -21,13 +21,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should validate settlement amounts correctly', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -56,13 +56,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should handle optional note field correctly', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -92,13 +92,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should validate user data with complete required fields', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -119,13 +119,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should handle user data validation during settlement creation', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -148,13 +148,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should validate group membership for all users', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -175,13 +175,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should reject settlement when payer is not group member', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const nonMemberPayer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const nonMemberPayerId = toUserId(nonMemberPayer.user.uid);
+            const nonMemberPayerId = nonMemberPayer.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -207,13 +207,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should reject settlement when payee is not group member', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const nonMemberPayee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const nonMemberPayeeId = toUserId(nonMemberPayee.user.uid);
+            const nonMemberPayeeId = nonMemberPayee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -241,13 +241,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should reject settlement when group does not exist', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const nonExistentGroupId = 'non-existent-group';
             const settlementData = new CreateSettlementRequestBuilder()
@@ -273,13 +273,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should handle decimal precision correctly', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -303,13 +303,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should handle maximum valid amount', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -330,13 +330,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should handle minimum valid amount', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -359,13 +359,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should initialize new settlements with deletedAt and deletedBy as null', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -389,13 +389,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should soft delete settlement with correct metadata', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -422,13 +422,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should prevent soft deleting already deleted settlement', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -462,13 +462,13 @@ describe('SettlementService - Unit Tests', () => {
         it('should allow settlement creator to soft delete', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -494,16 +494,16 @@ describe('SettlementService - Unit Tests', () => {
         it('should allow group admin to soft delete settlement', async () => {
             // Arrange
             const admin = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const adminId = toUserId(admin.user.uid);
+            const adminId = admin.user.uid;
 
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             // Create group with admin as owner
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminId);
@@ -531,16 +531,16 @@ describe('SettlementService - Unit Tests', () => {
         it('should prevent non-creator non-admin from soft deleting settlement', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const otherMember = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const otherId = toUserId(otherMember.user.uid);
+            const otherId = otherMember.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);
@@ -571,7 +571,7 @@ describe('SettlementService - Unit Tests', () => {
         it('should prevent soft deleting non-existent settlement', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const nonExistentSettlementId = toSettlementId('non-existent-settlement-id');
 
@@ -589,16 +589,16 @@ describe('SettlementService - Unit Tests', () => {
         it('should prevent soft deleting settlement when user not in group', async () => {
             // Arrange
             const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const creatorId = toUserId(creator.user.uid);
+            const creatorId = creator.user.uid;
 
             const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payerId = toUserId(payer.user.uid);
+            const payerId = payer.user.uid;
 
             const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const payeeId = toUserId(payee.user.uid);
+            const payeeId = payee.user.uid;
 
             const nonMember = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const nonMemberId = toUserId(nonMember.user.uid);
+            const nonMemberId = nonMember.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const groupId = toGroupId(group.id);

@@ -1004,8 +1004,8 @@ describe('UserService - Consolidated Unit Tests', () => {
             const result1 = await appDriver.registerUser(reg1);
             const result2 = await appDriver.registerUser(reg2);
 
-            const user1 = toUserId(result1.user.uid);
-            const user2 = toUserId(result2.user.uid);
+            const user1 = result1.user.uid;
+            const user2 = result2.user.uid;
 
             // Create group with both users
             const group = await appDriver.createGroup(
@@ -1062,7 +1062,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             const reg = new UserRegistrationBuilder().withEmail('alice@test.com').withDisplayName('Alice').withPassword('password12345').build();
             const result = await appDriver.registerUser(reg);
-            const user1 = toUserId(result.user.uid);
+            const user1 = result.user.uid;
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder().withGroupDisplayName('Alice').build(),
@@ -1087,7 +1087,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             const reg = new UserRegistrationBuilder().withEmail('john@test.com').withDisplayName('John Smith').withPassword('password12345').build();
             const result = await appDriver.registerUser(reg);
-            const user1 = toUserId(result.user.uid);
+            const user1 = result.user.uid;
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder().withGroupDisplayName('John Smith').build(),
@@ -1112,7 +1112,7 @@ describe('UserService - Consolidated Unit Tests', () => {
 
             const reg = new UserRegistrationBuilder().withEmail('fml@test.com').withDisplayName('First Middle Last').withPassword('password12345').build();
             const result = await appDriver.registerUser(reg);
-            const user1 = toUserId(result.user.uid);
+            const user1 = result.user.uid;
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder().withGroupDisplayName('First Middle Last').build(),

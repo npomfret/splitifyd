@@ -21,7 +21,7 @@ describe('Archive Groups - Status Filtering', () => {
     test('should filter by ACTIVE status by default', async () => {
         // Arrange
         const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-        const userId = toUserId(user.user.uid);
+        const userId = user.user.uid;
 
         // Create three groups (all will be active by default)
         const group1 = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
@@ -51,7 +51,7 @@ describe('Archive Groups - Status Filtering', () => {
     test('should filter by ARCHIVED status when specified', async () => {
         // Arrange
         const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-        const userId = toUserId(user.user.uid);
+        const userId = user.user.uid;
 
         // Create two groups
         const group1 = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
@@ -79,7 +79,7 @@ describe('Archive Groups - Status Filtering', () => {
     test('should filter by array of statuses', async () => {
         // Arrange
         const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-        const userId = toUserId(user.user.uid);
+        const userId = user.user.uid;
 
         // Create three groups
         const group1 = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
@@ -122,7 +122,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
         test('should archive an active group membership', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -142,7 +142,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
         test('should reject archiving non-existent membership', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
             const groupId = toGroupId('nonexistent');
 
             // Act & Assert
@@ -152,7 +152,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
         test('should reject archiving already archived membership', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -169,7 +169,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
         test('should unarchive an archived group membership', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -192,7 +192,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
         test('should reject unarchiving non-existent membership', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
             const groupId = toGroupId('nonexistent');
 
             // Act & Assert
@@ -202,7 +202,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
         test('should reject unarchiving non-archived membership', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -216,7 +216,7 @@ describe('Archive Groups - Archive/Unarchive Operations', () => {
         test('should support archiving and unarchiving the same membership', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);

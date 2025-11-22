@@ -440,13 +440,13 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const registration = new UserRegistrationBuilder().build();
 
         const result = await this.registerUser(registration);
-        const uid = toUserId(result.user.uid);
+        const uid = result.user.uid;
 
         await this.promoteUserToAdmin(uid);
 
         return {
             userId: uid,
-            token: result.user.uid,
+            token: uid as string,
         };
     }
 

@@ -31,7 +31,7 @@ describe('ExpenseCommentStrategy', () => {
         it('should allow access when expense exists and user is group member', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -53,7 +53,7 @@ describe('ExpenseCommentStrategy', () => {
         it('should throw NOT_FOUND when expense does not exist', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             // Act
             const error = (await strategy
@@ -69,7 +69,7 @@ describe('ExpenseCommentStrategy', () => {
         it('should throw NOT_FOUND when expense is soft deleted', async () => {
             // Arrange
             const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const userId = toUserId(user.user.uid);
+            const userId = user.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const groupId = toGroupId(group.id);
@@ -99,10 +99,10 @@ describe('ExpenseCommentStrategy', () => {
         it('should throw FORBIDDEN when user is not a member of expense group', async () => {
             // Arrange
             const owner = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const ownerId = toUserId(owner.user.uid);
+            const ownerId = owner.user.uid;
 
             const nonMember = await appDriver.registerUser(new UserRegistrationBuilder().build());
-            const nonMemberId = toUserId(nonMember.user.uid);
+            const nonMemberId = nonMember.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), ownerId);
             const groupId = toGroupId(group.id);

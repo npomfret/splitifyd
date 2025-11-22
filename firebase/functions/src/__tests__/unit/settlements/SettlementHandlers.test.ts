@@ -1,5 +1,5 @@
 import { StubStorage, StubCloudTasksClient } from '@billsplit-wl/firebase-simulator';
-import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, CreateSettlementRequestBuilder, SettlementUpdateBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
@@ -18,13 +18,30 @@ describe('SettlementHandlers - Unit Tests', () => {
 
     describe('createSettlement', () => {
         it('should create a settlement successfully with valid data', async () => {
-            const userId = 'test-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, { displayName: 'Test User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -53,13 +70,30 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('sanitizes settlement notes before persisting', async () => {
-            const userId = 'test-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, { displayName: 'Test User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -80,13 +114,30 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should create a settlement without optional note', async () => {
-            const userId = 'test-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, { displayName: 'Test User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -294,8 +345,14 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject settlement for non-existent group', async () => {
-            const userId = 'test-user';
-            appDriver.seedUser(userId, { email: `${userId}@test.com`, displayName: 'Test User' });
+            // Register user via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('nonexistent@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
             const settlementRequest = new CreateSettlementRequestBuilder()
                 .withGroupId('non-existent-group')
@@ -312,15 +369,38 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject settlement when creator is not a group member', async () => {
-            const creatorId = 'creator-user';
-            const nonMemberId = 'non-member-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const creatorReg = new UserRegistrationBuilder()
+                .withEmail('creator@example.com')
+                .withDisplayName('Creator User')
+                .withPassword('password12345')
+                .build();
+            const creatorResult = await appDriver.registerUser(creatorReg);
+            const creatorId = creatorResult.user.uid;
 
-            appDriver.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            appDriver.seedUser(nonMemberId, { email: `${nonMemberId}@test.com`, displayName: 'Non Member User' });
-            appDriver.seedUser(payerId, { email: `${payerId}@test.com`, displayName: 'Payer User' });
-            appDriver.seedUser(payeeId, { email: `${payeeId}@test.com`, displayName: 'Payee User' });
+            const nonMemberReg = new UserRegistrationBuilder()
+                .withEmail('nonmember@example.com')
+                .withDisplayName('Non Member User')
+                .withPassword('password12345')
+                .build();
+            const nonMemberResult = await appDriver.registerUser(nonMemberReg);
+            const nonMemberId = nonMemberResult.user.uid;
+
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer2@example.com')
+                .withDisplayName('Payer User')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee2@example.com')
+                .withDisplayName('Payee User')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
@@ -342,12 +422,29 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject settlement when payer is not a group member', async () => {
-            const userId = 'test-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('user3@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, { email: `${userId}@test.com`, displayName: 'Test User' });
-            appDriver.seedUser('non-member-payer', { email: 'non-member-payer@test.com', displayName: 'Non Member' });
-            appDriver.seedUser(payeeId, { email: `${payeeId}@test.com`, displayName: 'Payee User' });
+            const nonMemberPayerReg = new UserRegistrationBuilder()
+                .withEmail('nonmemberpayer@example.com')
+                .withDisplayName('Non Member')
+                .withPassword('password12345')
+                .build();
+            await appDriver.registerUser(nonMemberPayerReg);
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee3@example.com')
+                .withDisplayName('Payee User')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -368,12 +465,29 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject settlement when payee is not a group member', async () => {
-            const userId = 'test-user';
-            const payerId = 'payer-user';
+            // Register users via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('user4@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, { email: `${userId}@test.com`, displayName: 'Test User' });
-            appDriver.seedUser(payerId, { email: `${payerId}@test.com`, displayName: 'Payer User' });
-            appDriver.seedUser('non-member-payee', { email: 'non-member-payee@test.com', displayName: 'Non Member' });
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer4@example.com')
+                .withDisplayName('Payer User')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const nonMemberPayeeReg = new UserRegistrationBuilder()
+                .withEmail('nonmemberpayee@example.com')
+                .withDisplayName('Non Member')
+                .withPassword('password12345')
+                .build();
+            await appDriver.registerUser(nonMemberPayeeReg);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -396,13 +510,30 @@ describe('SettlementHandlers - Unit Tests', () => {
 
     describe('updateSettlement', () => {
         it('should update settlement amount successfully', async () => {
-            const userId = 'test-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, { displayName: 'Test User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -431,13 +562,30 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should update settlement note successfully', async () => {
-            const userId = 'test-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, { displayName: 'Test User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -467,13 +615,30 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('sanitizes settlement note updates before persisting', async () => {
-            const userId = 'test-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, { displayName: 'Test User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -536,8 +701,14 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update of non-existent settlement', async () => {
-            const userId = 'test-user';
-            appDriver.seedUser(userId, { email: `${userId}@test.com`, displayName: 'Test User' });
+            // Register user via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('updatenonexist@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
             const updateRequest = { amount: '150' };
 
@@ -549,15 +720,38 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update when user is not a group member', async () => {
-            const creatorId = 'creator-user';
-            const nonMemberId = 'non-member-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const creatorReg = new UserRegistrationBuilder()
+                .withEmail('creator2@example.com')
+                .withDisplayName('Creator User')
+                .withPassword('password12345')
+                .build();
+            const creatorResult = await appDriver.registerUser(creatorReg);
+            const creatorId = creatorResult.user.uid;
 
-            appDriver.seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            appDriver.seedUser(nonMemberId, { email: `${nonMemberId}@test.com`, displayName: 'Non Member User' });
-            appDriver.seedUser(payerId, { email: `${payerId}@test.com`, displayName: 'Payer User' });
-            appDriver.seedUser(payeeId, { email: `${payeeId}@test.com`, displayName: 'Payee User' });
+            const nonMemberReg = new UserRegistrationBuilder()
+                .withEmail('nonmember2@example.com')
+                .withDisplayName('Non Member User')
+                .withPassword('password12345')
+                .build();
+            const nonMemberResult = await appDriver.registerUser(nonMemberReg);
+            const nonMemberId = nonMemberResult.user.uid;
+
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer5@example.com')
+                .withDisplayName('Payer User')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee5@example.com')
+                .withDisplayName('Payee User')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
@@ -585,15 +779,38 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject update by non-creator even if admin', async () => {
-            const adminId = 'admin-user';
-            const creatorId = 'creator-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const adminReg = new UserRegistrationBuilder()
+                .withEmail('admin@example.com')
+                .withDisplayName('Admin User')
+                .withPassword('password12345')
+                .build();
+            const adminResult = await appDriver.registerUser(adminReg);
+            const adminId = adminResult.user.uid;
 
-            appDriver.seedUser(adminId, { displayName: 'Admin User' });
-            appDriver.seedUser(creatorId, { displayName: 'Creator User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const creatorReg = new UserRegistrationBuilder()
+                .withEmail('creator3@example.com')
+                .withDisplayName('Creator User')
+                .withPassword('password12345')
+                .build();
+            const creatorResult = await appDriver.registerUser(creatorReg);
+            const creatorId = creatorResult.user.uid;
+
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer6@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee6@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, adminId);
@@ -658,13 +875,30 @@ describe('SettlementHandlers - Unit Tests', () => {
 
     describe('deleteSettlement', () => {
         it('should soft delete settlement successfully', async () => {
-            const userId = 'test-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const userReg = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(userReg);
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, { displayName: 'Test User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -705,15 +939,38 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should allow group admin to delete settlement created by another user', async () => {
-            const adminId = 'admin-user';
-            const creatorId = 'creator-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const adminReg = new UserRegistrationBuilder()
+                .withEmail('admin@example.com')
+                .withDisplayName('Admin User')
+                .withPassword('password12345')
+                .build();
+            const adminResult = await appDriver.registerUser(adminReg);
+            const adminId = adminResult.user.uid;
 
-            appDriver.seedUser(adminId, { displayName: 'Admin User' });
-            appDriver.seedUser(creatorId, { displayName: 'Creator User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const creatorReg = new UserRegistrationBuilder()
+                .withEmail('creator3@example.com')
+                .withDisplayName('Creator User')
+                .withPassword('password12345')
+                .build();
+            const creatorResult = await appDriver.registerUser(creatorReg);
+            const creatorId = creatorResult.user.uid;
+
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer6@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee6@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, adminId);
@@ -738,15 +995,38 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject delete when user is not a group member', async () => {
-            const creatorId = 'creator-user';
-            const nonMemberId = 'non-member-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const creatorReg = new UserRegistrationBuilder()
+                .withEmail('creator4@example.com')
+                .withDisplayName('Creator User')
+                .withPassword('password12345')
+                .build();
+            const creatorResult = await appDriver.registerUser(creatorReg);
+            const creatorId = creatorResult.user.uid;
 
-            appDriver.seedUser(creatorId, { displayName: 'Creator User' });
-            appDriver.seedUser(nonMemberId, { displayName: 'Non-member User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const nonMemberReg = new UserRegistrationBuilder()
+                .withEmail('nonmember3@example.com')
+                .withDisplayName('Non-member User')
+                .withPassword('password12345')
+                .build();
+            const nonMemberResult = await appDriver.registerUser(nonMemberReg);
+            const nonMemberId = nonMemberResult.user.uid;
+
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer7@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee7@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
@@ -770,15 +1050,38 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should reject delete by non-creator regular member', async () => {
-            const creatorId = 'creator-user';
-            const otherMemberId = 'other-member-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const creatorReg = new UserRegistrationBuilder()
+                .withEmail('creator6@example.com')
+                .withDisplayName('Creator User')
+                .withPassword('password12345')
+                .build();
+            const creatorResult = await appDriver.registerUser(creatorReg);
+            const creatorId = creatorResult.user.uid;
 
-            appDriver.seedUser(creatorId, { displayName: 'Creator User' });
-            appDriver.seedUser(otherMemberId, { displayName: 'Other Member User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const otherMemberReg = new UserRegistrationBuilder()
+                .withEmail('othermember2@example.com')
+                .withDisplayName('Other Member User')
+                .withPassword('password12345')
+                .build();
+            const otherMemberResult = await appDriver.registerUser(otherMemberReg);
+            const otherMemberId = otherMemberResult.user.uid;
+
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer9@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee9@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
@@ -803,13 +1106,30 @@ describe('SettlementHandlers - Unit Tests', () => {
         });
 
         it('should allow creator to delete their own settlement', async () => {
-            const creatorId = 'creator-user';
-            const payerId = 'payer-user';
-            const payeeId = 'payee-user';
+            // Register users via API
+            const creatorReg = new UserRegistrationBuilder()
+                .withEmail('creator7@example.com')
+                .withDisplayName('Creator User')
+                .withPassword('password12345')
+                .build();
+            const creatorResult = await appDriver.registerUser(creatorReg);
+            const creatorId = creatorResult.user.uid;
 
-            appDriver.seedUser(creatorId, { displayName: 'Creator User' });
-            appDriver.seedUser(payerId, { displayName: 'Payer' });
-            appDriver.seedUser(payeeId, { displayName: 'Payee' });
+            const payerReg = new UserRegistrationBuilder()
+                .withEmail('payer10@example.com')
+                .withDisplayName('Payer')
+                .withPassword('password12345')
+                .build();
+            const payerResult = await appDriver.registerUser(payerReg);
+            const payerId = payerResult.user.uid;
+
+            const payeeReg = new UserRegistrationBuilder()
+                .withEmail('payee10@example.com')
+                .withDisplayName('Payee')
+                .withPassword('password12345')
+                .build();
+            const payeeResult = await appDriver.registerUser(payeeReg);
+            const payeeId = payeeResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, creatorId);
