@@ -1,5 +1,5 @@
 import { StubStorage } from '@billsplit-wl/test-support';
-import { ClientUserBuilder, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { GroupHandlers } from '../../../groups/GroupHandlers';
@@ -16,9 +16,14 @@ describe('GroupHandlers - Unit Tests', () => {
 
     describe('createGroup', () => {
         it('should create a group successfully with name and description', async () => {
-            const userId = 'test-user';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
-            appDriver.seedUser(userId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('testuser@example.com')
+                .withDisplayName('Test User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             const groupRequest = new CreateGroupRequestBuilder()
                 .withName('My Test Group')
@@ -37,9 +42,14 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should create a group successfully without description', async () => {
-            const userId = 'test-user';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
-            appDriver.seedUser(userId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('simpleuser@example.com')
+                .withDisplayName('Simple User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             const groupRequest = new CreateGroupRequestBuilder()
                 .withName('Simple Group')
@@ -136,9 +146,14 @@ describe('GroupHandlers - Unit Tests', () => {
 
     describe('updateGroup', () => {
         it('should update group name successfully', async () => {
-            const userId = 'test-user';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
-            appDriver.seedUser(userId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('updateuser@example.com')
+                .withDisplayName('Update User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -159,9 +174,14 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should update group description successfully', async () => {
-            const userId = 'test-user';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
-            appDriver.seedUser(userId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('descuser@example.com')
+                .withDisplayName('Desc User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -183,9 +203,14 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should update both name and description', async () => {
-            const userId = 'test-user';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
-            appDriver.seedUser(userId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('bothupdate@example.com')
+                .withDisplayName('Both Update User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -262,9 +287,14 @@ describe('GroupHandlers - Unit Tests', () => {
 
     describe('deleteGroup', () => {
         it('should delete group successfully as admin', async () => {
-            const userId = 'test-user';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
-            appDriver.seedUser(userId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('deleteuser@example.com')
+                .withDisplayName('Delete User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -285,9 +315,14 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should reject delete of non-existent group', async () => {
-            const userId = 'test-user';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
-            appDriver.seedUser(userId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('deletenonexist@example.com')
+                .withDisplayName('Delete Non Exist')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             await expect(appDriver.deleteGroup('non-existent-group', userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -299,9 +334,14 @@ describe('GroupHandlers - Unit Tests', () => {
 
     describe('listGroups', () => {
         it('should list groups for user', async () => {
-            const userId = 'test-user';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
-            appDriver.seedUser(userId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('listuser@example.com')
+                .withDisplayName('List User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -325,9 +365,14 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should list groups with pagination parameters', async () => {
-            const userId = 'test-user';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Test User').build();
-            appDriver.seedUser(userId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('paginationuser@example.com')
+                .withDisplayName('Pagination User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             const result = await appDriver.listGroups({}, userId);
 
@@ -337,8 +382,14 @@ describe('GroupHandlers - Unit Tests', () => {
 
     describe('updateGroupMemberDisplayName', () => {
         it('should update member display name successfully', async () => {
-            const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Original Name' });
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('updatedisplay@example.com')
+                .withDisplayName('Original Name')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -350,8 +401,14 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('sanitizes group display name updates before persisting', async () => {
-            const userId = 'test-user';
-            appDriver.seedUser(userId, { displayName: 'Original Name' });
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('sanitizeuser@example.com')
+                .withDisplayName('Sanitize User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -395,9 +452,14 @@ describe('GroupHandlers - Unit Tests', () => {
 
     describe('getGroupFullDetails', () => {
         it('should return full group details with string-based amounts', async () => {
-            const userId = 'details-owner';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(userId).withDisplayName('Owner User').withEmail('owner@example.com').build();
-            appDriver.seedUser(userId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('detailsowner@example.com')
+                .withDisplayName('Owner User')
+                .withPassword('password12345')
+                .build();
+            const userResult = await appDriver.registerUser(registration);
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -432,13 +494,23 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should return full group details with multiple members and expenses', async () => {
-            const userId = 'owner';
-            const memberId = 'member';
+            // Register owner via API
+            const ownerReg = new UserRegistrationBuilder()
+                .withEmail('multiowner@example.com')
+                .withDisplayName('Owner User')
+                .withPassword('password12345')
+                .build();
+            const ownerResult = await appDriver.registerUser(ownerReg);
+            const userId = ownerResult.user.uid;
 
-            const { role: _1, photoURL: __1, ...userData1 } = new ClientUserBuilder().withUid(userId).withDisplayName('Owner User').build();
-            const { role: _2, photoURL: __2, ...userData2 } = new ClientUserBuilder().withUid(memberId).withDisplayName('Member User').build();
-            appDriver.seedUser(userId, userData1);
-            appDriver.seedUser(memberId, userData2);
+            // Register member via API
+            const memberReg = new UserRegistrationBuilder()
+                .withEmail('multimember@example.com')
+                .withDisplayName('Member User')
+                .withPassword('password12345')
+                .build();
+            const memberResult = await appDriver.registerUser(memberReg);
+            const memberId = memberResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
             const { shareToken } = await appDriver.generateShareableLink(group.id, undefined, userId);
@@ -463,9 +535,14 @@ describe('GroupHandlers - Unit Tests', () => {
         });
 
         it('should include soft-deleted expenses only when includeDeletedExpenses is true', async () => {
-            const ownerId = 'include-deleted-owner';
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder().withUid(ownerId).withDisplayName('Owner User').build();
-            appDriver.seedUser(ownerId, userData);
+            // Register user via API
+            const registration = new UserRegistrationBuilder()
+                .withEmail('deletedowner@example.com')
+                .withDisplayName('Deleted Owner')
+                .withPassword('password12345')
+                .build();
+            const ownerResult = await appDriver.registerUser(registration);
+            const ownerId = ownerResult.user.uid;
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()

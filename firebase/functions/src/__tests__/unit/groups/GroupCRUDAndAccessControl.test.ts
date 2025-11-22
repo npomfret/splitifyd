@@ -1,27 +1,47 @@
 // Unit tests for group CRUD operations and access control
 // Extracted from groups-management-consolidated.test.ts integration tests
 
-import { ClientUserBuilder, CreateGroupRequestBuilder, GroupUpdateBuilder } from '@billsplit-wl/test-support';
-import { v4 as uuidv4 } from 'uuid';
-import { beforeEach, describe, expect, test } from 'vitest';
-import { AppDriver } from '../AppDriver';
+import {CreateGroupRequestBuilder, GroupUpdateBuilder, UserRegistrationBuilder} from '@billsplit-wl/test-support';
+import {v4 as uuidv4} from 'uuid';
+import {afterEach, beforeEach, describe, expect, test} from 'vitest';
+import {AppDriver} from '../AppDriver';
 
 describe('Groups Management - CRUD and Access Control Unit Tests', () => {
     let appDriver: AppDriver;
-    const userIds = ['user-0', 'user-1', 'user-2', 'user-3'];
+    let userIds: string[] = [];
 
-    beforeEach(() => {
+    beforeEach(async () => {
         appDriver = new AppDriver();
 
-        // Seed users
-        userIds.forEach((userId, index) => {
-            const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
-                .withUid(userId)
-                .withDisplayName(`User ${index}`)
-                .withEmail(`user${index}@test.local`)
-                .build();
-            appDriver.seedUser(userId, userData);
-        });
+        // Register users via API
+        const registrations = [
+            new UserRegistrationBuilder()
+                .withEmail('user0@test.local')
+                .withDisplayName('User 0')
+                .withPassword('password12345')
+                .build(),
+            new UserRegistrationBuilder()
+                .withEmail('user1@test.local')
+                .withDisplayName('User 1')
+                .withPassword('password12345')
+                .build(),
+            new UserRegistrationBuilder()
+                .withEmail('user2@test.local')
+                .withDisplayName('User 2')
+                .withPassword('password12345')
+                .build(),
+            new UserRegistrationBuilder()
+                .withEmail('user3@test.local')
+                .withDisplayName('User 3')
+                .withPassword('password12345')
+                .build(),
+        ];
+
+        userIds = [];
+        for (const reg of registrations) {
+            const result = await appDriver.registerUser(reg);
+            userIds.push(result.user.uid);
+        }
     });
 
     afterEach(() => {

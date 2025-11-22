@@ -1,7 +1,7 @@
 import { amountToSmallestUnit, calculateEqualSplits, MemberRoles, MemberStatuses, toAmount, toCurrencyISOCode, toUserId, USD } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
 import { toGroupName } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, ExpenseUpdateBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -16,9 +16,16 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         appDriver.dispose();
     });
 
-    const seedUsers = (...users: Array<{ id: string; displayName: DisplayName | string; }>) => {
+    const registerUsers = async (...users: Array<{ id: string; displayName: DisplayName | string; }>) => {
         for (const user of users) {
-            appDriver.seedUser(user.id, { displayName: user.displayName, email: `${user.id}@test.local` });
+            const registration = new UserRegistrationBuilder()
+                .withEmail(`${user.id}@test.local`)
+                .withDisplayName(user.displayName as string)
+                .withPassword('password12345')
+                .build();
+            const result = await appDriver.registerUser(registration);
+            // Update the user.id to the actual registered user ID
+            user.id = result.user.uid;
         }
     };
 
@@ -44,7 +51,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
     it('deletes groups with full cascade via service', async () => {
         const owner = { id: 'owner-user', displayName: 'Owner' };
         const member = { id: 'member-user', displayName: 'Member' };
-        seedUsers(owner, member);
+        await registerUsers(owner, member);
 
         const group = await appDriver.createGroup(
             new CreateGroupRequestBuilder()
@@ -100,7 +107,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
     it('prevents non-owners from deleting groups', async () => {
         const owner = { id: 'delete-owner', displayName: 'Owner' };
         const member = { id: 'delete-member', displayName: 'Member' };
-        seedUsers(owner, member);
+        await registerUsers(owner, member);
 
         const group = await appDriver.createGroup(
             new CreateGroupRequestBuilder()
@@ -121,7 +128,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const owner = { id: 'secure-owner', displayName: 'Owner' };
         const member = { id: 'secure-member', displayName: 'Member' };
         const outsider = { id: 'secure-outsider', displayName: 'Outsider' };
-        seedUsers(owner, member, outsider);
+        await registerUsers(owner, member, outsider);
 
         const group = await appDriver.createGroup(
             new CreateGroupRequestBuilder()
@@ -150,7 +157,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
     it('exposes top-level member state via reader utilities', async () => {
         const owner = { id: 'member-owner', displayName: 'Owner' };
         const member = { id: 'member-joiner', displayName: 'Joiner' };
-        seedUsers(owner, member);
+        await registerUsers(owner, member);
 
         const group = await appDriver.createGroup(
             new CreateGroupRequestBuilder()
@@ -177,7 +184,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
     it('allows members to leave groups and loses access afterwards', async () => {
         const owner = { id: 'leave-owner', displayName: 'Owner' };
         const member = { id: 'leave-member', displayName: 'Leaver' };
-        seedUsers(owner, member);
+        await registerUsers(owner, member);
 
         const group = await createGroupWithMembers(owner.id, [member.id], 'Leave Group');
 
@@ -193,7 +200,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
     it('updates timestamps when members leave', async () => {
         const owner = { id: 'timestamp-owner', displayName: 'Owner' };
         const member = { id: 'timestamp-member', displayName: 'Member' };
-        seedUsers(owner, member);
+        await registerUsers(owner, member);
 
         const group = await createGroupWithMembers(owner.id, [member.id], 'Timestamp Group');
 
@@ -211,7 +218,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const owner = { id: 'sequence-owner', displayName: 'Owner' };
         const memberOne = { id: 'sequence-member-1', displayName: 'Member One' };
         const memberTwo = { id: 'sequence-member-2', displayName: 'Member Two' };
-        seedUsers(owner, memberOne, memberTwo);
+        await registerUsers(owner, memberOne, memberTwo);
 
         const group = await createGroupWithMembers(owner.id, [memberOne.id, memberTwo.id], 'Sequential Leaves');
 
@@ -226,7 +233,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         const owner = { id: 'mixed-owner', displayName: 'Owner' };
         const memberOne = { id: 'mixed-member-1', displayName: 'Member One' };
         const memberTwo = { id: 'mixed-member-2', displayName: 'Member Two' };
-        seedUsers(owner, memberOne, memberTwo);
+        await registerUsers(owner, memberOne, memberTwo);
 
         const group = await createGroupWithMembers(owner.id, [memberOne.id, memberTwo.id], 'Mixed Flow');
 
@@ -242,7 +249,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
             const owner = { id: 'full-owner', displayName: 'Owner' };
             const memberA = { id: 'full-member-a', displayName: 'Member A' };
             const memberB = { id: 'full-member-b', displayName: 'Member B' };
-            seedUsers(owner, memberA, memberB);
+            await registerUsers(owner, memberA, memberB);
 
             const group = await createGroupWithMembers(owner.id, [memberA.id, memberB.id], 'Full Details');
 
@@ -287,7 +294,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('presents consistent projections to group members', async () => {
             const owner = { id: 'consistent-owner', displayName: 'Owner' };
             const member = { id: 'consistent-member', displayName: 'Member' };
-            seedUsers(owner, member);
+            await registerUsers(owner, member);
 
             const group = await createGroupWithMembers(owner.id, [member.id], 'Consistency Group');
 
@@ -333,8 +340,8 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
     describe('Group listing behaviour (stub firestore)', () => {
         const owner = { id: 'listing-owner', displayName: 'Listing Owner' };
 
-        beforeEach(() => {
-            seedUsers(owner);
+        beforeEach(async () => {
+            await registerUsers(owner);
         });
 
         const createSequentialGroups = async (count: number) => {
@@ -449,7 +456,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
         it('excludes groups where the user is not a member', async () => {
             const other = { id: 'listing-other', displayName: 'Other User' };
-            seedUsers(other);
+            await registerUsers(other);
 
             const otherGroup = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -514,7 +521,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
     describe('Group lifecycle edge cases (stub firestore)', () => {
         it('retrieves group with no expenses', async () => {
             const owner = { id: 'edge-owner', displayName: 'Owner' };
-            seedUsers(owner);
+            await registerUsers(owner);
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -541,7 +548,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
         it('handles multiple expenses with identical participants', async () => {
             const owner = { id: 'edge-multi-owner', displayName: 'Owner' };
-            seedUsers(owner);
+            await registerUsers(owner);
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -578,7 +585,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('deletes expenses successfully', async () => {
             const owner = { id: 'edge-delete-owner', displayName: 'Owner' };
             const member = { id: 'edge-delete-member', displayName: 'Member' };
-            seedUsers(owner, member);
+            await registerUsers(owner, member);
 
             const group = await createGroupWithMembers(owner.id, [member.id], 'Deletion Group');
 
@@ -604,7 +611,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
 
         it('handles complex split scenarios', async () => {
             const owner = { id: 'edge-split-owner', displayName: 'Owner' };
-            seedUsers(owner);
+            await registerUsers(owner);
 
             const group = await appDriver.createGroup(
                 new CreateGroupRequestBuilder()
@@ -636,7 +643,7 @@ describe('Group lifecycle behaviour (stub firestore)', () => {
         it('updates expenses successfully', async () => {
             const owner = { id: toUserId('edge-update-owner'), displayName: 'Owner' };
             const member = { id: toUserId('edge-update-member'), displayName: 'Member' };
-            seedUsers(owner, member);
+            await registerUsers(owner, member);
 
             const group = await createGroupWithMembers(owner.id, [member.id], 'Update Group');
 
