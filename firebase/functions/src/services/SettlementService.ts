@@ -176,9 +176,10 @@ export class SettlementService {
             timer.endPhase();
 
             timer.startPhase('transaction:applyBalance');
-            // Apply incremental balance update
-            const settlementToApply: SettlementDTO = { id: settlementId, ...settlementDataToCreate, isLocked: false };
-            this.incrementalBalanceService.applySettlementCreated(transaction, settlementData.groupId, currentBalance, settlementToApply, memberIds);
+            // Apply incremental balance update (needs isLocked for type compatibility with SettlementDTO)
+            // Note: isLocked is a computed field for API responses, not stored in Firestore
+            const settlementForBalance: SettlementDTO = { id: settlementId, ...settlementDataToCreate, isLocked: false };
+            this.incrementalBalanceService.applySettlementCreated(transaction, settlementData.groupId, currentBalance, settlementForBalance, memberIds);
             timer.endPhase();
 
             timer.startPhase('transaction:buildActivityItem');

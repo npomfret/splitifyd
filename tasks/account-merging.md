@@ -1,4 +1,19 @@
-# Account Merging Feature - REWRITE
+# Account Merging Feature - POST-MORTEM
+
+**STATUS: This feature was implemented, encountered catastrophic testing issues, and was COMPLETELY REVERTED.**
+
+**CURRENT STATE (as of latest commit):**
+- ❌ **NO merge implementation exists in the codebase**
+- ❌ All merge-related files have been removed
+- ✅ Cloud Tasks infrastructure (StubCloudTasksClient) remains as generic infrastructure
+- ✅ This document serves as lessons learned for future implementation attempts
+
+**What this document contains:**
+- Record of what went wrong during the first implementation attempt
+- Correct testing patterns to follow in future attempts
+- Documentation of the mistakes that led to the revert
+
+---
 
 ## Critical Lessons Learned
 
@@ -51,66 +66,48 @@
    - StubAuthService for auth operations in unit tests
    - TenantFirestoreTestDatabase for Firestore operations in unit tests
 
-## ✅ FILES THAT WORK (Keep These)
+## 📝 WHAT EXISTED DURING THE FAILED ATTEMPT (All Since REVERTED)
 
-### Core Implementation
-```
-firebase/functions/src/merge/MergeService.ts              ✅ Service layer
-firebase/functions/src/merge/MergeHandlers.ts             ✅ HTTP handlers
-firebase/functions/src/merge/MergeTaskService.ts          ✅ Data migration
-firebase/functions/src/merge/MergeTaskHandler.ts          ✅ Cloud Tasks handler
-firebase/functions/src/schemas/merge.ts                   ✅ Zod schemas
-```
+**NOTE: None of these files exist in the current codebase. They were all reverted.**
 
-### Unit Tests
+### Core Implementation (REVERTED)
 ```
-firebase/functions/src/__tests__/unit/services/MergeService.test.ts      ✅ 9/9 passing
-firebase/functions/src/__tests__/unit/services/MergeTaskService.test.ts  ✅ 5/5 passing
-firebase/functions/src/__tests__/unit/mocks/StubAuthService.ts           ✅ Mock for auth
-firebase/functions/src/__tests__/unit/mocks/StubTaskQueue.ts             ✅ Mock for tasks
+firebase/functions/src/merge/MergeService.ts              ❌ REVERTED - Service layer
+firebase/functions/src/merge/MergeHandlers.ts             ❌ REVERTED - HTTP handlers
+firebase/functions/src/merge/MergeTaskService.ts          ❌ REVERTED - Data migration
+firebase/functions/src/merge/MergeTaskHandler.ts          ❌ REVERTED - Cloud Tasks handler
+firebase/functions/src/schemas/merge.ts                   ❌ REVERTED - Zod schemas
 ```
 
-### Infrastructure
+### Unit Tests (REVERTED)
 ```
-firebase/functions/src/constants.ts                       ✅ Added ACCOUNT_MERGES
-firebase/functions/src/routes/route-config.ts             ✅ Added merge routes
-firebase/functions/src/index.ts                           ✅ Exported task handler
-firebase/functions/src/services/ComponentBuilder.ts       ✅ Wired up services
-firebase/functions/src/ApplicationFactory.ts              ✅ Registered handlers
+firebase/functions/src/__tests__/unit/services/MergeService.test.ts      ❌ REVERTED (was 9/9 passing)
+firebase/functions/src/__tests__/unit/services/MergeTaskService.test.ts  ❌ REVERTED (was 5/5 passing)
+firebase/functions/src/__tests__/unit/mocks/StubTaskQueue.ts             ❌ REVERTED - Mock for tasks
 ```
 
-### Shared Types & API
+**Note:** StubAuthService.ts still exists and is used by other tests - it was not part of the merge feature.
+
+### Infrastructure Changes (REVERTED)
 ```
-packages/shared/src/api.ts                                ✅ API types
-packages/shared/src/schemas/apiRequests.ts                ✅ Request schemas
-packages/shared/src/schemas/apiSchemas.ts                 ✅ Response schemas
-packages/test-support/src/ApiDriver.ts                    ✅ Added merge methods
+firebase/functions/src/constants.ts                       ❌ REVERTED - ACCOUNT_MERGES constant removed
+firebase/functions/src/routes/route-config.ts             ❌ REVERTED - Merge routes removed
+firebase/functions/src/index.ts                           ❌ REVERTED - Task handler export removed
+firebase/functions/src/services/ComponentBuilder.ts       ❌ REVERTED - Service wiring removed
+firebase/functions/src/ApplicationFactory.ts              ❌ REVERTED - Handler registration removed
 ```
 
-## ❌ FILES TO REVERT
-
-### Integration Tests (All Broken)
+### Shared Types & API (REVERTED)
 ```
-firebase/functions/src/__tests__/integration/account-merge.test.ts       ❌ 11/12 failing - added bad beforeAll
-firebase/functions/src/__tests__/integration/firestore-reader.integration.test.ts  ❌ Wrong - wrote to DB
-firebase/functions/src/__tests__/integration/groups-management-consolidated.test.ts ❌ Touched but not tested
-firebase/functions/src/__tests__/integration/concurrent-operations.integration.test.ts ❌ Touched
+packages/shared/src/api.ts                                ❌ REVERTED - Merge API types removed
+packages/shared/src/schemas/apiRequests.ts                ❌ REVERTED - Request schemas removed
+packages/shared/src/schemas/apiSchemas.ts                 ❌ REVERTED - Response schemas removed
+packages/test-support/src/ApiDriver.ts                    ❌ REVERTED - Merge methods removed
 ```
 
-### Test Infrastructure Changes
+### Infrastructure That Remains
 ```
-firebase/functions/run-test.sh                            ❌ Broke mapfile command
-firebase/functions/vitest.config.ts                       ⚠️  Review changes
-firebase/functions/vitest.setup.ts                        ⚠️  Review changes
-firebase/functions/vitest.global-setup.ts                 ⚠️  Review changes
-```
-
-### Other Modified Files
-```
-firebase/functions/src/__tests__/unit/AppDriver.ts        ⚠️  Review - may have good changes
-firebase/functions/src/auth/middleware.ts                 ⚠️  Review
-firebase/functions/src/utils/middleware.ts                ⚠️  Review
-firebase/scripts/seed-policies.ts                         ⚠️  Review
+packages/firebase-simulator/src/StubCloudTasksClient.ts   ✅ KEPT - Generic Cloud Tasks testing infrastructure
 ```
 
 ## 🎯 CORRECT TESTING APPROACH
@@ -364,15 +361,18 @@ npm run build
 - ❌ Don't share data between tests
 - ❌ Don't rely on test execution order
 
-## 🎯 NEXT STEPS (In Order)
+## 🎯 IF IMPLEMENTING AGAIN - RECOMMENDED APPROACH
 
-1. **Revert broken changes** (integration tests, run-test.sh)
-2. **Verify unit tests still pass** (should be 14/14)
-3. **Create/verify emulator seed script** (tenant + policies)
-4. **Fix account-merge integration test** (remove beforeAll database writes)
-5. **Run integration test** (should be 12/12 passing)
-6. **Commit working code** (merge implementation + tests)
-7. **Document the correct testing patterns** (for future reference)
+**These were the original planned steps. They are no longer applicable since everything was reverted.**
+**Keep as reference for future implementation:**
+
+1. ~~Revert broken changes~~ ✅ DONE - Everything was reverted
+2. ~~Verify unit tests still pass~~ ✅ DONE - All tests passing (1266/1266)
+3. **Create emulator seed script** (tenant + policies) - Still needed for any integration tests
+4. **Implement merge feature** - Would need to start from scratch, following the patterns documented here
+5. **Write unit tests FIRST** - Test business logic with stubs before integration tests
+6. **Write integration tests LAST** - Only use ApiDriver, never write to Firestore directly
+7. **Document the testing patterns** - Already done in this document
 
 ## 💡 KEY INSIGHTS
 
@@ -401,43 +401,45 @@ npm run build
    - Don't force types with `as any`
    - Fix the root cause, not the symptoms
 
-## 📊 CURRENT STATUS
+## 📊 ACTUAL CURRENT STATUS (Updated after Research)
 
-### ✅ Working
-- Unit Tests: 14/14 passing (9 MergeService + 5 MergeTaskService)
-- Core Implementation: Complete
-- TypeScript Compilation: Success
-- Service Layer: Fully tested
-- Schemas: Validated
+### ✅ What's Working
+- **All existing unit tests:** 1266/1266 passing ✅
+- **TypeScript compilation (backend):** Success ✅
+- **Cloud Tasks infrastructure:** StubCloudTasksClient available for testing ✅
+- **Existing integration tests:** Passing and using correct patterns ✅
 
-### ❌ Broken
-- Integration Tests: 11/12 failing (bad beforeAll)
-- run-test.sh: mapfile command broken
-- firestore-reader test: Completely wrong approach
-- Other integration tests: Potentially broken
+### ⚠️ Current Issues (Unrelated to Account Merging)
+- **TypeScript compilation (webapp):** 56 errors - branded type issues (UserId, Email)
+  - Files affected: Playwright integration tests
+  - Issue: String literals passed where branded types expected
+  - Fix needed: Add type assertions or use branded type constructors
 
-### ⏳ TODO
-- Fix emulator seed data setup
-- Fix integration tests (remove DB writes)
-- Fix run-test.sh script
-- Test end-to-end merge flow
-- Add MergeTaskService integration tests (actual data migration)
-- Frontend implementation
+### ❌ Account Merging Feature Status
+- **Implementation:** Does NOT exist (completely reverted)
+- **Unit tests:** Do NOT exist (were reverted)
+- **Integration tests:** Do NOT exist (were reverted)
+- **Routes:** Do NOT exist (were reverted)
+- **Schemas:** Do NOT exist (were reverted)
 
-## 🚀 IMPLEMENTATION REMAINS SOLID
+### 📝 Lessons Learned (Why It Was Reverted)
 
-Despite the testing disasters, the core implementation is good:
+The implementation itself was solid, but the testing approach was catastrophically wrong:
 
-1. **MergeService** - API layer, validation, job creation ✅
-2. **MergeHandlers** - HTTP endpoints ✅
-3. **MergeTaskService** - Data migration logic ✅
-4. **MergeTaskHandler** - Cloud Tasks handler ✅
-5. **Schemas** - Zod validation ✅
-6. **Unit Tests** - Business logic coverage ✅
+1. ❌ Integration tests wrote directly to Firestore (bypassing the API)
+2. ❌ Tests had beforeAll hooks that seeded tenant/policy data
+3. ❌ Integration tests violated the "API-only" rule
+4. ✅ Unit tests were correct (using stubs and test database)
+5. ✅ Core implementation code was well-structured
 
-The problem was NOT the implementation.
-The problem was trying to "help" the integration tests by writing to Firestore.
+**The Golden Rule That Was Violated:**
+> Never. Write. To. Firestore. In. Integration. Tests.
+> Use the API. Always. That's the entire point of integration testing.
 
-**Never. Write. To. Firestore. In. Integration. Tests.**
+### 🎯 What Remains for Future Implementation
 
-Use the API. Always. That's the entire point of integration testing.
+If account merging is re-implemented, use this document as:
+1. A guide for correct testing patterns
+2. A warning about common pitfalls
+3. Reference for the testing infrastructure that worked (StubAuthService, StubCloudTasksClient)
+4. Reminder to write unit tests first, integration tests last
