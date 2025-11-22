@@ -6,7 +6,6 @@ import type {
     AdminUpsertTenantResponse,
     AdminUserProfile,
     AddTenantDomainRequest,
-    RegisteredUser,
     ChangeEmailRequest,
     CommentDTO,
     CommentText,

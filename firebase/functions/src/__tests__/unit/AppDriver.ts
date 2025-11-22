@@ -10,7 +10,6 @@ import {
     AdminUserProfile,
     AddTenantDomainRequest,
     API,
-    RegisteredUser,
     PublicAPI,
     ChangeEmailRequest,
     CommentDTO,
@@ -122,7 +121,10 @@ export type AuthToken = string;
  */
 type SeedUserData = Omit<Partial<UserRecord>, 'metadata'> & {
     role?: typeof SystemUserRoles[keyof typeof SystemUserRoles];
-    metadata?: RegisteredUser['metadata'];
+    metadata?: {
+        creationTime: string;
+        lastSignInTime?: string;
+    };
 };
 
 export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken> {

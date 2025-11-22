@@ -530,7 +530,7 @@ deletedAt: ISOString | null
 
 ### 8.2. High Priority (Remaining)
 
-1. **Complete RegisteredUser type splitting** (Phases 1-3 done, Phases 4-6 remaining):
+1. **Complete RegisteredUser type splitting** (Phases 1-4 done, Phases 5-6 remaining):
    - ✅ Phase 1: Type definitions added (2025-01-17)
    - ✅ Phase 2: Backend migration complete (2025-01-22)
      - UserService2.getUser() returns ClientUser
@@ -545,7 +545,15 @@ deletedAt: ISOString | null
      - Updated AdminUsersTab.tsx to use AdminUserProfile
      - Removed RegisteredUser import from all webapp files
      - All TypeScript compilation verified
-   - 🎯 Phase 4: Update tests and builders
+   - ✅ Phase 4: Test builders and cleanup complete (2025-01-22)
+     - Created UserProfileBuilder for server-side testing
+     - Created AdminUserProfileBuilder for admin endpoint testing
+     - ClientUserBuilder already existed and is ready for use
+     - Removed all unused RegisteredUser imports from codebase
+     - Updated AppDriver.ts to use AdminUserProfile['metadata']
+     - Removed RegisteredUser imports from UserService2.ts and api.ts
+     - All TypeScript compilation verified across all packages
+     - All 25 PolicyHandlers unit tests passing
    - 🎯 Phase 5: Deprecate RegisteredUser
    - 🎯 Phase 6: Remove RegisteredUser (future)
    - See section 4.3 for detailed implementation plan
@@ -590,13 +598,14 @@ deletedAt: ISOString | null
   - AdminUserProfile for admin endpoints
 ✅ **All TypeScript compilation passing** - Verified across all packages
 
-### 9.3. What Remains (Phases 4-6 - Outstanding)
+### 9.3. What Remains (Phases 5-6 - Outstanding)
 
 **RegisteredUser Type Splitting:**
 - ✅ Phase 1 complete: Type definitions added (ClientUser, UserProfile, AdminUserProfile)
 - ✅ Phase 2 complete: Backend migration (UserService2, admin handlers, browser handlers, API interface)
 - ✅ Phase 3 complete: Frontend migration (apiClient, AdminUsersTab, removed RegisteredUser imports)
-- 🎯 Phases 4-6: Test updates, RegisteredUser deprecation and removal (see section 4.3)
+- ✅ Phase 4 complete: Test builders and cleanup (UserProfileBuilder, AdminUserProfileBuilder, removed unused imports)
+- 🎯 Phases 5-6: RegisteredUser deprecation and removal (see section 4.3)
 
 ### 9.4. Core Principles Applied
 

@@ -1,5 +1,6 @@
 export { ActivityFeedItemBuilder } from './activity/ActivityFeedItemBuilder';
 export { AdminTenantRequestBuilder } from './AdminTenantRequestBuilder';
+export { AdminUserProfileBuilder } from './AdminUserProfileBuilder';
 export { AppConfigurationBuilder, type TenantBrandingFlagsOverrides, type TenantBrandingOverrides, type TenantOverrides } from './AppConfigurationBuilder';
 export { AuthUserRecordBuilder } from './AuthUserRecordBuilder';
 export { BrandingConfigBuilder } from './BrandingConfigBuilder';
@@ -47,5 +48,6 @@ export { TestUserBuilder } from './TestUserBuilder';
 export { ThemeBuilder } from './ThemeBuilder';
 export { TransactionChangeDocumentBuilder } from './TransactionChangeDocumentBuilder';
 export { DebtScenarios, UserBalanceBuilder } from './UserBalanceBuilder';
+export { UserProfileBuilder } from './UserProfileBuilder';
 export { UserRegistrationBuilder } from './UserRegistrationBuilder';
 export { UserUpdateBuilder } from './UserUpdateBuilder';

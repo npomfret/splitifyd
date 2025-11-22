@@ -11,7 +11,6 @@ import {
     type API,
     type PublicAPI,
     ApiSerializer,
-    RegisteredUser,
     AuthenticatedFirebaseUser,
     ChangeEmailRequest,
     CommentDTO,
