@@ -1,6 +1,6 @@
 import { StubStorage } from '@billsplit-wl/test-support';
 import { CommentDTO, toEmail, toPassword, toDisplayName, toUserId } from '@billsplit-wl/shared';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, TenantFirestoreTestDatabase, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CommentHandlers } from '../../../comments/CommentHandlers';
 import { HTTP_STATUS } from '../../../constants';
@@ -10,7 +10,7 @@ import { StubAuthService } from '../mocks/StubAuthService';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-describe('CommentHandlers - Unit Tests', () => {
+describe('CommentHandlers - Integration Tests', () => {
     let appDriver: AppDriver;
 
     beforeEach(() => {
@@ -204,11 +204,16 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should reject expense comment when user is not a group member', async () => {
-            const userId = 'test-user';
-            const creatorId = toUserId('creator-user');
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, {});
-            appDriver.seedUser(creatorId, {});
+            const creatorResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const creatorId = toUserId(creatorResult.user.uid);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
 
@@ -230,9 +235,12 @@ describe('CommentHandlers - Unit Tests', () => {
 
         it('should reject expense comment for non-existent expense', async () => {
             const expenseId = 'non-existent-expense';
-            const userId = 'test-user';
 
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = userResult.user.uid;
 
             await expect(appDriver.createExpenseComment(expenseId, 'Test comment', userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -244,8 +252,11 @@ describe('CommentHandlers - Unit Tests', () => {
 
     describe('listGroupComments', () => {
         it('should list group comments successfully', async () => {
-            const userId = 'test-user';
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -258,8 +269,11 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should return empty array when no comments exist', async () => {
-            const userId = 'test-user';
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -270,11 +284,16 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should reject listing comments when user is not a group member', async () => {
-            const userId = 'test-user';
-            const creatorId = 'creator-user';
+            // Register users via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = userResult.user.uid;
 
-            appDriver.seedUser(userId, {});
-            appDriver.seedUser(creatorId, {});
+            const creatorResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const creatorId = creatorResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
 
@@ -287,9 +306,12 @@ describe('CommentHandlers - Unit Tests', () => {
 
         it('should reject listing comments for non-existent group', async () => {
             const groupId = 'non-existent-group';
-            const userId = 'test-user';
 
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = userResult.user.uid;
 
             await expect(appDriver.listGroupComments(groupId, {}, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -299,8 +321,11 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should return newest comments first with full metadata', async () => {
-            const userId = 'group-comment-user';
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -324,8 +349,11 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should paginate group comments using cursor and limit', async () => {
-            const userId = 'group-comment-pagination-user';
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -361,8 +389,11 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should ignore invalid pagination parameters gracefully', async () => {
-            const userId = 'group-comment-invalid-pagination-user';
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = userResult.user.uid;
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -378,8 +409,11 @@ describe('CommentHandlers - Unit Tests', () => {
 
     describe('listExpenseComments', () => {
         it('should list expense comments successfully', async () => {
-            const userId = toUserId('test-user');
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = toUserId(userResult.user.uid);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -401,8 +435,11 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should return empty array when no expense comments exist', async () => {
-            const userId = toUserId('test-user');
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = toUserId(userResult.user.uid);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -422,11 +459,16 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should reject listing comments when user is not a group member', async () => {
-            const userId = toUserId('test-user');
-            const creatorId = toUserId('creator-user');
+            // Register users via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = toUserId(userResult.user.uid);
 
-            appDriver.seedUser(userId, {});
-            appDriver.seedUser(creatorId, {});
+            const creatorResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const creatorId = toUserId(creatorResult.user.uid);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
 
@@ -448,9 +490,12 @@ describe('CommentHandlers - Unit Tests', () => {
 
         it('should reject listing comments for non-existent expense', async () => {
             const expenseId = 'non-existent-expense';
-            const userId = 'test-user';
 
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = userResult.user.uid;
 
             await expect(appDriver.listExpenseComments(expenseId, {}, userId)).rejects.toThrow(
                 expect.objectContaining({
@@ -460,8 +505,11 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should return newest expense comments first with expected metadata', async () => {
-            const userId = toUserId('expense-comment-user');
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = toUserId(userResult.user.uid);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -492,8 +540,11 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should paginate expense comments via cursor and limit', async () => {
-            const userId = toUserId('expense-comment-pagination-user');
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = toUserId(userResult.user.uid);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
@@ -529,8 +580,11 @@ describe('CommentHandlers - Unit Tests', () => {
         });
 
         it('should ignore invalid pagination inputs for expense comments', async () => {
-            const userId = toUserId('expense-comment-invalid-pagination-user');
-            appDriver.seedUser(userId, {});
+            // Register user via API instead of seeding
+            const userResult = await appDriver.registerUser(
+                new UserRegistrationBuilder().build()
+            );
+            const userId = toUserId(userResult.user.uid);
 
             const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), userId);
 
