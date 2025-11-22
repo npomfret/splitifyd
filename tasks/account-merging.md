@@ -361,18 +361,46 @@ npm run build
 - ❌ Don't share data between tests
 - ❌ Don't rely on test execution order
 
-## 🎯 IF IMPLEMENTING AGAIN - RECOMMENDED APPROACH
+## 🎯 RE-IMPLEMENTATION IN PROGRESS
 
-**These were the original planned steps. They are no longer applicable since everything was reverted.**
-**Keep as reference for future implementation:**
+**Status: Second attempt started - following correct patterns this time**
 
-1. ~~Revert broken changes~~ ✅ DONE - Everything was reverted
-2. ~~Verify unit tests still pass~~ ✅ DONE - All tests passing (1266/1266)
-3. **Create emulator seed script** (tenant + policies) - Still needed for any integration tests
-4. **Implement merge feature** - Would need to start from scratch, following the patterns documented here
-5. **Write unit tests FIRST** - Test business logic with stubs before integration tests
-6. **Write integration tests LAST** - Only use ApiDriver, never write to Firestore directly
-7. **Document the testing patterns** - Already done in this document
+### Phase 1: Minimal Service Layer (IN PROGRESS)
+- [ ] Step 1: Create `MergeService` with `validateMergeEligibility()` method
+- [ ] Step 2: Write unit tests for validation logic
+- [ ] Step 3: Wire service into `ComponentBuilder` (DI setup)
+- [ ] Step 4: Run tests and verify (no API exposure yet)
+
+### Phase 2: Core Merge Logic (NOT STARTED)
+- [ ] Add `initiateMerge()` method to MergeService
+- [ ] Create merge job document schema
+- [ ] Write unit tests for merge initiation
+- [ ] Wire up Cloud Tasks stub for testing
+
+### Phase 3: Data Migration Service (NOT STARTED)
+- [ ] Create `MergeTaskService` for actual data migration
+- [ ] Implement collection-by-collection migration logic
+- [ ] Write comprehensive unit tests
+- [ ] Test with TenantFirestoreTestDatabase
+
+### Phase 4: HTTP Layer (NOT STARTED)
+- [ ] Create `MergeHandlers` with HTTP endpoints
+- [ ] Add routes to `route-config.ts`
+- [ ] Add shared schemas to packages
+- [ ] Export from `index.ts`
+
+### Phase 5: Integration Tests (LAST)
+- [ ] Add merge methods to ApiDriver
+- [ ] Write integration tests using ONLY ApiDriver
+- [ ] Verify end-to-end flow via API
+- [ ] NO DIRECT FIRESTORE ACCESS
+
+### Golden Rules for This Implementation
+1. ✅ Every step is fully tested before moving to next
+2. ✅ No code is written unless it's immediately tested and wired
+3. ✅ Unit tests FIRST, integration tests LAST
+4. ✅ Integration tests use ONLY ApiDriver (never Firestore)
+5. ✅ One small step at a time - no big bang implementations
 
 ## 💡 KEY INSIGHTS
 
