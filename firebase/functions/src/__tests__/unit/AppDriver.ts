@@ -79,7 +79,7 @@ import {
     toUserId,
 } from '@billsplit-wl/shared';
 import { StubStorage, TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { CreateGroupRequestBuilder, createStubRequest, createStubResponse } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, UserRegistrationBuilder, createStubRequest, createStubResponse } from '@billsplit-wl/test-support';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { UserRecord } from 'firebase-admin/auth';
 import { expect } from 'vitest';
@@ -417,6 +417,24 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
      */
     seedTenantDocument(tenantId: string, tenantData: Record<string, any> = {}) {
         this.db.seedTenantDocument(tenantId, tenantData);
+    }
+
+    /**
+     * Creates an admin user via API (register + promote to admin)
+     * This replaces seedAdminUser to avoid direct database seeding
+     */
+    async createAdminUser(): Promise<{ userId: UserId; token: AuthToken }> {
+        const registration = new UserRegistrationBuilder().build();
+
+        const result = await this.registerUser(registration);
+        const uid = toUserId(result.user.uid);
+
+        await this.promoteUserToAdmin(uid);
+
+        return {
+            userId: uid,
+            token: result.user.uid,
+        };
     }
 
     dispose() {}
