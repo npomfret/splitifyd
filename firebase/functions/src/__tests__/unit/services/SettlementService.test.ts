@@ -1,91 +1,55 @@
-import { StubStorage } from '@billsplit-wl/test-support';
 import { toGroupId, toSettlementId, toUserId } from '@billsplit-wl/shared';
-import { TenantFirestoreTestDatabase } from '@billsplit-wl/test-support';
-import { ClientUserBuilder, CreateSettlementRequestBuilder, GroupMemberDocumentBuilder, SettlementDocumentBuilder } from '@billsplit-wl/test-support';
-import { Timestamp } from '@google-cloud/firestore';
+import { CreateSettlementRequestBuilder, UserRegistrationBuilder, CreateGroupRequestBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
 import { SettlementService } from '../../../services/SettlementService';
+import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 
 describe('SettlementService - Unit Tests', () => {
     let settlementService: SettlementService;
-    let db: TenantFirestoreTestDatabase;
-    let stubAuth: StubAuthService;
-
-    const creatorUser = toUserId('creator-user');
-    const adminUser = toUserId('admin-user');
-    const otherUser = toUserId('other-user');
-
-    const seedUser = (userId: string, overrides: Record<string, any> = {}) => {
-        const user = db.seedUser(userId, overrides);
-
-        const { role: _, photoURL: __, ...userData } = new ClientUserBuilder()
-            .withUid(userId)
-            .withEmail(user.email)
-            .withDisplayName(overrides.displayName ?? user.displayName)
-            .build();
-        stubAuth.setUser(userId, userData);
-
-        return user;
-    };
+    let appDriver: AppDriver;
 
     beforeEach(() => {
-        // Create stub database
-        db = new TenantFirestoreTestDatabase();
-        stubAuth = new StubAuthService();
+        // Create AppDriver which sets up all real services
+        appDriver = new AppDriver();
 
-        const applicationBuilder = new ComponentBuilder(stubAuth, db, new StubStorage({ defaultBucketName: 'test-bucket' }));
-        settlementService = applicationBuilder.buildSettlementService();
+        // Use ComponentBuilder to create the service with proper dependencies
+        const stubAuth = new StubAuthService();
+        const componentBuilder = new ComponentBuilder(stubAuth, appDriver.database, appDriver.storageStub);
+        settlementService = componentBuilder.buildSettlementService();
     });
 
     describe('Settlement Creation Validation', () => {
         it('should validate settlement amounts correctly', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            // Add payer and payee to the group
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
             const validSettlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(100.5, 'USD')
                 .withNote('Test settlement')
                 .build();
 
-            // Seed required data
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-
-            // Set up group memberships for all users (creator, payer, payee)
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
-
             // Act
-            const result = await settlementService.createSettlement(validSettlementData, userId);
+            const result = await appDriver.createSettlement(validSettlementData, creatorId);
 
             // Assert
             expect(result.id).toBeDefined();
@@ -96,48 +60,31 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should handle optional note field correctly', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            // Add payer and payee to the group
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
             const settlementDataWithoutNote = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(50.0, 'USD')
                 .withoutNote()
                 .build();
 
-            // Seed required data
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-
-            // Set up group memberships
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
-
             // Act
-            const result = await settlementService.createSettlement(settlementDataWithoutNote, userId);
+            const result = await appDriver.createSettlement(settlementDataWithoutNote, creatorId);
 
             // Assert
             expect(result.id).toBeDefined();
@@ -149,179 +96,112 @@ describe('SettlementService - Unit Tests', () => {
     describe('User Data Validation', () => {
         it('should validate user data with complete required fields', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            // Add payer and payee to the group
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('valid-payer')
-                .withPayeeId('valid-payee')
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .build();
 
-            // Seed valid user data
-            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('valid-payer', {
-                email: 'payer@example.com',
-                displayName: 'Valid Payer',
-                otherField: 'should be preserved',
-            });
-            seedUser('valid-payee', {
-                email: 'payee@example.com',
-                displayName: 'Valid Payee',
-            });
-
-            // Seed other dependencies
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-
-            // Set up group memberships
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('valid-payer')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('valid-payee')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'valid-payer', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'valid-payee', payeeMembershipDoc);
-
             // Act & Assert - Should not throw
-            await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
+            await expect(appDriver.createSettlement(settlementData, creatorId)).resolves.toBeDefined();
         });
 
         it('should handle user data validation during settlement creation', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            // Add payer and payee to the group
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .build();
 
-            // Seed basic setup
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-
-            // Set up group memberships
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
-
             // Act & Assert - Should succeed
-            await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
+            await expect(appDriver.createSettlement(settlementData, creatorId)).resolves.toBeDefined();
         });
     });
 
     describe('Group Membership Validation', () => {
         it('should validate group membership for all users', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            // Add payer and payee to the group
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .build();
 
-            // Seed valid data
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-
-            // Set up group memberships for all users
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
-
             // Act & Assert - Should succeed
-            await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
+            await expect(appDriver.createSettlement(settlementData, creatorId)).resolves.toBeDefined();
         });
 
         it('should reject settlement when payer is not group member', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const nonMemberPayer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const nonMemberPayerId = toUserId(nonMemberPayer.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            // Add only payee to the group (payer is not added)
+            await appDriver.addMembersToGroup(groupId, creatorId, [payeeId]);
+
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('non-member-payer')
-                .withPayeeId('payee-user')
+                .withPayerId(nonMemberPayerId)
+                .withPayeeId(payeeId)
                 .build();
 
-            // Seed group data
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-
-            // Set up group memberships - creator and payee are members, payer is not
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
-
             // Act & Assert
-            await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
+            await expect(appDriver.createSettlement(settlementData, creatorId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'MEMBER_NOT_IN_GROUP',
@@ -331,38 +211,31 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should reject settlement when payee is not group member', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const nonMemberPayee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const nonMemberPayeeId = toUserId(nonMemberPayee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            // Add only payer to the group (payee is not added)
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId]);
+
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('non-member-payee')
+                .withPayerId(payerId)
+                .withPayeeId(nonMemberPayeeId)
                 .withAmount(100, 'USD')
                 .withDate(new Date().toISOString())
                 .build();
 
-            // Seed group data
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-
-            // Set up group memberships - creator and payer are members, payee is not
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-
             // Act & Assert
-            await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
+            await expect(appDriver.createSettlement(settlementData, creatorId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'MEMBER_NOT_IN_GROUP',
@@ -372,18 +245,26 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should reject settlement when group does not exist', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = 'non-existent-group';
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const nonExistentGroupId = 'non-existent-group';
             const settlementData = new CreateSettlementRequestBuilder()
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withGroupId(nonExistentGroupId)
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .build();
 
-            // Don't seed group data (simulating non-existent group)
+            // Don't create group (simulating non-existent group)
 
             // Act & Assert
-            await expect(settlementService.createSettlement(settlementData, userId)).rejects.toThrow(
+            await expect(appDriver.createSettlement(settlementData, creatorId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                     code: 'NOT_FOUND',
@@ -396,47 +277,29 @@ describe('SettlementService - Unit Tests', () => {
     describe('Data Handling Edge Cases', () => {
         it('should handle decimal precision correctly', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(123.45, 'USD')
                 .build();
 
-            // Seed required data
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-
-            // Set up group memberships
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
-
             // Act
-            const result = await settlementService.createSettlement(settlementData, userId);
+            const result = await appDriver.createSettlement(settlementData, creatorId);
 
             // Assert
             expect(result.amount).toBe('123.45');
@@ -444,138 +307,84 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should handle maximum valid amount', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(999999.99, 'USD')
                 .build();
 
-            // Seed required data
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-
-            // Set up group memberships
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
-
             // Act & Assert - Should succeed
-            await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
+            await expect(appDriver.createSettlement(settlementData, creatorId)).resolves.toBeDefined();
         });
 
         it('should handle minimum valid amount', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .withAmount(0.01, 'USD')
                 .build();
 
-            // Seed required data
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-
-            // Set up group memberships
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
-
             // Act & Assert - Should succeed
-            await expect(settlementService.createSettlement(settlementData, userId)).resolves.toBeDefined();
+            await expect(appDriver.createSettlement(settlementData, creatorId)).resolves.toBeDefined();
         });
     });
 
     describe('Soft Delete Functionality', () => {
         it('should initialize new settlements with deletedAt and deletedBy as null', async () => {
             // Arrange
-            const userId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
+
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
+
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
             const settlementData = new CreateSettlementRequestBuilder()
                 .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
+                .withPayerId(payerId)
+                .withPayeeId(payeeId)
                 .build();
 
-            // Seed required data
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(creatorUser, { email: 'creator@test.com', displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-
-            // Set up group memberships
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorUser)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorUser, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
-
             // Act
-            const result = await settlementService.createSettlement(settlementData, userId);
+            const result = await appDriver.createSettlement(settlementData, creatorId);
 
             // Assert - Verify soft delete fields are initialized
             expect(result.deletedAt).toBeNull();
@@ -584,93 +393,70 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should soft delete settlement with correct metadata', async () => {
             // Arrange
-            const settlementId = toSettlementId('test-settlement-id');
-            const creatorId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
 
-            // Seed settlement
-            const settlementData = new SettlementDocumentBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
-                .withAmount(100, 'USD')
-                .withNote('Test settlement')
-                .withCreatedBy(creatorId)
-                .withCreatedAt(Timestamp.now().toDate())
-                .withUpdatedAt(Timestamp.now().toDate())
-                .withDeletedAt(null)
-                .withDeletedBy(null)
-                .build();
-            db.seedSettlement(settlementId, settlementData);
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
 
-            // Set up group and membership
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorId, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
+            // Create settlement via API
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(payerId)
+                    .withPayeeId(payeeId)
+                    .withAmount(100, 'USD')
+                    .withNote('Test settlement')
+                    .build(),
+                creatorId
+            );
+            const settlementId = toSettlementId(settlement.id);
 
             // Act & Assert - Should succeed without throwing
-            await expect(settlementService.softDeleteSettlement(settlementId, creatorId)).resolves.toBeUndefined();
+            await expect(appDriver.deleteSettlement(settlementId, creatorId)).resolves.toBeDefined();
         });
 
         it('should prevent soft deleting already deleted settlement', async () => {
             // Arrange
-            const settlementId = toSettlementId('deleted-settlement-id');
-            const creatorId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
 
-            // Seed already-deleted settlement
-            const deletedSettlementData = new SettlementDocumentBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
-                .withAmount(100, 'USD')
-                .withCreatedBy(creatorId)
-                .withCreatedAt(Timestamp.now().toDate())
-                .withUpdatedAt(Timestamp.now().toDate())
-                .withDeletedAt(Timestamp.now().toDate())
-                .withDeletedBy(creatorId)
-                .build();
-            db.seedSettlement(settlementId, deletedSettlementData);
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
 
-            // Set up group and membership
-            db.seedGroup(groupId, { name: 'Test Group' });
-            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorId, creatorMembershipDoc);
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
 
-            // Act & Assert
-            // Soft-deleted settlements are filtered out by FirestoreReader, so we get NOT_FOUND
-            await expect(settlementService.softDeleteSettlement(settlementId, creatorId)).rejects.toThrow(
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
+            // Create settlement and delete it
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(payerId)
+                    .withPayeeId(payeeId)
+                    .withAmount(100, 'USD')
+                    .build(),
+                creatorId
+            );
+            const settlementId = toSettlementId(settlement.id);
+
+            // Delete the settlement
+            await appDriver.deleteSettlement(settlementId, creatorId);
+
+            // Act & Assert - Trying to delete again should fail
+            await expect(appDriver.deleteSettlement(settlementId, creatorId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                     code: 'SETTLEMENT_NOT_FOUND',
@@ -680,148 +466,107 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should allow settlement creator to soft delete', async () => {
             // Arrange
-            const settlementId = toSettlementId('test-settlement-id');
-            const creatorId = creatorUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
 
-            const settlementData = new SettlementDocumentBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
-                .withAmount(100, 'USD')
-                .withCreatedBy(creatorId)
-                .withCreatedAt(Timestamp.now().toDate())
-                .withUpdatedAt(Timestamp.now().toDate())
-                .withDeletedAt(null)
-                .withDeletedBy(null)
-                .build();
-            db.seedSettlement(settlementId, settlementData);
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
 
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, creatorId, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
+            // Create settlement via API
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(payerId)
+                    .withPayeeId(payeeId)
+                    .withAmount(100, 'USD')
+                    .build(),
+                creatorId
+            );
+            const settlementId = toSettlementId(settlement.id);
 
             // Act & Assert - Should succeed
-            await expect(settlementService.softDeleteSettlement(settlementId, creatorId)).resolves.not.toThrow();
+            await expect(appDriver.deleteSettlement(settlementId, creatorId)).resolves.toBeDefined();
         });
 
         it('should allow group admin to soft delete settlement', async () => {
             // Arrange
-            const settlementId = toSettlementId('test-settlement-id');
-            const creatorId = creatorUser;
-            const adminId = adminUser;
-            const groupId = toGroupId('test-group');
+            const admin = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const adminId = toUserId(admin.user.uid);
 
-            const settlementData = new SettlementDocumentBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
-                .withAmount(100, 'USD')
-                .withCreatedBy(creatorId)
-                .withCreatedAt(Timestamp.now().toDate())
-                .withUpdatedAt(Timestamp.now().toDate())
-                .withDeletedAt(null)
-                .withDeletedBy(null)
-                .build();
-            db.seedSettlement(settlementId, settlementData);
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
 
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            seedUser(adminId, { email: `${adminId}@test.com`, displayName: 'Admin User' });
-            seedUser(creatorId, { email: `${creatorId}@test.com`, displayName: 'Creator User' });
-            seedUser('payer-user', { email: 'payer@test.com', displayName: 'Payer User' });
-            seedUser('payee-user', { email: 'payee@test.com', displayName: 'Payee User' });
-            const adminMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(adminId)
-                .withGroupId(groupId)
-                .withRole('admin') // Admin role
-                .withStatus('active')
-                .buildDocument();
-            const creatorMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(creatorId)
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payerMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payer-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            const payeeMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId('payee-user')
-                .withGroupId(groupId)
-                .withRole('member')
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, adminId, adminMembershipDoc);
-            db.seedGroupMember(groupId, creatorId, creatorMembershipDoc);
-            db.seedGroupMember(groupId, 'payer-user', payerMembershipDoc);
-            db.seedGroupMember(groupId, 'payee-user', payeeMembershipDoc);
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
 
-            // Act & Assert - Should succeed for admin
-            await expect(settlementService.softDeleteSettlement(settlementId, adminId)).resolves.not.toThrow();
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
+
+            // Create group with admin as owner
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), adminId);
+            const groupId = toGroupId(group.id);
+
+            // Add other members
+            await appDriver.addMembersToGroup(groupId, adminId, [creatorId, payerId, payeeId]);
+
+            // Create settlement (by creator, not admin)
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(payerId)
+                    .withPayeeId(payeeId)
+                    .withAmount(100, 'USD')
+                    .build(),
+                creatorId
+            );
+            const settlementId = toSettlementId(settlement.id);
+
+            // Act & Assert - Admin should be able to delete settlement created by another member
+            await expect(appDriver.deleteSettlement(settlementId, adminId)).resolves.toBeDefined();
         });
 
         it('should prevent non-creator non-admin from soft deleting settlement', async () => {
             // Arrange
-            const settlementId = toSettlementId('test-settlement-id');
-            const creatorId = creatorUser;
-            const otherId = otherUser;
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
 
-            const settlementData = new SettlementDocumentBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
-                .withAmount(100, 'USD')
-                .withCreatedBy(creatorId)
-                .withCreatedAt(Timestamp.now().toDate())
-                .withUpdatedAt(Timestamp.now().toDate())
-                .withDeletedAt(null)
-                .withDeletedBy(null)
-                .build();
-            db.seedSettlement(settlementId, settlementData);
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
 
-            db.seedGroup(groupId, { name: 'Test Group' });
-            db.initializeGroupBalance(groupId);
-            const otherMembershipDoc = new GroupMemberDocumentBuilder()
-                .withUserId(otherId)
-                .withGroupId(groupId)
-                .withRole('member') // Regular member, not creator or admin
-                .withStatus('active')
-                .buildDocument();
-            db.seedGroupMember(groupId, otherId, otherMembershipDoc);
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
 
-            // Act & Assert
-            await expect(settlementService.softDeleteSettlement(settlementId, otherId)).rejects.toThrow(
+            const otherMember = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const otherId = toUserId(otherMember.user.uid);
+
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            // Add all members
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId, otherId]);
+
+            // Create settlement (by creator)
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(payerId)
+                    .withPayeeId(payeeId)
+                    .withAmount(100, 'USD')
+                    .build(),
+                creatorId
+            );
+            const settlementId = toSettlementId(settlement.id);
+
+            // Act & Assert - Regular member (not creator, not admin) should not be able to delete
+            await expect(appDriver.deleteSettlement(settlementId, otherId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
@@ -830,12 +575,15 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should prevent soft deleting non-existent settlement', async () => {
             // Arrange
-            const settlementId = toSettlementId('non-existent-settlement-id');
+            const user = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const userId = toUserId(user.user.uid);
 
-            // Don't seed settlement data (simulating non-existent settlement)
+            const nonExistentSettlementId = toSettlementId('non-existent-settlement-id');
+
+            // Don't create settlement (simulating non-existent settlement)
 
             // Act & Assert
-            await expect(settlementService.softDeleteSettlement(settlementId, creatorUser)).rejects.toThrow(
+            await expect(appDriver.deleteSettlement(nonExistentSettlementId, userId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                     code: 'SETTLEMENT_NOT_FOUND',
@@ -845,31 +593,38 @@ describe('SettlementService - Unit Tests', () => {
 
         it('should prevent soft deleting settlement when user not in group', async () => {
             // Arrange
-            const settlementId = toSettlementId('test-settlement-id');
-            const creatorId = creatorUser;
-            const nonMemberId = toUserId('non-member-user');
-            const groupId = toGroupId('test-group');
+            const creator = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const creatorId = toUserId(creator.user.uid);
 
-            const settlementData = new SettlementDocumentBuilder()
-                .withId(settlementId)
-                .withGroupId(groupId)
-                .withPayerId('payer-user')
-                .withPayeeId('payee-user')
-                .withAmount(100, 'USD')
-                .withCreatedBy(creatorId)
-                .withCreatedAt(Timestamp.now().toDate())
-                .withUpdatedAt(Timestamp.now().toDate())
-                .withDeletedAt(null)
-                .withDeletedBy(null)
-                .build();
-            db.seedSettlement(settlementId, settlementData);
+            const payer = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payerId = toUserId(payer.user.uid);
 
-            db.seedGroup(groupId, { name: 'Test Group' });
+            const payee = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const payeeId = toUserId(payee.user.uid);
 
-            // Don't add nonMemberId to group memberships
+            const nonMember = await appDriver.registerUser(new UserRegistrationBuilder().build());
+            const nonMemberId = toUserId(nonMember.user.uid);
 
-            // Act & Assert
-            await expect(settlementService.softDeleteSettlement(settlementId, nonMemberId)).rejects.toThrow(
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorId);
+            const groupId = toGroupId(group.id);
+
+            // Add payer and payee but NOT nonMember
+            await appDriver.addMembersToGroup(groupId, creatorId, [payerId, payeeId]);
+
+            // Create settlement
+            const settlement = await appDriver.createSettlement(
+                new CreateSettlementRequestBuilder()
+                    .withGroupId(groupId)
+                    .withPayerId(payerId)
+                    .withPayeeId(payeeId)
+                    .withAmount(100, 'USD')
+                    .build(),
+                creatorId
+            );
+            const settlementId = toSettlementId(settlement.id);
+
+            // Act & Assert - User not in group should not be able to delete
+            await expect(appDriver.deleteSettlement(settlementId, nonMemberId)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.FORBIDDEN,
                 }),
